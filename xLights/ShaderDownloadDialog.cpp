@@ -27,7 +27,7 @@
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "utils/Curl.h"
 #undef min

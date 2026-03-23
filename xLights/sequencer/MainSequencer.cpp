@@ -30,7 +30,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../graphics/xlGraphicsBase.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(MainSequencer)
 const wxWindowID MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();

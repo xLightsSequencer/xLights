@@ -25,7 +25,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <curl/curl.h>
 

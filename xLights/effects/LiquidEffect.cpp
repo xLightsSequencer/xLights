@@ -26,7 +26,7 @@
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //#define LE_INTERPOLATE
 #define MAX_PARTICLES 100000

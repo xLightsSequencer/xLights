@@ -28,7 +28,7 @@
 #include "ExternalHooks.h"
 #include "GPURenderUtils.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define END_OF_RENDER_FRAME INT_MAX
 

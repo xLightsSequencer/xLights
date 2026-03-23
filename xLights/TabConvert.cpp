@@ -44,7 +44,7 @@ extern "C"
 #include "CopyFormat1.h"
 #include "VideoExporter.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
 #define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER

@@ -18,7 +18,7 @@
 #include <wx/dcclient.h>
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "wx/artprov.h"
 

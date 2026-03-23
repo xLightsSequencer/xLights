@@ -11,7 +11,7 @@
 #include "UndoManager.h"
 #include "Element.h"
 #include "SequenceElements.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 DeletedEffectInfo::DeletedEffectInfo( const std::string &element_name_, int layer_index_, const std::string &name_, const std::string &settings_,
                                       const std::string &palette_, int startTimeMS_, int endTimeMS_, int Selected_, bool Protected_ )

@@ -96,7 +96,7 @@ static bool canUseFramebufferObjects()
 #include "UtilFunctions.h"
 #include "OpenGLShaders.h"
 #include "graphics/opengl/DrawGLUtils.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "TraceLog.h"
 using namespace TraceLog;

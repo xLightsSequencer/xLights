@@ -49,7 +49,7 @@
 #include <cmath>
 #include <limits>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define EFFECT_RESIZE_NO 0
 #define EFFECT_RESIZE_LEFT 1

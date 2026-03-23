@@ -28,7 +28,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"

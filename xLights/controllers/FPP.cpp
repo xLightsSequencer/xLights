@@ -57,7 +57,7 @@
 #include "../ExternalHooks.h"
 #include "../TempFileManager.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "ControllerUploadData.h"
 #include "FPPUploadProgressDialog.h"
 #include "../render/FSEQFile.h"

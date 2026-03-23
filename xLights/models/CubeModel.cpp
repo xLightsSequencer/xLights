@@ -24,7 +24,7 @@
 #include "CustomModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static std::vector<std::tuple<int, int, int, int>> transformations =
 {

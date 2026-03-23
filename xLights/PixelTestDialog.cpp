@@ -26,7 +26,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "xLightsXmlFile.h"
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"

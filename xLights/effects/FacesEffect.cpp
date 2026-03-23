@@ -28,7 +28,7 @@
 
 #include "../../include/corofaces.xpm"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 class FacesRenderCache : public EffectRenderCache {
     std::map<std::string, RenderBuffer*> _imageCache;

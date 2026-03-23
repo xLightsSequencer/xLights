@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 bool claude::IsAvailable() const {
     return !api_key.empty() && !_enabledTypes.empty();

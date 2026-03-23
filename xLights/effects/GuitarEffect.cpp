@@ -28,7 +28,7 @@
 #include <string>
 #include <list>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 class GuitarTiming
 {

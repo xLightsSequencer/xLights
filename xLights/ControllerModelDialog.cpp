@@ -41,7 +41,7 @@
 #include "outputs/Output.h"
 #include "ExternalHooks.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <cmath>
 
 #include <xlsxwriter.h>

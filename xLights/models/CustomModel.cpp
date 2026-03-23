@@ -28,7 +28,7 @@
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 CustomModel::CustomModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {

@@ -6,7 +6,7 @@
 #include <thread>
 #include <vector>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "CurlManager.h"
 

@@ -33,7 +33,7 @@
 #include "../xLightsMain.h"
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;

@@ -25,7 +25,7 @@
 #include "ModelGroup.h"
 #include "XmlSerializer/XmlSerializer.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {

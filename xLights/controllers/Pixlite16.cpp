@@ -26,7 +26,7 @@
 
 #include "../utils/string_utils.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <format>
 

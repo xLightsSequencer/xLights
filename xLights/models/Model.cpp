@@ -51,7 +51,7 @@
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/GdtfParser.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <algorithm>
 #include <iostream>

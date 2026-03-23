@@ -27,7 +27,7 @@
 #include "../ui/effectpanels/EffectPanelUtils.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 PianoEffect::PianoEffect(int id) :
     RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)

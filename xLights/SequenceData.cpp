@@ -11,7 +11,7 @@
 #include <wx/wx.h>
 
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 
 #include "../common/xlBaseApp.h"

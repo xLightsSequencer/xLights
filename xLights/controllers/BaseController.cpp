@@ -21,7 +21,7 @@
 #include "../utils/Curl.h"
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "BaseController.h"
 #include "Falcon.h"

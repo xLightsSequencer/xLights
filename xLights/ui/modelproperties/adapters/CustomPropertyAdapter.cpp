@@ -20,7 +20,7 @@
 #include "../../../ExternalHooks.h"
 #include "../../../xLightsMain.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static const std::string CLICK_TO_EDIT("--Click To Edit--");
 

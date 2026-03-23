@@ -89,7 +89,7 @@
 
 #include <wx/regex.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <fstream>
 #include <map>

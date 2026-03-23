@@ -30,7 +30,7 @@
 #include "ExternalHooks.h"
 #include "ColorPanel.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "../../../ui/wxUtilities.h"
 
 #define ZERO 0

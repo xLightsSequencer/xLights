@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 bool chatGPT::IsAvailable() const {
     return !token.empty() && !_enabledTypes.empty();

@@ -23,7 +23,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "effects/DMXEffect.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);

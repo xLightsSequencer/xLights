@@ -4,7 +4,7 @@
 #include "xLightsApp.h"
 #include "ConvertLogDialog.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include <wx/utils.h>
 #include <wx/regex.h>
@@ -162,13 +162,12 @@ bool GitUtils::HasLocalChanges() const
 
 	if (errors.size() > 0)
 	{
-		static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-		logger_base.debug("Error: %s.", (const char*)errors[0].c_str());
+		spdlog::debug("Error: {}.", errors[0].ToStdString());
 	}
 	return false;
 }
 
-bool GitUtils::StashChanges() const 
+bool GitUtils::StashChanges() const
 {
 	if (!m_folderInGit) {
 		return false;
@@ -183,8 +182,7 @@ bool GitUtils::StashChanges() const
 	}
 
 	if (errors.size() > 0) {
-		static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-		logger_base.debug("Error: %s.", (const char*)errors[0].c_str());
+		spdlog::debug("Error: {}.", errors[0].ToStdString());
 	}
 	return false;
 }
@@ -204,8 +202,7 @@ bool GitUtils::UnStashChanges() const
 	}
 
 	if (errors.size() > 0) {
-		static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-		logger_base.debug("Error: %s.", (const char*)errors[0].c_str());
+		spdlog::debug("Error: {}.", errors[0].ToStdString());
 	}
 	return false;
 }
@@ -253,8 +250,7 @@ bool GitUtils::AddFile(wxString const& filePath)
 		return true;
 	}
 	if(errors.size() > 0) {
-		static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-		logger_base.debug("Error: %s.", (const char*)errors[0].c_str());
+		spdlog::debug("Error: {}.", errors[0].ToStdString());
 	}
 
 	return false;
@@ -271,8 +267,7 @@ bool GitUtils::findGitInstallLocation() const
 	}
 
 	if (errors.size() > 0) {
-		static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-		logger_base.debug("Error: %s.", (const char*)errors[0].c_str());
+		spdlog::debug("Error: {}.", errors[0].ToStdString());
 	}
 
 	return false;
@@ -353,8 +348,7 @@ bool GitUtils::checkIfFolderIsInGit()
 	}
 
 	if (errors.size() > 0) {
-		static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-		logger_base.debug("Error: %s.", (const char*)errors[0].c_str());
+		spdlog::debug("Error: {}.", errors[0].ToStdString());
 	}
 
 	return false;

@@ -25,7 +25,7 @@
 #include <wx/artprov.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(ValueCurvesPanel)
 const long ValueCurvesPanel::ID_SCROLLEDWINDOW1 = wxNewId();

@@ -13,7 +13,7 @@
 #include "ModelPreview.h"
 #include "Model.h"
 #include "../ExternalHooks.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "../ui/wxUtilities.h"
 
 TerrainObject::TerrainObject(const ViewObjectManager &manager)

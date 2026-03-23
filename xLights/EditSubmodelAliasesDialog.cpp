@@ -12,7 +12,7 @@
 #include "models/Model.h"
 #include "models/SubModel.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*InternalHeaders(EditSubmodelAliasesDialog)
 #include <wx/bitmap.h>

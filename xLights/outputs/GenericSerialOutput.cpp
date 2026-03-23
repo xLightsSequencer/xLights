@@ -1,6 +1,6 @@
 #include "GenericSerialOutput.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define MAX_PREFIX_POSTFIX 256
 

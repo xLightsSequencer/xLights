@@ -22,7 +22,7 @@
 #include "../ExternalHooks.h"
 #include "../outputs/Controller.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;

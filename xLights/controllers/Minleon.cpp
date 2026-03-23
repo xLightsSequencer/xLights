@@ -27,7 +27,7 @@
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region MinleonString Handling
 class MinleonString

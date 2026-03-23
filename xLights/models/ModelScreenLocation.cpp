@@ -27,7 +27,7 @@
 #include "../xLightsMain.h"
 #include "RulerObject.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define BOUNDING_RECT_OFFSET        8
 

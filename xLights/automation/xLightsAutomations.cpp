@@ -33,7 +33,7 @@
 
 #include "LuaRunner.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {

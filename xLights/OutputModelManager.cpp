@@ -12,7 +12,7 @@
 #include "outputs/Controller.h"
 #include "xLightsMain.h"
 #include "OutputModelManager.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #ifdef _DEBUG
 void OutputModelManager::Dump(const std::string& type, const std::list<std::pair<uint32_t, std::string>>& source)

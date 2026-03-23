@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"

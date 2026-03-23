@@ -31,7 +31,7 @@
 #include "GenericSerialOutput.h"
 #include "../models/ModelManager.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Property Choices
 wxPGChoices ControllerSerial::__types;

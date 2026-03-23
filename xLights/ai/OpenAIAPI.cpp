@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 constexpr const char* completion_url = "/chat/completions";
 

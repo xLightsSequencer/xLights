@@ -34,7 +34,7 @@
 #include "../Discovery.h"
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Private Functions
 void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {
@@ -318,7 +318,7 @@ void ZCPPOutput::SendSync(const std::string& localIP) {
             syncdatagram = nullptr;
         }
         else if (syncdatagram->Error()) {
-            spdlog::error("Error creating ZCPP sync datagram => {} : {}.", syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str());
+            spdlog::error("Error creating ZCPP sync datagram => {} : {}.", (int)syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
         }
@@ -786,7 +786,7 @@ bool ZCPPOutput::Open() {
         _datagram = nullptr;
     }
     else if (_datagram->Error()) {
-        spdlog::error("Error creating ZCPP datagram => {} : {}.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
+        spdlog::error("Error creating ZCPP datagram => {} : {}.", (int)_datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
     }

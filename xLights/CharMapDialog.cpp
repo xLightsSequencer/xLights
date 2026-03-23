@@ -19,7 +19,7 @@
 #include <wx/settings.h>
 #include <wx/numformatter.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(CharMapDialog)
 const long CharMapDialog::ID_STATICTEXT1 = wxNewId();

@@ -34,7 +34,7 @@
 #include "Parallel.h"
 #include "models/CustomModel.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define GCM_DISPLAYIMAGEWIDTH 800
 #define GCM_DISPLAYIMAGEHEIGHT 600

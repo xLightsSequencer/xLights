@@ -14,7 +14,7 @@
 #include "../../../xLightsMain.h"
 #include "ui/ValueCurveButton.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 BEGIN_EVENT_TABLE(xlGridCanvasMorph, xlGridCanvas)
     EVT_PAINT(xlGridCanvasMorph::render)

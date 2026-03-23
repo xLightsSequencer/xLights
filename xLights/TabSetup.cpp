@@ -65,7 +65,7 @@
 
 #include "../xFade/wxLED.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 // Thread class to ping a single controller
 class ControllerPingThread : public wxThread {

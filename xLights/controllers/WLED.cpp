@@ -26,7 +26,7 @@
 
 #include <curl/curl.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Output Classes
 struct WLEDOutput {

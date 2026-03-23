@@ -33,7 +33,7 @@
 #include "sequencer/MainSequencer.h"
 #include "render/SequenceElements.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
 EVT_MOTION(ValueCurvePanel::mouseMoved)

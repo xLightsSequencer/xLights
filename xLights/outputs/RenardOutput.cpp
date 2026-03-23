@@ -1,6 +1,6 @@
 #include "RenardOutput.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Constructors and Destructors
 RenardOutput::RenardOutput(pugi::xml_node node) : SerialOutput(node)

@@ -34,7 +34,7 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 using namespace Vamp;
 
@@ -902,7 +902,6 @@ SDLManager::~SDLManager() {
         SDL_Quit();
     }
 
-    spdlog::debug("SDL uninitialized");
 }
 
 [[nodiscard]] InputSDL* SDLManager::GetInputSDL(const std::string& device) {

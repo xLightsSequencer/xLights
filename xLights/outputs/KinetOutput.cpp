@@ -16,7 +16,7 @@
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Static Variables
 #pragma endregion
@@ -48,7 +48,7 @@ void KinetOutput::OpenDatagram() {
         _ok = false;
     }
     else if (_datagram->Error()) {
-        spdlog::error("Error creating Kinet datagram => {} : {}. {}", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error creating Kinet datagram => {} : {}. {}", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;

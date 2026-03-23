@@ -14,9 +14,7 @@
 #include <wx/image.h>
 //*)
 
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
+#include <log.h>
 #include <wx/file.h>
 #include <wx/msgdlg.h>
 
@@ -42,7 +40,7 @@
         #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"ud_qa.lib")
         #pragma comment(lib, "wxexpatd.lib")
         #pragma comment(lib, "msvcprtd.lib")
-        #pragma comment(lib, "log4cpplibd.lib")
+        #pragma comment(lib, "spdlogd.lib")
         #pragma comment(lib, "wxwebpd.lib")
     #else
         #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
@@ -58,7 +56,7 @@
         #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"u_qa.lib")
         #pragma comment(lib, "wxexpat.lib")
         #pragma comment(lib, "msvcprt.lib")
-        #pragma comment(lib, "log4cpplib.lib")
+        #pragma comment(lib, "spdlog.lib")
         #pragma comment(lib, "wxwebp.lib")
     #endif  
     #pragma comment(lib, "libcurl.dll.a")
@@ -129,11 +127,10 @@ std::string DecodeOS(wxOperatingSystemId o)
 
 void DumpConfig()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
-    logger_base.info("Bits: " + std::string(GetBitness().c_str()));
-    logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
-    logger_base.info("Machine configuration:");
+    spdlog::info("Version: " + std::string(xlights_version_string.c_str()));
+    spdlog::info("Bits: " + std::string(GetBitness().c_str()));
+    spdlog::info("Build Date: " + std::string(xlights_build_date.c_str()));
+    spdlog::info("Machine configuration:");
     wxMemorySize s = wxGetFreeMemory();
     if (s != -1)
     {
@@ -142,34 +139,34 @@ void DumpConfig()
 #else
         wxString msg = wxString::Format(_T("  Free Memory: %ld."), s);
 #endif
-        logger_base.info("%s", (const char *)msg.c_str());
+        spdlog::info("{}", msg.ToStdString());
     }
-    logger_base.info("  Current directory: " + std::string(wxGetCwd().c_str()));
-    logger_base.info("  Machine name: " + std::string(wxGetHostName().c_str()));
-    logger_base.info("  OS: " + std::string(wxGetOsDescription().c_str()));
+    spdlog::info("  Current directory: " + std::string(wxGetCwd().c_str()));
+    spdlog::info("  Machine name: " + std::string(wxGetHostName().c_str()));
+    spdlog::info("  OS: " + std::string(wxGetOsDescription().c_str()));
     int verMaj = -1;
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
-    logger_base.info("  OS: %s %d.%d", (const char *)DecodeOS(o).c_str(), verMaj, verMin);
+    spdlog::info("  OS: {} {}.{}", DecodeOS(o), verMaj, verMin);
     if (wxIsPlatform64Bit())
     {
-        logger_base.info("      64 bit");
+        spdlog::info("      64 bit");
     }
     else
     {
-        logger_base.info("      NOT 64 bit");
+        spdlog::info("      NOT 64 bit");
     }
     if (wxIsPlatformLittleEndian())
     {
-        logger_base.info("      Little Endian");
+        spdlog::info("      Little Endian");
     }
     else
     {
-        logger_base.info("      Big Endian");
+        spdlog::info("      Big Endian");
     }
 #ifdef LINUX
     wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
-    logger_base.info("  " + std::string(l.Id.c_str()) \
+    spdlog::info("  " + std::string(l.Id.c_str()) \
         + " " + std::string(l.Release.c_str()) \
         + " " + std::string(l.CodeName.c_str()) \
         + " " + std::string(l.Description.c_str()));
@@ -182,58 +179,14 @@ void InitialiseLogging(bool fromMain)
 
     if (!loggingInitialised)
     {
-
-#ifdef __WXMSW__
-        std::string initFileName = "xcapture.windows.properties";
-#endif
-#ifdef __WXOSX__
-        std::string initFileName = "xcapture.mac.properties";
-        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xcapture.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
-            if (fromMain) {
-                return;
-            } else if (wxFile::Exists(resourceName)) {
-                initFileName = resourceName;
-            }
-        }
         loggingInitialised = true;
-
-#endif
-#ifdef __LINUX__
-        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xcapture.linux.properties";
-        if (!wxFile::Exists(initFileName)) {
-            initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xcapture.linux.properties";
-        }
-#endif
-
-        if (!wxFile::Exists(initFileName))
-        {
-#ifdef _MSC_VER
-            // the app is not initialized so GUI is not available and no event loop.
-            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
-#endif
-        }
-        else
-        {
-            try
-            {
-                log4cpp::PropertyConfigurator::configure(initFileName);
-            }
-            catch (log4cpp::ConfigureFailure& e) {
-                // ignore config failure ... but logging wont work
-                printf("Log issue:  %s\n", e.what());
-            }
-            catch (const std::exception& ex) {
-                printf("Log issue: %s\n", ex.what());
-            }
-        }
+        // spdlog is configured globally in xlBaseApp; no per-app properties file needed.
     }
 }
 
 void xCaptureApp::WipeSettings()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.warn("------ Wiping settings ------");
+    spdlog::warn("------ Wiping settings ------");
 
     wxConfigBase* config = wxConfigBase::Get();
     config->DeleteAll();
@@ -241,8 +194,7 @@ void xCaptureApp::WipeSettings()
 
 int xCaptureApp::OnExit()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("xCapture exiting.");
+    spdlog::info("xCapture exiting.");
 
     return 0;
 }
@@ -261,8 +213,7 @@ bool xCaptureApp::OnInit()
 #endif
 
     InitialiseLogging(false);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("******* OnInit: xCapture started.");
+    spdlog::info("******* OnInit: xCapture started.");
 
     DumpConfig();
 #ifdef __WXMSW__
@@ -289,12 +240,12 @@ bool xCaptureApp::OnInit()
         if (parser.Found("w"))
         {
             parmfound = true;
-            logger_base.info("-w: Wiping settings");
+            spdlog::info("-w: Wiping settings");
             WipeSettings();
         }
         if (!parmfound && parser.GetParamCount() > 0)
         {
-            logger_base.info("Unrecognised command line parameter found.");
+            spdlog::info("Unrecognised command line parameter found.");
             wxMessageBox("Unrecognised command line parameter found.", _("Command Line Options")); //give positive feedback*/
         }
         break;

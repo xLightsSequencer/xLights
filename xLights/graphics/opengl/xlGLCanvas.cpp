@@ -13,7 +13,7 @@
 #include <wx/log.h>
 #include <wx/config.h>
 #include <wx/msgdlg.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #ifndef __WXMAC__
 #ifdef _MSC_VER
@@ -595,7 +595,7 @@ void xlGLCanvas::CreateGLContext() {
                 isCoreProfile = false;
             }
             m_logger->info(configs);
-            printf("%s\n", configs);
+            printf("%s\n", configs.c_str());
             
             if (m_logger->level() == spdlog::level::level_enum::debug) {
                 AddDebugLog(this);

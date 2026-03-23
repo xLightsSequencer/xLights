@@ -36,7 +36,7 @@
 #include "../../include/text-32.xpm"
 #include "../../include/text-48.xpm"
 #include "../../include/text-64.xpm"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define MAXTEXTLINES 100
 

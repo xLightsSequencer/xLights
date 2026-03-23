@@ -21,7 +21,7 @@
 #include <wx/string.h>
 #include <pugixml.hpp>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "../xLights/UtilFunctions.h"
 

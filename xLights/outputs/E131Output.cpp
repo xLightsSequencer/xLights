@@ -21,7 +21,7 @@
 #include <wx/process.h>
 #include <wx/propgrid/propgrid.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Private Functions
 void E131Output::CreateMultiUniverses_CONVERT(int num) {
@@ -71,7 +71,7 @@ void E131Output::OpenDatagram() {
         _datagram = nullptr;
     }
     else if (_datagram->Error()) {
-        spdlog::error("E131Output: {} Error creating E131 datagram => {} : {}.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+        spdlog::error("E131Output: {} Error creating E131 datagram => {} : {}.", (const char*)localaddr.IPAddress().c_str(), (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -224,7 +224,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
                 syncdatagram = nullptr;
             }
             else if (syncdatagram->Error()) {
-                spdlog::error("Error creating E131 sync datagram => {} : {}. {}", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error creating E131 sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }

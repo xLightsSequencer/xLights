@@ -14,7 +14,7 @@
 #include "Output.h"
 
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include <libusb.h>
 #include <uchar.h>
@@ -55,7 +55,6 @@ bool uDMXOutput::Open() {
     if (libusb_init(&m_ctx) != 0) {
          return false;
     }
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     libusb_device** devices = nullptr;
     ssize_t count = libusb_get_device_list(m_ctx, &devices);
     for (ssize_t i = 0; i < count; i++)
@@ -68,7 +67,7 @@ bool uDMXOutput::Open() {
         {
             continue;
         }
-        logger_base.debug("%04x:%04x (bus %d, device %d)",
+        spdlog::debug("{:04x}:{:04x} (bus {}, device {})",
 		desc.idVendor, desc.idProduct,
 		libusb_get_bus_number(dev), libusb_get_device_address(dev));
 

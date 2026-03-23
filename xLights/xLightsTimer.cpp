@@ -10,7 +10,7 @@
 
 #include "xLightsTimer.h"
 #include <wx/thread.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <mutex>
 
 #ifndef __WXOSX__

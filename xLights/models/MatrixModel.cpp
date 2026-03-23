@@ -18,7 +18,7 @@
 #include "../ModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {

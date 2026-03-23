@@ -27,7 +27,7 @@
 #include "VendorModelDialog.h"
 #include "XmlSerializer/XmlSerializer.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <algorithm>
 #include <vector>
 

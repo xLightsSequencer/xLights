@@ -25,7 +25,7 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(ColoursPanel)
 const long ColoursPanel::ID_SCROLLEDWINDOW1 = wxNewId();

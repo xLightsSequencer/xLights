@@ -23,7 +23,7 @@
 #include <wx/regex.h>
 #include <wx/sstream.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 // This code has been tested with
 // ECG-P12S App Version 3.3

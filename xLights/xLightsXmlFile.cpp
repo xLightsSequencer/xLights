@@ -33,7 +33,7 @@
 #include "Vixen3.h"
 #include "ExternalHooks.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define string_format wxString::Format
 

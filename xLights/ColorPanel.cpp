@@ -40,7 +40,7 @@
 #include <wx/stdpaths.h>
 #include <wx/regex.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "ui/wxUtilities.h"
 
 

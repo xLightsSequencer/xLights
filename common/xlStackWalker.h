@@ -20,7 +20,7 @@
 
 #include <libloaderapi.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define USE_MAP_TO_STACKWALK
 #define FORCE_MAP_TO_STACKWALK

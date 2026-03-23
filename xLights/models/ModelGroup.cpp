@@ -17,7 +17,7 @@
 #include "../UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static const std::string HORIZ("Horizontal Stack");
 static const std::string VERT("Vertical Stack");

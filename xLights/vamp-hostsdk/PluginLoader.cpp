@@ -47,7 +47,7 @@
 #include <fstream>
 
 // xLights
-#include "spdlog/spdlog.h"
+#include <log.h>
 // end xLights
 
 using namespace std;

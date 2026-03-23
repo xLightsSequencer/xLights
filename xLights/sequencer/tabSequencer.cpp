@@ -62,7 +62,7 @@
 #include "../ExternalHooks.h"
 #include "../models/ModelGroup.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 void xLightsFrame::CreateSequencer()
 {

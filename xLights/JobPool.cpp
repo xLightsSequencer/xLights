@@ -33,7 +33,7 @@
 #endif
 
 #include "ExternalHooks.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "utils/string_utils.h"
 
 #include "TraceLog.h"

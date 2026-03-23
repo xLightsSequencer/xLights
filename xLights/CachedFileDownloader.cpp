@@ -15,7 +15,7 @@
 #include <wx/wx.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <wx/dir.h>
 #include <wx/progdlg.h>
 

@@ -19,7 +19,7 @@
 #include <wx/filename.h>
 #include <wx/file.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"

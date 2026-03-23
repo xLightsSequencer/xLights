@@ -62,7 +62,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 void xLightsFrame::AddAllModelsToSequence()
 {
     std::string models_to_add;

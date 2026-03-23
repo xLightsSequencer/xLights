@@ -38,7 +38,7 @@
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
 #include <wx/log.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 

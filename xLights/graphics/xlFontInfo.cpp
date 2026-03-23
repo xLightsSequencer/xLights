@@ -1,7 +1,7 @@
 
 #include "xlFontInfo.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <vector>
 #include <map>
 

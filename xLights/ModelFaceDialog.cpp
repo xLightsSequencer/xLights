@@ -57,7 +57,7 @@
 #include "ui/wxUtilities.h"
 #include "XmlSerializer/XmlSerializer.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define CHANNEL_COL 0
 #define COLOR_COL 1

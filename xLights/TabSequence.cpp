@@ -49,7 +49,7 @@
 #include "xLightsVersion.h"
 #include "TopEffectsPanel.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {

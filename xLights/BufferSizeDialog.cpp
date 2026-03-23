@@ -28,7 +28,7 @@
 #include <wx/artprov.h>
 #include <wx/filename.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(BufferSizeDialog)
 const long BufferSizeDialog::ID_STATICTEXT1 = wxNewId();

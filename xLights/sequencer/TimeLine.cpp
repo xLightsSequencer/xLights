@@ -14,7 +14,7 @@
 #include "TimeLine.h"
 #include "Waveform.h"
 #include "../xLightsMain.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 const long TimeLine::ID_ZOOMSEL = wxNewId();
 const long TimeLine::ID_RESETZOOM = wxNewId();

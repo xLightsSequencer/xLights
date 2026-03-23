@@ -25,7 +25,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Private Functions
 void SerialOutput::SaveAttr(pugi::xml_node node) {

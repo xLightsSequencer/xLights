@@ -16,7 +16,7 @@
 #include <pugixml.hpp>
 #include <string>
 #include <map>
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 
 std::string SpecialOptions::StashShowDir(const std::string& showDir)

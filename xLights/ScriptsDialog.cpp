@@ -27,7 +27,7 @@
 #endif
 #include "ExternalHooks.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <wx/mimetype.h>
 #include <wx/stdpaths.h>
 #include <wx/txtstrm.h>

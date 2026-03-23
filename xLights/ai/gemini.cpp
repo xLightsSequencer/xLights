@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //#define TEST_WITH_LOCAL_IMAGE
 

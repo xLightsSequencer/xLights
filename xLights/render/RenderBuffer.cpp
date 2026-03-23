@@ -27,7 +27,7 @@
 #include "GPURenderUtils.h"
 #include "BufferPanel.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "Parallel.h"
 #include "ui/wxUtilities.h"
 

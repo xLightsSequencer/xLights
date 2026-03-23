@@ -20,7 +20,7 @@
 #include "xLightsMain.h"
 #include "ExternalHooks.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static const std::string IMPORTED_MEDIA = "ImportedMedia";
 static const std::string SUBFLD_IMAGES = "Images";

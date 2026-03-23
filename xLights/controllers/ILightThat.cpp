@@ -23,7 +23,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <utils/CurlManager.h>
 
 #pragma region Constructors and Destructors

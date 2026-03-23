@@ -45,7 +45,7 @@
 #include "automation/automation.h"
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/common.h"
 
@@ -184,6 +184,7 @@ void InitialiseLogging(bool fromMain)
         spdlog::set_default_logger(file_logger);
         spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%l] %v");
         spdlog::flush_on(spdlog::level::info);
+
         // wxOperatingSystemId os = wxGetOsVersion();
         // std::string osStr = DecodeOS(os);
         // std::string initFileName;

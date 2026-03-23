@@ -54,7 +54,7 @@
 #include <sys/sysinfo.h>
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #if defined(_MSC_VER) // Visual studio
 #define thread_local __declspec(thread)

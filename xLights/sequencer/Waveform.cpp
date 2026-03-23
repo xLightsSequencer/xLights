@@ -32,7 +32,7 @@
 #include "MainSequencer.h"
 #include "../NoteRangeDialog.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);

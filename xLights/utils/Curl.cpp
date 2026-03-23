@@ -19,7 +19,7 @@
 #include <string>
 #include <algorithm>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "Curl.h"
 

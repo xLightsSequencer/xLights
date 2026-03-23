@@ -40,7 +40,7 @@
 #include "../include/spxml-0.5/spxmlutils.cpp"
 #include "../include/spxml-0.5/spxmlstag.cpp"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(ConvertDialog)
 const long ConvertDialog::ID_STATICTEXT2 = wxNewId();

@@ -14,7 +14,7 @@
 #include "../UtilFunctions.h"
 
 #include "../utils/Curl.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <wx/base64.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
@@ -742,7 +742,7 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
         delete datagram;
         datagram = nullptr;
     } else if (datagram->Error()) {
-        spdlog::error("Error creating Twinkly query datagram => {} : {}.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+        spdlog::error("Error creating Twinkly query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
     } else {
@@ -758,7 +758,7 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
         spdlog::info("Twinkly sending query packet.");
         datagram->SendTo(remoteaddr, &packet, sizeof(packet));
         if (datagram->Error()) {
-            spdlog::error("Error sending Twinkly query datagram => {} : {}.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            spdlog::error("Error sending Twinkly query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         } else {
             spdlog::info("Twinkly sent query packet. Sleeping for 1 second.");
 

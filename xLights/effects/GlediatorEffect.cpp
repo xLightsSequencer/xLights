@@ -30,7 +30,7 @@
 
 #include "../../include/glediator-16.xpm"
 #include "../../include/glediator-64.xpm"
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "../UtilFunctions.h"
 
 GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size)

@@ -26,7 +26,7 @@
 #include "ExternalHooks.h"
 #include "XmlSerializer/FileSerializingVisitor.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 wxDEFINE_EVENT(EVT_EFFTREEDROP, wxCommandEvent);
 

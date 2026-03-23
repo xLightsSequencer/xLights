@@ -26,7 +26,7 @@ extern "C" {
 }
 
 #include "SpecialOptions.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #ifdef __WXOSX__
 extern void InitVideoToolboxAcceleration();

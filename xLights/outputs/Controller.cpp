@@ -26,7 +26,7 @@
 
 #include <numeric>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static wxArrayString ACTIVETYPENAMES;
 

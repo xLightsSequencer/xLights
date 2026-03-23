@@ -16,7 +16,7 @@
 
 #include <wx/process.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #ifdef __linux__
 #include <sys/socket.h>
@@ -54,7 +54,7 @@ void OPCOutput::OpenSocket() {
             _socket = nullptr;
         }
         else if (_socket->Error()) {
-            spdlog::error("OPCOutput: {} Error connecting OPC socket => {} : {}.", (const char*)_remoteAddr.IPAddress().c_str(), _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+            spdlog::error("OPCOutput: {} Error connecting OPC socket => {} : {}.", (const char*)_remoteAddr.IPAddress().c_str(), (int)_socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
             delete _socket;
             _socket = nullptr;
         }

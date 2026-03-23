@@ -5,7 +5,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <wx/mstream.h>
 #include <wx/base64.h>

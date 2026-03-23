@@ -23,7 +23,7 @@
 #include <winerror.h>
 #include <d3d11_4.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <map>
 #include <string>

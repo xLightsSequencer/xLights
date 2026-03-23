@@ -15,7 +15,7 @@
 #include "xLightsMain.h"
 #include "../ExternalHooks.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 ImageObject::ImageObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)

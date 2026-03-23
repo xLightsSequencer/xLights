@@ -10,7 +10,7 @@
 
 #include "GIFImage.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <wx/filename.h>
 #include "../ui/wxUtilities.h"

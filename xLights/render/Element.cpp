@@ -14,7 +14,7 @@
 #include <numeric>
 #include <thread>
 #include "UtilFunctions.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "SequenceElements.h"
 #include "xLightsMain.h"
 

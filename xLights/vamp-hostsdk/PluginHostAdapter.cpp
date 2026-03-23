@@ -39,7 +39,7 @@
 #include "Files.h"
 
 // xLights
-#include "spdlog/spdlog.h"
+#include <log.h>
 // end xLights
 
 #if ( VAMP_SDK_MAJOR_VERSION != 2 || VAMP_SDK_MINOR_VERSION != 8 )

@@ -31,7 +31,7 @@
 #include "UtilFunctions.h"
 #include "models/ModelGroup.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_VMDROP, wxCommandEvent);

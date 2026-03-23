@@ -23,7 +23,7 @@
 #include "utils/Curl.h"
 #include "CachedFileDownloader.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #ifdef USE_WEBVIEW_FOR_TOD
 #include <wx/webview.h>

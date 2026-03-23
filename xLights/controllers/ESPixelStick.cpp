@@ -18,7 +18,7 @@
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <vector>
 

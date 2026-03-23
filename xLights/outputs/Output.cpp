@@ -36,7 +36,7 @@
 #include "../utils/ip_utils.h"
 #include "Controller.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Private Functions
 void Output::SaveAttr(pugi::xml_node node) {

@@ -19,7 +19,7 @@
 #ifndef EXCLUDENETWORKUI
 #include "../models/ModelManager.h"
 #endif
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "../Discovery.h"
 
@@ -62,7 +62,7 @@ void ArtNetOutput::OpenDatagram() {
         _ok = false;
     }
     else if (_datagram->Error()) {
-        spdlog::error("Error creating Artnet datagram => {} : {}. {}", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error creating Artnet datagram => {} : {}. {}", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -160,7 +160,7 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
             return;
         }
         else if (syncdatagram->Error()) {
-            spdlog::error("Error creating Artnet sync datagram => {} : {}. {}", syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("Error creating Artnet sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;

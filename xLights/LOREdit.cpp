@@ -30,7 +30,7 @@
 #include "effects/SnowflakesEffect.h"
 #include "effects/RippleEffect.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 // Current working assumptions
 //

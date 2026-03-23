@@ -27,7 +27,7 @@
 #include "sequencer/MainSequencer.h"
 #include "xlColourData.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "ui/wxUtilities.h"
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);

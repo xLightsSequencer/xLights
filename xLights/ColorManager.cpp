@@ -12,7 +12,7 @@
 #include "xLightsMain.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "ui/wxUtilities.h"
 
 ColorManager::ColorManager(xLightsFrame* frame)

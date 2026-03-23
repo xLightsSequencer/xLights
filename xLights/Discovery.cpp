@@ -30,7 +30,7 @@
 #include "controllers/Falcon.h"
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "utils/CurlManager.h"
 

@@ -21,7 +21,7 @@
 #include "CustomModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 SphereModel::SphereModel(const ModelManager &manager) : MatrixModel(manager)
 {

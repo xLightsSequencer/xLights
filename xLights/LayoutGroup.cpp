@@ -16,7 +16,7 @@
 #include "PreviewPane.h"
 #include "ModelPreview.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 LayoutGroup::LayoutGroup(const std::string& name, xLightsFrame* xl)
     : mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mBackgroundAlpha(100), mPreviewHidden(true), mPreviewCreated(false),

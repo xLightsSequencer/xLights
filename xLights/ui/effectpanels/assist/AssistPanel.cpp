@@ -19,7 +19,7 @@
 #include "../../../models/Model.h"
 #include "../../../render/Element.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(AssistPanel)
 const long AssistPanel::ID_SCROLLEDWINDOW_Assist = wxNewId();

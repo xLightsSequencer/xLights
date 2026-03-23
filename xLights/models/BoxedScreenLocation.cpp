@@ -23,7 +23,7 @@
 #include "RulerObject.h"
 #include "ColorManager.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <cmath>
 

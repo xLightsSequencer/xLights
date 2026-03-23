@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "WebSocketClient.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 WebSocketClient::WebSocketClient()
 {

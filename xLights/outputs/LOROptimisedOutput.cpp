@@ -16,7 +16,7 @@
 
 #include <wx/propgrid/propgrid.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE 100
 

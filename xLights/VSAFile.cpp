@@ -10,7 +10,7 @@
 
 #include "VSAFile.h"
 #include <wx/file.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <wx/filename.h>
 #include "UtilFunctions.h"
 

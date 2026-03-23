@@ -30,7 +30,7 @@
 #include "graphics/opengl/xlGLCanvas.h"
 #include "../MetronomeLabelDialog.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "../ui/wxUtilities.h"
 
 #define ICON_SPACE FromDIP(25)

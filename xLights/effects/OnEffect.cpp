@@ -16,7 +16,7 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../Parallel.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
 static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");

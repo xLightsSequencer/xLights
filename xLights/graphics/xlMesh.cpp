@@ -12,7 +12,7 @@
 #include "../ExternalHooks.h"
 #include "../UtilFunctions.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
     

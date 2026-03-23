@@ -30,7 +30,7 @@
 #include <unistd.h>
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <filesystem>
 
 #pragma pack(push, 2)

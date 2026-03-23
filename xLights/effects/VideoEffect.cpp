@@ -31,7 +31,7 @@
 #include "../Parallel.h"
 #include "ispc/VideoFunctions.ispc.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {

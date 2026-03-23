@@ -21,7 +21,7 @@
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #ifndef EXCLUDEDISCOVERY
 #include "../Discovery.h"
@@ -58,7 +58,7 @@ void DDPOutput::OpenDatagram() {
         _ok = false;
     }
     else if (_datagram->Error()) {
-        spdlog::error("Error creating DDP datagram => {} : {}. {}", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error creating DDP datagram => {} : {}. {}", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -158,7 +158,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
             return;
         }
         else if (syncdatagram->Error()) {
-            spdlog::error("Error creating DDP sync datagram => {} : {}. {}", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+            spdlog::error("Error creating DDP sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -210,7 +210,7 @@ nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::
         datagram = nullptr;
     }
     else if (datagram->Error()) {
-        spdlog::error("Error creating DDP query datagram => {} : {}.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+        spdlog::error("Error creating DDP query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
     }
@@ -227,7 +227,7 @@ nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::
         spdlog::info("DDP sending query packet.");
         datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
         if (datagram->Error()) {
-            spdlog::error("Error sending DDP query datagram => {} : {}.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            spdlog::error("Error sending DDP query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         }
         else {
             spdlog::info("DDP sent query packet. Sleeping for 1 second.");

@@ -26,7 +26,7 @@
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 StateEffect::StateEffect(int id) :
     RenderableEffect(id, "State", state_16, state_64, state_64, state_64, state_64) {

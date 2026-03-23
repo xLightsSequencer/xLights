@@ -17,7 +17,7 @@
 #include "ExternalHooks.h"
 #include "SequenceElements.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <cassert>
 #include <cerrno>

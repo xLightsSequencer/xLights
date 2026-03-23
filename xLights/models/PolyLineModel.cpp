@@ -23,7 +23,7 @@
 #include "../ModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     DisplayAs = DisplayAsType::PolyLine;

@@ -47,18 +47,14 @@ int gettimeofday(struct timeval* tp, struct timezone* tzp) {
 #define PLATFORM_UNKNOWN
 #endif
 
-#if __has_include("spdlog/spdlog.h")
+#if __has_include(<log.h>) || __has_include("spdlog/spdlog.h") || __has_include(<spdlog/spdlog.h>)
 #define PLATFORM_UNKNOWN
 #include "spdlog/sinks/rotating_file_sink.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <spdlog/fmt/bundled/printf.h>
 #include <spdlog/fmt/ostr.h>
 
-template<typename T>
-    requires std::is_enum_v<T>
-auto format_as(T t) {
-    return fmt::underlying(t);
-}
+using fmt::enums::format_as;
 
 template<typename... Args>
 static void LogErr(int i, const char* fmt, Args... args) {
@@ -98,49 +94,6 @@ inline void AddSlowStorageWarning() {
     spdlog::warn("FSEQ Data Block not available - Likely slow storage");
     spdlog::warn("This is a warning, not an error.  It is likely that the FSEQ file is on a slow storage device.");
     spdlog::warn("If you are using a USB drive, please consider using a faster drive.");
-}
-
-#elif __has_include(<log4cpp/Category.hh>)
-// compiling within xLights, use log4cpp
-#define PLATFORM_UNKNOWN
-#include "spdlog/spdlog.h"
-template<typename... Args>
-static void LogErr(int i, const char* fmt, Args... args) {
-    static log4cpp::Category& fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    char buf[256];
-    const char* nfmt = fmt;
-    if (fmt[strlen(fmt) - 1] == '\n') {
-        strcpy(buf, fmt);
-        buf[strlen(fmt) - 1] = 0;
-        nfmt = buf;
-    }
-    fseq_spdlog::error(nfmt, args...);
-}
-template<typename... Args>
-static void LogInfo(int i, const char* fmt, Args... args) {
-    static log4cpp::Category& fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    char buf[256];
-    const char* nfmt = fmt;
-    if (fmt[strlen(fmt) - 1] == '\n') {
-        strcpy(buf, fmt);
-        buf[strlen(fmt) - 1] = 0;
-        nfmt = buf;
-    }
-    fseq_spdlog::info(nfmt, args...);
-}
-template<typename... Args>
-static void LogDebug(int i, const char* fmt, Args... args) {
-    static log4cpp::Category& fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    char buf[256];
-    const char* nfmt = fmt;
-    if (fmt[strlen(fmt) - 1] == '\n') {
-        strcpy(buf, fmt);
-        buf[strlen(fmt) - 1] = 0;
-        nfmt = buf;
-    }
-    fseq_spdlog::debug(nfmt, args...);
-}
-inline void AddSlowStorageWarning() {
 }
 #elif __has_include("fppversion.h")
 

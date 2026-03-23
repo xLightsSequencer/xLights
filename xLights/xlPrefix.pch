@@ -19,8 +19,6 @@
 #include <cstdlib>
 #include <sstream>
 
-#include <log4cpp/Category.hh>
-
 #include <wx/wx.h>
 #include <wx/config.h>
 #include <wx/dir.h>
@@ -51,6 +49,7 @@
 #include <wx/textctrl.h>
 
 #include <pugixml.hpp>
+#include <log.h>
 
 #include "Color.h"
 #include "UtilFunctions.h"

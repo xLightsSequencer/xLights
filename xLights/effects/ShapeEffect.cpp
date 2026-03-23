@@ -30,7 +30,7 @@
 #include "nanosvgrast_impl.h"
 
 #include <regex>
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "../../include/shape-16.xpm"
 #include "../../include/shape-24.xpm"

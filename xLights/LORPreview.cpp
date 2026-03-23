@@ -36,7 +36,7 @@
 #include "ExternalHooks.h"
 #include "XmlSerializer/XmlSerializeFunctions.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <wx/filename.h>
 #include <wx/stdpaths.h>

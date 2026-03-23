@@ -56,7 +56,7 @@
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/XmlSerializeFunctions.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 

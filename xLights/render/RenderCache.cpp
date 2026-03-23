@@ -13,7 +13,7 @@
 #include "RenderBuffer.h"
 #include "models/Model.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <cassert>
 #include <cstdio>

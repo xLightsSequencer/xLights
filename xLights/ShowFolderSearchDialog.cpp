@@ -21,7 +21,7 @@
 #include "ExternalHooks.h"
 #include "xLightsMain.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <wx/regex.h>
 
 //(*IdInit(ShowFolderSearchDialog)

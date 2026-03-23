@@ -20,7 +20,7 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include <wx/progdlg.h>
 #include <wx/appprogress.h>

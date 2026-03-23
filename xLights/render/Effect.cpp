@@ -30,7 +30,7 @@
 #include <unordered_map>
 #include <regex>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 

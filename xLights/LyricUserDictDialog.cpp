@@ -21,7 +21,7 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/msgdlg.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 

@@ -24,7 +24,7 @@
 #include <execinfo.h>
 #endif
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "ExternalHooks.h"
 #include "xLightsVersion.h"

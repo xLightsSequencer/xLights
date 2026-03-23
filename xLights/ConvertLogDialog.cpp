@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(ConvertLogDialog)
 const long ConvertLogDialog::ID_TEXTCTRL_LOG = wxNewId();

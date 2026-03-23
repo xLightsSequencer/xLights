@@ -11,7 +11,7 @@
 
 #include "xlOGL3GraphicsContext.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #include "DrawGLUtils.h"
 #include "../xlMesh.h"

@@ -28,7 +28,7 @@
 #include "UtilFunctions.h"
 #include "EditAliasesDialog.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "ui/wxUtilities.h"
 
 // This event is fired when a model is dropped between lists

@@ -28,7 +28,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/DDPOutput.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <thread>
 #include <algorithm>
 #include <format>

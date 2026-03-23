@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 ServiceManager::ServiceManager(xLightsFrame* xl)
 {

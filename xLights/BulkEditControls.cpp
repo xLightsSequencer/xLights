@@ -24,7 +24,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 // Here is how the sliders, labels, value curves and text boxes all work together.
 //

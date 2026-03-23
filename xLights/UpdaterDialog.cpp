@@ -17,7 +17,7 @@
 
 #include "UpdaterDialog.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*IdInit(UpdaterDialog)
 const long UpdaterDialog::ID_UPDATELABEL = wxNewId();

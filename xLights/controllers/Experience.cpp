@@ -25,7 +25,7 @@
 #include <wx/regex.h>
 #include <wx/sstream.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Private Functions
 bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const {

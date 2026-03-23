@@ -47,7 +47,7 @@
 #endif
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 

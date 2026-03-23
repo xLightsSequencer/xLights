@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include <Color.h>
 
 bool ollama::IsAvailable() const {

@@ -37,7 +37,7 @@
 #include <format>
 #include <numeric>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Static Variables
 int OutputManager::_lastSecond = -10;

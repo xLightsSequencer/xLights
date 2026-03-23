@@ -40,7 +40,7 @@
 
 #include <map>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define DO_LOG_GL_MSG(a, ...) static_logger_opengl->error(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
 

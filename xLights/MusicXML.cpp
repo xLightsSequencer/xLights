@@ -12,7 +12,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <wx/log.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 #include "ExternalHooks.h"
 
 bool MusicXML::IsOk()

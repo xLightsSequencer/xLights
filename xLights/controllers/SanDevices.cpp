@@ -25,7 +25,7 @@
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #pragma region Dumps
 void SanDevicesOutput::Dump() const {

@@ -134,7 +134,7 @@
 
 #include <xlsxwriter.h>
 #include <CheckSequenceReport.h>
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*InternalHeaders(xLightsFrame)
 #include <wx/bitmap.h>

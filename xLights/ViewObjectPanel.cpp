@@ -20,7 +20,7 @@
 #include "models/ViewObject.h"
 #include "xLightsMain.h"
 #include "ui/modelproperties/ViewObjectPropertyAdapter.h"
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 //(*InternalHeaders(ViewObjectPanel)
 #include <wx/intl.h>

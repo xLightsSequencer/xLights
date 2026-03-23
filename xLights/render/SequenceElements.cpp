@@ -30,7 +30,7 @@
 #include "../TraceLog.h"
 #include "../UtilFunctions.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");

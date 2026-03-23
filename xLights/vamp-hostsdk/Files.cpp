@@ -43,7 +43,7 @@
 #include <cstring>
 
 // xLights
-#include "spdlog/spdlog.h"
+#include <log.h>
 // end xLights
 
 #ifdef _WIN32

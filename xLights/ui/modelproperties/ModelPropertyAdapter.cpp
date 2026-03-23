@@ -43,7 +43,7 @@
 #include "../../ModelChainDialog.h"
 #include "../../StartChannelDialog.h"
 
-#include "spdlog/spdlog.h"
+#include <log.h>
 
 #define MOST_STRINGS_WE_EXPECT 480
 #define MOST_CONTROLLER_PORTS_WE_EXPECT 128
