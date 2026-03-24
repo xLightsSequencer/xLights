@@ -100,7 +100,7 @@ public:
     [[nodiscard]] int GetSortableSmartRemote() const;
     [[nodiscard]] int GetSmartTs() const { return _smartRemoteTs; }
     [[nodiscard]] int GetSmartRemoteForString(int string = 1) const;
-    void SetSmartRemote(int sr);
+    void SetSmartRemote(int sr, bool skipChain = false);
     void SetSRCascadeOnPort(bool cascade);
     void SetSRMaxCascade(int max);
     void SetSmartRemoteType(const std::string& type);

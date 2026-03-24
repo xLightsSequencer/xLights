@@ -287,11 +287,12 @@ void ControllerConnection::SetSRMaxCascade(int max)
     _model->IncrementChangeCount();
 }
 
-void ControllerConnection::SetSmartRemote(int sr)
+void ControllerConnection::SetSmartRemote(int sr, bool skipChain)
 {
     if (_smartRemote == sr) return;
     // Find the last model on this smart remote
-    if (!_name.empty()) {
+    // Skip during deserialization — the model chain was already loaded from XML
+    if (!skipChain && !_name.empty()) {
         _model->SetModelChain(_model->modelManager.GetLastModelOnPort(_name, _port, _model->GetName(), _protocol, sr));
     }
     if (sr != 0) {
