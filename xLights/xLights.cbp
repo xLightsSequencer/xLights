@@ -45,6 +45,7 @@
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -103,6 +104,7 @@
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />

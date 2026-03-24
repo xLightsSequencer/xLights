@@ -255,7 +255,7 @@ void JobPoolWorker::Entry()
     // program, see http://udrepper.livejournal.com/21541.html
     }  catch ( abi::__forced_unwind& ) {
         currentJob = nullptr;
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.  {}", fmt::ptr(this));
+        m_logger->warn("JobPoolWorker::Entry exiting due to __forced_unwind.  {}", fmt::ptr(this));
         --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);

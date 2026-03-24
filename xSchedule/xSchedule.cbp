@@ -30,6 +30,7 @@
 					<Add directory="../include" />
 					<Add directory="../xLights" />
 					<Add directory="../dependencies/pugixml/src" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
@@ -68,6 +69,7 @@
 					<Add directory="../include" />
 					<Add directory="../xLights" />
 					<Add directory="../dependencies/pugixml/src" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
