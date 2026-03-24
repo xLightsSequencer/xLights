@@ -8,12 +8,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <wx/wx.h>
+
 //(*AppHeaders
 #include "xSMSDaemonMain.h"
 #include <wx/image.h>
 //*)
-
-#include <wx/wx.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/debugrpt.h>
