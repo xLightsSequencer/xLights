@@ -876,9 +876,9 @@ void xLightsFrame::LoadAudioData(SequenceFile& xml_file)
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
 }
 
-void xLightsFrame::LoadSequencer(SequenceFile& xml_file)
+void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc)
 {
-    
+
 
     spdlog::debug("Load sequence {}", (const char*)xml_file.GetFullPath().c_str());
 
@@ -887,7 +887,7 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file)
     _sequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
 
     AddTraceMessage("loading");
-    _sequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
+    _sequenceElements.LoadSequencerFile(xml_file, doc, GetShowDirectory());
 
     spdlog::debug("Upgrading sequence");
     xml_file.AdjustEffectSettingsForVersion(_sequenceElements, this);

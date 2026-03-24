@@ -1614,7 +1614,7 @@ public:
 
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
-    bool SeqLoadXlightsFile(SequenceFile& xml_file, bool ChooseModels);
+    bool SeqLoadXlightsFile(SequenceFile& xml_file, pugi::xml_document& doc, bool ChooseModels);
     void ResetEffectsXml();
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
@@ -1910,7 +1910,7 @@ private:
     void CheckForAndCreateDefaultPerpective();
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
-    void LoadSequencer(SequenceFile& xml_file);
+    void LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc);
     void DoLoadPerspective(Perspective* p);
     void CheckForValidModels();
     void ExportModels(wxString const& filename);

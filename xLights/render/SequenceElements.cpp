@@ -702,12 +702,11 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
     return loaded;
 }
 
-bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, const std::string& ShowDir, bool importing)
+bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_document& doc, const std::string& ShowDir, bool importing)
 {
 
     renderDependency.clear();
 
-    pugi::xml_document& doc = xml_file.GetLoadDocument();
     auto root = doc.child("xsequence");
     if (!root) root = doc.first_child();
 

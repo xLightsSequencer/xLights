@@ -13,7 +13,7 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceMedia.h"
-namespace pugi { class xml_node; }
+namespace pugi { class xml_node; class xml_document; }
 #include <vector>
 #include <set>
 #include <string>
@@ -68,7 +68,7 @@ class SequenceElements : public ChangeListener
 public:
     SequenceElements(xLightsFrame *frame);
     virtual ~SequenceElements();
-    bool LoadSequencerFile(SequenceFile& xml_file, const std::string& ShowDir, bool importing = false);
+    bool LoadSequencerFile(SequenceFile& xml_file, pugi::xml_document& doc, const std::string& ShowDir, bool importing = false);
     void Clear();
     void PrepareViews(SequenceFile& xml_file);
     Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);

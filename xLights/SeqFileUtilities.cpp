@@ -137,8 +137,18 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     int ms = atoi(mss.c_str());
 
     spdlog::info("New sequence created Type {} Timing {}ms.", CurrentSeqXmlFile->GetSequenceType(), ms);
-    LoadSequencer(*CurrentSeqXmlFile);
+
+    // Build a minimal empty document for LoadSequencer (new sequence has no XML to load)
+    pugi::xml_document emptyDoc;
+    auto root = emptyDoc.append_child("xsequence");
+    root.append_attribute("FixedPointTiming") = "1";
+    root.append_attribute("ModelBlending") = CurrentSeqXmlFile->supportsModelBlending() ? "true" : "false";
+    root.append_child("DisplayElements");
+    root.append_child("ElementEffects");
+
+    LoadSequencer(*CurrentSeqXmlFile, emptyDoc);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
+    CurrentSeqXmlFile->ApplyPendingTimings(this);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {
         // only add timing if the user didnt set up timings
         std::string new_timing = "New Timing";
@@ -376,7 +386,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         CurrentSeqXmlFile = new SequenceFile(xml_file);
 
         // open the xml file so we can see if it has media
-        CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath.GetFullPath().ToStdString());
+        auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath.GetFullPath().ToStdString());
 
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName());
 
@@ -498,7 +508,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         int ms = atoi(mss.c_str());
         spdlog::debug("Sequence Timing: {}", ms);
         Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
-        bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
+        bool loaded_xml = loadDoc.has_value() && SeqLoadXlightsFile(*CurrentSeqXmlFile, *loadDoc, true);
 
         unsigned int numChan = GetMaxNumChannels();
         size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), mMediaLengthMS) / ms;
@@ -691,14 +701,16 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
 {
     delete xLightsFrame::CurrentSeqXmlFile;
     xLightsFrame::CurrentSeqXmlFile = new SequenceFile(filename.ToStdString());
-    return SeqLoadXlightsFile(*xLightsFrame::CurrentSeqXmlFile, ChooseModels);
+    auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, filename.ToStdString());
+    if (!loadDoc) return false;
+    return SeqLoadXlightsFile(*xLightsFrame::CurrentSeqXmlFile, *loadDoc, ChooseModels);
 }
 
 // Load the xml file containing effects for a particular sequence
 // Returns true if file exists and was read successfully
-bool xLightsFrame::SeqLoadXlightsFile(SequenceFile& xml_file, bool ChooseModels)
+bool xLightsFrame::SeqLoadXlightsFile(SequenceFile& xml_file, pugi::xml_document& doc, bool ChooseModels)
 {
-    LoadSequencer(xml_file);
+    LoadSequencer(xml_file, doc);
     xml_file.SetSequenceLoaded(true);
     return true;
 }
@@ -1231,11 +1243,12 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     }
 
     SequenceFile xlf(xsqPkg.GetXsqFile());
-    xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile().GetFullPath().ToStdString());
+    auto importDoc = xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile().GetFullPath().ToStdString());
+    if (!importDoc) return;
     SequenceElements se(this);
     se.SetFrequency(_sequenceElements.GetFrequency());
     se.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
-    se.LoadSequencerFile(xlf, GetShowDirectory(), true);
+    se.LoadSequencerFile(xlf, *importDoc, GetShowDirectory(), true);
     xlf.AdjustEffectSettingsForVersion(se, this);
     xsqPkg.SetSequenceElements(&se);
 

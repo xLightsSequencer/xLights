@@ -15,6 +15,7 @@
 #include "pugixml.hpp"
 
 #include <array>
+#include <optional>
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -36,6 +37,19 @@ enum class HEADER_INFO_TYPES {
     URL,
     COMMENT,
     NUM_TYPES
+};
+
+struct PendingTiming {
+    std::string name;
+    std::string subType;
+    int fixedInterval = 0;          // 0 = not fixed
+    std::vector<int> starts;        // for VAMP/audacity timings
+    std::vector<int> ends;
+    std::vector<std::string> labels;
+    // Metronome fields
+    std::vector<std::string> tags;
+    int minForRandomRange = -1;
+    bool randomLabels = false;
 };
 
 class SequenceFile
@@ -63,13 +77,12 @@ public:
     static const std::string ERASE_MODE;
     static const std::string CANVAS_MODE;
 
-    bool Open(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath);
+    std::optional<pugi::xml_document> Open(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath);
 
     bool Save(SequenceElements& elements);
     bool BuildDocument(pugi::xml_document& doc, SequenceElements& elements);
 
-    // Transient pugixml document available between Open() and after LoadSequencerFile consumes it
-    pugi::xml_document& GetLoadDocument() { return mLoadDoc; }
+    void ApplyPendingTimings(xLightsFrame* xLightsParent);
     DataLayerSet& GetDataLayers() { return mDataLayers; }
 
     const std::string& GetVersion() const { return version_string; }
@@ -154,10 +167,10 @@ public:
     static bool IsXmlSequence(const std::string& filepath);
 
 private:
-    pugi::xml_document mLoadDoc;     // Transient: populated during Load/CreateNew, consumed by LoadSequencerFile
     std::vector<std::string> models;
     std::array<std::string, (int)HEADER_INFO_TYPES::NUM_TYPES> header_info;
     std::vector<std::string> timing_list;
+    std::vector<PendingTiming> mPendingTimings;
     std::string version_string;
     double seq_duration = 0;
     std::string media_file;
@@ -173,15 +186,8 @@ private:
     AudioManager* audio = nullptr;
 
     void CreateNew();
-    bool LoadSequence(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath);
+    std::optional<pugi::xml_document> LoadSequence(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath);
     bool SaveCopy() const;
-
-    // Wizard timing helpers — build into mLoadDoc (pugixml)
-    void AddTimingDisplayElement(const std::string& name, const std::string& visible, const std::string& active, const std::string& subType = "");
-    pugi::xml_node AddElement(const std::string& name, const std::string& type);
-    void AddTimingEffect(pugi::xml_node node, const std::string& label, const std::string& protection,
-                         const std::string& selected, const std::string& start_time, const std::string& end_time);
-    pugi::xml_node AddFixedTiming(const std::string& name, const std::string& timing);
 
     static std::string InsertMissing(std::string str, std::string missing_array, bool INSERT);
 };
