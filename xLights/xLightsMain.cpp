@@ -4150,9 +4150,8 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
     }
     AddLogFile(CurrentDir, "xLights_spdlog.log", report);
-    AddLogFile(CurrentDir, "xLights_l4cpp.log", report);
     // if the rolled log exists, add it to just in case it has the information we need
-    AddLogFile(CurrentDir, "xLights_l4cpp.log.1", report);
+    AddLogFile(CurrentDir, "xLights_spdlog.1.log", report);
 
     if (GetSeqXmlFileName() != "") {
         wxFileName fn2(GetSeqXmlFileName());

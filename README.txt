@@ -39,6 +39,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Add ability to bulk search for missing images in sequences
     -enh (dkulp)                Images in show/media folders now stored as relative paths in xsq files
                                     for better portability
+    -enh (dkulp)                Move presets out of xlights_rgbeffects.xml and into a dedicated xlights_effectpresets.json
     -enh (gil)                  Add RotateX support for ThreePointScreenLocation models
     -enh (gil)                  Add Individual Start Channels support for CustomModel
     -enh (gil)                  Optimize ASAP work into single calls
