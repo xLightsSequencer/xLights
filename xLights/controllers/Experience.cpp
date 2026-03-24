@@ -27,6 +27,8 @@
 
 #include <log.h>
 
+#include <format>
+
 #pragma region Private Functions
 bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const {
     std::string const sval = GetURL(url);
@@ -35,8 +37,7 @@ bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const 
             val = nlohmann::json::parse(sval);
             return true;
         } catch (nlohmann::json::parse_error& e) {
-            
-            spdlog::warn("Experience Outputs Upload: Failed to parse JSON from {}: {}", (const char*)url.c_str(), e.what());
+            spdlog::warn("Experience Outputs Upload: Failed to parse JSON from {}: {}", url, e.what());
         }
     }
     return false;
@@ -48,11 +49,9 @@ std::string Experience::PostJSONToURL(std::string const& url, nlohmann::json con
 #pragma endregion
 
 bool Experience::UploadSequence(std::string const& seq, std::string const& file, std::function<bool(int, std::string)> progress) {
-    
-
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    std::string url = "http://" + baseIP + _baseUrl + "/upload";
-    spdlog::debug("Uploading to URL: {}", (const char*)url.c_str());
+    std::string const url = "http://" + baseIP + _baseUrl + "/upload";
+    spdlog::debug("Uploading to URL: {}", url);
 
     wxFileName fn(file);
     return Curl::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
@@ -68,7 +67,7 @@ bool Experience::DecodeFirmwareInformation(std::string const& firmware) {
         return true;
     }
     
-    spdlog::debug("Experience Outputs Upload: Failed to Parse Firmware {}", (const char*)firmware.c_str());
+    spdlog::debug("Experience Outputs Upload: Failed to Parse Firmware {}", firmware);
     return false;
 }
 
@@ -78,11 +77,11 @@ bool Experience::DecodeModelInformation(std::string const& model) {
         _controllerModel = model.substr(0, model.find('_'));
         _modelYear = wxAtoi(modelYear);
         return true;
-    } else if (!model.empty()) {
+    } 
+    if (!model.empty()) {
         _controllerModel = model;
     }
-    
-    spdlog::debug("Experience Outputs Upload: Failed to Parse model {}", (const char*)model.c_str());
+    spdlog::debug("Experience Outputs Upload: Failed to Parse model {}", model);
     return false;
 }
 
@@ -143,20 +142,19 @@ wxString Experience::EncodeColorOrder(std::string const& colorOrder) const
 #pragma region Constructors and Destructors
 Experience::Experience(std::string const& ip, std::string const& proxy) :
     BaseController(ip, proxy) {
-    
 
     nlohmann::json data;
 
     // Get Controller Info
     if (!GetJSONData(GetStateURL(), data)) {
-        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", _ip);
         return;
     }
 
     nlohmann::json config;
 
     if (!GetJSONData(GetConfigURL(), config)) {
-        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", _ip);
         return;
     }
 
@@ -175,11 +173,11 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         DecodeModelInformation(controller_model);
         DecodeFirmwareInformation(ToWXString(_version));
         _connected = true;
-        spdlog::debug("Connected to Genius controller model {} v{}.", (const char*)controller_model.c_str(), (const char*)GetVersionStr().c_str());
+        spdlog::debug("Connected to Genius controller model {} v{}.", controller_model, GetVersionStr());
     } else {
         _connected = false;
-        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
-        DisplayError(wxString::Format("Error connecting to Genius controller on %s.", _ip).ToStdString());
+        spdlog::error("Error connecting to Genius controller on {}.", _ip);
+        DisplayError(std::format("Error connecting to Genius controller on {}.", _ip));
     }
 
     if (config.size() > 0) {
@@ -193,7 +191,7 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
 
 int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controller) {
     
-    spdlog::debug("Experience Inputs Upload: Uploading to {}", (const char*)_ip.c_str());
+    spdlog::debug("Experience Inputs Upload: Uploading to {}", _ip);
     int32_t startChannel{ -1 };
     auto eth = dynamic_cast<ControllerEthernet*>(controller);
     if (eth == nullptr) {
@@ -242,10 +240,9 @@ int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controll
         }
     } else  {
         //should never hit this
-        DisplayError(wxString::Format(
-                         "Invalid Input Type For Experience Controller %s.",
-                         out->GetType())
-                         .ToStdString());
+        DisplayError(std::format(
+                         "Invalid Input Type For Experience Controller {}.",
+                         out->GetType()));
         return startChannel;
     }
 
@@ -263,15 +260,13 @@ int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controll
 bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, wxWindow* parent) {
     ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
-        DisplayError(wxString::Format("%s is not a Experience controller.", c->GetName().c_str()));
+        DisplayError(std::format("{} is not a Experience controller.", c->GetName()));
         return false;
     }
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
-
-    
-    spdlog::debug("Experience Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
+    spdlog::debug("Experience Outputs Upload: Uploading to {}", _ip);
 
     progress.Update(0, "Scanning models");
     spdlog::info("Scanning models.");
@@ -304,7 +299,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
     // get controller data from API
     if (!GetJSONData(GetConfigURL(), stringData)) {
-        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", _ip);
         return false;
     }
 
@@ -475,7 +470,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         }
         //pad end with extra remotes to match other ports on receiver
         for (int subID = 0; subID < 4; ++subID) {
-            int portID = GetNumberOfPixelOutputs() + (lrIdx * 4) + subID + 1;
+            int const portID = GetNumberOfPixelOutputs() + (lrIdx * 4) + subID + 1;
             while (stringData["outputs"][portID - 1]["virtual_strings"].size() < remoteIds.size()) {
                 nlohmann::json vs;
                 vs["sc"] = 0;

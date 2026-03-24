@@ -10,10 +10,8 @@
  **************************************************************/
 
 #include <wx/msgdlg.h>
-#include <wx/sstream.h>
 #include <wx/regex.h>
-#include <wx/sckstrm.h>
-#include <wx/tokenzr.h>
+
 #include <wx/progdlg.h>
 
 #include "AlphaPix.h"
@@ -28,6 +26,8 @@
 #include <log.h>
 
 #include <curl/curl.h>
+
+#include <format>
 
 #pragma region Output Classes
 class AlphaPixOutput
@@ -44,10 +44,8 @@ public:
     int zigZag{ 0 };
     bool upload{ false };
 
-    AlphaPixOutput(int output_) : output(output_) { }
+    explicit AlphaPixOutput(int output_) : output(output_) { }
     void Dump() const {
-
-        
         spdlog::debug("    Output {} Uni {} StartChan {} Pixels {} Rev {} Nulls {} Brightness {} ZigZag {} ColorOrder {} Upload {}",
             output,
             universe,
@@ -71,10 +69,8 @@ public:
     bool enabled{ false };
     bool upload{ false };
 
-    AlphaPixSerial(int output_) : output(output_) { }
+    explicit AlphaPixSerial(int output_) : output(output_) { }
     void Dump() const {
-
-        
         spdlog::debug("    Output {} Uni {} Enabled {} Upload {}",
             output,
             universe,
@@ -87,15 +83,13 @@ public:
 class AlphaPixData
 {
 public:
-    wxString name;
+    std::string name;
     int protocol{ 0 };
     int inputMode{ 0 };
-    AlphaPixData() {}
+    AlphaPixData() = default;
     void Dump() const {
-
-        
         spdlog::debug("    Name {} Protocol {} InputMode {}",
-            (const char*)name.c_str(),
+            name,
             protocol,
             inputMode
         );
@@ -107,7 +101,7 @@ public:
 AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
     _page = APGetURL("/");
     if (!_page.empty()) {
-        if (_page.Contains("Existing user login")) {
+        if (Contains(_page, "Existing user login")) {
             spdlog::error("AlphaPix Webpage locked out by another computer");
         }
         //AlphaPix 4 V2/V3 Classic
@@ -121,8 +115,7 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         else if (modelregex2.Matches(_page)) {
             _modelnum = wxAtoi(modelregex2.GetMatch(_page, 1).ToStdString());
             _connected = true;
-        }
-        else if (_page.Contains("AlphaPix Flex Lighting Controller") || _page.Contains("AlphaPix Evolution Lighting Controller")) {
+        } else if (Contains(_page, "AlphaPix Flex Lighting Controller") || Contains(_page, "AlphaPix Evolution Lighting Controller")) {
             _modelnum = 48;
             _connected = true;
         }
@@ -137,7 +130,7 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
             _version = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
         }
 
-        if (_page.Contains("name=\"U01\"")) {//look for certain web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
+        if (Contains(_page, "name=\"U01\"")) { // look for certain web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
             _revision = 2;
             spdlog::debug("v2 WebPage format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
         } else {
@@ -146,18 +139,18 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         }
 
         if (_modelnum == 48) {
-            _model = wxString::Format("AlphaPix Flex v%d", _revision).ToStdString();
+            _model = std::format("AlphaPix Flex v{}", _revision);
         }
         else { 
-            _model = wxString::Format("AlphaPix %d v%d", _modelnum, _revision).ToStdString();
+            _model = std::format("AlphaPix {} v{}", _modelnum, _revision);
         }
 
         if(_connected)
-            spdlog::debug("Connected to AlphaPix controller model {}.", (const char*)GetFullName().c_str());
+            spdlog::debug("Connected to AlphaPix controller model {}.", GetFullName());
     }
     else {
         _connected = false;
-        spdlog::error("Error connecting to AlphaPix controller on {}.", (const char *)_ip.c_str());
+        spdlog::error("Error connecting to AlphaPix controller on {}.", _ip);
     }
 }
 
@@ -178,7 +171,7 @@ AlphaPix::~AlphaPix() {
 #pragma endregion
 
 #pragma region Private Functions
-bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
+bool AlphaPix::ParseWebpage(std::string const& page, AlphaPixData& data) {
 
     _pixelOutputs.clear();
     _serialOutputs.clear();
@@ -188,10 +181,11 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
 
     for (int i = 1; i <= GetNumberOfOutputs(); i++) {
         AlphaPixOutput* output;
-        if (_revision == 2)
+        if (_revision == 2) {
             output = ExtractOutputDataV2(page, i);
-        else
+        } else {
             output = ExtractOutputData(page, i);
+        }
         output->Dump();
         _pixelOutputs.push_back(output);
     }
@@ -212,118 +206,100 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
     }
     else {
         //Load advance color order page
-        const wxString colorPage = APPutURL(GetColorOrderURL(), "RGBORD=1");
+        const std::string colorPage = APPutURL(GetColorOrderURL(), "RGBORD=1");
         for (auto& pixelPort : _pixelOutputs) {
             pixelPort->colorOrder = ExtractSingleColor(colorPage, pixelPort->output);
         }
     }
-
     return true;
 }
 
-AlphaPixOutput* AlphaPix::ExtractOutputData(const wxString& page, int port) {
+AlphaPixOutput* AlphaPix::ExtractOutputData(std::string const& page, int port) {
 
     AlphaPixOutput* output = new AlphaPixOutput(port);
 
-    output->universe = ExtractIntFromPage(page, wxString::Format("SU%d", port), "input", 1);
-    output->startChannel = ExtractIntFromPage(page, wxString::Format("SC%d", port), "input", 1);
-    output->pixels = ExtractIntFromPage(page, wxString::Format("PC%d", port), "input", 1);
-    output->nullPixel = ExtractIntFromPage(page, wxString::Format("NP%d", port), "input", 0);
-    output->zigZag = ExtractIntFromPage(page, wxString::Format("RA%d", port), "input", 0);
-    output->brightness = ExtractIntFromPage(page, wxString::Format("LM%d", port), "input", 100);
-    output->reverse = ExtractIntFromPage(page, wxString::Format("RV%d", port), "checkbox", 0);
+    output->universe = ExtractIntFromPage(page, std::format("SU{}", port), "input", 1);
+    output->startChannel = ExtractIntFromPage(page, std::format("SC{}", port), "input", 1);
+    output->pixels = ExtractIntFromPage(page, std::format("PC{}", port), "input", 1);
+    output->nullPixel = ExtractIntFromPage(page, std::format("NP{}", port), "input", 0);
+    output->zigZag = ExtractIntFromPage(page, std::format("RA{}", port), "input", 0);
+    output->brightness = ExtractIntFromPage(page, std::format("LM{}", port), "input", 100);
+    output->reverse = ExtractIntFromPage(page, std::format("RV{}", port), "checkbox", 0);
 
     return output;
 }
 
-AlphaPixOutput* AlphaPix::ExtractOutputDataV2(const wxString& page, int port) {
+AlphaPixOutput* AlphaPix::ExtractOutputDataV2(std::string const& page, int port) {
 
     AlphaPixOutput* output = new AlphaPixOutput(port);
-
-    output->universe = ExtractIntFromPage(page, wxString::Format("U%02d", port), "input", 1);
-    output->startChannel = ExtractIntFromPage(page, wxString::Format("C%02d", port), "input", 1);
-    output->pixels = ExtractIntFromPage(page, wxString::Format("P%02d", port), "input", 1);
-    output->nullPixel = ExtractIntFromPage(page, wxString::Format("N%02d", port), "input", 0);
-    output->zigZag = ExtractIntFromPage(page, wxString::Format("R%02d", port), "input", 0);
-    output->brightness = ExtractIntFromPage(page, wxString::Format("L%02d", port), "input", 100);
-    output->reverse = ExtractIntFromPage(page, wxString::Format("V%02d", port), "checkbox", 0);
+    output->universe = ExtractIntFromPage(page, std::format("U{:02d}", port), "input", 1);
+    output->startChannel = ExtractIntFromPage(page, std::format("C{:02d}", port), "input", 1);
+    output->pixels = ExtractIntFromPage(page, std::format("P{:02d}", port), "input", 1);
+    output->nullPixel = ExtractIntFromPage(page, std::format("N{:02d}", port), "input", 0);
+    output->zigZag = ExtractIntFromPage(page, std::format("R{:02d}", port), "input", 0);
+    output->brightness = ExtractIntFromPage(page, std::format("L{:02d}", port), "input", 100);
+    output->reverse = ExtractIntFromPage(page, std::format("V{:02d}", port), "checkbox", 0);
 
     return output;
 }
 
-AlphaPixSerial* AlphaPix::ExtractSerialData(const wxString& page, int port) {
+AlphaPixSerial* AlphaPix::ExtractSerialData(std::string const& page, int port) {
     AlphaPixSerial* serial = new AlphaPixSerial(port);
     if (_modelnum == 4) {
         serial->enabled = ExtractDMXEnabled(page, "Rever5");
         serial->universe = ExtractDMXUniverse(page, "DMX512");
     }
     else {
-        serial->enabled = ExtractDMXEnabled(page, wxString::Format("Rever%d", port));
-        serial->universe = ExtractDMXUniverse(page, wxString::Format("DMX512_%d", port));
+        serial->enabled = ExtractDMXEnabled(page, std::format("Rever{}", port));
+        serial->universe = ExtractDMXUniverse(page, std::format("DMX512_{}", port));
     }
     return serial;
 }
 
-std::string AlphaPix::ExtractName(const wxString& page) {
-
-    const wxString p(page);
-    int start = p.find("Device name:");
-    std::string name = ExtractFromPage(page, "name", "input", start);
+std::string AlphaPix::ExtractName(std::string const& page) {
+    int const start = page.find("Device name:");
+    std::string const name = ExtractFromPage(page, "name", "input", start);
     return name;
 }
 
-int AlphaPix::ExtractInputType(const wxString& page) {
-
-    const wxString p(page);
-    int start = p.find("Ethernet Protocol:");
-    int value = ExtractIntFromPage(page, "EP", "radio", 0, start);
+int AlphaPix::ExtractInputType(std::string const& page) {
+    int const start = page.find("Ethernet Protocol:");
+    int const value = ExtractIntFromPage(page, "EP", "radio", 0, start);
     return value;
 }
 
-int AlphaPix::ExtractDMXUniverse(const wxString& page, const wxString& name) {
-
-    const wxString p(page);
-    const int start = p.find("DMX Universe:");
+int AlphaPix::ExtractDMXUniverse(std::string const& page, std::string const& name) {
+    const int start = page.find("DMX Universe:");
     const int value = ExtractIntFromPage(page, name, "input", 0, start);
     return value;
 }
 
-int AlphaPix::ExtractProtocol(const wxString& page) {
-
-    const wxString p(page);
-    const int start = p.find("Pixel IC Protocol:");
+int AlphaPix::ExtractProtocol(std::string const& page) {
+    const int start = page.find("Pixel IC Protocol:");
     const int protocol = ExtractIntFromPage(page, "IC", "select", 0, start);
     return protocol;
 }
 
-int AlphaPix::ExtractColor(const wxString& page) {
-
-    const wxString p(page);
-    const int start = p.find("Pixel Chip Color Output Order:");
+int AlphaPix::ExtractColor(std::string const& page) {
+    const int start = page.find("Pixel Chip Color Output Order:");
     const int colorOrder = ExtractIntFromPage(page, "RGBS", "select", 0, start);
     return colorOrder;
 }
 
-int AlphaPix::ExtractColorType(const wxString& page) {
-
-    const wxString p(page);
-    int start = p.find("Pixel Chip Color Output Order:");
-    int value = ExtractIntFromPage(page, "RGBORD", "radio", 0, start);
+int AlphaPix::ExtractColorType(std::string const& page) {
+    int const start = page.find("Pixel Chip Color Output Order:");
+    int const value = ExtractIntFromPage(page, "RGBORD", "radio", 0, start);
     return value;
 }
 
-int AlphaPix::ExtractSingleColor(const wxString& page, const int output) {
-    
-    const wxString p(page);
-    const int start = p.find(wxString::Format("Output %d:", output));
-    const int colorOrder = ExtractIntFromPage(page, wxString::Format("%d_RGB", output), "select", 0, start);
+int AlphaPix::ExtractSingleColor(std::string const& page, const int output) {
+    const int start = page.find(std::format("Output {}:", output));
+    const int colorOrder = ExtractIntFromPage(page, std::format("{}_RGB", output), "select", 0, start);
     return colorOrder;
 }
 
-bool AlphaPix::ExtractDMXEnabled(const wxString& page, const wxString& name) {
-
-    const wxString p(page);
-    const int start = p.find("Enabled:");
+bool AlphaPix::ExtractDMXEnabled(std::string const& page, std::string const& name) {
+    const int start = page.find("Enabled:");
     const bool useDMX = ExtractBoolFromPage(page, name, "checkbox", false, start);
     return useDMX;
 }
@@ -390,11 +366,8 @@ void AlphaPix::UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData
     }
 }
 
-std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& parameter, const std::string& type, int start) {
-
-    
-
-    const wxString p = wxString(page).Mid(start);
+std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string& parameter, const std::string& type, int start) {
+    const std::string p = page.substr(start);
     if (type == "input") {
         //<input  style = " width: 80px ;TEXT-ALIGN: center" type="text" value="1" name="DMX512"/>
         //<input\s+style\s=\s\".*\"\stype="text"\s+value=\")([0-9\\.]*?)\"
@@ -446,15 +419,14 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         }
     }
     else {
-        spdlog::error("AlphaPix::ExtractFromPage   Invalid Regex Type:{}", (const char*)type.c_str());
+        spdlog::error("AlphaPix::ExtractFromPage   Invalid Regex Type:{}", type);
         wxASSERT(false);
     }
 
     return "";
 }
 
-int AlphaPix::ExtractIntFromPage(const wxString& page, const std::string& parameter, const std::string& type, int defaultValue, int start) {
-
+int AlphaPix::ExtractIntFromPage(std::string const& page, const std::string& parameter, const std::string& type, int defaultValue, int start) {
     const std::string value = ExtractFromPage(page, parameter, type, start);
     if (!value.empty()) {
         return wxAtoi(value);
@@ -462,8 +434,7 @@ int AlphaPix::ExtractIntFromPage(const wxString& page, const std::string& parame
     return defaultValue;
 }
 
-bool AlphaPix::ExtractBoolFromPage(const wxString& page, const std::string& parameter, const std::string& type, bool defaultValue, int start) {
-
+bool AlphaPix::ExtractBoolFromPage(std::string const& page, const std::string& parameter, const std::string& type, bool defaultValue, int start) {
     const std::string value = ExtractFromPage(page, parameter, type, start);
     if (!value.empty()) {
         return value == "1";
@@ -473,8 +444,7 @@ bool AlphaPix::ExtractBoolFromPage(const wxString& page, const std::string& para
 
 int AlphaPix::EncodeStringPortProtocol(const std::string& protocol) const {
 
-    wxString p(protocol);
-    p = p.Lower();
+    std::string const p = Lower(protocol);
 
     if (p == "ws2811") return 0;
     if (p == "ws2801") return 1;
@@ -488,9 +458,7 @@ int AlphaPix::EncodeStringPortProtocol(const std::string& protocol) const {
 
 int AlphaPix::EncodeColorOrder(const std::string& colorOrder) const {
 
-    wxString c(colorOrder);
-    c = c.Lower();
-
+    std::string const c = Lower(colorOrder);
     if (c == "rgb") return 0;
     if (c == "rbg") return 1;
     if (c == "grb") return 2;
@@ -528,19 +496,16 @@ AlphaPixSerial* AlphaPix::FindSerialData(int port) {
     return nullptr;
 }
 
-wxString AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
-
-    
-
+std::string AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {   
     spdlog::debug("     Output String {}, Universe {} StartChannel {} Pixels {}",
         po->output, po->universe, po->startChannel, po->pixels);
 
     std::string reverseAdd;
     if (po->reverse) {
-        reverseAdd = wxString::Format("&RV%d=1", po->output);
+        reverseAdd = std::format("&RV{}=1", po->output);
     }
 
-    return wxString::Format("SU%d=%d&SC%d=%d&PC%d=%d&NP%d=%d&RA%d=%d&LM%d=%d%s",
+    return std::format("SU{}={}&SC{}={}&PC{}={}&NP{}={}&RA{}={}&LM{}={}{}",
         po->output, po->universe,
         po->output, po->startChannel,
         po->output, po->pixels,
@@ -550,19 +515,16 @@ wxString AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
         reverseAdd);
 }
 
-wxString AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const {
-
-    
-
+std::string AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const { 
     spdlog::debug("     Output String {}, Universe {} StartChannel {} Pixels {}",
         po->output, po->universe, po->startChannel, po->pixels);
 
     std::string reverseAdd;
     if (po->reverse) {
-        reverseAdd = wxString::Format("&V%02d=1", po->output);
+        reverseAdd = std::format("&V{:02d}=1", po->output);
     }
 
-    return wxString::Format("U%02d=%d&C%02d=%d&P%02d=%d&N%02d=%d&R%02d=%d&L%02d=%d%s",
+    return std::format("U{:02d}={}&C{:02d}={}&P{:02d}={}&N{:02d}={}&R{:02d}={}&L{:02d}={}{}",
         po->output, po->universe,
         po->output, po->startChannel,
         po->output, po->pixels,
@@ -572,22 +534,23 @@ wxString AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const {
         reverseAdd);
 }
 
-std::string AlphaPix::SafeDescription(const std::string description) const {
-
-    wxString desc(description);
-    return desc.Left(16).ToStdString();
+std::string AlphaPix::SafeDescription(const std::string& description) const {
+    std::string desc(description);
+    if (desc.length() > 16) {
+        return desc.substr(0, 16);
+    }
+    return desc;
 }
 
 std::string AlphaPix::APGetURL(const std::string& url) const
-{
-    
+{    
     std::string res;
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
     CURL* curl = curl_easy_init();
     if (curl) {
         auto u = std::string("http://" + baseIP + _baseUrl + url);
-        spdlog::debug("Curl GET: {}", (const char*)u.c_str());
+        spdlog::debug("Curl GET: {}", u);
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
         curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
@@ -600,7 +563,7 @@ std::string AlphaPix::APGetURL(const std::string& url) const
         CURLcode r = curl_easy_perform(curl);
 
         if (r != CURLE_OK) {
-            spdlog::error("Failure to access {}: {}.", (const char*)url.c_str(), curl_easy_strerror(r));
+            spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));
         } else {
             res = response_string;
         }
@@ -615,14 +578,14 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
     
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    spdlog::debug("Making request to Controller '{}'.", (const char*)url.c_str());
-    spdlog::debug("    With data '{}'.", (const char*)request.c_str());
+    spdlog::debug("Making request to Controller '{}'.", url);
+    spdlog::debug("    With data '{}'.", request);
 
     CURL* curl = curl_easy_init();
     if (curl != nullptr) {
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-        auto u = std::string("http://" + baseIP + _baseUrl + url);
-        spdlog::debug("Curl POST: {}", (const char*)u.c_str());
+        auto const u = std::string("http://" + baseIP + _baseUrl + url);
+        spdlog::debug("Curl POST: {}", u);
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -645,7 +608,7 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
         if (ret == CURLE_OK) {
             return buffer;
         }
-        spdlog::error("Failure to access {}: {}.", (const char*)url.c_str(), curl_easy_strerror(ret));
+        spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(ret));
     }
 
     return "";
@@ -657,9 +620,8 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
-
     
-    spdlog::debug("AlphaPix Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
+    spdlog::debug("AlphaPix Outputs Upload: Uploading to {}", _ip);
 
     progress.Update(0, "Scanning models");
     spdlog::info("Scanning models.");
@@ -741,16 +703,16 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         serial->Dump();
         if (serial->upload) {
             if (_modelnum == 4) {
-                const std::string serialRequest = wxString::Format("Rever5=1&DMX512=%d", serial->universe);
-                const wxString res = APPutURL(GetDMXURL(), serialRequest);
+                const std::string serialRequest = std::format("Rever5=1&DMX512={}", serial->universe);
+                const std::string res = APPutURL(GetDMXURL(), serialRequest);
                 if (res.empty())
                     worked = false;
                 wxMilliSleep(1000);
             }
             else {
-                const std::string serialRequest = wxString::Format("Rever%d=1&DMX512_%d=%d",
+                const std::string serialRequest = std::format("Rever{}=1&DMX512_{}={}",
                     serial->output, serial->output, serial->universe);
-                const wxString res = APPutURL(GetDMXURL(serial->output), serialRequest);
+                const std::string res = APPutURL(GetDMXURL(serial->output), serialRequest);
                 if (res.empty())
                     worked = false;
                 wxMilliSleep(1000);
@@ -762,7 +724,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     progress.Update(50, "Uploading Protocol Type.");
     const int newProtocol = EncodeStringPortProtocol(pixelType);
     if (newProtocol != -1 && controllerData.protocol != newProtocol) {
-        const wxString res = APPutURL(GetProtocolURL(), wxString::Format("IC=%d", newProtocol));
+        const std::string res = APPutURL(GetProtocolURL(), std::format("IC={}", newProtocol));
         if (res.empty())
             worked = false;
         wxMilliSleep(1000);
@@ -776,14 +738,14 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         colorOrder.erase(std::unique(colorOrder.begin(), colorOrder.end()), colorOrder.end());
         if (colorOrder.size() == 1) {
             //all the same color order, "simple mode" will do
-            const wxString res = APPutURL(GetColorOrderURL(), wxString::Format("RGBORD=0&RGBS=%d", colorOrder[0]));
+            const std::string res = APPutURL(GetColorOrderURL(), std::format("RGBORD=0&RGBS={}", colorOrder[0]));
             if (res.empty())
                 worked = false;
             wxMilliSleep(1000);
         }
         else {
             // different color orders, "advance mode" needed
-            const wxString res = APPutURL(GetColorOrderURL(), "RGBORD=1");
+            const std::string res = APPutURL(GetColorOrderURL(), "RGBORD=1");
             if (res.empty())
                 worked = false;
             wxMilliSleep(1000);
@@ -792,11 +754,11 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             for (const auto& pixelPort : _pixelOutputs) {
                 if (colorRequestString != "")
                     colorRequestString += "&";
-                colorRequestString += wxString::Format("%d_RGB=%d",
+                colorRequestString += std::format("{}_RGB={}",
                     pixelPort->output, pixelPort->colorOrder);
             }
 
-            const wxString res2 = APPutURL(GetIndvColorOrderURL(), colorRequestString);
+            const std::string res2 = APPutURL(GetIndvColorOrderURL(), colorRequestString);
             if (res2.empty())
                 worked = false;
             wxMilliSleep(1000);
@@ -806,8 +768,8 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     spdlog::info("Uploading Output Description.");
     progress.Update(70, "Uploading Output Description.");
     const std::string outName = SafeDescription(controller->GetName());
-    if (!outName.empty() && !controllerData.name.IsSameAs(outName)) {
-        const wxString res = APPutURL(GetNameURL(), "name=" + outName);
+    if (!outName.empty() && controllerData.name != outName) {
+        const std::string res = APPutURL(GetNameURL(), "name=" + outName);
         if (res.empty())
             worked = false;
         wxMilliSleep(1000);
@@ -828,7 +790,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     spdlog::info("Uploading Output Type.");
     progress.Update(80, "Updating Output Type.");
     if (!requestInputString.empty()) {
-        const wxString res = APPutURL(GetInputTypeURL(), requestInputString);
+        const std::string res = APPutURL(GetInputTypeURL(), requestInputString);
         if (res.empty())
             worked = false;
         //wait for reboot
@@ -858,7 +820,7 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
     spdlog::info("PUT String Output Information.");
 
     if (!requestString.empty()) {
-        const wxString res = APPutURL(GetOutputURL(), requestString);
+        const std::string res = APPutURL(GetOutputURL(), requestString);
         if (res.empty())
             worked = false;
         wxMilliSleep(2000);
@@ -888,7 +850,7 @@ void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
 
         spdlog::info("PUT String Output Information.");
         if (!requestString.empty() && upload) {
-            const wxString res = APPutURL(GetOutputURL(i + 1), requestString);
+            const std::string res = APPutURL(GetOutputURL(i + 1), requestString);
             if (res.empty())
                 worked = false;
             wxMilliSleep(2000);

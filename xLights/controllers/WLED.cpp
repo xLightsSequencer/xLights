@@ -22,8 +22,6 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
 
-
-
 #include <curl/curl.h>
 
 #include <log.h>
@@ -79,8 +77,6 @@ struct WLEDOutput {
 #pragma region Constructors and Destructors
 WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy), _vid(0) {
 
-    
-
     std::string const json = GetURL(GetInfoURL());
     if (!json.empty()) {
         nlohmann::json jsonVal = nlohmann::json::parse(json);
@@ -96,11 +92,11 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
         }
 
         if (_connected) {
-            spdlog::debug("Connected to WLED controller model {}.", (const char*)GetFullName().c_str());
+            spdlog::debug("Connected to WLED controller model {}.", GetFullName());
         }
     } else {
         _connected = false;
-        spdlog::error("Error connecting to WLED controller on {}.", (const char *)_ip.c_str());
+        spdlog::error("Error connecting to WLED controller on {}.", _ip);
     }
 }
 
@@ -214,9 +210,7 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
     }
 }
 
-void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, nlohmann::json& jsonVal) {
-
-    
+void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, nlohmann::json& jsonVal) {    
     spdlog::debug("Building pixel upload:");
     //total Pixel Count
     jsonVal["hw"]["led"]["total"] = totalPixelCount;
@@ -228,7 +222,6 @@ void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, nlohmann::json&
             newLEDS.push_back(pixelPort->GetJSON());
         }
     }
-
     jsonVal["hw"]["led"]["ins"] = newLEDS;
 }
 
@@ -243,11 +236,9 @@ bool WLED::PostJSON(nlohmann::json const& jsonVal) {
     std::string str = jsonVal.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
     const std::string url = GetCfgURL();
 
-    
-
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    spdlog::debug("Making request to Controller '{}'.", (const char*)url.c_str());
-    spdlog::debug("    With data '{}'.", (const char*)str.c_str());
+    spdlog::debug("Making request to Controller '{}'.", url);
+    spdlog::debug("    With data '{}'.", str);
 
     CURL* hnd = curl_easy_init();
 
@@ -272,12 +263,12 @@ bool WLED::PostJSON(nlohmann::json const& jsonVal) {
         CURLcode ret = curl_easy_perform(hnd);
         if (ret == CURLE_OK) {
             if (buffer.find("error") != std::string::npos) {
-                spdlog::error("Error From WLED {}", (const char*)buffer.c_str());
+                spdlog::error("Error From WLED {}", buffer);
                 return false;
             }
             return true;
         } else {
-            spdlog::error("Failure to access {}: {}.", (const char*)url.c_str(), curl_easy_strerror(ret));
+            spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(ret));
         }
     }
     return false;
@@ -286,7 +277,7 @@ bool WLED::PostJSON(nlohmann::json const& jsonVal) {
 bool WLED::SetupInput(Controller* c, nlohmann::json& jsonVal, bool rgbw) {
     ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
-        DisplayError(wxString::Format("%s is not a WLED controller.", c->GetName().c_str()));
+        DisplayError(std::format("{} is not a WLED controller.", c->GetName()));
         return false;
     }
 
@@ -353,9 +344,7 @@ bool WLED::SetupInput(Controller* c, nlohmann::json& jsonVal, bool rgbw) {
 }
 
 int WLED::EncodeStringPortProtocol(const std::string& protocol) const {
-
-    wxString p(protocol);
-    p = p.Lower();
+    std::string const p = Lower(protocol);
 
     //3-wire
     if (p == "ws2811") return 22;
@@ -378,10 +367,7 @@ int WLED::EncodeStringPortProtocol(const std::string& protocol) const {
 }
 
 int WLED::EncodeColorOrder(const std::string& colorOrder) const {
-
-    wxString c(colorOrder);
-    c = c.Lower();
-
+    std::string const c = Lower(colorOrder);
     if (c == "grb" || c == "grbw") return 0;
     if (c == "rgb" || c == "rgbw") return 1;
     if (c == "brg" || c == "brgw") return 2;
@@ -403,11 +389,10 @@ int WLED::EncodeColorOrder(const std::string& colorOrder) const {
 
 bool WLED::EncodeDirection(const std::string& direction) const {
 
-    return direction == "Reverse";
+    return Lower(direction) == "reverse";
 }
 
 WLEDOutput* WLED::FindPortData(int port) {
-
     for (const auto& sd : _pixelOutputs) {
         if (sd->output == port) {
             return sd;
@@ -418,8 +403,7 @@ WLEDOutput* WLED::FindPortData(int port) {
 }
 
 const uint8_t WLED::GetOutputPin(int port, ControllerCaps* caps) {
-
-    return wxAtoi(caps->GetCustomPropertyByPath(wxString::Format("Port%d", port), "2"));
+    return wxAtoi(caps->GetCustomPropertyByPath(std::format("Port{}", port), "2"));
 }
 
 #pragma endregion
@@ -430,8 +414,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    
-    spdlog::debug("WLED Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
+    spdlog::debug("WLED Outputs Upload: Uploading to {}", _ip);
 
     //2105110 added json config
     //2105200 added per string null pixel to GUI but older builds have it in the JSON
@@ -535,7 +518,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     UpdatePixelOutputs(worked, totalCount, val);
 
     if (!worked) {
-        spdlog::error("Error Updating to WLED controller, JSON:{}.", (const char*)page.c_str());
+        spdlog::error("Error Updating to WLED controller, JSON:{}.", page);
     }
 
     spdlog::info("Updating Input Information.");
@@ -559,7 +542,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     bool const uploadWorked = PostJSON(val);
 
     if (!uploadWorked) {
-        spdlog::error("Error Uploading to WLED controller, JSON:{}.", (const char*)page.c_str());
+        spdlog::error("Error Uploading to WLED controller, JSON:{}.", page);
         worked = false;
     }
 

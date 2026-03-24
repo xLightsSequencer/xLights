@@ -29,8 +29,6 @@
 
 #pragma region Dumps
 void SanDevicesOutput::Dump() const {
-
-    
     spdlog::debug("    Group {} Output {} Port {} Uni {} StartChan {} Pixels {} GroupCount {} Rev {} ColorOrder {} Nulls {} Brightness {} Chase {} firstZig {} thenEvery {} Upload {}",
         group,
         output,
@@ -51,8 +49,6 @@ void SanDevicesOutput::Dump() const {
 }
 
 void SanDevicesProtocol::Dump() const {
-
-    
     spdlog::debug("    Group {} Protocol {} Timing {} Upload {}",
         getGroup(),
         getProtocol(),
@@ -61,8 +57,6 @@ void SanDevicesProtocol::Dump() const {
 }
 
 void SanDevicesOutputV4::Dump() const {
-
-    
     spdlog::debug("    Group {} outputSize {} Uni {} StartChan {} Pixels {} GroupCount {} Rev {},{},{},{} ColorOrder {} Nulls {},{},{},{} ZigZag {} Upload {}",
         group,
         outputSize,
@@ -288,9 +282,8 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
-
     
-    spdlog::debug("SanDevices Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
+    spdlog::debug("SanDevices Outputs Upload: Uploading to {}", _ip);
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
@@ -393,7 +386,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
 
     //bool success = true;
     
-    spdlog::debug("SanDevices Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
+    spdlog::debug("SanDevices Outputs Upload: Uploading to {}", _ip);
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
@@ -646,18 +639,18 @@ std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
     _http.SetMethod("GET");
     wxString startResult;
     wxInputStream* httpStream = _http.GetInputStream(_baseUrl + url, startResult);
-    spdlog::debug("Making request to SanDevices {} '{}' -> {}", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetResponse());
+    spdlog::debug("Making request to SanDevices {} '{}' -> {}", _ip, url, _http.GetResponse());
 
     if (_http.GetError() == wxPROTO_NOERR) {
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
         if (logresult) {
-            spdlog::debug("Response from SanDevices '{}'.", (const char*)res.c_str());
+            spdlog::debug("Response from SanDevices '{}'.", res);
         }
     }
     else {
-        spdlog::error("Unable to connect to SanDevices {} '{}' : {} {}.", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetError(), (const char*)DecodeProtocolError(_http.GetError()).c_str());
+        spdlog::error("Unable to connect to SanDevices {} '{}' : {} {}.", _ip, url, _http.GetError(), DecodeProtocolError(_http.GetError()));
         wxMessageBox(_T("Unable to connect!"));
         res = "";
     }
@@ -873,9 +866,6 @@ SanDevicesOutputV4* SanDevices::ExtractOutputDataV4(const std::string& page, int
 }
 
 void SanDevices::UpdatePortDataV5(int group, int output, UDControllerPort* stringData, bool serial) {
-
-    
-
     SanDevicesOutput* sd = FindPortDataV5(group, output);
     if (sd != nullptr) {
         if (stringData->GetPort() != sd->stringport) {
@@ -1162,9 +1152,7 @@ std::string SanDevices::GenerateOutputURLV4(SanDevicesOutputV4* outputData) {
 #pragma region Encode and Decode
 char SanDevices::EncodeStringPortProtocolV4(const std::string& protocol) const {
 
-    wxString p(protocol);
-    p = p.Lower();
-
+    std::string const p = Lower(protocol);
     if (p == "ws2811")  { return 'D'; }
     if (p == "tm18xx")  { return 'D'; }
     if (p == "ws2801")  { return 'B'; }
@@ -1179,9 +1167,7 @@ char SanDevices::EncodeStringPortProtocolV4(const std::string& protocol) const {
 
 char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
 
-    wxString p(protocol);
-    p = p.Lower();
-
+    std::string const p = Lower(protocol);
     if (p == "ws2811")  { return 'A'; }
     if (p == "tm18xx")  { return 'D'; }
     if (p == "ws2801")  { return 'C'; }
@@ -1197,8 +1183,7 @@ char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
 
 char SanDevices::EncodeSerialPortProtocolV5(const std::string& protocol) const {
 
-    wxString p(protocol);
-    p = p.Lower();
+    std::string const p = Lower(protocol);
 
     if (p == "dmx")    { return 'J'; }
     if (p == "renard") { return 'M'; }
@@ -1218,8 +1203,7 @@ char SanDevices::EncodeUniverseSize(int universesize) const {
 
 int SanDevices::EncodeColorOrderV4(const std::string& colorOrder) const {
 
-    wxString c(colorOrder);
-    c = c.Lower();
+    std::string const c = Lower(colorOrder);
 
     if (c == "rgb") { return 0; }
     if (c == "rbg") { return 1; }
@@ -1233,8 +1217,7 @@ int SanDevices::EncodeColorOrderV4(const std::string& colorOrder) const {
 
 char SanDevices::EncodeColorOrderV5(const std::string& colorOrder) const {
 
-    wxString c(colorOrder);
-    c = c.Lower();
+    std::string const c = Lower(colorOrder);
 
     if (c == "rgb") { return 'A'; }
     if (c == "rbg") { return 'B'; }
@@ -1320,9 +1303,6 @@ inline int SanDevices::EncodeControllerPortV5(const int group, const int subport
 
 #pragma region Constructors and Destructors
 SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
-
-    
-
     _http.SetMethod("GET");
     if (!_fppProxy.empty()) {
         _connected = _http.Connect(_fppProxy);
@@ -1340,14 +1320,14 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
                 static wxRegEx modelregex("(Controller Model )(E\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (modelregex.Matches(wxString(_page))) {
                     _sdmodel = DecodeControllerType(modelregex.GetMatch(wxString(_page), 2).ToStdString());
-                    spdlog::info("Connected to SanDevices controller model {}.", (const char*)GetModel().c_str());
+                    spdlog::info("Connected to SanDevices controller model {}.", GetModel());
                 }
                 static wxRegEx versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (versionregex.Matches(wxString(_page))) {
                     _firmware = FirmwareVersion::Four;
                     _version = versionregex.GetMatch(wxString(_page), 2).ToStdString();
                     spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
-                    spdlog::info("                                 version {}.", (const char*)_version.c_str());
+                    spdlog::info("                                 version {}.", _version);
                     break;
                 }
                 // Firmware Version:</th></td><td>5.038</td>
@@ -1360,7 +1340,7 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
                         _version += version5regex.GetMatch(wxString(_page), 3).ToStdString();
                     }
                     spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
-                    spdlog::info("                                 version {}.", (const char*)_version.c_str());
+                    spdlog::info("                                 version {}.", _version);
                     break;
                 }
 
@@ -1370,13 +1350,13 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
             else {
                 _http.Close();
                 _connected = false;
-                spdlog::error("Error connecting to SanDevices controller on {}.", (const char*)_ip.c_str());
+                spdlog::error("Error connecting to SanDevices controller on {}.", _ip);
                 break;
             }
         }
     }
     else {
-        spdlog::error("Error connecting to SanDevices controller on {}.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to SanDevices controller on {}.", _ip);
     }
 
     if (_connected) {
