@@ -151,8 +151,7 @@
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\xschedule.windows.properties" "$(TargetDir)"</Command>
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -209,8 +208,7 @@ copy "$(SolutionDir)..\bin\xschedule.windows.properties" "$(TargetDir)"</Command
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\xschedule.windows.properties" "$(TargetDir)"</Command>
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

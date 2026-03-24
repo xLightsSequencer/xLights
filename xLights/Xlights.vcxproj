@@ -238,7 +238,6 @@
       <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
@@ -386,7 +385,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
