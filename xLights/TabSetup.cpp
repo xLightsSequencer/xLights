@@ -67,6 +67,8 @@
 
 #include <log.h>
 
+void ApplyLoggingSpecialOptions();
+
 // Thread class to ping a single controller
 class ControllerPingThread : public wxThread {
 public:
@@ -323,6 +325,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     SetFixFileShowDir(CurrentDir);
     SpecialOptions::StashShowDir(CurrentDir.ToStdString());
     SpecialOptions::GetOption("", ""); // resets special options
+    ApplyLoggingSpecialOptions();
 
     
     spdlog::debug("Show directory set to : {}.", (const char*)showDirectory.c_str());
