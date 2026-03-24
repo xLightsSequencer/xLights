@@ -100,7 +100,12 @@ public:
     [[nodiscard]] int GetSortableSmartRemote() const;
     [[nodiscard]] int GetSmartTs() const { return _smartRemoteTs; }
     [[nodiscard]] int GetSmartRemoteForString(int string = 1) const;
-    void SetSmartRemote(int sr, bool skipChain = false);
+    // LoadSmartRemote: sets value only, no chain recalculation or work scheduling.
+    // Use during deserialization when the model graph is incomplete.
+    void LoadSmartRemote(int sr);
+    // SetSmartRemote: recalculates the model chain and schedules ASAP work.
+    // Use for interactive/UI changes when all models are fully loaded.
+    void SetSmartRemote(int sr);
     void SetSRCascadeOnPort(bool cascade);
     void SetSRMaxCascade(int max);
     void SetSmartRemoteType(const std::string& type);

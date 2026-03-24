@@ -20,7 +20,7 @@
 
 #include "../ExportSettings.h"
 #include "../UtilFunctions.h"
-#include "../Pixels.h"
+#include "../models/Pixels.h"
 
 class UDControllerPort;
 class UDController;

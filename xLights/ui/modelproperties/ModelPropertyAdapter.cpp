@@ -28,9 +28,9 @@
 #include "../../LayoutGroup.h"
 #include "../../Color.h"
 #include "../../utils/string_utils.h"
-#include "../../ControllerConnection.h"
+#include "../../models/ControllerConnection.h"
 #include "../../UtilFunctions.h"
-#include "../../Pixels.h"
+#include "../../models/Pixels.h"
 #include "../../ui/wxUtilities.h"
 
 // Dialog adapters - these need to stay accessible for PopupDialogProperty etc.

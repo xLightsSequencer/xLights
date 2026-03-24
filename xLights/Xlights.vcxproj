@@ -516,7 +516,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
     <ClCompile Include="CheckSequenceReport.cpp" />
-    <ClCompile Include="ControllerConnection.cpp" />
+    <ClCompile Include="models\ControllerConnection.cpp" />
     <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
@@ -558,7 +558,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="CopyFormat1.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="Discovery.cpp" />
-    <ClCompile Include="DissolveTransitionPattern.cpp" />
+    <ClCompile Include="render\DissolveTransitionPattern.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="ui\DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="DuplicateDialog.cpp" />
@@ -610,7 +610,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="render\FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
-    <ClCompile Include="GPURenderUtils.cpp" />
+    <ClCompile Include="render\GPURenderUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp" />
@@ -743,7 +743,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
     <ClCompile Include="CustomModelDialog.cpp" />
-    <ClCompile Include="DataLayer.cpp" />
+    <ClCompile Include="render\DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="outputs\Controller.cpp" />
@@ -935,7 +935,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="render\PixelBuffer.cpp" />
-    <ClCompile Include="Pixels.cpp" />
+    <ClCompile Include="models\Pixels.cpp" />
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="preferences\BackupSettingsPanel.cpp" />
     <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp" />
@@ -1100,7 +1100,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="automation\LuaRunner.h" />
     <ClInclude Include="automation\PythonRunner.h" />
     <ClInclude Include="CheckSequenceReport.h" />
-    <ClInclude Include="ControllerConnection.h" />
+    <ClInclude Include="models\ControllerConnection.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
@@ -1141,7 +1141,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="controllers\WLED.h" />
     <ClInclude Include="CopyFormat1.h" />
     <ClInclude Include="Discovery.h" />
-    <ClInclude Include="DissolveTransitionPattern.h" />
+    <ClInclude Include="render\DissolveTransitionPattern.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="ui\DragValueCurveBitmapButton.h" />
     <ClInclude Include="DuplicateDialog.h" />
@@ -1311,7 +1311,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
     <ClInclude Include="CustomModelDialog.h" />
-    <ClInclude Include="DataLayer.h" />
+    <ClInclude Include="render\DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="outputs\ControllerEthernet.h" />
@@ -1495,7 +1495,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="render\PixelBuffer.h" />
-    <ClInclude Include="Pixels.h" />
+    <ClInclude Include="models\Pixels.h" />
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="preferences\BackupSettingsPanel.h" />
     <ClInclude Include="preferences\CheckSequenceSettingsPanel.h" />

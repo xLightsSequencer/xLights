@@ -48,7 +48,7 @@
 #include "../models/WindowFrameModel.h"
 #include "../models/WreathModel.h"
 #include "../xLightsVersion.h"
-#include "../Pixels.h"
+#include "../models/Pixels.h"
 #include "../models/DMX/DmxBeamAbility.h"
 #include "../models/DMX/DmxColorAbilityCMY.h"
 #include "../models/DMX/DmxColorAbilityRGB.h"

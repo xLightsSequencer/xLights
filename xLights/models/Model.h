@@ -18,7 +18,7 @@
 
 class BaseSerializingVisitor;
 
-#include "../ControllerConnection.h"
+#include "ControllerConnection.h"
 #include "ModelScreenLocation.h"
 #include "BoxedScreenLocation.h"
 #include "TwoPointScreenLocation.h"

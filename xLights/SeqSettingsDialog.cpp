@@ -27,7 +27,7 @@
 #include "SeqSettingsDialog.h"
 #include "NewTimingDialog.h"
 #include "render/SequenceFile.h"
-#include "DataLayer.h"
+#include "render/DataLayer.h"
 #include "FileConverter.h"
 #include "LorConvertDialog.h"
 #include "ConvertLogDialog.h"

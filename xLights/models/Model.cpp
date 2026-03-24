@@ -34,7 +34,7 @@
 #include "../DimmingCurve.h"
 #include "../ExternalHooks.h"
 #include "../ModelPreview.h"
-#include "../Pixels.h"
+#include "Pixels.h"
 #include "../UtilFunctions.h"
 #include "../VendorModelDialog.h"
 #include "../controllers/ControllerCaps.h"

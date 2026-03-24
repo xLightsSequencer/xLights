@@ -13,7 +13,7 @@
 
 #include "xLightsApp.h"
 #include "xLightsMain.h"
-#include "Pixels.h"
+#include "models/Pixels.h"
 
 //(*InternalHeaders(ControllerConnectionDialog)
 #include <wx/intl.h>

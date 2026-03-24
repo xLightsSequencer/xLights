@@ -28,8 +28,8 @@
 #include <wx/position.h>
 
 #include "ControllerModelDialog.h"
-#include "ControllerConnection.h"
-#include "Pixels.h"
+#include "models/ControllerConnection.h"
+#include "models/Pixels.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
 #include "controllers/ControllerCaps.h"

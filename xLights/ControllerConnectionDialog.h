@@ -20,7 +20,7 @@
 #include <wx/stattext.h>
 //*)
 
-#include "ControllerConnection.h"
+#include "models/ControllerConnection.h"
 
 enum class controller_connection_bulkedit
 {

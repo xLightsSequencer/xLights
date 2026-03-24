@@ -19,7 +19,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
-#include "../Pixels.h"
+#include "../models/Pixels.h"
 
 #define NO_VALUE_INT -9999
 #define NO_VALUE_STRING "unknown"

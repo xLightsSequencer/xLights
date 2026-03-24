@@ -1,5 +1,5 @@
 #include "../EffectManager.h"
-#include "../../GPURenderUtils.h"
+#include "../../render/GPURenderUtils.h"
 #include "../../render/PixelBuffer.h"
 #include "../../render/RenderBuffer.h"
 #include "MetalComputeUtilities.hpp"

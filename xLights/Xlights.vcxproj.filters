@@ -26,7 +26,7 @@
     <ClCompile Include="ControllerConnectionDialog.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
-    <ClCompile Include="DataLayer.cpp" />
+    <ClCompile Include="render\DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
@@ -127,7 +127,7 @@
     <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
-    <ClCompile Include="DissolveTransitionPattern.cpp" />
+    <ClCompile Include="render\DissolveTransitionPattern.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="ViewpointDialog.cpp" />
@@ -714,10 +714,10 @@
     <ClCompile Include="controllers\WLED.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="Pixels.cpp" />
+    <ClCompile Include="models\Pixels.cpp" />
     <ClCompile Include="LORPreview.cpp" />
     <ClCompile Include="ExportSettings.cpp" />
-    <ClCompile Include="GPURenderUtils.cpp" />
+    <ClCompile Include="render\GPURenderUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
@@ -1055,7 +1055,7 @@
     <ClCompile Include="XmlSerializer\FileSerializingVisitor.cpp">
       <Filter>XmlSerializer</Filter>
     </ClCompile>
-    <ClCompile Include="ControllerConnection.cpp" />
+    <ClCompile Include="models\ControllerConnection.cpp" />
     <ClCompile Include="models\DMX\DmxBeamAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -1419,7 +1419,7 @@
     <ClInclude Include="ControllerConnectionDialog.h" />
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
-    <ClInclude Include="DataLayer.h" />
+    <ClInclude Include="render\DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="EffectAssist.h" />
@@ -1520,7 +1520,7 @@
     <ClInclude Include="render\RenderUtils.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="DissolveTransitionPattern.h" />
+    <ClInclude Include="render\DissolveTransitionPattern.h" />
     <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="ViewpointDialog.h" />
@@ -2116,7 +2116,7 @@
     <ClInclude Include="controllers\WLED.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="Pixels.h" />
+    <ClInclude Include="models\Pixels.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="ExportSettings.h" />
     <ClInclude Include="graphics\opengl\DrawGLUtils.h">
@@ -2470,7 +2470,7 @@
     <ClInclude Include="XmlSerializer\BaseSerializingVisitor.h">
       <Filter>XmlSerializer</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerConnection.h" />
+    <ClInclude Include="models\ControllerConnection.h" />
     <ClInclude Include="models\DMX\DmxBeamAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>

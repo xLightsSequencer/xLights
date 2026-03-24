@@ -14,7 +14,7 @@
 
 #include "../models/Model.h"
 #include "../ui/wxUtilities.h"
-#include "../Pixels.h"
+#include "../models/Pixels.h"
 #include "../Color.h"
 
 #include <algorithm>

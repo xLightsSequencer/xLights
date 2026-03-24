@@ -22,7 +22,7 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsMain.h"
-#include "../DissolveTransitionPattern.h"
+#include "../render/DissolveTransitionPattern.h"
 #include "UtilFunctions.h"
 
 #include "../Parallel.h"

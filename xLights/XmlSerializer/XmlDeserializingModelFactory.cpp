@@ -192,7 +192,7 @@ void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model,
     cc.UpdateProperty(CtrlProps::TS_ACTIVE,          !ccNode.attribute(XmlNodeKeys::SmartRemoteTsAttribute).empty());
 
     // Set all the Smart Remote values
-    cc.SetSmartRemote(ccNode.attribute(XmlNodeKeys::SmartRemoteAttribute).as_int(0), true);
+    cc.LoadSmartRemote(ccNode.attribute(XmlNodeKeys::SmartRemoteAttribute).as_int(0));
     cc.SetSRMaxCascade(ccNode.attribute(XmlNodeKeys::SRMaxCascadeAttribute).as_int(1));
     cc.SetSRCascadeOnPort(std::string_view(ccNode.attribute(XmlNodeKeys::SRCascadeOnPortAttribute).as_string("FALSE")) == "TRUE");
     cc.SetSmartRemoteTs(ccNode.attribute(XmlNodeKeys::SmartRemoteTsAttribute).as_int(0));

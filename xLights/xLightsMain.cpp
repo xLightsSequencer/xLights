@@ -57,7 +57,7 @@
 #include "ExportSettings.h"
 #include "ExternalHooks.h"
 #include "FindDataPanel.h"
-#include "GPURenderUtils.h"
+#include "render/GPURenderUtils.h"
 #include "GenerateCustomModelDialog.h"
 #include "GenerateLyricsDialog.h"
 #include "HousePreviewPanel.h"

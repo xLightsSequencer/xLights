@@ -10,8 +10,8 @@
 
 #include "ControllerConnection.h"
 #include "Pixels.h"
-#include "controllers/ControllerCaps.h"
-#include "models/ModelManager.h"
+#include "../controllers/ControllerCaps.h"
+#include "ModelManager.h"
 #include "models/Model.h"
 
 static const int PORTS_PER_SMARTREMOTE = 4;
@@ -287,14 +287,9 @@ void ControllerConnection::SetSRMaxCascade(int max)
     _model->IncrementChangeCount();
 }
 
-void ControllerConnection::SetSmartRemote(int sr, bool skipChain)
+void ControllerConnection::LoadSmartRemote(int sr)
 {
     if (_smartRemote == sr) return;
-    // Find the last model on this smart remote
-    // Skip during deserialization — the model chain was already loaded from XML
-    if (!skipChain && !_name.empty()) {
-        _model->SetModelChain(_model->modelManager.GetLastModelOnPort(_name, _port, _model->GetName(), _protocol, sr));
-    }
     if (sr != 0) {
         _smartRemote = sr;
         active_props[USE_SMART_REMOTE] = true;
@@ -304,6 +299,16 @@ void ControllerConnection::SetSmartRemote(int sr, bool skipChain)
         SetSRMaxCascade(1);
         SetSRCascadeOnPort(false);
     }
+}
+
+void ControllerConnection::SetSmartRemote(int sr)
+{
+    if (_smartRemote == sr) return;
+    // Find the last model on this smart remote and update the chain
+    if (!_name.empty()) {
+        _model->SetModelChain(_model->modelManager.GetLastModelOnPort(_name, _port, _model->GetName(), _protocol, sr));
+    }
+    LoadSmartRemote(sr);
 
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                         OutputModelManager::WORK_RGBEFFECTS_CHANGE |

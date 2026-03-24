@@ -19,7 +19,7 @@
 
 #include "BufferPanel.h"
 #include "ConvertLogDialog.h"
-#include "DataLayer.h"
+#include "render/DataLayer.h"
 #include "EffectAssist.h"
 #include "ExternalHooks.h"
 #include "FileConverter.h"

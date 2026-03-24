@@ -15,7 +15,7 @@
 #ifndef FPP
 #include <wx/string.h>
 #endif
-#include "DataLayer.h"
+#include "render/DataLayer.h"
 #include "SequenceData.h"
 #include "Color.h"
 

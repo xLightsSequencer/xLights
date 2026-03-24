@@ -45,7 +45,7 @@
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/XmlDeserializingModelFactory.h"
 #include "../ModelPreview.h"
-#include "../Pixels.h"
+#include "Pixels.h"
 #include "../controllers/ControllerCaps.h"
 #include "../render/Element.h"
 #include "../xLightsMain.h"

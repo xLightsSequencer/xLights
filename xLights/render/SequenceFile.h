@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "../DataLayer.h"
+#include "DataLayer.h"
 #include "../Vixen3.h"
 #include "pugixml.hpp"
 
