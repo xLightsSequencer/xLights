@@ -7,6 +7,7 @@
 #include "MagicWord.h"
 
 #include <log4cpp/Category.hh>
+#include <log.h>
 #include <wx/wxcrt.h>
 
 SMSDaemonOptions::SMSDaemonOptions()
@@ -36,7 +37,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
 
         if (doc.IsOk())
         {
-            spdlog::debug("Options loaded from {}.", options);
+            spdlog::debug("Options loaded from {}.", options.ToStdString());
             auto n = doc.GetRoot();
             _textItem = n->GetAttribute("TextItem", "");
             _user = n->GetAttribute("User", "");
@@ -82,12 +83,12 @@ void SMSDaemonOptions::Load(const std::string& showDir)
         }
         else
         {
-            spdlog::debug("Options xml file not valid XML {}.", options);
+            spdlog::debug("Options xml file not valid XML {}.", options.ToStdString());
         }
     }
     else
     {
-        spdlog::debug("Options did not exist {}.", options);
+        spdlog::debug("Options did not exist {}.", options.ToStdString());
     }
 }
 
@@ -144,7 +145,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     }
 
     doc.SetRoot(node);
-    spdlog::debug("Options saved to {}.", options);
+    spdlog::debug("Options saved to {}.", options.ToStdString());
     doc.Save(options);
     ClearDirty();
 }
