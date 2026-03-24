@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <pugixml.hpp>
+#include <nlohmann/json.hpp>
 
 class BaseSerializingVisitor;
 
@@ -35,6 +36,7 @@ public:
     virtual bool IsGroup() const = 0;
 
     virtual void Save(BaseSerializingVisitor& visitor) const = 0;
+    virtual nlohmann::json ToJson() const = 0;
 
 protected:
     EffectPresetItem(const std::string& name, EffectPresetGroup* parent)
@@ -56,6 +58,7 @@ public:
 
     bool IsGroup() const override { return false; }
     void Save(BaseSerializingVisitor& visitor) const override;
+    nlohmann::json ToJson() const override;
 
     const std::string& GetSettings() const { return _settings; }
     void SetSettings(const std::string& settings) { _settings = settings; }
@@ -82,6 +85,7 @@ public:
 
     bool IsGroup() const override { return true; }
     void Save(BaseSerializingVisitor& visitor) const override;
+    nlohmann::json ToJson() const override;
 
     // Child access
     const std::vector<std::unique_ptr<EffectPresetItem>>& GetChildren() const { return _children; }
@@ -100,6 +104,9 @@ public:
     EffectPresetItem* FindChildByName(const std::string& name) const;
     bool HasChildNamed(const std::string& name) const;
 
+    // JSON loading
+    void LoadChildrenFromJson(const nlohmann::json& j);
+
 private:
     void LoadChildren(pugi::xml_node node);
 
@@ -116,7 +123,11 @@ public:
 
     // Lifecycle
     void Load(pugi::xml_node effectsNode);
+    void LoadFromJson(const nlohmann::json& j);
     void Save(BaseSerializingVisitor& visitor) const;
+    nlohmann::json SaveToJson() const;
+    bool LoadJsonFile(const std::string& filepath);
+    bool SaveJsonFile(const std::string& filepath) const;
     void Reset();
 
     // Version of the effects block

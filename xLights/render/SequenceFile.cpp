@@ -9,13 +9,9 @@
  **************************************************************/
 
 #include <wx/filename.h>
-#include <wx/tokenzr.h>
-#include <wx/regex.h>
 #include <wx/numdlg.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
-#include <wx/dir.h>
-#include <wx/textfile.h>
 #include <wx/mstream.h>
 #include <wx/base64.h>
 #include <zstd.h>
@@ -26,6 +22,11 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <sstream>
+#include <string_view>
 #include <unordered_map>
 
 #include "SequenceFile.h"
@@ -43,8 +44,6 @@
 #include "../ExternalHooks.h"
 
 #include <log.h>
-
-#define string_format wxString::Format
 
 //     #define USE_COMPRESSION
 
@@ -75,7 +74,7 @@ SequenceFile::SequenceFile(const std::string& filepath, uint32_t frameMS) :
     audio(nullptr)
 {
     if (frameMS != 0) {
-        seq_timing = wxString::Format("%d ms", frameMS);
+        seq_timing = std::to_string(frameMS) + " ms";
     }
     CreateNew();
 }
@@ -119,41 +118,34 @@ bool SequenceFile::FileExists() const
 
 bool SequenceFile::IsXmlSequence(const std::string& filepath)
 {
+    std::ifstream file(filepath, std::ios::binary);
+    if (!file) return false;
     char buf[1024];
-    wxFile file(filepath);
-    int i = file.Read(buf, 1024);
-    file.Close();
-    wxString bufs(buf, i);
-    if (bufs.Contains("<xsequence")) {
-        return true;
-    }
-    return false;
+    file.read(buf, sizeof(buf));
+    std::string_view sv(buf, file.gcount());
+    return sv.find("<xsequence") != std::string_view::npos;
 }
 
 bool SequenceFile::IsV3Sequence() const
 {
+    std::ifstream file(GetFullPath(), std::ios::binary);
+    if (!file) return false;
     char buf[1024];
-    wxFile file(GetFullPath());
-    int i = file.Read(buf, 1024);
-    file.Close();
-    if ((wxString(buf, i).Contains("<xsequence")) &&
-        (wxString(buf, i).Contains("<tr>"))) {
-        return true;
-    }
-    return false;
+    file.read(buf, sizeof(buf));
+    std::string_view sv(buf, file.gcount());
+    return sv.find("<xsequence") != std::string_view::npos &&
+           sv.find("<tr>") != std::string_view::npos;
 }
 
 bool SequenceFile::NeedsTimesCorrected() const
 {
+    std::ifstream file(GetFullPath(), std::ios::binary);
+    if (!file) return true;
     char buf[1024];
-    wxFile file(GetFullPath());
-    int i = file.Read(buf, 1024);
-    file.Close();
-    if ((wxString(buf, i).Contains("<xsequence")) &&
-        (wxString(buf, i).Contains("FixedPointTiming"))) {
-        return false;
-    }
-    return true;
+    file.read(buf, sizeof(buf));
+    std::string_view sv(buf, file.gcount());
+    return !(sv.find("<xsequence") != std::string_view::npos &&
+             sv.find("FixedPointTiming") != std::string_view::npos);
 }
 
 // GetLastView() is now inline in the header, returning mLastView
@@ -162,15 +154,15 @@ bool SequenceFile::NeedsTimesCorrected() const
 
 bool SequenceFile::SaveCopy() const
 {
-    wxString archive_dir = xLightsFrame::CurrentDir + ::GetPathSeparator() + "ArchiveV3";
+    std::filesystem::path archive_dir = std::filesystem::path(xLightsFrame::CurrentDir.ToStdString()) / "ArchiveV3";
 
-    if (wxDir::Exists(archive_dir) == false) {
-        if (!wxDir::Make(archive_dir)) return false;
+    std::error_code ec;
+    if (!std::filesystem::exists(archive_dir, ec)) {
+        if (!std::filesystem::create_directory(archive_dir, ec)) return false;
     }
 
-    wxRenameFile(GetFullPath(), archive_dir + ::GetPathSeparator() + GetFullName());
-
-    return true;
+    std::filesystem::rename(GetFullPath(), archive_dir / GetFullName(), ec);
+    return !ec;
 }
 
 void SequenceFile::SetSequenceType(const std::string& type)
@@ -215,7 +207,10 @@ void SequenceFile::SetMediaFile(const std::string& ShowDir, const std::string& f
     }
 
     ObtainAccessToURL(filename);
-    if (!filename.empty() && ::FileExists(filename) && wxIsReadable(filename)) {
+    std::error_code ec;
+    auto perms = std::filesystem::status(filename, ec).permissions();
+    bool readable = !ec && (perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none;
+    if (!filename.empty() && ::FileExists(filename) && readable) {
         spdlog::debug("SetMediaFile: Creating audio manager");
         audio = new AudioManager(filename, GetFrameMS());
 
@@ -270,16 +265,18 @@ std::string SequenceFile::GetRenderMode()
 
 
 
-static wxString GetSetting(const wxString& setting, const wxString& text)
+static std::string GetSetting(const std::string& setting, const std::string& text)
 {
-    wxString settings = text;
-    while (!settings.IsEmpty()) {
-        wxString before = settings.BeforeFirst(',');
-        if (before.Contains(setting)) {
-            wxString val = before.AfterLast('=');
-            return val;
+    std::string settings = text;
+    while (!settings.empty()) {
+        auto commaPos = settings.find(',');
+        std::string before = settings.substr(0, commaPos);
+        if (before.find(setting) != std::string::npos) {
+            auto eqPos = before.rfind('=');
+            return (eqPos != std::string::npos) ? before.substr(eqPos + 1) : "";
         }
-        settings = settings.AfterFirst(',');
+        if (commaPos == std::string::npos) break;
+        settings = settings.substr(commaPos + 1);
     }
     return "";
 }
@@ -422,21 +419,22 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
                         if (media_file != content) {
                             spdlog::debug("LoadSequence: mediaFile resolved to {}", media_file);
                         }
-                        wxFileName mf(media_file);
                         if (audio != nullptr) {
                             spdlog::debug("LoadSequence: removing prior audio.");
                             ValueCurve::SetAudio(nullptr);
                             delete audio;
                             audio = nullptr;
                         }
-                        if (::FileExists(mf) && mf.IsFileReadable()) {
-                            mediaFileName = media_file;
-                        } else {
-                            if (!::FileExists(mf)) {
-                                spdlog::error("LoadSequence: audio file does not exist.");
-                            } else if (!mf.IsFileReadable()) {
+                        if (::FileExists(media_file)) {
+                            std::error_code ec2;
+                            auto p = std::filesystem::status(media_file, ec2).permissions();
+                            if (!ec2 && (p & std::filesystem::perms::owner_read) != std::filesystem::perms::none) {
+                                mediaFileName = media_file;
+                            } else {
                                 spdlog::error("LoadSequence: audio file not readable.");
                             }
+                        } else {
+                            spdlog::error("LoadSequence: audio file does not exist.");
                         }
                     }
                 } else if (name == "sequenceDuration") {
@@ -520,7 +518,7 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
 
 std::string SequenceFile::GetSequenceDurationString() const
 {
-    return string_format("%.3f", seq_duration);
+    return std::format("{:.3f}", seq_duration);
 }
 
 void SequenceFile::SetSequenceDurationMS(int length)
@@ -530,7 +528,7 @@ void SequenceFile::SetSequenceDurationMS(int length)
 
 void SequenceFile::SetSequenceDuration(double length)
 {
-    SetSequenceDuration(string_format("%.3f",length));
+    SetSequenceDuration(std::format("{:.3f}", length));
 }
 
 void SequenceFile::SetSequenceDuration(const std::string& length)
@@ -571,19 +569,15 @@ void SequenceFile::UpdateVersion(const std::string& version)
 
 void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
 {
-    wxTextFile f;
-    wxString line;
-    int r;
-
     for (size_t i = 0; i < filenames.size(); ++i) {
-        wxFileName next_file(filenames[i]);
+        std::filesystem::path next_file(filenames[i]);
 
-        if (!f.Open(next_file.GetFullPath().c_str())) {
-            //Add error dialog if open file failed
+        std::ifstream f(next_file);
+        if (!f.is_open()) {
             return;
         }
 
-        std::string filename = next_file.GetName().ToStdString();
+        std::string filename = next_file.stem().string();
 
         while (TimingAlreadyExists(filename, xLightsParent)) {
             filename += "_1";
@@ -592,70 +586,71 @@ void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& fi
         Element* element = xLightsParent->AddTimingElement(filename);
         EffectLayer* effectLayer = element->GetEffectLayer(0);
 
-        bool isTab = false;
+        // Read all lines
+        std::vector<std::string> allLines;
+        std::string rawLine;
+        while (std::getline(f, rawLine)) {
+            allLines.push_back(rawLine);
+        }
+
         // scan the first 30 lines to see if it is tab delimited
-        for (r = 0, line = f.GetFirstLine(); !f.Eof() && r < 30 && !isTab; line = f.GetNextLine(), r++) {
-            if (line.Contains("\t")) {
+        bool isTab = false;
+        for (size_t r = 0; r < allLines.size() && r < 30 && !isTab; r++) {
+            if (allLines[r].find('\t') != std::string::npos) {
                 isTab = true;
             }
         }
 
-        wxArrayString start_times;
-        wxArrayString end_times;
+        std::vector<std::string> start_times;
+        std::vector<std::string> end_times;
         std::vector<std::string> labels;
 
-        for (r = 0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++) {
+        for (const auto& rawLine2 : allLines) {
+            std::string line = rawLine2;
             // remove comments
-            if (line.Contains("#")) {
-                int pos = line.Find("#");
-                line.Truncate(pos);
+            auto hashPos = line.find('#');
+            if (hashPos != std::string::npos) {
+                line.resize(hashPos);
             }
 
-            while (!line.empty() && (line.Last() == ' ')) line.RemoveLast(); //trim trailing spaces
-            if (line.empty()) {
-                --r;    //skip blank lines; don't add grid row
-                continue;
-            }
+            // trim trailing spaces
+            while (!line.empty() && line.back() == ' ') line.pop_back();
+            if (line.empty()) continue;
 
-            wxStringTokenizer tkz;
-            if (isTab) {
-                tkz = wxStringTokenizer(line, "\t");
+            char delim = isTab ? '\t' : ' ';
+            std::istringstream iss(line);
+            std::string token;
+            std::getline(iss, token, delim);
+            start_times.push_back(token); //first column = start time
+            std::getline(iss, token, delim);
+            end_times.push_back(token); //second column = end time
+            std::string label;
+            if (std::getline(iss, token, delim)) {
+                label = token;
             }
-            else {
-                tkz = wxStringTokenizer(line, " ");
-            }
-            start_times.push_back(tkz.GetNextToken()); //first column = start time
-            //pull in lyrics or other label text
-            end_times.push_back(tkz.GetNextToken()); //second column = end time;
-            std::string label = tkz.GetNextToken().ToStdString(); //third column = label/text
-            for (;;) //collect remaining tokens into label
-            {
-                std::string more = tkz.GetNextToken().ToStdString();
-                if (more.empty()) break;
-                label += " " + more;
-            }
-            labels.push_back(label); //third column = label/text
-
-        }
-
-        double time1;
-        for (size_t j = 0; j < start_times.GetCount(); j++) {
-            start_times[j].ToDouble(&time1);
-            start_times[j] = string_format("%d", (int)(time1 * 1000.0));
-            end_times[j].ToDouble(&time1);
-            end_times[j] = string_format("%d", (int)(time1 * 1000.0));
-        }
-
-        for (size_t k = 0; k < start_times.GetCount(); ++k) {
-            int startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(start_times[k]), GetFrequency());
-            int endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(end_times[k]), GetFrequency());
-            if (startTime == endTime) {
-                if (k == start_times.GetCount() - 1) // last timing mark
-                {
-                    endTime = startTime + GetFrequency();
+            while (std::getline(iss, token, delim)) {
+                if (!token.empty()) {
+                    label += " " + token;
                 }
-                else {
-                    endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(start_times[k + 1]), GetFrequency());
+            }
+            labels.push_back(label);
+        }
+
+        for (size_t j = 0; j < start_times.size(); j++) {
+            double time1 = std::strtod(start_times[j].c_str(), nullptr);
+            start_times[j] = std::to_string((int)(time1 * 1000.0));
+            time1 = std::strtod(end_times[j].c_str(), nullptr);
+            end_times[j] = std::to_string((int)(time1 * 1000.0));
+        }
+
+        for (size_t k = 0; k < start_times.size(); ++k) {
+            int startTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(start_times[k].c_str(), nullptr, 10), GetFrequency());
+            int endTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(end_times[k].c_str(), nullptr, 10), GetFrequency());
+            if (startTime == endTime) {
+                if (k == start_times.size() - 1) {
+                    endTime = startTime + GetFrequency();
+                } else {
+                    endTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(start_times[k + 1].c_str(), nullptr, 10), GetFrequency());
                 }
             }
 
@@ -668,26 +663,23 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
 {
     for (size_t i = 0; i < filenames.size(); ++i )
     {
-        wxFileName next_file(filenames[i]);
+        std::filesystem::path next_file(filenames[i]);
 
-        wxFile f;
-        if (!f.Open(next_file.GetFullPath().c_str()))
-        {
-            DisplayError(wxString::Format("LOR Timing: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
+        if (!::FileExists(next_file.string())) {
+            DisplayError("LOR Timing: Failed to open file: '" + next_file.string() + "'");
             return;
         }
-        f.Close();
 
-        std::string filename = next_file.GetName().ToStdString();
+        std::string filename = next_file.stem().string();
 
-        wxArrayString grid_times;
-        wxArrayString timing_options;
+        std::vector<std::string> grid_times;
+        wxArrayString timing_options; // wxArrayString needed for OptionChooser UI
 
         pugi::xml_document input_xml;
-        pugi::xml_parse_result result = input_xml.load_file(next_file.GetFullPath().ToStdString().c_str());
+        pugi::xml_parse_result result = input_xml.load_file(next_file.string().c_str());
         if( !result )
         {
-            DisplayError(wxString::Format("LOR Timing: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
+            DisplayError("LOR Timing: Failed to load XML file: '" + next_file.string() + "'");
             return;
         }
 
@@ -701,12 +693,12 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
                 {
                     if (strcmp(grids.name(), "timingGrid") == 0)
                     {
-                        wxString grid_type = grids.attribute("type").as_string("");
+                        std::string grid_type = grids.attribute("type").as_string("");
                         if( grid_type == "freeform" )
                         {
-                            wxString grid_name = grids.attribute("name").as_string("");
-                            wxString grid_id = grids.attribute("saveID").as_string("");
-                            if( grid_name == "" )
+                            std::string grid_name = grids.attribute("name").as_string("");
+                            std::string grid_id = grids.attribute("saveID").as_string("");
+                            if( grid_name.empty() )
                             {
                                 grid_name = "Unnamed" + grid_id;
                             }
@@ -720,7 +712,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
         OptionChooser opt_dialog(xLightsParent);
         opt_dialog.SetInstructionText("Choose Timing Grid to use for timing import:");
         opt_dialog.SetOptions(timing_options);
-        wxArrayString timing_grids;
+        wxArrayString timing_grids; // wxArrayString needed for OptionChooser UI
         if (opt_dialog.ShowModal() == wxID_OK)
         {
             opt_dialog.GetSelectedOptions(timing_grids);
@@ -740,7 +732,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
                     {
                         std::string grid_name = grids.attribute("name").as_string("");
                         std::string grid_id = grids.attribute("saveID").as_string("");
-                        if( grid_name == "" )
+                        if( grid_name.empty() )
                         {
                             grid_name = "Unnamed" + grid_id;
                         }
@@ -752,18 +744,17 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
                                 Element* element = xLightsParent->AddTimingElement(new_timing_name);
                                 EffectLayer* effectLayer = element->GetEffectLayer(0);
 
-                                grid_times.Clear();
+                                grid_times.clear();
                                 for(pugi::xml_node effect = grids.first_child(); effect; effect = effect.next_sibling() )
                                 {
                                     int time = effect.attribute("centisecond").as_int(0) * 10;
-                                    wxString t1 = string_format("%d",time);
-                                    grid_times.push_back(t1);
+                                    grid_times.push_back(std::to_string(time));
                                 }
 
-                                for (size_t k = 0; k < grid_times.GetCount()-1; ++k )
+                                for (size_t k = 0; k < grid_times.size()-1; ++k )
                                 {
-                                    int startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k]),GetFrequency());
-                                    int endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),GetFrequency());
+                                    int startTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(grid_times[k].c_str(), nullptr, 10),GetFrequency());
+                                    int endTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(grid_times[k+1].c_str(), nullptr, 10),GetFrequency());
                                     effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                 }
                             }
@@ -777,7 +768,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
 
 std::string SequenceFile::UniqueTimingName(xLightsFrame* xLightsParent, std::string name) const
 {
-    wxString testname = RemoveUnsafeXmlChars(name);
+    std::string testname = RemoveUnsafeXmlChars(name);
     int testnamenum = 1;
     bool ok;
     do
@@ -791,7 +782,7 @@ std::string SequenceFile::UniqueTimingName(xLightsFrame* xLightsParent, std::str
             {
                 if (element->GetName() == testname)
                 {
-                    testname = name + wxString::Format("_%d", testnamenum++);
+                    testname = name + "_" + std::to_string(testnamenum++);
                     ok = false;
                     break;
                 }
@@ -854,24 +845,21 @@ void SequenceFile::ProcessXTiming(const pugi::xml_node& node, xLightsFrame* xLig
 
 void SequenceFile::ProcessXTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
 {
-    wxTextFile f;
-
     for (size_t i = 0; i < filenames.size(); ++i)
     {
-        wxFileName next_file(filenames[i]);
-        if (!f.Open(next_file.GetFullPath().c_str()))
-        {
-            DisplayError(wxString::Format("xTiming: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
+        const std::string& filepath = filenames[i];
+        std::string filename = std::filesystem::path(filepath).stem().string();
+
+        if (!::FileExists(filepath)) {
+            DisplayError("xTiming: Failed to open file: '" + filepath + "'");
             return;
         }
 
-        std::string filename = next_file.GetName().ToStdString();
-
         pugi::xml_document input_xml;
-        pugi::xml_parse_result parse_result = input_xml.load_file(next_file.GetFullPath().ToStdString().c_str());
+        pugi::xml_parse_result parse_result = input_xml.load_file(filepath.c_str());
         if (!parse_result)
         {
-            DisplayError(wxString::Format("xTiming: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
+            DisplayError("xTiming: Failed to load XML file: '" + filepath + "'");
             return;
         }
 
@@ -898,202 +886,201 @@ void SequenceFile::ProcessXTiming(const std::vector<std::string>& filenames, xLi
     }
 }
 
-wxString RemoveTabs(const wxString& s, size_t tabs)
+static std::string RemoveTabs(const std::string& s, size_t tabs)
 {
-    wxString res = s;
-
-    for (size_t i = 0; i < tabs; i++)
-    {
-        if (res[0] == '\t')
-        {
-            res = res.SubString(1, res.Length() - 1);
+    size_t start = 0;
+    for (size_t i = 0; i < tabs && start < s.size(); i++) {
+        if (s[start] == '\t') {
+            ++start;
         }
     }
-    return res;
+    return s.substr(start);
+}
+
+static bool IsAllDigits(const std::string& s) {
+    return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
 }
 
 void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
 {
-    wxTextFile f;
-
     for (size_t i = 0; i < filenames.size(); ++i)
     {
         int linenum = 1;
-        wxFileName next_file(filenames[i]);
-        spdlog::info("Loading papagayo file " + std::string(next_file.GetFullPath().c_str()));
+        const std::string& filepath = filenames[i];
+        spdlog::info("Loading papagayo file {}", filepath);
 
-        if (!f.Open(next_file.GetFullPath().c_str()))
+        std::ifstream f(filepath);
+        if (!f.is_open())
         {
-            DisplayError("Failed to open file: " + next_file.GetFullPath());
+            DisplayError("Failed to open file: " + filepath);
             return;
         }
 
-        wxString line = f.GetFirstLine();
-        if (line.CmpNoCase("lipsync version 1"))
+        // Helper to read next line from the file
+        std::vector<std::string> fileLines;
         {
-            DisplayError(wxString::Format(_("Invalid papagayo file @line %d (header '%s')"), linenum, line.c_str()).ToStdString());
-            return;
+            std::string tmp;
+            while (std::getline(f, tmp)) fileLines.push_back(tmp);
+        }
+        size_t curLine = 0;
+        auto nextLine = [&]() -> std::string {
+            return curLine < fileLines.size() ? fileLines[curLine++] : "";
+        };
+
+        std::string line = nextLine();
+        // Case-insensitive comparison
+        {
+            std::string lower = line;
+            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+            if (lower != "lipsync version 1") {
+                DisplayError(std::format("Invalid papagayo file @line {} (header '{}')", linenum, line));
+                return;
+            }
         }
 
-        line = f.GetNextLine(); // filename which we ignore
+        nextLine(); // filename which we ignore
         linenum++;
 
-        wxRegEx number("^[0-9]+$");
-        int samppersec = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        line = nextLine();
+        int samppersec = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
-        if (samppersec < 1)
-        {
-            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), linenum, line.c_str()).ToStdString());
+        if (samppersec < 1) {
+            DisplayError(std::format("Invalid file @line {} ('{}' samples per sec)", linenum, line));
         }
         int ms = 1000 / samppersec;
 
         int maxframe = 4 * 60 * samppersec;
-        if (GetMedia() != nullptr)
-        {
+        if (GetMedia() != nullptr) {
             maxframe = GetMedia()->LengthMS() / ms;
         }
         int offset = wxGetNumberFromUser("Enter the number of frames to offset the papagayo data by", "", "Offset", 0, 0, maxframe, xLightsParent);
 
-        int numsamp = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        line = nextLine();
+        int numsamp = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
-        if (numsamp < 1)
-        {
-            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), linenum, line.c_str()).ToStdString());
+        if (numsamp < 1) {
+            DisplayError(std::format("Invalid file @line {} ('{}' song samples)", linenum, line));
         }
 
-        int numvoices = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        line = nextLine();
+        int numvoices = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
-        if (numvoices < 1)
-        {
-            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()).ToStdString());
+        if (numvoices < 1) {
+            DisplayError(std::format("Invalid file @line {} ('{}' voices)", linenum, line));
         }
         spdlog::info("    Voices {}", numvoices);
 
         for (int v = 1; v <= numvoices; ++v)
         {
-            wxString name = wxString::Format("Voice %d", v);
+            std::string name = "Voice " + std::to_string(v);
             name = UniqueTimingName(xLightsParent, name);
-            spdlog::info("    Loading voice {} into timing track {}.", v, name.ToStdString());
+            spdlog::info("    Loading voice {} into timing track {}.", v, name);
 
-            wxString voicename = f.GetNextLine();
+            std::string voicename = nextLine();
             linenum++;
-            if (voicename.empty())
-            {
-                DisplayError(wxString::Format(_("Missing voice# %d of %d"), v, numvoices).ToStdString());
+            if (voicename.empty()) {
+                DisplayError(std::format("Missing voice# {} of {}", v, numvoices));
                 return;
             }
 
-            f.GetNextLine(); //all phrases for voice, "|" delimiter; TODO: do we need to save this?
+            nextLine(); //all phrases for voice, "|" delimiter
             linenum++;
-            wxString desc = wxString::Format(_("voice# %d '%s' @line %d"), v, voicename, linenum);
+            std::string desc = std::format("voice# {} '{}' @line {}", v, voicename, linenum);
 
-            int numphrases = number.Matches(line = RemoveTabs(f.GetNextLine(),1)) ? wxAtoi(line) : -1;
+            line = RemoveTabs(nextLine(), 1);
+            int numphrases = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
             linenum++;
-            if (numphrases < 0)
-            {
-                DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
+            if (numphrases < 0) {
+                DisplayError(std::format("Invalid file @line {} ('{}' phrases for {})", linenum, line, desc));
             }
 
-            Element* element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+            Element* element = xLightsParent->AddTimingElement(name);
             EffectLayer *el1 = element->GetEffectLayer(0);
             EffectLayer *el2 = element->AddEffectLayer();
             EffectLayer *el3 = element->AddEffectLayer();
 
             for (int p = 1; p <= numphrases; ++p)
             {
-                wxString label = RemoveTabs(f.GetNextLine(), 2);
+                std::string label = RemoveTabs(nextLine(), 2);
                 linenum++;
-                if (label == "")
-                {
-                    DisplayError(wxString::Format(_("Missing phrase# %d of %d for %s"), p, numphrases, desc.c_str()).ToStdString());
+                if (label.empty()) {
+                    DisplayError(std::format("Missing phrase# {} of {} for {}", p, numphrases, desc));
                     return;
                 }
 
-                //int start = number.Matches(line = RemoveTabs(f.GetNextLine(), 2)) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(line)) * ms, GetFrequency()) : 0;
-                int start = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
+                line = RemoveTabs(nextLine(), 2);
+                int start = IsAllDigits(line) ? (offset + std::strtol(line.c_str(), nullptr, 10)) * ms : 0;
                 linenum++;
 
-                //int end = number.Matches(line = RemoveTabs(f.GetNextLine(), 2)) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(line)) * ms, GetFrequency()) : 0;
-                int end = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
+                line = RemoveTabs(nextLine(), 2);
+                int end = IsAllDigits(line) ? (offset + std::strtol(line.c_str(), nullptr, 10)) * ms : 0;
                 linenum++;
-                desc = wxString::Format(_("voice# %d, phrase %d '%s', start frame %d end frame %d @line %d"), v, p, label.c_str(), start, end, linenum);
+                desc = std::format("voice# {}, phrase {} '{}', start frame {} end frame {} @line {}", v, p, label, start, end, linenum);
 
-                el1->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                el1->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
 
-                int numwords = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? wxAtoi(line) : -1;
+                line = RemoveTabs(nextLine(), 2);
+                int numwords = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
                 linenum++;
-                if (numwords < 0)
-                {
-                    DisplayError(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
+                if (numwords < 0) {
+                    DisplayError(std::format("Invalid file @line {} ('{}' words for {})", linenum, line, desc));
                 }
 
                 for (int w = 1; w <= numwords; ++w)
                 {
-                    line = RemoveTabs(f.GetNextLine(), 3);
+                    line = RemoveTabs(nextLine(), 3);
                     linenum++;
-                    int space1 = line.find(' ');
-                    label = line.SubString(0, space1-1);
-                    if (label == "")
-                    {
-                        DisplayError(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()).ToStdString());
+                    auto space1 = line.find(' ');
+                    label = line.substr(0, space1);
+                    if (label.empty()) {
+                        DisplayError(std::format("Missing word# {} of {} for {}", w, numwords, desc));
                         return;
                     }
 
-                    int space2 = line.find(' ', space1 + 1);
-                    wxString ss = line.SubString(space1 + 1, space2 - 1);
-                    //start = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
-                    start = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                    auto space2 = line.find(' ', space1 + 1);
+                    std::string ss = line.substr(space1 + 1, space2 - space1 - 1);
+                    start = IsAllDigits(ss) ? (offset + std::strtol(ss.c_str(), nullptr, 10)) * ms : 0;
                     linenum++;
 
-                    int space3 = line.find(' ', space2 + 1);
-                    ss = line.SubString(space2 + 1, space3 - 1);
-                    //end = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
-                    end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                    auto space3 = line.find(' ', space2 + 1);
+                    ss = line.substr(space2 + 1, space3 - space2 - 1);
+                    end = IsAllDigits(ss) ? (offset + std::strtol(ss.c_str(), nullptr, 10)) * ms : 0;
                     linenum++;
-                    desc = wxString::Format(_("voice# %d, phrase# %d, word %d '%s', start frame %d end frame %d @line %d"), v, p, w, label.c_str(), start, end, linenum);
+                    desc = std::format("voice# {}, phrase# {}, word {} '{}', start frame {} end frame {} @line {}", v, p, w, label, start, end, linenum);
 
-                    el2->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                    el2->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
 
-                    ss = line.SubString(space3 + 1, line.Length());
-                    int numphonemes = number.Matches(ss) ? wxAtoi(ss) : -1;
+                    ss = (space3 != std::string::npos) ? line.substr(space3 + 1) : "";
+                    int numphonemes = IsAllDigits(ss) ? std::strtol(ss.c_str(), nullptr, 10) : -1;
                     linenum++;
-                    if (numphonemes < 0)
-                    {
-                        DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
+                    if (numphonemes < 0) {
+                        DisplayError(std::format("Invalid file @line {} ('{}' phonemes for {})", linenum, line, desc));
                     }
 
                     int outerend = end;
                     for (int ph = 1; ph <= numphonemes; ++ph)
                     {
-                        line = RemoveTabs(f.GetNextLine(), 4);
+                        line = RemoveTabs(nextLine(), 4);
                         linenum++;
-                        int space4 = line.find(' ');
+                        auto space4 = line.find(' ');
 
-                        ss = line.SubString(0, space4 - 1);
-                        //end = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
-                        end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                        ss = line.substr(0, space4);
+                        end = IsAllDigits(ss) ? (offset + std::strtol(ss.c_str(), nullptr, 10)) * ms : 0;
                         linenum++;
 
-                        if (ph == 1)
-                        {
-                            // dont do anything
+                        if (ph != 1) {
+                            el3->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
                         }
-                        else
-                        {
-                            el3->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
-                        }
-                        label = line.SubString(space4 + 1, line.Length());
-                        if (label == "")
-                        {
-                            DisplayError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()).ToStdString());
+                        label = (space4 != std::string::npos) ? line.substr(space4 + 1) : "";
+                        if (label.empty()) {
+                            DisplayError(std::format("Missing phoneme# {} of {} for {}", ph, numphonemes, desc));
                             return;
                         }
                         start = end;
 
-                        if (ph == numphonemes)
-                        {
+                        if (ph == numphonemes) {
                             end = outerend;
-                            el3->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                            el3->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
                         }
                     }
                 }
@@ -1102,164 +1089,145 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, xL
     }
 }
 
-std::string ReadSRTLine(wxTextFile& f, int linenum, long& startMS, long& endMS)
+static std::vector<std::string> SplitString(const std::string& s, char delim)
+{
+    std::vector<std::string> result;
+    size_t start = 0;
+    while (start <= s.size()) {
+        auto pos = s.find(delim, start);
+        result.push_back(s.substr(start, pos - start));
+        if (pos == std::string::npos) break;
+        start = pos + 1;
+    }
+    return result;
+}
+
+static std::string ReadSRTLine(const std::vector<std::string>& lines, size_t& idx, int linenum, long& startMS, long& endMS)
 {
     startMS = 0;
     endMS = 0;
 
-    if (f.Eof()) return "";
+    if (idx >= lines.size()) return "";
 
-    int l = 0;
-    if (linenum == 1)
-    {
-        l = wxAtoi(f.GetFirstLine());
+    int l = std::strtol(lines[idx++].c_str(), nullptr, 10);
+    while (idx < lines.size() && l < linenum) {
+        l = std::strtol(lines[idx++].c_str(), nullptr, 10);
     }
-    else
-    {
-        l = wxAtoi(f.GetNextLine());
-    }
-    while (!f.Eof() && l < linenum)
-    {
-        l = wxAtoi(f.GetNextLine());
-    }
-    if (l > linenum)
-    {
-        return "";
-    }
-
-    if (f.Eof()) return "";
+    if (l > linenum) return "";
+    if (idx >= lines.size()) return "";
 
     //00:00:06,580 --> 00:00:08,580
-    auto times = f.GetNextLine();
-    if (Contains(times, "-->"))
+    std::string times = lines[idx++];
+    if (times.find("-->") != std::string::npos)
     {
-        int sH, eH, sM, eM, sS, eS, sMS, eMS;
-        wxArrayString c1 = wxSplit(times, ':');
-        if (c1.size() == 5)
-        {
-            sH = wxAtoi(c1[0]);
-            sM = wxAtoi(c1[1]);
-            wxArrayString c2 = wxSplit(c1[2], ',');
-            if (c2.size() == 2)
-            {
-                sS = wxAtoi(c2[0]);
-                wxArrayString c3 = wxSplit(c2[1], ' ');
-                if (c3.size() == 3)
-                {
-                    sMS = wxAtoi(c3[0]);
-                    eH = wxAtoi(c3[2]);
-                    eM = wxAtoi(c1[3]);
-                    wxArrayString c4 = wxSplit(c1[4], ',');
-                    if (c4.size() == 2)
-                    {
-                        eS = wxAtoi(c4[0]);
-                        eMS = wxAtoi(c4[1]);
+        auto c1 = SplitString(times, ':');
+        if (c1.size() == 5) {
+            int sH = std::strtol(c1[0].c_str(), nullptr, 10);
+            int sM = std::strtol(c1[1].c_str(), nullptr, 10);
+            auto c2 = SplitString(c1[2], ',');
+            if (c2.size() == 2) {
+                int sS = std::strtol(c2[0].c_str(), nullptr, 10);
+                auto c3 = SplitString(c2[1], ' ');
+                if (c3.size() == 3) {
+                    int sMS = std::strtol(c3[0].c_str(), nullptr, 10);
+                    int eH = std::strtol(c3[2].c_str(), nullptr, 10);
+                    int eM = std::strtol(c1[3].c_str(), nullptr, 10);
+                    auto c4 = SplitString(c1[4], ',');
+                    if (c4.size() == 2) {
+                        int eS = std::strtol(c4[0].c_str(), nullptr, 10);
+                        int eMS_val = std::strtol(c4[1].c_str(), nullptr, 10);
                         startMS = sH * 3600000 + sM * 60000 + sS * 1000 + sMS;
-                        endMS = eH * 3600000 + eM * 60000 + eS * 1000 + eMS;
+                        endMS = eH * 3600000 + eM * 60000 + eS * 1000 + eMS_val;
                     }
                 }
             }
         }
     }
 
-    if (f.Eof()) return "";
+    if (idx >= lines.size()) return "";
 
-    std::string line = "";
-    std::string ll = f.GetNextLine();
-    while (!f.Eof() && ll != "")
-    {
-        if (line != "") line += " ";
-        line += Trim(ll);
-        ll = f.GetNextLine();
+    std::string result;
+    while (idx < lines.size() && !lines[idx].empty()) {
+        if (!result.empty()) result += " ";
+        result += Trim(lines[idx]);
+        idx++;
     }
-    return line;
+    if (idx < lines.size()) idx++; // skip blank line
+    return result;
 }
 
 void SequenceFile::ProcessSRT(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
 {
-    wxTextFile f;
-
     for (size_t i = 0; i < filenames.size(); ++i)
     {
-        wxFileName next_file(filenames[i]);
-        spdlog::info("Loading srt file " + std::string(next_file.GetFullPath().c_str()));
+        const std::string& filepath = filenames[i];
+        spdlog::info("Loading srt file {}", filepath);
 
-        if (!f.Open(next_file.GetFullPath().c_str()))
-        {
-            DisplayError("Failed to open file: " + next_file.GetFullPath());
+        std::ifstream f(filepath);
+        if (!f.is_open()) {
+            DisplayError("Failed to open file: " + filepath);
             return;
         }
 
-        wxString name = wxString::Format(next_file.GetName());
-        name = UniqueTimingName(xLightsParent, name);
-        spdlog::info("    Loading into timing track {}.", name.ToStdString());
+        // Read all lines
+        std::vector<std::string> lines;
+        std::string tmp;
+        while (std::getline(f, tmp)) lines.push_back(tmp);
 
-        Element* element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+        std::string name = std::filesystem::path(filepath).stem().string();
+        name = UniqueTimingName(xLightsParent, name);
+        spdlog::info("    Loading into timing track {}.", name);
+
+        Element* element = xLightsParent->AddTimingElement(name);
         EffectLayer* el1 = element->GetEffectLayer(0);
 
         long startMS;
         long endMS;
         int linenum = 1;
+        size_t idx = 0;
 
-        std::string line = ReadSRTLine(f, linenum++, startMS, endMS);
+        std::string line = ReadSRTLine(lines, idx, linenum++, startMS, endMS);
 
         do {
-
-            if (line != "" && endMS > startMS)
-            {
+            if (!line.empty() && endMS > startMS) {
                 el1->AddEffect(0, line, "", "", startMS, endMS, EFFECT_NOT_SELECTED, false);
             }
-
-            line = ReadSRTLine(f, linenum++, startMS, endMS);
-        } while (!f.Eof());
+            line = ReadSRTLine(lines, idx, linenum++, startMS, endMS);
+        } while (idx < lines.size());
     }
 }
 
-wxString DecodeLSPTTColour(int att)
+static std::string DecodeLSPTTColour(int att)
 {
     switch (att)
     {
-    case 1:
-        return "x";
-    case 2:
-        return "R";
-    case 4:
-        return "G";
-    case 8:
-        return "B";
-    case 16:
-        return "Y";
-    case 32:
-        return "P";
-    case 64:
-        return "O";
-    case 128:
-        return "z";
-    case 256:
-        return "Go";
-    case 512:
-        return "W";
-    case 1024:
-        return "System";
-    default:
-        break;
+    case 1:    return "x";
+    case 2:    return "R";
+    case 4:    return "G";
+    case 8:    return "B";
+    case 16:   return "Y";
+    case 32:   return "P";
+    case 64:   return "O";
+    case 128:  return "z";
+    case 256:  return "Go";
+    case 512:  return "W";
+    case 1024: return "System";
+    default:   break;
     }
-
-    return wxString::Format("%d", att);
+    return std::to_string(att);
 }
 
 void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
 {
-    wxTextFile f;
-
     xLightsParent->SetCursor(wxCURSOR_WAIT);
 
     for (size_t i = 0; i < filenames.size(); ++i)
     {
-        wxFileName next_file(filenames[i]);
-        spdlog::info("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
+        const std::string& filepath = filenames[i];
+        std::string filestem = std::filesystem::path(filepath).stem().string();
+        spdlog::info("Decompressing LSP file {}", filepath);
 
-        wxFileInputStream fin(next_file.GetFullPath());
+        wxFileInputStream fin(filepath);
         wxZipInputStream zin(fin);
         wxZipEntry *ent = zin.GetNextEntry();
 
@@ -1269,7 +1237,7 @@ void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, x
         {
             if (ent->GetName() == "Sequence")
             {
-                spdlog::info("Extracting timing tracks from " + std::string(next_file.GetFullPath().c_str()) + "/" + std::string(ent->GetName().c_str()));
+                spdlog::info("Extracting timing tracks from {}/{}", filepath, std::string(ent->GetName().c_str()));
 
                 // Read the zip stream into a memory buffer for pugixml
                 wxMemoryOutputStream memOut;
@@ -1288,13 +1256,12 @@ void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, x
                             for (pugi::xml_node t = tts.first_child(); t; t = t.next_sibling())
                             {
                                 if (strcmp(t.name(), "Track") == 0) {
-                                    wxString name = UniqueTimingName(xLightsParent, next_file.GetName());
-                                    spdlog::info("  Track: " + std::string(name.c_str()));
+                                    std::string name = UniqueTimingName(xLightsParent, filestem);
+                                    spdlog::info("  Track: {}", name);
                                     EffectLayer* effectLayer = nullptr;
                                     int present = 0;
                                     for (pugi::xml_node is = t.first_child(); is; is = is.next_sibling()) {
                                         if (strcmp(is.name(), "Intervals") == 0) {
-                                            std::list<wxString> atts;
                                             for (pugi::xml_node ti = is.first_child(); ti; ti = ti.next_sibling()) {
                                                 if (strcmp(ti.name(), "TimeInterval") == 0) {
                                                     if (std::string(ti.attribute("eff").as_string("")) == "7") {
@@ -1306,9 +1273,9 @@ void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, x
                                             int mask = 1;
                                             for (size_t i1 = 0; i1 < 10; i1++) {
                                                 if (present & mask) {
-                                                    wxString tname = UniqueTimingName(xLightsParent, DecodeLSPTTColour(mask) + "-" + name);
-                                                    spdlog::info("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(wxString::Format("%d",mask).c_str()) + ")");
-                                                    Element* element = xLightsParent->AddTimingElement(std::string(tname.c_str()));
+                                                    std::string tname = UniqueTimingName(xLightsParent, DecodeLSPTTColour(mask) + "-" + name);
+                                                    spdlog::info("  Adding timing track {}({})", tname, mask);
+                                                    Element* element = xLightsParent->AddTimingElement(tname);
                                                     effectLayer = element->GetEffectLayer(0);
 
                                                     int last = 0;
@@ -1357,19 +1324,17 @@ void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, x
 }
 
 void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent) {
-    wxTextFile f;
-
     xLightsParent->SetCursor(wxCURSOR_WAIT);
     Element* element = nullptr;
     EffectLayer* effectLayer = nullptr;
 
     for (size_t i = 0; i < filenames.size(); ++i)
     {
-        wxFileName next_file(filenames[i]);
+        std::filesystem::path next_file(filenames[i]);
 
-        spdlog::info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
-        SequenceFile file(next_file);
-        auto loadDoc = file.LoadSequence(next_file.GetPath().ToStdString(), true, next_file.GetFullPath().ToStdString());
+        spdlog::info("Loading sequence file {}", next_file.string());
+        SequenceFile file(next_file.string());
+        auto loadDoc = file.LoadSequence(next_file.parent_path().string(), true, next_file.string());
         if (!loadDoc) continue;
 
         SequenceElements se(xLightsParent);
@@ -1458,11 +1423,11 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
 
     for (size_t i = 0; i < filenames.size(); ++i)
     {
-        wxFileName next_file(filenames[i]);
+        const std::string& filepath = filenames[i];
 
-        spdlog::info("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
+        spdlog::info("Loading Vixen 3 file {}", filepath);
 
-        Vixen3 vixenFile(next_file.GetFullPath());
+        Vixen3 vixenFile(filepath);
 
         auto timings = vixenFile.GetTimings();
         wxArrayString markNames;
@@ -1478,7 +1443,7 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
 
             for (int i1 = 0; i1 < selections.size(); i1++) {
                 
-                wxString sel = markNames[selections[i1]];
+                std::string sel = markNames[selections[i1]].ToStdString();
 
                 if (vixenFile.GetTimingType(sel) == "Phrase")
                 {
@@ -1488,11 +1453,11 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
                         effectLayer = element->AddEffectLayer();
                     }
 
-                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
+                    AddMarksToLayer(vixenFile.GetTimings(sel), effectLayer, GetFrameMS());
                     effectLayer = element->AddEffectLayer();
-                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Word"), effectLayer, GetFrameMS());
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel, "Word"), effectLayer, GetFrameMS());
                     effectLayer = element->AddEffectLayer();
-                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Phoneme"), effectLayer, GetFrameMS());
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel, "Phoneme"), effectLayer, GetFrameMS());
                 }
                 else
                 {
@@ -1502,7 +1467,7 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
                         effectLayer = element->AddEffectLayer();
                     }
 
-                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
+                    AddMarksToLayer(vixenFile.GetTimings(sel), effectLayer, GetFrameMS());
                 }
             }
         }
@@ -1940,7 +1905,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, xLigh
         if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms" && !EndsWith(interval_name, "ms Metronome"))) {
             xLightsParent->AddTimingElement(interval_name);
         } else {
-            int interval = wxAtoi(interval_name);
+            int interval = std::strtol((interval_name).c_str(), nullptr, 10);
             TimingElement* element = xLightsParent->AddTimingElement(interval_name);
             element->SetFixedTiming(interval);
             EffectLayer* effectLayer = element->GetEffectLayer(0);
@@ -1958,7 +1923,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, xLigh
         PendingTiming pt;
         pt.name = interval_name;
         if (interval_name != "Empty" && (interval_name == "25ms" || interval_name == "50ms" || interval_name == "100ms" || EndsWith(interval_name, "ms Metronome"))) {
-            pt.fixedInterval = wxAtoi(interval_name);
+            pt.fixedInterval = std::strtol((interval_name).c_str(), nullptr, 10);
         }
         mPendingTimings.push_back(std::move(pt));
         timing_list.push_back(interval_name);
@@ -2080,18 +2045,18 @@ std::string SequenceFile::GetFSEQForXSQ(const std::string& xsq, const std::strin
     if (!::FileExists(xsq))
         return "";
 
-    wxFileName fn(xsq);
-    fn.SetExt("fseq");
+    std::filesystem::path fn(xsq);
+    fn.replace_extension("fseq");
 
-    if (!::FileExists(fn.GetFullPath())) {
-        fn.SetPath(fseqDirectory);
+    if (!::FileExists(fn.string())) {
+        fn = std::filesystem::path(fseqDirectory) / fn.filename();
 
-        if (!::FileExists(fn.GetFullPath())) {
+        if (!::FileExists(fn.string())) {
             return "";
         }
     }
 
-    return fn.GetFullPath();
+    return fn.string();
 }
 
 std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::string& showDir, const std::list<std::string> mediaFolders)
@@ -2102,9 +2067,11 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
     static const int BUFFER_SIZE = 1024 * 12;
     std::vector<char> buf(BUFFER_SIZE); //12K buffer
 
-    wxFile doc(xsq);
+    std::ifstream doc(xsq, std::ios::binary);
+    if (!doc) return "";
     SP_XmlPullParser* parser = new SP_XmlPullParser();
-    size_t read = doc.Read(&buf[0], BUFFER_SIZE);
+    doc.read(&buf[0], BUFFER_SIZE);
+    size_t read = doc.gcount();
     parser->append(&buf[0], read);
     SP_XmlPullEvent* event = parser->getNext();
     int done = 0;
@@ -2114,7 +2081,8 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
 
     while (!done) {
         if (!event) {
-            size_t read2 = doc.Read(&buf[0], BUFFER_SIZE);
+            doc.read(&buf[0], BUFFER_SIZE);
+            size_t read2 = doc.gcount();
             if (read2 == 0) {
                 done = true;
             } else {
@@ -2127,7 +2095,7 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
                 break;
             case SP_XmlPullEvent::eStartTag: {
                 SP_XmlStartTagEvent* stagEvent = (SP_XmlStartTagEvent*)event;
-                wxString NodeName = wxString::FromAscii(stagEvent->getName());
+                std::string NodeName = stagEvent->getName();
                 count++;
                 if (NodeName == "mediaFile") {
                     isMedia = true;
@@ -2142,7 +2110,7 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
             case SP_XmlPullEvent::eCData:
                 if (isMedia) {
                     SP_XmlCDataEvent* stagEvent = (SP_XmlCDataEvent*)event;
-                    mediaName = wxString::FromAscii(stagEvent->getText()).ToStdString();
+                    mediaName = stagEvent->getText();
                     done = true;
                 }
                 break;
@@ -2154,11 +2122,11 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
     }
     delete parser;
 
-    if (mediaName != "") {
+    if (!mediaName.empty()) {
         if (!::FileExists(mediaName)) {
-            wxFileName fn(mediaName);
+            std::string mediaFilename = std::filesystem::path(mediaName).filename().string();
             for (const std::string& md : mediaFolders) {
-                std::string tmn = md + ::GetPathSeparator() + fn.GetFullName().ToStdString();
+                std::string tmn = md + ::GetPathSeparator() + mediaFilename;
                 if (::FileExists(tmn)) {
                     mediaName = tmn;
                     break;
@@ -2233,22 +2201,38 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xL
     }
 }
 
+static void ReplaceAll(std::string& str, const std::string& from, const std::string& to)
+{
+    size_t pos = 0;
+    while ((pos = str.find(from, pos)) != std::string::npos) {
+        str.replace(pos, from.size(), to);
+        pos += to.size();
+    }
+}
+
 std::string SequenceFile::InsertMissing(std::string str, std::string missing_array, bool INSERT)
 {
-    wxString wxStr(str);
-    wxStringTokenizer tkz(missing_array, "|");
-    wxString token1 = tkz.GetNextToken();
-    wxString token2 = tkz.GetNextToken();
-    while (tkz.HasMoreTokens()) {
-        token1 = tkz.GetNextToken();
-        token2 = tkz.GetNextToken();
-        int pos = wxStr.find(token1, 0);
-        wxString replacement = "," + token2 + "</td>";
-        if (pos <= 0 && INSERT) {
-            wxStr.Replace("</td>", replacement);
-        } else if (pos > 0 && !INSERT) {
-            wxStr.Replace(token1, token2);
+    // Tokenize by "|" - consume first two tokens, then process pairs
+    std::vector<std::string> tokens;
+    size_t start = 0;
+    while (start < missing_array.size()) {
+        auto pos = missing_array.find('|', start);
+        tokens.push_back(missing_array.substr(start, pos - start));
+        if (pos == std::string::npos) break;
+        start = pos + 1;
+    }
+
+    // Skip first two tokens, then process pairs
+    for (size_t i = 2; i + 1 < tokens.size(); i += 2) {
+        const std::string& token1 = tokens[i];
+        const std::string& token2 = tokens[i + 1];
+        auto pos = str.find(token1);
+        if (pos == std::string::npos && INSERT) {
+            std::string replacement = "," + token2 + "</td>";
+            ReplaceAll(str, "</td>", replacement);
+        } else if (pos != std::string::npos && pos > 0 && !INSERT) {
+            ReplaceAll(str, token1, token2);
         }
     }
-    return wxStr.ToStdString();
+    return str;
 }

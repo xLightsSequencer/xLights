@@ -9,12 +9,10 @@
  **************************************************************/
 
 #include <wx/wx.h>
-#include <wx/utils.h>
-#include <wx/tokenzr.h>
-#include <wx/filename.h>
 #include <cassert>
 
 #include <algorithm>
+#include <format>
 
 #include "SequenceElements.h"
 #include "pugixml.hpp"
@@ -864,7 +862,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 }
                                 loaded += LoadEffects(effectLayer, elemType, effectLayerNode, effectStrings, colorPalettes, importing);
                                 if (count) {
-                                    GetXLightsFrame()->SetStatusText(wxString::Format("Effects Loaded: %i%%.", loaded * 100 / count));
+                                    GetXLightsFrame()->SetStatusText(std::format("Effects Loaded: {}%.", loaded * 100 / count));
                                 }
                             } else {
                                 assert(false);
@@ -2127,8 +2125,8 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         }
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
-        int start_time = wxAtof(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
-        int end_time = wxAtof(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
+        int start_time = std::strtod(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue().ToStdString().c_str(), nullptr) * 1000;
+        int end_time = std::strtod(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue().ToStdString().c_str(), nullptr) * 1000;
         int total_time = end_time - start_time;
 
         if(total_time <= 0 || total_time > mSequenceEndMS)//is start/end time valid?
@@ -2140,26 +2138,27 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         int interval_ms = (end_time - start_time) / num_phrases;
         for( int i = 0; i < total_num_phrases; i++ )
         {
-            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i).Trim(true).Trim(false);
+            wxString wxLine = dlgLyrics->TextCtrlLyrics->GetLineText(i).Trim(true).Trim(false);
             // Handle common unicode characters before falling back to ascii
-            line.Replace(wxT("\u2019"),"'",true);
-            line.Replace(wxT("\u0218"),"'",true);
-            line.Replace(wxT("\u201c"),'"',true);
-            line.Replace(wxT("\u201d"),'"',true);
-            line.Replace(wxT("\""),"",true); // strip out double quotes
-            line.Replace(wxT("<"),"",true); // strip out illegal characters
-            line.Replace(wxT(">"),"",true); // strip out illegal characters
-            line = line.ToStdString();
-            if(line == "")
-            {
-                line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToAscii();
-                line.Replace("_","'",true);
+            wxLine.Replace(wxT("\u2019"),"'",true);
+            wxLine.Replace(wxT("\u0218"),"'",true);
+            wxLine.Replace(wxT("\u201c"),'"',true);
+            wxLine.Replace(wxT("\u201d"),'"',true);
+            wxLine.Replace(wxT("\""),"",true); // strip out double quotes
+            wxLine.Replace(wxT("<"),"",true); // strip out illegal characters
+            wxLine.Replace(wxT(">"),"",true); // strip out illegal characters
+            std::string line = wxLine.ToStdString();
+            if (line.empty()) {
+                wxString asciiLine = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToAscii();
+                asciiLine.Replace("_","'",true);
+                line = asciiLine.ToStdString();
             }
-            if( line != "" )
-            {
-                xframe->dictionary.InsertSpacesAfterPunctuation(line);
+            if (!line.empty()) {
+                wxString wxLineForDict(line);
+                xframe->dictionary.InsertSpacesAfterPunctuation(wxLineForDict);
+                line = wxLineForDict.ToStdString();
                 end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, GetFrequency());
-                Effect* ef = phrase_layer->AddEffect(0,line.ToStdString(),"","",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                Effect* ef = phrase_layer->AddEffect(0,line,"","",start_time,end_time,EFFECT_NOT_SELECTED,false);
                 get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
                 start_time = end_time;
             }
@@ -2169,22 +2168,23 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 
 void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const std::string& phrase, UndoManager& undo_mgr)
 {
-    if( phrase != "" )
+    if (!phrase.empty())
     {
-        // I dont need dictionaries here
-        //xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
-        wxArrayString rawwords = wxStringTokenize(phrase, " \t:;,.-_!?{}[]()<>+=|");
-        wxArrayString words;
-
-        // remove any empty words
-        for (auto w: rawwords)
-        {
-            if (w != "")
-            {
-                words.emplace_back(w);
+        static const std::string delims = " \t:;,.-_!?{}[]()<>+=|";
+        std::vector<std::string> words;
+        size_t start = 0;
+        while (start < phrase.size()) {
+            auto pos = phrase.find_first_of(delims, start);
+            if (pos != start) {
+                std::string w = phrase.substr(start, pos - start);
+                if (!w.empty()) {
+                    words.push_back(std::move(w));
+                }
             }
+            if (pos == std::string::npos) break;
+            start = pos + 1;
         }
-        int num_words = words.Count();
+        int num_words = words.size();
         if (num_words == 0) return;
         double interval_ms = (end_time-start_time) / num_words;
         int word_start_time = start_time;
@@ -2195,7 +2195,7 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
             {
                 word_end_time = end_time;
             }
-            Effect* ef = word_layer->AddEffect(0,words[i].ToStdString(),"","",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            Effect* ef = word_layer->AddEffect(0,words[i],"","",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
             undo_mgr.CaptureAddedEffect(word_layer->GetParentElement()->GetName(), word_layer->GetIndex(), ef->GetID());
             word_start_time = word_end_time;
         }
@@ -2216,58 +2216,53 @@ bool removechar(std::string& word, char remove)
 void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word, UndoManager& undo_mgr)
 {
     xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
-    wxArrayString phonemes;
-    xframe->dictionary.BreakdownWord(word, phonemes);
-    if (phonemes.Count() > 0)
+    wxArrayString wxPhonemes;
+    xframe->dictionary.BreakdownWord(word, wxPhonemes);
+
+    // Convert to std::vector for easier use
+    std::vector<std::string> phonemes;
+    phonemes.reserve(wxPhonemes.size());
+    for (const auto& p : wxPhonemes) {
+        phonemes.push_back(p.ToStdString());
+    }
+
+    if (!phonemes.empty())
     {
         int countShort = 0;
-        for (auto it: phonemes)
-        {
+        for (const auto& it : phonemes) {
             if (it == "etc" || it == "MBP") countShort++;
         }
 
-        double default_interval_ms = (end_time - start_time) / phonemes.Count(); // the interval if we just split everything evenly
+        double default_interval_ms = (end_time - start_time) / (double)phonemes.size();
         double short_interval = 50; // our preferred interval for MBP/etc
-        if (default_interval_ms < 50)
-        {
+        if (default_interval_ms < 50) {
             short_interval = GetMinPeriod();
         }
-        // our adjusted interval for non MBP/etc once split evenly
         double adjusted_interval = default_interval_ms;
-        if (phonemes.Count() > 1)
-        {
-            adjusted_interval = (end_time - start_time - countShort * short_interval) / (phonemes.Count() - countShort);
-        }
-        else
-        {
+        if (phonemes.size() > 1) {
+            adjusted_interval = (end_time - start_time - countShort * short_interval) / (phonemes.size() - countShort);
+        } else {
             short_interval = default_interval_ms;
         }
 
         int phoneme_start_time = start_time;
         int shorts = 0;
         int longs = 0;
-        for (auto phoneme : phonemes)
+        for (const auto& phoneme : phonemes)
         {
-            if (phoneme == "etc" || phoneme == "MBP")
-            {
+            if (phoneme == "etc" || phoneme == "MBP") {
                 shorts++;
-            }
-            else
-            {
+            } else {
                 longs++;
             }
             int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time + longs * adjusted_interval + shorts * short_interval, GetFrequency());
-            if (phoneme_end_time > end_time)
-            {
+            if (phoneme_end_time > end_time) {
                 phoneme_end_time = end_time;
             }
-            // This can fire if the interval is too short to fit in all the phonemes
             assert(phoneme_start_time < phoneme_end_time);
 
-            // only create phonemes with duration
-            if (phoneme_end_time > phoneme_start_time)
-            {
-                Effect* ef = phoneme_layer->AddEffect(0, phoneme.ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
+            if (phoneme_end_time > phoneme_start_time) {
+                Effect* ef = phoneme_layer->AddEffect(0, phoneme, "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
                 undo_mgr.CaptureAddedEffect(phoneme_layer->GetParentElement()->GetName(), phoneme_layer->GetIndex(), ef->GetID());
             }
             phoneme_start_time = phoneme_end_time;

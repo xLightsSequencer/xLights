@@ -10,12 +10,14 @@
 
 #include "EffectPresetManager.h"
 #include "UtilFunctions.h"
+#include "ExternalHooks.h"
 #include "XmlSerializer/BaseSerializingVisitor.h"
 
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
 
 #include <algorithm>
+#include <fstream>
 #include <list>
 
 // Local helper — strips forbidden filename characters from a name.
@@ -64,6 +66,17 @@ void EffectPreset::Save(BaseSerializingVisitor& visitor) const
     visitor.WriteOpenTag("effect", attrs, /*selfClose=*/true);
 }
 
+nlohmann::json EffectPreset::ToJson() const
+{
+    return {
+        {"type", "effect"},
+        {"name", _name},
+        {"settings", _settings},
+        {"version", _version},
+        {"xLightsVersion", _xLightsVersion}
+    };
+}
+
 // ===========================================================================
 // EffectPresetGroup
 // ===========================================================================
@@ -104,6 +117,44 @@ void EffectPresetGroup::Save(BaseSerializingVisitor& visitor) const
         child->Save(visitor);
     }
     visitor.WriteCloseTag();
+}
+
+nlohmann::json EffectPresetGroup::ToJson() const
+{
+    nlohmann::json childrenArr = nlohmann::json::array();
+    for (const auto& child : _children) {
+        childrenArr.push_back(child->ToJson());
+    }
+    return {
+        {"type", "group"},
+        {"name", _name},
+        {"children", childrenArr}
+    };
+}
+
+void EffectPresetGroup::LoadChildrenFromJson(const nlohmann::json& j)
+{
+    if (!j.contains("children") || !j["children"].is_array())
+        return;
+
+    for (const auto& child : j["children"]) {
+        std::string type = child.value("type", "");
+        if (type == "group") {
+            auto group = std::make_unique<EffectPresetGroup>(child.value("name", ""), this);
+            group->LoadChildrenFromJson(child);
+            _children.push_back(std::move(group));
+        } else if (type == "effect") {
+            std::string settings = child.value("settings", "");
+            if (settings.find('\t') != std::string::npos) {
+                _children.push_back(std::make_unique<EffectPreset>(
+                    child.value("name", ""),
+                    settings,
+                    child.value("version", ""),
+                    child.value("xLightsVersion", "4.0"),
+                    this));
+            }
+        }
+    }
 }
 
 EffectPresetItem* EffectPresetGroup::AddChild(std::unique_ptr<EffectPresetItem> child)
@@ -203,6 +254,63 @@ void EffectPresetManager::Save(BaseSerializingVisitor& visitor) const
         child->Save(visitor);
     }
     visitor.WriteCloseTag();
+}
+
+void EffectPresetManager::LoadFromJson(const nlohmann::json& j)
+{
+    Reset();
+    if (!j.is_object())
+        return;
+
+    _version = j.value("version", "0000");
+    _root.LoadChildrenFromJson(j);
+}
+
+nlohmann::json EffectPresetManager::SaveToJson() const
+{
+    nlohmann::json childrenArr = nlohmann::json::array();
+    for (const auto& child : _root.GetChildren()) {
+        childrenArr.push_back(child->ToJson());
+    }
+    return {
+        {"version", _version},
+        {"children", childrenArr}
+    };
+}
+
+bool EffectPresetManager::LoadJsonFile(const std::string& filepath)
+{
+    if (!FileExists(filepath))
+        return false;
+
+    ObtainAccessToURL(filepath);
+    std::ifstream ifs(filepath);
+    if (!ifs.is_open())
+        return false;
+
+    try {
+        nlohmann::json j = nlohmann::json::parse(ifs);
+        LoadFromJson(j);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool EffectPresetManager::SaveJsonFile(const std::string& filepath) const
+{
+    ObtainAccessToURL(filepath, true);
+    std::ofstream ofs(filepath);
+    if (!ofs.is_open())
+        return false;
+
+    try {
+        nlohmann::json j = SaveToJson();
+        ofs << j.dump(2);
+        return ofs.good();
+    } catch (...) {
+        return false;
+    }
 }
 
 void EffectPresetManager::Reset()

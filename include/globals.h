@@ -26,6 +26,8 @@
 //#define XLIGHTS_SCHEDULE_FILE      "xlights_schedule.xml"
 #define XLIGHTS_RGBEFFECTS_FILE    "xlights_rgbeffects.xml"
 #define XLIGHTS_RGBEFFECTS_FILE_BACKUP    "xlights_rgbeffects.xbkp"
+#define XLIGHTS_PRESETS_FILE       "xlights_effectpresets.json"
+#define XLIGHTS_PRESETS_FILE_BACKUP "xlights_effectpresets.jbkp"
 #define XLIGHTS_KEYBINDING_FILE    "xlights_keybindings.xml"
 #define XLIGHTS_PGOFACES_FILE      "xlights_papagayo.xml"
 #define XLIGHTS_RGBEFFECTS_VERSION "0007"

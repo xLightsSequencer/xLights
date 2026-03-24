@@ -65,7 +65,6 @@ std::string xLightsFrame::BuildEffectsXml()
     serializer.SerializeAllModels(AllModels, visitor);
     serializer.SerializeAllObjects(AllObjects, visitor);
     serializer.SerializeAllLayoutGroups(LayoutGroups, visitor);
-    _effectPresetManager.Save(visitor);
     SerializePerspectives(visitor);
     SerializeSettings(visitor);
     _sequenceViewManager.Save(visitor);
@@ -240,8 +239,50 @@ void xLightsFrame::LoadEffectsFile()
         UnsavedRgbEffectsChanges = true;
     }
     
-    // Populate the EffectPresetManager from the effects XML node
-    _effectPresetManager.Load(effectsNode);
+    // Load presets: try separate JSON file first, fall back to XML for migration
+    {
+        wxFileName presetsFile;
+        presetsFile.AssignDir(CurrentDir);
+        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+
+        // Check for autosave backup of presets file
+        wxFileName presetsBkp(presetsFile);
+        presetsBkp.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
+        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && FileExists(presetsBkp.GetFullPath())) {
+            if (FileExists(presetsFile.GetFullPath())) {
+                wxDateTime jsonTime = presetsFile.GetModificationTime();
+                wxDateTime bkpTime = presetsBkp.GetModificationTime();
+                if (bkpTime > jsonTime) {
+                    wxString msg = wxString::Format(
+                        "An autosaved effect presets file was found that is newer than your current file.\n\n"
+                        "Current file:  %s\n"
+                        "Autosave file: %s\n\n"
+                        "Would you like to use the autosave file instead?",
+                        jsonTime.Format("%Y-%m-%d %H:%M:%S"), bkpTime.Format("%Y-%m-%d %H:%M:%S"));
+                    if (wxMessageBox(msg, "Newer Autosave Presets File Found", wxYES_NO | wxICON_QUESTION) == wxYES) {
+                        wxRemoveFile(presetsFile.GetFullPath());
+                        wxRenameFile(presetsBkp.GetFullPath(), presetsFile.GetFullPath());
+                    } else {
+                        wxDateTime older = jsonTime;
+                        older -= wxTimeSpan(0, 0, 3, 0);
+                        presetsBkp.SetTimes(&older, &older, &older);
+                    }
+                }
+            } else {
+                // No main file but backup exists — use the backup
+                wxRenameFile(presetsBkp.GetFullPath(), presetsFile.GetFullPath());
+            }
+        }
+
+        if (_effectPresetManager.LoadJsonFile(presetsFile.GetFullPath().ToStdString())) {
+            spdlog::debug("Loaded effect presets from {}", presetsFile.GetFullPath().ToStdString());
+        } else {
+            // Migrate from XML effects node
+            _effectPresetManager.Load(effectsNode);
+            spdlog::info("Migrated effect presets from xlights_rgbeffects.xml to JSON");
+            UnsavedRgbEffectsChanges = true; // trigger save to create the new JSON file
+        }
+    }
     if (_effectPresetManager.GetVersion().empty()) {
         _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
     }
@@ -717,7 +758,7 @@ void xLightsFrame::SaveModelsFile()
 // returns true on success
 bool xLightsFrame::SaveEffectsFile(bool backup)
 {
-    
+
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
@@ -758,7 +799,26 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         }
         return false;
     }
-    
+
+    // Save effect presets to separate JSON file
+    {
+        wxFileName presetsFile;
+        presetsFile.AssignDir(CurrentDir);
+        if (backup) {
+            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
+        } else {
+            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+        }
+
+        if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
+            if (backup) {
+                spdlog::warn("Unable to save backup of effect presets file");
+            } else {
+                DisplayError("Unable to save effect presets file", this);
+            }
+        }
+    }
+
     if (!backup) {
         UnsavedRgbEffectsChanges = false;
     }
