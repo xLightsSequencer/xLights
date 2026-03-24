@@ -1651,7 +1651,7 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
         std::string_view aValue = a.value();
         pugi::xml_attribute localAttr = local.attribute(a.name());
         if (localAttr.empty() || std::string_view(localAttr.as_string()) != aValue) {
-            if (aName != "StartChannel" || !local.attribute("Controller").empty()) {
+            if (aName != "StartChannel" || local.attribute("Controller").empty()) {
                 // For float attributes, compare rounded to 4 decimal places as older versions of xLights only output to 4 decimals
                 if (FLOAT_ATTRIBUTES.count(std::string(aName)) > 0 && !localAttr.empty()) {
                     double baseVal = a.as_double(0.0);
