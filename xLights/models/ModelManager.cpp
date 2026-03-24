@@ -1319,7 +1319,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         m->SetLightsPerNode(1);
         model = m;
     } else if (type == "Poly Line") {
-        model = new PolyLineModel(*this);
+        auto* m = new PolyLineModel(*this);
+        m->SetTotalLightCount(50);
+        model = m;
     } else if (type == "MultiPoint") {
         model = new MultiPointModel(*this);
     } else if (type == "Cube") {
