@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "../common/xlBaseApp.h"
+#include "../common/xlGLBaseApp.h"
 
 class xLightsFrame;
 
