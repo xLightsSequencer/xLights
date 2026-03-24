@@ -23,7 +23,6 @@
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
-					<Add option="`pkg-config --cflags log4cpp`" />
 					<Add option="`curl-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -38,12 +37,10 @@
 					<Add directory="../../xLights" />
 					<Add directory="../../dependencies/pugixml/src" />
 					<Add directory="../../dependencies/spdlog/include" />
-					<Add directory="../../dependencies/log4cpp-codegit/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -68,7 +65,6 @@
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
-					<Add option="`pkg-config --cflags log4cpp`" />
 					<Add option="`curl-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -83,12 +79,10 @@
 					<Add directory="../../xLights" />
 					<Add directory="../../dependencies/pugixml/src" />
 					<Add directory="../../dependencies/spdlog/include" />
-					<Add directory="../../dependencies/log4cpp-codegit/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />

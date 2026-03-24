@@ -50,7 +50,6 @@
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -109,7 +108,6 @@
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
