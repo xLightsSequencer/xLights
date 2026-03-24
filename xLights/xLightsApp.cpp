@@ -47,6 +47,7 @@
 
 #include <log.h>
 #include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/common.h"
 
 #ifdef LINUX
@@ -161,13 +162,19 @@ void InitialiseLogging(bool fromMain)
         // wxStandardPaths::Get().Get()
 
         auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
+#if defined(_DEBUG) || defined(DEBUG)
+        auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        std::vector<spdlog::sink_ptr> sinks = {rotating_file_sink, stdout_sink};
+#else
+        std::vector<spdlog::sink_ptr> sinks = {rotating_file_sink};
+#endif
 
-        auto file_logger = std::make_shared<spdlog::logger>("xLights", rotating_file_sink);
-        auto render_logger = std::make_shared<spdlog::logger>("render", rotating_file_sink);
-        auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
-        auto opengl_logger = std::make_shared<spdlog::logger>("opengl", rotating_file_sink);
-        auto job_logger = std::make_shared<spdlog::logger>("job", rotating_file_sink);
-        auto work_logger = std::make_shared<spdlog::logger>("work", rotating_file_sink);
+        auto file_logger = std::make_shared<spdlog::logger>("xLights", sinks.begin(), sinks.end());
+        auto render_logger = std::make_shared<spdlog::logger>("render", sinks.begin(), sinks.end());
+        auto curl_logger = std::make_shared<spdlog::logger>("curl", sinks.begin(), sinks.end());
+        auto opengl_logger = std::make_shared<spdlog::logger>("opengl", sinks.begin(), sinks.end());
+        auto job_logger = std::make_shared<spdlog::logger>("job", sinks.begin(), sinks.end());
+        auto work_logger = std::make_shared<spdlog::logger>("work", sinks.begin(), sinks.end());
         render_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("render_logger", "warn")));
         curl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("curl_logger", "info")));
         opengl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("opengl_logger", "info")));
