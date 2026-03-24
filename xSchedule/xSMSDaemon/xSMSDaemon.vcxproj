@@ -75,27 +75,27 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include;..\..\dependencies\log4cpp-codegit\include</IncludePath>
     <LibraryPath>..\..\..\wxWidgets\lib\vc_lib;..\..\lib\windows;GL;$(LibraryPath);$(VCToolsInstallDir)lib\x86</LibraryPath>
     <TargetExt>.dll</TargetExt>
     <OutDir>$(SolutionDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include;..\..\dependencies\log4cpp-codegit\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\..\wxWidgets\lib\vc_x64_lib;..\..\lib\windows64;..\..\..\wxWidgets\lib\vc_x64_lib;..\..\lib\windows;GL;$(VCToolsInstallDir)lib\x64</LibraryPath>
     <TargetExt>.dll</TargetExt>
     <OutDir>$(SolutionDir)..\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include;..\..\dependencies\log4cpp-codegit\include</IncludePath>
     <LibraryPath>..\..\..\wxWidgets\lib\vc_lib;..\..\lib\windows;GL;$(LibraryPath)</LibraryPath>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\..\wxWidgets\include;..\..\..\wxWidgets\include\msvc;$(IncludePath);..\..\include;..\..\xLights;..\..\dependencies\pugixml\src;..\..\dependencies\spdlog\include;..\..\dependencies\log4cpp-codegit\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\..\wxWidgets\lib\vc_x64_lib;..\..\lib\windows64;$(VCToolsInstallDir)lib\x64</LibraryPath>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>

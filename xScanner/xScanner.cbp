@@ -33,6 +33,7 @@
 					<Add directory="../xLights" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
+					<Add directory="../dependencies/log4cpp-codegit/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -69,6 +70,7 @@
 					<Add directory="../xLights" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
+					<Add directory="../dependencies/log4cpp-codegit/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
