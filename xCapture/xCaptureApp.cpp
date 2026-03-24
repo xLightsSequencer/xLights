@@ -40,7 +40,6 @@
         #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"ud_qa.lib")
         #pragma comment(lib, "wxexpatd.lib")
         #pragma comment(lib, "msvcprtd.lib")
-        #pragma comment(lib, "spdlogd.lib")
         #pragma comment(lib, "wxwebpd.lib")
     #else
         #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
@@ -56,7 +55,6 @@
         #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"u_qa.lib")
         #pragma comment(lib, "wxexpat.lib")
         #pragma comment(lib, "msvcprt.lib")
-        #pragma comment(lib, "spdlog.lib")
         #pragma comment(lib, "wxwebp.lib")
     #endif  
     #pragma comment(lib, "libcurl.dll.a")
