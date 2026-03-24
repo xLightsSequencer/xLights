@@ -1531,7 +1531,9 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     long long now = wxGetLocalTimeMillis().GetValue();
     long long elapsed = (now - lastms);
 
-    spdlog::info("Timer: Start frame elapsed {} now {} last {}", elapsed, now, lastms);
+    auto logger_frame = spdlog::get("frame");
+
+    logger_frame->info("Timer: Start frame elapsed {} now {} last {}", elapsed, now, lastms);
 
     if (elapsed < _timer.GetInterval() / 2)
     {
@@ -1539,10 +1541,10 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         ++shortFramesSkipped;
         // log slow and fast frames infrequently
         if (shortFramesSkipped % 200 == 1) {
-            spdlog::warn("Timer: Frame event fire interval {}ms less than 1/2 frame time {}ms. {} events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+            logger_frame->warn("Timer: Frame event fire interval {}ms less than 1/2 frame time {}ms. {} events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
         }
         else {
-            spdlog::debug("Timer: Frame event fire interval {}ms less than 1/2 frame time {}ms. {} events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+            logger_frame->debug("Timer: Frame event fire interval {}ms less than 1/2 frame time {}ms. {} events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
         }
         return;
     }
@@ -1554,10 +1556,10 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
             ++longFrames;
             // log slow and fast frames infrequently
             if (longFrames % 200 == 1) {
-                spdlog::warn("Timer: Frame interval greater than 200%% of what it should have been [{}] {} : So far {}", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+                logger_frame->warn("Timer: Frame interval greater than 200%% of what it should have been [{}] {} : So far {}", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
             }
             else {
-                spdlog::debug("Timer: Frame interval greater than 200%% of what it should have been [{}] {} : So far {}", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+                logger_frame->debug("Timer: Frame interval greater than 200%% of what it should have been [{}] {} : So far {}", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
             }
             _lastSlow = wxGetUTCTimeMillis();
         }
@@ -1590,7 +1592,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     {
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
-        spdlog::debug("Timer: Frame took too long {} > {} so next frame forced to be output", ms, _timer.GetInterval());
+        logger_frame->debug("Timer: Frame took too long {} > {} so next frame forced to be output", ms, _timer.GetInterval());
     } else if (!_useHalfFrames) {
         // every frame is an output frame
         _timerOutputFrame = true;
@@ -1604,7 +1606,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     wxCommandEvent event3(EVT_SLOWFRAMEPROCESSING);
     wxPostEvent(this, event3);
 
-    spdlog::info("Timer: End Frame: Time {}", ms);
+    logger_frame->info("Timer: End Frame: Time {}", ms);
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -1612,15 +1614,16 @@ void xScheduleFrame::UpdateSchedule()
     if (__schedule == nullptr) return;
 
     wxASSERT(wxThread::IsMain());
+    auto logger_frame = spdlog::get("frame");
 
     wxStopWatch sw;
-    spdlog::debug("Updating the schedule.");
+    logger_frame->debug("Updating the schedule.");
 
     TreeCtrl_PlayListsSchedules->Freeze();
 
     int rate = __schedule->CheckSchedule();
 
-    spdlog::debug("Schedule checked {}ms", sw.Time());
+    logger_frame->debug("Schedule checked {}ms", sw.Time());
 
     PlayList* nextpl = nullptr;
     Schedule* nextsch = nullptr;
@@ -1674,7 +1677,7 @@ void xScheduleFrame::UpdateSchedule()
         }
     }
 
-    spdlog::debug("    Tree updated {}ms", sw.Time());
+    logger_frame->debug("    Tree updated {}ms", sw.Time());
 
     CorrectTimer(rate);
 
@@ -1688,21 +1691,21 @@ void xScheduleFrame::UpdateSchedule()
         _timerSchedule.Start(60000, false);
     }
 
-    spdlog::debug("    Timers sorted {}ms", sw.Time());
+    logger_frame->debug("    Timers sorted {}ms", sw.Time());
 
     UpdateUI();
 
-    spdlog::debug("    UI updated {}ms", sw.Time());
+    logger_frame->debug("    UI updated {}ms", sw.Time());
 
     TreeCtrl_PlayListsSchedules->Thaw();
     TreeCtrl_PlayListsSchedules->Refresh();
 
-    spdlog::debug("    Schedule updated {}ms", sw.Time());
+    logger_frame->debug("    Schedule updated {}ms", sw.Time());
 }
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
-    if (__schedule->IsFPPRemoteOrMaster())     {
+    if (__schedule->IsFPPRemoteOrMaster()) {
         SyncFPP::Ping(__schedule->IsSlave(), __schedule->GetForceLocalIP());
     }
     UpdateSchedule();
@@ -1710,7 +1713,7 @@ void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 
 void xScheduleFrame::ValidateWindow()
 {
-    if (__schedule->GetOptions()->GetAPIOnly())     {
+    if (__schedule->GetOptions()->GetAPIOnly()) {
         MenuItem_WebInterface->Enable(false);
     }
     else     {
@@ -1718,7 +1721,7 @@ void xScheduleFrame::ValidateWindow()
     }
 
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-    if (IsPlayList(treeitem) || IsSchedule(treeitem))     {
+    if (IsPlayList(treeitem) || IsSchedule(treeitem)) {
         Button_Clone->Enable();
         Button_Delete->Enable();
         Button_Edit->Enable();
@@ -1736,7 +1739,7 @@ void xScheduleFrame::ValidateWindow()
         Button_Schedule->Disable();
     }
 
-    if (__schedule->GetBackgroundPlayList() == nullptr)     {
+    if (__schedule->GetBackgroundPlayList() == nullptr) {
         MenuItem_BackgroundPlaylist->Check(false);
     }
     else     {
@@ -1968,7 +1971,7 @@ wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxSt
 void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
     wxString dir;
-    wxString fileName = "xSchedule_l4cpp.log";
+    wxString fileName = "xschedule_spdlog.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + "/" + fileName;
@@ -2111,7 +2114,8 @@ void xScheduleFrame::UpdateStatus(bool force)
     wxASSERT(wxThread::IsMain());
 
     wxStopWatch sw;
-    spdlog::debug("            Update Status");
+    auto logger_frame = spdlog::get("frame");
+    logger_frame->debug("            Update Status");
 
     ListView_Running->Freeze();
 
@@ -2119,7 +2123,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         StatusBar1->SetStatusText("");
     }
 
-    spdlog::debug("            Status Text {}ms", sw.Time());
+    logger_frame->debug("            Status Text {}ms", sw.Time());
 
     static int lastcc = -1;
     static int lastid = -1;
@@ -2134,7 +2138,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         }
     }
 
-    spdlog::debug("            Got selected playlist {}ms", sw.Time());
+    logger_frame->debug("            Got selected playlist {}ms", sw.Time());
 
     if (p == nullptr) {
         ListView_Running->DeleteAllItems();
@@ -2233,7 +2237,7 @@ void xScheduleFrame::UpdateStatus(bool force)
     ListView_Running->Thaw();
     ListView_Running->Refresh();
 
-    spdlog::debug("            Updated running listview {}ms", sw.Time());
+    logger_frame->debug("            Updated running listview {}ms", sw.Time());
 
     static int saved = -1;
     static int otl = -1;
@@ -2401,7 +2405,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         }
     }
 
-    spdlog::debug("            Updated toolbar {}ms", sw.Time());
+    logger_frame->debug("            Updated toolbar {}ms", sw.Time());
 
     // update each button based on current status
 
@@ -2452,7 +2456,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         }
     }
 
-    spdlog::debug("            Updated buttons {}ms", sw.Time());
+    logger_frame->debug("            Updated buttons {}ms", sw.Time());
 
     Custom_Volume->SetValue(__schedule->GetVolume());
 
@@ -2460,7 +2464,7 @@ void xScheduleFrame::UpdateStatus(bool force)
 
     SendStatus();
 
-    spdlog::debug("            Status Sent {}ms", sw.Time());
+    logger_frame->debug("            Status Sent {}ms", sw.Time());
 }
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
@@ -2651,7 +2655,8 @@ void xScheduleFrame::CorrectTimer(int rate)
     }
     if ((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1) != _timer.GetInterval())
     {
-        spdlog::debug("Timer corrected {}", (rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
+        auto logger_frame = spdlog::get("frame");
+        logger_frame->debug("Timer corrected {}", (rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
 
         _timer.Start((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
     }
@@ -3251,13 +3256,14 @@ void xScheduleFrame::UpdateUI(bool force)
     wxASSERT(wxThread::IsMain());
 
     wxStopWatch sw;
-    spdlog::debug("        Update UI");
+    auto logger_frame = spdlog::get("frame");
+    logger_frame->debug("        Update UI");
 
     bool minimiseUIUpdates = __schedule->GetOptions()->IsMinimiseUIUpdates();
 
     UpdateStatus(force);
 
-    spdlog::debug("        Status updated {}ms", sw.Time());
+    logger_frame->debug("        Status updated {}ms", sw.Time());
 
     Brightness->SetValue(__schedule->GetBrightness());
 
@@ -3292,7 +3298,7 @@ void xScheduleFrame::UpdateUI(bool force)
         }
     }
 
-    spdlog::debug("        Web request status updated {}ms", sw.Time());
+    logger_frame->debug("        Web request status updated {}ms", sw.Time());
 
     if (!_suspendOTL) {
         if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1) {
@@ -3321,11 +3327,11 @@ void xScheduleFrame::UpdateUI(bool force)
             __schedule->SetOutputToLights(this, false, false);
     }
 
-    spdlog::debug("        Managed output to lights {}ms", sw.Time());
+    logger_frame->debug("        Managed output to lights {}ms", sw.Time());
 
     ModeToUI();
 
-    spdlog::debug("        Updated mode {}ms", sw.Time());
+    logger_frame->debug("        Updated mode {}ms", sw.Time());
 
     // disable any outputs where the ping has failed
     if (_pinger != nullptr && __schedule->GetOptions()->IsDisableOutputOnPingFailure()) {
@@ -3498,7 +3504,7 @@ void xScheduleFrame::UpdateUI(bool force)
         ListView_Ping->Thaw();
     }
 
-    spdlog::debug("        Updated ping status {}ms", sw.Time());
+    logger_frame->debug("        Updated ping status {}ms", sw.Time());
 
     ValidateWindow();
 
