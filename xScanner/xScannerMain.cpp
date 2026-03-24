@@ -32,7 +32,7 @@
 
 #include "../xLights/automation/automation.h"
 
-#include <Log.h>
+#include <log.h>
 
 #ifndef __WXMSW__
 #include <netinet/in.h>

@@ -14,7 +14,7 @@
 
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
-#include <Log.h>
+#include <log.h>
 
 int MagicWord::__nextId = 0;
 

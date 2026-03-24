@@ -40,7 +40,7 @@
 #include "../../include/xLights-64.xpm"
 #include "../../include/xLights-128.xpm"
 
-#include <Log.h>
+#include <log.h>
 
 //helper functions
 enum wxbuildinfoformat {

@@ -6,7 +6,7 @@
 
 #include <mutex>
 
-#include <Log.h>
+#include <log.h>
 
 static std::map<std::string, std::string> macLookup;
 static std::mutex _macMutex;
