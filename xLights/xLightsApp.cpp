@@ -47,6 +47,7 @@
 
 #include <log.h>
 #include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/common.h"
 
 #ifdef LINUX
@@ -197,6 +198,22 @@ void InitialiseLogging(bool fromMain)
         spdlog::info("Start Time: {}.", ts.ToStdString());
         spdlog::info("Current working directory {}.", wxGetCwd().ToStdString());
     }
+}
+
+void ApplyLoggingSpecialOptions()
+{
+    if (SpecialOptions::GetOption("console_logger", "false") != "true") return;
+
+    static bool consoleApplied = false;
+    if (consoleApplied) return;
+    consoleApplied = true;
+
+    auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    // Called from SetDir on the main thread before rendering is active, so
+    // mutating sinks() here does not race with concurrent log calls.
+    spdlog::apply_all([&](std::shared_ptr<spdlog::logger> logger) {
+        logger->sinks().push_back(stdout_sink);
+    });
 }
 
 std::string DecodeOS(wxOperatingSystemId o)
