@@ -237,8 +237,6 @@ void InitialiseLogging(bool fromMain)
         curl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("curl_logger", "info")));
         frame_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("frame_logger", "info")));
         spdlog::register_logger(curl_logger);
-        //spdlog::register_logger(job_logger);
-        //spdlog::register_logger(work_logger);
         spdlog::register_logger(frame_logger);
 
         loggingInitialised = true;
