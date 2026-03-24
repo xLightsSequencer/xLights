@@ -129,6 +129,7 @@ int PolyLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid,
         _polyLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
                     OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         return 0;
     } else if ("PolyLineLights" == event.GetPropertyName()) {

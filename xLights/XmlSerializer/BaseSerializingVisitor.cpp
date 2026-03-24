@@ -856,7 +856,7 @@ void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
     attrs.Add(XmlNodeKeys::LightsPerNodeAttribute, std::to_string(model.GetLightsPerNode()));
-    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.NodesPerString()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetTotalLightCount()));
     AddPolyPointScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::PolyStringsAttribute,    std::to_string(model.GetNumStrings()));
     attrs.Add(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");

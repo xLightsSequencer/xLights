@@ -789,7 +789,7 @@ int PolyLineModel::GetNumPhysicalStrings() const
 int PolyLineModel::NodesPerString() const
 {
     if (_strings <= 1) {
-        return Model::NodesPerString();
+        return _totalLightCount;
     }
 
     // For multi-string PolyLine, we need to account for drop pattern
