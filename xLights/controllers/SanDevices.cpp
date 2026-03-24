@@ -646,7 +646,7 @@ std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
         httpStream->Read(out_stream);
 
         if (logresult) {
-            spdlog::debug("Response from SanDevices '{}'.", res);
+            spdlog::debug("Response from SanDevices '{}'.", res.ToStdString());
         }
     }
     else {
