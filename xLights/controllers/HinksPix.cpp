@@ -725,8 +725,6 @@ void HinksPix::UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, 
     pd.universe = stringData->GetUniverse();
     pd.startChannel = stringData->GetUniverseStartChannel();
     pd.pixels = stringData->Pixels();
-
-    //pd.pixels = INTROUNDUPDIV(stringData->Channels(), GetChannelsPerPixel(stringData->GetProtocol()));
     pd.used = true;
     pd.setControllerChannels(hinkstartChan);
 }
