@@ -81,7 +81,7 @@
 #include "EffectPresetManager.h"
 #include "ViewpointMgr.h"
 #include "PhonemeDictionary.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "sequencer/EffectsGrid.h"
 #include "render/RenderCache.h"
 #include "outputs/ZCPP.h"
@@ -409,7 +409,7 @@ public:
     static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
-    static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
+    static SequenceFile* CurrentSeqXmlFile; // global object for currently opened XML file
     const std::string &GetShowDirectory() const { return showDirectory; }
     const std::string &GetFseqDirectory() const { return fseqDirectory; }
     static wxString GetFilename() { return xlightsFilename; }
@@ -422,7 +422,7 @@ public:
     std::string GetPresetIconFilename(const std::string& preset) const;
     void CreatePresetIcons();
     void ClearSequenceData();
-    void LoadAudioData(xLightsXmlFile& xml_file);
+    void LoadAudioData(SequenceFile& xml_file);
     virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
     virtual std::string GetCurrentDir() const override { return CurrentDir.ToStdString(); }
     wxString GetThreadStatusReport();
@@ -1614,7 +1614,7 @@ public:
 
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
-    bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
+    bool SeqLoadXlightsFile(SequenceFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
@@ -1910,7 +1910,7 @@ private:
     void CheckForAndCreateDefaultPerpective();
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
-    void LoadSequencer(xLightsXmlFile& xml_file);
+    void LoadSequencer(SequenceFile& xml_file);
     void DoLoadPerspective(Perspective* p);
     void CheckForValidModels();
     void ExportModels(wxString const& filename);
@@ -1979,7 +1979,6 @@ public:
     EffectTreeDialog *EffectTreeDlg = nullptr;
 
     ModelGroup* GetSelectedModelGroup() const;
-    void LoadJukebox(wxXmlNode* node);
     static pugi::xml_node FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create = false);
     TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }
 

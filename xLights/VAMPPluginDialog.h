@@ -17,7 +17,7 @@
 #include <wx/textctrl.h>
 //*)
 
-#include "xLightsXmlFile.h"
+class SequenceFile;
 #include <vector>
 #include <map>
 
@@ -39,7 +39,7 @@ class VAMPPluginDialog: public wxDialog
 		wxStaticText* Label2;
 		//*)
 
-    wxString ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent,
+    wxString ProcessPlugin(SequenceFile* xml_file, xLightsFrame *xLightsParent,
                        const wxString &plugin, AudioManager* media);
 
 	protected:

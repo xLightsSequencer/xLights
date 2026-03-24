@@ -412,7 +412,7 @@ public:
     AudioManager* GetMedia() const;
     const Model* GetModel() const;
     const std::string &GetModelName() const;
-    const wxString &GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
+    const std::string &GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
     SequenceMedia* GetSequenceMedia() const;
 
     void AlphaBlend(const RenderBuffer& src);

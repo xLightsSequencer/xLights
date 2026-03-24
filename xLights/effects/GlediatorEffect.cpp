@@ -23,7 +23,7 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
-#include "../xLightsXmlFile.h"
+#include "../render/SequenceFile.h"
 #include "../xLightsMain.h" 
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"

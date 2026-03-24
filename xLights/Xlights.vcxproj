@@ -1054,7 +1054,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsTimer.cpp" />
     <ClCompile Include="xLightsVersion.cpp" />
-    <ClCompile Include="xLightsXmlFile.cpp" />
+    <ClCompile Include="render\SequenceFile.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="xlSlider.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
@@ -1620,7 +1620,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />
     <ClInclude Include="xLightsVersion.h" />
-    <ClInclude Include="xLightsXmlFile.h" />
+    <ClInclude Include="render\SequenceFile.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="xlSlider.h" />
     <ClInclude Include="ui\wxUtilities.h" />

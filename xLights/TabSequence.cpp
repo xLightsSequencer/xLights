@@ -19,7 +19,7 @@
 
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "effects/RenderableEffect.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
@@ -1454,8 +1454,7 @@ void xLightsFrame::SaveSequence()
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
         _renderCache.SetSequence(renderCacheDirectory, xmlFileName.GetName());
         xmlFileName.SetExt("xsq");
-        CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
-        CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
+        CurrentSeqXmlFile->SetFullPath(xmlFileName.GetFullPath().ToStdString());
 
         AddToMRU(xmlFileName.GetFullPath());
         UpdateRecentFilesList(false);
@@ -1481,16 +1480,15 @@ void xLightsFrame::SaveSequence()
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
 
-    if (CurrentSeqXmlFile->GetExt().Lower() == "xml") {
+    if (wxString(CurrentSeqXmlFile->GetExt()).Lower() == "xml") {
         // Remove the old xml file as we are about to save it as an xsq
         wxRemoveFile(CurrentSeqXmlFile->GetFullPath());
         CurrentSeqXmlFile->SetExt("xsq");
-    } else if (CurrentSeqXmlFile->GetExt().Lower() == "xbkp") {
+    } else if (wxString(CurrentSeqXmlFile->GetExt()).Lower() == "xbkp") {
         CurrentSeqXmlFile->SetExt("xsq");
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     spdlog::info("Saving XSQ file.");
-    CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
     if (!CurrentSeqXmlFile->Save(_sequenceElements)) {
         wxMessageDialog msgDlg(this, "Error Saving Sequence to " + CurrentSeqXmlFile->GetFullPath(),
                                "Error Saving Sequence", wxOK | wxCENTRE);
@@ -1648,8 +1646,7 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     SetPanelSequencerLabel(oName.GetName().ToStdString());
 
     oName.SetExt("xsq");
-    CurrentSeqXmlFile->SetPath(oName.GetPath());
-    CurrentSeqXmlFile->SetFullName(oName.GetFullName());
+    CurrentSeqXmlFile->SetFullPath(oName.GetFullPath().ToStdString());
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);

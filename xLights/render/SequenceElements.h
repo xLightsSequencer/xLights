@@ -13,18 +13,17 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceMedia.h"
-#include "wx/wx.h"
+namespace pugi { class xml_node; }
 #include <vector>
 #include <set>
 #include <string>
 #include <mutex>
-#include "wx/xml/xml.h"
-#include "wx/filename.h"
 #include "../sequencer/UndoManager.h"
 
-class xLightsXmlFile;  // forward declaration needed due to circular dependency
+class SequenceFile;
 class SequenceViewManager;
 class TimeLine;
+class wxWindow;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -60,7 +59,6 @@ struct EventPlayEffectArgs
     bool renderEffect;
 };
 
-class wxXmlNode;
 class EffectLayer;
 class xLightsFrame;
 class EffectManager;
@@ -70,9 +68,9 @@ class SequenceElements : public ChangeListener
 public:
     SequenceElements(xLightsFrame *frame);
     virtual ~SequenceElements();
-    bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir, bool importing = false);
+    bool LoadSequencerFile(SequenceFile& xml_file, const std::string& ShowDir, bool importing = false);
     void Clear();
-    void PrepareViews(xLightsXmlFile& xml_file);
+    void PrepareViews(SequenceFile& xml_file);
     Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
     Element* AddElement(int index, const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
     Element* GetElement(const std::string &name) const;
@@ -204,10 +202,12 @@ public:
     bool SupportsModelBlending() const { return supportsModelBlending; }
     void SetSupportsModelBlending(bool b) { supportsModelBlending = b; }
 
-    wxFileName &GetFileName() { return mFilename; }
     EffectManager &GetEffectManager();
     xLightsFrame *GetXLightsFrame() const { return xframe; };
     
+    // Color palettes from the loaded sequence
+    const std::vector<std::string>& GetColorPalettes() const { return mColorPalettes; }
+
     // Media cache management
     SequenceMedia& GetSequenceMedia() { return mSequenceMedia; }
     const SequenceMedia& GetSequenceMedia() const { return mSequenceMedia; }
@@ -215,7 +215,7 @@ protected:
 private:
     int LoadEffects(EffectLayer *layer,
         const std::string &type,
-        wxXmlNode *effectLayerNode,
+        const pugi::xml_node &effectLayerNode,
         const std::vector<std::string> & effectStrings,
         const std::vector<std::string> & colorPalettes,
         bool importing = false);
@@ -251,8 +251,6 @@ private:
     int mSequenceEndMS;
     bool supportsModelBlending;
 
-    wxFileName mFilename;
-
     // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
     int mFirstVisibleModelRow;
     unsigned int mChangeCount;
@@ -263,6 +261,7 @@ private:
     std::set<std::string> modelsToRender;
     std::mutex renderDepLock;
     
+    std::vector<std::string> mColorPalettes;
     SequenceMedia mSequenceMedia;
 };
 

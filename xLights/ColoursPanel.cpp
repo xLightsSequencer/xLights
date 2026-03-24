@@ -276,15 +276,10 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
         if (xlights->CurrentSeqXmlFile != nullptr)
         {
-            if (xlights->CurrentSeqXmlFile->GetPalettesNode() != nullptr) {
-                // we can bale early if we already have enough colours ... this helps in sequences with a crazy large number of colours
-                for (auto n = xlights->CurrentSeqXmlFile->GetPalettesNode()->GetChildren(); n != nullptr && _colours.size() < MAX_COLOURS; n = n->GetNext())
-                {
-                    if (n->GetName() == "ColorPalette" && n->GetChildren() != nullptr)
-                    {
-                        ParsePalette(n->GetChildren()->GetContent());
-                    }
-                }
+            // we can bail early if we already have enough colours ... this helps in sequences with a crazy large number of colours
+            for (const auto& palette : xlights->GetSequenceElements().GetColorPalettes()) {
+                if (_colours.size() >= MAX_COLOURS) break;
+                ParsePalette(palette);
             }
         }
     }

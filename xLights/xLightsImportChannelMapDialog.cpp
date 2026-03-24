@@ -15,6 +15,7 @@
 
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
+#include <wx/progdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/colordlg.h>
 #include <wx/regex.h>

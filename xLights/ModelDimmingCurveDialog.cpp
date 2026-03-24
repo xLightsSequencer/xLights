@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "ModelDimmingCurveDialog.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 
 //(*InternalHeaders(ModelDimmingCurveDialog)
 #include <wx/button.h>

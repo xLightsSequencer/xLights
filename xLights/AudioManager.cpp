@@ -176,7 +176,6 @@ BaseSDL::~BaseSDL() {
 bool BaseSDL::CloseDevice() {
     
     if (_dev > 0) {
-        spdlog::debug("Pausing audio device {}.", _dev);
         SDL_ClearError();
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
         wxASSERT(strlen(SDL_GetError()) == 0);
@@ -184,12 +183,9 @@ bool BaseSDL::CloseDevice() {
             SDL_PauseAudioDevice(_dev, 1);
             wxASSERT(strlen(SDL_GetError()) == 0);
         }
-        spdlog::debug("    Result '{}'", SDL_GetError());
-        spdlog::debug("Closing audio device {}.", _dev);
         SDL_ClearError();
         SDL_CloseAudioDevice(_dev);
         wxASSERT(strlen(SDL_GetError()) == 0);
-        spdlog::debug("    Result '{}'", SDL_GetError());
         _dev = 0;
     }
 
@@ -811,8 +807,6 @@ void OutputSDL::Play() {
 }
 
 void OutputSDL::Stop() {
-    
-    spdlog::debug("SDL Audio Stop on device {}.", _dev);
     if (_dev > 0) {
         SDL_ClearError();
         _state = SDLSTATE::SDLNOTPLAYING;

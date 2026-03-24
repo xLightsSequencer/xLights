@@ -35,6 +35,7 @@
 #include <algorithm>
 
 #include "SubModelsDialog.h"
+#include <wx/progdlg.h>
 #include "models/Model.h"
 #include "models/CustomModel.h"
 #include "SubBufferPanel.h"

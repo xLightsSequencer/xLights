@@ -23,7 +23,7 @@
 
 #include "xLightsMain.h"
 #include "LayoutPanel.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #ifdef __WXOSX__
 #include "xlPropertyGrid.h"
 #endif

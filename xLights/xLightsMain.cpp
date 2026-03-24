@@ -2858,7 +2858,7 @@ wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::FseqDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
-xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
+SequenceFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
@@ -3144,10 +3144,7 @@ ModelGroup* xLightsFrame::GetSelectedModelGroup() const
     return layoutPanel->GetSelectedModelGroup();
 }
 
-void xLightsFrame::LoadJukebox(wxXmlNode* node)
-{
-    jukeboxPanel->Load(node);
-}
+// LoadJukebox(wxXmlNode*) removed — SequenceElements now calls JukeboxPanel::Load(pugi::xml_node) directly
 
 // sigh; a function like this should have been built into wxWidgets
 pugi::xml_node xLightsFrame::FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create /*= false*/)
@@ -4218,8 +4215,8 @@ bool xLightsFrame::SaveWorking()
     }
     wxFileName ftmp(tmp);
 
-    CurrentSeqXmlFile->SetPath(ftmp.GetPath());
-    CurrentSeqXmlFile->SetFullName(ftmp.GetFullName());
+    std::string origPath = CurrentSeqXmlFile->GetFullPath();
+    CurrentSeqXmlFile->SetFullPath(tmp.ToStdString());
 
     bool b = CurrentSeqXmlFile->Save(_sequenceElements);
     if (!b) {
@@ -4228,8 +4225,7 @@ bool xLightsFrame::SaveWorking()
         msgDlg.ShowModal();
     }
 
-    CurrentSeqXmlFile->SetPath(p);
-    CurrentSeqXmlFile->SetFullName(fn);
+    CurrentSeqXmlFile->SetFullPath(origPath);
     return b;
 }
 
@@ -6374,7 +6370,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     if (CurrentSeqXmlFile != nullptr) {
         LogCheckSequenceMsg("Uncommon and often undesirable settings");
 
-        if (CurrentSeqXmlFile->GetRenderMode() == xLightsXmlFile::CANVAS_MODE) {
+        if (CurrentSeqXmlFile->GetRenderMode() == SequenceFile::CANVAS_MODE) {
             wxString msg = wxString::Format("    WARN: Render mode set to canvas mode. Unless you specifically know you need this it is not recommended.");
             LogAndTrack(report, "sequence", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "general", errcount, warncount);
         }
@@ -6427,15 +6423,14 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         if (CurrentSeqXmlFile->FileExists()) {
             // set to log if >1MB and autosave is more than every 10 minutes
-            wxULongLong size = CurrentSeqXmlFile->GetSize();
-            if (size > 1000000 && mAutoSaveInterval < 10 && mAutoSaveInterval > 0) {
-                wxULongLong mbull = size / 100000;
-                double mb = mbull.ToDouble() / 10.0;
+            std::error_code ec;
+            auto size = std::filesystem::file_size(CurrentSeqXmlFile->GetFullPath(), ec);
+            if (!ec && size > 1000000 && mAutoSaveInterval < 10 && mAutoSaveInterval > 0) {
+                double mb = (double)size / 1000000.0;
                 wxString msg = wxString::Format("    WARN: Sequence file size %.1fMb is large. Consider making autosave less frequent to prevent xlights pausing too often when it autosaves.", mb);
                 LogAndTrack(report, "sequence", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "autosave", errcount, warncount);
-            } else if (size < 1000000 && mAutoSaveInterval > 10) {
-                wxULongLong mbull = size / 100000;
-                double mb = mbull.ToDouble() / 10.0;
+            } else if (!ec && size < 1000000 && mAutoSaveInterval > 10) {
+                double mb = (double)size / 1000000.0;
                 wxString msg = wxString::Format("    WARN: Sequence file size %.1fMb is small. Consider making autosave more frequent to prevent loss in the event of abnormal termination.", mb);
                 LogAndTrack(report, "sequence", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "autosave", errcount, warncount);
             }
@@ -7875,10 +7870,10 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         }
     }
 
-    fixfile = FixFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), lostfiles);
+    fixfile = FixFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath(), lostfiles);
 
     prog.Update(95, CurrentSeqXmlFile->GetFullName());
-    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip, zippedfiles, fixfile);
+    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath(), zip, zippedfiles, fixfile);
     if (fixfile != "") {
         wxRemoveFile(fixfile);
     }
@@ -9522,7 +9517,7 @@ void xLightsFrame::SetEnableRenderCache(const wxString& t)
 
     if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr) {
         // this will force a reload of the cache
-        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName());
     } else {
         _renderCache.SetSequence("", "");
         _renderCache.Purge(&_sequenceElements, false);

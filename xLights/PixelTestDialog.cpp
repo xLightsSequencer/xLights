@@ -27,7 +27,7 @@
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include <log.h>
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"

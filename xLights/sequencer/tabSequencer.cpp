@@ -807,7 +807,7 @@ void xLightsFrame::CheckForValidModels()
     } while (!toMap.empty());
 }
 
-void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
+void xLightsFrame::LoadAudioData(SequenceFile& xml_file)
 {
     // abort any in progress render ... as it may be using any already open media
     if (xml_file.GetMedia() != nullptr) {
@@ -876,7 +876,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
 }
 
-void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
+void xLightsFrame::LoadSequencer(SequenceFile& xml_file)
 {
     
 
@@ -3853,8 +3853,10 @@ void xLightsFrame::ImportTimingElement()
                                                 "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xsq)|*.xsq|Old xLights (*.xml)|*.xml",
                                                 wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     if (OpenDialog->ShowModal() == wxID_OK) {
-        wxArrayString filenames;
-        OpenDialog->GetPaths(filenames);
+        wxArrayString wxFilenames;
+        OpenDialog->GetPaths(wxFilenames);
+        std::vector<std::string> filenames;
+        for (size_t i = 0; i < wxFilenames.size(); ++i) filenames.push_back(wxFilenames[i].ToStdString());
         if (filenames.size() > 0) {
             wxFileName file1(filenames[0]);
             if (file1.GetExt().Lower() == "lms" || file1.GetExt().Lower() == "las") {

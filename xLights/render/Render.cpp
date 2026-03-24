@@ -14,7 +14,7 @@
 #include <memory>
 
 #include "xLightsMain.h"
-#include "xLightsXmlFile.h"
+#include "SequenceFile.h"
 #include "RenderCommandEvent.h"
 #include "effects/RenderableEffect.h"
 #include "RenderProgressDialog.h"

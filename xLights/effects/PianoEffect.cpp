@@ -20,7 +20,7 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../render/Effect.h"
-#include "../xLightsXmlFile.h"
+#include "../render/SequenceFile.h"
 #include "models/Model.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"

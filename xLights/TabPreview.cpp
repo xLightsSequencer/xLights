@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "xLightsMain.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "ModelPreview.h"
 #include "HousePreviewPanel.h"
 #include "LayoutPanel.h"

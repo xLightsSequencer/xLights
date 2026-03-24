@@ -1,0 +1,2483 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <wx/filename.h>
+#include <wx/tokenzr.h>
+#include <wx/regex.h>
+#include <wx/numdlg.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
+#include <wx/dir.h>
+#include <wx/textfile.h>
+#include <wx/mstream.h>
+#include <wx/base64.h>
+#include <zstd.h>
+
+#include "../include/spxml-0.5/spxmlparser.hpp"
+#include "../include/spxml-0.5/spxmlevent.hpp"
+
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <unordered_map>
+
+#include "SequenceFile.h"
+#include "SequenceElements.h"
+#include "../AudioManager.h"
+#include "../xLightsMain.h"
+#include "../JukeboxPanel.h"
+#include "../OptionChooser.h"
+#include "../effects/EffectManager.h"
+#include "../effects/RenderableEffect.h"
+#include "../xLightsVersion.h"
+#include "../UtilFunctions.h"
+#include "../sequencer/TimeLine.h"
+#include "../Vixen3.h"
+#include "../ExternalHooks.h"
+
+#include <log.h>
+
+#define string_format wxString::Format
+
+//     #define USE_COMPRESSION
+
+const std::string SequenceFile::ERASE_MODE = "<rendered: erase-mode>";
+const std::string SequenceFile::CANVAS_MODE = "<rendered: canvas-mode>";
+
+
+const std::array<std::string, (int)HEADER_INFO_TYPES::NUM_TYPES> HEADER_STRINGS = {
+    "author",
+    "author-email",
+    "author-website",
+    "song",
+    "artist",
+    "album",
+    "MusicURL",
+    "comment"
+};
+
+SequenceFile::SequenceFile(const std::string& filepath, uint32_t frameMS) :
+    mFilePath(filepath),
+    seq_duration(30.0),
+    seq_type("Animation"),
+    seq_timing("50 ms"),
+    supports_model_blending(true),
+    is_open(false),
+    was_converted(false),
+    sequence_loaded(false),
+    audio(nullptr)
+{
+    if (frameMS != 0) {
+        seq_timing = wxString::Format("%d ms", frameMS);
+    }
+    CreateNew();
+}
+
+SequenceFile::SequenceFile(const wxFileName& filename, uint32_t frameMS) :
+    SequenceFile(filename.GetFullPath().ToStdString(), frameMS)
+{
+}
+
+SequenceFile::~SequenceFile()
+{
+    models.clear();
+    timing_list.clear();
+    if (audio != nullptr) {
+        ValueCurve::SetAudio(nullptr);
+        delete audio;
+        audio = nullptr;
+    }
+}
+
+std::string SequenceFile::GetExt() const
+{
+    auto ext = std::filesystem::path(mFilePath).extension().string();
+    if (!ext.empty() && ext[0] == '.') {
+        return ext.substr(1);
+    }
+    return ext;
+}
+
+void SequenceFile::SetExt(const std::string& ext)
+{
+    std::filesystem::path p(mFilePath);
+    p.replace_extension(ext);
+    mFilePath = p.string();
+}
+
+bool SequenceFile::FileExists() const
+{
+    return ::FileExists(mFilePath);
+}
+
+bool SequenceFile::IsXmlSequence(const std::string& filepath)
+{
+    char buf[1024];
+    wxFile file(filepath);
+    int i = file.Read(buf, 1024);
+    file.Close();
+    wxString bufs(buf, i);
+    if (bufs.Contains("<xsequence")) {
+        return true;
+    }
+    return false;
+}
+
+bool SequenceFile::IsV3Sequence() const
+{
+    char buf[1024];
+    wxFile file(GetFullPath());
+    int i = file.Read(buf, 1024);
+    file.Close();
+    if ((wxString(buf, i).Contains("<xsequence")) &&
+        (wxString(buf, i).Contains("<tr>"))) {
+        return true;
+    }
+    return false;
+}
+
+bool SequenceFile::NeedsTimesCorrected() const
+{
+    char buf[1024];
+    wxFile file(GetFullPath());
+    int i = file.Read(buf, 1024);
+    file.Close();
+    if ((wxString(buf, i).Contains("<xsequence")) &&
+        (wxString(buf, i).Contains("FixedPointTiming"))) {
+        return false;
+    }
+    return true;
+}
+
+// GetLastView() is now inline in the header, returning mLastView
+
+// GetPalettesNode removed — use SequenceElements::GetColorPalettes()
+
+bool SequenceFile::SaveCopy() const
+{
+    wxString archive_dir = xLightsFrame::CurrentDir + ::GetPathSeparator() + "ArchiveV3";
+
+    if (wxDir::Exists(archive_dir) == false) {
+        if (!wxDir::Make(archive_dir)) return false;
+    }
+
+    wxRenameFile(GetFullPath(), archive_dir + ::GetPathSeparator() + GetFullName());
+
+    return true;
+}
+
+void SequenceFile::SetSequenceType(const std::string& type)
+{
+    seq_type = type;
+    if (type == "Animation") {
+        SetMediaFile("", "", false);
+        if (audio != nullptr) {
+            ValueCurve::SetAudio(nullptr);
+            delete audio;
+            audio = nullptr;
+        }
+    }
+}
+
+int SequenceFile::GetFrameMS() const
+{
+    return std::strtol(seq_timing.c_str(), nullptr, 10);
+}
+
+int SequenceFile::GetFrequency() const
+{
+    int freq_ms = std::strtol(seq_timing.c_str(), nullptr, 10);
+    return freq_ms > 0 ? (int)(1000 / freq_ms) : 20;
+}
+
+void SequenceFile::SetSequenceTiming(const std::string& timing)
+{
+    spdlog::info("Sequence timing set to " + timing);
+    seq_timing = timing;
+}
+
+void SequenceFile::SetMediaFile(const std::string& ShowDir, const std::string& filename, bool overwrite_tags)
+{
+
+    media_file = FixFile(ShowDir, filename).ToStdString();
+
+    if (audio != nullptr) {
+        ValueCurve::SetAudio(nullptr);
+        delete audio;
+        audio = nullptr;
+    }
+
+    ObtainAccessToURL(filename);
+    if (!filename.empty() && ::FileExists(filename) && wxIsReadable(filename)) {
+        spdlog::debug("SetMediaFile: Creating audio manager");
+        audio = new AudioManager(filename, GetFrameMS());
+
+        if (audio != nullptr) {
+            ValueCurve::SetAudio(audio);
+            spdlog::info("SetMediaFile: Audio loaded. Audio frame interval {}ms. Our frame interval {}ms", audio->GetFrameInterval(), GetFrameMS());
+            if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0) {
+                audio->SetFrameInterval(GetFrameMS());
+            }
+        }
+    }
+
+    if (overwrite_tags) {
+        SetMetaMP3Tags();
+    }
+}
+
+void SequenceFile::ClearMediaFile()
+{
+    if (audio != nullptr) {
+        ValueCurve::SetAudio(nullptr);
+        delete audio;
+        audio = nullptr;
+    }
+
+    media_file = "";
+    SetHeaderInfo(HEADER_INFO_TYPES::SONG, "");
+    SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, "");
+    SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, "");
+    SetHeaderInfo(HEADER_INFO_TYPES::URL, "");
+}
+
+void SequenceFile::SetRenderMode(const std::string& mode)
+{
+    for (int i = 0; i < mDataLayers.GetNumLayers(); i++) {
+        if (mDataLayers.GetDataLayer(i)->GetName() == "Nutcracker") {
+            mDataLayers.GetDataLayer(i)->SetDataSource(mode);
+            return;
+        }
+    }
+}
+
+std::string SequenceFile::GetRenderMode()
+{
+    for (int i = 0; i < mDataLayers.GetNumLayers(); i++) {
+        if (mDataLayers.GetDataLayer(i)->GetName() == "Nutcracker") {
+            return mDataLayers.GetDataLayer(i)->GetDataSource();
+        }
+    }
+    return ERASE_MODE;
+}
+
+
+void SequenceFile::AddTimingDisplayElement(const std::string& name, const std::string& visible, const std::string& active, const std::string& subType)
+{
+    auto root = mLoadDoc.child("xsequence");
+    auto displayElements = root.child("DisplayElements");
+
+    // Insert timing elements before non-timing elements
+    pugi::xml_node insert_before;
+    for (auto element : displayElements.children("Element")) {
+        if (std::string(element.attribute("type").as_string("")) != "timing") {
+            insert_before = element;
+            break;
+        }
+    }
+
+    pugi::xml_node child;
+    if (insert_before) {
+        child = displayElements.insert_child_before("Element", insert_before);
+    } else {
+        child = displayElements.append_child("Element");
+    }
+    child.append_attribute("active") = active;
+    child.append_attribute("visible") = visible;
+    child.append_attribute("type") = "timing";
+    child.append_attribute("name") = name;
+    if (!subType.empty()) {
+        child.append_attribute("subType") = subType;
+    }
+    timing_list.push_back(name);
+}
+
+pugi::xml_node SequenceFile::AddElement(const std::string& name, const std::string& type)
+{
+    auto root = mLoadDoc.child("xsequence");
+    auto elemEffects = root.child("ElementEffects");
+    auto child = elemEffects.append_child("Element");
+    child.append_attribute("type") = type;
+    child.append_attribute("name") = name;
+    return child;
+}
+
+pugi::xml_node SequenceFile::AddFixedTiming(const std::string& name, const std::string& timing)
+{
+    auto root = mLoadDoc.child("xsequence");
+    auto elemEffects = root.child("ElementEffects");
+    auto child = elemEffects.append_child("Element");
+    child.append_attribute("fixed") = timing;
+    child.append_attribute("type") = "timing";
+    child.append_attribute("name") = name;
+    return child;
+}
+
+void SequenceFile::AddTimingEffect(pugi::xml_node node,
+    const std::string& label,
+    const std::string& protection,
+    const std::string& selected,
+    const std::string& start_time,
+    const std::string& end_time)
+{
+    auto effect = node.append_child("Effect");
+    effect.append_attribute("label") = label;
+    effect.append_attribute("protected") = protection;
+    effect.append_attribute("selected") = selected;
+    effect.append_attribute("startTime") = start_time;
+    effect.append_attribute("endTime") = end_time;
+}
+
+static wxString GetSetting(const wxString& setting, const wxString& text)
+{
+    wxString settings = text;
+    while (!settings.IsEmpty()) {
+        wxString before = settings.BeforeFirst(',');
+        if (before.Contains(setting)) {
+            wxString val = before.AfterLast('=');
+            return val;
+        }
+        settings = settings.AfterFirst(',');
+    }
+    return "";
+}
+
+// Legacy wxXmlNode helpers removed — all wizard XML now uses pugixml via mLoadDoc
+
+const std::string& SequenceFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) const
+{
+    return header_info[static_cast<int>(node_type)];
+}
+
+void SequenceFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const std::string& node_value)
+{
+    header_info[static_cast<int>(name_name)] = node_value;
+}
+
+void SequenceFile::SetTimingSectionName(const std::string& section, const std::string& name)
+{
+    auto it = std::find(timing_list.begin(), timing_list.end(), section);
+    if (it != timing_list.end()) {
+        *it = name;
+    }
+}
+
+void SequenceFile::DeleteTimingSection(const std::string& section)
+{
+    timing_list.erase(std::remove(timing_list.begin(), timing_list.end(), section), timing_list.end());
+}
+
+void SequenceFile::CreateNew()
+{
+    version_string = xlights_version_string;
+    supports_model_blending = true;
+    mDataLayers.AddDataLayer("Nutcracker", "<auto-generated>", ERASE_MODE);
+
+    // Build pugixml skeleton for wizard timing pre-load
+    mLoadDoc.reset();
+    auto root = mLoadDoc.append_child("xsequence");
+    root.append_attribute("FixedPointTiming") = "1";
+    root.append_attribute("ModelBlending") = "true";
+    auto head = root.append_child("head");
+    head.append_child("version").text().set(xlights_version_string);
+    head.append_child("sequenceTiming").text().set(seq_timing);
+    head.append_child("sequenceType").text().set(seq_type);
+    head.append_child("mediaFile").text().set(media_file);
+    head.append_child("sequenceDuration").text().set(GetSequenceDurationString());
+    root.append_child("DataLayers");
+    root.append_child("ColorPalettes");
+    root.append_child("DisplayElements");
+    root.append_child("ElementEffects");
+    root.append_child("TimingTags");
+}
+
+bool SequenceFile::Open(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath)
+{
+    if (!FileExists())
+        return false;
+
+    sequence_loaded = false;
+    if (IsV3Sequence()) {
+        wxMessageBox("Loading of xLights v3 Sequences is no longer supported.", "Error", wxOK | wxCENTRE |wxICON_ERROR, xLightsFrame::GetFrame());
+        return false;
+    }
+    else if (IsXmlSequence(mFilePath)) {
+        return LoadSequence(ShowDir, ignore_audio, realFilePath);
+    }
+    return false;
+}
+
+// ConvertToFixedPointTiming removed — conversion now done inline during pugixml LoadSequence
+
+// UpdateMediaFileInXML removed - XML is now only built at save time
+
+bool SequenceFile::LoadSequence(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath)
+{
+    if (realFilePath != mFilePath) {
+        spdlog::info("LoadSequence: Loading sequence {} from {}", mFilePath, realFilePath);
+    } else {
+        spdlog::info("LoadSequence: Loading sequence {}", mFilePath);
+    }
+
+    // Load with pugixml
+    mLoadDoc.reset();
+    auto result = mLoadDoc.load_file(realFilePath.c_str());
+    if (!result) {
+        spdlog::error("LoadSequence: XML file load failed: {}", result.description());
+        return false;
+    }
+    is_open = true;
+
+    auto root = mLoadDoc.child("xsequence");
+    if (!root) {
+        // Try root element directly (the document root IS xsequence)
+        root = mLoadDoc.first_child();
+    }
+
+    // Handle CompressedData sections
+    for (auto e = root.child("CompressedData"); e; ) {
+        int size = e.attribute("size").as_int(0);
+        std::string b64Content = e.text().as_string("");
+        wxMemoryBuffer memBuffer = wxBase64Decode(b64Content);
+        std::vector<uint8_t> bytes(size + 50);
+        int sz = ZSTD_decompress(bytes.data(), bytes.size(), memBuffer.GetData(), memBuffer.GetDataLen());
+
+        pugi::xml_document tempDoc;
+        tempDoc.load_buffer(bytes.data(), sz);
+        // Copy top-level elements from decompressed doc into our root
+        for (auto child = tempDoc.first_child(); child; ) {
+            auto next = child.next_sibling();
+            root.append_copy(child);
+            child = next;
+        }
+        auto next = e.next_sibling("CompressedData");
+        root.remove_child(e);
+        e = next;
+    }
+
+    supports_model_blending = std::string(root.attribute("ModelBlending").as_string("false")) == "true";
+
+    bool needsTimesCorrection = NeedsTimesCorrected();
+
+    std::string mediaFileName;
+    const std::string& showDir = ShowDir;
+
+    for (auto e : root.children()) {
+        std::string ename = e.name();
+        if (ename == "head") {
+            for (auto element : e.children()) {
+                std::string name = element.name();
+                std::string content = element.text().as_string("");
+                if (name == "version") {
+                    version_string = content;
+                } else if (name == "author") {
+                    header_info[(int)HEADER_INFO_TYPES::AUTHOR] = UnXmlSafe(content);
+                } else if (name == "author-email") {
+                    header_info[(int)HEADER_INFO_TYPES::AUTHOR_EMAIL] = UnXmlSafe(content);
+                } else if (name == "author-website") {
+                    header_info[(int)HEADER_INFO_TYPES::WEBSITE] = UnXmlSafe(content);
+                } else if (name == "song") {
+                    header_info[(int)HEADER_INFO_TYPES::SONG] = UnXmlSafe(content);
+                } else if (name == "artist") {
+                    header_info[(int)HEADER_INFO_TYPES::ARTIST] = UnXmlSafe(content);
+                } else if (name == "album") {
+                    header_info[(int)HEADER_INFO_TYPES::ALBUM] = UnXmlSafe(content);
+                } else if (name == "MusicURL") {
+                    header_info[(int)HEADER_INFO_TYPES::URL] = UnXmlSafe(content);
+                } else if (name == "comment") {
+                    header_info[(int)HEADER_INFO_TYPES::COMMENT] = UnXmlSafe(content);
+                } else if (name == "sequenceTiming") {
+                    seq_timing = content;
+                    spdlog::debug("LoadSequence: Sequence timing loaded from XML file. {}", seq_timing);
+                } else if (name == "sequenceType") {
+                    seq_type = content;
+                } else if (name == "mediaFile") {
+                    if (!ignore_audio) {
+                        spdlog::debug("LoadSequence: mediaFile {}", content);
+                        media_file = FixFile(showDir, content).ToStdString();
+                        if (media_file != content) {
+                            spdlog::debug("LoadSequence: mediaFile resolved to {}", media_file);
+                        }
+                        wxFileName mf(media_file);
+                        if (audio != nullptr) {
+                            spdlog::debug("LoadSequence: removing prior audio.");
+                            ValueCurve::SetAudio(nullptr);
+                            delete audio;
+                            audio = nullptr;
+                        }
+                        if (::FileExists(mf) && mf.IsFileReadable()) {
+                            mediaFileName = media_file;
+                        } else {
+                            if (!::FileExists(mf)) {
+                                spdlog::error("LoadSequence: audio file does not exist.");
+                            } else if (!mf.IsFileReadable()) {
+                                spdlog::error("LoadSequence: audio file not readable.");
+                            }
+                        }
+                    }
+                } else if (name == "sequenceDuration") {
+                    SetSequenceDuration(content);
+                } else if (name == "imageDir") {
+                    image_dir = FixFile(showDir, content).ToStdString();
+                }
+            }
+        } else if (ename == "ElementEffects") {
+            for (auto element : e.children("Element")) {
+                std::string type = element.attribute("type").as_string("");
+                std::string ename2 = element.attribute("name").as_string("");
+                if (type == "model") {
+                    models.push_back(ename2);
+                } else if (type == "timing") {
+                    timing_list.push_back(ename2);
+                }
+
+                // Handle FixedPointTiming conversion inline
+                if (needsTimesCorrection) {
+                    for (auto layer : element.children()) {
+                        for (auto effect : layer.children("Effect")) {
+                            double t1 = std::strtod(effect.attribute("startTime").as_string("0"), nullptr);
+                            double t2 = std::strtod(effect.attribute("endTime").as_string("0"), nullptr);
+                            effect.attribute("startTime") = (int)(t1 * 1000.0);
+                            effect.attribute("endTime") = (int)(t2 * 1000.0);
+                        }
+                    }
+                }
+            }
+        } else if (ename == "DataLayers") {
+            for (auto element : e.children("DataLayer")) {
+                std::string name = element.attribute("name").as_string("");
+                std::string source = element.attribute("source").as_string("");
+                std::string data = element.attribute("data").as_string("");
+                std::string num_frames_s = element.attribute("num_frames").as_string("0");
+                std::string num_channels_s = element.attribute("num_channels").as_string("0");
+                std::string channel_offset_s = element.attribute("channel_offset").as_string("0");
+                std::string lor_params_s = element.attribute("lor_params").as_string("0");
+
+                if (!data.empty() && data[0] != '<') {
+                    data = FixFile("", data).ToStdString();
+                }
+                if (source != "<auto-generated>") {
+                    source = FixFile("", source).ToStdString();
+                }
+                if (name == "Nutcracker") {
+                    mDataLayers.RemoveDataLayer(0);
+                }
+                DataLayer* new_data_layer = mDataLayers.AddDataLayer(name, source, data);
+                new_data_layer->SetNumFrames(std::strtol(num_frames_s.c_str(), nullptr, 10));
+                new_data_layer->SetNumChannels(std::strtol(num_channels_s.c_str(), nullptr, 10));
+                new_data_layer->SetChannelOffset(std::strtol(channel_offset_s.c_str(), nullptr, 10));
+                new_data_layer->SetLORConvertParams(std::strtol(lor_params_s.c_str(), nullptr, 10));
+            }
+        } else if (ename == "lastView") {
+            mLastView = std::strtol(e.text().as_string("0"), nullptr, 10);
+        }
+    }
+
+    if (!mediaFileName.empty()) {
+        ObtainAccessToURL(mediaFileName);
+        spdlog::debug("LoadSequence: Creating audio manager");
+        audio = new AudioManager(mediaFileName, GetFrameMS());
+        ValueCurve::SetAudio(audio);
+        spdlog::debug("LoadSequence: audio manager creation done");
+    } else {
+        spdlog::info("LoadSequence: No Audio loaded.");
+    }
+
+    spdlog::info("LoadSequence: Sequence timing interval {}ms.", GetFrameMS());
+    spdlog::info("LoadSequence: Sequence loaded.");
+
+    return is_open;
+}
+
+// CleanUpEffects — dead code removed
+
+std::string SequenceFile::GetSequenceDurationString() const
+{
+    return string_format("%.3f", seq_duration);
+}
+
+void SequenceFile::SetSequenceDurationMS(int length)
+{
+    SetSequenceDuration(length / 1000.0f);
+}
+
+void SequenceFile::SetSequenceDuration(double length)
+{
+    SetSequenceDuration(string_format("%.3f",length));
+}
+
+void SequenceFile::SetSequenceDuration(const std::string& length)
+{
+    seq_duration = std::strtod(length.c_str(), nullptr);
+}
+
+std::string SequenceFile::GetImageDir(wxWindow* parent)
+{
+    if (!image_dir.empty()) {
+        return image_dir;
+    }
+
+    wxDirDialog* dlg = new wxDirDialog(parent, _("Select Directory for storing image files for this sequence"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+
+    if (dlg->ShowModal() != wxID_OK) {
+        return "";
+    }
+
+    SetImageDir(dlg->GetPath());
+    return image_dir;
+}
+
+void SequenceFile::SetImageDir(const std::string& dir)
+{
+    image_dir = dir;
+}
+
+void SequenceFile::UpdateVersion()
+{
+    version_string = xlights_version_string;
+}
+
+void SequenceFile::UpdateVersion(const std::string& version)
+{
+    version_string = version;
+}
+
+void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+{
+    wxTextFile f;
+    wxString line;
+    int r;
+
+    for (size_t i = 0; i < filenames.size(); ++i) {
+        wxFileName next_file(filenames[i]);
+
+        if (!f.Open(next_file.GetFullPath().c_str())) {
+            //Add error dialog if open file failed
+            return;
+        }
+
+        std::string filename = next_file.GetName().ToStdString();
+
+        while (TimingAlreadyExists(filename, xLightsParent)) {
+            filename += "_1";
+        }
+
+        EffectLayer* effectLayer = nullptr;
+        pugi::xml_node layer;
+        if (sequence_loaded) {
+            Element* element = xLightsParent->AddTimingElement(filename);
+            effectLayer = element->GetEffectLayer(0);
+        }
+        else {
+            AddTimingDisplayElement(filename, "1", "0");
+            pugi::xml_node node = AddElement(filename, "timing");
+            layer = node.append_child("EffectLayer");
+        }
+
+        bool isTab = false;
+        // scan the first 30 lines to see if it is tab delimited
+        for (r = 0, line = f.GetFirstLine(); !f.Eof() && r < 30 && !isTab; line = f.GetNextLine(), r++) {
+            if (line.Contains("\t")) {
+                isTab = true;
+            }
+        }
+
+        wxArrayString start_times;
+        wxArrayString end_times;
+        std::vector<std::string> labels;
+
+        for (r = 0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++) {
+            // remove comments
+            if (line.Contains("#")) {
+                int pos = line.Find("#");
+                line.Truncate(pos);
+            }
+
+            while (!line.empty() && (line.Last() == ' ')) line.RemoveLast(); //trim trailing spaces
+            if (line.empty()) {
+                --r;    //skip blank lines; don't add grid row
+                continue;
+            }
+
+            wxStringTokenizer tkz;
+            if (isTab) {
+                tkz = wxStringTokenizer(line, "\t");
+            }
+            else {
+                tkz = wxStringTokenizer(line, " ");
+            }
+            start_times.push_back(tkz.GetNextToken()); //first column = start time
+            //pull in lyrics or other label text
+            end_times.push_back(tkz.GetNextToken()); //second column = end time;
+            std::string label = tkz.GetNextToken().ToStdString(); //third column = label/text
+            for (;;) //collect remaining tokens into label
+            {
+                std::string more = tkz.GetNextToken().ToStdString();
+                if (more.empty()) break;
+                label += " " + more;
+            }
+            labels.push_back(label); //third column = label/text
+
+        }
+
+        double time1;
+        for (size_t j = 0; j < start_times.GetCount(); j++) {
+            start_times[j].ToDouble(&time1);
+            start_times[j] = string_format("%d", (int)(time1 * 1000.0));
+            end_times[j].ToDouble(&time1);
+            end_times[j] = string_format("%d", (int)(time1 * 1000.0));
+        }
+
+        for (size_t k = 0; k < start_times.GetCount(); ++k) {
+            int startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(start_times[k]), GetFrequency());
+            int endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(end_times[k]), GetFrequency());
+            if (startTime == endTime) {
+                if (k == start_times.GetCount() - 1) // last timing mark
+                {
+                    endTime = startTime + GetFrequency();
+                }
+                else {
+                    endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(start_times[k + 1]), GetFrequency());
+                }
+            }
+
+            if (sequence_loaded) {
+                effectLayer->AddEffect(0, labels[k], "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+            }
+            else {
+                AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", startTime), string_format("%d", endTime));
+            }
+        }
+    }
+}
+
+void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+{
+    for (size_t i = 0; i < filenames.size(); ++i )
+    {
+        wxFileName next_file(filenames[i]);
+
+        wxFile f;
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            DisplayError(wxString::Format("LOR Timing: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
+            return;
+        }
+        f.Close();
+
+        std::string filename = next_file.GetName().ToStdString();
+
+        wxArrayString grid_times;
+        wxArrayString timing_options;
+
+        pugi::xml_document input_xml;
+        pugi::xml_parse_result result = input_xml.load_file(next_file.GetFullPath().ToStdString().c_str());
+        if( !result )
+        {
+            DisplayError(wxString::Format("LOR Timing: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
+            return;
+        }
+
+        pugi::xml_node input_root = input_xml.first_child();
+
+        for(pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling() )
+        {
+            if (strcmp(e.name(), "timingGrids") == 0)
+            {
+                for(pugi::xml_node grids = e.first_child(); grids; grids = grids.next_sibling() )
+                {
+                    if (strcmp(grids.name(), "timingGrid") == 0)
+                    {
+                        wxString grid_type = grids.attribute("type").as_string("");
+                        if( grid_type == "freeform" )
+                        {
+                            wxString grid_name = grids.attribute("name").as_string("");
+                            wxString grid_id = grids.attribute("saveID").as_string("");
+                            if( grid_name == "" )
+                            {
+                                grid_name = "Unnamed" + grid_id;
+                            }
+                            timing_options.push_back(grid_name);
+                        }
+                    }
+                }
+            }
+        }
+
+        OptionChooser opt_dialog(xLightsParent);
+        opt_dialog.SetInstructionText("Choose Timing Grid to use for timing import:");
+        opt_dialog.SetOptions(timing_options);
+        wxArrayString timing_grids;
+        if (opt_dialog.ShowModal() == wxID_OK)
+        {
+            opt_dialog.GetSelectedOptions(timing_grids);
+        }
+        else
+        {
+            return;
+        }
+
+        for(pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling() )
+        {
+            if (strcmp(e.name(), "timingGrids") == 0)
+            {
+                for(pugi::xml_node grids = e.first_child(); grids; grids = grids.next_sibling() )
+                {
+                    if (strcmp(grids.name(), "timingGrid") == 0)
+                    {
+                        std::string grid_name = grids.attribute("name").as_string("");
+                        std::string grid_id = grids.attribute("saveID").as_string("");
+                        if( grid_name == "" )
+                        {
+                            grid_name = "Unnamed" + grid_id;
+                        }
+                        for (size_t i1 = 0; i1 < timing_grids.GetCount(); i1++ )
+                        {
+                            if( grid_name == timing_grids[i1] )
+                            {
+                                std::string new_timing_name = UniqueTimingName(xLightsParent,  filename + ": " + grid_name);
+                                EffectLayer* effectLayer = nullptr;
+                                pugi::xml_node layer;
+                                if( sequence_loaded )
+                                {
+                                    Element* element = xLightsParent->AddTimingElement(new_timing_name);
+                                    effectLayer = element->GetEffectLayer(0);
+                                }
+                                else
+                                {
+                                    AddTimingDisplayElement(new_timing_name, "1", "0" );
+                                    pugi::xml_node node = AddElement( new_timing_name, "timing" );
+                                    layer = node.append_child("EffectLayer");
+                                }
+
+                                grid_times.Clear();
+                                for(pugi::xml_node effect = grids.first_child(); effect; effect = effect.next_sibling() )
+                                {
+                                    int time = effect.attribute("centisecond").as_int(0) * 10;
+                                    wxString t1 = string_format("%d",time);
+                                    grid_times.push_back(t1);
+                                }
+
+                                for (size_t k = 0; k < grid_times.GetCount()-1; ++k )
+                                {
+                                    int startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k]),GetFrequency());
+                                    int endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),GetFrequency());
+                                    if( sequence_loaded )
+                                    {
+                                        effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                    }
+                                    else
+                                    {
+                                        AddTimingEffect(layer, "", "0", "0", string_format("%d", startTime), string_format("%d", endTime));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+std::string SequenceFile::UniqueTimingName(xLightsFrame* xLightsParent, std::string name) const
+{
+    wxString testname = RemoveUnsafeXmlChars(name);
+    int testnamenum = 1;
+    bool ok;
+    do
+    {
+        ok = true;
+        int num_elements = xLightsParent->GetSequenceElements().GetElementCount();
+        for (int i = 0; i < num_elements; ++i)
+        {
+            Element* element = xLightsParent->GetSequenceElements().GetElement(i);
+            if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING)
+            {
+                if (element->GetName() == testname)
+                {
+                    testname = name + wxString::Format("_%d", testnamenum++);
+                    ok = false;
+                    break;
+                }
+            }
+        }
+    } while (!ok);
+    return testname;
+}
+
+void SequenceFile::ProcessXTiming(const pugi::xml_node& node, xLightsFrame* xLightsParent)
+{
+    std::string name = UnXmlSafe(node.attribute("name").as_string(""));
+    //std::string v = node.attribute("SourceVersion").as_string("");
+    std::string st = node.attribute("subType").as_string("");
+
+    name = UniqueTimingName(xLightsParent, name);
+
+    Element* element = nullptr;
+    EffectLayer* effectLayer = nullptr;
+    pugi::xml_node layer;
+    pugi::xml_node timing;
+    if (sequence_loaded)
+    {
+        element = xLightsParent->AddTimingElement(name, st);
+    }
+    else
+    {
+        AddTimingDisplayElement(name, "1", "0");
+        timing = AddElement(name, "timing");
+    }
+
+    int l = 0;
+    for (pugi::xml_node layers = node.first_child(); layers; layers = layers.next_sibling())
+    {
+        if (strcmp(layers.name(), "EffectLayer") == 0)
+        {
+            l++;
+            if (sequence_loaded)
+            {
+                if (l == 1)
+                {
+                    effectLayer = element->GetEffectLayer(0);
+                }
+                else
+                {
+                    effectLayer = element->AddEffectLayer();
+                }
+            }
+            else
+            {
+                layer = timing.append_child("EffectLayer");
+            }
+
+            for (pugi::xml_node effects = layers.first_child(); effects; effects = effects.next_sibling())
+            {
+                if (strcmp(effects.name(), "Effect") == 0)
+                {
+                    std::string label = UnXmlSafe(effects.attribute("label").as_string(""));
+                    std::string start = effects.attribute("starttime").as_string("");
+                    std::string end = effects.attribute("endtime").as_string("");
+                    if (sequence_loaded)
+                    {
+                        int s = std::strtol(start.c_str(), nullptr, 10);
+                        int e = std::strtol(end.c_str(), nullptr, 10);
+
+                        if (s % GetFrameMS() != 0)
+                        {
+                            s -= s % GetFrameMS();
+                        }
+                        if (e % GetFrameMS() != 0)
+                        {
+                            e -= e % GetFrameMS();
+                        }
+                        effectLayer->AddEffect(0, label, "", "", s, e, EFFECT_NOT_SELECTED, false);
+                    }
+                    else
+                    {
+                        AddTimingEffect(layer, label, "0", "0", start, end);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void SequenceFile::ProcessXTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+{
+    wxTextFile f;
+
+    for (size_t i = 0; i < filenames.size(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            DisplayError(wxString::Format("xTiming: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
+            return;
+        }
+
+        std::string filename = next_file.GetName().ToStdString();
+
+        pugi::xml_document input_xml;
+        pugi::xml_parse_result parse_result = input_xml.load_file(next_file.GetFullPath().ToStdString().c_str());
+        if (!parse_result)
+        {
+            DisplayError(wxString::Format("xTiming: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
+            return;
+        }
+
+        pugi::xml_node e = input_xml.first_child();
+
+        if (strcmp(e.name(), "timing") == 0)
+        {
+            ProcessXTiming(e, xLightsParent);
+        }
+        else if (strcmp(e.name(), "timings") == 0)
+        {
+            for (pugi::xml_node node = e.first_child(); node; node = node.next_sibling())
+            {
+                if (strcmp(node.name(), "timing") == 0)
+                {
+                    ProcessXTiming(node, xLightsParent);
+                }
+            }
+        }
+    }
+
+    if (GetSequenceLoaded()) {
+        GetTimingList(xLightsParent->GetSequenceElements());
+    }
+}
+
+wxString RemoveTabs(const wxString& s, size_t tabs)
+{
+    wxString res = s;
+
+    for (size_t i = 0; i < tabs; i++)
+    {
+        if (res[0] == '\t')
+        {
+            res = res.SubString(1, res.Length() - 1);
+        }
+    }
+    return res;
+}
+
+void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+{
+    wxTextFile f;
+
+    for (size_t i = 0; i < filenames.size(); ++i)
+    {
+        int linenum = 1;
+        wxFileName next_file(filenames[i]);
+        spdlog::info("Loading papagayo file " + std::string(next_file.GetFullPath().c_str()));
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            DisplayError("Failed to open file: " + next_file.GetFullPath());
+            return;
+        }
+
+        wxString line = f.GetFirstLine();
+        if (line.CmpNoCase("lipsync version 1"))
+        {
+            DisplayError(wxString::Format(_("Invalid papagayo file @line %d (header '%s')"), linenum, line.c_str()).ToStdString());
+            return;
+        }
+
+        line = f.GetNextLine(); // filename which we ignore
+        linenum++;
+
+        wxRegEx number("^[0-9]+$");
+        int samppersec = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        linenum++;
+        if (samppersec < 1)
+        {
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), linenum, line.c_str()).ToStdString());
+        }
+        int ms = 1000 / samppersec;
+
+        int maxframe = 4 * 60 * samppersec;
+        if (GetMedia() != nullptr)
+        {
+            maxframe = GetMedia()->LengthMS() / ms;
+        }
+        int offset = wxGetNumberFromUser("Enter the number of frames to offset the papagayo data by", "", "Offset", 0, 0, maxframe, xLightsParent);
+
+        int numsamp = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        linenum++;
+        if (numsamp < 1)
+        {
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), linenum, line.c_str()).ToStdString());
+        }
+
+        int numvoices = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
+        linenum++;
+        if (numvoices < 1)
+        {
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()).ToStdString());
+        }
+        spdlog::info("    Voices {}", numvoices);
+
+        for (int v = 1; v <= numvoices; ++v)
+        {
+            wxString name = wxString::Format("Voice %d", v);
+            name = UniqueTimingName(xLightsParent, name);
+            spdlog::info("    Loading voice {} into timing track {}.", v, name.ToStdString());
+
+            wxString voicename = f.GetNextLine();
+            linenum++;
+            if (voicename.empty())
+            {
+                DisplayError(wxString::Format(_("Missing voice# %d of %d"), v, numvoices).ToStdString());
+                return;
+            }
+
+            f.GetNextLine(); //all phrases for voice, "|" delimiter; TODO: do we need to save this?
+            linenum++;
+            wxString desc = wxString::Format(_("voice# %d '%s' @line %d"), v, voicename, linenum);
+
+            int numphrases = number.Matches(line = RemoveTabs(f.GetNextLine(),1)) ? wxAtoi(line) : -1;
+            linenum++;
+            if (numphrases < 0)
+            {
+                DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
+            }
+
+            Element* element = nullptr;
+            pugi::xml_node timing, l1, l2, l3;
+            EffectLayer *el1 = nullptr, *el2 = nullptr, *el3 = nullptr;
+
+            if (sequence_loaded)
+            {
+                element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+            }
+            else
+            {
+                AddTimingDisplayElement(name, "1", "0");
+                timing = AddElement(name, "timing");
+            }
+
+            if (sequence_loaded)
+            {
+                el1 = element->GetEffectLayer(0);
+                el2 = element->AddEffectLayer();
+                el3 = element->AddEffectLayer();
+            }
+            else
+            {
+                l1 = timing.append_child("EffectLayer");
+                l2 = timing.append_child("EffectLayer");
+                l3 = timing.append_child("EffectLayer");
+            }
+
+            for (int p = 1; p <= numphrases; ++p)
+            {
+                wxString label = RemoveTabs(f.GetNextLine(), 2);
+                linenum++;
+                if (label == "")
+                {
+                    DisplayError(wxString::Format(_("Missing phrase# %d of %d for %s"), p, numphrases, desc.c_str()).ToStdString());
+                    return;
+                }
+
+                //int start = number.Matches(line = RemoveTabs(f.GetNextLine(), 2)) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(line)) * ms, GetFrequency()) : 0;
+                int start = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
+                linenum++;
+
+                //int end = number.Matches(line = RemoveTabs(f.GetNextLine(), 2)) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(line)) * ms, GetFrequency()) : 0;
+                int end = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? (offset + wxAtoi(line)) * ms : 0;
+                linenum++;
+                desc = wxString::Format(_("voice# %d, phrase %d '%s', start frame %d end frame %d @line %d"), v, p, label.c_str(), start, end, linenum);
+
+                if (sequence_loaded)
+                {
+                    el1->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                }
+                else
+                {
+                    AddTimingEffect(l1, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                }
+
+                int numwords = number.Matches(line = RemoveTabs(f.GetNextLine(),2)) ? wxAtoi(line) : -1;
+                linenum++;
+                if (numwords < 0)
+                {
+                    DisplayError(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
+                }
+
+                for (int w = 1; w <= numwords; ++w)
+                {
+                    line = RemoveTabs(f.GetNextLine(), 3);
+                    linenum++;
+                    int space1 = line.find(' ');
+                    label = line.SubString(0, space1-1);
+                    if (label == "")
+                    {
+                        DisplayError(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()).ToStdString());
+                        return;
+                    }
+
+                    int space2 = line.find(' ', space1 + 1);
+                    wxString ss = line.SubString(space1 + 1, space2 - 1);
+                    //start = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
+                    start = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                    linenum++;
+
+                    int space3 = line.find(' ', space2 + 1);
+                    ss = line.SubString(space2 + 1, space3 - 1);
+                    //end = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
+                    end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                    linenum++;
+                    desc = wxString::Format(_("voice# %d, phrase# %d, word %d '%s', start frame %d end frame %d @line %d"), v, p, w, label.c_str(), start, end, linenum);
+
+                    if (sequence_loaded)
+                    {
+                        el2->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                    }
+                    else
+                    {
+                        AddTimingEffect(l2, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                    }
+
+                    ss = line.SubString(space3 + 1, line.Length());
+                    int numphonemes = number.Matches(ss) ? wxAtoi(ss) : -1;
+                    linenum++;
+                    if (numphonemes < 0)
+                    {
+                        DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
+                    }
+
+                    int outerend = end;
+                    for (int ph = 1; ph <= numphonemes; ++ph)
+                    {
+                        line = RemoveTabs(f.GetNextLine(), 4);
+                        linenum++;
+                        int space4 = line.find(' ');
+
+                        ss = line.SubString(0, space4 - 1);
+                        //end = number.Matches(ss) ? TimeLine::RoundToMultipleOfPeriod((offset + wxAtoi(ss)) * ms, GetFrequency()) : 0;
+                        end = number.Matches(ss) ? (offset + wxAtoi(ss)) * ms : 0;
+                        linenum++;
+
+                        if (ph == 1)
+                        {
+                            // dont do anything
+                        }
+                        else
+                        {
+                            if (sequence_loaded)
+                            {
+                                el3->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                            }
+                            else
+                            {
+                                AddTimingEffect(l3, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                            }
+                        }
+                        label = line.SubString(space4 + 1, line.Length());
+                        if (label == "")
+                        {
+                            DisplayError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()).ToStdString());
+                            return;
+                        }
+                        start = end;
+
+                        if (ph == numphonemes)
+                        {
+                            end = outerend;
+                            if (sequence_loaded)
+                            {
+                                el3->AddEffect(0, std::string(label.c_str()), "", "", start, end, EFFECT_NOT_SELECTED, false);
+                            }
+                            else
+                            {
+                                AddTimingEffect(l3, std::string(label.c_str()), "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+std::string ReadSRTLine(wxTextFile& f, int linenum, long& startMS, long& endMS)
+{
+    startMS = 0;
+    endMS = 0;
+
+    if (f.Eof()) return "";
+
+    int l = 0;
+    if (linenum == 1)
+    {
+        l = wxAtoi(f.GetFirstLine());
+    }
+    else
+    {
+        l = wxAtoi(f.GetNextLine());
+    }
+    while (!f.Eof() && l < linenum)
+    {
+        l = wxAtoi(f.GetNextLine());
+    }
+    if (l > linenum)
+    {
+        return "";
+    }
+
+    if (f.Eof()) return "";
+
+    //00:00:06,580 --> 00:00:08,580
+    auto times = f.GetNextLine();
+    if (Contains(times, "-->"))
+    {
+        int sH, eH, sM, eM, sS, eS, sMS, eMS;
+        wxArrayString c1 = wxSplit(times, ':');
+        if (c1.size() == 5)
+        {
+            sH = wxAtoi(c1[0]);
+            sM = wxAtoi(c1[1]);
+            wxArrayString c2 = wxSplit(c1[2], ',');
+            if (c2.size() == 2)
+            {
+                sS = wxAtoi(c2[0]);
+                wxArrayString c3 = wxSplit(c2[1], ' ');
+                if (c3.size() == 3)
+                {
+                    sMS = wxAtoi(c3[0]);
+                    eH = wxAtoi(c3[2]);
+                    eM = wxAtoi(c1[3]);
+                    wxArrayString c4 = wxSplit(c1[4], ',');
+                    if (c4.size() == 2)
+                    {
+                        eS = wxAtoi(c4[0]);
+                        eMS = wxAtoi(c4[1]);
+                        startMS = sH * 3600000 + sM * 60000 + sS * 1000 + sMS;
+                        endMS = eH * 3600000 + eM * 60000 + eS * 1000 + eMS;
+                    }
+                }
+            }
+        }
+    }
+
+    if (f.Eof()) return "";
+
+    std::string line = "";
+    std::string ll = f.GetNextLine();
+    while (!f.Eof() && ll != "")
+    {
+        if (line != "") line += " ";
+        line += Trim(ll);
+        ll = f.GetNextLine();
+    }
+    return line;
+}
+
+void SequenceFile::ProcessSRT(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+{
+    wxTextFile f;
+
+    for (size_t i = 0; i < filenames.size(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        spdlog::info("Loading srt file " + std::string(next_file.GetFullPath().c_str()));
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            DisplayError("Failed to open file: " + next_file.GetFullPath());
+            return;
+        }
+
+        wxString name = wxString::Format(next_file.GetName());
+        name = UniqueTimingName(xLightsParent, name);
+        spdlog::info("    Loading into timing track {}.", name.ToStdString());
+
+        Element* element = nullptr;
+        pugi::xml_node timing;
+        if (sequence_loaded)
+        {
+            element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+        }
+        else
+        {
+            AddTimingDisplayElement(name, "1", "0");
+            timing = AddElement(name, "timing");
+        }
+
+        pugi::xml_node l1;
+        EffectLayer* el1 = nullptr;
+        if (sequence_loaded)
+        {
+            el1 = element->GetEffectLayer(0);
+        }
+        else
+        {
+            l1 = timing.append_child("EffectLayer");
+        }
+
+        long startMS;
+        long endMS;
+        int linenum = 1;
+
+        std::string line = ReadSRTLine(f, linenum++, startMS, endMS);
+
+        do {
+
+            if (line != "" && endMS > startMS)
+            {
+                if (sequence_loaded)
+                {
+                    el1->AddEffect(0, line, "", "", startMS, endMS, EFFECT_NOT_SELECTED, false);
+                }
+                else
+                {
+                    AddTimingEffect(l1, line, "0", "0", wxString::Format("%ld", startMS), wxString::Format("%ld", endMS));
+                }
+            }
+
+            line = ReadSRTLine(f, linenum++, startMS, endMS);
+        } while (!f.Eof());
+    }
+}
+
+wxString DecodeLSPTTColour(int att)
+{
+    switch (att)
+    {
+    case 1:
+        return "x";
+    case 2:
+        return "R";
+    case 4:
+        return "G";
+    case 8:
+        return "B";
+    case 16:
+        return "Y";
+    case 32:
+        return "P";
+    case 64:
+        return "O";
+    case 128:
+        return "z";
+    case 256:
+        return "Go";
+    case 512:
+        return "W";
+    case 1024:
+        return "System";
+    default:
+        break;
+    }
+
+    return wxString::Format("%d", att);
+}
+
+void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+{
+    wxTextFile f;
+
+    xLightsParent->SetCursor(wxCURSOR_WAIT);
+
+    for (size_t i = 0; i < filenames.size(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        spdlog::info("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
+
+        wxFileInputStream fin(next_file.GetFullPath());
+        wxZipInputStream zin(fin);
+        wxZipEntry *ent = zin.GetNextEntry();
+
+        pugi::xml_document seq_xml;
+
+        while (ent != nullptr)
+        {
+            if (ent->GetName() == "Sequence")
+            {
+                spdlog::info("Extracting timing tracks from " + std::string(next_file.GetFullPath().c_str()) + "/" + std::string(ent->GetName().c_str()));
+
+                // Read the zip stream into a memory buffer for pugixml
+                wxMemoryOutputStream memOut;
+                zin.Read(memOut);
+                wxStreamBuffer* buf = memOut.GetOutputStreamBuffer();
+                seq_xml.load_buffer(buf->GetBufferStart(), buf->GetBufferSize());
+
+                pugi::xml_node e = seq_xml.first_child();
+
+                if (strcmp(e.name(), "MusicalSequence") == 0)
+                {
+                    for (pugi::xml_node tts = e.first_child(); tts; tts = tts.next_sibling())
+                    {
+                        if (strcmp(tts.name(), "TimingTracks") == 0)
+                        {
+                            for (pugi::xml_node t = tts.first_child(); t; t = t.next_sibling())
+                            {
+                                if (strcmp(t.name(), "Track") == 0) {
+                                    wxString name = UniqueTimingName(xLightsParent, next_file.GetName());
+                                    spdlog::info("  Track: " + std::string(name.c_str()));
+                                    EffectLayer* effectLayer = nullptr;
+                                    pugi::xml_node layer;
+                                    int present = 0;
+                                    for (pugi::xml_node is = t.first_child(); is; is = is.next_sibling()) {
+                                        if (strcmp(is.name(), "Intervals") == 0) {
+                                            std::list<wxString> atts;
+                                            for (pugi::xml_node ti = is.first_child(); ti; ti = ti.next_sibling()) {
+                                                if (strcmp(ti.name(), "TimeInterval") == 0) {
+                                                    if (std::string(ti.attribute("eff").as_string("")) == "7") {
+                                                        present |= ti.attribute("att").as_int(0);
+                                                    }
+                                                }
+                                            }
+
+                                            int mask = 1;
+                                            for (size_t i1 = 0; i1 < 10; i1++) {
+                                                if (present & mask) {
+                                                    wxString tname = UniqueTimingName(xLightsParent, DecodeLSPTTColour(mask) + "-" + name);
+                                                    spdlog::info("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(wxString::Format("%d",mask).c_str()) + ")");
+                                                    if (sequence_loaded) {
+                                                        Element* element = xLightsParent->AddTimingElement(std::string(tname.c_str()));
+                                                        effectLayer = element->GetEffectLayer(0);
+                                                    }
+                                                    else {
+                                                        AddTimingDisplayElement(tname, "1", "0");
+                                                        pugi::xml_node timing = AddElement(tname, "timing");
+                                                        layer = timing.append_child("EffectLayer");
+                                                    }
+
+                                                    int last = 0;
+                                                    bool sevenfound = false;
+                                                    bool fourfound = false;
+                                                    for (pugi::xml_node ti = is.first_child(); ti; ti = ti.next_sibling()) {
+                                                        if (strcmp(ti.name(), "TimeInterval") == 0) {
+                                                            if (std::string(ti.attribute("eff").as_string("")) == "7" && (ti.attribute("att").as_int(0) & mask)) {
+                                                                sevenfound = true;
+                                                                int start = last;
+                                                                int end = TimeLine::RoundToMultipleOfPeriod((int)(ti.attribute("pos").as_double(0.0) * 50.0 / 4410.0), GetFrequency());
+                                                                if (start != end)
+                                                                {
+                                                                    std::string label = "";
+                                                                    if (sequence_loaded) {
+                                                                        effectLayer->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                                    }
+                                                                    else {
+                                                                        AddTimingEffect(layer, label, "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                                    }
+                                                                    last = end;
+                                                                }
+                                                            }
+                                                            // we take the only the first 4 after we have found 7s
+                                                            else if (std::string(ti.attribute("eff").as_string("")) == "4" && sevenfound && !fourfound && (ti.attribute("att").as_int(0) & mask)) {
+                                                                fourfound = true;
+                                                                int start = last;
+                                                                int end = TimeLine::RoundToMultipleOfPeriod((int)(ti.attribute("pos").as_double(0.0) * 50.0 / 4410.0), GetFrequency());
+                                                                if (start != end)
+                                                                {
+                                                                    std::string label = "";
+                                                                    if (sequence_loaded) {
+                                                                        effectLayer->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
+                                                                    }
+                                                                    else {
+                                                                        AddTimingEffect(layer, label, "0", "0", wxString::Format("%d", start), wxString::Format("%d", end));
+                                                                    }
+                                                                    last = end;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                mask = mask << 1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ent = zin.GetNextEntry();
+        }
+    }
+    xLightsParent->SetCursor(wxCURSOR_ARROW);
+}
+
+void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent) {
+    wxTextFile f;
+
+    xLightsParent->SetCursor(wxCURSOR_WAIT);
+    Element* element = nullptr;
+    EffectLayer* effectLayer = nullptr;
+    pugi::xml_node layer;
+    pugi::xml_node timing;
+
+    for (size_t i = 0; i < filenames.size(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+
+        spdlog::info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
+        SequenceFile file(next_file);
+        file.LoadSequence(next_file.GetPath().ToStdString(), true, next_file.GetFullPath().ToStdString());
+
+        SequenceElements se(xLightsParent);
+        se.SetFrequency(file.GetFrequency());
+        se.SetViewsManager(xLightsParent->GetViewsManager()); // This must come first before LoadSequencerFile.
+        se.LoadSequencerFile(file, xLightsParent->GetShowDirectory());
+        file.AdjustEffectSettingsForVersion(se, xLightsParent);
+
+        std::vector<TimingElement *> elements;
+        wxArrayString names;
+        for (size_t e = 0; e < se.GetElementCount(); e++) {
+            Element *el = se.GetElement(e);
+            if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                TimingElement *ti =dynamic_cast<TimingElement*>(el);
+                if (ti->GetFixedTiming() == 0) {
+                    elements.push_back(ti);
+                    names.Add(el->GetName());
+                }
+            }
+        }
+        wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", names);
+        if (dlg.ShowModal() == wxID_OK) {
+            wxArrayInt selections = dlg.GetSelections();
+
+            for (int i1 = 0; i1 < selections.size(); i1++) {
+                TimingElement *ti = elements[selections[i1]];
+                if (sequence_loaded) {
+                    element = xLightsParent->AddTimingElement(ti->GetName());
+                } else {
+                    AddTimingDisplayElement(ti->GetName(), "1", "0");
+                    timing = AddElement(ti->GetName(), "timing");
+                }
+                for (int x = 0; x < ti->GetEffectLayerCount(); x++) {
+                    EffectLayer *src = ti->GetEffectLayer(x);
+                    if (sequence_loaded) {
+                        effectLayer = element->GetEffectLayer(x);
+                        if (effectLayer == nullptr) {
+                            effectLayer = element->AddEffectLayer();
+                        }
+                    } else {
+                        layer = timing.append_child("EffectLayer");
+                    }
+                    for (int ef = 0; ef < src->GetEffectCount(); ef++) {
+                        Effect *effect = src->GetEffect(ef);
+                        if (sequence_loaded) {
+                            effectLayer->AddEffect(0, effect->GetEffectName(), "", "", effect->GetStartTimeMS(), effect->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                        } else {
+                            AddTimingEffect(layer, effect->GetEffectName(), "0", "0", wxString::Format("%d", effect->GetStartTimeMS()),
+                                            wxString::Format("%d", effect->GetEndTimeMS()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    xLightsParent->SetCursor(wxCURSOR_ARROW);
+}
+
+void SequenceFile::AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS) {
+    int32_t last = 0;
+    for (const auto& it : marks)
+    {
+        int st = Vixen3::ConvertTiming(it.start, frameMS);
+        int en = Vixen3::ConvertTiming(it.end, frameMS);
+
+        if (st < last) st = last;
+        if (st < en)
+        {
+            effectLayer->AddEffect(0, it.label, "", "", st, en, EFFECT_NOT_SELECTED, false);
+            last = en;
+        }
+        else
+        {
+            // Timing mark dropped because we could not fit it in
+        }
+    }
+}
+
+void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent) {
+
+    xLightsParent->SetCursor(wxCURSOR_WAIT);
+
+    for (size_t i = 0; i < filenames.size(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+
+        spdlog::info("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
+
+        Vixen3 vixenFile(next_file.GetFullPath());
+
+        auto timings = vixenFile.GetTimings();
+        wxArrayString markNames;
+        for (auto it: timings)
+        {
+            markNames.push_back(it);
+        }
+
+        wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", markNames);
+
+        if (dlg.ShowModal() == wxID_OK) {
+            wxArrayInt selections = dlg.GetSelections();
+
+            for (int i1 = 0; i1 < selections.size(); i1++) {
+                
+                wxString sel = markNames[selections[i1]];
+
+                if (vixenFile.GetTimingType(sel) == "Phrase")
+                {
+                    TimingElement* element = xLightsParent->AddTimingElement(UniqueTimingName(xLightsParent, sel));
+                    EffectLayer* effectLayer = element->GetEffectLayer(0);
+                    if (effectLayer == nullptr) {
+                        effectLayer = element->AddEffectLayer();
+                    }
+
+                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
+                    effectLayer = element->AddEffectLayer();
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Word"), effectLayer, GetFrameMS());
+                    effectLayer = element->AddEffectLayer();
+                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel.ToStdString(), "Phoneme"), effectLayer, GetFrameMS());
+                }
+                else
+                {
+                    TimingElement* element = xLightsParent->AddTimingElement(UniqueTimingName(xLightsParent, sel));
+                    EffectLayer* effectLayer = element->GetEffectLayer(0);
+                    if (effectLayer == nullptr) {
+                        effectLayer = element->AddEffectLayer();
+                    }
+
+                    AddMarksToLayer(vixenFile.GetTimings(sel.ToStdString()), effectLayer, GetFrameMS());
+                }
+            }
+        }
+    }
+
+    xLightsParent->SetCursor(wxCURSOR_ARROW);
+}
+
+std::vector<std::string> SequenceFile::GetTimingList(const SequenceElements& seq_elements)
+{
+    timing_list.clear();
+    int num_elements = seq_elements.GetElementCount();
+    for(int i = 0; i < num_elements; ++i)
+    {
+        Element* element = seq_elements.GetElement(i);
+        if( element->GetType() == ElementType::ELEMENT_TYPE_TIMING )
+        {
+            timing_list.push_back(element->GetName());
+        }
+    }
+    return timing_list;
+}
+
+// Legacy Save()/WriteEffects/AddJukebox removed — Save now uses BuildDocument + pugixml
+
+static void WriteEffectsPugi(EffectLayer* layer,
+    pugi::xml_node& effect_layer_node,
+    std::unordered_map<std::string, int>& colorPalettes,
+    pugi::xml_node& colorPalette_node,
+    std::unordered_map<std::string, int>& effectStrings,
+    pugi::xml_node& effectDB_Node)
+{
+    int num_effects = layer->GetEffectCount();
+    for (int k = 0; k < num_effects; ++k) {
+        Effect* effect = layer->GetEffect(k);
+        std::string settings = effect->GetSettingsAsString();
+        int size = effectStrings.size();
+        int ref = effectStrings[settings] - 1;
+        if (ref == -1) {
+            ref = size;
+            effectStrings[settings] = ref + 1;
+            auto dbNode = effectDB_Node.append_child("Effect");
+            dbNode.text().set(settings);
+        }
+
+        auto effect_node = effect_layer_node.append_child("Effect");
+        effect_node.append_attribute("ref") = ref;
+        effect_node.append_attribute("name") = XmlSafe(effect->GetEffectName());
+        if (effect->GetProtected()) {
+            effect_node.append_attribute("protected") = "1";
+        }
+        if (effect->GetSelected()) {
+            effect_node.append_attribute("selected") = "1";
+        }
+        if (effect->GetID()) {
+            effect_node.append_attribute("id") = effect->GetID();
+        }
+        effect_node.append_attribute("startTime") = effect->GetStartTimeMS();
+        effect_node.append_attribute("endTime") = effect->GetEndTimeMS();
+        std::string palette = effect->GetPaletteAsString();
+        if (!palette.empty()) {
+            size = colorPalettes.size();
+            int pref = colorPalettes[palette] - 1;
+            if (pref == -1) {
+                pref = size;
+                colorPalettes[palette] = pref + 1;
+                auto palNode = colorPalette_node.append_child("ColorPalette");
+                palNode.text().set(palette);
+            }
+            effect_node.append_attribute("palette") = pref;
+        }
+    }
+}
+
+bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_elements)
+{
+    UpdateVersion();
+
+    auto root = doc.append_child("xsequence");
+    root.append_attribute("BaseChannel") = "0";
+    root.append_attribute("ChanCtrlBasic") = "0";
+    root.append_attribute("ChanCtrlColor") = "0";
+    root.append_attribute("FixedPointTiming") = "1";
+    root.append_attribute("ModelBlending") = seq_elements.SupportsModelBlending() ? "true" : "false";
+
+    // Head
+    auto head = root.append_child("head");
+    head.append_child("version").text().set(version_string);
+    head.append_child("author").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR)));
+    head.append_child("author-email").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL)));
+    head.append_child("author-website").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::WEBSITE)));
+    head.append_child("song").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::SONG)));
+    head.append_child("artist").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::ARTIST)));
+    head.append_child("album").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::ALBUM)));
+    head.append_child("MusicURL").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::URL)));
+    head.append_child("comment").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::COMMENT)));
+    head.append_child("sequenceTiming").text().set(seq_timing);
+    head.append_child("sequenceType").text().set(seq_type);
+    head.append_child("mediaFile").text().set(media_file);
+    head.append_child("sequenceDuration").text().set(GetSequenceDurationString());
+    head.append_child("imageDir").text().set(image_dir);
+
+    // ColorPalettes and EffectDB (populated during element iteration)
+    std::unordered_map<std::string, int> colorPalettes;
+    auto colorPalette_node = root.append_child("ColorPalettes");
+    std::unordered_map<std::string, int> effectStrings;
+    auto effectDB_Node = root.append_child("EffectDB");
+
+    // SequenceMedia
+    seq_elements.GetSequenceMedia().SaveToXml(root);
+
+    // DataLayers
+    auto data_layer = root.append_child("DataLayers");
+    for (int i = 0; i < mDataLayers.GetNumLayers(); ++i) {
+        DataLayer* layer = mDataLayers.GetDataLayer(i);
+        auto layer_node = data_layer.append_child("DataLayer");
+        layer_node.append_attribute("lor_params") = layer->GetLORConvertParams();
+        layer_node.append_attribute("channel_offset") = layer->GetChannelOffset();
+        layer_node.append_attribute("num_channels") = layer->GetNumChannels();
+        layer_node.append_attribute("num_frames") = layer->GetNumFrames();
+        layer_node.append_attribute("data") = layer->GetDataSource();
+        layer_node.append_attribute("source") = layer->GetSource();
+        layer_node.append_attribute("name") = layer->GetName();
+    }
+
+    // DisplayElements and ElementEffects
+    auto display_node = root.append_child("DisplayElements");
+    auto elements_node = root.append_child("ElementEffects");
+
+    // lastView
+    auto last_view_node = root.append_child("lastView");
+    last_view_node.text().set(seq_elements.GetCurrentView());
+
+    // TimingTags
+    auto timing_tags_node = root.append_child("TimingTags");
+    if (seq_elements.GetTimeLine() != nullptr) {
+        for (int i = 0; i < 10; ++i) {
+            auto tag_node = timing_tags_node.append_child("Tag");
+            tag_node.append_attribute("number") = i;
+            tag_node.append_attribute("position") = seq_elements.GetTimeLine()->GetTagPosition(i);
+        }
+    }
+
+    int num_elements = seq_elements.GetElementCount();
+    for (int i = 0; i < num_elements; ++i) {
+        Element* element = seq_elements.GetElement(i);
+
+        // DisplayElements entry
+        auto display_element_node = display_node.append_child("Element");
+        display_element_node.append_attribute("collapsed") = element->GetCollapsed();
+        if (element->IsRenderDisabled()) {
+            display_element_node.append_attribute("RenderDisabled") = "1";
+        }
+        display_element_node.append_attribute("type") = (element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
+        display_element_node.append_attribute("name") = element->GetName();
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            TimingElement* te = dynamic_cast<TimingElement*>(element);
+            display_element_node.append_attribute("visible") = te->GetMasterVisible();
+        } else {
+            display_element_node.append_attribute("visible") = element->GetVisible();
+        }
+
+        // ElementEffects entry
+        auto element_effects_node = elements_node.append_child("Element");
+        element_effects_node.append_attribute("type") = (element->GetType() == ElementType::ELEMENT_TYPE_TIMING ? "timing" : "model");
+        element_effects_node.append_attribute("name") = element->GetName();
+
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            TimingElement* tm = dynamic_cast<TimingElement*>(element);
+            display_element_node.append_attribute("views") = tm->GetViews();
+            display_element_node.append_attribute("active") = tm->GetActive();
+            if (!tm->GetSubType().empty()) {
+                display_element_node.append_attribute("subType") = tm->GetSubType();
+            }
+            if (tm->GetFixedTiming()) {
+                element_effects_node.append_attribute("fixed") = tm->GetFixedTiming();
+                element_effects_node.append_child("EffectLayer");
+            } else {
+                for (int j = 0; j < tm->GetEffectLayerCount(); ++j) {
+                    EffectLayer* layer = tm->GetEffectLayer(j);
+                    auto effect_layer_node = element_effects_node.append_child("EffectLayer");
+                    for (int k = 0; k < layer->GetEffectCount(); ++k) {
+                        Effect* effect = layer->GetEffect(k);
+                        auto effect_node = effect_layer_node.append_child("Effect");
+                        effect_node.append_attribute("label") = effect->GetEffectName();
+                        if (effect->GetProtected()) {
+                            effect_node.append_attribute("protected") = "1";
+                        }
+                        if (effect->GetSelected()) {
+                            effect_node.append_attribute("selected") = "1";
+                        }
+                        effect_node.append_attribute("startTime") = effect->GetStartTimeMS();
+                        effect_node.append_attribute("endTime") = effect->GetEndTimeMS();
+                    }
+                }
+            }
+        } else if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(element);
+            for (int j = 0; j < me->GetEffectLayerCount(); ++j) {
+                EffectLayer* layer = me->GetEffectLayer(j);
+                auto effect_layer_node = element_effects_node.append_child("EffectLayer");
+                if (!layer->GetLayerName().empty()) {
+                    effect_layer_node.append_attribute("layerName") = layer->GetLayerName();
+                }
+                WriteEffectsPugi(layer, effect_layer_node, colorPalettes, colorPalette_node, effectStrings, effectDB_Node);
+            }
+
+            for (int strand = 0; strand < me->GetSubModelAndStrandCount(); strand++) {
+                SubModelElement* se = me->GetSubModel(strand);
+                int num_layers = se->GetEffectLayerCount();
+                pugi::xml_node effect_layer_node;
+
+                StrandElement* strEl = dynamic_cast<StrandElement*>(se);
+                for (int j = 0; j < num_layers; ++j) {
+                    EffectLayer* layer = se->GetEffectLayer(j);
+                    if (layer->GetEffectCount() != 0 || !layer->GetLayerName().empty()) {
+                        auto eln = element_effects_node.append_child(strEl == nullptr ? "SubModelEffectLayer" : "Strand");
+                        if (strEl != nullptr) {
+                            eln.append_attribute("index") = strEl->GetStrand();
+                            if (j == 0) {
+                                effect_layer_node = eln;
+                            }
+                        }
+                        if (!layer->GetLayerName().empty()) {
+                            eln.append_attribute("layerName") = layer->GetLayerName();
+                        }
+                        if (j > 0) {
+                            eln.append_attribute("layer") = j;
+                        }
+                        if (!se->GetName().empty()) {
+                            eln.append_attribute("name") = se->GetName();
+                        }
+                        WriteEffectsPugi(layer, eln, colorPalettes, colorPalette_node, effectStrings, effectDB_Node);
+                    }
+                }
+                if (strEl != nullptr) {
+                    for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
+                        NodeLayer* nlayer = strEl->GetNodeLayer(n);
+                        if (nlayer->GetEffectCount() == 0) continue;
+                        if (!effect_layer_node) {
+                            effect_layer_node = element_effects_node.append_child("Strand");
+                            effect_layer_node.append_attribute("index") = strEl->GetStrand();
+                            if (!se->GetName().empty()) {
+                                effect_layer_node.append_attribute("name") = se->GetName();
+                            }
+                        }
+                        auto neffect_layer_node = effect_layer_node.append_child("Node");
+                        neffect_layer_node.append_attribute("index") = n;
+                        if (!nlayer->GetNodeName().empty()) {
+                            neffect_layer_node.append_attribute("name") = nlayer->GetNodeName();
+                        }
+                        WriteEffectsPugi(nlayer, neffect_layer_node, colorPalettes, colorPalette_node, effectStrings, effectDB_Node);
+                    }
+                }
+            }
+        }
+    }
+
+    // Jukebox
+    xLightsFrame* frame = xLightsFrame::GetFrame();
+    if (frame && frame->GetJukeboxPanel()) {
+        frame->GetJukeboxPanel()->Save(root);
+    }
+
+    return true;
+}
+
+// function used to save sequence data
+bool SequenceFile::Save(SequenceElements& seq_elements)
+{
+    pugi::xml_document doc;
+    if (!BuildDocument(doc, seq_elements)) {
+        return false;
+    }
+
+    if (!doc.save_file(mFilePath.c_str(), "  ")) {
+        return false;
+    }
+
+    MarkNewFileRevision(GetFullPath());
+    return true;
+}
+// Legacy SaveToDoc removed — Save now uses BuildDocument + pugixml
+
+bool SequenceFile::TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent)
+{
+    if( sequence_loaded )
+    {
+        timing_list = GetTimingList(xLightsParent->GetSequenceElements());
+    }
+    else
+    {
+        timing_list = GetTimingList();
+    }
+    for (size_t i = 0; i < timing_list.size(); ++i )
+    {
+        if( timing_list[i] == section )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool SequenceFile::TimingMatchesModelName(const std::string& section, xLightsFrame* xLightsParent) {
+    if (sequence_loaded) {
+        SequenceElements& mSequenceElements = xLightsParent->GetSequenceElements();
+        if (mSequenceElements.ElementExists(section)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void SequenceFile::AddNewTimingSection(const std::string& filename, xLightsFrame* xLightsParent,
+                                         std::vector<int>& starts, std::vector<int>& ends, std::vector<std::string>& labels)
+{
+    // some QM plugins dont return items sorted appropriately
+    typedef struct tm {
+        int start;
+        int end;
+        std::string label;
+        int duration() const
+        {
+            return end - start;
+        }
+        static bool sort_func(const struct tm& a, const struct tm& b)
+        {
+            if (a.start == b.start)
+                return a.duration() < b.duration();
+
+            return a.start < b.start;
+        }
+    } tm;
+
+    std::vector<tm> tms;
+
+    tms.resize(starts.size());
+    for (size_t k = 0; k < starts.size(); k++) {
+        tms[k] = tm({ TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency()),
+                   TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency()),
+                   labels[k] });
+    }
+
+    std::sort(begin(tms), end(tms), tm::sort_func);
+
+    EffectLayer* effectLayer = nullptr;
+    pugi::xml_node layer;
+    if (sequence_loaded) {
+        Element* element = xLightsParent->AddTimingElement(filename);
+        effectLayer = element->GetEffectLayer(0);
+    } else {
+        AddTimingDisplayElement(filename, "1", "0");
+        pugi::xml_node node = AddElement(filename, "timing");
+        layer = node.append_child("EffectLayer");
+    }
+
+    int prev_start = -1;
+    int prev_end = -1;
+
+    for (size_t k = 0; k < tms.size(); k++) {
+        int start = tms[k].start;
+        int end = tms[k].end;
+
+        // if this timing mark overlaps the prior one then force it to start at the end of the prior one
+        if (start < prev_end) {
+            start = prev_end;
+        }
+
+        if (k < tms.size() - 1 && tms[k + 1].start < end) // the next timing starts before this one ends ... in which case this ends = that start
+        {
+            end = tms[k + 1].start;
+        }
+
+        // if this timing mark starts before the prior one ended then start it after the prior one
+        if (start < prev_end)
+        {
+            start = prev_end;
+        }
+
+        // if it now starts after it ends then skip it as it totally overlapped with the last timing mark
+        if (start > end) {
+            continue;
+        }
+
+        if (start > GetSequenceDurationMS()) {
+            continue; // dont add timing marks after the end of the song
+        } else if (start == prev_start && end == prev_end) {
+            continue;            // skip duplicates
+        } else if (start == end) // dont add zero length timing marks
+        {
+            // zero length timing marks are not valid ... but if the following start is greater than the current start then use that as the end
+            if (k == tms.size() - 1) {
+                // special case use the end of the sequence
+                end = TimeLine::RoundToMultipleOfPeriod(GetSequenceDurationMS(), GetFrequency());
+                if (start == end) {
+                    continue;
+                }
+            } else {
+                if (tms[k + 1].start > start) {
+                    end = tms[k + 1].start;
+                } else {
+                    // even using the next start would make it zero length so we have to skip this one
+                    continue;
+                }
+            }
+        }
+
+        prev_start = start;
+        prev_end = end;
+
+        if (sequence_loaded) {
+            effectLayer->AddEffect(0, tms[k].label, "", "", start, end, EFFECT_NOT_SELECTED, false);
+        } else {
+            AddTimingEffect(layer, tms[k].label, "0", "0", string_format("%d", start), string_format("%d", end));
+        }
+    }
+}
+
+void SequenceFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent, const std::string& subType)
+{
+    if (sequence_loaded) {
+        xLightsParent->AddTimingElement(interval_name, subType);
+    } else {
+        // Pre-load: add to XML skeleton so LoadSequencerFile can find it
+        AddTimingDisplayElement(interval_name, "1", "0", subType);
+        pugi::xml_node node = AddElement(interval_name, "timing");
+        node.append_child("EffectLayer");
+    }
+}
+
+void SequenceFile::AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent)
+{
+    if (sequence_loaded) {
+        if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms" && !EndsWith(interval_name, "ms Metronome"))) {
+            xLightsParent->AddTimingElement(interval_name);
+        } else {
+            int interval = wxAtoi(interval_name);
+            TimingElement* element = xLightsParent->AddTimingElement(interval_name);
+            element->SetFixedTiming(interval);
+            EffectLayer* effectLayer = element->GetEffectLayer(0);
+            int time = 0;
+            int end_time = GetSequenceDurationMS();
+            while (time <= end_time) {
+                int next_time = (time + interval <= end_time) ? time + interval : end_time;
+                int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
+                int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+                effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+                time += interval;
+            }
+        }
+    } else {
+        // Pre-load: add to XML skeleton so LoadSequencerFile can find it
+        AddTimingDisplayElement(interval_name, "1", "0");
+        pugi::xml_node node;
+        if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms" && !EndsWith(interval_name, "ms Metronome"))) {
+            node = AddElement(interval_name, "timing");
+        } else {
+            int interval = wxAtoi(interval_name);
+            node = AddFixedTiming(interval_name, string_format("%d", interval));
+        }
+        node.append_child("EffectLayer");
+    }
+}
+
+void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int interval, xLightsFrame* xLightsParent)
+{
+    if (sequence_loaded) {
+        TimingElement* element = xLightsParent->AddTimingElement(interval_name);
+        element->SetFixedTiming(interval);
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+        int time = 0;
+        int end_time = GetSequenceDurationMS();
+        while (time <= end_time) {
+            int next_time = (time + interval <= end_time) ? time + interval : end_time;
+            int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
+            int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+            effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+            time += interval;
+        }
+    } else {
+        // Pre-load: add to XML skeleton
+        AddTimingDisplayElement(interval_name, "1", "0");
+        pugi::xml_node node = AddFixedTiming(interval_name, string_format("%d", interval));
+        node.append_child("EffectLayer");
+    }
+}
+
+void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int _interval, const std::vector<std::string>& tags, xLightsFrame* xLightsParent, int minForRandomRange, bool randomLabels) {
+    std::vector<std::string> effectiveTags = tags;
+    if (effectiveTags.empty()) {
+        for (int i = 1; i <= 10; ++i) {
+            effectiveTags.push_back(std::to_string(i));
+        }
+    }
+
+    if (sequence_loaded) {
+        TimingElement* element = xLightsParent->AddTimingElement(interval_name);
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+        int time{ 0 };
+        int id{ 0 };
+        int end_time = GetSequenceDurationMS();
+        int lastRandomState = -1;
+        while (time < end_time) {
+            int interval = minForRandomRange == -1 ? _interval : intRand(minForRandomRange, _interval);
+            int next_time = (time + interval <= end_time) ? time + interval : end_time;
+            int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
+            int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+
+            std::string label;
+            if (randomLabels) {
+                int tagIndex;
+                do {
+                    tagIndex = intRand(0, effectiveTags.size() - 1);
+                } while (tagIndex == lastRandomState && effectiveTags.size() > 1);
+                lastRandomState = tagIndex;
+                label = effectiveTags[tagIndex];
+            } else {
+                label = effectiveTags[id % effectiveTags.size()];
+            }
+
+            effectLayer->AddEffect(0, label, "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+            time += interval;
+            id++;
+        }
+    } else {
+        // Pre-load: add to XML skeleton so LoadSequencerFile can find it
+        AddTimingDisplayElement(interval_name, "1", "0");
+        pugi::xml_node node = AddElement(interval_name, "timing");
+        pugi::xml_node effectLayerNode = node.append_child("EffectLayer");
+        int time = 0;
+        int id = 0;
+        int end_time = GetSequenceDurationMS();
+        int lastRandomState = -1;
+        while (time < end_time) {
+            int interval = minForRandomRange == -1 ? _interval : intRand(minForRandomRange, _interval);
+            int next_time = (time + interval <= end_time) ? time + interval : end_time;
+            int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
+            int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+
+            std::string label;
+            if (randomLabels) {
+                int tagIndex;
+                do {
+                    tagIndex = intRand(0, effectiveTags.size() - 1);
+                } while (tagIndex == lastRandomState && effectiveTags.size() > 1);
+                lastRandomState = tagIndex;
+                label = effectiveTags[tagIndex];
+            } else {
+                label = effectiveTags[id % effectiveTags.size()];
+            }
+
+            AddTimingEffect(effectLayerNode, label, "0", "0",
+                string_format("%d", startTime), string_format("%d", endTime));
+            time += interval;
+            id++;
+        }
+    }
+}
+
+void SequenceFile::SetMetaMP3Tags()
+{
+    if (audio != nullptr)
+    {
+        SetHeaderInfo(HEADER_INFO_TYPES::SONG, audio->Title());
+        SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, audio->Artist());
+        SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, audio->Album());
+    }
+}
+
+std::string SequenceFile::GetFSEQForXSQ(const std::string& xsq, const std::string& fseqDirectory)
+{
+    if (!::FileExists(xsq))
+        return "";
+
+    wxFileName fn(xsq);
+    fn.SetExt("fseq");
+
+    if (!::FileExists(fn.GetFullPath())) {
+        fn.SetPath(fseqDirectory);
+
+        if (!::FileExists(fn.GetFullPath())) {
+            return "";
+        }
+    }
+
+    return fn.GetFullPath();
+}
+
+std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::string& showDir, const std::list<std::string> mediaFolders)
+{
+    if (!::FileExists(xsq))
+        return "";
+
+    static const int BUFFER_SIZE = 1024 * 12;
+    std::vector<char> buf(BUFFER_SIZE); //12K buffer
+
+    wxFile doc(xsq);
+    SP_XmlPullParser* parser = new SP_XmlPullParser();
+    size_t read = doc.Read(&buf[0], BUFFER_SIZE);
+    parser->append(&buf[0], read);
+    SP_XmlPullEvent* event = parser->getNext();
+    int done = 0;
+    int count = 0;
+    bool isMedia = false;
+    std::string mediaName;
+
+    while (!done) {
+        if (!event) {
+            size_t read2 = doc.Read(&buf[0], BUFFER_SIZE);
+            if (read2 == 0) {
+                done = true;
+            } else {
+                parser->append(&buf[0], read2);
+            }
+        } else {
+            switch (event->getEventType()) {
+            case SP_XmlPullEvent::eEndDocument:
+                done = true;
+                break;
+            case SP_XmlPullEvent::eStartTag: {
+                SP_XmlStartTagEvent* stagEvent = (SP_XmlStartTagEvent*)event;
+                wxString NodeName = wxString::FromAscii(stagEvent->getName());
+                count++;
+                if (NodeName == "mediaFile") {
+                    isMedia = true;
+                } else {
+                    isMedia = false;
+                }
+                if (count == 100) {
+                    //media file will be very early in the file, dont waste time;
+                    done = true;
+                }
+            } break;
+            case SP_XmlPullEvent::eCData:
+                if (isMedia) {
+                    SP_XmlCDataEvent* stagEvent = (SP_XmlCDataEvent*)event;
+                    mediaName = wxString::FromAscii(stagEvent->getText()).ToStdString();
+                    done = true;
+                }
+                break;
+            }
+        }
+        if (!done) {
+            event = parser->getNext();
+        }
+    }
+    delete parser;
+
+    if (mediaName != "") {
+        if (!::FileExists(mediaName)) {
+            wxFileName fn(mediaName);
+            for (const std::string& md : mediaFolders) {
+                std::string tmn = md + ::GetPathSeparator() + fn.GetFullName().ToStdString();
+                if (::FileExists(tmn)) {
+                    mediaName = tmn;
+                    break;
+                }
+            }
+            if (!::FileExists(mediaName)) {
+                const std::string fixedMN = FixFile(showDir, mediaName);
+                if (!::FileExists(fixedMN)) {
+                    mediaName = "";
+                } else {
+                    mediaName = fixedMN;
+                }
+            }
+        }
+    }
+
+    return mediaName;
+}
+
+void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent)
+{
+    std::string ver = GetVersion();
+    std::vector<RenderableEffect*> effects(xLightsParent->GetEffectManager().size());
+    int count = 0;
+    for (int x = 0; x < xLightsParent->GetEffectManager().size(); x++) {
+        RenderableEffect* eff = xLightsParent->GetEffectManager()[x];
+        if (eff->needToAdjustSettings(ver)) {
+            effects[x] = eff;
+            count++;
+        }
+    }
+    if (count > 0) {
+        for (size_t i = 0; i < elements.GetElementCount(); i++) {
+            Element* elem = elements.GetElement(i);
+            if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                ModelElement* me = dynamic_cast<ModelElement*>(elem);
+                for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
+                    EffectLayer* layer = elem->GetEffectLayer(j);
+                    for (int k = 0; k < layer->GetEffectCount(); k++) {
+                        Effect* eff = layer->GetEffect(k);
+                        if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
+                            effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                        }
+                    }
+                }
+                for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+                    SubModelElement* se = me->GetSubModel(s);
+                    for (int j = 0; j < se->GetEffectLayerCount(); j++) {
+                        EffectLayer* layer = se->GetEffectLayer(j);
+                        for (int k = 0; k < layer->GetEffectCount(); k++) {
+                            Effect* eff = layer->GetEffect(k);
+                            if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
+                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                            }
+                        }
+                    }
+                    if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                        StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                        for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
+                            NodeLayer* nlayer = ste->GetNodeLayer(k);
+                            for (int l = 0; l < nlayer->GetEffectCount(); l++) {
+                                Effect* eff = nlayer->GetEffect(l);
+                                if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
+                                    effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+std::string SequenceFile::InsertMissing(std::string str, std::string missing_array, bool INSERT)
+{
+    wxString wxStr(str);
+    wxStringTokenizer tkz(missing_array, "|");
+    wxString token1 = tkz.GetNextToken();
+    wxString token2 = tkz.GetNextToken();
+    while (tkz.HasMoreTokens()) {
+        token1 = tkz.GetNextToken();
+        token2 = tkz.GetNextToken();
+        int pos = wxStr.find(token1, 0);
+        wxString replacement = "," + token2 + "</td>";
+        if (pos <= 0 && INSERT) {
+            wxStr.Replace("</td>", replacement);
+        } else if (pos > 0 && !INSERT) {
+            wxStr.Replace(token1, token2);
+        }
+    }
+    return wxStr.ToStdString();
+}

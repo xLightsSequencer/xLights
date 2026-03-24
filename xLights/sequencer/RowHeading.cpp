@@ -779,7 +779,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_ADD_TIMING_TRACK) {
         bool timing_added = false;
-        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
         NewTimingDialog dialog(this);
         OptimiseDialogPosition(&dialog);
         dialog.Fit();
@@ -983,7 +983,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS) {
         // Generate subdivided timing tracks from the current timing track
-        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
         std::string originalName = element->GetName();
         EffectLayer* sourceLayer = element->GetEffectLayer(0);
 
@@ -1269,7 +1269,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int startFrame = element->GetFirstSelectedEffectStartMS();
         int endFrame = element->GetLastSelectedEffectEndMS();
         if (startFrame != -1 && endFrame != -1) {
-            xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
             startFrame /= xml_file->GetFrameMS();
             endFrame /= xml_file->GetFrameMS();
             wxCommandEvent playEvent(EVT_EXPORT_MODEL);
@@ -1281,7 +1281,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int startFrame = element->GetFirstSelectedEffectStartMS();
         int endFrame = element->GetLastSelectedEffectEndMS();
         if (startFrame != -1 && endFrame != -1) {
-            xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
             startFrame /= xml_file->GetFrameMS();
             endFrame /= xml_file->GetFrameMS();
             wxCommandEvent playEvent(EVT_EXPORT_MODEL);
@@ -1543,7 +1543,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         evt.SetInt(i);
         wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS) {
-        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
 
         wxString selectedTiming = "FromEffects";
         auto base = selectedTiming;

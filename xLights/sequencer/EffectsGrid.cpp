@@ -38,7 +38,7 @@
 #include "../VideoReader.h"
 #include "../effects/RenderableEffect.h"
 #include "../xLightsMain.h"
-#include "../xLightsXmlFile.h"
+#include "../render/SequenceFile.h"
 #include "effects/GlediatorEffect.h"
 #include "effects/PicturesEffect.h"
 #include "effects/ShaderEffect.h"

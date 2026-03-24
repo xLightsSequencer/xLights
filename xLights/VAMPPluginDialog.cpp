@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "VAMPPluginDialog.h"
+#include "render/SequenceFile.h"
 
 //(*InternalHeaders(VAMPPluginDialog)
 #include <wx/button.h>
@@ -165,7 +166,7 @@ void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &star
     }
 }
 
-wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent, const wxString &name, AudioManager* media) 
+wxString VAMPPluginDialog::ProcessPlugin(SequenceFile* xml_file, xLightsFrame *xLightsParent, const wxString &name, AudioManager* media) 
 {
     Vamp::Plugin *p = media->GetVamp()->GetPlugin(std::string(name.c_str()));
     Label1->SetLabel(p->getName());

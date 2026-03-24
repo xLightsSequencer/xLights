@@ -72,6 +72,7 @@
 #endif
 
 #include "ShaderEffect.h"
+#include "../AudioManager.h"
 #include "../ui/effectpanels/ShaderPanel.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
 #include "../render/Effect.h"

@@ -10,44 +10,44 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
+#include <string>
 #include <vector>
 #include "SequenceData.h"
 
 class DataLayer
 {
     public:
-        DataLayer(wxString name, wxString source, wxString data_source);
+        DataLayer(const std::string& name, const std::string& source, const std::string& data_source);
 
         virtual ~DataLayer() {};
 
-        wxString GetName() { return mName; }
-        void SetName(wxString name) { mName = name; }
+        const std::string& GetName() const { return mName; }
+        void SetName(const std::string& name) { mName = name; }
 
-        wxString GetSource() { return mSource; }
-        void SetSource(wxString source) { mSource = source; }
+        const std::string& GetSource() const { return mSource; }
+        void SetSource(const std::string& source) { mSource = source; }
 
-        wxString GetDataSource() { return mDataSource; }
-        void SetDataSource(wxString data_source) { mDataSource = data_source; }
+        const std::string& GetDataSource() const { return mDataSource; }
+        void SetDataSource(const std::string& data_source) { mDataSource = data_source; }
 
-        int GetNumChannels() { return num_channels; }
+        int GetNumChannels() const { return num_channels; }
         void SetNumChannels(int val) { num_channels = val; }
 
-        int GetChannelOffset() { return channel_offset; }
+        int GetChannelOffset() const { return channel_offset; }
         void SetChannelOffset(int val) { channel_offset = val; }
 
-        int GetNumFrames() { return num_frames; }
+        int GetNumFrames() const { return num_frames; }
         void SetNumFrames(int val) { num_frames = val; }
 
-        int GetLORConvertParams() { return lor_convert_params; }
+        int GetLORConvertParams() const { return lor_convert_params; }
         void SetLORConvertParams(int val) { lor_convert_params = val; }
 
         SequenceData& GetSequenceData() { return sequence_data; }
 
     private:
-        wxString mName;
-        wxString mSource;
-        wxString mDataSource;
+        std::string mName;
+        std::string mSource;
+        std::string mDataSource;
         int num_channels;
         int num_frames;
         int channel_offset;
@@ -64,9 +64,9 @@ class DataLayerSet
         DataLayer* GetDataLayer(size_t index);
         void RemoveDataLayer(int index);
 
-        int GetNumLayers() { return mDataLayers.size(); }
+        int GetNumLayers() const { return mDataLayers.size(); }
 
-        DataLayer* AddDataLayer( wxString name, wxString source, wxString data_source );
+        DataLayer* AddDataLayer(const std::string& name, const std::string& source, const std::string& data_source);
         void MoveLayerUp( int index );
         void MoveLayerDown( int index );
 

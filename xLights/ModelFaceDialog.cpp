@@ -38,7 +38,7 @@
 #include "../include/WQ.xpm"
 
 #include "ModelFaceDialog.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "NodesGridCellEditor.h"
 #include "ModelPreview.h"
 #include "DimmingCurve.h"

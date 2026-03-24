@@ -1492,8 +1492,8 @@
 		<Unit filename="xLightsTimer.cpp" />
 		<Unit filename="xLightsVersion.cpp" />
 		<Unit filename="xLightsVersion.h" />
-		<Unit filename="xLightsXmlFile.cpp" />
-		<Unit filename="xLightsXmlFile.h" />
+		<Unit filename="render/SequenceFile.cpp" />
+		<Unit filename="render/SequenceFile.h" />
 		<Unit filename="xlColorCanvas.cpp" />
 		<Unit filename="xlColorCanvas.h" />
 		<Unit filename="xlColorPicker.cpp" />

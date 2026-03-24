@@ -20,7 +20,7 @@
 #include "RenderBuffer.h"
 #include "Effect.h"
 #include "xLightsMain.h"
-#include "xLightsXmlFile.h"
+#include "SequenceFile.h"
 #include "UtilFunctions.h"
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
@@ -149,10 +149,11 @@ const std::string &RenderBuffer::GetModelName() const
     return cur_model;
 }
 
-const wxString &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
+const std::string &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
 {
+    static const std::string empty;
     if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
-        return xlEMPTY_WXSTRING;
+        return empty;
     }
     return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
 }

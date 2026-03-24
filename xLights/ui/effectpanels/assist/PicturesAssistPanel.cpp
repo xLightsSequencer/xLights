@@ -26,7 +26,7 @@
 #include "../../../../include/PaintToolIcons.h"
 #include "../../../models/Model.h"
 #include "../../../xLightsMain.h"
-#include "../../../xLightsXmlFile.h"
+#include "../../../render/SequenceFile.h"
 #include "ExternalHooks.h"
 #include "ColorPanel.h"
 

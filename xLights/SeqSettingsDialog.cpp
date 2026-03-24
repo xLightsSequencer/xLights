@@ -26,7 +26,7 @@
 
 #include "SeqSettingsDialog.h"
 #include "NewTimingDialog.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "DataLayer.h"
 #include "FileConverter.h"
 #include "LorConvertDialog.h"
@@ -156,7 +156,7 @@ private:
     DataLayer* layer;
 };
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, SequenceElements *se, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_, const std::string& media, uint32_t durationMS) :
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_handle_, SequenceElements *se, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_, const std::string& media, uint32_t durationMS) :
     xml_file(file_to_handle_),
     media_directories(media_dirs),
     xLightsParent((xLightsFrame*)parent),
@@ -1551,13 +1551,13 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event)
         DataLayer* layer = data->GetLayer();
         if( layer->GetName() == "Nutcracker" )
         {
-            if( xml_file->GetRenderMode() == xLightsXmlFile::CANVAS_MODE )
+            if( xml_file->GetRenderMode() == SequenceFile::CANVAS_MODE )
             {
-                xml_file->SetRenderMode(xLightsXmlFile::ERASE_MODE);
+                xml_file->SetRenderMode(SequenceFile::ERASE_MODE);
             }
             else
             {
-                xml_file->SetRenderMode(xLightsXmlFile::CANVAS_MODE);
+                xml_file->SetRenderMode(SequenceFile::CANVAS_MODE);
             }
             TreeCtrl_Data_Layers->SetItemText(itemId, wxString::Format("Data: %s", xml_file->GetRenderMode()));
         }

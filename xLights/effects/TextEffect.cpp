@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "TextEffect.h"
+#include "../AudioManager.h"
 
 #include <cstdlib>
 #include <format>
@@ -28,7 +29,7 @@
 #include "../FontManager.h"
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"
-#include "../xLightsXmlFile.h"
+#include "../render/SequenceFile.h"
 #include "../utils/string_utils.h"
 
 #include "../../include/text-16.xpm"

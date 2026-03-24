@@ -11,7 +11,7 @@
 #include "EffectAssist.h"
 #include "effects/EffectManager.h"
 #include "ui/effectpanels/assist/xlGridCanvasEmpty.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 
 //(*InternalHeaders(EffectAssist)
 #include <wx/intl.h>

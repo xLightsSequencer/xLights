@@ -44,10 +44,11 @@ The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`) may also nee
 ### Verifying Changes
 After making code changes (especially during code reviews), always do a build to make sure nothing is broken. On macOS, use:
 ```bash
-xcodebuild                    # Normal iterative build (fast, uses PCH)
+xcodebuild -configuration Debug   # Fastest iterative build (Debug, single arch, uses PCH)
+xcodebuild                        # Normal iterative build (Release, universal, uses PCH)
 xcodebuild GCC_PREPROCESSOR_DEFINITIONS='$(inherited) NO_PCH '   # Final verification only
 ```
-The `NO_PCH` flag disables pre-compiled headers, making the macOS build closer to Linux/Windows behavior and helping catch missing `#include` directives that the PCH would otherwise mask. However, disabling PCH significantly slows the build, so use it only as a final verification before committing — not for iterative development.
+Adding `-configuration Debug` builds only for the native architecture in Debug mode, which is much quicker for iterative build testing during development. The default Release build is universal (arm64 + x86_64) and optimized, so it takes longer. The `NO_PCH` flag disables pre-compiled headers, making the macOS build closer to Linux/Windows behavior and helping catch missing `#include` directives that the PCH would otherwise mask. However, disabling PCH significantly slows the build, so use it only as a final verification before committing — not for iterative development.
 
 ## Architecture
 

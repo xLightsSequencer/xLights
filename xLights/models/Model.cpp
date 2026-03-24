@@ -23,6 +23,7 @@
 #include "CachedFileDownloader.h"
 #include "CustomModel.h"
 #include "Model.h"
+#include <wx/progdlg.h>
 #include "ModelGroup.h"
 #include "ModelManager.h"
 #include "../LayoutGroup.h"
@@ -46,7 +47,7 @@
 #include "../xLightsApp.h"
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsVersion.h"
-#include "../xLightsXmlFile.h"
+#include "../render/SequenceFile.h"
 #include "../XmlSerializer/FileSerializingVisitor.h"
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/GdtfParser.h"

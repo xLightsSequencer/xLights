@@ -17,12 +17,13 @@
 #include <format>
 
 #include "VideoEffect.h"
+#include "../AudioManager.h"
 #include "../ui/effectpanels/VideoPanel.h"
 #include "../VideoReader.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../xLightsXmlFile.h"
+#include "../render/SequenceFile.h"
 #include "../xLightsMain.h" 
 #include "../models/Model.h"
 #include "../UtilFunctions.h"

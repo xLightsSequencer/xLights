@@ -14,7 +14,7 @@
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
 #include "FPP.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
@@ -1059,7 +1059,7 @@ void FPPConnectDialog::LoadSequences()
     }
 
     if (xLightsFrame::CurrentSeqXmlFile != nullptr) {
-        wxString curSeq = xLightsFrame::CurrentSeqXmlFile->GetLongPath();
+        wxString curSeq = xLightsFrame::CurrentSeqXmlFile->GetFullPath();
         if (!curSeq.StartsWith(xLightsFrame::CurrentDir)) {
             LoadSequencesFromFolder(curSeq);
         }

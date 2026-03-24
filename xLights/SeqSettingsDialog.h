@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "tmGridCell.h"
 #include "FlickerFreeBitmapButton.h"
 
@@ -40,7 +40,7 @@ class SeqSettingsDialog: public wxDialog
     ConvertLogDialog* _plog;
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, SequenceElements *seqElements, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false, const std::string& media = "", uint32_t durationMS = 0);
+		SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_handle_, SequenceElements *seqElements, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false, const std::string& media = "", uint32_t durationMS = 0);
 		virtual ~SeqSettingsDialog();
 
         const std::string GetView() const {return selected_view;}
@@ -293,7 +293,7 @@ class SeqSettingsDialog: public wxDialog
 
         DECLARE_EVENT_TABLE()
 
-        xLightsXmlFile* xml_file = nullptr;
+        SequenceFile* xml_file = nullptr;
         SequenceElements *sequenceElements = nullptr;
         const std::list<std::string>& media_directories;
 		std::string selected_view;

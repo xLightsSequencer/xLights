@@ -16,6 +16,8 @@
 #include <wx/button.h>
 
 #include "JukeboxPanel.h"
+#include <cstring>
+#include "pugixml.hpp"
 #include "sequencer/MainSequencer.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
@@ -48,34 +50,35 @@ ButtonControl::ButtonControl(int i, std::string element, int layer, int time, st
     _type = LOOKUPTYPE::LTMLT;
 }
 
-ButtonControl::ButtonControl(wxXmlNode* n)
+// --- pugixml implementations ---
+
+ButtonControl::ButtonControl(const pugi::xml_node& n)
 {
     _type = LOOKUPTYPE::LTDISABLED;
 
-    if (n->GetName() == "Button") {
-        _element = n->GetAttribute("Element", "").ToStdString();
-        _layer = wxAtoi(n->GetAttribute("Layer", "-1"));
-        _time = wxAtoi(n->GetAttribute("Time", "-1"));
-        _number = wxAtoi(n->GetAttribute("Number", "-1"));
-        _description = n->GetAttribute("Description", "").ToStdString();
-        _tooltip = n->GetAttribute("Tooltip", "").ToStdString();
-        _loop = n->GetAttribute("Loop", "TRUE") == "TRUE";
-        _type = n->GetAttribute("Type", "") == "DESCRIPTION" ? LOOKUPTYPE::LTDESCRIPTION : LOOKUPTYPE::LTMLT;
+    if (strcmp(n.name(), "Button") == 0) {
+        _element = n.attribute("Element").as_string("");
+        _layer = n.attribute("Layer").as_int(-1);
+        _time = n.attribute("Time").as_int(-1);
+        _number = n.attribute("Number").as_int(-1);
+        _description = n.attribute("Description").as_string("");
+        _tooltip = n.attribute("Tooltip").as_string("");
+        _loop = n.attribute("Loop").as_bool(true);
+        _type = strcmp(n.attribute("Type").as_string(""), "DESCRIPTION") == 0 ? LOOKUPTYPE::LTDESCRIPTION : LOOKUPTYPE::LTMLT;
     }
 }
 
-wxXmlNode* ButtonControl::Save()
+void ButtonControl::Save(pugi::xml_node& parent) const
 {
-    auto res = new wxXmlNode(wxXML_ELEMENT_NODE, "Button");
-    res->AddAttribute("Type", _type == LOOKUPTYPE::LTDESCRIPTION ? "DESCRIPTION" : "MLT");
-    res->AddAttribute("Description", _description);
-    res->AddAttribute("Tooltip", _tooltip);
-    res->AddAttribute("Element", _element);
-    res->AddAttribute("Layer", wxString::Format("%d", _layer));
-    res->AddAttribute("Time", wxString::Format("%d", _time));
-    res->AddAttribute("Number", wxString::Format("%d", _number));
-    res->AddAttribute("Loop", _loop ? "TRUE" : "FALSE");
-    return res;
+    auto res = parent.append_child("Button");
+    res.append_attribute("Type") = (_type == LOOKUPTYPE::LTDESCRIPTION ? "DESCRIPTION" : "MLT");
+    res.append_attribute("Description") = _description;
+    res.append_attribute("Tooltip") = _tooltip;
+    res.append_attribute("Element") = _element;
+    res.append_attribute("Layer") = _layer;
+    res.append_attribute("Time") = _time;
+    res.append_attribute("Number") = _number;
+    res.append_attribute("Loop") = _loop;
 }
 
 void ButtonControl::SelectEffect(MainSequencer* sequencer)
@@ -150,14 +153,32 @@ JukeboxPanel::~JukeboxPanel()
     }
 }
 
-wxXmlNode* JukeboxPanel::Save()
-{
-    auto res = new wxXmlNode(wxXML_ELEMENT_NODE, "Jukebox");
-    for (const auto& it : _buttons) {
-        res->AddChild(it.second->Save());
-    }
+// --- pugixml implementations ---
 
-    return res;
+void JukeboxPanel::Save(pugi::xml_node& parent) const
+{
+    auto res = parent.append_child("Jukebox");
+    for (const auto& it : _buttons) {
+        it.second->Save(res);
+    }
+}
+
+void JukeboxPanel::Load(const pugi::xml_node& node)
+{
+    for (const auto& it : _buttons) {
+        SetButtonTooltip(it.second->_number, "");
+        delete it.second;
+    }
+    _buttons.clear();
+
+    if (strcmp(node.name(), "Jukebox") == 0) {
+        for (auto n : node.children("Button")) {
+            ButtonControl* b = new ButtonControl(n);
+            _buttons[b->_number] = b;
+            SetButtonTooltip(b->_number, b->_tooltip);
+        }
+    }
+    ValidateWindow();
 }
 
 void JukeboxPanel::SetButtonTooltip(int b, std::string tooltip)
@@ -170,24 +191,6 @@ void JukeboxPanel::SetButtonTooltip(int b, std::string tooltip)
             button->SetToolTip(tooltip);
         }
     }
-}
-
-void JukeboxPanel::Load(wxXmlNode* node)
-{
-    for (const auto& it : _buttons) {
-        SetButtonTooltip(it.second->_number, "");
-        delete it.second;
-    }
-    _buttons.clear();
-
-    if (node->GetName() == "Jukebox") {
-        for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
-            ButtonControl* b = new ButtonControl(n);
-            _buttons[b->_number] = b;
-            SetButtonTooltip(b->_number, b->_tooltip);
-        }
-    }
-    ValidateWindow();
 }
 
 void JukeboxPanel::PlayItem(int item)

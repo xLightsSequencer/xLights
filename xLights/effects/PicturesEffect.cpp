@@ -26,7 +26,7 @@
 #include "../render/SequenceMedia.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../xLightsXmlFile.h"
+#include "../render/SequenceFile.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"

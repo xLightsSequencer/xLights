@@ -102,7 +102,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     // assign global xml file object
     wxFileName xml_file;
     xml_file.SetPath(CurrentDir);
-    CurrentSeqXmlFile = new xLightsXmlFile(xml_file, frameMS);
+    CurrentSeqXmlFile = new SequenceFile(xml_file, frameMS);
 
     if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
@@ -136,7 +136,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
     int ms = atoi(mss.c_str());
 
-    spdlog::info("New sequence created Type {} Timing {}ms.",CurrentSeqXmlFile->GetSequenceType().ToStdString(), ms);
+    spdlog::info("New sequence created Type {} Timing {}ms.", CurrentSeqXmlFile->GetSequenceType(), ms);
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {
@@ -373,16 +373,16 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         }
 
         // assign global xml file object
-        CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
+        CurrentSeqXmlFile = new SequenceFile(xml_file);
 
         // open the xml file so we can see if it has media
-        CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath);
+        CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath.GetFullPath().ToStdString());
 
-        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName());
 
         // if fseq didn't have media check xml
         if (CurrentSeqXmlFile->GetMediaFile() != "") {
-            media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
+            media_file = mapFileName(wxString(CurrentSeqXmlFile->GetMediaFile()));
             ObtainAccessToURL(media_file.GetFullPath().ToStdString());
         }
 
@@ -605,7 +605,7 @@ bool xLightsFrame::CloseSequence()
         } else {
             if (CurrentSeqXmlFile != nullptr) {
                 // We discarded the sequence so make sure the sequence file is newer than the backup
-                wxFileName fn(CurrentSeqXmlFile->GetLongPath());
+                wxFileName fn(CurrentSeqXmlFile->GetFullPath());
                 wxFileName xx = fn;
                 xx.SetExt("xbkp");
                 wxString asfile = xx.GetLongPath();
@@ -690,13 +690,13 @@ bool xLightsFrame::CloseSequence()
 bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
 {
     delete xLightsFrame::CurrentSeqXmlFile;
-    xLightsFrame::CurrentSeqXmlFile = new xLightsXmlFile(filename);
+    xLightsFrame::CurrentSeqXmlFile = new SequenceFile(filename.ToStdString());
     return SeqLoadXlightsFile(*xLightsFrame::CurrentSeqXmlFile, ChooseModels);
 }
 
 // Load the xml file containing effects for a particular sequence
 // Returns true if file exists and was read successfully
-bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels)
+bool xLightsFrame::SeqLoadXlightsFile(SequenceFile& xml_file, bool ChooseModels)
 {
     LoadSequencer(xml_file);
     xml_file.SetSequenceLoaded(true);
@@ -719,7 +719,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
     if (bottom_layers && data_layers.GetNumLayers() == 1 &&
         data_layers.GetDataLayer(0)->GetName() == "Nutcracker") {
         DataLayer* nut_layer = data_layers.GetDataLayer(0);
-        if (nut_layer->GetDataSource() == xLightsXmlFile::CANVAS_MODE) {
+        if (nut_layer->GetDataSource() == SequenceFile::CANVAS_MODE) {
             // Don't clear, v3 workflow of augmenting the existing fseq file
             return;
         }
@@ -1230,8 +1230,8 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         return;
     }
 
-    xLightsXmlFile xlf(xsqPkg.GetXsqFile());
-    xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile());
+    SequenceFile xlf(xsqPkg.GetXsqFile());
+    xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile().GetFullPath().ToStdString());
     SequenceElements se(this);
     se.SetFrequency(_sequenceElements.GetFrequency());
     se.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
@@ -1240,7 +1240,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     xsqPkg.SetSequenceElements(&se);
 
     if (!IsVersionOlder(xlights_version_string, xlf.GetVersion())) {
-        wxMessageBox(wxString::Format("The import sequence is using a newer version than you are currently using.  %s", xlf.GetVersion().ToStdString().c_str()));
+        wxMessageBox(wxString::Format("The import sequence is using a newer version than you are currently using.  %s", xlf.GetVersion().c_str()));
     }
     if (_sequenceElements.GetFrequency() < xlf.GetFrequency()) {
         wxMessageBox(wxString::Format("The import sequence is using a higher FPS than you are currently using. %d FPS", xlf.GetFrequency()));
@@ -4564,11 +4564,11 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                     effectLayer = element->AddEffectLayer();
                 }
 
-                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                SequenceFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
                 effectLayer = element->AddEffectLayer();
-                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Word"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                SequenceFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Word"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
                 effectLayer = element->AddEffectLayer();
-                xLightsXmlFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Phoneme"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                SequenceFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Phoneme"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
             } else {
                 TimingElement* element = AddTimingElement(name);
                 EffectLayer* effectLayer = element->GetEffectLayer(0);
@@ -4576,7 +4576,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                     effectLayer = element->AddEffectLayer();
                 }
 
-                xLightsXmlFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                SequenceFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
             }
         }
     }

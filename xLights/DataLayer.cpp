@@ -11,21 +11,21 @@
 #include "DataLayer.h"
 #include "UtilFunctions.h"
 #include <algorithm>
-#include <wx/msgdlg.h>
 
-DataLayer::DataLayer(wxString name, wxString source, wxString data_source)
+DataLayer::DataLayer(const std::string& name, const std::string& source, const std::string& data_source)
 : mName(name),
   mSource(source),
   mDataSource(data_source),
   num_channels(0),
   num_frames(0),
-  channel_offset(0)
+  channel_offset(0),
+  lor_convert_params(0)
 {
-    if (!source.StartsWith("<")) {
-        mSource = FixFile("", source);
+    if (!source.empty() && source[0] != '<') {
+        mSource = FixFile("", source).ToStdString();
     }
-    if (!data_source.StartsWith("<")) {
-        mDataSource = FixFile("", data_source);
+    if (!data_source.empty() && data_source[0] != '<') {
+        mDataSource = FixFile("", data_source).ToStdString();
     }
 }
 
@@ -61,7 +61,7 @@ void DataLayerSet::RemoveDataLayer(int index)
     }
 }
 
-DataLayer* DataLayerSet::AddDataLayer(wxString name, wxString source, wxString data_source)
+DataLayer* DataLayerSet::AddDataLayer(const std::string& name, const std::string& source, const std::string& data_source)
 {
     DataLayer* layer = new DataLayer(name, source, data_source);
     mDataLayers.push_back(layer);

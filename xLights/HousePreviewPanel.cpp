@@ -18,7 +18,7 @@
 #include "HousePreviewPanel.h"
 #include "xLightsMain.h"
 #include "ModelPreview.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "UtilFunctions.h"
 #include "sequencer/MainSequencer.h"
 

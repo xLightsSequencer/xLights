@@ -392,8 +392,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("Sequence not found.", "msg", 503, false);
         }
 
-        auto fseq = xLightsXmlFile::GetFSEQForXSQ(xsq, GetFseqDirectory());
-        auto m2 = xLightsXmlFile::GetMediaForXSQ(xsq, CurrentDir, GetMediaFolders());
+        auto fseq = SequenceFile::GetFSEQForXSQ(xsq, GetFseqDirectory());
+        auto m2 = SequenceFile::GetMediaForXSQ(xsq, CurrentDir, GetMediaFolders());
 
         if (!FileExists(fseq)) {
             return sendResponse("Unable to find sequence FSEQ file.", "msg", 503, false);

@@ -17,9 +17,9 @@
 
 #include <map>
 
-class wxXmlNode;
 class ButtonControl;
 class MainSequencer;
+namespace pugi { class xml_node; }
 
 class ButtonControl
 {
@@ -41,8 +41,8 @@ public:
     ButtonControl(int i, std::string description, std::string tooltip, bool loop);
     ButtonControl(int i, std::string element, int layer, int time, std::string tooltip, bool loop);
     virtual ~ButtonControl() {}
-    ButtonControl(wxXmlNode* n);
-    wxXmlNode* Save();
+    ButtonControl(const pugi::xml_node& n);
+    void Save(pugi::xml_node& parent) const;
     void SelectEffect(MainSequencer* sequencer);
     std::string GetTooltip() const { return _tooltip; }
 };
@@ -62,8 +62,8 @@ class JukeboxPanel: public wxPanel
 
 		JukeboxPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~JukeboxPanel();
-        wxXmlNode* Save();
-        void Load(wxXmlNode* node);
+        void Save(pugi::xml_node& parent) const;
+        void Load(const pugi::xml_node& node);
         void PlayItem(int item);
         wxString GetTooltips() const;
         wxString GetTooltipsJSON() const;

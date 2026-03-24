@@ -1655,8 +1655,8 @@ static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf
     ZSTD_freeCStream(cctx);
     return output.pos;
 }
-static int compressFile(std::vector<uint8_t> &data, const wxFileName &fn, void *pool) {
-    std::ifstream ifs(fn.GetFullPath().ToStdString(), std::ios::binary | std::ios::ate);
+static int compressFile(std::vector<uint8_t> &data, const std::string &filepath, void *pool) {
+    std::ifstream ifs(filepath, std::ios::binary | std::ios::ate);
     if (!ifs.is_open()) {
         return 0;
     }
@@ -1840,7 +1840,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
                     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
                     wxFileName fn(effectsFile.GetFullPath());
                     if (FileExists(fn.GetFullPath())) {
-                        compressFile(header.data, fn, pool);
+                        compressFile(header.data, fn.GetFullPath().ToStdString(), pool);
                     }
                 }
                 if (header.data.size() == 0) {
@@ -1866,7 +1866,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
                     effectsFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
                     wxFileName fn(effectsFile.GetFullPath());
                     if (FileExists(fn.GetFullPath())) {
-                        compressFile(header.data, fn, pool);
+                        compressFile(header.data, fn.GetFullPath().ToStdString(), pool);
                     }
                 }
                 if (header.data.size() == 0) {
@@ -1892,14 +1892,16 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 
                 if (params.xLightsFrm->mSavedChangeCount == params.elements->GetChangeCount()) {
                     if (FileExists(params.xLightsFrm->CurrentSeqXmlFile->GetFullPath())) {
-                        compressFile(header.data, *params.xLightsFrm->CurrentSeqXmlFile, pool);
+                        compressFile(header.data, params.xLightsFrm->CurrentSeqXmlFile->GetFullPath(), pool);
                     }
                 }
                 if (header.data.size() == 0) {
-                    if (params.xLightsFrm->mSavedChangeCount != params.elements->GetChangeCount()) {
-                        params.xLightsFrm->CurrentSeqXmlFile->SaveToDoc(*params.elements);
-                    }
-                    params.xLightsFrm->CurrentSeqXmlFile->GetXmlDocument().Save(out);
+                    pugi::xml_document doc;
+                    params.xLightsFrm->CurrentSeqXmlFile->BuildDocument(doc, *params.elements);
+                    std::ostringstream oss;
+                    doc.save(oss, "  ");
+                    std::string xmlStr = oss.str();
+                    out.Write(xmlStr.data(), xmlStr.size());
                     header.data.resize(out.GetLength());
                     int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
                     header.data.resize(sz);

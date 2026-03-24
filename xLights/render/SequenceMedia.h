@@ -20,8 +20,8 @@
 #include <mutex>
 
 
-class wxXmlNode;
 class GIFImage;
+namespace pugi { class xml_node; }
 
 /**
  * ScaledImageCacheKey - Key for scaled image cache
@@ -66,8 +66,8 @@ public:
     wxSize GetImageSize() const { return _imageSize; }
 
     // Serialization
-    bool LoadFromXml(wxXmlNode* node);
-    wxXmlNode* SaveToXml() const;
+    bool LoadFromXml(const pugi::xml_node& node);
+    void SaveToXml(pugi::xml_node& parent) const;
 
     // Conversion to/from embedded format (base64 encoded PNG)
     void EmbedImage() {
@@ -171,8 +171,8 @@ public:
     bool RenameImage(const std::string& oldPath, const std::string& newPath);
     
     // Serialization for xsq file format
-    bool LoadFromXml(wxXmlNode* node);
-    wxXmlNode* SaveToXml() const;
+    bool LoadFromXml(const pugi::xml_node& node);
+    void SaveToXml(pugi::xml_node& parent) const;
     
     // Utilities
     size_t GetImageCount() const { return _imageCache.size(); }

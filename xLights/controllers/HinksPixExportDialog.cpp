@@ -19,7 +19,7 @@
 #include "HinksPixExportDialog.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
-#include "xLightsXmlFile.h"
+#include "render/SequenceFile.h"
 #include "../outputs/ControllerEthernet.h"
 #include "models/ModelManager.h"
 #include "outputs/Output.h"

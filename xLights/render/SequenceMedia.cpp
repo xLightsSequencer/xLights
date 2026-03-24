@@ -9,7 +9,8 @@
  **************************************************************/
 
 #include "SequenceMedia.h"
-#include <wx/xml/xml.h>
+#include "pugixml.hpp"
+#include <cstring>
 #include <wx/base64.h>
 #include <wx/mstream.h>
 #include <wx/wfstream.h>
@@ -104,7 +105,6 @@ void ImageCacheEntry::LoadFromFile(const std::string& filepath) {
 
 
 int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
-    
 
     char *data = reinterpret_cast<char*>(buffer.GetData());
     int maxLen = buffer.GetDataLen();
@@ -144,7 +144,7 @@ int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
                 ((unsigned char)ldata[tiff_header + 2] << 8) | (unsigned char)ldata[tiff_header + 3];
 
             if (fortytwo != 42) {
-                spdlog::debug("Invalid TIFF header identifier in {}", (const char*)_filePath.c_str());
+                spdlog::debug("Invalid TIFF header identifier in {}", _filePath);
                 return 1;
             }
 
@@ -276,8 +276,7 @@ void ImageCacheEntry::loadImage(wxMemoryBuffer &ins) {
     wxMemoryInputStream stream(ins.GetData(), ins.GetDataLen());
     i.SetLoadFlags(0);
     if (!i.LoadFile(stream, wxBITMAP_TYPE_ANY, 0)) {
-        
-        spdlog::error("Error loading image file: {}.", (const char*)_filePath.c_str());
+        spdlog::error("Error loading image file: {}.", _filePath);
         i.Create(5, 5, true);
     }
     _imageCount = 1;
@@ -297,29 +296,30 @@ static std::string PngToBase64(const wxImage& img)
     return wxBase64Encode(buf->GetBufferStart(), buf->GetIntPosition()).ToStdString();
 }
 
-bool ImageCacheEntry::LoadFromXml(wxXmlNode* node)
+// --- pugixml implementations ---
+
+bool ImageCacheEntry::LoadFromXml(const pugi::xml_node& node)
 {
-    if (node == nullptr || node->GetName() != "Image") {
+    if (!node || strcmp(node.name(), "Image") != 0) {
         return false;
     }
-    
-    _filePath = node->GetAttribute("path", "").ToStdString();
-    wxXmlNode* child = node->GetChildren();
-    if (child == nullptr) return true;
 
-    if (child->GetName() == "Data") {
-        // Single-frame embedded (PNG or GIF base64)
-        _embeddedData = child->GetNodeContent().ToStdString();
+    _filePath = node.attribute("path").as_string("");
+    auto child = node.first_child();
+    if (!child) return true;
+
+    std::string childName = child.name();
+    if (childName == "Data") {
+        _embeddedData = child.text().as_string("");
         _isEmbedded = true;
-    } else if (child->GetName() == "Frame") {
+    } else if (childName == "Frame") {
         // Multi-frame: each <Frame time="ms">base64png</Frame>
         _isEmbedded = true;
-        for (wxXmlNode* f = child; f != nullptr; f = f->GetNext()) {
-            if (f->GetName() != "Frame") continue;
-            long ft = 0;
-            f->GetAttribute("time", "0").ToLong(&ft);
-            std::string b64 = f->GetNodeContent().ToStdString();
-            _frameData.push_back(b64);  // cache for lossless re-save
+        for (auto f = child; f; f = f.next_sibling()) {
+            if (strcmp(f.name(), "Frame") != 0) continue;
+            long ft = f.attribute("time").as_int(0);
+            std::string b64 = f.text().as_string("");
+            _frameData.push_back(b64);
             wxMemoryBuffer buf = wxBase64Decode(b64);
             wxMemoryInputStream mis(buf.GetData(), buf.GetDataLen());
             auto sp = std::make_shared<wxImage>();
@@ -337,43 +337,34 @@ bool ImageCacheEntry::LoadFromXml(wxXmlNode* node)
     return true;
 }
 
-wxXmlNode* ImageCacheEntry::SaveToXml() const
+void ImageCacheEntry::SaveToXml(pugi::xml_node& parent) const
 {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "Image");
-    node->AddAttribute("path", _filePath);
-    
-    if (!_isEmbedded) return node;
+    auto node = parent.append_child("Image");
+    node.append_attribute("path") = _filePath;
+
+    if (!_isEmbedded) return;
 
     if (!_embeddedData.empty()) {
-        // Single-frame (or GIF): save as <Data>
-        wxXmlNode* dataNode = new wxXmlNode(wxXML_ELEMENT_NODE, "Data");
-        dataNode->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", _embeddedData));
-        node->AddChild(dataNode);
+        auto dataNode = node.append_child("Data");
+        dataNode.text().set(_embeddedData);
     } else if (_imageCount > 0 && !_frameImages.empty()) {
-        // Multi-frame: save each as <Frame time="ms">base64png</Frame>
-        // Use cached base64 if available to avoid lossy re-encode
         for (int i = 0; i < _imageCount; i++) {
-            wxXmlNode* fNode = new wxXmlNode(wxXML_ELEMENT_NODE, "Frame");
-            fNode->AddAttribute("time", wxString::Format("%ld", _frameTimes[i]));
             std::string b64;
             if (i < (int)_frameData.size()) {
-                b64 = _frameData[i];  // use cached encoding
+                b64 = _frameData[i];
             } else if (_frameImages[i] && _frameImages[i]->IsOk()) {
                 b64 = PngToBase64(*_frameImages[i]);
-                // cache for future saves
                 if ((int)_frameData.size() == i) _frameData.push_back(b64);
             }
             if (!b64.empty()) {
-                fNode->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", b64));
-                node->AddChild(fNode);
-            } else {
-                delete fNode;
+                auto fNode = node.append_child("Frame");
+                fNode.append_attribute("time") = (int)_frameTimes[i];
+                fNode.text().set(b64);
             }
         }
     }
-    
-    return node;
 }
+
 std::shared_ptr<wxImage> ImageCacheEntry::GetFrame(int x, bool suppressGIFBackground) {
     if (x >= _frameImages.size()) {
         return invalidImage;
@@ -665,46 +656,40 @@ bool SequenceMedia::RenameImage(const std::string& oldPath, const std::string& n
     return true;
 }
 
-bool SequenceMedia::LoadFromXml(wxXmlNode* node)
-{
-    
+// --- pugixml implementations ---
 
-    if (node == nullptr || (node->GetName() != "SequenceMedia")) {
+bool SequenceMedia::LoadFromXml(const pugi::xml_node& node)
+{
+
+    if (!node || strcmp(node.name(), "SequenceMedia") != 0) {
         return false;
     }
-    
+
     std::scoped_lock lock(_cacheMutex);
     _imageCache.clear();
-    
-    // Load each image entry
-    for (wxXmlNode* imageNode = node->GetChildren(); imageNode != nullptr; imageNode = imageNode->GetNext()) {
-        if (imageNode->GetName() == "Image") {
-            auto entry = std::make_shared<ImageCacheEntry>();
-            if (entry->LoadFromXml(imageNode)) {
-                _imageCache[entry->GetFilePath()] = entry;
-            } else {
-                spdlog::warn("Failed to load image entry from XML");
-            }
+
+    for (auto imageNode : node.children("Image")) {
+        auto entry = std::make_shared<ImageCacheEntry>();
+        if (entry->LoadFromXml(imageNode)) {
+            _imageCache[entry->GetFilePath()] = entry;
+        } else {
+            spdlog::warn("Failed to load image entry from XML");
         }
     }
-    
+
     return true;
 }
 
-wxXmlNode* SequenceMedia::SaveToXml() const
+void SequenceMedia::SaveToXml(pugi::xml_node& parent) const
 {
     std::scoped_lock lock(_cacheMutex);
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "SequenceMedia");
-    // Save each image entry
+    auto node = parent.append_child("SequenceMedia");
     for (const auto& pair : _imageCache) {
         if (pair.second->IsEmbedded()) {
-            wxXmlNode* imageNode = pair.second->SaveToXml();
-            node->AddChild(imageNode);
+            pair.second->SaveToXml(node);
         }
     }
-    
-    return node;
 }
 
 std::vector<std::string> SequenceMedia::GetImagePaths() const
@@ -720,7 +705,6 @@ std::vector<std::string> SequenceMedia::GetImagePaths() const
 void SequenceMedia::RemoveUnusedImages()
 {
     
-    
     std::scoped_lock lock(_cacheMutex);
     
     // Remove unused static images
@@ -733,7 +717,7 @@ void SequenceMedia::RemoveUnusedImages()
     }
     
     for (const auto& path : toRemove) {
-        spdlog::debug("Removing unused image from cache: {}", path.c_str());
+        spdlog::debug("Removing unused image from cache: {}", path);
         _imageCache.erase(path);
     }
 }
