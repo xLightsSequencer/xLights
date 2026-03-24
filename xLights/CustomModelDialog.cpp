@@ -1349,7 +1349,7 @@ void CustomModelDialog::Rotate()
     wxNumberEntryDialog dlg(this, "Degrees to rotate.", "Rotate by", "Rotate", 0, -180, 180);
     if (dlg.ShowModal() == wxID_OK)
     {
-        auto degrees = -1 * dlg.GetValue();
+        auto degrees = /*-1*/ dlg.GetValue();
 
         if (degrees != 0)
         {

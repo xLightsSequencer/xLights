@@ -155,6 +155,7 @@
     <ClCompile Include="..\xLights\SpecialOptions.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
+    <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />

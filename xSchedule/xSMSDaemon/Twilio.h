@@ -6,6 +6,8 @@
 
 #include "utils/Curl.h"
 
+#include <Log.h>
+
 #include <wx/wx.h>
 
 #include "../../xLights/UtilFunctions.h"
@@ -25,7 +27,6 @@ class Twilio : public SMSService
 		{
             if (number == "TEST") return false;
 
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string url = TWILIO_API_URL;
             auto sid = GetSID();
             auto token = GetToken();
@@ -39,21 +40,19 @@ class Twilio : public SMSService
             vars.push_back(Curl::Var("From", GetPhone()));
             vars.push_back(Curl::Var("Body", message));
 
-            logger_base.debug("Sending SMS to:'%s' from:'%s' body:'%s'.",
-                              (const char*)number.c_str(),
-                              (const char*)GetPhone().c_str(),
-                              (const char*)message.c_str());
+            spdlog::debug("Sending SMS to:'{}' from:'{}' body:'{}'.",
+                          number,
+                          GetPhone(),
+                          message);
             std::string res = Curl::HTTPSPost(url, vars, user, token);
             //logger_base.debug("%s", (const char*)url.c_str());
-            logger_base.debug("%s", (const char*)res.c_str());
+            spdlog::debug("{}", res);
             return true;
 		}
 
         virtual std::string GetServiceName() const override { return "Twilio"; }
         virtual bool RetrieveMessages() override
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
             bool added = false;
 
             std::string url = TWILIO_API_URL;
@@ -64,10 +63,10 @@ class Twilio : public SMSService
             Replace(url, "{user}", user);
             Replace(url, "{token}", token);
 
-            logger_base.debug("Retrieving messages using basic auth {Account SID:Auth Token}.");
+            spdlog::debug("Retrieving messages using basic auth {Account SID:Auth Token}.");
             std::string res = Curl::HTTPSGet(url, user, token);
             //logger_base.debug("%s", (const char*)url.c_str());
-            logger_base.debug("%s", (const char*)res.c_str());
+            spdlog::debug("{}", res);
 
             // construct the JSON root object
             wxJSONValue  root;
@@ -83,7 +82,7 @@ class Twilio : public SMSService
 
             int numErrors = reader.Parse(res, &root);
             if (numErrors > 0) {
-                logger_base.error("The JSON document is not well-formed: %s", (const char*)res.c_str());
+                spdlog::error("The JSON document is not well-formed: {}", res);
             }
             else
             {
@@ -118,7 +117,7 @@ class Twilio : public SMSService
                 }
                 else
                 {
-                    logger_base.error("No SMS messages found: %s", (const char*)res.c_str());
+                    spdlog::error("No SMS messages found: {}", res);
                 }
             }
             return added;

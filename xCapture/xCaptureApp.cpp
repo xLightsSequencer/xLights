@@ -25,6 +25,10 @@
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
 
+#include "spdlog/spdlog.h"
+#include "spdlog/common.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+
 #ifdef _MSC_VER
     #ifdef _DEBUG
         #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"ud.lib")
@@ -178,7 +182,48 @@ void InitialiseLogging(bool fromMain)
     if (!loggingInitialised)
     {
         loggingInitialised = true;
-        // spdlog is configured globally in xlBaseApp; no per-app properties file needed.
+        std::string const logFileName = "xCapture_spdlog.log";
+#ifdef __WXMSW__
+        wxString dir;
+        wxGetEnv("APPDATA", &dir);
+        std::string const logFilePath = std::string(dir.c_str()) + "\\" + logFileName;
+#endif
+#ifdef __WXOSX__
+        wxFileName home;
+        home.AssignHomeDir();
+        wxString const dir = home.GetFullPath();
+        std::string const logFilePath = std::string(dir.c_str()) + "/Library/Logs/" + logFileName;
+#endif
+#ifdef __LINUX__
+        std::string const logFilePath = "/tmp/" + logFileName;
+#endif
+
+        // wxStandardPaths::Get().Get()
+
+        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
+
+        auto file_logger = std::make_shared<spdlog::logger>("xCapture", rotating_file_sink);
+        auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
+
+        spdlog::register_logger(curl_logger);
+
+        loggingInitialised = true;
+        spdlog::initialize_logger(file_logger);
+        spdlog::set_default_logger(file_logger);
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%l] %v");
+        spdlog::flush_on(spdlog::level::info);
+        // wxOperatingSystemId os = wxGetOsVersion();
+        // std::string osStr = DecodeOS(os);
+        // std::string initFileName;
+
+        wxDateTime now = wxDateTime::Now();
+        int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+        wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth() + 1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+        // spdlog::info("Start Time: {}.", ts);
+
+        // auto tt = fmt::sprintf("Start Time: %s.", (const char*)ts.c_str());
+        spdlog::info("Start Time: {}.", ts.ToStdString());
+        spdlog::info("Current working directory {}.", wxGetCwd().ToStdString());
     }
 }
 

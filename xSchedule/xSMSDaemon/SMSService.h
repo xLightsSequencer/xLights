@@ -189,7 +189,6 @@ class SMSService
         }
         bool Moderate(int id, bool moderate)
         {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             for (auto& it : _messages)
             {
                 if (it == id)
@@ -199,7 +198,7 @@ class SMSService
                         it.SetModeratedOk(moderate);
                         if (it.IsFirstModeratedOk())
                         {
-                            logger_base.info("Moderated Accepted Msg: %s", (const char*)it.GetLog().c_str());
+                            spdlog::info("Moderated Accepted Msg: {}",it.GetLog().ToStdString());
                             if (it._from != GetPhone())
                             {
                                 SendSuccessMessage(it, _options->GetSuccessMessage());
@@ -233,7 +232,6 @@ class SMSService
         }
         bool AddMessage(SMSMessage& msg)
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::lock_guard<std::recursive_mutex> lock(_threadLock);
             bool added = false;
 
@@ -361,8 +359,8 @@ class SMSService
 
                                                 bool magic = false;
                                                 for (const auto& it : _options->GetMagicWords()) {
-                                                    if (it->CheckMessage(msg))                                                         {
-                                                        logger_base.info("Magic Msg: %s", (const char*)msg.GetLog().c_str());
+                                                    if (it->CheckMessage(msg)) {
+                                                        spdlog::info("Magic Msg: {}", msg.GetLog().ToStdString());
                                                         _rejectedMessages.push_back(msg);
                                                         magic = true;
                                                         break;
@@ -372,7 +370,7 @@ class SMSService
                                                 if (!magic) {
                                                     _messages.push_back(msg);
                                                     added = true;
-                                                    logger_base.info("Accepted Msg: %s", (const char*)msg.GetLog().c_str());
+                                                    spdlog::info("Accepted Msg: {}", msg.GetLog().ToStdString());
 
                                                     if (msg._from != GetPhone()) {
                                                         SendSuccessMessage(msg, _options->GetSuccessMessage());
@@ -381,14 +379,14 @@ class SMSService
                                             }
                                             else
                                             {
-                                                logger_base.warn("Rejected Msg: Not one word : %s", (const char*)msg.GetLog().c_str());
+                                                spdlog::warn("Rejected Msg: Not one word : {}", msg.GetLog().ToStdString());
                                                 _rejectedMessages.push_back(msg);
                                                 SendRejectMessage(msg, _options->GetRejectMessage());
                                             }
                                         }
                                         else
                                         {
-                                            logger_base.warn("Rejected Msg: Too long : %s", (const char*)msg.GetLog().c_str());
+                                            spdlog::warn("Rejected Msg: Too long : {}", msg.GetLog().ToStdString());
                                             _rejectedMessages.push_back(msg);
                                             SendRejectMessage(msg, _options->GetRejectMessage());
                                         }
@@ -397,38 +395,38 @@ class SMSService
                                     {
                                         if (_options->GetRejectProfanity())
                                         {
-                                            logger_base.warn("Rejected Msg: Censored : %s", (const char*)msg.GetLog().c_str());
+                                            spdlog::warn("Rejected Msg: Censored : {}", msg.GetLog().ToStdString());
                                             _rejectedMessages.push_back(msg);
                                             SendRejectMessage(msg, _options->GetRejectMessage());
                                         } else {
-                                            logger_base.warn("Rejected Msg: Blank : '%s'", (const char*)msg.GetLog().c_str());
+                                            spdlog::warn("Rejected Msg: Blank : '{}'", msg.GetLog().ToStdString());
                                         }
                                     }
                                 }
                                 else
                                 {
-                                    logger_base.warn("Rejected Msg: Whitelist : %s", (const char*)msg.GetLog().c_str());
+                                    spdlog::warn("Rejected Msg: Whitelist : {}", msg.GetLog().ToStdString());
                                     _rejectedMessages.push_back(msg);
                                     SendRejectMessage(msg, _options->GetRejectMessage());
                                 }
                             }
                             else
                             {
-                                logger_base.warn("Rejected Msg: Blacklist : %s", (const char*)msg.GetLog().c_str());
+                                spdlog::warn("Rejected Msg: Blacklist : {}", msg.GetLog().ToStdString());
                                 _rejectedMessages.push_back(msg);
                                 SendRejectMessage(msg, _options->GetRejectMessage());
                             }
                         }
                         else
                         {
-                            logger_base.warn("Rejected Msg: Too many messages from number : %s : %d > %d", (const char*)msg.GetLog().c_str(), GetMessagesReceivedFromPhone(msg._from), _options->GetMaximumMessagesPerPhone());
+                            spdlog::warn("Rejected Msg: Too many messages from number : {} : {} > {}", msg.GetLog().ToStdString(), GetMessagesReceivedFromPhone(msg._from), _options->GetMaximumMessagesPerPhone());
                             _rejectedMessages.push_back(msg);
                             //SendRejectMessage(msg, _options.GetRejectMessage()); //  - we dont want to do this
                         }
                     }
                     else
                     {
-                        logger_base.warn("Rejected Msg: Phone Blacklist : %s", (const char*)msg.GetLog().c_str());
+                        spdlog::warn("Rejected Msg: Phone Blacklist : {}", msg.GetLog().ToStdString());
                         _rejectedMessages.push_back(msg);
                         SendRejectMessage(msg, _options->GetRejectMessage());
                     }
@@ -436,12 +434,12 @@ class SMSService
                 else
                 {
                     // we already have this message but dont log
-                    logger_base.debug("Rejected Msg: Already in list : %s", (const char*)msg.GetLog().c_str());
+                    spdlog::debug("Rejected Msg: Already in list : {}", msg.GetLog().ToStdString());
                 }
             }
             else
             {
-                logger_base.debug("Rejected Msg: Too old : %s. Age %d > Max Age %d", (const char*)msg.GetLog().c_str(), msg.GetAgeMins(), maxAgeMins);
+                spdlog::debug("Rejected Msg: Too old : {}. Age {} > Max Age {}", msg.GetLog().ToStdString(), msg.GetAgeMins(), maxAgeMins);
             }
 
             return added;
@@ -478,16 +476,14 @@ inline RetrieveThread::RetrieveThread(SMSService* service, uint32_t interval) : 
 
 inline void* RetrieveThread::Entry()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_service == nullptr)
     {
-        logger_base.info("Retrieve thread started but service was null. Exiting.");
+        spdlog::info("Retrieve thread started but service was null. Exiting.");
         return nullptr;
     }
 
     _running = true;
-    logger_base.info("Retrieve thread for %s running.", (const char *)_service->GetServiceName().c_str());
+    spdlog::info("Retrieve thread for {} running.", _service->GetServiceName());
     bool first = true;
 
     while (!_stop)
@@ -499,7 +495,7 @@ inline void* RetrieveThread::Entry()
         else
         {
             wxDateTime next = wxDateTime::Now() + wxTimeSpan(0, 0, 0, _interval);
-            logger_base.debug("Next message retrieval at %s.", (const char *)next.FormatTime().c_str());
+            spdlog::debug("Next message retrieval at {}.", next.FormatTime().ToStdString());
 
             while (!_stop && wxDateTime::Now() < next)
             {

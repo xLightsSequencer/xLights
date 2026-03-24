@@ -22,6 +22,7 @@
     </ClCompile>
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\TraceLog.cpp" />
+    <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />

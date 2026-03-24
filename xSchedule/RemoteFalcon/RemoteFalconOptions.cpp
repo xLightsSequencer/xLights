@@ -18,8 +18,6 @@
 
 #include "../../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
-
 RemoteFalconOptions::RemoteFalconOptions()
 {
 }

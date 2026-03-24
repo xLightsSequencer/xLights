@@ -232,7 +232,7 @@ class Falcon : public BaseController
     
     bool IsEnhancedV2Firmware() const;
     
-    int GetMaxPixels() const;     
+    int GetMaxPixels() const;
     #pragma endregion
 
 #ifndef DISCOVERYONLY

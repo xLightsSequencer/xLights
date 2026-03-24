@@ -28,7 +28,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include <log4cpp/Category.hh>
+#include <Log.h>
 
 #define FAST_TIMEOUT 2
 #define SLOW_TIMEOUT 5
@@ -44,8 +44,6 @@ WorkManager::WorkManager()
 
 void WorkManager::Start()
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	if (_threadsPing.size() == 0) {
 		if (_singleThreaded) {
 			// we cant actually run single threaded so we run 1 ping, 1 main and 2 other (as computer is long running in other)
@@ -68,7 +66,7 @@ void WorkManager::Start()
 	}
 
 	if (!_started) {
-		logger_base.debug("Starting work.");
+        spdlog::debug("Starting work.");
 		_started = true;
 		for (const auto& it : _threadsHTTP) {
 			it->Run();
@@ -87,8 +85,7 @@ void WorkManager::Start()
 
 void WorkManager::Stop()
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-	logger_base.debug("Stopping work");
+    spdlog::debug("Stopping work");
 	for (const auto& it : _threadsHTTP) {
 		it->Terminate();
 	}
@@ -206,11 +203,9 @@ void WorkManager::AddClassDSubnet(const std::string& ip, const std::string& prox
 
 void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	std::list<std::pair<std::string, std::string>> results;
 
-	logger_base.debug("PingWork %s", (const char*)_ip.c_str());
+    spdlog::debug("PingWork {}", _ip);
 
 	// First determine if public or private
 
@@ -291,14 +286,13 @@ void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 std::string HTTPWork::GetTitle(const std::string& page)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static wxRegEx title("<[^>]*title[^>]*>(.*)<[^>]*\\/[^>]*title[^>]*>");
-    logger_base.debug("    Scanning for title.");
+    spdlog::debug("    Scanning for title.");
     if (title.Matches(FromUTF8(page)) && title.GetMatchCount() > 1) {
 
-        logger_base.debug("    Title matches found %u.", (uint32_t)title.GetMatchCount());
+        spdlog::debug("    Title matches found {}.", (uint32_t)title.GetMatchCount());
         wxString t = title.GetMatch(FromUTF8(page), 1);
-        logger_base.debug("    Title value extracted.");
+        spdlog::debug("    Title value extracted.");
 
 		if (t.Contains("404")) {
 			return "";
@@ -338,11 +332,9 @@ std::string HTTPWork::GetControllerTypeBasedOnPageContent(const std::string& pag
 
 void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	std::list<std::pair<std::string, std::string>> results;
 
-	logger_base.debug("HTTPWork %s:%d Proxy: %s", (const char*)_ip.c_str(), _port, (const char*)_proxy.c_str());
+    spdlog::debug("HTTPWork {}:{} Proxy: {}", _ip, _port, _proxy);
 
 	wxIPV4address addr;
 	addr.Hostname(_ip);
@@ -351,7 +343,7 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	if (client != nullptr) {
 		if (client->Connect(addr)) {
 			client->Close();
-			logger_base.debug("    HTTP Connected.");
+			spdlog::debug("    HTTP Connected.");
 			results.push_back({ "IP", _ip });
 			results.push_back({ "Type", "HTTP" });
 			if (_proxy != "") {
@@ -362,21 +354,21 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			}
 
 			try {
-                logger_base.debug("    Getting the web page.");
+                spdlog::debug("    Getting the web page.");
                 std::string page = Curl::HTTPSGet(_proxy + _ip, "", "", SLOW_TIMEOUT);
-                logger_base.debug("    Got the web page.");
+                spdlog::debug("    Got the web page.");
 
 				if (page != "") {
-                    logger_base.debug("    Getting the title.");
+                    spdlog::debug("    Getting the title.");
                     std::string title = GetTitle(page);
-                    logger_base.debug("    Got the title.");
+                    spdlog::debug("    Got the title.");
                     if (title != "") {
 						results.push_back({ "Title", title });
 					}
 
-                    logger_base.debug("    Determining controller type.");
+                    spdlog::debug("    Determining controller type.");
                     std::string controller = GetControllerTypeBasedOnPageContent(page);
-                    logger_base.debug("    Got the controller type.");
+                    spdlog::debug("    Got the controller type.");
                     if (controller != "") {
 						results.push_back({ "Controller", controller });
 					}
@@ -393,7 +385,7 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			workManager.AddWork(new xScheduleWork(_ip));
 		}
 		else {
-			logger_base.debug("    HTTP Connect failed.");
+            spdlog::debug("    HTTP Connect failed.");
 		}
 	}
 	else {
@@ -407,8 +399,6 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	std::list<std::pair<std::string, std::string>> results;
 
 	std::string proxy;
@@ -416,19 +406,19 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		proxy = _proxy + "/proxy/";
 	}
 
-	logger_base.debug("FPPWork %s %s", (const char*)_proxy.c_str(), (const char*)_ip.c_str());
+	spdlog::debug("FPPWork {} {}", _proxy, _ip);
 	auto netconfig = Curl::HTTPSGet(proxy + _ip + "/api/network/interface", "", "", FAST_TIMEOUT);
 
 	if (netconfig != "" && Contains(netconfig, "operstate")) {
 
-		logger_base.debug("    FPP found");
+		spdlog::debug("    FPP found");
 		results.push_back({ "IP", _ip });
 		results.push_back({ "Type", "FPP" });
 
 
 		std::vector<std::string> networks;
 
-		logger_base.debug("    Getting wifi strength");
+		spdlog::debug("    Getting wifi strength");
 		auto wificonfig = Curl::HTTPSGet(proxy + _ip + "/api/network/wifi/strength", "", "", FAST_TIMEOUT);
 
         nlohmann::json wifiroot;
@@ -506,7 +496,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			}
 		}
 
-		logger_base.debug("    Getting FPP proxies");
+		spdlog::debug("    Getting FPP proxies");
 		auto proxies = Curl::HTTPSGet(proxy + _ip + "/api/proxies", "", "", FAST_TIMEOUT);
         if (!proxies.empty() && proxies != "[]") {
             try {
@@ -532,7 +522,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
             }
 		}
 
-		logger_base.debug("    Getting FPP Channel Outputs");
+		spdlog::debug("    Getting FPP Channel Outputs");
 		auto co = Curl::HTTPSGet(proxy + _ip + "/api/configfile/co-universes.json", "", "", FAST_TIMEOUT);
         if (!co.empty() && co[0] == '{') {
             try {
@@ -548,7 +538,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			}			
 		}
 
-		logger_base.debug("    Getting FPP status");
+		spdlog::debug("    Getting FPP status");
 		auto status = Curl::HTTPSGet(proxy + _ip + "/api/fppd/status", "", "", FAST_TIMEOUT);
         if (!status.empty() && status[0] == '{') {
             try {
@@ -564,7 +554,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
             }	
 		}
 
-		logger_base.debug("    Getting FPP Cape Info");
+		spdlog::debug("    Getting FPP Cape Info");
         auto cape = Curl::HTTPSGet(proxy + _ip + "/api/cape", "", "", FAST_TIMEOUT);
         if (!cape.empty() && cape[0] == '{') {
             try {
@@ -581,7 +571,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
             }
         }
 
-		logger_base.debug("    Getting FPP multisync");
+		spdlog::debug("    Getting FPP multisync");
 		auto multisync = Curl::HTTPSGet(proxy + _ip + "/api/fppd/multiSyncSystems", "", "", FAST_TIMEOUT);
         if (!multisync.empty() && multisync[0] == '{') {
             try {
@@ -601,7 +591,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		PublishResult(workManager, results);
 	}
 	else {
-		logger_base.debug("    Not FPP");
+		spdlog::debug("    Not FPP");
 	}
 }
 
@@ -611,8 +601,6 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	std::list<std::pair<std::string, std::string>> results;
 
 	std::string proxy;
@@ -620,12 +608,12 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		proxy = _proxy + "/proxy/";
 	}
 
-	logger_base.debug("FalconWork %s %s", (const char*)_proxy.c_str(), (const char*)_ip.c_str());
+	spdlog::debug("FalconWork {} {}", _proxy, _ip);
 	auto status = Curl::HTTPSGet(proxy + _ip + "/status.xml", "", "", SLOW_TIMEOUT);
 
 	if (status != "" && Contains(status, "<response>") && Contains(status, "<np>") && Contains(status, "<p>")) {
 
-		logger_base.debug("    Falcon found");
+		spdlog::debug("    Falcon found");
 		results.push_back({ "IP", _ip});
 		results.push_back({ "Type", "Falcon" });
 
@@ -767,15 +755,13 @@ void ScanWork::PublishResult(WorkManager& workManager, std::list<std::pair<std::
 
 void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-	logger_base.debug("xScheduleWork %s:%d", (const char*)_ip.c_str(), _port);
+    spdlog::debug("xScheduleWork {}:{}", _ip, _port);
 
 	std::list<std::pair<std::string, std::string>> results;
 
 	auto xs = Curl::HTTPSGet(_ip + ":" + wxString::Format("%d", _port) + "/xScheduleQuery?Query=getplayingstatus", "", "", FAST_TIMEOUT);
 	if (xs != "" && xs[0] == '{') {
-		logger_base.debug("    xSchedule found");
+		spdlog::debug("    xSchedule found");
 		results.push_back({ "IP", _ip });
 		results.push_back({ "Type", "xSchedule" });
 		results.push_back({ "Port", wxString::Format("%d", _port).ToStdString() });
@@ -797,9 +783,7 @@ void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-	logger_base.debug("DiscoverWork");
+    spdlog::debug("DiscoverWork");
 
 	Discovery discovery(GetFrameWindow(), &_om);
 
@@ -868,11 +852,10 @@ void DiscoverWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 void ComputerWork::ScanARP(WorkManager& workManager)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	std::map<std::string, std::string> arps;
 
 #ifdef __WXMSW__
-	logger_base.debug("Reading ARP table");
+    spdlog::debug("Reading ARP table");
 	DWORD bytesNeeded = 0;
 	PMIB_IPNETTABLE arp = nullptr;
 
@@ -908,7 +891,7 @@ void ComputerWork::ScanARP(WorkManager& workManager)
 #endif
 
 #ifdef __LINUX__
-	logger_base.debug("Reading ARP table");
+    spdlog::debug("Reading ARP table");
 	const int size = 256;
 
 	char ip_address[size];
@@ -936,7 +919,7 @@ void ComputerWork::ScanARP(WorkManager& workManager)
 		}
 	}
 	else {
-		logger_base.error("Error Reading ARP table");
+        spdlog::error("Error Reading ARP table");
 	}
 	fclose(fp);
 #endif
@@ -1043,11 +1026,9 @@ void ComputerWork::ProcessController(WorkManager& workManager, Controller* contr
 
 void ComputerWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	std::list<std::pair<std::string, std::string>> results;
 
-	logger_base.debug("ComputerWork:");
+	spdlog::debug("ComputerWork:");
 
 	results.push_back({ "Type", "Computer" });
 
@@ -1151,13 +1132,11 @@ void ComputerWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 void MACWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	static std::mutex lockcache;
 	static std::map<std::string, std::string> cache; // because people tend to have multiple from the same vendor ... cache what we find
 	std::list<std::pair<std::string, std::string>> results;
 
-	logger_base.debug("MACWork: %s", (const char*)_mac.c_str());
+	spdlog::debug("MACWork: {}", _mac);
 
 	auto vendor = LookupMacAddress(_mac);
 
@@ -1172,9 +1151,9 @@ void MACWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		if (vendor == "") {
 			std::unique_lock<std::mutex> locker(lockcache); // we do this to minimise concurrent web requests
 			auto macURL = std::string("https://api.macvendors.com/" + _mac);
-			logger_base.debug("    Looking up MAC: %s", (const char*)macURL.c_str());
+			spdlog::debug("    Looking up MAC: {}", macURL);
 			vendor = Curl::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
-			logger_base.debug("    Looking up MAC: %s => %s", (const char*)macURL.c_str(), (const char*)vendor.c_str());
+			spdlog::debug("    Looking up MAC: {} => {}", macURL, vendor);
 			if (Contains(vendor, "\"Not Found\"")) {
 				vendor = "";
 			}

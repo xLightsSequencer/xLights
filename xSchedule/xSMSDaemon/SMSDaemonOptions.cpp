@@ -6,7 +6,6 @@
 #include "../../xLights/UtilFunctions.h"
 #include "MagicWord.h"
 
-#include <log4cpp/Category.hh>
 #include <log.h>
 #include <wx/wxcrt.h>
 

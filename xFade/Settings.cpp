@@ -6,8 +6,6 @@
 #include "../xSchedule/wxMIDI/src/wxMidi.h"
 #endif
 
-#include <log4cpp/Category.hh>
-
 Settings::Settings(std::string settings)
 {
     wxIPV4address addr;

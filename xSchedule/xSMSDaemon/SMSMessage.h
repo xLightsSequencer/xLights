@@ -5,7 +5,7 @@
 #include <fstream>
 #include <set>
 
-#include <log4cpp/Category.hh>
+#include <Log.h>
 
 #include "utils/Curl.h"
 
@@ -158,14 +158,13 @@ class SMSMessage
 
     static void LoadBlackList()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (_blacklist.size() > 0) return;
 
         wxFileName fn("Blacklist.txt");
 
         if (!fn.Exists())
         {
-            logger_base.error("Blacklist file not found %s.", (const char *)fn.GetFullPath().c_str());
+            spdlog::error("Blacklist file not found {}.", fn.GetFullPath().ToStdString());
             return;
         }
 
@@ -174,14 +173,13 @@ class SMSMessage
 
     static void LoadPhoneBlackList()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (_phoneBlacklist.size() > 0) return;
 
         wxFileName fn("PhoneBlacklist.txt");
 
         if (!fn.Exists())
         {
-            logger_base.error("Phone Blacklist file not found %s.", (const char *)fn.GetFullPath().c_str());
+            spdlog::error("Phone Blacklist file not found {}.", fn.GetFullPath().ToStdString());
             return;
         }
 
@@ -190,14 +188,13 @@ class SMSMessage
 
     static void LoadWhiteList()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (_whitelist.size() > 0) return;
 
         wxFileName fn("Whitelist.txt");
 
         if (!fn.Exists())
         {
-            logger_base.error("Whitelist file not found %s.", (const char *)fn.GetFullPath().c_str());
+            spdlog::error("Whitelist file not found {}.", fn.GetFullPath().ToStdString());
             return;
         }
 
@@ -206,7 +203,6 @@ class SMSMessage
 
     bool PassesBlacklist() const
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadBlackList();
 
         wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.)([]\\/<>-_*&^%$#~`\"?"));
@@ -215,7 +211,7 @@ class SMSMessage
             wxString token = tkz.GetNextToken().Lower();
             if (_blacklist.find(token.ToStdString()) != _blacklist.end())
             {
-                logger_base.debug("Blacklist failed on '%s'", (const char*)token.c_str());
+                spdlog::debug("Blacklist failed on '{}'", token.ToStdString());
                 return false;
             }
         }
@@ -224,20 +220,18 @@ class SMSMessage
 
     bool PassesPhoneBlacklist() const
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadPhoneBlackList();
 
         if (_phoneBlacklist.find(_from) == _phoneBlacklist.end())
         {
             return true;
         }
-        logger_base.debug("Phone blacklist failed on '%s'", (const char*)_from.c_str());
+        spdlog::debug("Phone blacklist failed on '{}'", _from);
         return false;
     }
 
     bool PassesWhitelist() const
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         LoadWhiteList();
 
         wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.!|)([]\\/<>-_*&^%$#@~`\"?"));
@@ -246,7 +240,7 @@ class SMSMessage
             wxString token = tkz.GetNextToken().Lower();
             if (_whitelist.find(token.ToStdString()) == _whitelist.end())
             {
-                logger_base.debug("Whitelist failed on '%s'", (const char*)token.c_str());
+                spdlog::debug("Whitelist failed on '{}'", token.ToStdString());
                 return false;
             }
         }
