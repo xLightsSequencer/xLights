@@ -6,7 +6,7 @@
 
 #include "utils/Curl.h"
 
-#include <Log.h>
+#include <log.h>
 
 #include <wx/wx.h>
 

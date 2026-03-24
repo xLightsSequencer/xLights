@@ -64,7 +64,7 @@ class Experience : public BaseController
 #pragma region Encode and Decode
     [[nodiscard]] int EncodeBrightness(int brightness) const;
     [[nodiscard]] int EncodeGamma(double gamma) const;
-    [[nodiscard]] wxString EncodeColorOrder(std::string const& colorOrder) const;
+    [[nodiscard]] std::string EncodeColorOrder(std::string const& colorOrder) const;
 #pragma endregion
 
 public:

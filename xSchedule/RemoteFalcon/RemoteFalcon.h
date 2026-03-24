@@ -22,7 +22,7 @@
 #include "RemoteFalconOptions.h"
 #include "../../xLights/SpecialOptions.h"
 
-#include <Log.h>
+#include <log.h>
 
 class RemoteFalcon
 {

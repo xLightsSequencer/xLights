@@ -8,7 +8,7 @@
 
 #include <wx/wx.h>
 
-#include <Log.h>
+#include <log.h>
 
 #include "../../xLights/UtilFunctions.h"
 #include "../wxJSON/jsonreader.h"

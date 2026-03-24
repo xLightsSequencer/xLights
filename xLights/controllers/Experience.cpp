@@ -132,8 +132,7 @@ int Experience::EncodeGamma(double gamma) const
     return 30;
 }
 
-wxString Experience::EncodeColorOrder(std::string const& colorOrder) const
-{
+std::string Experience::EncodeColorOrder(std::string const& colorOrder) const {
     //no convertion needed yet
     return Lower(colorOrder);
 }
