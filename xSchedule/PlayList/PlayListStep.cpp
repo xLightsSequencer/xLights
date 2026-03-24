@@ -1039,7 +1039,7 @@ std::string PlayListStep::FormatTime(size_t timems, bool ms) const
 
 std::string PlayListStep::GetStatus(bool ms)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
     std::string fps = "Unknown";
 

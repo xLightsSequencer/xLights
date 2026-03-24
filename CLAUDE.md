@@ -102,5 +102,5 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 
 ## Key Dependencies
 
-wxWidgets 3.3 (custom fork `xLightsSequencer/wxWidgets`), log4cpp, FFmpeg, SDL2, Lua 5.4, libcurl, zstd, LiquidFun/Box2D, libxlsxwriter, nanosvg, ISPC (SIMD kernels).
+wxWidgets 3.3 (custom fork `xLightsSequencer/wxWidgets`), spdlog, FFmpeg, SDL2, Lua 5.4, libcurl, zstd, LiquidFun/Box2D, libxlsxwriter, nanosvg, ISPC (SIMD kernels).
 

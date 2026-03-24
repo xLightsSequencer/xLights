@@ -36,7 +36,7 @@ public:
 
     virtual ~ArtNETReceiverThread()
     {
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
         if (!_stop)
         {

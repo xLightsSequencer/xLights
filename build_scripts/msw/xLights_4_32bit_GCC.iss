@@ -38,32 +38,27 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "../../bin/xLights.exe"; DestDir: "{app}"
-Source: "../../bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xlights.ico"; DestDir: "{app}"
 Source: "../../include/xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
 Source: "../../bin/xSchedule.exe"; DestDir: "{app}"
-Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include/xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../documentation/xSchedule API Documentation.txt"; DestDir: "{app}"
 
 ; xCapture
 Source: "../../bin/xCapture.exe"; DestDir: "{app}"
-Source: "../../bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xcapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xScanner
 Source: "../../bin/xScanner.exe"; DestDir: "{app}"
-Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xScanner.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xScanner/MacLookup.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xFade
 Source: "../../bin/xFade.exe"; DestDir: "{app}"
-Source: "../../bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xfade.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 Source: "../../bin/xlDo.exe"; DestDir: "{app}"
@@ -93,7 +88,6 @@ Source: "../../bin/wxmsw314u_qa_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignor
 Source: "../../bin/libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin/libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
 Source: "../../bin/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"

@@ -3085,7 +3085,7 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                    "\",\"passwordset\":\"" + (_scheduleOptions->GetPassword() == "" ? "false" : "true") +
                    "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") +
                    "\"," + GetPingStatus() + "}";
-            // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
             // spdlog::info("{}", data);
         }
     } else if (c == "getbuttons") {

@@ -52,12 +52,6 @@ void DrawGLUtils::SetupDebugLogging() {
     if (!m_logger) {
         m_logger = spdlog::default_logger();
     }
-    // if (!static_logger_opengl) {
-    // static_logger_opengl = &log4cpp::Category::getInstance(std::string("log_opengl"));
-    // static_logger_opengl_trace = &log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-    // isTraceDebugEnabled = static_logger_opengl_trace->isDebugEnabled();
-    // isDebugEnabled = static_logger_opengl->isDebugEnabled() | isTraceDebugEnabled;
-    //}
 }
 
 void DrawGLUtils::DoLogGLError(const char* file, int line, const char* msg)

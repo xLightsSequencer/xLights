@@ -781,9 +781,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             int count = 0;
             for (auto elementNode : e.children("Element")) {
                 for (auto layerNode : elementNode.children()) {
-                    for (auto effect : layerNode.children()) {
-                        count++;
-                    }
+                    count += std::ranges::distance(layerNode.children());
                 }
             }
 

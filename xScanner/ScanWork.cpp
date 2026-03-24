@@ -983,7 +983,7 @@ std::string ComputerWork::GetForceIP()
 
 void ComputerWork::ProcessController(WorkManager& workManager, Controller* controller, const std::string& why)
 {
-	//static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
 	std::list<std::pair<std::string, std::string>> results;
 

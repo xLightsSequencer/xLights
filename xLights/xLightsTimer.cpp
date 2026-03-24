@@ -100,7 +100,7 @@ void xLightsTimer::SetName(const std::string& name)
 
 bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/, const std::string& name)
 {
-    //static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
+
     wxStopWatch sw;
 
     // While there is support for one shot timers here ... it is not the most robust code and should

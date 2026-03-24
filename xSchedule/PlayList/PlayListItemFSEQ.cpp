@@ -398,14 +398,10 @@ size_t PlayListItemFSEQ::GetPositionMS() const {
 }
 
 bool PlayListItemFSEQ::Done() const {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("FSEQ Done %d <- %ld >= %ld - %ld", GetPositionMS() >= GetDurationMS() - _msPerFrame, GetPositionMS(), GetDurationMS(), _msPerFrame);
     return GetPositionMS() >= GetDurationMS() - _msPerFrame;
 }
 
 void PlayListItemFSEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (outputframe) {
         if (_fseqFile != nullptr) {
             if (ms < _delay) {

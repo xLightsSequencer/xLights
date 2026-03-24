@@ -40,7 +40,7 @@ void ListenerLor::AddNewUnitId(int unit_id) {
 }
 
 void ListenerLor::Poll() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxStopWatch sw3;
     int inputs1 = 0;
     int inputs2 = 0;

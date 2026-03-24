@@ -128,7 +128,7 @@ END_EVENT_TABLE()
 
 xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
 {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
     _e131Receiver = nullptr;
     _artNETReceiver = nullptr;

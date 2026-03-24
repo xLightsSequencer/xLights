@@ -103,7 +103,7 @@ public:
 
     wxDateTime GetSunRiseSet(wxDateTime date, bool sunset)
     {
-        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
         const float zenith = 90.83333333333333f;
 

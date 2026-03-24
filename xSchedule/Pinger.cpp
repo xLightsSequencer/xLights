@@ -33,7 +33,7 @@ public:
     }
 
     virtual ~PingThread() {
-        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
         if (_running && !_stop) {
             _stop = true;

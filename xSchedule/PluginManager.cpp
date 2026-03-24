@@ -86,8 +86,8 @@ void PluginManager::ScanFolder(const std::string& folder)
     std::vector<wxString> fileList = { "avcodec-58", "avcodec-59", "avcodec-60", "avdevice-60",
                                        "avfilter-9", "avformat-58", "avformat-59", "avformat-60",
                                        "avutil-56", "avutil-57", "avutil-58",
-                                       "hidapi", "libcurl-x64", "libgcc_s_seh-1", "log4cpp",
-                                       "liblog4cpp", "liblog4cppd", "libstdc++-6", "libwinpthread-1",
+                                       "hidapi", "libcurl-x64", "libgcc_s_seh-1",
+                                       "libstdc++-6", "libwinpthread-1",
                                        "postproc-57", "SDL2", "LIBCURL", "libgcc_s_dw2-1",
                                        "swresample-3", "swresample-4",
                                        "swscale-5", "swscale-6", "swscale-7" };

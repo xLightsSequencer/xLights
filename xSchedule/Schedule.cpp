@@ -592,14 +592,13 @@ void Schedule::SetEndTime(const std::string& end)
 bool Schedule::CheckActiveAt(const wxDateTime& now)
 {
 #ifdef LOGCALCNEXTTRIGGERTIME
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("   Checking %s.", (const char *)now.Format("%Y-%m-%d %H:%M").c_str());
+    spdlog::debug("   Checking {}.", (const char *)now.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
     if (!_enabled || !IsOkDOW(now) || !IsOkNthDay(now))
     {
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("       Disabled or wrong day of week.");
+        spdlog::debug("       Disabled or wrong day of week.");
 #endif
 
         _active = false;
@@ -643,7 +642,7 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
     end.SetMinute(e.GetMinute());
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-    logger_base.debug("       Now %s. Start %s. End %s", (const char *)now.Format("%Y-%m-%d %H:%M").c_str(), (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+    spdlog::debug("       Now {}. Start {}. End {}", (const char *)now.Format("%Y-%m-%d %H:%M").c_str(), (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
     if (e < s)
@@ -657,7 +656,7 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         _active = now >= start && now < end;
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-        if (!_active) logger_base.debug("       24 hrs a day but not within dates. %s-%s", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+        if (!_active) spdlog::debug("       24 hrs a day but not within dates. {}-{}", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
         return _active;
@@ -687,13 +686,13 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         _active = now >= start && now < end;
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-        if (!_active) logger_base.debug("       Valid dates but not at this time %s-%s.", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+        if (!_active) spdlog::debug("       Valid dates but not at this time {}-{}.", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
 #endif
     }
     else
     {
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("       Not valid on this date %s-%s.", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+        spdlog::debug("       Not valid on this date {}-{}.", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
 #endif
         // outside date range
         _active = false;
@@ -742,7 +741,7 @@ wxDateTime Schedule::GetNextTriggerDateTime()
         SetTime(next, __city, _startTime, _startTimeString, _onOffsetMins);
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+        spdlog::debug("   Checking {}.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
         if (next > now && CheckActiveAt(next))
         {
@@ -753,7 +752,7 @@ wxDateTime Schedule::GetNextTriggerDateTime()
         {
             next += wxTimeSpan(24);
 #ifdef LOGCALCNEXTTRIGGERTIME
-            logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+            spdlog::debug("   Checking {}.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
             if (next > now && CheckActiveAt(next))
             {
@@ -771,7 +770,7 @@ wxDateTime Schedule::GetNextTriggerDateTime()
     SetTime(next, __city, _startTime, _startTimeString, _onOffsetMins);
     next.SetSecond(0);
 #ifdef LOGCALCNEXTTRIGGERTIME
-    logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+    spdlog::debug("   Checking {}.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
     if (next > now && CheckActiveAt(next))
     {
@@ -782,7 +781,7 @@ wxDateTime Schedule::GetNextTriggerDateTime()
     {
         next += wxTimeSpan(24);
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("   Checking %s.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
+        spdlog::debug("   Checking {}.", (const char*)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
         if (next > now && CheckActiveAt(next))
         {
@@ -814,7 +813,6 @@ std::string Schedule::GetNextNthDay(int nthDay, int nthDayOffset)
 std::string Schedule::GetNextTriggerTime()
 {
 #ifdef LOGCALCNEXTTRIGGERTIME
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #endif
 
     wxDateTime end = _endDate;
@@ -827,14 +825,14 @@ std::string Schedule::GetNextTriggerTime()
     end.SetMinute(end_time.GetMinute());
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-    logger_base.debug("End date %s.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+    spdlog::debug("End date {}.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
     if (_everyYear)
     {
         end.SetYear(wxDateTime::Now().GetYear() + 1);
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("Adjusted for every year %s.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+        spdlog::debug("Adjusted for every year {}.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
 #endif
     }
 
@@ -859,7 +857,7 @@ std::string Schedule::GetNextTriggerTime()
     if (end < wxDateTime::Now())
     {
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("End if before today ... so Never.");
+        spdlog::debug("End if before today ... so Never.");
 #endif
         return "Never";
     }
@@ -872,7 +870,7 @@ std::string Schedule::GetNextTriggerTime()
         SetTime(next, __city, _startTime, _startTimeString, _onOffsetMins);
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+        spdlog::debug("Checking {}.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
         if (next > wxDateTime::Now() && CheckActiveAt(next))
@@ -884,7 +882,7 @@ std::string Schedule::GetNextTriggerTime()
         {
             next += wxTimeSpan(24);
 #ifdef LOGCALCNEXTTRIGGERTIME
-            logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+            spdlog::debug("Checking {}.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
             if (next > wxDateTime::Now() && CheckActiveAt(next))
             {
@@ -903,7 +901,7 @@ std::string Schedule::GetNextTriggerTime()
     next.SetSecond(0);
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-    logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+    spdlog::debug("Checking {}.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
     if (next > wxDateTime::Now() && CheckActiveAt(next))
     {
@@ -915,7 +913,7 @@ std::string Schedule::GetNextTriggerTime()
         next += wxTimeSpan(24);
         SetTime(next, __city, _startTime, _startTimeString, _onOffsetMins);
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+        spdlog::debug("Checking {}.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
         if (next > wxDateTime::Now() && CheckActiveAt(next))
@@ -937,7 +935,7 @@ std::string Schedule::GetNextTriggerTime()
         }
 
 #ifdef LOGCALCNEXTTRIGGERTIME
-        logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+        spdlog::debug("Checking {}.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
         if (CheckActiveAt(next))

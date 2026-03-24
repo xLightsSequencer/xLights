@@ -93,7 +93,7 @@ void ListenerARTNet::StopProcess() {
 }
 
 void ListenerARTNet::Poll() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
     if (_socket != nullptr) {
         unsigned char buffer[2048];

@@ -38,32 +38,27 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "../../xLights/Release/xLights.exe"; DestDir: "{app}"
-Source: "../../bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/special.options"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xlights.ico"; DestDir: "{app}"
 Source: "../../include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
 Source: "../../xSchedule/Release/xSchedule.exe"; DestDir: "{app}"
-Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../documentation/xSchedule API Documentation.txt"; DestDir: "{app}"
 
 ; xCapture
 Source: "../../xCapture/Release/xCapture.exe"; DestDir: "{app}"
-Source: "../../bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xcapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xScanner
 Source: "../../xScanner/Release/xScanner.exe"; DestDir: "{app}"
-Source: "../../bin/xScanner.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include/xScanner.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../xScanner/MacLookup.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xFade
 Source: "../../xFade/Release/xFade.exe"; DestDir: "{app}"
-Source: "../../bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../include\xfade.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xlDo

@@ -54,8 +54,6 @@ PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node) {
     _currentStep = nullptr;
     Load(outputManager, node);
 
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.info("Playlist created from XML %s 0x%lx.", (const char*)GetName().c_str(), this);
 }
 
 void PlayList::ForgetChildren() {
@@ -173,8 +171,6 @@ PlayList::PlayList() {
     _name = "";
     _stopAtEndOfCurrentStep = false;
 
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.info("New playlist created from nothing 0x%lx.", this);
 }
 
 void PlayList::DeleteChildren() {
@@ -196,8 +192,6 @@ void PlayList::DeleteChildren() {
 }
 
 PlayList::~PlayList() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // spdlog::info("Playlist being destroyed {} 0x%lx.", (const char*)GetName().c_str(), this);
 
     DeleteChildren();
 }
@@ -1490,8 +1484,6 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id) {
 }
 
 std::string PlayList::GetNextScheduledTime() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("Getting next scheduled time for playlist.");
     const wxDateTime nullDate = wxDateTime(static_cast<time_t>(0));
     wxDateTime nextdt = nullDate;
 

@@ -50,18 +50,6 @@
 const std::string SequenceFile::ERASE_MODE = "<rendered: erase-mode>";
 const std::string SequenceFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
-
-const std::array<std::string, (int)HEADER_INFO_TYPES::NUM_TYPES> HEADER_STRINGS = {
-    "author",
-    "author-email",
-    "author-website",
-    "song",
-    "artist",
-    "album",
-    "MusicURL",
-    "comment"
-};
-
 SequenceFile::SequenceFile(const std::string& filepath, uint32_t frameMS) :
     mFilePath(filepath),
     seq_duration(30.0),

@@ -39,7 +39,7 @@ public:
 
     virtual ~E131ReceiverThread()
     {
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
         if (!_stop)
         {
