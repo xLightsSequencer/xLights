@@ -43,7 +43,7 @@ endif
 
 .NOTPARALLEL:
 
-all: wxwidgets33 log4cpp cbp2make linkliquid libxlsxwriter ispc makefile subdirs
+all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc makefile subdirs
 
 #############################################################################
 
