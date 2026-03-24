@@ -152,17 +152,17 @@ void xlColor::SetFromString(const std::string &str) {
         if (str[3] == 'a') {
             start++;
         }
-        std::string::size_type sz;
+        char* end;
         std::string val = str.substr(start);
-        red = std::stoi(val, &sz);
-        val = val.substr(sz + 1);
-        green = std::stoi(val, &sz);
-        val = val.substr(sz + 1);
-        blue = std::stoi(val, &sz);
-        val = val.substr(sz + 1);
+        red = (uint8_t)std::strtol(val.c_str(), &end, 10);
+        val = val.substr(end - val.c_str() + 1);
+        green = (uint8_t)std::strtol(val.c_str(), &end, 10);
+        val = val.substr(end - val.c_str() + 1);
+        blue = (uint8_t)std::strtol(val.c_str(), &end, 10);
+        val = val.substr(end - val.c_str() + 1);
         alpha = 255;
         if (str[3] == 'a') {
-            float f = std::stof(val) * 255.0;
+            float f = std::strtof(val.c_str(), nullptr) * 255.0;
             alpha = f;
         }
     } else {

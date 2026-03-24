@@ -286,7 +286,7 @@ bool EspsPort::WriteConfigToJson(nlohmann::json& JsonConfig) {
     if (std::to_string(CurrentPort["type"].get<int>()) != CurrentProtocolId)
     {
         NumItemsChanged++;
-        CurrentPort["type"] = std::stoi(CurrentProtocolId);
+        CurrentPort["type"] = (int)std::strtol(CurrentProtocolId.c_str(), nullptr, 10);
     }
     nlohmann::json& CurrentProtocol = CurrentPort[CurrentProtocolId];
 
@@ -314,11 +314,7 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
         else if (JsonConfig[ElementName].is_number_float())
         {
             double temp;
-            try {
-                temp = std::stod(ElementValue);
-            } catch (const std::exception&) {
-                temp = 0.0;
-            }
+            temp = std::strtod(ElementValue.c_str(), nullptr);
             JsonConfig[ElementName] = temp;
             // spdlog::debug("float:ElementName: '" + ElementName + "' value: '" + std::to_string(JsonConfig[ElementName].get<float>()) + "'");
         }

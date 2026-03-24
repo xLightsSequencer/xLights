@@ -1302,8 +1302,8 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     std::vector<FALCON_V4_STRING> falconStrings;
     if (!fullcontrol) {
-        if (_v4status["B"].get<int>() != std::stoi(caps->GetCustomPropertyByPath("v4BoardMode", "99"))) {
-            spdlog::debug("Current board mode: {}. desired board mode: {}", _v4status["B"].get<int>(), std::stoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")));
+        if (_v4status["B"].get<int>() != (int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "99").c_str(), nullptr, 10)) {
+            spdlog::debug("Current board mode: {}. desired board mode: {}", _v4status["B"].get<int>(), (int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "0").c_str(), nullptr, 10));
             DisplayError("Falcon Outputs Upload: Board is currently set to the wrong mode. Please correct it.", parent);
             if (doProgress) {
                 progress->Update(100, "Aborting.");
@@ -1369,10 +1369,10 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
             progress->Update(40, "Ensuring board configuration is correct.");
         }
 
-        if (_v4status["B"].get<int>() != std::stoi(caps->GetCustomPropertyByPath("v4BoardMode", "0"))) {
+        if (_v4status["B"].get<int>() != (int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "0").c_str(), nullptr, 10)) {
             // we need to change the board mode - controller mode and start channel should be already set
             bool reboot = false;
-            if (!V4_SendBoardMode(std::stoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")), _v4status["O"].get<int>(), _v4status["ps"].get<int>() + 1, reboot)) {
+            if (!V4_SendBoardMode((int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "0").c_str(), nullptr, 10), _v4status["O"].get<int>(), _v4status["ps"].get<int>() + 1, reboot)) {
                 DisplayError("Falcon Outputs Upload: Failed to set board mode.", parent);
                 if (doProgress) {
                     progress->Update(100, "Aborting.");
@@ -2357,7 +2357,7 @@ std::string Falcon::GetMode() {
     if (_versionnum == 4 || _versionnum == 5) {
         return V4_DecodeMode(_v4status["O"].get<int>());
     }
-    return DecodeMode(std::stoi(_status["m"].get<std::string>()));
+    return DecodeMode((int)std::strtol(_status["m"].get<std::string>().c_str(), nullptr, 10));
 }
 
 #ifndef DISCOVERYONLY

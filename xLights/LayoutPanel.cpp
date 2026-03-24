@@ -5101,7 +5101,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         wxTextEntryDialog dlg(this, "Enter New Segment Size:");
         OptimiseDialogPosition(&dlg);
         if (dlg.ShowModal() == wxID_OK) {
-            int size = std::stoi(dlg.GetValue().ToStdString());
+            int size = (int)std::strtol(dlg.GetValue().ToStdString().c_str(), nullptr, 10);
             pmd->SetSegmentSize(seg, size);
             md->InitModel();
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");

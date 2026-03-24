@@ -114,11 +114,7 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
                     value = value.substr(1);
                 }
                 if (!value.empty()) {
-                    try {
-                        locations[layer][row][col] = std::stoi(value);
-                    } catch (...) {
-                        // not a number, treat as 0
-                    }
+                    locations[layer][row][col] = (int)std::strtol(value.c_str(), nullptr, 10);
                 }
                 col++;
             }
@@ -151,9 +147,9 @@ std::vector<std::vector<std::vector<int>>> ParseCompressed(const std::string& co
         std::vector<std::string> nodeData;
         Split(n, ',', nodeData);
         if (nodeData.size() == 3) {
-            nodes.emplace_back(std::make_tuple(std::stoi(nodeData[0]), std::stoi(nodeData[1]), std::stoi(nodeData[2]), 0));
+            nodes.emplace_back(std::make_tuple((int)std::strtol(nodeData[0].c_str(), nullptr, 10), (int)std::strtol(nodeData[1].c_str(), nullptr, 10), (int)std::strtol(nodeData[2].c_str(), nullptr, 10), 0));
         } else if (nodeData.size() == 4) {
-            nodes.emplace_back(std::make_tuple(std::stoi(nodeData[0]), std::stoi(nodeData[1]), std::stoi(nodeData[2]), std::stoi(nodeData[3])));
+            nodes.emplace_back(std::make_tuple((int)std::strtol(nodeData[0].c_str(), nullptr, 10), (int)std::strtol(nodeData[1].c_str(), nullptr, 10), (int)std::strtol(nodeData[2].c_str(), nullptr, 10), (int)std::strtol(nodeData[3].c_str(), nullptr, 10)));
         }
     }
 
@@ -257,7 +253,7 @@ void DeserializeStateInfo(pugi::xml_node f, FaceStateData & stateInfo) {
                     size_t endPos = (dashPos != std::string::npos) ? dashPos : key.length();
                     if (sPos == 0 && sPos + 1 < endPos) {
                         std::string numStr = key.substr(sPos + 1, endPos - sPos - 1);
-                        int num = std::stoi(numStr);
+                        int num = (int)std::strtol(numStr.c_str(), nullptr, 10);
                         storedKey = std::format("s{:03d}{}", num, (dashPos != std::string::npos ? key.substr(dashPos) : ""));
                     }
                 }

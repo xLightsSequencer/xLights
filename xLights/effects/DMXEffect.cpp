@@ -47,7 +47,7 @@ void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<s
         auto invert_chbx = oldSettings.Get("E_CHECKBOX_INVDMX" + froms, "NOTTHERE");
 
         if (slider != "NOTTHERE") {
-            int const new_value = ((float)std::stoi(slider) * scale) + offset;
+            int const new_value = ((float)std::strtol(slider.c_str(), nullptr, 10) * scale) + offset;
             settings["E_SLIDER_DMX" + tos] = std::to_string( new_value);
         } else {
             settings.erase("E_SLIDER_DMX" + tos);

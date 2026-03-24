@@ -393,7 +393,7 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
             auto ss = Split(s, ',');
             if (ss.size() == 2)
             {
-                res[std::stoi(ss[0])] = std::stoi(ss[1]);
+                res[(int)std::strtol(ss[0].c_str(), nullptr, 10)] = (int)std::strtol(ss[1].c_str(), nullptr, 10);
             }
         }
     }
@@ -1778,10 +1778,10 @@ void FPP::FillRanges(std::map<int, int> &rngs) {
         auto const r1 = Split(ranges, ',');
         for (const auto& a : r1) {
             auto const r = Split(a, '-');
-            int const start = std::stoi(r[0]);
+            int const start = (int)std::strtol(r[0].c_str(), nullptr, 10);
             int len = 4; //at least 4
             if (r.size() == 2) {
-                len = std::stoi(r[1]) - start + 1;
+                len = (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1;
             }
             rngs[start] = len;
         }
@@ -3257,10 +3257,10 @@ static void setRangesToChannelCount(DiscoveredData *inst) {
         auto const r1 = Split(inst->ranges, ',');
         for (auto const& a : r1) {
             auto const r = Split(a, '-');
-            int start = std::stoi(r[0]);
+            int start = (int)std::strtol(r[0].c_str(), nullptr, 10);
             int len = 4; //at least 4
             if (r.size() == 2) {
-                len = std::stoi(r[1]) - start + 1;
+                len = (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1;
             }
             min = std::min(min, start);
             max = std::max(max, start + len - 1);

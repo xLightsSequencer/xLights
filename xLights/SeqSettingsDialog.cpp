@@ -1933,8 +1933,8 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
         wxMessageBox("Invalid Pre/Post value(s). Neither can be blank, 0 is okay.");
         return;
     }
-    auto const f_mp3dur = std::stof(mp3dur);
-    if (fp_equal(0.0F, std::stof(pre)) && fp_equal(0.0F, std::stof(post))) {
+    auto const f_mp3dur = std::strtof(mp3dur.c_str(), nullptr);
+    if (fp_equal(0.0F, std::strtof(pre.c_str(), nullptr)) && fp_equal(0.0F, std::strtof(post.c_str(), nullptr))) {
         wxMessageBox("Pre and Post value(s) are both zero. Nothing to do here.");
         return;
     }
@@ -1969,8 +1969,8 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
     };
     std::list<musicEdit> edits;
     AudioManager* firstAudio = nullptr;
-    double pre_sec = std::stof(pre) / 1000.0;
-    double post_sec = std::stof(post) / 1000.0;
+    double pre_sec = std::strtod(pre.c_str(), nullptr) / 1000.0;
+    double post_sec = std::strtod(post.c_str(), nullptr) / 1000.0;
     std::string filename = inFile.GetFullName();
 
     if (pre_sec >= 0 && post_sec >= 0) {                                                                //Add silence at both front and back

@@ -739,7 +739,7 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Port");
         return true;
     } else if (name == "I2CDevice") {
-        SetSpeed(std::stoul(Controller::DecodeChoices(event.GetProperty()->GetChoices(), event.GetValue().GetLong()),  nullptr, 16));
+        SetSpeed(std::strtoul(Controller::DecodeChoices(event.GetProperty()->GetChoices(), event.GetValue().GetLong()).c_str(),  nullptr, 16));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Speed");
         return true;
     } else if (name == "SPISpeed") {

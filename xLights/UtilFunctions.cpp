@@ -1047,7 +1047,7 @@ int ExtractInt(std::string& s) {
         return -1;
     }
 
-    int res = std::stoi(s.substr(0, i));
+    int res = (int)std::strtol(s.substr(0, i).c_str(), nullptr, 10);
     s = s.substr(i);
     return res;
 }
@@ -1061,7 +1061,7 @@ int ExtractTrailingInt(const std::string& s) {
     if (i == 0) {
         return -1;
     }
-    return std::stoi(s.substr(i));
+    return (int)std::strtol(s.substr(i).c_str(), nullptr, 10);
 }
 
 int NumberAwareStringCompare(const std::string& a, const std::string& b) {

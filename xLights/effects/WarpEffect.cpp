@@ -569,8 +569,8 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
     int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double x = 0.01 * xPercentage;
     double y = 0.01 * yPercentage;
-    float speed = std::stof( speedStr );
-    float frequency = std::stof( freqStr );
+    float speed = std::strtof( speedStr.c_str(), nullptr );
+    float frequency = std::strtof( freqStr.c_str(), nullptr );
 
     WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
     if ( warpType == WarpEffect::WarpType::WATER_DROPS) {
@@ -588,7 +588,7 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
     } else if (warpType == WarpEffect::WarpType::FLIP) {
         RenderPixelTransform(flip, buffer, params);
     } else if (warpType == WarpEffect::WarpType::SINGLE_WATER_DROP) {
-        float cycleCount = std::stof( warpStrCycleCount );
+        float cycleCount = std::strtof( warpStrCycleCount.c_str(), nullptr );
         float intervalLen = 1.f / cycleCount;
         float scaledProgress = progress / intervalLen;
         float intervalProgress, intervalIndex;
@@ -605,7 +605,7 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
         // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
         // a very good description, maybe back-and-forth or something would be more accurate
         if (warpTreatment == "constant") {
-            float cycleCount = std::stof(warpStrCycleCount);
+            float cycleCount = std::strtof(warpStrCycleCount.c_str(), nullptr);
             float intervalLen = 1.f / (2 * cycleCount );
             float scaledProgress = progress / intervalLen;
             float intervalProgress, intervalIndex;

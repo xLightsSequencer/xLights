@@ -852,7 +852,7 @@ wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString>& nodes, cons
     wxString rowValue;
     std::vector<int> iNodes;
     std::transform(nodes.begin(), nodes.end(), std::back_inserter(iNodes),
-                   [](const std::string& str) { return std::stoi(str); });
+                   [](const std::string& str) { return (int)std::strtol(str.c_str(), nullptr, 10); });
 
     if (sort)
         std::sort(iNodes.begin(), iNodes.end());

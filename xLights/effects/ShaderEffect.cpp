@@ -1415,10 +1415,15 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             return static_cast<double>(item.at(name).get<bool>());
         }
         if (item.at(name).is_string()) {
-            try {
-                return std::stod(item.at(name).get<std::string>());
-            } catch (std::exception const& ex) {
-                spdlog::warn("Error parsing shader Property : {}.", (const char*)ex.what());
+            {
+                const auto& s = item.at(name).get<std::string>();
+                char* end;
+                double val = std::strtod(s.c_str(), &end);
+                if (end == s.c_str()) {
+                    spdlog::warn("Error parsing shader Property : {} (not a number).", name);
+                } else {
+                    return val;
+                }
             }
         }
         return defaultVal;
@@ -1435,17 +1440,23 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             defaultY = item.at(name)[1].get<double>();
         }
         if (item.at(name)[0].is_string()) {
-            try {
-                defaultX = std::stod(item.at(name)[0].get<std::string>());
-            } catch (std::exception const& ex) {
-                spdlog::warn("Error parsing shader Property : {}.", (const char*)ex.what());
+            const auto& s = item.at(name)[0].get<std::string>();
+            char* end;
+            double val = std::strtod(s.c_str(), &end);
+            if (end != s.c_str()) {
+                defaultX = val;
+            } else {
+                spdlog::warn("Error parsing shader Property : {} (not a number).", name);
             }
         }
         if (item.at(name)[1].is_string()) {
-            try {
-                defaultY = std::stod(item.at(name)[1].get<std::string>());
-            } catch (std::exception const& ex) {
-                spdlog::warn("Error parsing shader Property : {}.", (const char*)ex.what());
+            const auto& s = item.at(name)[1].get<std::string>();
+            char* end;
+            double val = std::strtod(s.c_str(), &end);
+            if (end != s.c_str()) {
+                defaultY = val;
+            } else {
+                spdlog::warn("Error parsing shader Property : {} (not a number).", name);
             }
         }
         return wxRealPoint(defaultX, defaultY);

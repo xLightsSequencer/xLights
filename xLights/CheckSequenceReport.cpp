@@ -1178,7 +1178,7 @@ std::string CheckSequenceReport::RenderModelIssues(const std::vector<ReportIssue
                 std::string model2 = msg.substr(model2Start, model2End - model2Start);
                 std::string ip = msg.substr(ipStart, ipEnd - ipStart);
                 std::string conn = msg.substr(connStart, connEnd - connStart);
-                int gapSize = std::stoi(msg.substr(gapStart, gapEnd - gapStart));
+                int gapSize = (int)std::strtol(msg.substr(gapStart, gapEnd - gapStart).c_str(), nullptr, 10);
 
                 gapsByConnection[std::make_pair(ip, conn)].push_back(
                     std::make_tuple(model1, model2, gapSize));
@@ -2002,7 +2002,7 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
                 std::string modelName = msg.substr(modelStart, modelEnd - modelStart);
                 std::string effectName = msg.substr(effectStart, effectEnd - effectStart);
                 std::string timeRange = msg.substr(timeStart, timeEnd - timeStart);
-                int layer = std::stoi(msg.substr(layerStart, layerEnd - layerStart));
+                int layer = (int)std::strtol(msg.substr(layerStart, layerEnd - layerStart).c_str(), nullptr, 10);
 
                 effectsByModel[modelName].push_back(std::make_tuple(effectName, timeRange, layer));
             }
@@ -2063,7 +2063,7 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
             size_t modelStart = msg.find("Model '") + 7;
             size_t modelEnd = msg.find("'", modelStart);
             size_t layerStart = msg.find("layer ") + 6;
-            int layer = std::stoi(msg.substr(layerStart));
+            int layer = (int)std::strtol(msg.substr(layerStart).c_str(), nullptr, 10);
 
             std::string modelName = msg.substr(modelStart, modelEnd - modelStart);
             std::string effectName = msg.substr(effectStart, effectEnd - effectStart);
@@ -2133,7 +2133,7 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
             size_t modelStart = msg.find("Model '") + 7;
             size_t modelEnd = msg.find("'", modelStart);
             size_t layerStart = msg.find("layer ") + 6;
-            int layer = std::stoi(msg.substr(layerStart));
+            int layer = (int)std::strtol(msg.substr(layerStart).c_str(), nullptr, 10);
 
             std::string modelName = msg.substr(modelStart, modelEnd - modelStart);
             std::string effect1Name = msg.substr(effect1Start, effect1End - effect1Start);
@@ -2415,17 +2415,17 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
             std::string transitionInfo;
             if (msg.find("Transition in time") != std::string::npos && msg.find("transition out time") != std::string::npos) {
                 size_t inTimeStart = msg.find("time ") + 5;
-                double inTime = std::stod(msg.substr(inTimeStart));
+                double inTime = std::strtod(msg.substr(inTimeStart).c_str(), nullptr);
                 size_t outTimeStart = msg.find("out time ") + 9;
-                double outTime = std::stod(msg.substr(outTimeStart));
+                double outTime = std::strtod(msg.substr(outTimeStart).c_str(), nullptr);
                 transitionInfo = "In " + std::to_string(inTime) + "s + Out " + std::to_string(outTime) + "s";
             } else if (msg.find("Transition in time") != std::string::npos) {
                 size_t timeStart = msg.find("time ") + 5;
-                double time = std::stod(msg.substr(timeStart));
+                double time = std::strtod(msg.substr(timeStart).c_str(), nullptr);
                 transitionInfo = "In " + std::to_string(time) + "s";
             } else {
                 size_t timeStart = msg.find("time ") + 5;
-                double time = std::stod(msg.substr(timeStart));
+                double time = std::strtod(msg.substr(timeStart).c_str(), nullptr);
                 transitionInfo = "Out " + std::to_string(time) + "s";
             }
 

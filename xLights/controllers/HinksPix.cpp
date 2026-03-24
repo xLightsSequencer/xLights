@@ -1165,7 +1165,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
         }
 
         if (data.contains("MCPU")) {
-            _MCPU_Version = std::stoi(data.at("MCPU").get<std::string>().substr(3));
+            _MCPU_Version = (int)std::strtol(data.at("MCPU").get<std::string>().substr(3).c_str(), nullptr, 10);
         }
 
         if (_controllerType == "E") {

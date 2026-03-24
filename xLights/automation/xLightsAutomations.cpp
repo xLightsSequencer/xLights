@@ -835,13 +835,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int layer = 0;
 
         if (!params["layer"].empty()) {
-            layer = std::stoi(params["layer"]);
+            layer = (int)std::strtol(params["layer"].c_str(), nullptr, 10);
         }
         if (!params["startTime"].empty()) {
-            startTime = std::stoi(params["startTime"]);
+            startTime = (int)std::strtol(params["startTime"].c_str(), nullptr, 10);
         }
         if (!params["endTime"].empty()) {
-            endTime = std::stoi(params["endTime"]);
+            endTime = (int)std::strtol(params["endTime"].c_str(), nullptr, 10);
         }
 
         if (to == nullptr) {
@@ -1024,10 +1024,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int layer = 0;
 
         if (!params["id"].empty()) {
-            id = std::stoi(params["id"]);
+            id = (int)std::strtol(params["id"].c_str(), nullptr, 10);
         }
         if (!params["layer"].empty()) {
-            layer = std::stoi(params["layer"]);
+            layer = (int)std::strtol(params["layer"].c_str(), nullptr, 10);
         }
         auto const& model = params["model"];
         Element* ele = _sequenceElements.GetElement(model);
@@ -1048,7 +1048,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                                ",\"endTime\":" + std::to_string(eff->GetEndTimeMS()) +
                                 ",\"selected\":" + std::to_string(eff->GetSelected()) + "}";
             return sendResponse(json, "", 200, true);
-        }        
+        }
         return sendResponse("target effect doesn't exists.", "msg", 503, false);
     } else if (cmd == "setEffectSettings") {
         if (CurrentSeqXmlFile == nullptr) {
@@ -1058,10 +1058,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int layer = 0;
 
         if (!params["id"].empty()) {
-            id = std::stoi(params["id"]);
+            id = (int)std::strtol(params["id"].c_str(), nullptr, 10);
         }
         if (!params["layer"].empty()) {
-            layer = std::stoi(params["layer"]);
+            layer = (int)std::strtol(params["layer"].c_str(), nullptr, 10);
         }
         auto const& model = params["model"];
         Element* ele = _sequenceElements.GetElement(model);
@@ -1079,10 +1079,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 eff->SetEffectName(params["name"]);
             }
             if (!params["startTime"].empty()) {
-                eff->SetStartTimeMS(std::stoi(params["startTime"]));
+                eff->SetStartTimeMS((int)std::strtol(params["startTime"].c_str(), nullptr, 10));
             }
             if (!params["endTime"].empty()) {
-                eff->SetEndTimeMS(std::stoi(params["endTime"]));
+                eff->SetEndTimeMS((int)std::strtol(params["endTime"].c_str(), nullptr, 10));
             }
             if (!params["settings"].empty()) {
                 eff->SetSettings(params["settings"], true , true);

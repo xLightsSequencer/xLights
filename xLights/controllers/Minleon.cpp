@@ -77,7 +77,7 @@ public:
         // This is the DDP config response
         if (val.contains("port")) {
             if (val["port"].is_string()) {
-                _port = std::stoi(val["port"].get<std::string>()) - 1;
+                _port = (int)std::strtol(val["port"].get<std::string>().c_str(), nullptr, 10) - 1;
             } else {
                 _port = val["port"].get<int>() - 1;
             }
@@ -85,7 +85,7 @@ public:
             _port = val["p"].get<int>() - 1;
         }
         if (val["ts"].is_string()) {
-            _tees = std::stoi(val["ts"].get<std::string>());
+            _tees = (int)std::strtol(val["ts"].get<std::string>().c_str(), nullptr, 10);
         } else {
             _tees = val["ts"].get<int>();
         }
@@ -95,12 +95,12 @@ public:
             _reverse = false;
         }
         if (val["l"].is_string()) {
-            _nodes = std::stoi(val["l"].get<std::string>());
+            _nodes = (int)std::strtol(val["l"].get<std::string>().c_str(), nullptr, 10);
         } else {
             _nodes = val["l"].get<int>();
         }
         if (val["ss"].is_string()) {
-            _startChannel = std::stoi(val["ss"].get<std::string>());
+            _startChannel = (int)std::strtol(val["ss"].get<std::string>().c_str(), nullptr, 10);
         } else {
             _startChannel = val["ss"].get<int>();
         }
@@ -631,7 +631,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
             return static_cast<int>(json[parm].get<float>());
         }
         if (json[parm].is_string()) {
-            return std::stoi(json[parm].get<std::string>());
+            return (int)std::strtol(json[parm].get<std::string>().c_str(), nullptr, 10);
         }
         return 0;
     };
@@ -695,15 +695,15 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
                     } else if (ParseNDBHTML(html, 13) == "1") {
                         _protocol = OUTPUT_ARTNET;
                     }
-                    _startUniverse = std::stoi(ParseNDBHTML(html, 13));
+                    _startUniverse = (int)std::strtol(ParseNDBHTML(html, 13).c_str(), nullptr, 10);
                     uint8_t index = 14;
                     for (uint8_t i = 0; i < 16; ++i) {
                         // Ts
-                        auto ts = std::stoi(ParseNDBHTML(html, index++));
+                        auto ts = (int)std::strtol(ParseNDBHTML(html, index++).c_str(), nullptr, 10);
                         // Lights
-                        auto lights = std::stoi(ParseNDBHTML(html, index++));
+                        auto lights = (int)std::strtol(ParseNDBHTML(html, index++).c_str(), nullptr, 10);
                         // Slot
-                        auto slot = std::stoi(ParseNDBHTML(html, index++));
+                        auto slot = (int)std::strtol(ParseNDBHTML(html, index++).c_str(), nullptr, 10);
                         _stringPorts.push_back(new MinleonString(i, ts, false, lights, slot));
                     }
                     _ndbOrig = true;
