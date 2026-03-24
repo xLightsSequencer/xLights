@@ -215,7 +215,7 @@ public:
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe)
-        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), gauge(nullptr), currentFrame(0), m_logger(spdlog::get("job")),
+        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), gauge(nullptr), currentFrame(0), m_logger(spdlog::get("render")),
             supportsModelBlending(false), abort(false), statusMap(nullptr)
     {
         name = "";

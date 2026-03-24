@@ -182,7 +182,7 @@ void InitialiseLogging(bool fromMain)
         loggingInitialised = true;
         spdlog::initialize_logger(file_logger);
         spdlog::set_default_logger(file_logger);
-        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%l] %v");
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%n %l] %v");
         spdlog::flush_on(spdlog::level::info);
 
         // wxOperatingSystemId os = wxGetOsVersion();
