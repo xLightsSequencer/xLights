@@ -3,6 +3,9 @@
 
 #include <locale>
 #include <fstream>
+#include <set>
+
+#include <log4cpp/Category.hh>
 
 #include "utils/Curl.h"
 
