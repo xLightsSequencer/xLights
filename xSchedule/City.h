@@ -17,7 +17,7 @@
 
 #include "../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 class City
 {
@@ -43,7 +43,6 @@ public:
 
     static void Test()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         City* city = GetCity("Sydney");
         wxDateTime date = wxDateTime::Now();
         date.SetDay(1);
@@ -54,7 +53,7 @@ public:
             date.SetMonth((wxDateTime::Month)m);
             wxDateTime sunrise = city->GetSunrise(date);
             wxDateTime sunset = city->GetSunset(date);
-            logger_base.debug("Date %s Sunrise %02d:%02d Sunset %02d:%02d", (const char*)date.FormatISODate().c_str(), sunrise.GetHour(), sunrise.GetMinute(), sunset.GetHour(), sunset.GetMinute());
+            spdlog::debug("Date {} Sunrise {:02d}:{:02d} Sunset {:02d}:{:02d}", date.FormatISODate().ToStdString(), sunrise.GetHour(), sunrise.GetMinute(), sunset.GetHour(), sunset.GetMinute());
         }
     }
 

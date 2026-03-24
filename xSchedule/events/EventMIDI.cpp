@@ -11,7 +11,7 @@
 #include "EventMIDI.h"
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include "../ScheduleManager.h"
 #include "../wxMIDI/src/wxMidi.h"
 
@@ -166,8 +166,6 @@ wxXmlNode* EventMIDI::Save()
 
 void EventMIDI::Process(uint8_t status, uint8_t channel, uint8_t data1, uint8_t data2, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (GetStatusByte() == status)
     {
         if (IsAnyChannel() || channel == GetChannelByte())
@@ -177,9 +175,9 @@ void EventMIDI::Process(uint8_t status, uint8_t channel, uint8_t data1, uint8_t 
                 _lastData1 = data1;
                 _lastData2 = data2;
                 int st = status;
-                logger_base.debug("Event fired %s:%s -> %02x", (const char*)GetType().c_str(), (const char*)GetName().c_str(), st);
+                spdlog::debug("Event fired {}:{} -> {:02x}", GetType(), GetName(), st);
                 ProcessMIDICommand(data1, data2, scheduleManager);
-                logger_base.debug("    Event processed.");
+                spdlog::debug("    Event processed.");
             }
         }
     }
@@ -187,7 +185,6 @@ void EventMIDI::Process(uint8_t status, uint8_t channel, uint8_t data1, uint8_t 
 
 void EventMIDI::ProcessMIDICommand(uint8_t data1, uint8_t data2, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString p1 = _parm1;
     wxString p2 = _parm2;
     wxString p3 = _parm3;
@@ -222,19 +219,17 @@ void EventMIDI::ProcessMIDICommand(uint8_t data1, uint8_t data2, ScheduleManager
     if (p2 != "") parameters += "," + p2.ToStdString();
     if (p3 != "") parameters += "," + p3.ToStdString();
 
-    logger_base.debug("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
-        (const char *)_command.c_str(), (const char *)parameters.c_str());
+    spdlog::debug("Event fired {}:{} -> {}:{}", GetType(), GetName(), _command.c_str(), parameters);
 
     size_t rate = 0;
     wxString msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
-    logger_base.debug("    Event processed.");
+    spdlog::debug("    Event processed.");
 }
 
 std::list<std::string> EventMIDI::GetDevices()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Input MIDI Devices:");
+    spdlog::debug("Input MIDI Devices:");
 
     std::list<std::string> res;
 
@@ -247,7 +242,7 @@ std::list<std::string> EventMIDI::GetDevices()
         {
             auto devname = wxString::Format("Input %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString();
             res.push_back(devname);
-            logger_base.debug("    %s", (const char*)devname.c_str());
+            spdlog::debug("    {}", devname);
         }
         delete midiDev;
     }
@@ -257,8 +252,7 @@ std::list<std::string> EventMIDI::GetDevices()
 
 std::list<std::string> EventMIDI::GetOutputDevices()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Output MIDI Devices:");
+    spdlog::debug("Output MIDI Devices:");
 
     std::list<std::string> res;
 
@@ -271,7 +265,7 @@ std::list<std::string> EventMIDI::GetOutputDevices()
         {
             auto devname = wxString::Format("Output %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString();
             res.push_back(devname);
-            logger_base.debug("    %s", (const char*)devname.c_str());
+            spdlog::debug("    {}", devname);
         }
         delete midiDev;
     }

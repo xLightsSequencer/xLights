@@ -17,7 +17,7 @@
 
 #include <atomic>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 class PingThread : public wxThread {
     APinger* _pinger;
@@ -41,8 +41,7 @@ public:
     }
 
     void Stop() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Asking pinging thread %s to stop", (const char*)_pinger->GetName().c_str());
+        spdlog::debug("Asking pinging thread %s to stop", (const char*)_pinger->GetName().c_str());
         _stop = true;
     }
 
@@ -52,12 +51,10 @@ public:
     virtual void* Entry() override {
         _running = true;
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
         if (_pinger->IsInactive()) {
-            logger_base.debug("Pinging thread %s is inactive. Skipping", (const char*)_pinger->GetName().c_str());
+            spdlog::debug("Pinging thread {} is inactive. Skipping", (const char*)_pinger->GetName().c_str());
         } else {
-            logger_base.debug("Pinging thread %s started", (const char*)_pinger->GetName().c_str());
+            spdlog::debug("Pinging thread {} started", (const char*)_pinger->GetName().c_str());
             while (!_stop) {
                 auto res = Output::PINGSTATE::PING_UNKNOWN;
 

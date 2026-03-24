@@ -22,7 +22,7 @@
 #include "../ScheduleManager.h"
 #include "../MatrixMapper.h"
 #include "PlayListDialog.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 //(*IdInit(PlayListItemScreenMapPanel)
 const long PlayListItemScreenMapPanel::ID_STATICTEXT14 = wxNewId();
@@ -73,7 +73,6 @@ public:
 
     void OnLeftDown(wxMouseEvent& event)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         int x = event.GetX();
         int y = event.GetY();
         int w, h;
@@ -129,7 +128,7 @@ public:
             SetCursor(wxCURSOR_ARROW);
         }
         _lastPos = event.GetPosition();
-        logger_base.debug("Save mouse pos %d,%d", _lastPos.x, _lastPos.y);
+        spdlog::debug("Save mouse pos {},{}", _lastPos.x, _lastPos.y);
         CaptureMouse();
     }
 
@@ -142,7 +141,6 @@ public:
 
     void OnMove(wxMouseEvent& event)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (_sizing != Sizing::NONE)
         {
             int w, h;
@@ -154,8 +152,8 @@ public:
             int dx = mx - _lastPos.x;
             int dy = my - _lastPos.y;
 
-            logger_base.debug("Move current pos/size %d,%d %dx%d", x, y, w, h);
-            logger_base.debug("Mouse delta %d,%d -> %d,%d (%d,%d)", _lastPos.x, _lastPos.y, event.GetX(), event.GetY(), dx, dy);
+            spdlog::debug("Move current pos/size {},{} {}x{}", x, y, w, h);
+            spdlog::debug("Mouse delta {},{} -> {},{} ({},{})", _lastPos.x, _lastPos.y, event.GetX(), event.GetY(), dx, dy);
 
             SetCursor(wxCURSOR_HAND);
             switch (_sizing)
@@ -235,8 +233,7 @@ public:
 
     void DoSetSize(int x, int y, int w, int h, bool notify)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Setting pos/size %d,%d %dx%d -> %d,%d %dx%d", x, y, w, h, x-1, y-1, w+2, h+2);
+        spdlog::debug("Setting pos/size {},{} {}x{} -> {},{} {}x{}", x, y, w, h, x - 1, y - 1, w + 2, h + 2);
         SetSize(x - 1, y - 1, w + 2, h + 2);
         Refresh();
         Update();

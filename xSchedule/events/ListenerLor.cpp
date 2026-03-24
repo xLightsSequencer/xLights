@@ -11,7 +11,7 @@
 #include "ListenerLor.h"
 #include "ListenerManager.h"
 #include "../../xLights/outputs/serial.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 ListenerLor::ListenerLor(ListenerManager* listenerManager, std::string commPort, std::string serialConfig, int baudRate, std::string protocol, std::string unit_id_str) :
     ListenerSerial(listenerManager, commPort, serialConfig, baudRate, protocol), rcv_state(IDLE), new_ids_ready(true) {

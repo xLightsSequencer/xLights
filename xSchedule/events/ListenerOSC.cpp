@@ -18,7 +18,7 @@
 
 #include <wx/socket.h>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 ListenerOSC::ListenerOSC(ListenerManager* listenerManager, const std::string& localIP) :
     ListenerBase(listenerManager, localIP) {
@@ -27,15 +27,14 @@ ListenerOSC::ListenerOSC(ListenerManager* listenerManager, const std::string& lo
 }
 
 void ListenerOSC::Start() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("OSC listener starting.");
+    spdlog::debug("OSC listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerOSC::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_stop) {
-        logger_base.debug("OSC listener stopping.");
+        spdlog::debug("OSC listener stopping.");
         if (_socket != nullptr)
             _socket->SetTimeout(0);
         if (_thread != nullptr) {
@@ -49,8 +48,6 @@ void ListenerOSC::Stop() {
 }
 
 void ListenerOSC::StartProcess(const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxIPV4address localaddr;
     if (localIP == "") {
         localaddr.AnyAddress();
@@ -62,27 +59,26 @@ void ListenerOSC::StartProcess(const std::string& localIP) {
 
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
     if (_socket == nullptr) {
-        logger_base.error("Error opening datagram for OSC reception on port %d. %s", port, (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for OSC reception on port {}. {}", port, (const char*)localaddr.IPAddress().c_str());
     } else if (!_socket->IsOk()) {
-        logger_base.error("Error opening datagram for OSC reception on port %d. %s OK : FALSE", port, (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for OSC reception on port {}. {} OK : FALSE", port, (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else if (_socket->Error()) {
-        logger_base.error("Error opening datagram for OSC reception on port %d. %d : %s %s", port, _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for OSC reception on port {}. {} : {} {}", port, _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else {
         _socket->SetTimeout(1);
         _socket->Notify(false);
-        logger_base.info("OSC reception datagram opened successfully on port %d.", port);
+        spdlog::info("OSC reception datagram opened successfully on port {}.", port);
         _isOk = true;
     }
 }
 
 void ListenerOSC::StopProcess() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_socket != nullptr) {
-        logger_base.info("OSC Listener closed.");
+        spdlog::info("OSC Listener closed.");
         _socket->Close();
         delete _socket;
         _socket = nullptr;
@@ -91,7 +87,6 @@ void ListenerOSC::StopProcess() {
 }
 
 void ListenerOSC::Poll() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_socket != nullptr) {
         unsigned char buffer[2048];
@@ -122,10 +117,10 @@ void ListenerOSC::Poll() {
                     _frameMS = _listenerManager->Sync(timingname, ms, GetType());
                 }
             } else if (packet.IsOk()) {
-                logger_base.debug("OSC Path: %s.", (const char*)packet.GetPath().c_str());
+                spdlog::debug("OSC Path: {}.", (const char*)packet.GetPath().c_str());
                 _listenerManager->ProcessPacket(GetType(), packet.GetPath(), packet.GetP1(), packet.GetP2(), packet.GetP3());
             } else {
-                logger_base.debug("Invalid OSC Packet.");
+                spdlog::debug("Invalid OSC Packet.");
                 DumpBinary(buffer, read);
             }
         }

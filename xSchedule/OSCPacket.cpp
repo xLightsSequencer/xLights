@@ -13,7 +13,7 @@
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/utils/ip_utils.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <wx/sckaddr.h>
 #include <chrono>
 
@@ -327,16 +327,15 @@ OSCPacket::~OSCPacket() {
 }
 
 void OSCPacket::Send(const std::string& ip, int port, const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!ip_utils::IsIPValidOrHostname(ip)) {
-        logger_base.warn("OSCPacket send failed due to invalid IP address %s.", (const char*)ip.c_str());
+        spdlog::warn("OSCPacket send failed due to invalid IP address {}.", (const char*)ip.c_str());
         return;
     } else if (port < 1 || port > 65535) {
-        logger_base.warn("OSCPacket send failed due to invalid port %d.", port);
+        spdlog::warn("OSCPacket send failed due to invalid port {}.", port);
         return;
     } else if (!IsOk()) {
-        logger_base.warn("OSCPacket invalid %s.", (const char*)_path.c_str());
+        spdlog::warn("OSCPacket invalid {}.", (const char*)_path.c_str());
         return;
     }
 
@@ -350,10 +349,10 @@ void OSCPacket::Send(const std::string& ip, int port, const std::string& localIP
     wxDatagramSocket socket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
 
     if (!socket.IsOk()) {
-        logger_base.error("Error opening datagram for OSC send. OK : FALSE");
+        spdlog::error("Error opening datagram for OSC send. OK : FALSE");
         return;
     } else if (socket.Error()) {
-        logger_base.error("Error opening datagram for OSC send. %d : %s",
+        spdlog::error("Error opening datagram for OSC send. {} : {}",
                           socket.LastError(),
                           (const char*)DecodeIPError(socket.LastError()).c_str());
         return;

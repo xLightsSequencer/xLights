@@ -14,7 +14,7 @@
 #include "../ScheduleOptions.h"
 #include "../wxMIDI/src/wxMidi.h"
 #include "../xScheduleMain.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 ListenerMIDI::ListenerMIDI(int deviceId, ListenerManager* listenerManager) :
     ListenerBase(listenerManager, "") {
@@ -24,15 +24,13 @@ ListenerMIDI::ListenerMIDI(int deviceId, ListenerManager* listenerManager) :
 }
 
 void ListenerMIDI::Start() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("MIDI listener starting.");
+    spdlog::debug("MIDI listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerMIDI::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_stop) {
-        logger_base.debug("MIDI listener stopping.");
+        spdlog::debug("MIDI listener stopping.");
         if (_thread != nullptr) {
             _stop = true;
             _thread->Stop();
@@ -44,21 +42,20 @@ void ListenerMIDI::Stop() {
 }
 
 void ListenerMIDI::StartProcess(const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // We set timeout to one second so it is responsive when we go to shut it down
     _midiIn = new wxMidiInDevice(_deviceId, 1);
     if (_midiIn != nullptr) {
         if (_midiIn->IsInputPort()) {
             if (_midiIn->Open() != wxMIDI_NO_ERROR) {
-                logger_base.error("ListenerMIDI Failed to open MIDI port %d.", _deviceId);
+                spdlog::error("ListenerMIDI Failed to open MIDI port {}.", _deviceId);
                 delete _midiIn;
                 _midiIn = nullptr;
             } else {
-                logger_base.debug("ListenerMIDI MIDI port %d opened.", _deviceId);
+                spdlog::debug("ListenerMIDI MIDI port {} opened.", _deviceId);
                 _isOk = true;
             }
         } else {
-            logger_base.error("ListenerMIDI Attempt to read from a write MIDI port %d.", _deviceId);
+            spdlog::error("ListenerMIDI Attempt to read from a write MIDI port {}.", _deviceId);
             delete _midiIn;
             _midiIn = nullptr;
         }
@@ -66,9 +63,8 @@ void ListenerMIDI::StartProcess(const std::string& localIP) {
 }
 
 void ListenerMIDI::StopProcess() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_midiIn != nullptr) {
-        logger_base.debug("ListenerMIDI Closing MIDI port %d.", _deviceId);
+        spdlog::debug("ListenerMIDI Closing MIDI port {}.", _deviceId);
         _midiIn->Close();
         delete _midiIn;
         _midiIn = nullptr;
@@ -77,8 +73,6 @@ void ListenerMIDI::StopProcess() {
 }
 
 void ListenerMIDI::Poll() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_midiIn == nullptr || _stop)
         return;
 
@@ -89,21 +83,21 @@ void ListenerMIDI::Poll() {
             wxMidiShortMessage* msg = (wxMidiShortMessage*)message;
             int status = msg->GetStatus();
             if (status >= 0x80 && status <= 0x8F) {
-                logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg->GetStatus(), msg->GetData1(), msg->GetData2(), (int)msg->GetTimestamp());
-                logger_base.debug("    Note Off");
+                spdlog::debug("MIDI Short Message {:02x} Data {:02x} {:02x} Timestamp {:04x}", msg->GetStatus(), msg->GetData1(), msg->GetData2(), (int)msg->GetTimestamp());
+                spdlog::debug("    Note Off");
             } else if (status >= 0x90 && status <= 0x9F) {
-                logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg->GetStatus(), msg->GetData1(), msg->GetData2(), (int)msg->GetTimestamp());
-                logger_base.debug("    Note On");
+                spdlog::debug("MIDI Short Message {:02x} Data {:02x} {:02x} Timestamp {:04x}", msg->GetStatus(), msg->GetData1(), msg->GetData2(), (int)msg->GetTimestamp());
+                spdlog::debug("    Note On");
             } else if (status >= 0xA0 && status <= 0xAF) {
-                logger_base.debug("    Polyphonic Key Pressure");
+                spdlog::debug("    Polyphonic Key Pressure");
             } else if (status >= 0xB0 && status <= 0xBF) {
-                logger_base.debug("    Control Change");
+                spdlog::debug("    Control Change");
             } else if (status >= 0xC0 && status <= 0xCF) {
-                logger_base.debug("    Program Change");
+                spdlog::debug("    Program Change");
             } else if (status >= 0xD0 && status <= 0xDF) {
-                logger_base.debug("    Channel Pressure");
+                spdlog::debug("    Channel Pressure");
             } else if (status >= 0xE0 && status <= 0xEF) {
-                logger_base.debug("    Pitch Bend");
+                spdlog::debug("    Pitch Bend");
             } else if (status == 0xF8) {
                 // Real - time Clock	0xF8
             } else if (status == 0xFa) {
@@ -157,7 +151,7 @@ void ListenerMIDI::Poll() {
             _listenerManager->ProcessPacket(GetType(), GetDeviceId(), msg->GetStatus() & 0xF0, msg->GetStatus() & 0x0F, msg->GetData1(), msg->GetData2());
         } else {
             wxMidiSysExMessage* msg = (wxMidiSysExMessage*)message;
-            logger_base.debug("MIDI SysEx Message 0x%02x", msg->GetStatus());
+            spdlog::debug("MIDI SysEx Message {:02x}", msg->GetStatus());
             switch (msg->GetStatus()) {
             case 0xF0: // Begin System Exclusive	0xF0
             {
@@ -198,7 +192,6 @@ void ListenerMIDI::Poll() {
 }
 
 void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static long lastms = -99999;
 
     long stepoffset = _listenerManager->GetStepMMSSOfset(hours, _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset() / 3600000);
@@ -228,7 +221,7 @@ void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames) {
     ms -= _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset();
 
     if (ms - lastms > 10000 || ms < lastms) {
-        logger_base.debug("MIDI DoSync MS: %ld, Mode: %d, hours: %d, Mins: %d, Sec: %d, Frames: %d.", ms, mode, hours, mins, secs, frames);
+        spdlog::debug("MIDI DoSync MS: {}, Mode: {}, hours: {}, Mins: {}, Sec: {}, Frames: {}.", ms, mode, hours, mins, secs, frames);
         lastms = ms;
     }
 

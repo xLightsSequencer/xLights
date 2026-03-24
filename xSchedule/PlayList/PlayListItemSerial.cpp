@@ -17,7 +17,7 @@
 #include "../../xLights/outputs/SerialOutput.h"
 #include "../xLights/outputs/serial.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 PlayListItemSerial::PlayListItemSerial(wxXmlNode* node) :
     PlayListItem(node) {
@@ -135,7 +135,6 @@ unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used) {
 }
 
 void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started) {
         _started = true;
 
@@ -143,22 +142,22 @@ void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t f
         unsigned char* dbuffer = PrepareData(_data, dbuffsize);
 
         if (dbuffer != nullptr) {
-            logger_base.info("Sending serial %s.", (const char*)_data.c_str());
+            spdlog::info("Sending serial {}.", (const char*)_data.c_str());
 
             if (_commPort == "NotConnected") {
-                logger_base.warn("Serial port %s not opened for %s as it is tagged as not connected.", (const char*)_commPort.c_str(), (const char*)GetNameNoTime().c_str());
+                spdlog::warn("Serial port {} not opened for {} as it is tagged as not connected.", (const char*)_commPort.c_str(), (const char*)GetNameNoTime().c_str());
                 // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
             } else {
                 SerialPort* serial = new SerialPort();
 
-                logger_base.debug("Opening serial port %s. Baud rate = %d. Config = %s.", (const char*)_commPort.c_str(), _speed, (const char*)_configuration.c_str());
+                spdlog::debug("Opening serial port {}. Baud rate = {}. Config = {}.", (const char*)_commPort.c_str(), _speed, (const char*)_configuration.c_str());
 
                 int errcode = serial->Open(_commPort, _speed, _configuration.c_str());
                 if (errcode < 0) {
                     delete serial;
                     serial = nullptr;
 
-                    logger_base.warn("Unable to open serial port %s. Error code = %d", (const char*)_commPort.c_str(), errcode);
+                    spdlog::warn("Unable to open serial port {}. Error code = {}", (const char*)_commPort.c_str(), errcode);
 
                     std::string p = "";
                     auto ports = SerialOutput::GetAvailableSerialPorts();
@@ -180,7 +179,7 @@ void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t f
                                                     errcode);
                     // wxMessageBox(msg, _("Communication Error"), wxOK);
                 } else {
-                    logger_base.debug("    Serial port %s open.", (const char*)_commPort.c_str());
+                    spdlog::debug("    Serial port {} open.", (const char*)_commPort.c_str());
                 }
 
                 if (serial != nullptr && serial->IsOpen()) {
@@ -194,7 +193,7 @@ void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t f
                     serial->Close();
                     delete serial;
                     serial = nullptr;
-                    logger_base.debug("    Serial port %s closed.", (const char*)_commPort.c_str());
+                    spdlog::debug("    Serial port {} closed.", (const char*)_commPort.c_str());
                 }
             }
 

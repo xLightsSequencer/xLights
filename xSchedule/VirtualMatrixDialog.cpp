@@ -20,7 +20,7 @@
 #include <wx/string.h>
 //*)
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 //(*IdInit(VirtualMatrixDialog)
 const long VirtualMatrixDialog::ID_STATICTEXT7 = wxNewId();
@@ -242,8 +242,7 @@ void VirtualMatrixDialog::OnButton_OkClick(wxCommandEvent& event) {
         _fromModel = Choice_FromModel->GetStringSelection().ToStdString();
     }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Virtual matrix position window saved location (%d, %d) size (%d, %d).", _location.x, _location.y, _size.x, _size.y);
+    spdlog::info("Virtual matrix position window saved location ({}, {}) size ({}, {}).", _location.x, _location.y, _size.x, _size.y);
 
     EndDialog(wxID_OK);
 }

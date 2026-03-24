@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "ListenerE131.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <wx/socket.h>
 #include "../../xLights/outputs/E131Output.h"
 #include "ListenerManager.h"
@@ -48,17 +48,15 @@ ListenerE131::ListenerE131(ListenerManager* listenerManager, const std::string& 
 
 void ListenerE131::Start()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("E131 listener starting.");
+    spdlog::debug("E131 listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerE131::Stop()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_stop)
     {
-        logger_base.debug("E131 listener stopping.");
+        spdlog::debug("E131 listener stopping.");
         if (_socket != nullptr)
             _socket->SetTimeout(0);
         if (_thread != nullptr)
@@ -74,8 +72,6 @@ void ListenerE131::Stop()
 
 void ListenerE131::StartProcess(const std::string& localIP)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxIPV4address localaddr;
     if (localIP == "")
     {
@@ -90,17 +86,17 @@ void ListenerE131::StartProcess(const std::string& localIP)
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
     if (_socket == nullptr)
     {
-        logger_base.error("Error opening datagram for E131 reception. %s", (const char *)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for E131 reception. {}", localaddr.IPAddress().ToStdString());
     }
     else if (!_socket->IsOk())
     {
-        logger_base.error("Error opening datagram for E131 reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for E131 reception. {} OK : FALSE", localaddr.IPAddress().ToStdString());
         delete _socket;
         _socket = nullptr;
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for E131 reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for E131 reception. {} : {} {}", (int)_socket->LastError(), DecodeIPError(_socket->LastError()), localaddr.IPAddress().ToStdString());
         delete _socket;
         _socket = nullptr;
     }
@@ -108,7 +104,7 @@ void ListenerE131::StartProcess(const std::string& localIP)
     {
         _socket->SetTimeout(1);
         _socket->Notify(false);
-        logger_base.info("E131 reception datagram opened successfully.");
+        spdlog::info("E131 reception datagram opened successfully.");
         _isOk = true;
     }
 
@@ -119,8 +115,6 @@ void ListenerE131::StartProcess(const std::string& localIP)
 
 void ListenerE131::Subscribe(uint16_t universe)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_socket == nullptr) return;
 
     wxString ip = wxString::Format("%d.%d.%d.%d", 239, 255, (universe >> 8) & 0xFF, universe & 0xFF);
@@ -129,7 +123,7 @@ void ListenerE131::Subscribe(uint16_t universe)
     ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
     PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
     if (pAdapterInfo == nullptr) {
-        logger_base.error("ListenerE131::Subscribe Error getting adapter info.");
+        spdlog::error("ListenerE131::Subscribe Error getting adapter info.");
         delete _socket;
         _socket = nullptr;
         return;
@@ -139,7 +133,7 @@ void ListenerE131::Subscribe(uint16_t universe)
         free(pAdapterInfo);
         pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
         if (pAdapterInfo == nullptr) {
-            logger_base.error("ListenerE131::Subscribe Error getting adapter info.");
+            spdlog::error("ListenerE131::Subscribe Error getting adapter info.");
             delete _socket;
             _socket = nullptr;
             return;
@@ -168,10 +162,10 @@ void ListenerE131::Subscribe(uint16_t universe)
                         p++;
                     }
 
-                    logger_base.debug("ListenerE131::Subscribe Subscribing on adapter %s.", (const char*)ip->IpAddress.String);
+                    spdlog::debug("ListenerE131::Subscribe Subscribing on adapter {}.", ip->IpAddress.String);
 
                     if (setsockopt(receiveSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&mreq, sizeof(mreq)) < 0) {
-                        logger_base.warn("   Could not setup Multicast Group for interface %s\n", (const char*)pAdapter->IpAddressList.IpAddress.String);
+                        spdlog::warn("   Could not setup Multicast Group for interface {}\n", pAdapter->IpAddressList.IpAddress.String);
                     }
                 }
                 ip = ip->Next;
@@ -198,7 +192,7 @@ void ListenerE131::Subscribe(uint16_t universe)
             struct sockaddr_in* address = (struct sockaddr_in*)tmp->ifa_addr;
             mreq.imr_interface.s_addr = address->sin_addr.s_addr;
             if (setsockopt(receiveSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
-                logger_base.warn("   ListenerE131::Subscribe Could not setup Multicast Group for interface %s\n", tmp->ifa_name);
+                spdlog::warn("   ListenerE131::Subscribe Could not setup Multicast Group for interface {}\n", tmp->ifa_name);
             }
         }
         else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
@@ -214,9 +208,8 @@ void ListenerE131::Subscribe(uint16_t universe)
 
 void ListenerE131::StopProcess()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_socket != nullptr) {
-        logger_base.info("E131 Listener closed.");
+        spdlog::info("E131 Listener closed.");
         _socket->Close();
         delete _socket;
         _socket = nullptr;

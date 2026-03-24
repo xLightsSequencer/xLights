@@ -11,8 +11,10 @@
 #include "ESEQFile.h"
 #include <wx/file.h>
 #include <wx/filename.h>
-#include <log4cpp/Category.hh>
+
 #include "../xLights/UtilFunctions.h"
+
+#include <log.h>
 
 ESEQFile::ESEQFile()
 {
@@ -68,9 +70,7 @@ void ESEQFile::Close()
         _frameBuffer = nullptr;
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("ESEQ file %s closed.", (const char *)_filename.c_str());
-
+    spdlog::info("ESEQ file {} closed.", _filename);
     _ok = false;
 }
 
@@ -112,8 +112,6 @@ std::list<std::string> ESEQFile::GetBlendModes()
 
 void ESEQFile::Load(const std::string& filename)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     Close();
 
     _fseq = nullptr;
@@ -138,7 +136,7 @@ void ESEQFile::Load(const std::string& filename)
             wxFileName fn(_filename);
             _frames = (size_t)(fn.GetSize().ToULong() - _frame0Offset) / _channelsPerFrame;
 
-            logger_base.info("ESEQ file %s opened offset %lu channels %lu frames %lu.", (const char *)_filename.c_str(), _offset, _channelsPerFrame, _frames);
+            spdlog::info("ESEQ file {} opened offset {} channels {} frames {}.", _filename, _offset, _channelsPerFrame, _frames);
         }
         else if (std::string(tag) == "PSEQ")
         {
@@ -153,17 +151,17 @@ void ESEQFile::Load(const std::string& filename)
             {
                 _offset = dynamic_cast<V2FSEQFile*>(_fseq)->m_sparseRanges.front().first + 1;
             }
-            logger_base.info("ESEQ file %s opened V2 offset %lu channels %lu frames %lu.", (const char*)_filename.c_str(), _offset, _channelsPerFrame, _frames);
+            spdlog::info("ESEQ file {} opened V2 offset {} channels {} frames {}.", _filename, _offset, _channelsPerFrame, _frames);
         }
         else
         {
-            logger_base.error("ESEQ file %s format does not look valid.", (const char *)_filename.c_str());
+            spdlog::error("ESEQ file {} format does not look valid.", _filename);
             Close();
         }
     }
     else
     {
-        logger_base.error("ESEQ file %s could not be opened.", (const char *)_filename.c_str());
+        spdlog::error("ESEQ file {} could not be opened.", _filename);
         Close();
     }
 }

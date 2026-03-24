@@ -14,7 +14,7 @@
 #include "../../xLights/outputs/ArtNetOutput.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <wx/socket.h>
 
 bool ListenerARTNet::IsValidHeader(uint8_t* buffer) {
@@ -34,15 +34,13 @@ ListenerARTNet::ListenerARTNet(ListenerManager* listenerManager, const std::stri
 }
 
 void ListenerARTNet::Start() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ARTNet listener starting.");
+    spdlog::debug("ARTNet listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerARTNet::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_stop) {
-        logger_base.debug("ARTNet listener stopping.");
+        spdlog::debug("ARTNet listener stopping.");
         if (_socket != nullptr)
             _socket->SetTimeout(0);
         if (_thread != nullptr) {
@@ -56,7 +54,7 @@ void ListenerARTNet::Stop() {
 }
 
 void ListenerARTNet::StartProcess(const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static 
 
     wxIPV4address localaddr;
     if (localIP == "") {
@@ -68,27 +66,26 @@ void ListenerARTNet::StartProcess(const std::string& localIP) {
 
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_REUSEADDR);
     if (_socket == nullptr) {
-        logger_base.error("Error opening datagram for ARTNet reception. %s", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for ARTNet reception. {}", (const char*)localaddr.IPAddress().c_str());
     } else if (!_socket->IsOk()) {
-        logger_base.error("Error opening datagram for ARTNet reception. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for ARTNet reception. {} OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else if (_socket->Error()) {
-        logger_base.error("Error opening datagram for ARTNet reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error opening datagram for ARTNet reception. {} : {} {}", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else {
         _socket->SetTimeout(1);
         _socket->Notify(false);
-        logger_base.info("ARTNet reception datagram opened successfully.");
+        spdlog::info("ARTNet reception datagram opened successfully.");
         _isOk = true;
     }
 }
 
 void ListenerARTNet::StopProcess() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_socket != nullptr) {
-        logger_base.info("ARTNet Listener closed.");
+        spdlog::info("ARTNet Listener closed.");
         _socket->Close();
         delete _socket;
         _socket = nullptr;

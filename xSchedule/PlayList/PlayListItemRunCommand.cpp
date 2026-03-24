@@ -12,7 +12,7 @@
 #include "PlayListItemRunCommandPanel.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include "../xScheduleMain.h"
 #include "../xScheduleApp.h"
 #include "../ScheduleManager.h"
@@ -95,9 +95,7 @@ void PlayListItemRunCommand::Frame(uint8_t* buffer, size_t size, size_t ms, size
     if (ms >= _delay && !_started)
     {
         _started = true;
-
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Launching command %s %s,%s,%s.", (const char *)_command.c_str(), (const char*)_parm1.c_str(), (const char*)_parm2.c_str(), (const char*)_parm3.c_str());
+        spdlog::info("Launching command {} {},{},{}.", (const char*)_command.c_str(), (const char*)_parm1.c_str(), (const char*)_parm2.c_str(), (const char*)_parm3.c_str());
 
         std::string parms = _parm1;
         if (_parm2 != "") parms += "," + _parm2;

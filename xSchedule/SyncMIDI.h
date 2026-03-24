@@ -12,7 +12,7 @@
 
 #include "SyncManager.h"
 #include "ScheduleOptions.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include <mutex>
 

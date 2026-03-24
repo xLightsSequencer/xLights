@@ -18,7 +18,7 @@
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
 #include "../md5.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include "../../xLights/outputs/SerialOutput.h"
 #include "../../xLights/UtilFunctions.h"
 
@@ -87,18 +87,16 @@ unsigned char* PlayListItemProjector::PrepareData(const std::string s, int& used
 
 void PlayListItemProjector::ExecuteSerialCommand()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int dbuffsize;
     unsigned char* dbuffer = PrepareData(_commandData, dbuffsize);
 
     if (dbuffer != nullptr)
     {
-        logger_base.info("Sending serial %s.", (const char *)_commandData.c_str());
+        spdlog::info("Sending serial {}.", _commandData);
 
         if (_commPort == "NotConnected")
         {
-            logger_base.warn("Serial port %s not opened for %s as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetNameNoTime().c_str());
+            spdlog::warn("Serial port {} not opened for {} as it is tagged as not connected.", _commPort, GetNameNoTime());
             // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
         }
         else
@@ -107,7 +105,7 @@ void PlayListItemProjector::ExecuteSerialCommand()
 
             std::string configuration = BuildSerialConfiguration();
 
-            logger_base.debug("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)configuration.c_str());
+            spdlog::debug("Opening serial port {}. Baud rate = {}. Config = {}.", _commPort, _baudRate, configuration);
 
             int errcode = serial->Open(_commPort, _baudRate, configuration.c_str());
             if (errcode < 0)
@@ -115,7 +113,7 @@ void PlayListItemProjector::ExecuteSerialCommand()
                 delete serial;
                 serial = nullptr;
 
-                logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+                spdlog::warn("Unable to open serial port {}. Error code = {}", _commPort, errcode);
 
                 std::string p = "";
                 auto ports = SerialOutput::GetAvailableSerialPorts();
@@ -139,7 +137,7 @@ void PlayListItemProjector::ExecuteSerialCommand()
             }
             else
             {
-                logger_base.debug("    Serial port %s open.", (const char *)_commPort.c_str());
+                spdlog::debug("    Serial port {} open.", _commPort);
             }
 
             if (serial != nullptr && serial->IsOpen())
@@ -155,7 +153,7 @@ void PlayListItemProjector::ExecuteSerialCommand()
                 serial->Close();
                 delete serial;
                 serial = nullptr;
-                logger_base.debug("    Serial port %s closed.", (const char *)_commPort.c_str());
+                spdlog::debug("    Serial port {} closed.", _commPort);
             }
         }
 
@@ -295,9 +293,7 @@ void PlayListItemProjector::Frame(uint8_t* buffer, size_t size, size_t ms, size_
 {
     if (ms >= _delay && !_started)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-        logger_base.debug("Projector executing command %s", (const char *)_command.c_str());
+        spdlog::debug("Projector executing command {}", _command);
 
         _started = true;
         if (_ipProtocol == "PJLINK")
@@ -374,14 +370,12 @@ void PlayListItemProjector::ExecutePJLinkCommand()
 
 void PlayListItemProjector::ExecuteTCPCommand()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int dbuffsize;
     unsigned char* dbuffer = PrepareData(_commandData, dbuffsize);
 
     if (dbuffer != nullptr)
     {
-        logger_base.info("Sending TCP %s:%d %s.", (const char*)_ipAddress.c_str(), _port, (const char *)_commandData.c_str());
+        spdlog::info("Sending TCP {}:{} {}.", _ipAddress, _port, _commandData);
         wxIPV4address address;
         address.Hostname(_ipAddress);
         address.Service(_port);
@@ -391,7 +385,7 @@ void PlayListItemProjector::ExecuteTCPCommand()
             // wait for up to 1/2 second for connection
             if (_socket->Connect(address, false) || _socket->WaitOnConnect(0, 500))
             {
-                logger_base.info("Projector connected.");
+                spdlog::info("Projector connected.");
 
                 _socket->Write(dbuffer, dbuffsize);
 
@@ -412,28 +406,26 @@ void PlayListItemProjector::ExecuteTCPCommand()
                 _socket->ReadMsg(buffer.data(), buffer.length());
                 int read = _socket->GetLastIOReadSize();
                 wxString response(buffer);
-                logger_base.info("Projector response '%s' len: %d.", (const char*)response.c_str(), read);
+                spdlog::info("Projector response '{}' len: {}.", response.ToStdString(), read);
             }
             else
             {
-                logger_base.warn("Projector unable to connect.");
+                spdlog::warn("Projector unable to connect.");
             }
         }
         else
         {
-            logger_base.warn("Projector unable to connect.");
+            spdlog::warn("Projector unable to connect.");
         }
     }
     else
     {
-        logger_base.warn("Projector unable to prepare data.");
+        spdlog::warn("Projector unable to prepare data.");
     }
 }
 
 bool PlayListItemProjector::PJLinkLogin()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     PJLinkLogout();
 
     _hash = "";
@@ -445,11 +437,11 @@ bool PlayListItemProjector::PJLinkLogin()
 
     if (ip == "")
     {
-        logger_base.error("Projector tried to log into projector with no IP address.");
+        spdlog::error("Projector tried to log into projector with no IP address.");
         return false;
     }
 
-    logger_base.info("Projector logging into %s.", (const char*)ip.c_str());
+    spdlog::info("Projector logging into {}.", ip);
 
     wxIPV4address address;
     address.Hostname(ip);
@@ -460,7 +452,7 @@ bool PlayListItemProjector::PJLinkLogin()
         // wait for up to 1/2 second for connection
         if (_socket->Connect(address, false) || _socket->WaitOnConnect(0, 500))
         {
-            logger_base.info("Projector connected.");
+            spdlog::info("Projector connected.");
 
             _socket->WaitForRead(0, 500);
 
@@ -480,12 +472,12 @@ bool PlayListItemProjector::PJLinkLogin()
             // int read = _socket->GetLastIOReadSize();
 
             wxString response(buffer);
-            logger_base.info("Projector response '%s'", (const char*)response.c_str());
+            spdlog::info("Projector response '{}'", response.ToStdString());
 
             if  (response.Left(8) == "Projector 0")
             {
                 // no security
-                logger_base.info("Projector No Security.");
+                spdlog::info("Projector No Security.");
                 return true;
             }
             else if (response.Left(8) == "Projector 1")
@@ -496,25 +488,25 @@ bool PlayListItemProjector::PJLinkLogin()
                 {
                     random = random.Left(random.Find('\r'));
                 }
-                logger_base.info("Projector random '%s'.", (const char*)random.c_str());
+                spdlog::info("Projector random '{}'.", random.ToStdString());
 
                 random = random + password;
 
                 _hash = md5(random.ToStdString());
 
-                logger_base.info("Projector session hash '%s'.", (const char*)_hash.c_str());
+                spdlog::info("Projector session hash '{}'.", _hash);
             }
         }
         else
         {
-            logger_base.error("Projector refused connection.");
+            spdlog::error("Projector refused connection.");
             delete _socket;
             _socket = nullptr;
         }
     }
     else
     {
-        logger_base.error("Projector refused connection %s:4352.", (const char *)ip.c_str());
+        spdlog::error("Projector refused connection {}:4352.", ip);
     }
 
     return _socket != nullptr;
@@ -526,8 +518,7 @@ bool PlayListItemProjector::SendPJLinkCommand(const std::string& command)
 
     std::string cmd = _hash + command;
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Projector sending command %s.", (const char*)cmd.c_str());
+    spdlog::info("Projector sending command {}.", cmd);
 
     _socket->Write(cmd.c_str(), cmd.size());
 
@@ -548,7 +539,7 @@ bool PlayListItemProjector::SendPJLinkCommand(const std::string& command)
     _socket->ReadMsg(buffer.data(), buffer.length());
     int read = _socket->GetLastIOReadSize();
     wxString response(buffer);
-    logger_base.info("Projector response '%s' len: %d.", (const char*)response.c_str(), read);
+    spdlog::info("Projector response '{}' len: {}.", response.ToStdString(), read);
 
     return true;
 }
@@ -557,8 +548,7 @@ void PlayListItemProjector::PJLinkLogout()
 {
     if (_socket == nullptr) return;
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Projector logging out.");
+    spdlog::info("Projector logging out.");
 
     if (_socket != nullptr)
     {

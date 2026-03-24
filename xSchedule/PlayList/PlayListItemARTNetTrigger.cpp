@@ -13,7 +13,7 @@
 #include "PlayList.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <wx/socket.h>
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/outputs/ArtNetOutput.h"
@@ -164,7 +164,6 @@ std::string PlayListItemARTNetTrigger::GetTooltip()
 
 void PlayListItemARTNetTrigger::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started)
     {
         _started = true;
@@ -215,19 +214,19 @@ void PlayListItemARTNetTrigger::Frame(uint8_t* buffer, size_t size, size_t ms, s
             wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
             if (datagram == nullptr)
             {
-                logger_base.error("Error initialising Artnet trigger datagram for %s. %s", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
+                spdlog::error("Error initialising Artnet trigger datagram for {}. {}", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
                 ok = false;
             }
             else if (!datagram->IsOk())
             {
-                logger_base.error("Error initialising Artnet trigger datagram for %s. %s OK : FALSE", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
+                spdlog::error("Error initialising Artnet trigger datagram for {}. {} OK : FALSE", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
                 delete datagram;
                 datagram = nullptr;
                 ok = false;
             }
             else if (datagram->Error())
             {
-                logger_base.error("Error creating Artnet trigger datagram => %d : %s. %s", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+                spdlog::error("Error creating Artnet trigger datagram => {} : {}. {}", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
                 delete datagram;
                 datagram = nullptr;
                 ok = false;

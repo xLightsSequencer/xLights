@@ -21,7 +21,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, VMPIXELCHANNELS pixelChannels, wxImageResizeQuality quality, int swsQuality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier, const std::string& fromModel) {
     _suppress = false;
@@ -458,9 +458,8 @@ void VirtualMatrix::Frame(uint8_t* buffer, size_t size) {
     }
 }
 
-void VirtualMatrix::Start() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Virtual matrix started %s.", (const char*)_name.c_str());
+void VirtualMatrix::Start() { 
+    spdlog::debug("Virtual matrix started {}.", _name);
 
     if (_fromModel != "") {
         _rotation = VMROTATION::VM_NORMAL;
@@ -527,8 +526,7 @@ void VirtualMatrix::Start() {
 }
 
 void VirtualMatrix::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Virtual matrix stopped %s.", (const char*)_name.c_str());
+    spdlog::debug("Virtual matrix stopped {}.", _name);
 
     // destroy the window
     if (_window != nullptr) {

@@ -11,7 +11,7 @@
 #include "RunningSchedule.h"
 #include "Schedule.h"
 #include "PlayList/PlayList.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 RunningSchedule::RunningSchedule(PlayList* playlist, Schedule* schedule)
 {

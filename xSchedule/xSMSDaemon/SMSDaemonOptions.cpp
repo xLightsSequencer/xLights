@@ -23,7 +23,6 @@ SMSDaemonOptions::~SMSDaemonOptions()
 
 void SMSDaemonOptions::Load(const std::string& showDir)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
@@ -37,7 +36,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
 
         if (doc.IsOk())
         {
-            logger_base.debug("Options loaded from %s.", (const char *)options.c_str());
+            spdlog::debug("Options loaded from {}.", options);
             auto n = doc.GetRoot();
             _textItem = n->GetAttribute("TextItem", "");
             _user = n->GetAttribute("User", "");
@@ -83,18 +82,17 @@ void SMSDaemonOptions::Load(const std::string& showDir)
         }
         else
         {
-            logger_base.debug("Options xml file not valid XML %s.", (const char *)options.c_str());
+            spdlog::debug("Options xml file not valid XML {}.", options);
         }
     }
     else
     {
-        logger_base.debug("Options did not exist %s.", (const char *)options.c_str());
+        spdlog::debug("Options did not exist {}.", options);
     }
 }
 
 void SMSDaemonOptions::Save(const std::string& showDir)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
@@ -146,7 +144,7 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     }
 
     doc.SetRoot(node);
-    logger_base.debug("Options saved to %s.", (const char *)options.c_str());
+    spdlog::debug("Options saved to {}.", options);
     doc.Save(options);
     ClearDirty();
 }

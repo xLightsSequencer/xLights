@@ -20,7 +20,7 @@
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 PlayListItemPlugin::PlayListItemPlugin(wxXmlNode* node) : PlayListItem(node)
 {

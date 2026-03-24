@@ -582,6 +582,7 @@
     </ClCompile>
     <ClCompile Include="..\xLights\SpecialOptions.cpp" />
     <ClCompile Include="RGBEffects.cpp" />
+    <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />

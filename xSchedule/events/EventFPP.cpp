@@ -10,7 +10,7 @@
 
 #include "EventFPP.h"
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include "../ScheduleManager.h"
 
 EventFPP::EventFPP() : EventBase()
@@ -33,11 +33,10 @@ wxXmlNode* EventFPP::Save()
 
 void EventFPP::Process(const std::string& id, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (id != _id) return;
 
     auto parts = wxSplit(id, '_');
-    
+
     wxString major = "";
     wxString minor = "";
     if (parts.size() == 2)
@@ -70,13 +69,12 @@ void EventFPP::Process(const std::string& id, ScheduleManager* scheduleManager)
     if (p2 != "") parameters += "," + p2.ToStdString();
     if (p3 != "") parameters += "," + p3.ToStdString();
 
-    logger_base.debug("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
-        (const char *)_command.c_str(), (const char *)parameters.c_str());
+    spdlog::debug("Event fired {}:{} -> {}:{}", GetType(), GetName(), _command.c_str(), parameters);
 
     size_t rate = 0;
     wxString msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
-    logger_base.debug("    Event processed.");
+    spdlog::debug("    Event processed.");
 }
 
 std::string EventFPP::GetParmToolTip()

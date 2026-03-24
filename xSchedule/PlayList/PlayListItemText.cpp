@@ -15,7 +15,7 @@
 #include <wx/txtstrm.h>
 #include <wx/regex.h>
 #include "PlayListItemTextPanel.h"
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <wx/font.h>
 #include "../MatrixMapper.h"
 #include "../xScheduleMain.h"
@@ -217,7 +217,6 @@ size_t PlayListItemText::GetDurationMS() const
 
 void PlayListItemText::Start(long stepLengthMS)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     PlayListItem::Start(stepLengthMS);
 
     _lastTwitterTime = 0;
@@ -228,11 +227,11 @@ void PlayListItemText::Start(long stepLengthMS)
         if (wxString((*it)->GetName()).Lower() == wxString(_matrix).Lower())
         {
             _matrixMapper = *it;
-            logger_base.debug("PlayListItemText %s matrix %s", (const char *)GetNameNoTime().c_str(), _matrixMapper->GetConfigDescription().c_str());
-            logger_base.debug("    0,0 = %ld", _matrixMapper->Map(0, 0));
-            logger_base.debug("    0,%d = %ld", _matrixMapper->GetHeight() - 1, _matrixMapper->Map(0, _matrixMapper->GetHeight() - 1));
-            logger_base.debug("    %d,0 = %ld", _matrixMapper->GetWidth() - 1, _matrixMapper->Map(_matrixMapper->GetWidth()-1, 0));
-            logger_base.debug("    %d,%d = %ld", _matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1, _matrixMapper->Map(_matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1));
+            spdlog::debug("PlayListItemText {} matrix {}", GetNameNoTime(), _matrixMapper->GetConfigDescription());
+            spdlog::debug("    0,0 = {}", _matrixMapper->Map(0, 0));
+            spdlog::debug("    0,{} = {}", _matrixMapper->GetHeight() - 1, _matrixMapper->Map(0, _matrixMapper->GetHeight() - 1));
+            spdlog::debug("    {},0 = {}", _matrixMapper->GetWidth() - 1, _matrixMapper->Map(_matrixMapper->GetWidth()-1, 0));
+            spdlog::debug("    {},{} = {}", _matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1, _matrixMapper->Map(_matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1));
             break;
         }
     }
@@ -285,8 +284,7 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
 
 wxString PlayListItemText::GetText(size_t ms)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    
     // if the text value starts with a backspace the drop the backspace and just return the string ignoring any formatting
     if (_text.size() > 0 && _text[0] == '\b')
     {
@@ -373,7 +371,7 @@ wxString PlayListItemText::GetText(size_t ms)
                 }
                 else
                 {
-                    logger_base.warn("Getting twitter followers failed: %s", (const char*)resp.c_str());
+                    spdlog::warn("Getting twitter followers failed: {}", resp.c_str());
                 }
                 _lastTwitter = followers;
                 _lastTwitterTime = wxGetUTCTime();
@@ -384,7 +382,7 @@ wxString PlayListItemText::GetText(size_t ms)
         }
         else
         {
-            logger_base.warn("No twitter account specified.");
+            spdlog::warn("No twitter account specified.");
         }
         working.Replace("%TWITTER_FOLLOWERS%", followers);
     }

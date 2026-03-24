@@ -11,7 +11,7 @@
 #include "Schedule.h"
 #include "ScheduleDialog.h"
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include "City.h"
 
 int __scheduleid = 0;
@@ -105,19 +105,17 @@ wxDateTime Schedule::GetNextFireTime() const
 
 wxTimeSpan Schedule::GetTimeSinceStartTime() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxDateTime now = wxDateTime::Now();
     wxDateTime st = GetStartTime();
     wxDateTime start = wxDateTime(now.GetDay(), now.GetMonth(), now.GetYear(), st.GetHour(), st.GetMinute(), 0);
 
-    logger_base.debug("last start time %s.", (const char*)start.FormatISOCombined().c_str());
-    logger_base.debug("now %s.", (const char*)now.FormatISOCombined().c_str());
+    spdlog::debug("last start time {}.", (const char*)start.FormatISOCombined().c_str());
+    spdlog::debug("now {}.", (const char*)now.FormatISOCombined().c_str());
 
     if (start > now)
     {
         start -= wxTimeSpan(24);
-        logger_base.debug("last start time adjusted by 24 hrs %s.", (const char*)start.FormatISOCombined().c_str());
+        spdlog::debug("last start time adjusted by 24 hrs {}.", (const char*)start.FormatISOCombined().c_str());
     }
 
     return now - start;
@@ -378,9 +376,7 @@ void Schedule::SetTime(wxDateTime& toset, std::string city, wxDateTime time, std
 
 void Schedule::Test()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.warn("Running Schedule tests.");
+    spdlog::warn("Running Schedule tests.");
 
     Schedule s;
 
@@ -428,7 +424,7 @@ void Schedule::Test()
     wxASSERT(s.CheckActiveAt(wxDateTime(26, (wxDateTime::Month)11, 2019, 19, 0)));
     wxASSERT(!s.CheckActiveAt(wxDateTime(2, (wxDateTime::Month)0, 2018, 19, 0)));
 
-    logger_base.warn("    Schedule tests done.");
+    spdlog::warn("    Schedule tests done.");
 }
 
 bool Schedule::IsOkDOW(const wxDateTime& date)
@@ -443,7 +439,7 @@ bool Schedule::CheckActive()
 
 bool Schedule::ShouldFire() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static 
     bool fire = true;
     wxDateTime start = GetStartTime();
     wxTimeSpan gap = wxDateTime::Now() - _lastFired;
@@ -530,7 +526,7 @@ bool Schedule::ShouldFire() const
     }
 
     if (fire) {
-        logger_base.debug("Schedule %s should fire now.", (const char*)_name.c_str());
+        spdlog::debug("Schedule {} should fire now.", (const char*)_name.c_str());
     }
 
     return fire;
@@ -538,8 +534,7 @@ bool Schedule::ShouldFire() const
 
 void Schedule::DidFire()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Schedule %s did fire.", (const char*)_name.c_str());
+    spdlog::debug("Schedule {} did fire.", (const char*)_name.c_str());
     _lastFired = wxDateTime::Now();
 }
 
@@ -711,7 +706,7 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
 wxDateTime Schedule::GetNextTriggerDateTime()
 {
 #ifdef LOGCALCNEXTTRIGGERTIME
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static 
 #endif
 
     wxDateTime now = wxDateTime::Now();

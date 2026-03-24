@@ -15,7 +15,7 @@
 #include "PlayListItemMIDIPanel.h"
 #include "../../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include "../wxMIDI/src/wxMidi.h"
 
 PlayListItemMIDI::PlayListItemMIDI(wxXmlNode* node) : PlayListItem(node)
@@ -98,35 +98,34 @@ std::string PlayListItemMIDI::GetNameNoTime() const
 
 void PlayListItemMIDI::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (ms >= _delay && !_started)
-    {
-        _started = true;
+	if (ms >= _delay && !_started)
+	{
+		_started = true;
 
-        auto midi = new wxMidiOutDevice(wxAtoi(wxString(_device).AfterLast(' ')));
-        if (midi->IsOutputPort())
-        {
-            wxMidiError err = midi->Open(0);
-            if (err == wxMIDI_NO_ERROR)
-            {
-                int data1 = wxHexToDec(_data1.substr(2));
-                int data2 = wxHexToDec(_data2.substr(2));
-                int channel = wxHexToDec(_channel.substr(2));
-                wxString s = _status.substr(2, 1) + "0";
-                int status = wxHexToDec(s);
-                wxMidiShortMessage msg(status + channel, data1, data2);
-                msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-                logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-                midi->Write(&msg);
-            }
-            else
-            {
-                logger_base.error("PlayListItemMIDI failed to open MIDI device %s : %d", (const char*)_device.c_str(), err);
-            }
-        }
-        midi->Close();
-        delete midi;
-    }
+		auto midi = new wxMidiOutDevice(wxAtoi(wxString(_device).AfterLast(' ')));
+		if (midi->IsOutputPort())
+		{
+			wxMidiError err = midi->Open(0);
+			if (err == wxMIDI_NO_ERROR)
+			{
+				int data1 = wxHexToDec(_data1.substr(2));
+				int data2 = wxHexToDec(_data2.substr(2));
+				int channel = wxHexToDec(_channel.substr(2));
+				wxString s = _status.substr(2, 1) + "0";
+				int status = wxHexToDec(s);
+				wxMidiShortMessage msg(status + channel, data1, data2);
+				msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
+				spdlog::debug("MIDI Short Message {:02x} Data {:02x} {:02x} Timestamp {:04x}", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
+				midi->Write(&msg);
+			}
+			else
+			{
+				spdlog::error("PlayListItemMIDI failed to open MIDI device {} : {}", _device, err);
+			}
+		}
+		midi->Close();
+		delete midi;
+	}
 }
 
 void PlayListItemMIDI::Start(long stepLengthMS)

@@ -17,7 +17,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 PlayListItemFile::PlayListItemFile(wxXmlNode* node) : PlayListItem(node)
 {
@@ -113,12 +113,10 @@ void PlayListItemFile::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
         wxString content = FileReplaceTags(_content);
         wxString fileName = FileReplaceTags(_fileName);
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
         // ensure we are in the show directory before creating the file
         wxSetWorkingDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
-        logger_base.info("Currentdirectory %s.", (const char *)wxGetCwd().c_str());
-        logger_base.info("Writing file %s. Content: '%s'", (const char *)fileName.c_str(), (const char *)content.c_str());
+        spdlog::info("Currentdirectory {}.", (const char*)wxGetCwd().c_str());
+        spdlog::info("Writing file {}. Content: '{}'", (const char*)fileName.c_str(), (const char*)content.c_str());
 
 		wxFile f;
 		
@@ -133,7 +131,7 @@ void PlayListItemFile::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
             f.Close();
         }
 
-        logger_base.info("File written.");
+        spdlog::info("File written.");
     }
 }
 

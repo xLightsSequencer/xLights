@@ -105,7 +105,7 @@
 #include "../include/web_icon.xpm"
 #include "../include/no_web_icon.xpm"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
 
@@ -382,8 +382,6 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     OutputManager::SetInteractive(false);
     __schedule = nullptr;
     _statusSetAt = wxDateTime::Now();
@@ -391,8 +389,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _webicon = wxBitmap(web_icon_24);
     _slowicon = wxBitmap(slow_32);
 
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
-    _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
+    _timer.SetLog((spdlog::get_level() == spdlog::level::debug));
 
     //(*Initialize(xScheduleFrame)
     wxBoxSizer* BoxSizer1;
@@ -723,7 +720,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     wxConfig* xlconfig = new wxConfig(_("xLights"));
     if (xlconfig != nullptr)     {
         xlconfig->Read("xLightsUserEmail", &userEmail, "");
-        if (userEmail != "noone@nowhere.xlights.org" && userEmail != "") logger_base.debug("User email address: <email>%s</email>", (const char*)userEmail.c_str());
+        if (userEmail != "noone@nowhere.xlights.org" && userEmail != "")
+            spdlog::debug("User email address: <email>{}</email>", userEmail.ToStdString());
         delete xlconfig;
         xlconfig = nullptr;
     }
@@ -769,7 +767,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     SplitterWindow2->SetSashPosition(config->ReadLong("xsSashPositionH", 150));
     EnsureWindowHeaderIsOnScreen(this);
 
-    logger_base.debug("xSchedule UI %d,%d %dx%d.", x, y, w, h);
+    spdlog::debug("xSchedule UI {},{} {}x{}.", x, y, w, h);
 
     ListView_Running->AppendColumn("Step");
     ListView_Running->AppendColumn("Offset", wxLIST_FORMAT_RIGHT);
@@ -819,7 +817,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     BitmapButton_VolumeDown->SetBitmap(_volumedown);
     BitmapButton_VolumeUp->SetBitmap(_volumeup);
 
-    logger_base.debug("Loading show folder.");
+    spdlog::debug("Loading show folder.");
     if (showdir == "")     {
         LoadShowDir();
     }
@@ -831,11 +829,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         SelectShowFolder();
     }
 
-    logger_base.debug("Loading schedule.");
+    spdlog::debug("Loading schedule.");
     LoadSchedule();
 
     if (__schedule == nullptr)     {
-        logger_base.error("Error loading schedule. Closing xSchedule.");
+        spdlog::error("Error loading schedule. Closing xSchedule.");
         Close();
     }
 
@@ -866,7 +864,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timer.Start(_useHalfFrames ? rate / 2 : rate, false, "FrameTimer");
     _timerSchedule.Start(500, false, "ScheduleTimer");
 
-    StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
+    StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("{}", __schedule->GetOptions()->GetWebServerPort()) + "   ");
 
     StaticBitmap_WebIcon->SetBitmap(_nowebicon);
     StaticBitmap_Slow->SetBitmap(_nowebicon);
@@ -875,7 +873,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
 #ifndef NDEBUG
-    logger_base.debug("xSchedule Crash Menu item not removed.");
+    spdlog::debug("xSchedule Crash Menu item not removed.");
 #ifdef _MSC_VER
     if (IsDarkMode()) {
         SetBackgroundColour(wxColour(0x006000));
@@ -890,7 +888,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         MenuItem_Crash = nullptr;
     }
     else     {
-        logger_base.debug("xSchedule Crash Menu item not removed.");
+        spdlog::debug("xSchedule Crash Menu item not removed.");
     }
 #endif
 
@@ -900,7 +898,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     UpdateUI(true);
 
-    logger_base.debug("Loading plugins.");
+    spdlog::debug("Loading plugins.");
     _pluginManager.Initialise(_showDir);
 
     for (auto it : _pluginManager.GetPlugins())     {
@@ -913,13 +911,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
             }
         }
     }
-    logger_base.debug("Plugins loaded.");
+    spdlog::debug("Plugins loaded.");
 }
 
 void xScheduleFrame::LoadSchedule()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxASSERT(wxThread::IsMain());
 
     // reset our special options
@@ -945,7 +941,7 @@ void xScheduleFrame::LoadSchedule()
         wxLog::SetActiveTarget(new wxLogStderr());
 	}
 
-    logger_base.debug("Loading schedule.");
+    spdlog::debug("Loading schedule.");
 
     if (_pinger != nullptr)
     {
@@ -1014,16 +1010,16 @@ void xScheduleFrame::LoadSchedule()
         MenuItem_UsexLightsFolder->Enable(true);
     }
 
-    logger_base.debug("Adding IPs to ping.");
+    spdlog::debug("Adding IPs to ping.");
     AddIPs();
 
-    logger_base.debug("Update the playlist tree.");
+    spdlog::debug("Update the playlist tree.");
     UpdateTree();
 
-    logger_base.debug("Creating buttons.");
+    spdlog::debug("Creating buttons.");
     CreateButtons();
 
-    logger_base.debug("Schedule loaded.");
+    spdlog::debug("Schedule loaded.");
 }
 
 void xScheduleFrame::AddIPs()
@@ -1063,8 +1059,7 @@ void xScheduleFrame::AddIPs()
 
 xScheduleFrame::~xScheduleFrame()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("xScheduleFrame destructor start.");
+    spdlog::debug("xScheduleFrame destructor start.");
 
     // stop the timers immediately
     _timer.Stop();
@@ -1122,13 +1117,12 @@ xScheduleFrame::~xScheduleFrame()
         fclose(_f);
     }
 
-    logger_base.debug("xScheduleFrame destructor end.");
+    spdlog::debug("xScheduleFrame destructor end.");
 }
 
 void xScheduleFrame::OnQuit(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("OnQuit called.");
+    spdlog::debug("OnQuit called.");
 
     if (__schedule->IsDirty())
     {
@@ -1149,7 +1143,7 @@ void xScheduleFrame::OnQuit(wxCommandEvent& event)
 
 void xScheduleFrame::OnAbout(wxCommandEvent& event)
 {
-    auto about = wxString::Format(wxT("xSchedule v%s, the xLights scheduler."), GetDisplayVersionString());
+    auto about = wxString::Format(wxT("xSchedule v{}, the xLights scheduler."), GetDisplayVersionString());
     wxMessageBox(about, _("Welcome to..."));
 }
 
@@ -1257,7 +1251,7 @@ void xScheduleFrame::DeleteSelectedItem()
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
     if (treeitem.IsOk() && (IsPlayList(treeitem) || IsSchedule(treeitem)))
     {
-        if (wxMessageBox(wxString::Format("Are you sure you want to delete '%s'?", TreeCtrl_PlayListsSchedules->GetItemText(treeitem)),
+        if (wxMessageBox(wxString::Format("Are you sure you want to delete '{}'?", TreeCtrl_PlayListsSchedules->GetItemText(treeitem)),
             "Are you sure?", wxYES_NO) == wxYES)
         {
             wxTreeItemId parent = TreeCtrl_PlayListsSchedules->GetItemParent(treeitem);
@@ -1413,39 +1407,37 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 
 void xScheduleFrame::SaveShowDir() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
     auto sd = wxString(_showDir);
-    logger_base.debug("Saving show folder location %s.", (const char *)sd.c_str());
+    spdlog::debug("Saving show folder location {}.", sd.ToStdString());
     if (!config->Write(_("SchedulerLastDir"), sd))
     {
-        logger_base.error("Error saving 'SchedulerLastDir'.");
+        spdlog::error("Error saving 'SchedulerLastDir'.");
     }
     config->Flush();
 }
 
 void xScheduleFrame::LoadShowDir()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+{    
     wxConfigBase* config = wxConfigBase::Get();
-    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor '%s'.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*)config->GetVendorName().c_str());
+    spdlog::debug("Config: AppName '{}' Path '{}' Entries {} Groups {} Style {} Vendor '{}'.", 
+        config->GetAppName().ToStdString(), config->GetPath().ToStdString(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), config->GetVendorName().ToStdString());
 
     // get the show directory
     wxString showDir = ScheduleManager::xScheduleShowDir();
     if (showDir == "")
     {
-        logger_base.debug("Could not read show folder from 'SchedulerLastDir'.");
+        spdlog::debug("Could not read show folder from 'SchedulerLastDir'.");
         showDir = ScheduleManager::xLightsShowDir();
         if (showDir == "")
         {
-            logger_base.debug("Could not read show folder from 'xLights::LastDir'.");
+            spdlog::debug("Could not read show folder from 'xLights::LastDir'.");
             DirDialog1->SetPath(_showDir);
 
             if (DirDialog1->ShowModal() == wxID_OK)
             {
                 _showDir = DirDialog1->GetPath().ToStdString();
-                logger_base.debug("User selected show folder '%s'.", (const char *)_showDir.c_str());
+                spdlog::debug("User selected show folder '{}'.", _showDir);
                 SaveShowDir();
             }
             else
@@ -1455,14 +1447,14 @@ void xScheduleFrame::LoadShowDir()
         }
         else
         {
-            logger_base.debug("Read show folder from 'xLights::LastDir' location %s.", (const char *)showDir.c_str());
+            spdlog::debug("Read show folder from 'xLights::LastDir' location {}.", showDir.ToStdString());
             _showDir = showDir.ToStdString();
             SaveShowDir();
         }
     }
     else
     {
-        logger_base.debug("Read show folder from 'SchedulerLastDir' location %s.", (const char *)showDir.c_str());
+        spdlog::debug("Read show folder from 'SchedulerLastDir' location {}.", showDir.ToStdString());
         _showDir = showDir.ToStdString();
     }
 }
@@ -1529,8 +1521,6 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     static int last = -1;
     static uint32_t shortFramesSkipped = 0;
     static uint32_t longFrames = 0;
@@ -1541,7 +1531,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     long long now = wxGetLocalTimeMillis().GetValue();
     long long elapsed = (now - lastms);
 
-    logger_frame.info("Timer: Start frame elapsed %lld now %lld last %lld", elapsed, now, lastms);
+    spdlog::info("Timer: Start frame elapsed {} now {} last {}", elapsed, now, lastms);
 
     if (elapsed < _timer.GetInterval() / 2)
     {
@@ -1549,10 +1539,10 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         ++shortFramesSkipped;
         // log slow and fast frames infrequently
         if (shortFramesSkipped % 200 == 1) {
-            logger_frame.warn("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+            spdlog::warn("Timer: Frame event fire interval {}ms less than 1/2 frame time {}ms. {} events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
         }
         else {
-            logger_frame.debug("Timer: Frame event fire interval %dms less than 1/2 frame time %dms. %u events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
+            spdlog::debug("Timer: Frame event fire interval {}ms less than 1/2 frame time {}ms. {} events skipped.", elapsed, _timer.GetInterval() / 2, shortFramesSkipped);
         }
         return;
     }
@@ -1564,10 +1554,10 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
             ++longFrames;
             // log slow and fast frames infrequently
             if (longFrames % 200 == 1) {
-                logger_frame.warn("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+                spdlog::warn("Timer: Frame interval greater than 200%% of what it should have been [{}] {} : So far {}", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
             }
             else {
-                logger_frame.debug("Timer: Frame interval greater than 200%% of what it should have been [%d] %d : So far %u", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
+                spdlog::debug("Timer: Frame interval greater than 200%% of what it should have been [{}] {} : So far {}", _timer.GetInterval() * 2, (int)(now - lastms), longFrames);
             }
             _lastSlow = wxGetUTCTimeMillis();
         }
@@ -1583,7 +1573,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 #endif
     {
         // This log message must be commented out before release!!!
-        //logger_frame.debug("    Check schedule");
+        //spdlog::debug("    Check schedule");
 
         // update the UI every second
         last = wxDateTime::Now().GetSecond();
@@ -1600,7 +1590,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     {
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
-        logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval());
+        spdlog::debug("Timer: Frame took too long {} > {} so next frame forced to be output", ms, _timer.GetInterval());
     } else if (!_useHalfFrames) {
         // every frame is an output frame
         _timerOutputFrame = true;
@@ -1614,7 +1604,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     wxCommandEvent event3(EVT_SLOWFRAMEPROCESSING);
     wxPostEvent(this, event3);
 
-    logger_frame.info("Timer: End Frame: Time %ld", ms);
+    spdlog::info("Timer: End Frame: Time {}", ms);
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -1623,15 +1613,14 @@ void xScheduleFrame::UpdateSchedule()
 
     wxASSERT(wxThread::IsMain());
 
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     wxStopWatch sw;
-    logger_frame.debug("Updating the schedule.");
+    spdlog::debug("Updating the schedule.");
 
     TreeCtrl_PlayListsSchedules->Freeze();
 
     int rate = __schedule->CheckSchedule();
 
-    logger_frame.debug("Schedule checked %ldms", sw.Time());
+    spdlog::debug("Schedule checked {}ms", sw.Time());
 
     PlayList* nextpl = nullptr;
     Schedule* nextsch = nullptr;
@@ -1685,7 +1674,7 @@ void xScheduleFrame::UpdateSchedule()
         }
     }
 
-    logger_frame.debug("    Tree updated %ldms", sw.Time());
+    spdlog::debug("    Tree updated {}ms", sw.Time());
 
     CorrectTimer(rate);
 
@@ -1699,16 +1688,16 @@ void xScheduleFrame::UpdateSchedule()
         _timerSchedule.Start(60000, false);
     }
 
-    logger_frame.debug("    Timers sorted %ldms", sw.Time());
+    spdlog::debug("    Timers sorted {}ms", sw.Time());
 
     UpdateUI();
 
-    logger_frame.debug("    UI updated %ldms", sw.Time());
+    spdlog::debug("    UI updated {}ms", sw.Time());
 
     TreeCtrl_PlayListsSchedules->Thaw();
     TreeCtrl_PlayListsSchedules->Refresh();
 
-    logger_frame.debug("    Schedule updated %ldms", sw.Time());
+    spdlog::debug("    Schedule updated {}ms", sw.Time());
 }
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
@@ -1788,7 +1777,7 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
         __schedule->GetOutputManager()->SetSyncEnabled(__schedule->GetOptions()->IsSync());
 
-        StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
+        StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("{}", __schedule->GetOptions()->GetWebServerPort()) + "   ");
 
         VideoReader::SetHardwareAcceleratedVideo(__schedule->GetOptions()->IsHardwareAcceleratedVideo());
 
@@ -1879,14 +1868,12 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
 
 void xScheduleFrame::ChangeShowFolder(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto newShowFolder = event.GetString();
 
     if (newShowFolder == "") {
         newShowFolder = __schedule->GetShowDir();
     }
-
-    logger_base.debug("Changing show folder to %s.", (const char*)newShowFolder.c_str());
+    spdlog::debug("Changing show folder to {}.", newShowFolder.ToStdString());
     _showDir = newShowFolder.ToStdString();
     SaveShowDir();
     _timerSchedule.Stop();
@@ -1980,7 +1967,6 @@ wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxSt
 
 void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
     wxString fileName = "xSchedule_l4cpp.log";
 #ifdef __WXMSW__
@@ -2006,14 +1992,14 @@ void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        logger_base.debug("Viewing log file %s.", (const char*)fn.c_str());
+        spdlog::debug("Viewing log file {}.", fn.ToStdString());
 
         wxExecute(command);
         delete ft;
     }
     else {
-        logger_base.warn("Unable to view log file %s.", (const char*)fn.c_str());
-        wxMessageBox(wxString::Format("Unable to show log file '%s'.", fn.c_str()), _("Error"));
+        spdlog::warn("Unable to view log file {}.", fn.ToStdString());
+        wxMessageBox(wxString::Format("Unable to show log file '{}'.", fn), _("Error"));
     }
 }
 
@@ -2125,8 +2111,7 @@ void xScheduleFrame::UpdateStatus(bool force)
     wxASSERT(wxThread::IsMain());
 
     wxStopWatch sw;
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
-    logger_frame.debug("            Update Status");
+    spdlog::debug("            Update Status");
 
     ListView_Running->Freeze();
 
@@ -2134,7 +2119,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         StatusBar1->SetStatusText("");
     }
 
-    logger_frame.debug("            Status Text %ldms", sw.Time());
+    spdlog::debug("            Status Text {}ms", sw.Time());
 
     static int lastcc = -1;
     static int lastid = -1;
@@ -2149,7 +2134,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         }
     }
 
-    logger_frame.debug("            Got selected playlist %ldms", sw.Time());
+    spdlog::debug("            Got selected playlist {}ms", sw.Time());
 
     if (p == nullptr) {
         ListView_Running->DeleteAllItems();
@@ -2248,7 +2233,7 @@ void xScheduleFrame::UpdateStatus(bool force)
     ListView_Running->Thaw();
     ListView_Running->Refresh();
 
-    logger_frame.debug("            Updated running listview %ldms", sw.Time());
+    spdlog::debug("            Updated running listview {}ms", sw.Time());
 
     static int saved = -1;
     static int otl = -1;
@@ -2416,7 +2401,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         }
     }
 
-    logger_frame.debug("            Updated toolbar %ldms", sw.Time());
+    spdlog::debug("            Updated toolbar {}ms", sw.Time());
 
     // update each button based on current status
 
@@ -2467,7 +2452,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         }
     }
 
-    logger_frame.debug("            Updated buttons %ldms", sw.Time());
+    spdlog::debug("            Updated buttons {}ms", sw.Time());
 
     Custom_Volume->SetValue(__schedule->GetVolume());
 
@@ -2475,7 +2460,7 @@ void xScheduleFrame::UpdateStatus(bool force)
 
     SendStatus();
 
-    logger_frame.debug("            Status Sent %ldms", sw.Time());
+    spdlog::debug("            Status Sent {}ms", sw.Time());
 }
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
@@ -2526,8 +2511,7 @@ void xScheduleFrame::OnBitmapButton_UnsavedClick(wxCommandEvent& event)
 
 void xScheduleFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("Crash handler called.");
+    spdlog::critical("Crash handler called.");
     if (xScheduleFrame::GetScheduleManager() != nullptr) {
         crashHandler->GetDebugReport().SetCompressedFileDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
     }
@@ -2658,7 +2642,6 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 
 void xScheduleFrame::CorrectTimer(int rate)
 {
-    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     if (rate == 0) {
         rate = 50;
         _useHalfFrames = true;
@@ -2668,7 +2651,7 @@ void xScheduleFrame::CorrectTimer(int rate)
     }
     if ((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1) != _timer.GetInterval())
     {
-        logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
+        spdlog::debug("Timer corrected {}", (rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
 
         _timer.Start((rate - __schedule->GetTimerAdjustment()) / (_useHalfFrames ? 2 : 1));
     }
@@ -3070,7 +3053,7 @@ void xScheduleFrame::RemoteWarning()
 
 void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser(wxString::Format("http://localhost:%d", __schedule->GetOptions()->GetWebServerPort()));
+    ::wxLaunchDefaultBrowser(wxString::Format("http://localhost:{}", __schedule->GetOptions()->GetWebServerPort()));
 }
 
 void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
@@ -3227,11 +3210,9 @@ void xScheduleFrame::DoStop(wxCommandEvent& event)
 
 void xScheduleFrame::DoAction(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     ActionMessageData* amd = (ActionMessageData*)event.GetClientData();
 
-    logger_base.debug("    Thread switched command = %s", (const char*)amd->_command.c_str());
+    spdlog::debug("    Thread switched command = {}", amd->_command);
 
     PlayList* playlist = nullptr;
     Schedule* schedule = nullptr;
@@ -3270,20 +3251,19 @@ void xScheduleFrame::UpdateUI(bool force)
     wxASSERT(wxThread::IsMain());
 
     wxStopWatch sw;
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
-    logger_frame.debug("        Update UI");
+    spdlog::debug("        Update UI");
 
     bool minimiseUIUpdates = __schedule->GetOptions()->IsMinimiseUIUpdates();
 
     UpdateStatus(force);
 
-    logger_frame.debug("        Status updated %ldms", sw.Time());
+    spdlog::debug("        Status updated {}ms", sw.Time());
 
     Brightness->SetValue(__schedule->GetBrightness());
 
     if (!minimiseUIUpdates) {
 
-        StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
+        StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: {}", __schedule->GetPPS()));
 
         if (__schedule->GetWebRequestToggle()) {
             if (!_webIconDisplayed) {
@@ -3312,7 +3292,7 @@ void xScheduleFrame::UpdateUI(bool force)
         }
     }
 
-    logger_frame.debug("        Web request status updated %ldms", sw.Time());
+    spdlog::debug("        Web request status updated {}ms", sw.Time());
 
     if (!_suspendOTL) {
         if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1) {
@@ -3341,11 +3321,11 @@ void xScheduleFrame::UpdateUI(bool force)
             __schedule->SetOutputToLights(this, false, false);
     }
 
-    logger_frame.debug("        Managed output to lights %ldms", sw.Time());
+    spdlog::debug("        Managed output to lights {}ms", sw.Time());
 
     ModeToUI();
 
-    logger_frame.debug("        Updated mode %ldms", sw.Time());
+    spdlog::debug("        Updated mode {}ms", sw.Time());
 
     // disable any outputs where the ping has failed
     if (_pinger != nullptr && __schedule->GetOptions()->IsDisableOutputOnPingFailure()) {
@@ -3391,7 +3371,7 @@ void xScheduleFrame::UpdateUI(bool force)
                     ListView_Ping->SetItem(item, 1, "");
                 }
                 else {
-                    ListView_Ping->SetItem(item, 1, wxString::Format("%d", it->GetFailCount()));
+                    ListView_Ping->SetItem(item, 1, wxString::Format("{}", it->GetFailCount()));
                 }
 
                 switch (it->GetPingResult()) {
@@ -3518,7 +3498,7 @@ void xScheduleFrame::UpdateUI(bool force)
         ListView_Ping->Thaw();
     }
 
-    logger_frame.debug("        Updated ping status %ldms", sw.Time());
+    spdlog::debug("        Updated ping status {}ms", sw.Time());
 
     ValidateWindow();
 
@@ -3714,8 +3694,7 @@ void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_CrashSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.crit("^^^^^ xSchedule crashing on purpose ... bye bye cruel world.");
+    spdlog::critical("^^^^^ xSchedule crashing on purpose ... bye bye cruel world.");
     int *p = nullptr;
     *p = 0xFFFFFFFF;
 }
@@ -3783,8 +3762,7 @@ void xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnClose(wxCloseEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("xSchedule frame close.");
+    spdlog::debug("xSchedule frame close.");
     Destroy();
 }
 
@@ -3807,3 +3785,4 @@ void xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& eve
     config->DeleteEntry("xsSashPositionH");
     config->DeleteEntry("xsSashPositionV");
 }
+

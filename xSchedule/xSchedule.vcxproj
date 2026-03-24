@@ -136,6 +136,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -191,6 +192,7 @@ copy "$(SolutionDir)..\bin\xschedule.windows.properties" "$(TargetDir)"</Command
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

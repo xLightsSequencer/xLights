@@ -24,7 +24,7 @@
 #include "PlayerWindow.h"
 #include "../ScheduleOptions.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
@@ -239,7 +239,6 @@ void PlayListItemVideo::OpenFiles(bool doCache)
 
 void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Video rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
 
     if (ms < _delay) {
@@ -311,7 +310,7 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
             }
         }
         if (sw.Time() > framems / 2) {
-            logger_base.warn("   Getting frame %ld from video %s took more than half a frame: %ld.", (long)ms - _delay, (const char*)GetNameNoTime().c_str(), (long)sw.Time());
+            spdlog::warn("   Getting frame {} from video {} took more than half a frame: {}.", (long)ms - _delay, GetNameNoTime(), (long)sw.Time());
         }
         //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms - _delay, (const char *)GetNameNoTime().c_str());
     }
