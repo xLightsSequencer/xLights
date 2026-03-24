@@ -575,6 +575,15 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, xLig
     }
 
     model->Setup();
+
+    if (model->HasIndivStartNodes() && !model->HasIndividualStartChannels() && model->GetNodeCount() > 0) {
+        for (int i = 0; i < num_strings; i++) {
+            if (model->GetIndivStartNode(i) == 0) {
+                model->SetIndivStartNode(i, model->ComputeStringStartNode(i));
+            }
+        }
+    }
+
     return model;
 }
 
