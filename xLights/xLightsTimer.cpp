@@ -435,7 +435,7 @@ wxThread::ExitCode xlTimerThread::Entry()
             fudgefactor = _fudgefactor;
             if (!_stop && !suspend)
             {
-                spdlog::debug("THREAD {}: Timer %s fired {}.", wxThread::GetCurrentId(), (const char*)_name.c_str(), _timer->GetFired());
+                spdlog::debug("THREAD {}: Timer {} fired {}.", wxThread::GetCurrentId(), (const char*)_name.c_str(), _timer->GetFired());
                 _timer->Notify();
             }
             if (oneshot)

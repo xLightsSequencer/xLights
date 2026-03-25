@@ -679,8 +679,20 @@ bool xLightsApp::OnInit()
             // temporarily set the show folder
             showDir = xsqPkg.GetTempShowFolder();
 
-            // save the folder and we will remove it when we shutdown
-            cleanupDir = showDir;
+            spdlog::info("xsqz IsPkg={} IsValid={} tempShowFolder='{}' tempDir='{}' xsqFile='{}'",
+                xsqPkg.IsPkg(), xsqPkg.IsValid(),
+                showDir.ToStdString(),
+                xsqPkg.GetTempDir(),
+                xsqFile.GetFullPath().ToStdString());
+
+            // if the package includes xlights_rgbeffects.xml, point the frame constructor
+            // at the extracted show folder so it loads it directly (avoids a second SetDir)
+            if (!showDir.IsEmpty()) {
+                xLightsApp::showDir = showDir;
+            }
+
+            // save the temp dir root so it gets cleaned up on shutdown
+            cleanupDir = xsqPkg.GetTempDir();
 
         } else {
             spdlog::debug("Zip file did not contain sequence.");
@@ -711,6 +723,8 @@ bool xLightsApp::OnInit()
     }
 
     if (readOnlyZipFile != "") {
+        spdlog::info("xsqz: CurrentDir='{}' after construction", topFrame->CurrentDir.ToStdString());
+
         // tell xlights not to allow saving ... at least as much as possible
         topFrame->SetReadOnlyMode(true);
 

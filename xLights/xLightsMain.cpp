@@ -3726,6 +3726,9 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
 
 void xLightsFrame::CheckUnsavedChanges()
 {
+    if (readOnlyMode) {
+        return;
+    }
     if (UnsavedRgbEffectsChanges) {
         // This is not necessary but it shows the user that the save button is red which I am hoping makes it clearer
         // to the user what this prompt is for
