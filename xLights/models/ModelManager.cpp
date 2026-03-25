@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cmath>
 #include <format>
+#include <thread>
 
 #include <wx/msgdlg.h>
 #include <pugixml.hpp>
@@ -78,7 +79,7 @@ ModelManager::~ModelManager()
 {
     // Because loading models is async we have to ensure this is done before we destroy anything
     while (_modelsLoading)
-        wxMilliSleep(1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     clear();
 }

@@ -1737,7 +1737,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
     while (!renderProgressInfo.empty() && loops < maxLoops) {
         loops++;
         RenderMainThreadEffects(); // make sure main thread effects are rendered
-        wxMilliSleep(10);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
         UpdateRenderStatus(); // a side effect is to clean up renderProgressInfo
         if (!renderProgressInfo.empty() && loops > 25) {
             wxYield(); // not sure this is advisable ... but it makes the app look responsive

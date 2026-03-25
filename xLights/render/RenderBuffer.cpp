@@ -444,7 +444,7 @@ void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
 
         if (style != fontStyle
             || font.GetPixelSize().y != fontSize
-            || font.GetFaceName() != fontName
+            || font.GetFaceName().ToStdString() != fontName
             || color != fontColor)
         {
             this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, xlColorToWxColour(color));
@@ -458,7 +458,7 @@ void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
 
             fontStyle = style;
             fontSize = font.GetPixelSize().y;
-            fontName = font.GetFaceName();
+            fontName = font.GetFaceName().ToStdString();
             fontColor = color;
         }
         gc->SetFont(this->font);
@@ -546,7 +546,7 @@ const wxFontInfo& TextDrawingContext::GetShapeFont(const std::string& font)
         ff.SetNativeFontInfoUserDesc(font); // This needs FontMapLock above
 
         wxFontInfo _font = wxFontInfo(wxSize(0, 12));
-        wxString face = ff.GetFaceName();
+        std::string face = ff.GetFaceName().ToStdString();
         if (face == WIN_NATIVE_EMOJI_FONT || face == OSX_NATIVE_EMOJI_FONT || face == LINUX_NATIVE_EMOJI_FONT) {
             _font.FaceName(NATIVE_EMOJI_FONT);
         } else {

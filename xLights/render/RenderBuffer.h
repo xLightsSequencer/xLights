@@ -121,7 +121,7 @@ private:
     wxBitmap nullBitmap;
     wxMemoryDC *dc;
     wxGraphicsContext *gc;
-    wxString fontName;
+    std::string fontName;
     int fontStyle;
     int fontSize;
     xlColor fontColor;
