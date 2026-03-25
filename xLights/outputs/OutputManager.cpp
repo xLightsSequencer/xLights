@@ -397,6 +397,10 @@ bool OutputManager::MergeFromBase(bool prompt)
         return false;
     }
 
+    if (changed) {
+        SomethingChanged();
+    }
+
     return changed;
 }
 
@@ -1078,7 +1082,7 @@ int OutputManager::UniqueId() {
     return i;
 }
 
-// Need to call this whenever something may have changed in an output to ensure all the transient data it updated
+// Need to call this whenever something may have changed in an output to ensure all the transient data is updated
 void OutputManager::SomethingChanged() const {
     int nullcnt = 0;
     int start = 1;
