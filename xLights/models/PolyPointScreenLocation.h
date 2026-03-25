@@ -31,8 +31,8 @@ public:
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const override;
-    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int& handle, int x, int y) const override;
-    virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
+    virtual CursorType CheckIfOverHandles(ModelPreview* preview, int& handle, int x, int y) const override;
+    virtual CursorType CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
 
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
@@ -53,7 +53,7 @@ public:
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
     virtual void InsertHandle(int after_handle, float zoom, int scale) override;
     virtual void DeleteHandle(int handle) override;
-    virtual wxCursor InitializeLocation(int& handle, int x, int y, const std::vector<NodeBaseClassPtr>& Nodes, ModelPreview* preview) override;
+    virtual CursorType InitializeLocation(int& handle, int x, int y, const std::vector<NodeBaseClassPtr>& Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr>& Node) override;
 
     virtual std::string GetDimension(float factor = 1.0) const override;

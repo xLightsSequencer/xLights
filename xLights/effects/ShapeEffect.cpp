@@ -11,6 +11,7 @@
 #include "ShapeEffect.h"
 
 #include "../utils/xlPoint.h"
+#include <cassert>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
@@ -687,7 +688,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 			Drawellipse(buffer, it->_centre.x, it->_centre.y, it->_size, points, color, thickness, rotation);
 			break;
         default:
-            wxASSERT(false);
+            assert(false);
             break;
         }
 

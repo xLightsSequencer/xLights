@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+
 #include "SingleStrandEffect.h"
 #include "render/ValueCurve.h"
 #include "../render/Effect.h"
@@ -129,7 +131,7 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
             vc.SetLimits(1, 500);
             vc.Deserialise(rzRotations);
             sm["E_VALUECURVE_Chase_Rotations"] = vc.Serialise();
-            wxASSERT(vc.IsRealValue());
+            assert(vc.IsRealValue());
         }
     }
 }
@@ -288,7 +290,7 @@ void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff,
     }
 
     auto pfx = cache->_fx;
-    wxASSERT(pfx != nullptr);
+    assert(pfx != nullptr);
 
     pfx->SetBuffer(&buffer);
 
@@ -533,7 +535,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
     int middle_chase_index = 0; 
     if (max_chase_width < 1) max_chase_width = 1;
 
-    wxASSERT(Number_Chases != 0);
+    assert(Number_Chases != 0);
 
     int pixels_per_chase = width / Number_Chases;
     if (pixels_per_chase < 1) {

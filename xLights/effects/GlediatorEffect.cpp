@@ -11,6 +11,7 @@
 #include "GlediatorEffect.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
@@ -35,62 +36,64 @@
 
 GlediatorReader::GlediatorReader(const std::string& filename, const xlSize& size)
 {
-    
-
     _filename = filename;
     _size = size;
+    _frames = 0;
 
-    _f.Open(_filename);
+    _f.open(_filename, std::ios::in | std::ios::binary);
 
-    if (_f.IsOpened())
+    if (_f.is_open())
     {
-        _frames = (int)(_f.Length() / GetBufferSize());
+        _f.seekg(0, std::ios::end);
+        auto fileSize = static_cast<size_t>(_f.tellg());
+        _f.seekg(0, std::ios::beg);
 
-        if (_frames * GetBufferSize() != _f.Length())
+        _frames = fileSize / GetBufferSize();
+
+        if (_frames * GetBufferSize() != fileSize)
         {
-            spdlog::warn("Opening glediator file {} size ({},{}) looks suspicious as it does not match file size {}.", (const char *)_filename.c_str(), _size.width, _size.height, (long)_f.Length());
+            spdlog::warn("Opening glediator file {} size ({},{}) looks suspicious as it does not match file size {}.", _filename.c_str(), _size.width, _size.height, (long)fileSize);
         }
     }
     else
     {
-        spdlog::warn("Failed to open file {}", (const char *)_filename.c_str());
+        spdlog::warn("Failed to open file {}", _filename.c_str());
     }
-
 }
 
 CSVReader::CSVReader(const std::string& filename)
 {
-    
-
     _line = -1;
     _filename = filename;
 
-    _f.Open(_filename);
+    std::ifstream f(_filename, std::ios::in);
 
-    if (_f.IsOpened())
+    if (f.is_open())
     {
-
+        std::string line;
+        while (std::getline(f, line))
+        {
+            _lines.push_back(line);
+        }
+        f.close();
     }
     else
     {
-        spdlog::warn("Failed to open file {}", (const char *)_filename.c_str());
+        spdlog::warn("Failed to open file {}", _filename.c_str());
     }
 }
 
 GlediatorReader::~GlediatorReader()
 {
-    if (_f.IsOpened())
+    if (_f.is_open())
     {
-        _f.Close();
+        _f.close();
     }
 }
 
 CSVReader::~CSVReader()
 {
-    if (_f.IsOpened())
-    {
-        _f.Close();
-    }
+    _lines.clear();
 }
 
 void GlediatorReader::GetFrame(size_t frame, char* buffer, size_t size)
@@ -114,28 +117,29 @@ void GlediatorReader::GetFrame(size_t frame, char* buffer, size_t size)
     else
     {
         size_t offset = frame * GetBufferSize();
-        _f.Seek(offset, wxFromStart);
-        size_t readcnt = _f.Read(buffer, size); // Read one period of channels
+        _f.seekg(offset, std::ios::beg);
+        _f.read(buffer, size); // Read one period of channels
 
-        wxASSERT(readcnt == size);
+        assert(static_cast<size_t>(_f.gcount()) == size);
     }
 }
 
 void CSVReader::GetFrame(size_t frame, char* buffer, size_t size)
 {
-    wxString line = _f.GetLine(frame);
+    if (frame >= _lines.size())
+        return;
 
-    auto data = Split(line.ToStdString(), ',');
+    auto data = Split(_lines[frame], ',');
 
-    for (int i = 0; i < std::min(data.size(), size); i++)
+    for (size_t i = 0; i < std::min(data.size(), size); i++)
     {
-        *(buffer + i) = std::strtol(data[i].c_str(), nullptr, 10);
+        *(buffer + i) = static_cast<char>(std::strtol(data[i].c_str(), nullptr, 10));
     }
 }
 
 size_t CSVReader::GetFrameCount() const
 {
-    return _f.GetLineCount();
+    return _lines.size();
 }
 
 GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", glediator_16, glediator_64, glediator_64, glediator_64, glediator_64)

@@ -127,15 +127,15 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
         if (!std::filesystem::path(file).is_absolute()) {
             // relative path: just let GetImage() resolve it below
         } else if (!FileExists(file, false)) {
-            wxString fixed = FixFile("", file);
+            std::string fixed = FixFile("", file).ToStdString();
             // If the resolved path is inside a show/media directory, store as
             // relative so the sequence is portable across machines.
-            wxString rel = MakeRelativeFile(fixed);
-            settings["E_TEXTCTRL_Pictures_Filename"] = rel.IsEmpty() ? fixed : rel;
+            std::string rel = MakeRelativeFile(fixed).ToStdString();
+            settings["E_TEXTCTRL_Pictures_Filename"] = rel.empty() ? fixed : rel;
         } else {
             // File exists at its absolute path — still prefer relative storage
-            wxString rel = MakeRelativeFile(file);
-            if (!rel.IsEmpty())
+            std::string rel = MakeRelativeFile(file).ToStdString();
+            if (!rel.empty())
                 settings["E_TEXTCTRL_Pictures_Filename"] = rel;
         }
         std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
@@ -305,9 +305,9 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
     if (!file.empty()) {
         // Relative paths must be resolved to absolute so callers can locate the file.
         if (!std::filesystem::path(file).is_absolute()) {
-            wxString resolved = FixFile("", file);
-            if (!resolved.IsEmpty() && FileExists(resolved))
-                res.push_back(resolved.ToStdString());
+            std::string resolved = FixFile("", file).ToStdString();
+            if (!resolved.empty() && FileExists(resolved))
+                res.push_back(resolved);
         } else if (FileExists(file)) {
             res.push_back(file);
         }

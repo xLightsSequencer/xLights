@@ -86,6 +86,23 @@
 
 #include <log.h>
 
+#include <wx/cursor.h>
+#include "utils/CursorType.h"
+
+inline wxCursor CursorTypeToWx(CursorType ct) {
+    switch (ct) {
+        case CursorType::Hand: return wxCursor(wxCURSOR_HAND);
+        case CursorType::Sizing: return wxCursor(wxCURSOR_SIZING);
+        case CursorType::SizeWE: return wxCursor(wxCURSOR_SIZEWE);
+        case CursorType::SizeNS: return wxCursor(wxCURSOR_SIZENS);
+        case CursorType::SizeNWSE: return wxCursor(wxCURSOR_SIZENWSE);
+        case CursorType::SizeNESW: return wxCursor(wxCURSOR_SIZENESW);
+        case CursorType::Bullseye: return wxCursor(wxCURSOR_BULLSEYE);
+        case CursorType::Wait: return wxCursor(wxCURSOR_WAIT);
+        default: return wxCursor(wxCURSOR_DEFAULT);
+    }
+}
+
 #include <set>
 
 #define MODELCOLNAME "Model/Group"
@@ -3316,7 +3333,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             creating_model = true;
             if (wi > 0 && ht > 0)
             {
-                modelPreview->SetCursor(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+                modelPreview->SetCursor(CursorTypeToWx(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview)));
             }
             bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
             // this is designed to pretend the control and shift keys are down when creating models to
@@ -3530,7 +3547,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             }
             UnSelectAllModels();
             _newModel->Selected(true);
-            modelPreview->SetCursor(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+            modelPreview->SetCursor(CursorTypeToWx(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview)));
             lastModelName = _newModel->name;
             modelPreview->SetAdditionalModel(_newModel);
         }
@@ -4335,7 +4352,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 // check for mouse over handle and if so highlight it
-                modelPreview->SetCursor(selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale()));
+                modelPreview->SetCursor(CursorTypeToWx(selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale())));
                 if (m_over_handle != over_handle) {
                     selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(m_over_handle);
                     over_handle = m_over_handle;
@@ -4494,7 +4511,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
     else {
         if (m->Selected()) {
-            modelPreview->SetCursor(m->GetBaseObjectScreenLocation().CheckIfOverHandles(modelPreview, m_over_handle, event.GetX(), event.GetY()));
+            modelPreview->SetCursor(CursorTypeToWx(m->GetBaseObjectScreenLocation().CheckIfOverHandles(modelPreview, m_over_handle, event.GetX(), event.GetY())));
         }
     }
 }

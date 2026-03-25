@@ -10,6 +10,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+
 #include "RenderableEffect.h"
 #include "../UtilFunctions.h"
 #include "../utils/xlPoint.h"
@@ -143,7 +145,7 @@ struct ShaderParm
         case ShaderCtrlType::SHADER_CTRL_TIMING:
             return std::format("ID_CHOICE_SHADERXYZZY_{}", _name);
         }
-        wxASSERT(false);
+        assert(false);
         return "NONAME";
     }
     // These are the labels that will be in the settings map

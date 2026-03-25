@@ -11,11 +11,17 @@
 #include "TextEffect.h"
 #include "../AudioManager.h"
 
+#include <cassert>
+#include <chrono>
 #include <cstdlib>
+#include <ctime>
 #include <filesystem>
+#include <iomanip>
+#include <fstream>
 #include <format>
 #include <mutex>
 #include <array>
+#include <sstream>
 #include <unordered_map>
 
 #include <wx/checkbox.h>
@@ -378,10 +384,14 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     if (text.IsEmpty())
     {
         if (FileExists(filename)) {
-            wxFile file(filename);
-            if (file.IsOpened()) {
-                wxString fileContent;
-                if (file.ReadAll(&fileContent)) {
+            std::ifstream file(filename.ToStdString(), std::ios::in);
+            if (file.is_open()) {
+                std::ostringstream ss;
+                ss << file.rdbuf();
+                std::string fileContent = ss.str();
+                file.close();
+
+                if (!fileContent.empty()) {
                     auto lines = Split(fileContent, '\n');
 
                     text.Clear();
@@ -398,7 +408,6 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                         text.RemoveLast();
                     }
                 }
-                file.Close();
             }
         }
         else
@@ -740,7 +749,7 @@ void DrawLabel(TextDrawingContext *dc,
                                     loc += d[x1 - 1];
                                 }
                                 else {
-                                    wxASSERT(false); // this seems to happen when fonts are not good
+                                    assert(false); // this seems to happen when fonts are not good
                                 }
                             }
                             dc->DrawText(c, loc, y);
@@ -1133,9 +1142,6 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
     int framesPerSec = 1000 / buffer.frameTimeInMs;
     int minutes,seconds;
 
-    wxDateTime dt;
-    wxTimeSpan ts;
-    wxString::const_iterator end;
     wxString fmt = Line_orig;
     wxString prepend = Line_orig;   //for prepended/appended text to countdown
     wxString append = Line_orig;   //for prepended/appended text to countdown
@@ -1278,15 +1284,34 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             // countdown to date
             if (state%framesPerSec == 0)   //1x/sec
             {
-                //            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
-                if (dt.ParseRfc822Date(Line, &end))
+                // Parse RFC822 date string (e.g. "Wed, 02 Oct 2015 15:00:00 +0200")
+                std::tm tmbuf = {};
+                std::string lineStr = Line.ToStdString();
+                std::istringstream iss(lineStr);
+                iss >> std::get_time(&tmbuf, "%a, %d %b %Y %H:%M:%S");
+                if (!iss.fail())
                 {
-                    // dt is (at least partially) valid, so calc # of seconds until then
-                    ts = dt.Subtract(wxDateTime::Now());
-                    wxLongLong ll = ts.GetSeconds();
-                    if (ll > LONG_MAX) ll = LONG_MAX;
-                    if (ll < 0) ll = 0;
-                    longsecs = ll.ToLong();
+                    // Parse timezone offset if present (e.g. "+0200" or "-0500")
+                    int tzOffsetSecs = 0;
+                    std::string tzStr;
+                    iss >> tzStr;
+                    if (!tzStr.empty() && (tzStr[0] == '+' || tzStr[0] == '-')) {
+                        int sign = (tzStr[0] == '+') ? 1 : -1;
+                        int tzVal = (int)std::strtol(tzStr.c_str() + 1, nullptr, 10);
+                        tzOffsetSecs = sign * ((tzVal / 100) * 3600 + (tzVal % 100) * 60);
+                    }
+                    // Convert parsed time to UTC time_t, then adjust for timezone
+#ifdef _MSC_VER
+                    std::time_t targetTime = _mkgmtime(&tmbuf) - tzOffsetSecs;
+#else
+                    std::time_t targetTime = timegm(&tmbuf) - tzOffsetSecs;
+#endif
+                    auto now = std::chrono::system_clock::now();
+                    auto nowTime = std::chrono::system_clock::to_time_t(now);
+                    int64_t diffSecs = static_cast<int64_t>(difftime(targetTime, nowTime));
+                    if (diffSecs > LONG_MAX) diffSecs = LONG_MAX;
+                    if (diffSecs < 0) diffSecs = 0;
+                    longsecs = static_cast<long>(diffSecs);
                 }
                 else
                 {
@@ -1298,7 +1323,6 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             else
             {
                 longsecs = GetCache(buffer, id)->timer_countdown;
-                ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
             }
             if (!longsecs)
             {
@@ -1323,7 +1347,32 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 }
                 else
                 {
-                    msg = ts.Format(fmt); //dt.Format(fmt)
+                    // Format timespan using wxTimeSpan-compatible format specifiers:
+                    // %H=hours, %M=minutes, %S=seconds, %l=milliseconds, %D=days, %E=weeks, %%=literal %
+                    long totalHours = longsecs / 3600;
+                    int fmtMinutes = (longsecs / 60) % 60;
+                    int fmtSeconds = longsecs % 60;
+                    long fmtDays = longsecs / 86400;
+                    long fmtWeeks = longsecs / (7 * 86400);
+                    wxString result;
+                    for (size_t i = 0; i < fmt.length(); i++) {
+                        if (fmt[i] == '%' && i + 1 < fmt.length()) {
+                            i++;
+                            switch ((char)fmt[i]) {
+                                case 'H': result += wxString(std::format("{:02}", totalHours)); break;
+                                case 'M': result += wxString(std::format("{:02}", fmtMinutes)); break;
+                                case 'S': result += wxString(std::format("{:02}", fmtSeconds)); break;
+                                case 'l': result += "000"; break; // no sub-second precision in countdown
+                                case 'D': result += wxString(std::format("{}", fmtDays)); break;
+                                case 'E': result += wxString(std::format("{}", fmtWeeks)); break;
+                                case '%': result += '%'; break;
+                                default: result += '%'; result += fmt[i]; break;
+                            }
+                        } else {
+                            result += fmt[i];
+                        }
+                    }
+                    msg = result;
                 }
             else //if (Countdown == COUNTDOWN_M_or_S)
                 if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
@@ -1459,10 +1508,14 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 
     if (text == "") {
         if (FileExists(filename)) {
-            wxFile file(filename);
-            if (file.IsOpened()) {
-                wxString fileContent;
-                if (file.ReadAll(&fileContent)) {
+            std::ifstream file(filename.ToStdString(), std::ios::in);
+            if (file.is_open()) {
+                std::ostringstream ss;
+                ss << file.rdbuf();
+                std::string fileContent = ss.str();
+                file.close();
+
+                if (!fileContent.empty()) {
                     auto lines = Split(fileContent, '\n');
 
                     text.Clear();
@@ -1479,7 +1532,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                         text.RemoveLast();
                     }
                 }
-                file.Close();
             }
         }
         else if (lyricTrack != "") {
@@ -1606,7 +1658,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                 int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
 
                 int actual_width = font->GetCharWidth(ascii);
-                wxASSERT(actual_width > 0);
+                assert(actual_width > 0);
                 if (rotate_90 && up) {
                     OffsetTop -= actual_width;
                 }

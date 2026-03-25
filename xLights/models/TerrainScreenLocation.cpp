@@ -10,8 +10,6 @@
 #include <cassert>
 #include <format>
 #include "../utils/string_utils.h"
-#include <wx/cursor.h>
-
 #include "../support/VectorMath.h"
 
 #include "TerrainScreenLocation.h"
@@ -212,13 +210,13 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     return true;
 }
 
-wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
+CursorType TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
 {
-    wxCursor return_value = wxCURSOR_DEFAULT;
+    CursorType return_value = CursorType::Default;
     handle = NO_HANDLE;
 
     if (_locked) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
@@ -242,7 +240,7 @@ wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm:
                 if (intersection_distance < distance) {
                     distance = intersection_distance;
                     handle = i;
-                    return_value = wxCURSOR_HAND;
+                    return_value = CursorType::Hand;
                 }
             }
         }

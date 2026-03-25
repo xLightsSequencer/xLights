@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+
 #include "SpirographEffect.h"
 
 #include "../render/Effect.h"
@@ -76,8 +78,8 @@ void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
     if (Animate) d = d_orig + animateState * d_orig; // should we modify the distance variable each pass through?
     float step = 1.0 / width;
     float stepw = 1.0 / (log10(width) + 1);
-    wxASSERT(step != 0);
-    wxASSERT(stepw != 0);
+    assert(step != 0);
+    assert(stepw != 0);
     for (float i = 1.0; i <= length; i += step)
     {
         float t = (i + mod1440) * M_PI / 180.0;

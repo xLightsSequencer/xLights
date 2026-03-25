@@ -12,14 +12,15 @@
 
 #include "RenderableEffect.h"
 #include "../utils/xlSize.h"
-#include <wx/file.h>
-#include <wx/gdicmn.h>
-#include <wx/textfile.h>
+
+#include <fstream>
+#include <string>
+#include <vector>
 
 class GlediatorReader
 {
     std::string _filename;
-    wxFile _f;
+    std::ifstream _f;
     xlSize _size;
     size_t _frames;
 
@@ -41,7 +42,7 @@ public:
 class CSVReader
 {
     std::string _filename;
-    wxTextFile _f;
+    std::vector<std::string> _lines;
     int _line;
 
 public:

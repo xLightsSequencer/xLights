@@ -10,6 +10,7 @@
 
 #include "CandleEffect.h"
 
+#include <cassert>
 #include <format>
 #include <map>
 
@@ -183,7 +184,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                 size_t index = y * maxW + x;
                 if (index >= states.size()) {
                     // this should never happen
-                    wxASSERT(false);
+                    assert(false);
                 } else {
                     CandleState* state = &states[index];
 

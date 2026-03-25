@@ -98,7 +98,7 @@ static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
 #pragma clang diagnostic pop
 
 
-wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
+CursorType GetResizeCursor(int cornerIndex, int PreviewRotation) {
     int angleState;
     //LeftTop and RightBottom
     switch(cornerIndex) {
@@ -121,37 +121,37 @@ wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
     }
     switch(angleState) {
         case 0:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
         case 1:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 2:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 3:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 4:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 5:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         case 6:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         case 7:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
         case 8:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
         case 9:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 10:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 11:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 12:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 13:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         case 14:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         default:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
     }
 
 }
@@ -744,15 +744,15 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
     return found;
 }
 
-wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
+CursorType ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
 {
     handle = NO_HANDLE;
 
     if (_locked) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
-    wxCursor return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
+    CursorType return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
 
     if (handle == NO_HANDLE) {
         float distance = 1000000000.0f;
@@ -783,7 +783,7 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
                         handle = i;
                     }
                     distance = intersection_distance;
-                    return_value = wxCURSOR_HAND;
+                    return_value = CursorType::Hand;
                 }
             }
         }
@@ -791,9 +791,9 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
     return return_value;
 }
 
-wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
+CursorType ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
 {
-    wxCursor return_value = wxCURSOR_DEFAULT;
+    CursorType return_value = CursorType::Default;
 
     float distance = 1000000000.0f;
     handle = NO_HANDLE;
@@ -858,7 +858,7 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
             if (intersection_distance < distance) {
                 distance = intersection_distance;
                 handle = i | HANDLE_AXIS;
-                return_value = wxCURSOR_HAND;
+                return_value = CursorType::Hand;
             }
         }
     }

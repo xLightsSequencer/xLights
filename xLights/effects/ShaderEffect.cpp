@@ -16,10 +16,15 @@
 #include <wx/wx.h>
 #include <wx/config.h>
 #include <algorithm>
+#include <cassert>
+#include <chrono>
 #include <cstdlib>
+#include <ctime>
 #include <filesystem>
+#include <fstream>
 #include <format>
 #include <semaphore>
+#include <sstream>
 
 #ifndef __WXOSX__
     #include <GL/gl.h>
@@ -89,7 +94,7 @@
 //#include <nlohmann/json.hpp>
 #include "../../xSchedule/wxJSON/jsonreader.h"
 
-#include <wx/regex.h>
+#include <regex>
 
 #include <log.h>
 
@@ -253,21 +258,22 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
     if (!FileExists(filename))
         return nullptr;
 
-    wxFile f(filename);
-    if (!f.IsOpened()) {
+    std::ifstream f(filename, std::ios::in);
+    if (!f.is_open()) {
         return nullptr;
     }
 
-    wxString code;
-    f.ReadAll(&code);
-    f.Close();
+    std::ostringstream ss;
+    ss << f.rdbuf();
+    f.close();
+    std::string code = ss.str();
 
     if (code.empty()) {
         return nullptr;
     }
 
     if (code[0] == '{' && code[1] == '"') {
-        nlohmann::json root = nlohmann::json::parse(code.ToStdString());
+        nlohmann::json root = nlohmann::json::parse(code);
         if (root.contains("rawFragmentSource")) {
             code = root["rawFragmentSource"].get<std::string>();
             if (code.empty()) {
@@ -276,11 +282,13 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
         }
     }
 
-    wxRegEx re("\\/\\*(.*?)\\*\\/", wxRE_ADVANCED);
-    if (!re.Matches(code)){
+    std::string codeStr = code;
+    std::smatch match;
+    std::regex re("\\/\\*(.*?)\\*\\/", std::regex_constants::ECMAScript);
+    if (!std::regex_search(codeStr, match, re)) {
         return nullptr;
     }
-    return new ShaderConfig(filename, code.ToStdString(), re.GetMatch(code, 1).ToStdString(), sequenceElements);
+    return new ShaderConfig(filename, codeStr, match[1].str(), sequenceElements);
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
@@ -413,7 +421,7 @@ public:
             }
             wxMilliSleep(1);
         }
-        wxASSERT(false);
+        assert(false);
         spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
     }
     void UnsetCurrent() {
@@ -425,7 +433,7 @@ public:
             }
             wxMilliSleep(1);
         }
-        wxASSERT(false);
+        assert(false);
         spdlog::error("ShaderEffect Thread {} tried to set no current GL Context but failed.", wxThread::GetCurrentId());
     }
 
@@ -1149,8 +1157,15 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     si->SetUniform1f("TIMEDELTA", (GLfloat)(buffer.frameTimeInMs /1000.f));
 
     if (si->HasUniform("DATE")) {
-        wxDateTime dt = wxDateTime::Now();
-        si->SetUniform4f("DATE", dt.GetYear(), dt.GetMonth() + 1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute() * 60 + dt.GetSecond());
+        auto now = std::chrono::system_clock::now();
+        std::time_t nowt = std::chrono::system_clock::to_time_t(now);
+        std::tm tmbuf;
+#ifdef _MSC_VER
+        localtime_s(&tmbuf, &nowt);
+#else
+        localtime_r(&nowt, &tmbuf);
+#endif
+        si->SetUniform4f("DATE", tmbuf.tm_year + 1900, tmbuf.tm_mon + 1, tmbuf.tm_mday, tmbuf.tm_hour * 3600 + tmbuf.tm_min * 60 + tmbuf.tm_sec);
     }
     si->SetUniformInt("NUMCOLORS", buffer.GetColorCount());
     si->SetUniformInt("PASSINDEX", 0);
@@ -1528,7 +1543,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                             _parms.back()._valueOptions[vs[i].get<int>()] = SafeValueOption(ls[i].get<std::string>());
                         }
                     } else {
-                        wxASSERT(false);
+                        assert(false);
                     }
                 } else if (type == "color") {
                     _parms.emplace_back(
@@ -1605,7 +1620,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                     }
                 } else {
                     spdlog::warn("Unknown type parsing shader JSON : {}.", (const char*)type.c_str());
-                    wxASSERT(false);
+                    assert(false);
                 }
             }
             if (root.contains("PASSES")) {
@@ -1676,7 +1691,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                     _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString().ToStdString());
                 }
             } else {
-                wxASSERT(false);
+                assert(false);
             }
         } else if (type == "color") {
             _parms.push_back(ShaderParm(
@@ -1759,7 +1774,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             }
         } else {
             spdlog::warn("Unknown type parsing shader JSON : {}.", type.c_str());
-            wxASSERT(false);
+            assert(false);
         }
     }
     wxJSONValue passes = root["PASSES"];
@@ -1845,7 +1860,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
         if ((int)c < 32 || (int)c > 127) {
             if (c != 13 && c != 10 && c != 9)
                 spdlog::debug("{} {:X} {}", i, (int)c, c);
-            wxASSERT(false);
+            assert(false);
         }
         i++;
     }
@@ -1892,7 +1907,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     }
     _code += prependText;
     _code += shaderCode;
-    wxASSERT(_code != "");
+    assert(_code != "");
 #if 0
     std::ofstream s("C:\\Temp\\shader.txt");
     if (s.good())

@@ -398,16 +398,17 @@ void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::str
             if (mg->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
                 bool found = false;
-                std::vector<wxString> prevousNames;
+                std::vector<std::string> prevousNames;
                 auto oldModelNames = mmg->ModelNames(); // we copy the name list as we are going to be modifying the group while we iterate over these
                 for (const auto& it : oldModelNames) {
                     auto mmnmn = mmg->ModelNames();
                     if (Contains(it, "/")) { // only add new SubModel if the name matches an old SubModel name, I don't understand why?
-                        auto mgmn = wxString(it);
-                        mgmn = mname + "/" + mgmn.AfterFirst('/');
-                        std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
+                        auto slashPos = it.find('/');
+                        std::string afterSlash = (slashPos != std::string::npos) ? it.substr(slashPos + 1) : it;
+                        std::string mgmn = mname + "/" + afterSlash;
+                        std::string em = "EXPORTEDMODEL/" + afterSlash;
                         if (ContainsBetweenCommas(grpModels, em)) {
-                            if (std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                            if (std::find(mmnmn.begin(), mmnmn.end(), mgmn) == mmnmn.end() &&
                                 std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                                 !mmg->DirectlyContainsModel(mgmn)) {
                                 mmg->AddModel(mgmn);
@@ -452,11 +453,12 @@ void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::str
                                         itZeroPad = it.substr(0, it.find('/') + 1) +
                                             (num < 10 ? "0" : "") + std::to_string(num);
                                     }
-                                    auto mgmn = wxString(itZeroPad);
-                                    mgmn = mname + "/" + mgmn.AfterFirst('/');
-                                    std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
+                                    auto zpSlashPos = itZeroPad.find('/');
+                                    std::string zpAfterSlash = (zpSlashPos != std::string::npos) ? itZeroPad.substr(zpSlashPos + 1) : itZeroPad;
+                                    std::string mgmn = mname + "/" + zpAfterSlash;
+                                    std::string em = "EXPORTEDMODEL/" + zpAfterSlash;
                                     if (ContainsBetweenCommas(grpModels, em) &&
-                                        std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                                        std::find(mmnmn.begin(), mmnmn.end(), mgmn) == mmnmn.end() &&
                                         std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                                         !mmg->DirectlyContainsModel(mgmn)) {
                                         mmg->AddModel(mgmn);
@@ -485,9 +487,12 @@ void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::str
                     for (const auto& it : newNames) {
                         auto& mmnmn = mmg->ModelNames();
                         if (Contains(it, "/")) {
-                            auto mgmn = wxString(it);
-                            mgmn.Replace("EXPORTEDMODEL", mname);
-                            if (std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                            std::string mgmn = it;
+                            auto expPos = mgmn.find("EXPORTEDMODEL");
+                            if (expPos != std::string::npos) {
+                                mgmn.replace(expPos, 13, mname);
+                            }
+                            if (std::find(mmnmn.begin(), mmnmn.end(), mgmn) == mmnmn.end() &&
                                 std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
                                 !mmg->DirectlyContainsModel(mgmn)) {
                                 prevousNames.push_back(mgmn);

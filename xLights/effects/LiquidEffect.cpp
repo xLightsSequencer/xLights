@@ -10,6 +10,7 @@
 
 #include "LiquidEffect.h"
 
+#include <cassert>
 #include <format>
 #include <Box2D/Box2D.h>
 #include "../render/Effect.h"
@@ -632,7 +633,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
         delete _world;
         _world = nullptr;
 
-        wxASSERT(false);
+        assert(false);
         return;
     }
 

@@ -13,7 +13,7 @@
 #include <filesystem>
 #include <format>
 #include <string_view>
-#include <wx/regex.h>
+#include <regex>
 #include <wx/sstream.h>
 #include <wx/stdpaths.h>
 #include <wx/mstream.h>
@@ -68,11 +68,9 @@
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
 const long Model::ID_LAYERSIZE_DELETE = wxNewId();
 
-static const char* RGBW_HANDLING_VALUES[] = { "R=G=B -> W", "RGB Only", "White Only", "Advanced", "White On All" };
-static wxArrayString RGBW_HANDLING(5, RGBW_HANDLING_VALUES);
+static const std::vector<std::string> RGBW_HANDLING = { "R=G=B -> W", "RGB Only", "White Only", "Advanced", "White On All" };
 
-static const char* PIXEL_STYLES_VALUES[] = { "Square", "Smooth", "Solid Circle", "Blended Circle" };
-static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
+static const std::vector<std::string> PIXEL_STYLES = { "Square", "Smooth", "Solid Circle", "Blended Circle" };
 
 static const char* CONTROLLER_COLORORDER_VALUES[] = {
     "RGB", "RBG", "GBR", "GRB", "BRG", "BGR",
@@ -2541,39 +2539,45 @@ bool Model::ParseFaceElement(const std::string& multi_str, std::vector<xlPoint>&
         std::string_view token = sv.substr(tpos, tnext == std::string::npos ? tnext : tnext - tpos);
         tpos = (tnext == std::string::npos) ? tnext : tnext + 1;
 
-        wxString str{std::string(token)};
+        std::string str(token);
         if (str.empty())
             continue;
-        if (str.Find('@') == wxNOT_FOUND)
+        auto atpos = str.find('@');
+        if (atpos == std::string::npos)
             continue; // return false;
 
-        wxString xystr = str.AfterFirst('@');
+        std::string xystr = str.substr(atpos + 1);
         if (xystr.empty())
             continue; // return false;
         long xval = 0, yval = 0;
         if (xystr[0] == '(') {
-            xystr.Remove(0, 1);
-            if (!xystr.BeforeFirst(',').ToLong(&xval))
-                continue; // return false;
-            if (!xystr.AfterFirst(',').BeforeFirst(')').ToLong(&yval))
-                continue; // return false;
+            xystr.erase(0, 1);
+            auto commapos = xystr.find(',');
+            if (commapos == std::string::npos)
+                continue;
+            xval = std::strtol(xystr.substr(0, commapos).c_str(), nullptr, 10);
+            auto parenpos = xystr.find(')', commapos + 1);
+            if (parenpos == std::string::npos)
+                continue;
+            yval = std::strtol(xystr.substr(commapos + 1, parenpos - commapos - 1).c_str(), nullptr, 10);
         } else {
             int parts = 0;
-            while (!xystr.empty() && (xystr[0] >= 'A') && (xystr[0] <= 'Z')) {
+            size_t pos = 0;
+            while (pos < xystr.size() && (xystr[pos] >= 'A') && (xystr[pos] <= 'Z')) {
                 xval *= 26;
-                xval += xystr[0] - 'A' + 1;
-                xystr.Remove(0, 1);
+                xval += xystr[pos] - 'A' + 1;
+                ++pos;
                 parts |= 1;
             }
-            while (!xystr.empty() && (xystr[0] >= '0') && (xystr[0] <= '9')) {
+            while (pos < xystr.size() && (xystr[pos] >= '0') && (xystr[pos] <= '9')) {
                 yval *= 10;
-                yval += xystr[0] - '0';
-                xystr.Remove(0, 1);
+                yval += xystr[pos] - '0';
+                ++pos;
                 parts |= 2;
             }
             if (parts != 3)
                 continue; // return false;
-            if (!xystr.empty() && (xystr[0] != '-'))
+            if (pos < xystr.size() && (xystr[pos] != '-'))
                 continue; // return false;
         }
         xlPoint newxy(xval, yval);
@@ -2595,39 +2599,45 @@ bool Model::ParseStateElement(const std::string& multi_str, std::vector<xlPoint>
         std::string_view token = sv.substr(tpos, tnext == std::string::npos ? tnext : tnext - tpos);
         tpos = (tnext == std::string::npos) ? tnext : tnext + 1;
 
-        wxString str{std::string(token)};
+        std::string str(token);
         if (str.empty())
             continue;
-        if (str.Find('@') == wxNOT_FOUND)
+        auto atpos = str.find('@');
+        if (atpos == std::string::npos)
             continue; // return false;
 
-        wxString xystr = str.AfterFirst('@');
+        std::string xystr = str.substr(atpos + 1);
         if (xystr.empty())
             continue; // return false;
         long xval = 0, yval = 0;
         if (xystr[0] == '(') {
-            xystr.Remove(0, 1);
-            if (!xystr.BeforeFirst(',').ToLong(&xval))
-                continue; // return false;
-            if (!xystr.AfterFirst(',').BeforeFirst(')').ToLong(&yval))
-                continue; // return false;
+            xystr.erase(0, 1);
+            auto commapos = xystr.find(',');
+            if (commapos == std::string::npos)
+                continue;
+            xval = std::strtol(xystr.substr(0, commapos).c_str(), nullptr, 10);
+            auto parenpos = xystr.find(')', commapos + 1);
+            if (parenpos == std::string::npos)
+                continue;
+            yval = std::strtol(xystr.substr(commapos + 1, parenpos - commapos - 1).c_str(), nullptr, 10);
         } else {
             int parts = 0;
-            while (!xystr.empty() && (xystr[0] >= 'A') && (xystr[0] <= 'Z')) {
+            size_t pos = 0;
+            while (pos < xystr.size() && (xystr[pos] >= 'A') && (xystr[pos] <= 'Z')) {
                 xval *= 26;
-                xval += xystr[0] - 'A' + 1;
-                xystr.Remove(0, 1);
+                xval += xystr[pos] - 'A' + 1;
+                ++pos;
                 parts |= 1;
             }
-            while (!xystr.empty() && (xystr[0] >= '0') && (xystr[0] <= '9')) {
+            while (pos < xystr.size() && (xystr[pos] >= '0') && (xystr[pos] <= '9')) {
                 yval *= 10;
-                yval += xystr[0] - '0';
-                xystr.Remove(0, 1);
+                yval += xystr[pos] - '0';
+                ++pos;
                 parts |= 2;
             }
             if (parts != 3)
                 continue; // return false;
-            if (!xystr.empty() && (xystr[0] != '-'))
+            if (pos < xystr.size() && (xystr[pos] != '-'))
                 continue; // return false;
         }
         xlPoint newxy(xval, yval);
@@ -2901,7 +2911,7 @@ bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray
     return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }
 
-wxCursor Model::InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview)
+CursorType Model::InitializeLocation(int& handle, int x, int y, ModelPreview* preview)
 {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }
@@ -3831,11 +3841,13 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             }
             last_model = filename.ToStdString();
 
-            if (wxString(last_model).Lower().EndsWith(".xmodel")) {
+            std::string last_model_lower = last_model;
+            std::transform(last_model_lower.begin(), last_model_lower.end(), last_model_lower.begin(), ::tolower);
+            if (last_model_lower.ends_with(".xmodel")) {
                 doc.load_file(last_model.c_str());
                 if (doc.document_element() && !doc.document_element().attribute("name").empty()) {
                     docLoaded = true;
-                    wxString modelName = doc.document_element().attribute("name").as_string("");
+                    std::string modelName = doc.document_element().attribute("name").as_string("");
 
                     if (!doc.document_element().attribute("widthmm").empty()) {
 						widthmm = (int)std::strtol(doc.document_element().attribute("widthmm").as_string(""), nullptr, 10);
@@ -3874,23 +3886,26 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 #ifndef __WXMSW__
                                     bool block = false;
 #endif
-                                    wxString vendorBlock;
+                                    std::string vendorBlock;
                                     for (auto& [name, v] : origJson["mappings"].items()) {
                                         //nlohmann::json v = origJson["mappings"][name];
                                         bool matches = false;
-                                        wxString newModelName = modelName;
+                                        std::string newModelName = modelName;
                                         bool localBlock = false;
                                         if (v.contains("regex") && v["regex"].get<bool>()) {
-                                            wxRegEx regex;
-                                            if (regex.Compile(name)) {
-                                                if (regex.Matches(modelName)) {
-                                                    wxString nmodel = v["model"].get<std::string>();
-                                                    regex.ReplaceAll(&newModelName, nmodel);
+                                            try {
+                                                std::regex regex(name);
+                                                std::string modelNameStr = modelName;
+                                                if (std::regex_search(modelNameStr, regex)) {
+                                                    std::string nmodel = v["model"].get<std::string>();
+                                                    newModelName = std::regex_replace(modelNameStr, regex, nmodel);
                                                     matches = true;
                                                     if (v.contains("block")) {
                                                         localBlock = v["block"].get<bool>();
                                                     }
                                                 }
+                                            } catch (std::regex_error&) {
+                                                // invalid regex pattern from JSON data, skip this mapping
                                             }
                                         } else if (name == modelName) {
                                             matches = true;
@@ -3900,7 +3915,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                             }
                                         }
                                         if (matches) {
-                                            wxString vendor = v["vendor"].get<std::string>();
+                                            std::string vendor = v["vendor"].get<std::string>();
                                             if (dlg == nullptr) {
                                                 dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
                                                 UNUSED(dlg->DlgInit(prog, low, high));
@@ -3913,7 +3928,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                             }
                                             if (dlg->FindModelFile(vendor, newModelName)) {
                                                 if (localBlock) {
-                                                    wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
+                                                    std::string msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
                                                     if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
                                                         last_model = dlg->GetModelFile();
                                                     } else {
@@ -3926,7 +3941,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                                     // ever actually assessed the quality of their models. My own experience has been the quality of some models is poor or worse. Others are fine. No vendor in
                                                     // my experience is noticably better or worse than any other ... they all have had their poor models.
                                                     // If you want to change the message back then have an OSX specific phrasing.
-                                                    wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
+                                                    std::string msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
                                                     if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
                                                         last_model = dlg->GetModelFile();
                                                         docLoaded = false;
@@ -3939,7 +3954,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 #ifndef __WXMSW__
                                     // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
                                     if (block) {
-                                        wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
+                                        std::string msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
                                         wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
                                         last_model = "";
                                     }
@@ -3962,7 +3977,9 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             }
         }
     }
-    if (wxString(last_model).Lower().EndsWith(".gdtf")) {
+    std::string last_model_lc = last_model;
+    std::transform(last_model_lc.begin(), last_model_lc.end(), last_model_lc.begin(), ::tolower);
+    if (last_model_lc.ends_with(".gdtf")) {
         wxFileInputStream fin(last_model);
         wxZipInputStream zin(fin);
         wxZipEntry* ent = zin.GetNextEntry();
@@ -3989,7 +4006,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             ent = zin.GetNextEntry();
         }
         return model;
-    } else if (!wxString(last_model).Lower().EndsWith(".xmodel")) {
+    } else if (!last_model_lc.ends_with(".xmodel")) {
         // if it isnt an xmodel then it is custom
         return model;
     }

@@ -14,6 +14,7 @@
 
 #include "../utils/string_utils.h"
 
+#include <cassert>
 #include <filesystem>
 #include <format>
 
@@ -1112,7 +1113,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         Drawpresent(buffer, Movement, xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
         break;
     default:
-        wxASSERT(false);
+        assert(false);
         break;
     }
 }
@@ -1237,7 +1238,7 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
         offsetangle = 90.0 - 360.0 / 8;
         break;
     default:
-        wxASSERT(false);
+        assert(false);
         break;
     }
 

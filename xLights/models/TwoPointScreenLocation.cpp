@@ -26,7 +26,7 @@
 #include <log.h>
 
 extern void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, xlVertexColorAccumulator &va);
-extern wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation);
+extern CursorType GetResizeCursor(int cornerIndex, int PreviewRotation);
 extern void rotate_point(float cx, float cy, float angle, float &x, float &y);
 
 #define SNAP_RANGE                  5
@@ -141,7 +141,7 @@ bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direc
     return return_value;
 }
 
-wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
+CursorType TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
     assert(!preview->Is3D());
@@ -150,7 +150,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
 
     if (_locked)
     {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     glm::vec3 ray_origin;
@@ -197,10 +197,10 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     }
 
     if (handle == NO_HANDLE) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
     else if (handle == SHEAR_HANDLE) {
-        return wxCURSOR_HAND;
+        return CursorType::Hand;
     }
     else {
         return GetResizeCursor(handle, rotatez);
@@ -802,7 +802,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
     return MODEL_UPDATE_RGBEFFECTS;
 }
 
-wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if( preview->Is3D() ) {
@@ -814,7 +814,7 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
-    return wxCURSOR_SIZING;
+    return CursorType::Sizing;
 }
 
 std::string TwoPointScreenLocation::GetDimension(float factor) const

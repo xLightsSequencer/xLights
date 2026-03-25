@@ -509,7 +509,7 @@ public:
     virtual int MapPhysicalStringToLogicalString(int string) const;
     virtual int GetLightsPerNode() const { return 1; }
     virtual int GetStrandsPerString() const { return 1; }
-    wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);
+    CursorType InitializeLocation(int& handle, int x, int y, ModelPreview* preview);
 
     int32_t NodeStartChannel(size_t nodenum) const;
     int32_t NodeEndChannel(size_t nodenum) const;

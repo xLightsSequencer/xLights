@@ -43,11 +43,11 @@
 #define HANDLE_CP1     0x0800000
 
 class ModelPreview;
-class wxCursor;
 class PreviewCamera;
 
 #include <shared_mutex>
 #include <vector>
+#include "../utils/CursorType.h"
 #include "Node.h"
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
@@ -105,8 +105,8 @@ protected:
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const = 0;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
-    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
-    virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
+    virtual CursorType CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
+    virtual CursorType CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
 
     //new drawing code
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const { return false; };
@@ -133,7 +133,7 @@ protected:
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) {}
     virtual void InsertHandle(int after_handle, float zoom, int scale) {}
     virtual void DeleteHandle(int handle) {}
-    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
+    virtual CursorType InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
     virtual void UpdateBoundingBox(float width, float height, float depth);
 
@@ -288,7 +288,7 @@ protected:
 protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
-    virtual wxCursor CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
+    virtual CursorType CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
     MSLPLANE GetBestIntersection( MSLPLANE prefer, bool& rotate, ModelPreview* preview );
 
     mutable float worldPos_x = 0.0f;

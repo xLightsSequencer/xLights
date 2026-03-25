@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <stdint.h>
+#include <cassert>
 #include <cmath>
 #include <map>
 #include <list>
@@ -153,7 +154,7 @@ public:
 
     void Set(const xlColorVector& newcolors, const xlColorCurveVector& newcc)
     {
-        wxASSERT(newcolors.size() == newcc.size());
+        assert(newcolors.size() == newcc.size());
 
         cc = newcc;
         color = newcolors;

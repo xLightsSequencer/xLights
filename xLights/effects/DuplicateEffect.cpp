@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <format>
 #include <sstream>
 
@@ -88,6 +89,6 @@ int DuplicateEffect::GetLayersForModel(const std::string& model)
 void DuplicateEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
     // This should never ever be called as the Render::ProcessFrame should have converted this effect into the effects being duplicated
-    wxASSERT(false);
+    assert(false);
 }
 

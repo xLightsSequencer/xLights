@@ -17,7 +17,7 @@ public:
     ThreePointScreenLocation();
     virtual ~ThreePointScreenLocation();
     virtual void Init() override;
-    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
+    virtual CursorType InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
     virtual std::string GetDimension(float factor = 1.0) const override;
 

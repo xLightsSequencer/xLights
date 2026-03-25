@@ -653,18 +653,18 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
 
 /*----------------------CoroFaces--------------------------*/
 //TODO: move this to a shared location:
-static wxString NoInactive(wxString name)
+static std::string NoInactive(std::string name)
 {
-    const wxString InactiveIndicator = "?";
-    return name.StartsWith(InactiveIndicator)? name.substr(InactiveIndicator.size()): name;
+    const std::string InactiveIndicator = "?";
+    return name.starts_with(InactiveIndicator) ? name.substr(InactiveIndicator.size()) : name;
 }
 
 //cached model info:
 static std::unordered_map<std::string, std::unordered_map<std::string, /*wxPoint*/ std::string> > model_xy;
 
-static bool parse_model(const wxString& want_model)
+static bool parse_model(const std::string& want_model)
 {
-    if (model_xy.find((const char*)want_model.c_str()) != model_xy.end()) return true; //already have info
+    if (model_xy.find(want_model) != model_xy.end()) return true; //already have info
 
     pugi::xml_document pgoXml;
     std::filesystem::path pgoFile = std::filesystem::path(xLightsFrame::CurrentDir.ToStdString()) / XLIGHTS_PGOFACES_FILE;
@@ -683,10 +683,10 @@ static bool parse_model(const wxString& want_model)
         {
             for (pugi::xml_node voice = group.first_child(); voice; voice = voice.next_sibling())
             {
-                wxString voice_name = NoInactive(voice.attribute("name").as_string());
+                std::string voice_name = NoInactive(voice.attribute("name").as_string());
                 if (voice_name != want_model) continue;
                 //XmlNode getting trashed later, so save it here
-                std::unordered_map<std::string, std::string>& map = model_xy[(const char*)want_model.c_str()];
+                std::unordered_map<std::string, std::string>& map = model_xy[want_model];
                 map.clear();
                 for (pugi::xml_attribute attrp = voice.first_attribute(); attrp; attrp = attrp.next_attribute())
                 {

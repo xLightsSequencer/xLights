@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <filesystem>
 #include <format>
 
@@ -667,7 +668,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderLevelColourFrame(buffer, _colourindex, sensitivity, _lasttimingmark, gain);
             break;
         default:
-            wxASSERT(false);
+            assert(false);
             break;
         }
 	}
@@ -1693,7 +1694,7 @@ void VUMeterEffect::DrawStar(RenderBuffer& buffer, int centerx, int centery, flo
         offsetangle = 90.0 - 360.0 / 7;
         break;
     default:
-        wxASSERT(false);
+        assert(false);
         break;
     }
 

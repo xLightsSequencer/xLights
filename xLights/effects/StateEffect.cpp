@@ -296,16 +296,28 @@ void StateEffect::RenderState(RenderBuffer& buffer,
         v = v - (v / 10) * 10;
         sstates.push_back(std::to_string(v));
     } else if (mode == "Time Countdown") {
-        wxDateTime dt;
-        dt.ParseFormat(tstates.c_str(), "%H:%M:%S");
-
-        if (!dt.IsValid()) {
-            dt.ParseFormat(tstates.c_str(), "%M:%S");
+        // Parse time string as HH:MM:SS or MM:SS into total seconds
+        int totalSecs = -1;
+        {
+            auto parts = Split(tstates, ':');
+            if (parts.size() == 3) {
+                int h = (int)std::strtol(parts[0].c_str(), nullptr, 10);
+                int mn = (int)std::strtol(parts[1].c_str(), nullptr, 10);
+                int sc = (int)std::strtol(parts[2].c_str(), nullptr, 10);
+                totalSecs = h * 3600 + mn * 60 + sc;
+            } else if (parts.size() == 2) {
+                int mn = (int)std::strtol(parts[0].c_str(), nullptr, 10);
+                int sc = (int)std::strtol(parts[1].c_str(), nullptr, 10);
+                totalSecs = mn * 60 + sc;
+            }
         }
 
-        if (dt.IsValid()) {
-            dt.Subtract(wxTimeSpan(0, 0, 0, (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs));
-            int m = dt.GetMinute();
+        if (totalSecs >= 0) {
+            // Subtract elapsed time
+            int elapsedMs = (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs;
+            int remainingSecs = totalSecs - elapsedMs / 1000;
+            if (remainingSecs < 0) remainingSecs = 0;
+            int m = (remainingSecs / 60) % 60;
             if ((m / 10) * 1000 > 0) {
                 sstates.push_back(std::to_string((m / 10) * 1000));
             } else {
@@ -317,7 +329,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
             } else {
                 sstates.push_back("000");
             }
-            int s = dt.GetSecond();
+            int s = remainingSecs % 60;
             if ((s / 10) * 10 > 0) {
                 sstates.push_back(std::to_string((s / 10) * 10));
             } else {

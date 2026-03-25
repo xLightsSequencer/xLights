@@ -35,6 +35,7 @@
 #include <math.h>
 #endif
 
+#include <cassert>
 #include <mutex>
 #include "FX.h"
 
@@ -494,7 +495,7 @@ uint8_t DecodeMode(const std::string& mode)
         i++;
     }
 
-    wxASSERT(false);
+    assert(false);
     return -1;
 }
 
@@ -523,7 +524,7 @@ uint8_t DecodePalette(const std::string& palette)
         i++;
     }
 
-    wxASSERT(false);
+    assert(false);
     return 0;
 }
 
@@ -566,7 +567,7 @@ uint16_t random16(uint16_t limit = 0xFFFF)
 
 uint32_t WS2812FX::millis() const
 {
-    wxASSERT(_buffer != nullptr);
+    assert(_buffer != nullptr);
     return (_buffer->curPeriod - _buffer->curEffStartPer) * _buffer->frameTimeInMs;
 }
 
@@ -1313,7 +1314,7 @@ void WS2812FX::fade_out(uint8_t rate, uint32_t toColour)
 
 uint32_t WS2812FX::getPixelColor(uint16_t n)
 {
-    wxASSERT(_buffer != nullptr);
+    assert(_buffer != nullptr);
     return _buffer->GetTempPixel(n, 0).GetRGB(false);
 }
 

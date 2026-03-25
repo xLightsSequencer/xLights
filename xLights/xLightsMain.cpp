@@ -99,6 +99,7 @@
 #include "controllers/FPPConnectDialog.h"
 #include "controllers/Falcon.h"
 #include "controllers/HinksPixExportDialog.h"
+#include "ui/effectpanels/EffectIconCache.h"
 #include "effects/FacesEffect.h"
 #include "effects/RenderableEffect.h"
 #include "effects/ShaderEffect.h"
@@ -2160,6 +2161,7 @@ xLightsFrame::~xLightsFrame()
     OutputTimer.Stop();
     RenderStatusTimer.Stop();
     TextDrawingContext::CleanUp();
+    EffectIconCache::Clear();
 
     if (_pingTimer != nullptr) {
         _pingTimer->Stop();

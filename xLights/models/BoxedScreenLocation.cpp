@@ -27,7 +27,7 @@
 
 #include <cmath>
 
-extern wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation);
+extern CursorType GetResizeCursor(int cornerIndex, int PreviewRotation);
 extern glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R);
 
 inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
@@ -180,7 +180,7 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
     return return_value;
 }
 
-wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
+CursorType BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
     assert(!preview->Is3D());
@@ -189,7 +189,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
 
     if (_locked)
     {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     glm::vec3 ray_origin;
@@ -233,17 +233,17 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
     }
 
     if (handle == NO_HANDLE) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
     else if (handle == ROTATE_HANDLE) {
-        return wxCURSOR_HAND;
+        return CursorType::Hand;
     }
     else {
         return GetResizeCursor(handle, rotatez);
     }
 }
 
-wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if (preview->Is3D()) {
@@ -265,7 +265,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
     } else {
         DisplayError("InitializeLocation: called with no preview....investigate!");
     }
-    return wxCURSOR_SIZING;
+    return CursorType::Sizing;
 }
 
 void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)

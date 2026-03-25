@@ -39,7 +39,7 @@ ThreePointScreenLocation::ThreePointScreenLocation()
 ThreePointScreenLocation::~ThreePointScreenLocation() {
 }
 
-wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if( preview->Is3D() ) {
@@ -51,7 +51,7 @@ wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y,
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
-    return wxCURSOR_SIZING;
+    return CursorType::Sizing;
 }
 
 void ThreePointScreenLocation::Init() {

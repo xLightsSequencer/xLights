@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
@@ -930,12 +931,12 @@ public:
             }
             SetGenericStatus("%s: All done - Completed frame %d ", endFrame, true, false);
         } catch ( std::exception &ex) {
-            wxASSERT(false); // so when we debug we catch them
+            assert(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
             m_logger->error("Caught an exception on rendering thread: " + std::string(ex.what()));
             spdlog::error("Caught an exception on rendering thread: {}", ex.what());
 		} catch ( ... ) {
-            wxASSERT(false); // so when we debug we catch them
+            assert(false); // so when we debug we catch them
             printf("Caught an unknown exception");
             m_logger->error("Caught an unknown exception on rendering thread.");
             spdlog::error("Caught an unknown exception on rendering thread.");
@@ -1121,7 +1122,7 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
             *ev->settingsMap,
             *ev->buffer, *ev->ResetEffectState, false, ev) ? 1 : 0;
     } else {
-        wxASSERT(false);
+        assert(false);
     }
     ev->signal.notify_all();
 }
@@ -2011,9 +2012,9 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     if (el == nullptr)
         return false;
     RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this);
-    wxASSERT(job != nullptr);
+    assert(job != nullptr);
     SequenceData* data = job->createExportBuffer();
-    wxASSERT(data != nullptr);
+    assert(data != nullptr);
     int cpn = job->getBuffer()->GetChanCountPerNode();
 
     if (doRender) {
@@ -2152,7 +2153,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
     if (layer >= buffer.GetLayerCount()) {
         logger_render->error("Model {} Effect {} at frame {} tried to render on a layer {} that does not exist (Only {} found).",
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer + 1, buffer.GetLayerCount());
-        wxASSERT(false);
+        assert(false);
         return false;
     }
 

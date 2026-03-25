@@ -55,3 +55,5 @@ xScanner/x64
 *~
 /.vs/xLights/v17
 *.cbp.mak
+.claude
+.mcp.json

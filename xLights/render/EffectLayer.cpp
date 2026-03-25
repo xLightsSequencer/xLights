@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <algorithm>
+#include <cassert>
 #include <thread>
 #include <vector>
 
@@ -177,7 +178,7 @@ void EffectLayer::DeleteEffect(int id)
             return;
         }
     }
-    wxASSERT(false);
+    assert(false);
 }
 
 void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
@@ -218,7 +219,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     } else {
         em = &(xLightsApp::GetFrame()->GetEffectManager());
     }
-    wxASSERT(em != nullptr);
+    assert(em != nullptr);
 
     // really dont want to add effects which look invalid - some imports result in this
     if (startTimeMS > endTimeMS) return nullptr;
@@ -247,7 +248,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     if (startTimeMS < 0) startTimeMS = 0;
 
     Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected, importing);
-    wxASSERT(e != nullptr);
+    assert(e != nullptr);
     mEffects.push_back(e);
     if (!suppress_sort) {
         SortEffects();
@@ -1200,14 +1201,14 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
         if (eff1 == nullptr && effectName != "")
         {
             spdlog::error("Effect not found: '{}'", (const char *)effectName.c_str());
-            wxASSERT(false);
+            assert(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
         if (eff2 == nullptr)
         {
             // this cant happen
             spdlog::error("Effect not found when scanning effects: '{}'", (const char *)mEffects[i]->GetEffectName().c_str());
-            wxASSERT(false);
+            assert(false);
         }
         if ((effectName == "" || eff1 == nullptr || eff1->GetId() == eff2->GetId()) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
@@ -1231,13 +1232,13 @@ void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& und
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         if (eff1 == nullptr && effectName != "") {
             spdlog::error("Effect not found: '{}'", (const char*)effectName.c_str());
-            wxASSERT(false);
+            assert(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
         if (eff2 == nullptr) {
             // this cant happen
             spdlog::error("Effect not found when scanning effects: '{}'", (const char*)mEffects[i]->GetEffectName().c_str());
-            wxASSERT(false);
+            assert(false);
         }
         if ((effectName == "" || eff1 == nullptr || eff2 == nullptr || eff1->GetId() == eff2->GetId()) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||

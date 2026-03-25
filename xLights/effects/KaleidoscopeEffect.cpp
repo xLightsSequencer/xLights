@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <format>
 
 #include "../../include/kaleidoscope-64.xpm"
@@ -98,7 +99,7 @@ public:
             }
             else
             {
-                wxASSERT(false);
+                assert(false);
             }
         }
     }
@@ -254,7 +255,7 @@ public:
                 if (CreateEdge(p3.first, p3.second, p1.first, p1.second)) added++;
                 if (rotation == 0)
                 {
-                    wxASSERT(p2.second == p3.second);
+                    assert(p2.second == p3.second);
                 }
             }
             else
