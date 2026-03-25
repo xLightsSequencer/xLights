@@ -49,6 +49,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (o0charlie0o)          Fix submodel channel mapping after parallel model loading
     -bug (dkulp)                Fix crash on sequence load for sequences with images animated via -# suffix
     -bug (dkulp)                Fix issues dropping images already in show/media folders not linking correctly
+    -enh (dkulp)                Add "Effect Sequence" type to new sequence wizard. Effect sequences use
+                                    sparse V2 FSEQ files with exact channel ranges, no default timing
+                                    tracks, and no view selection — designed for reusable effect overlays
+                                    that won't interfere with other models on controllers.
+    -bug (dkulp)                Fix right-click on empty row headings area not showing a popup to
+                                    open Display Elements
     -bug (dkulp)                Fix preset import when file has .xml extension
 2026.03  February 23, 2026
     -enh (dkulp)            Completely new method for managing Pictures for pictures effect

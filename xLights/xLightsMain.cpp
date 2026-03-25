@@ -3228,7 +3228,7 @@ void xLightsFrame::ShowSequenceSettings()
     if (ret_code != wxID_OK)
         return; // user pressed cancel
 
-    if (CurrentSeqXmlFile->GetSequenceType() == "Animation") {
+    if (CurrentSeqXmlFile->GetSequenceType() == "Animation" || CurrentSeqXmlFile->GetSequenceType() == "Effect") {
         mediaFilename = "";
         CurrentSeqXmlFile->ClearMediaFile();
         wxString error;

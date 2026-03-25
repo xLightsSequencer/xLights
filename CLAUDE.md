@@ -33,6 +33,9 @@ Build uses Code::Blocks .cbp project files converted to makefiles via cbp2make. 
 ### Windows
 Open in Visual Studio (vcxproj files) or Code::Blocks.
 
+### wxSmith Generated Code
+Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is delimited by `//(* ... //*)` guards in `.cpp`/`.h` files. **Any changes within these guards MUST also be reflected in the corresponding `.wxs` file** in `xLights/wxsmith/`. Otherwise the changes will be overwritten the next time the `.wxs` file is opened in wxSmith. If adding new controls, event handlers, or modifying existing ones inside the guards, update the `.wxs` XML to match.
+
 ### Adding New Source Files
 When adding new `.cpp`/`.h` files, the following project files must be updated manually:
 - **`xLights/xLights.cbp`** — add `<Unit filename="...">` entries (used by Linux build via cbp2make)
@@ -40,6 +43,14 @@ When adding new `.cpp`/`.h` files, the following project files must be updated m
 - **`xLights/Xlights.vcxproj.filters`** — add corresponding filter entries to place files in the correct VS folder
 
 The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`) may also need updating — some directories use `PBXFileSystemSynchronizedRootGroup` (auto-discovered), others require manual `PBXFileReference`/`PBXBuildFile` entries. Check on a case-by-case basis.
+
+### Release Notes
+`README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a line to the current release section:
+- **Enhancements**: `    -enh (author)                Description of the enhancement`
+- **Bug fixes**: `    -bug (author)                Description of the bug fix`
+- **Changes**: `    -change (author)             Description of the change`
+
+Keep descriptions concise (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
 
 ### Verifying Changes
 After making code changes (especially during code reviews), always do a build to make sure nothing is broken. On macOS, use:

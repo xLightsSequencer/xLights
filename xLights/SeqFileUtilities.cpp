@@ -150,10 +150,12 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     CurrentSeqXmlFile->ApplyPendingTimings(this);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {
-        // only add timing if the user didnt set up timings
-        std::string new_timing = "New Timing";
-        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-        _sequenceElements.AddTimingToAllViews(new_timing);
+        if (CurrentSeqXmlFile->GetSequenceType() != "Effect") {
+            // only add timing if the user didnt set up timings (effect sequences start with none)
+            std::string new_timing = "New Timing";
+            CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+            _sequenceElements.AddTimingToAllViews(new_timing);
+        }
     } else {
         _sequenceElements.GetTimingElement(0)->SetActive(true);
     }
@@ -195,14 +197,28 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     if (defView != "" && (defView == "All Models" || defView == "Empty" || displayElementsPanel->HasView(defView))) {
         view = defView;
     }
-    if (view == "All Models") {
+    bool isEffect = CurrentSeqXmlFile->GetSequenceType() == "Effect";
+    if (isEffect) {
+        displayElementsPanel->SelectView("Master View");
+    } else if (view == "All Models") {
         AddAllModelsToSequence();
         displayElementsPanel->SelectView("Master View");
     } else if (view != "Empty") {
         displayElementsPanel->SelectView(view);
     }
+    mainSequencer->ViewChoice->Show(!isEffect);
+    mainSequencer->ViewLabel->Show(!isEffect);
+    mainSequencer->Layout();
+    displayElementsPanel->SetEffectSequenceMode(isEffect);
+
     SetAudioControls();
     Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
+
+    if (isEffect) {
+        // Auto-open Display Elements panel so user can add models
+        wxCommandEvent evt;
+        ShowDisplayElements(evt);
+    }
 }
 
 static wxFileName mapFileName(const wxFileName& orig)
@@ -565,6 +581,15 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
         SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
 
+        bool isEffect = CurrentSeqXmlFile->GetSequenceType() == "Effect";
+        mainSequencer->ViewChoice->Show(!isEffect);
+        mainSequencer->ViewLabel->Show(!isEffect);
+        mainSequencer->Layout();
+        displayElementsPanel->SetEffectSequenceMode(isEffect);
+        if (isEffect) {
+            displayElementsPanel->SelectView("Master View");
+        }
+
         EnableSequenceControls(true);
         Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
 
@@ -681,9 +706,15 @@ bool xLightsFrame::CloseSequence()
     if (mainSequencer != nullptr) {
         if (mainSequencer->PanelWaveForm != nullptr)
             mainSequencer->PanelWaveForm->CloseMedia();
-        if (mainSequencer->ViewChoice != nullptr)
+        if (mainSequencer->ViewChoice != nullptr) {
             mainSequencer->ViewChoice->Clear();
+            mainSequencer->ViewChoice->Show();
+        }
+        if (mainSequencer->ViewLabel != nullptr)
+            mainSequencer->ViewLabel->Show();
     }
+    if (displayElementsPanel != nullptr)
+        displayElementsPanel->SetEffectSequenceMode(false);
     _seqData.init(0, 0, 50);
     EnableSequenceControls(true); // let it re-evaluate menu state
     SetStatusText("");

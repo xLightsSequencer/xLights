@@ -52,6 +52,9 @@ class ViewsModelsPanel : public wxPanel
 {
     wxChoice* _mainViewsChoice = nullptr;
     xLightsFrame* _xlFrame = nullptr;
+    wxGridBagSizer* _gridBagSizer = nullptr;
+    wxFlexGridSizer* _viewButtonsSizer = nullptr;
+    bool _effectSequenceMode = false;
     SequenceData* _seqData = nullptr;
     SequenceElements* _sequenceElements = nullptr;
     SequenceViewManager* _sequenceViewManager = nullptr;
@@ -130,6 +133,7 @@ public:
     void SetViewChoice(wxChoice* choice);
     void SelectView(const std::string& view);
     bool HasView(const std::string& view);
+    void SetEffectSequenceMode(bool effectSeq);
     void SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, SequenceViewManager* sequenceViewManager);
     void OnViewSelect(wxCommandEvent& event);
     void OnListCtrlItemCheck(wxCommandEvent& event);

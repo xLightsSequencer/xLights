@@ -156,7 +156,7 @@ bool SequenceFile::SaveCopy() const
 void SequenceFile::SetSequenceType(const std::string& type)
 {
     seq_type = type;
-    if (type == "Animation") {
+    if (type == "Animation" || type == "Effect") {
         SetMediaFile("", "", false);
         if (audio != nullptr) {
             ValueCurve::SetAudio(nullptr);

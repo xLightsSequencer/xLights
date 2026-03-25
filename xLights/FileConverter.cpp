@@ -1700,36 +1700,47 @@ static int compressFile(std::vector<uint8_t> &data, const std::string &filepath,
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     spdlog::debug("Start fseq write");
-       
+
+    bool isEffectSeq = params.xLightsFrm->CurrentSeqXmlFile != nullptr &&
+                       params.xLightsFrm->CurrentSeqXmlFile->GetSequenceType() == "Effect";
+
     const wxUint8 fType = params.xLightsFrm->_fseqVersion;
     int vMajor = 2;
     int clevel = 2;
     bool allowSparse = false;
     FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
-    switch (fType) {
-        case 1:
-            vMajor = 1;
-            break;
-        case 3:
-            ctype = FSEQFile::CompressionType::none;
-            break;
-        case 4:
-            ctype = FSEQFile::CompressionType::zlib;
-            clevel = 1;
-            break;
-        case 5:
-            allowSparse = true;
-            break;
-        default:
-            break;
+
+    if (isEffectSeq) {
+        // Effect sequences always use v2 sparse with zlib compression
+        ctype = FSEQFile::CompressionType::zlib;
+        clevel = 1;
+        allowSparse = true;
+    } else {
+        switch (fType) {
+            case 1:
+                vMajor = 1;
+                break;
+            case 3:
+                ctype = FSEQFile::CompressionType::none;
+                break;
+            case 4:
+                ctype = FSEQFile::CompressionType::zlib;
+                clevel = 1;
+                break;
+            case 5:
+                allowSparse = true;
+                break;
+            default:
+                break;
+        }
     }
-    
+
     FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor, ctype, clevel);
     if (!file) {
         params.ConversionError(wxString("Unable to create file: ") + params.out_filename + ". Check directory and file permissions.");
         return;
     }
-    size_t stepSize = roundTo4(params.seq_data.NumChannels());
+    size_t stepSize = isEffectSeq ? params.seq_data.NumChannels() : roundTo4(params.seq_data.NumChannels());
     wxUint16 stepTime = params.seq_data.FrameTime();
     if (vMajor == 2) {
         file->enableMinorVersionFeatures(2);
@@ -1764,6 +1775,15 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
             v2file->m_sparseRanges.push_back(r);
             spdlog::info("Sparse range - Start: {}  End: {}   Size: {}\n", r.first + 1, (r.first + r.second), r.second);
         }
+    }
+    if (isEffectSeq) {
+        // Mark file as an effect sequence so FPP upload can distinguish
+        // effect sequences from regular sparse files
+        FSEQFile::VariableHeader esHeader;
+        esHeader.code[0] = 'e';
+        esHeader.code[1] = 'S';
+        esHeader.data.push_back(1); // version/flag byte
+        file->addVariableHeader(esHeader);
     }
     if (vMajor == 2 && params.elements) {
         for (int x = 0; x < params.elements->GetNumberOfTimingElements(); x++) {

@@ -101,6 +101,7 @@ class MainSequencer: public wxPanel
     Waveform* PanelWaveForm;
     wxCheckBox* CheckBox_SuspendRender;
     wxChoice* ViewChoice;
+    wxStaticText* ViewLabel;
     wxScrollBar* ScrollBarEffectsHorizontal;
     wxScrollBar* ScrollBarEffectsVertical;
     //*)

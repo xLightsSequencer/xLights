@@ -13,6 +13,9 @@
 #include <map>
 #include <array>
 #include <wx/mstream.h>
+#ifdef __WXOSX__
+#include <wx/osx/core/private.h>
+#endif
 #include "BitmapCache.h"
 #include "UtilFunctions.h"
 
@@ -537,6 +540,10 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromPNGs(id, animation_seq_png, sizeof(animation_seq_png));
     } else if ("xlART_animation_seq_pressed" == id) {
         return CreateBitmapBundleFromPNGs(id, animation_seq_pressed_png, sizeof(animation_seq_pressed_png));
+    } else if ("xlART_effect_seq" == id) {
+        return CreateBitmapBundleFromPNGs(id, effect_seq_png, sizeof(effect_seq_png));
+    } else if ("xlART_effect_seq_pressed" == id) {
+        return CreateBitmapBundleFromPNGs(id, effect_seq_pressed_png, sizeof(effect_seq_pressed_png));
     } else if ("xlART_time_25ms" == id) {
         return CreateBitmapBundleFromPNGs(id, time_25ms_png, sizeof(time_25ms_png));
     } else if ("xlART_time_25ms_pressed" == id) {
@@ -572,6 +579,18 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
     } else if ("xlART_UNLINKED" == id) {
         return wxBitmapBundle::FromSVG(unlinkSVG, sizeof(unlinkSVG), wxSize(16, 16));
     }
+#ifdef __WXOSX__
+    // macOS SF Symbol based navigation icons
+    if ("xlART_GO_TO_TOP" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.up.to.line.circle", size);
+    } else if ("xlART_GO_TO_BOTTOM" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.down.to.line.circle", size);
+    } else if ("xlART_GO_FORWARD_ALL" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.right.to.line.circle", size);
+    } else if ("xlART_GO_BACK_ALL" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.left.to.line.circle", size);
+    }
+#endif
     return wxBitmapBundle();
 }
 

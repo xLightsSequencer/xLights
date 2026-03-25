@@ -108,6 +108,7 @@
 												<content>
 													<item>Media</item>
 													<item>Animation</item>
+													<item>Effect</item>
 												</content>
 												<handler function="OnChoice_Xml_Seq_TypeSelect" entry="EVT_CHOICE" />
 											</object>

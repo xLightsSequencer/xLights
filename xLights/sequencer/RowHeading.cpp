@@ -442,6 +442,13 @@ void RowHeading::rightClick( wxMouseEvent& event)
     wxMenu mnuLayer;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+        if (mSequenceElements->GetXLightsFrame()->GetMainSequencer() != nullptr &&
+            xLightsFrame::CurrentSeqXmlFile != nullptr) {
+            wxMenu mnuEmpty;
+            mnuEmpty.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
+            mnuEmpty.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+            PopupMenu(&mnuEmpty);
+        }
         return;
     }
 
@@ -637,7 +644,12 @@ std::vector<std::string> RowHeading::ParseTags(const wxString& tagString) {
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
-    
+    int id = event.GetId();
+    if (id == ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {
+        wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
+        wxPostEvent(GetParent(), displayElementEvent);
+        return;
+    }
 
     Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     if (ri == nullptr || mSequenceElements == nullptr)
@@ -648,7 +660,6 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         return;
 
     int layer_index = ri->layerIndex;
-    int id = event.GetId();
     if (id == ID_ROW_MNU_INSERT_LAYER_ABOVE) {
         element->InsertEffectLayer(layer_index);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1476,9 +1487,6 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         pasteRowEvent.SetString("All");
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
-    } else if (id == ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {
-        wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
-        wxPostEvent(GetParent(), displayElementEvent);
     } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
         ModelElement* me = dynamic_cast<ModelElement*>(element);
         if (me == nullptr) {

@@ -1294,8 +1294,48 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         outputFile->enableMinorVersionFeatures(2);
     }
     if (type >= 2 && !newRanges.empty()) {
-        for (auto &a : newRanges) {
-            ((V2FSEQFile*)outputFile)->m_sparseRanges.push_back(a);
+        V2FSEQFile *v2file = (V2FSEQFile*)outputFile;
+        V2FSEQFile *v2source = dynamic_cast<V2FSEQFile*>(file);
+        // Check if source is an effect sequence (marked with 'eS' variable header)
+        bool isEffectSeq = false;
+        if (v2source != nullptr) {
+            for (auto &vh : v2source->getVariableHeaders()) {
+                if (vh.code[0] == 'e' && vh.code[1] == 'S') {
+                    isEffectSeq = true;
+                    break;
+                }
+            }
+        }
+        if (isEffectSeq && !v2source->m_sparseRanges.empty()) {
+            // Effect sequence: intersect controller ranges with source
+            // sparse ranges so we only include channels the effect touches.
+            for (auto &cr : newRanges) {
+                uint32_t crEnd = cr.first + cr.second;
+                for (auto &sr : v2source->m_sparseRanges) {
+                    uint32_t srEnd = sr.first + sr.second;
+                    uint32_t intStart = std::max(cr.first, sr.first);
+                    uint32_t intEnd = std::min(crEnd, srEnd);
+                    if (intStart < intEnd) {
+                        v2file->m_sparseRanges.push_back({intStart, intEnd - intStart});
+                    }
+                }
+            }
+            if (v2file->m_sparseRanges.empty()) {
+                // No overlap between effect sequence and this controller.
+                // Skip upload entirely — this controller has no channels
+                // in the effect, so no file is needed.
+                delete outputFile;
+                outputFile = nullptr;
+                if (tempFileName != "") {
+                    ::wxRemoveFile(tempFileName);
+                    tempFileName = "";
+                }
+                return false;
+            }
+        } else {
+            for (auto &a : newRanges) {
+                v2file->m_sparseRanges.push_back(a);
+            }
         }
     }
     if (fppType != FPP_TYPE::FPP || type < 2 || !IsVersionAtLeast(9, 3)) {

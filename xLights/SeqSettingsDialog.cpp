@@ -113,6 +113,7 @@ const wxWindowID SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 const long SeqSettingsDialog::ID_GRID_TIMING = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_Wiz_Music = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_Wiz_Anim = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON_Wiz_Effect = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_25ms = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_50ms = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_Custom = wxNewId();
@@ -173,6 +174,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     musical_seq_pressed = wxArtProvider::GetBitmapBundle("xlART_musical_seq_pressed", wxART_BUTTON);
     animation_seq = wxArtProvider::GetBitmapBundle("xlART_animation_seq", wxART_BUTTON);
     animation_seq_pressed = wxArtProvider::GetBitmapBundle("xlART_animation_seq_pressed", wxART_BUTTON);
+    effect_seq = wxArtProvider::GetBitmapBundle("xlART_effect_seq", wxART_BUTTON);
+    effect_seq_pressed = wxArtProvider::GetBitmapBundle("xlART_effect_seq_pressed", wxART_BUTTON);
     time_25ms = wxArtProvider::GetBitmapBundle("xlART_time_25ms", wxART_BUTTON);
     time_25ms_pressed = wxArtProvider::GetBitmapBundle("xlART_time_25ms_pressed", wxART_BUTTON);
     time_50ms = wxArtProvider::GetBitmapBundle("xlART_time_50ms", wxART_BUTTON);
@@ -240,6 +243,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     Choice_Xml_Seq_Type = new wxChoice(PanelInfo, ID_CHOICE_Xml_Seq_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Xml_Seq_Type"));
     Choice_Xml_Seq_Type->Append(_("Media"));
     Choice_Xml_Seq_Type->Append(_("Animation"));
+    Choice_Xml_Seq_Type->Append(_("Effect"));
     FlexGridSizer5->Add(Choice_Xml_Seq_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer10 = new wxFlexGridSizer(0, 5, 0, 0);
@@ -648,12 +652,16 @@ void SeqSettingsDialog::WizardPage1()
     BitmapButton_Wiz_Anim = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
     BitmapButton_Wiz_Anim->SetBitmapPressed(animation_seq_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Anim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Wiz_Effect = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Effect, effect_seq, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Effect"));
+    BitmapButton_Wiz_Effect->SetBitmapPressed(effect_seq_pressed);
+    GridSizerWizButtons->Add(BitmapButton_Wiz_Effect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(0, 0, wxGBPosition(2, 0), wxDefaultSpan, wxEXPAND, 0);
     Panel_Wizard->SetSizer(GridBagSizerWizard);
     Panel_Wizard->Layout();
     Connect(ID_BITMAPBUTTON_Wiz_Music,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick);
     Connect(ID_BITMAPBUTTON_Wiz_Anim,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick);
+    Connect(ID_BITMAPBUTTON_Wiz_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_EffectClick);
 }
 
 void SeqSettingsDialog::WizardPage2()
@@ -823,13 +831,14 @@ void SeqSettingsDialog::AddTimingCell(const wxString& name)
 void SeqSettingsDialog::ProcessSequenceType()
 {
     wxString type = xml_file->GetSequenceType();
-    BitmapButton_Xml_Media_File->Enable((type == "Media"));
-    TextCtrl_Xml_Media_File->Enable((type == "Media"));
-    CheckBox_Overwrite_Tags->Enable((type == "Media"));
-    Button_AddMilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
-    TextCtrl_Premilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
-    TextCtrl_Postmilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
-    TextCtrl_Xml_Seq_Duration->Enable(type != "Media");
+    bool isMedia = (type == "Media");
+    BitmapButton_Xml_Media_File->Enable(isMedia);
+    TextCtrl_Xml_Media_File->Enable(isMedia);
+    CheckBox_Overwrite_Tags->Enable(isMedia);
+    Button_AddMilliseconds->Enable(isMedia && xml_file->HasAudioMedia());
+    TextCtrl_Premilliseconds->Enable(isMedia && xml_file->HasAudioMedia());
+    TextCtrl_Postmilliseconds->Enable(isMedia && xml_file->HasAudioMedia());
+    TextCtrl_Xml_Seq_Duration->Enable(!isMedia);
     if( !wizard_active && type == "Media" && !xml_file->HasAudioMedia() )
     {
         StaticText_Warn_No_Media->Show();
@@ -875,7 +884,7 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
     }
 
     wxString path = "";
-    if (type != "Animation")
+    if (type != "Animation" && type != "Effect")
     {
         path = TextCtrl_Xml_Media_File->GetValue();
         if (FileExists(path))
@@ -1676,6 +1685,19 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void SeqSettingsDialog::OnBitmapButton_Wiz_EffectClick(wxCommandEvent& event)
+{
+    Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString("Effect"));
+    xml_file->SetSequenceType("Effect");
+    TextCtrl_Xml_Seq_Duration->ChangeValue("30.0");
+    xml_file->SetSequenceDuration(30.0);
+    xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
+    ProcessSequenceType();
+    selected_view = "Empty";
+    WizardPage2();
+    ValidateWindow();
+}
+
 void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
 {
     xml_file->SetSequenceTiming("25 ms");
@@ -1683,7 +1705,7 @@ void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
         xml_file->GetMedia()->SetFrameInterval(25);
     }
     TextCtrl_SeqTiming->SetValue("25 ms");
-    WizardPage3();
+    AdvanceAfterTiming();
 }
 
 void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
@@ -1693,7 +1715,7 @@ void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
         xml_file->GetMedia()->SetFrameInterval(50);
     }
     TextCtrl_SeqTiming->SetValue("50 ms");
-    WizardPage3();
+    AdvanceAfterTiming();
 }
 
 void SeqSettingsDialog::OnBitmapButton_CustomClick(wxCommandEvent& event)
@@ -1708,7 +1730,16 @@ void SeqSettingsDialog::OnBitmapButton_CustomClick(wxCommandEvent& event)
     }
 
     TextCtrl_SeqTiming->SetValue(dialog.GetTiming());
-    WizardPage3();
+    AdvanceAfterTiming();
+}
+
+void SeqSettingsDialog::AdvanceAfterTiming()
+{
+    if (xml_file->GetSequenceType() == "Effect") {
+        if (UpdateSequenceTiming()) EndModal(wxID_OK);
+    } else {
+        WizardPage3();
+    }
 }
 
 void SeqSettingsDialog::OnBitmapButton_lorClick(wxCommandEvent& event)

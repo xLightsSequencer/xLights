@@ -246,6 +246,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 
     Connect(wxID_ANY, EVT_VMDROP, (wxObjectEventFunction)&ViewsModelsPanel::OnDrop);
 
+    _gridBagSizer = GridBagSizer1;
+    _viewButtonsSizer = FlexGridSizer8;
+
+    
     GridBagSizer1->AddGrowableCol(0, 2);
     GridBagSizer1->AddGrowableCol(2, 1);
     GridBagSizer1->AddGrowableRow(3);
@@ -266,11 +270,114 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     mdt = new MyTextDropTarget(this, ListCtrlNonModels, "NonModel");
     ListCtrlNonModels->SetDropTarget(mdt);
 
+#ifdef __WXOSX__
+    // Use macOS SF Symbol icons for navigation buttons
+    auto goFwd = wxArtProvider::GetBitmapBundle(wxART_GO_FORWARD, wxART_BUTTON);
+    auto goBack = wxArtProvider::GetBitmapBundle(wxART_GO_BACK, wxART_BUTTON);
+    auto goUp = wxArtProvider::GetBitmapBundle(wxART_GO_UP, wxART_BUTTON);
+    auto goDown = wxArtProvider::GetBitmapBundle(wxART_GO_DOWN, wxART_BUTTON);
+    auto goFwdAll = wxArtProvider::GetBitmapBundle("xlART_GO_FORWARD_ALL", wxART_BUTTON);
+    auto goBackAll = wxArtProvider::GetBitmapBundle("xlART_GO_BACK_ALL", wxART_BUTTON);
+    auto goTop = wxArtProvider::GetBitmapBundle("xlART_GO_TO_TOP", wxART_BUTTON);
+    auto goBottom = wxArtProvider::GetBitmapBundle("xlART_GO_TO_BOTTOM", wxART_BUTTON);
+
+    auto setButtonIcon = [](wxButton* btn, const wxBitmapBundle& bmp) {
+        if (bmp.IsOk()) {
+            btn->SetBitmapLabel(bmp);
+            btn->SetLabel(wxEmptyString);
+            btn->InvalidateBestSize();
+        }
+    };
+    setButtonIcon(Button_AddSelected, goFwd);
+    setButtonIcon(Button_RemoveSelected, goBack);
+    setButtonIcon(Button_MoveUp, goUp);
+    setButtonIcon(Button_MoveDown, goDown);
+    setButtonIcon(Button_AddAll, goFwdAll);
+    setButtonIcon(Button_RemoveAll, goBackAll);
+    setButtonIcon(Button_Top, goTop);
+    setButtonIcon(Button_Bottom, goBottom);
+    setButtonIcon(Button_ViewUp, goUp);
+    setButtonIcon(Button_ViewDown, goDown);
+#endif
+
     int w, h;
     GetSize(&w, &h);
     SetSize(std::max(600, w), std::max(400, h));
     SetMinSize(wxSize(50, 50));
     ValidateWindow();
+}
+
+void ViewsModelsPanel::SetEffectSequenceMode(bool effectSeq)
+{
+    if (_effectSequenceMode == effectSeq) return;
+    _effectSequenceMode = effectSeq;
+
+    if (effectSeq) {
+        // Detach views-related items from the sizer and hide them
+        _gridBagSizer->Detach(StaticText1);
+        _gridBagSizer->Detach(ListCtrlViews);
+        _gridBagSizer->Detach(StaticText2);
+        _gridBagSizer->Detach(_viewButtonsSizer);
+        StaticText1->Hide();
+        ListCtrlViews->Hide();
+        StaticText2->Hide();
+        Button_AddView->Hide();
+        Button_DeleteView->Hide();
+        ButtonRename->Hide();
+        ButtonClone->Hide();
+        ButtonImport->Hide();
+        Button_MakeMaster->Hide();
+        Button_ViewUp->Hide();
+        Button_ViewDown->Hide();
+
+        // Move hidden controls offscreen so they don't paint over other controls
+        StaticText1->SetSize(0, 0, 0, 0);
+        ListCtrlViews->SetSize(0, 0, 0, 0);
+        StaticText2->SetSize(0, 0, 0, 0);
+        Button_AddView->SetSize(0, 0, 0, 0);
+        Button_DeleteView->SetSize(0, 0, 0, 0);
+        ButtonRename->SetSize(0, 0, 0, 0);
+        ButtonClone->SetSize(0, 0, 0, 0);
+        ButtonImport->SetSize(0, 0, 0, 0);
+        Button_MakeMaster->SetSize(0, 0, 0, 0);
+        Button_ViewUp->SetSize(0, 0, 0, 0);
+        Button_ViewDown->SetSize(0, 0, 0, 0);
+
+        // Expand ListCtrlModels to cover the right side
+        _gridBagSizer->SetItemPosition(ListCtrlModels, wxGBPosition(0, 2));
+        _gridBagSizer->SetItemSpan(ListCtrlModels, wxGBSpan(4, 1));
+        _gridBagSizer->AddGrowableRow(1);
+        _gridBagSizer->RemoveGrowableCol(2);
+        _gridBagSizer->AddGrowableCol(2, 2);
+    } else {
+        // Restore ListCtrlModels to original position
+        _gridBagSizer->SetItemPosition(ListCtrlModels, wxGBPosition(3, 2));
+        _gridBagSizer->SetItemSpan(ListCtrlModels, wxGBSpan(1, 2));
+
+        // Re-add views items to the sizer
+        _gridBagSizer->Add(StaticText1, wxGBPosition(0, 2), wxDefaultSpan, wxALL, 2);
+        _gridBagSizer->Add(ListCtrlViews, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
+        _gridBagSizer->Add(StaticText2, wxGBPosition(2, 2), wxDefaultSpan, wxALL, 0);
+        _gridBagSizer->Add(_viewButtonsSizer, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxEXPAND, 2);
+        StaticText1->Show();
+        ListCtrlViews->Show();
+        StaticText2->Show();
+        Button_AddView->Show();
+        Button_DeleteView->Show();
+        ButtonRename->Show();
+        ButtonClone->Show();
+        ButtonImport->Show();
+        Button_MakeMaster->Show();
+        Button_ViewUp->Show();
+        Button_ViewDown->Show();
+
+        _gridBagSizer->RemoveGrowableRow(1);
+        _gridBagSizer->RemoveGrowableCol(2);
+        _gridBagSizer->AddGrowableCol(2, 1);
+    }
+
+    _gridBagSizer->Layout();
+    Layout();
 }
 
 ViewsModelsPanel::~ViewsModelsPanel()
@@ -288,6 +395,11 @@ ViewsModelsPanel::~ViewsModelsPanel()
     //    }
     //}
 
+    if (_effectSequenceMode) {
+        // _viewButtonsSizer was detached from the grid bag sizer,
+        // so it won't be deleted automatically — clean it up
+        delete _viewButtonsSizer;
+    }
     delete _imageList;
 }
 
@@ -463,7 +575,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     if (ListCtrlNonModels->GetColumnWidth(0) < 22) {
         ListCtrlNonModels->SetColumnWidth(0, 22);
     }
-    ListCtrlNonModels->SetColumnWidth(1, wxLIST_AUTOSIZE);
+    ListCtrlNonModels->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
 
     ListCtrlModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
     ListCtrlModels->SetColumnWidth(1, wxLIST_AUTOSIZE);
@@ -473,7 +585,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     if (ListCtrlModels->GetColumnWidth(1) < 22) {
         ListCtrlModels->SetColumnWidth(1, 22);
     }
-    ListCtrlModels->SetColumnWidth(2, wxLIST_AUTOSIZE);
+    ListCtrlModels->SetColumnWidth(2, wxLIST_AUTOSIZE_USEHEADER);
 
     SortNonModels();
 
