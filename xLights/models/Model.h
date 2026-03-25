@@ -325,7 +325,8 @@ protected:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
-    wxColour _modelTagColour = wxNullColour;
+    xlColor _modelTagColour = xlBLACK;
+    bool _modelTagColourValid = false;
     std::string _modelTagColourString = xlEMPTY_STRING;
     uint8_t _lowDefFactor = 100;
     std::string _startSide = "B";
@@ -375,9 +376,9 @@ public:
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
     std::string DecodeSmartRemote(int sr) const;
 
-    void SetTagColour(wxColour colour);
+    void SetTagColour(const xlColor& colour);
     void SetTagColourAsString(std::string const& colour);
-    [[nodiscard]] wxColour GetTagColour();
+    [[nodiscard]] xlColor GetTagColour();
     [[nodiscard]] std::string GetTagColourAsString() const; // used by XmlSerializer
     [[nodiscard]] int32_t GetStringStartChan(int x) const;
 
@@ -521,7 +522,7 @@ public:
     xlColor GetNodeColor(size_t nodenum) const;
     virtual const xlColor &GetNodeMaskColor(size_t nodenum) const;
     void SetNodeColor(size_t nodenum, const xlColor& c);
-    wxChar GetChannelColorLetter(wxByte chidx);
+    char GetChannelColorLetter(uint8_t chidx);
     std::string GetRGBOrder() const { return rgbOrder; }
     static char EncodeColour(const xlColor& c);
     char GetAbsoluteChannelColorLetter(int32_t absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned

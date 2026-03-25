@@ -398,13 +398,13 @@ void SketchAssistPanel::OnButton_ImportSVG(wxCommandEvent& event)
                     float* p = &path->pts[i * 2];
                     //sketch points are 0-1, need to scale from pixel xy
                     //1-h, everything was upside down for some reason
-                    wxPoint2DDouble start(p[0] / w, 1 - (p[1] / h));
-                    wxPoint2DDouble cp1(p[2] / w, 1 - (p[3] / h));
-                    wxPoint2DDouble cp2(p[4] / w, 1 - (p[5] / h));
-                    wxPoint2DDouble end(p[6] / w, 1 - (p[7] / h));
+                    xlPointD start(p[0] / w, 1 - (p[1] / h));
+                    xlPointD cp1(p[2] / w, 1 - (p[3] / h));
+                    xlPointD cp2(p[4] / w, 1 - (p[5] / h));
+                    xlPointD end(p[6] / w, 1 - (p[7] / h));
                     if (areCollinear(start,cp1,end, 0.001f) && areCollinear(start,cp2,end, 0.001f)) {//check if its a straight line
                         skpath->appendSegment(std::make_shared<SketchLine>(start, end));
-                    } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
+                    } else if (areSame(end.x, cp2.x, 0.001f) && areSame(end.y, cp2.y, 0.001f)) { // check if control points2 is the end
                         skpath->appendSegment(std::make_shared<SketchQuadraticBezier>(start, cp1, end));
                     } else {
                         skpath->appendSegment(std::make_shared<SketchCubicBezier>(start, cp1, cp2, end));
@@ -529,7 +529,7 @@ bool SketchAssistPanel::areSame(double a, double b, float eps) const
     return std::fabs(a - b) < eps;
 }
 
-bool SketchAssistPanel::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const
+bool SketchAssistPanel::areCollinear(const xlPointD& a, const xlPointD& b, const xlPointD& c, double eps) const
 {
     //use dot product to determine if point are in a strait line
     auto [a_x, a_y] = a;

@@ -699,7 +699,7 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
     uint8_t* ps = framedata + startAddr; // pointer to the channel data in the frame
 
     // Work out the colour order
-    wxByte r = model->GetChannelColorLetter(0);
+    char r = model->GetChannelColorLetter(0);
     int rr = 0;
     int gg = 1;
     int bb = 2;
@@ -708,13 +708,13 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
     } else if (r == 'B') {
         bb = 0;
     }
-    wxByte g = model->GetChannelColorLetter(1);
+    char g = model->GetChannelColorLetter(1);
     if (g == 'R') {
         rr = 1;
     } else if (g == 'B') {
         bb = 1;
     }
-    wxByte b = model->GetChannelColorLetter(2);
+    char b = model->GetChannelColorLetter(2);
     if (b == 'R') {
         rr = 2;
     } else if (b == 'G') {

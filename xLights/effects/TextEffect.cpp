@@ -47,6 +47,12 @@
 
 #define MAXTEXTLINES 100
 
+// Local alignment constants (matching wx values) so we don't depend on wx headers
+constexpr int TEXT_ALIGN_CENTER_HORIZONTAL = 0x0100;
+constexpr int TEXT_ALIGN_RIGHT = 0x0200;
+constexpr int TEXT_ALIGN_BOTTOM = 0x0400;
+constexpr int TEXT_ALIGN_CENTER_VERTICAL = 0x0800;
+
 TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64), font_mgr(FontManager::instance())
 {
     //ctor
@@ -676,11 +682,11 @@ void DrawLabel(TextDrawingContext *dc,
     int height = heightText;
 
     int x, y;
-    if ( alignment & wxALIGN_RIGHT )
+    if ( alignment & TEXT_ALIGN_RIGHT )
     {
         x = rect.GetRight() - width;
     }
-    else if ( alignment & wxALIGN_CENTRE_HORIZONTAL )
+    else if ( alignment & TEXT_ALIGN_CENTER_HORIZONTAL )
     {
         x = (rect.GetLeft() + rect.GetRight() + 1 - width) / 2;
     }
@@ -689,11 +695,11 @@ void DrawLabel(TextDrawingContext *dc,
         x = rect.GetLeft();
     }
 
-    if ( alignment & wxALIGN_BOTTOM )
+    if ( alignment & TEXT_ALIGN_BOTTOM )
     {
         y = rect.GetBottom() - height;
     }
-    else if ( alignment & wxALIGN_CENTRE_VERTICAL )
+    else if ( alignment & TEXT_ALIGN_CENTER_VERTICAL )
     {
         y = (rect.GetTop() + rect.GetBottom() + 1 - height) / 2;
     }
@@ -719,16 +725,16 @@ void DrawLabel(TextDrawingContext *dc,
             {
                 // NB: can't test for !(alignment & wxALIGN_LEFT) because
                 //     wxALIGN_LEFT is 0
-                if ( alignment & (wxALIGN_RIGHT | wxALIGN_CENTRE_HORIZONTAL) )
+                if ( alignment & (TEXT_ALIGN_RIGHT | TEXT_ALIGN_CENTER_HORIZONTAL) )
                 {
                     int x1,y1,z1;
                     int widthLine = GetMultiLineTextExtent(dc, curLine, &x1, &y1, &z1).width;
 
-                    if ( alignment & wxALIGN_RIGHT )
+                    if ( alignment & TEXT_ALIGN_RIGHT )
                     {
                         xRealStart += width - widthLine;
                     }
-                    else // if ( alignment & wxALIGN_CENTRE_HORIZONTAL )
+                    else // if ( alignment & TEXT_ALIGN_CENTER_HORIZONTAL )
                     {
                         xRealStart += (width - widthLine) / 2;
                     }
@@ -1069,7 +1075,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
         if (img == nullptr) {
             dc->Clear();
             SetFont(dc, fontString, colors[0]);
-            DrawLabel(dc, msg, rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, GetCache(buffer,id), fontString, colors, perWord);
+            DrawLabel(dc, msg, rect, TEXT_ALIGN_CENTER_HORIZONTAL|TEXT_ALIGN_CENTER_VERTICAL, GetCache(buffer,id), fontString, colors, perWord);
             wxImage *i2 = dc->FlushAndGetImage();
             img = new wxImage(i2->GetSize());
             *img = i2->Copy();

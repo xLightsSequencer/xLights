@@ -67,7 +67,7 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 		}
 	}
 
-	m_color = wxColourToXlColor(model->GetTagColour()).GetRGB(false);
+	m_color = model->GetTagColour().GetRGB(false);
 }
 
 void CADModel::ShiftModel(float x, float y, float z)

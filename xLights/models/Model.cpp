@@ -65,8 +65,8 @@
 #define MOST_STRINGS_WE_EXPECT 480
 #define MOST_CONTROLLER_PORTS_WE_EXPECT 128
 
-const long Model::ID_LAYERSIZE_INSERT = wxNewId();
-const long Model::ID_LAYERSIZE_DELETE = wxNewId();
+const long Model::ID_LAYERSIZE_INSERT = 20000;
+const long Model::ID_LAYERSIZE_DELETE = 20001;
 
 static const std::vector<std::string> RGBW_HANDLING = { "R=G=B -> W", "RGB Only", "White Only", "Advanced", "White On All" };
 
@@ -1329,7 +1329,7 @@ bool Model::IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2)
 }
 
 // only valid for rgb nodes and dumb strings (not traditional strings)
-wxChar Model::GetChannelColorLetter(wxByte chidx)
+char Model::GetChannelColorLetter(uint8_t chidx)
 {
     return rgbOrder[chidx];
 }
@@ -4140,30 +4140,30 @@ std::string Model::GetTagColourAsString() const
     return _modelTagColourString;
 }
 
-wxColour Model::GetTagColour() {
-    if (!_modelTagColour.IsOk()) {
+xlColor Model::GetTagColour() {
+    if (!_modelTagColourValid) {
         if (_modelTagColourString != xlEMPTY_STRING) {
-            _modelTagColour = wxColour(_modelTagColourString);
+            _modelTagColour = xlColor(_modelTagColourString);
         } else {
             _modelTagColourString = "#000000";
-            _modelTagColour = *wxBLACK;
+            _modelTagColour = xlBLACK;
         }
+        _modelTagColourValid = true;
     }
     return _modelTagColour;
 }
 
 void Model::SetTagColourAsString(std::string const& colour) {
     _modelTagColourString = colour;
-    if (_modelTagColour.IsOk()) {
-        _modelTagColour = wxNullColour;
-    }
+    _modelTagColourValid = false;
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColourAsString");
 }
-void Model::SetTagColour(wxColour colour)
+void Model::SetTagColour(const xlColor& colour)
 {
     _modelTagColour = colour;
-    _modelTagColourString = colour.GetAsString(wxC2S_HTML_SYNTAX);
+    _modelTagColourValid = true;
+    _modelTagColourString = std::string(colour);
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColour");
 }

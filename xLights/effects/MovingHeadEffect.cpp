@@ -24,6 +24,11 @@
 #include <cstdlib>
 #include <format>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "../utils/xlPoint.h"
+
 #include "../utils/string_utils.h"
 #include "../render/Effect.h"
 #include "../render/Element.h"
@@ -379,14 +384,14 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
 {
     if( path_def != xlEMPTY_STRING ) {
         SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
-        wxPoint2DDouble pt;
+        double ptx = 0.0, pty = 0.0;
         double progress_pos = eff_pos + ((delta * time_offset) / 100.0f);
         if( abs(progress_pos) > 1.0f ) {
             int prog1 = (int)(abs(progress_pos) * 100.0f);
             prog1 = prog1 % 100;
             progress_pos = (double)(prog1 / 100.0f);
         }
-        sketch.getProgressPosition(progress_pos, pt.m_x, pt.m_y);
+        sketch.getProgressPosition(progress_pos, ptx, pty);
         glm::vec3 point;
         float scale = 180.0f;
         float new_scale = path_scale;
@@ -395,9 +400,9 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
         } else {
             new_scale = 1.0f / abs(new_scale);
         }
-        point.x = (pt.m_x - 0.5f) * scale * new_scale;
+        point.x = (ptx - 0.5f) * scale * new_scale;
         point.y = scale / 2.0f;
-        point.z = (0.5f - pt.m_y) * scale * new_scale;
+        point.z = (0.5f - pty) * scale * new_scale;
 
         glm::vec4 position = glm::vec4(point, 1.0);
         glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), glm::radians(pan_pos), glm::vec3(0.0f, 1.0f, 0.0f));

@@ -83,6 +83,7 @@
 #include "ui/modelproperties/ModelPropertyAdapter.h"
 
 #include "LayoutUtils.h"
+#include "ui/wxUtilities.h"
 
 #include <log.h>
 
@@ -2026,22 +2027,22 @@ void LayoutPanel::BulkEditTagColour()
     // remember the selected models
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
-    wxColour colour = *wxBLACK;
+    xlColor xlColour = xlBLACK;
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
-            colour = model->GetTagColour();
-            if (colour != *wxBLACK) {
+            xlColour = model->GetTagColour();
+            if (xlColour != xlBLACK) {
                 break;
             }
         }
     }
 
-    auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, colour);
+    auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, xlColorToWxColour(xlColour));
     if (res == wxID_OK) {
-        colour = color;
+        xlColour = wxColourToXlColor(color);
 
         for (Model* model: modelsToEdit) {
-            model->SetTagColour(colour);
+            model->SetTagColour(xlColour);
         }
 
         // see comment in BulkEditActive()
@@ -2055,14 +2056,13 @@ void LayoutPanel::BulkEditTagColour()
 
 void LayoutPanel::BulkEditGroupTagColor()
 {
-    wxColour c = *wxBLACK;
-    auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, c);
+    auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, *wxBLACK);
     if (res == wxID_OK) {
-        c = color;
+        xlColor xlC = wxColourToXlColor(color);
 
         for (const auto& item : selectedTreeGroups) {
             Model* model = GetModelFromTreeItem(item);
-            model->SetTagColour(c);
+            model->SetTagColour(xlC);
         }
     }
 }

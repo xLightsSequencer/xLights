@@ -12,13 +12,13 @@
 #include "pugixml.hpp"
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <wx/base64.h>
 #include <wx/mstream.h>
 #include <wx/wfstream.h>
 #include <wx/imaggif.h>
 #include <wx/anidecod.h>
 #include <wx/quantize.h>
-#include <wx/file.h>
 
 #include <log.h>
 
@@ -619,9 +619,10 @@ bool ImageCacheEntry::SaveToFile(const std::string& path) const
     ObtainAccessToURL(path);
     wxMemoryBuffer buf = wxBase64Decode(_embeddedData);
     if (buf.GetDataLen() == 0) return false;
-    wxFile f;
-    if (!f.Open(wxString(path), wxFile::write)) return false;
-    return f.Write(buf.GetData(), buf.GetDataLen()) == buf.GetDataLen();
+    std::ofstream f(path, std::ios::binary);
+    if (!f.is_open()) return false;
+    f.write(static_cast<const char*>(buf.GetData()), buf.GetDataLen());
+    return f.good();
 }
 
 bool SequenceMedia::ExtractImageToFile(const std::string& oldPath, const std::string& newPath)

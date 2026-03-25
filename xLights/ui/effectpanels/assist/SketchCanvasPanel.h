@@ -70,11 +70,11 @@ private:
                            CubicCurveEnd };
 
     struct HandlePoint {
-        HandlePoint(wxPoint2DDouble _pt, HandlePointType _handlePointType = HandlePointType::Point) :
+        HandlePoint(xlPointD _pt, HandlePointType _handlePointType = HandlePointType::Point) :
             pt(_pt),
             handlePointType(_handlePointType)
         {}
-        wxPoint2DDouble pt;
+        xlPointD pt;
         bool state {false};
         HandlePointType handlePointType {HandlePointType::Point};
     };
@@ -89,9 +89,14 @@ private:
     void OnSketchMouseWheel(wxMouseEvent& event);
     void OnSketchMidDown(wxMouseEvent& event);
 
-    [[nodiscard]] wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     [[nodiscard]] wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
     [[nodiscard]] wxPoint NormalizedToUI2(const wxPoint2DDouble& pt) const;
+    [[nodiscard]] wxPoint2DDouble NormalizedToUI(const xlPointD& pt) const;
+    [[nodiscard]] wxPoint NormalizedToUI2(const xlPointD& pt) const;
+
+    [[nodiscard]] xlPointD UItoNormalized(const wxPoint2DDouble& pt) const;
+    
+    
     [[nodiscard]] static bool IsControlPoint(const HandlePoint& handlePt);
     void UpdatePathFromHandles(long handleIndex);
     void UpdatePathFromHandles();

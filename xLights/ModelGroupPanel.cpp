@@ -578,7 +578,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         SizeSpinCtrl->SetValue(g->GetGridSize());
         SpinCtrl_XCentreOffset->SetValue(g->GetXCentreOffset());
         SpinCtrl_YCentreOffset->SetValue(g->GetYCentreOffset());
-        ColourPickerCtrl_ModelGroupTagColour->SetColour(g->GetTagColour());
+        ColourPickerCtrl_ModelGroupTagColour->SetColour(xlColorToWxColour(g->GetTagColour()));
     }
 
     ResizeColumns();
@@ -817,7 +817,7 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     }
     g->SetLayout(layoutStr);
     
-    g->SetTagColour(ColourPickerCtrl_ModelGroupTagColour->GetColour());
+    g->SetTagColour(wxColourToXlColor(ColourPickerCtrl_ModelGroupTagColour->GetColour()));
     
     g->RebuildBuffers();
     layoutPanel->ModelGroupUpdated(g);

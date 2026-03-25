@@ -12,6 +12,8 @@
 
 #include <wx/wx.h>
 
+#include "utils/xlPoint.h"
+
 class MHPathPresetBitmapButton : public wxBitmapButton
 {
 public:
@@ -31,8 +33,8 @@ protected:
     wxBitmap CreateImage( int w, int h, double scaleFactor );
 
 private:
-    [[nodiscard]] wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt, double scaleFactor) const;
-    [[nodiscard]] wxPoint NormalizedToUI2(const wxPoint2DDouble& pt, double scaleFactor) const;
+    [[nodiscard]] wxPoint2DDouble NormalizedToUI(const xlPointD& pt, double scaleFactor) const;
+    [[nodiscard]] wxPoint NormalizedToUI2(const xlPointD& pt, double scaleFactor) const;
 
     wxString(*GetStringFunction)();
     std::string mSettings;

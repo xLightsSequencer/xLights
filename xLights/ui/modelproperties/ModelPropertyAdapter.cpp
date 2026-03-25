@@ -491,7 +491,7 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", _model.GetTagColour()));
+    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", xlColorToWxColour(_model.GetTagColour())));
     sp->SetHelpString("A visual color assigned to the model in the model list.");
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
@@ -1092,8 +1092,11 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Model::OnPropertyGridChange::LowDefinition");
         return 0;
     } else if (event.GetPropertyName() == "ModelTagColour") {
-        _model._modelTagColour << event.GetProperty()->GetValue();
-        _model._modelTagColourString = _model._modelTagColour.GetAsString();
+        wxColour wxc;
+        wxc << event.GetProperty()->GetValue();
+        _model._modelTagColour = wxColourToXlColor(wxc);
+        _model._modelTagColourValid = true;
+        _model._modelTagColourString = std::string(_model._modelTagColour);
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelTagColour");
         return 0;

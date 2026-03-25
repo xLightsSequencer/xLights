@@ -1963,9 +1963,9 @@ void RowHeading::render( wxPaintEvent& event )
         dc.DrawRectangle(0, startY, w, DEFAULT_ROW_HEADING_HEIGHT + (i == 0 ? 0 : 1));
 
         Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
-        if (m != nullptr && m->GetTagColour() != *wxBLACK) {
-            wxBrush tagBrush(m->GetTagColour(), wxBRUSHSTYLE_SOLID);
-            wxPen tagPen(m->GetTagColour());
+        if (m != nullptr && m->GetTagColour() != xlBLACK) {
+            wxBrush tagBrush(xlColorToWxColour(m->GetTagColour()), wxBRUSHSTYLE_SOLID);
+            wxPen tagPen(xlColorToWxColour(m->GetTagColour()));
             dc.SetBrush(tagBrush);
             dc.SetPen(tagPen);
             dc.DrawRectangle(2, startY + 2, DEFAULT_ROW_HEADING_MARGIN - 4, DEFAULT_ROW_HEADING_HEIGHT - 4);

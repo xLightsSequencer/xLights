@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cmath>
+#include <glm/glm.hpp>
+
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -36,11 +39,19 @@ struct xlPointD {
     double y = 0.0;
     xlPointD() = default;
     xlPointD(double x_, double y_) : x(x_), y(y_) {}
+    xlPointD(const glm::dvec2& v) : x(v.x), y(v.y) {}
+    operator glm::dvec2() const { return glm::dvec2(x, y); }
     xlPointD operator+(const xlPointD& r) const {
         return xlPointD(x + r.x, y + r.y);
     }
+    xlPointD& operator+=(const xlPointD& r) {
+        x += r.x; y += r.y; return *this;
+    }
     xlPointD operator-(const xlPointD& r) const {
         return xlPointD(x - r.x, y - r.y);
+    }
+    xlPointD& operator-=(const xlPointD& r) {
+        x -= r.x; y -= r.y; return *this;
     }
     xlPointD operator*(double s) const {
         return xlPointD(x * s, y * s);
@@ -53,5 +64,17 @@ struct xlPointD {
     }
     friend xlPointD operator*(double s, const xlPointD& p) {
         return p * s;
+    }
+    double dot(const xlPointD& r) const {
+        return x * r.x + y * r.y;
+    }
+    double lengthSq() const {
+        return x * x + y * y;
+    }
+    double length() const {
+        return std::sqrt(lengthSq());
+    }
+    double distance(const xlPointD& r) const {
+        return (*this - r).length();
     }
 };

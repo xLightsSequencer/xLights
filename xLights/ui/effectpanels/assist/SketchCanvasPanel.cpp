@@ -312,7 +312,7 @@ void SketchCanvasPanel::OnSketchLeftDown(wxMouseEvent& event)
         m.Invert();
     }
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
-    wxPoint2DDouble pt(UItoNormalized(ptUI));
+    auto pt(UItoNormalized(ptUI));
 
     // Defining-new-segment stuff
     if (m_pathState == SketchCanvasPathState::DefineStartPoint) {
@@ -324,19 +324,19 @@ void SketchCanvasPanel::OnSketchLeftDown(wxMouseEvent& event)
         Refresh();
         return;
     } else if (m_pathState == SketchCanvasPathState::QuadraticCurveToNewPoint) {
-        wxPoint2DDouble startPt = m_handles.back().pt;
-        wxPoint2DDouble endPt = pt;
-        wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
+        auto startPt = m_handles.back().pt;
+        auto endPt = pt;
+        auto cp = 0.5 * startPt + 0.5 * endPt;
 
         m_handles.push_back(HandlePoint(cp, HandlePointType::QuadraticControlPt));
         m_handles.push_back(HandlePoint(endPt, HandlePointType::QuadraticCurveEnd));
         Refresh();
         return;
     } else if (m_pathState == SketchCanvasPathState::CubicCurveToNewPoint) {
-        wxPoint2DDouble startPt = m_handles.back().pt;
-        wxPoint2DDouble endPt = pt;
-        wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
-        wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
+        auto startPt = m_handles.back().pt;
+        auto endPt = pt;
+        auto cp1 = 0.75 * startPt + 0.25 * endPt;
+        auto cp2 = 0.25 * startPt + 0.75 * endPt;
 
         m_handles.push_back(HandlePoint(cp1, HandlePointType::CubicControlPt1));
         m_handles.push_back(HandlePoint(cp2, HandlePointType::CubicControlPt2));
@@ -437,7 +437,7 @@ void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
 
             m.Invert();
             wxPoint2DDouble transformedMousePos(m.TransformPoint(m_mousePos));
-            wxPoint2DDouble pt(UItoNormalized(transformedMousePos));
+            auto pt(UItoNormalized(transformedMousePos));
 
             int pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
             if (pathIndex >= 0) {
@@ -500,7 +500,7 @@ void SketchCanvasPanel::OnSketchMidDown(wxMouseEvent& event)
 
 // Usable area rect: BorderWidth+1, BorderWidth+1, sz.GetWidth()-2*BorderWidth-2, sz.GetHeight()-2*BorderWidth-2;
 
-wxPoint2DDouble SketchCanvasPanel::UItoNormalized(const wxPoint2DDouble& pt) const
+xlPointD SketchCanvasPanel::UItoNormalized(const wxPoint2DDouble& pt) const
 {
     wxPoint o(BorderWidth + 1, BorderWidth + 1);
     wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
@@ -508,7 +508,7 @@ wxPoint2DDouble SketchCanvasPanel::UItoNormalized(const wxPoint2DDouble& pt) con
     double x = double(pt.m_x - o.x) / sz.GetWidth();
     double y = double(pt.m_y - o.y) / sz.GetHeight();
 
-    return wxPoint2DDouble(x, 1. - y);
+    return xlPointD(x, 1. - y);
 }
 
 wxPoint2DDouble SketchCanvasPanel::NormalizedToUI(const wxPoint2DDouble& pt) const
@@ -526,6 +526,24 @@ wxPoint SketchCanvasPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
     wxPoint2DDouble pt1 = NormalizedToUI(pt);
     return wxPoint((int)pt1.m_x, (int)pt1.m_y);
 }
+
+wxPoint2DDouble SketchCanvasPanel::NormalizedToUI(const xlPointD& pt) const
+{
+    wxPoint o(BorderWidth + 1, BorderWidth + 1);
+    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
+
+    double x = pt.x * sz.GetWidth();
+    double y = pt.y * sz.GetHeight();
+    return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y));
+}
+
+wxPoint SketchCanvasPanel::NormalizedToUI2(const xlPointD& pt) const
+{
+    wxPoint2DDouble pt1 = NormalizedToUI(pt);
+    return wxPoint((int)pt1.m_x, (int)pt1.m_y);
+}
+
+
 
 bool SketchCanvasPanel::IsControlPoint(const HandlePoint& handlePt)
 {
@@ -839,18 +857,18 @@ void SketchCanvasPanel::ClosePath()
     if (!m_pathClosed) {
         m_pathClosed = true;
         std::shared_ptr<SketchPathSegment> segment;
-        wxPoint2DDouble startPt = m_handles.back().pt;
-        wxPoint2DDouble endPt = m_handles.front().pt;
+        auto startPt = m_handles.back().pt;
+        auto endPt = m_handles.front().pt;
 
         if (m_ClosedState == SketchCanvasPathState::LineToNewPoint) {
             segment = std::make_shared<SketchLine>(startPt, endPt);
         } else if (m_ClosedState == SketchCanvasPathState::QuadraticCurveToNewPoint) {
-            wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
+            auto cp = 0.5 * startPt + 0.5 * endPt;
             m_handles.push_back(HandlePoint(cp, HandlePointType::QuadraticControlPt));
             segment = std::make_shared<SketchQuadraticBezier>(startPt, cp, endPt);
         } else if (m_ClosedState == SketchCanvasPathState::CubicCurveToNewPoint) {
-            wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
-            wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
+            auto cp1 = 0.75 * startPt + 0.25 * endPt;
+            auto cp2 = 0.25 * startPt + 0.75 * endPt;
             m_handles.push_back(HandlePoint(cp1, HandlePointType::CubicControlPt1));
             m_handles.push_back(HandlePoint(cp2, HandlePointType::CubicControlPt2));
             segment = std::make_shared<SketchCubicBezier>(startPt, cp1, cp2, endPt);
