@@ -4355,42 +4355,6 @@ std::string Model::GetShadowModelFor() const
     return _shadowModelFor;
 }
 
-// std::list<std::string> Model::GetProtocols()
-//{
-//     std::list<std::string> res;
-//     for (auto a : GetAllPixelTypes()) {
-//         if (a != "") {
-//             res.push_back(a);
-//         }
-//     }
-//     for (auto a : SERIAL_PROTOCOLS) {
-//         if (a != "") {
-//             res.push_back(a.ToStdString());
-//         }
-//     }
-//     return res;
-// }
-
-// std::list<std::string> Model::GetLCProtocols()
-//{
-//     auto protocols = Model::GetProtocols();
-
-//    for (auto p = protocols.begin(); p != protocols.end(); ++p)
-//    {
-//        *p = wxString(*p).Lower().ToStdString();
-//    }
-
-//    return protocols;
-//}
-
-// bool Model::IsProtocolValid(std::string protocol)
-//{
-//     wxString p(protocol);
-//     std::string prot = p.Lower().ToStdString();
-//     auto protocols = Model::GetLCProtocols();
-//     return (std::find(protocols.begin(), protocols.end(), prot) != protocols.end());
-// }
-
 bool Model::CleanupFileLocations(xLightsFrame* frame)
 {
     bool rc = false;

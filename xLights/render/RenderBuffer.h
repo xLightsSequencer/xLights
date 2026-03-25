@@ -109,10 +109,10 @@ public:
     void SetPen(wxPen& pen);
 
     void SetFont(const wxFontInfo &font, const xlColor &color);
-    void DrawText(const wxString &msg, int x, int y, double rotation);
-    void DrawText(const wxString &msg, int x, int y);
-    void GetTextExtent(const wxString &msg, double *width, double *height);
-    void GetTextExtents(const wxString &msg, wxArrayDouble &extents);
+    void DrawText(const std::string &msg, int x, int y, double rotation);
+    void DrawText(const std::string &msg, int x, int y);
+    void GetTextExtent(const std::string &msg, double *width, double *height);
+    void GetTextExtents(const std::string &msg, std::vector<double> &extents);
 
     void SetOverlayMode(bool b = true);
 private:

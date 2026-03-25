@@ -1179,13 +1179,14 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
         wxUniChar ch2 = emojiTone;
         text.Append(wxString(ch2));
     }
+    std::string textStr = text.ToStdString();
 
     double width;
     double height;
-    context->GetTextExtent(text, &width, &height);
+    context->GetTextExtent(textStr, &width, &height);
 
     context->SetOverlayMode(true);
-    context->DrawText(text, std::round((float)xc - width / 2.0), std::round((float)(buffer.BufferHt - yc) - height / 2.0));
+    context->DrawText(textStr, std::round((float)xc - width / 2.0), std::round((float)(buffer.BufferHt - yc) - height / 2.0));
     context->SetOverlayMode(false);
 }
 

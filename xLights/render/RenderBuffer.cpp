@@ -560,40 +560,49 @@ const wxFontInfo& TextDrawingContext::GetShapeFont(const std::string& font)
     return FONT_MAP_SHP[font];
 }
 
-void TextDrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
+void TextDrawingContext::DrawText(const std::string &msg, int x, int y, double rotation) {
+    wxString wmsg(msg);
     if (gc != nullptr) {
-        gc->DrawText(msg, x, y, DegToRad(rotation));
+        gc->DrawText(wmsg, x, y, DegToRad(rotation));
     } else {
-        dc->DrawRotatedText(msg, x, y, rotation);
+        dc->DrawRotatedText(wmsg, x, y, rotation);
     }
 }
 
-void TextDrawingContext::DrawText(const wxString &msg, int x, int y) {
+void TextDrawingContext::DrawText(const std::string &msg, int x, int y) {
+    wxString wmsg(msg);
     if (gc != nullptr) {
-        gc->DrawText(msg, x, y);
+        gc->DrawText(wmsg, x, y);
     } else {
-        dc->DrawText(msg, x, y);
+        dc->DrawText(wmsg, x, y);
     }
 }
 
-void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, double *height) {
+void TextDrawingContext::GetTextExtent(const std::string &msg, double *width, double *height) {
+    wxString wmsg(msg);
     if (gc != nullptr) {
-        gc->GetTextExtent(msg, width, height);
+        gc->GetTextExtent(wmsg, width, height);
     } else {
-        wxSize size = dc->GetTextExtent(msg);
+        wxSize size = dc->GetTextExtent(wmsg);
         *width = size.GetWidth();
         *height = size.GetHeight();
     }
 }
-void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &extents) {
+void TextDrawingContext::GetTextExtents(const std::string &msg, std::vector<double> &extents) {
+    wxString wmsg(msg);
     if (gc != nullptr) {
-        gc->GetPartialTextExtents(msg, extents);
+        wxArrayDouble wxExtents;
+        gc->GetPartialTextExtents(wmsg, wxExtents);
+        extents.resize(wxExtents.size());
+        for (size_t x = 0; x < wxExtents.size(); x++) {
+            extents[x] = wxExtents[x];
+        }
         return;
     }
     wxArrayInt sizes;
-    dc->GetPartialTextExtents(msg, sizes);
+    dc->GetPartialTextExtents(wmsg, sizes);
     extents.resize(sizes.size());
-    for (int x = 0; x < sizes.size(); x++) {
+    for (size_t x = 0; x < sizes.size(); x++) {
         extents[x] = sizes[x];
     }
 }

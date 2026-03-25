@@ -681,7 +681,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     // if multiple strings then check the start nodes
     // one string should start at 1
     // all should be less than the number of nodes
-    // there should be no duplicates\        wxString nm = StartNodeAttrName(0);
+    // there should be no duplicates
     auto nm = StartNodeAttrName(0);
     if (_strings > 1 && _hasIndivNodes) {
         bool oneFound = false;

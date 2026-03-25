@@ -14,7 +14,6 @@
 
 #include <vector>
 
-class wxString;
 class TextDrawingContext;
 class FontManager;
 class wxImage;
@@ -41,15 +40,15 @@ public:
 protected:
 private:
     void SelectTextColor(std::string& palette, int index) const;
-    void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer& buffer, wxString& msg, wxString Line_orig) const;
+    void FormatCountdown(int Countdown, int state, std::string& Line, RenderBuffer& buffer, std::string& msg, std::string Line_orig) const;
     std::vector<std::string> WordSplit(const std::string& text) const;
     std::string FlipWord(const SettingsMap& settings, const std::string& text, RenderBuffer& buffer) const;
 
-    void ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const;
+    void ReplaceVaribles(std::string& msg, RenderBuffer& buffer) const;
 
     wxImage* RenderTextLine(RenderBuffer& buffer,
         TextDrawingContext* dc,
-        const wxString& Line_orig,
+        const std::string& Line_orig,
         const std::string& fontString,
         int dir,
         bool center, bool norepeat, int Effect, int Countdown, int tspeed,

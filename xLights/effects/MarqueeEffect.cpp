@@ -106,7 +106,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         if (sign < 0) {
             current_color = colorcnt - current_color - 1;
         }
-       // wxLogDebug(wxString::Format("Color: %d,  Pos: %d", current_color, current_pos));
+
         if (corner_y2 != corner_y1) {
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger + 1) * sign);
             for (int x_pos = corner_x1; x_pos <= corner_x2; x_pos++) {
