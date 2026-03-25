@@ -26,6 +26,7 @@
 
 #include <log.h>
 #include "effects/DMXEffect.h"
+#include "../utils/ThreadUtils.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);
 const std::string EffectLayer::NO_NAME("");
@@ -59,7 +60,7 @@ EffectLayer::~EffectLayer()
 // Of course, the best option is to use a Mac where there aren't any
 // main thread rendered effects
 std::unique_lock<std::recursive_mutex> EffectLayer::acquireLockWaitForRender() {
-    if (wxThread::IsMain()) {
+    if (IsMainThread()) {
         std::unique_lock<std::recursive_mutex> locker(lock, std::try_to_lock);
         while (!locker.owns_lock()) {
             // could not get the lock, we'll render any main thread effects

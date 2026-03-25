@@ -13,6 +13,7 @@
 
 #include "TimeLine.h"
 #include "Waveform.h"
+#include "../render/RenderUtils.h"
 #include "../xLightsMain.h"
 #include <log.h>
 
@@ -1154,9 +1155,7 @@ TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOf
 
 int TimeLine::RoundToMultipleOfPeriod(int number, double frequency)
 {
-    int ms = 1000 / frequency;
-    int periods = (number + ms / 2) / ms;
-    return periods * ms;
+    return ::RoundToMultipleOfPeriod(number, frequency);
 }
 
 TimelineChangeArguments::~TimelineChangeArguments()

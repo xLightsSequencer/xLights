@@ -32,6 +32,9 @@
 
 #include <log.h>
 #include "../ui/wxUtilities.h"
+#include "../LyricsDialog.h"
+#include "LyricBreakdown.h"
+#include "TimeLine.h"
 
 #define ICON_SPACE FromDIP(25)
 
@@ -642,6 +645,81 @@ std::vector<std::string> RowHeading::ParseTags(const wxString& tagString) {
     return tags;
 }
 
+static void ImportLyrics(SequenceElements* seqElements, TimingElement* element, wxWindow* parent)
+{
+    int sequenceEndMS = seqElements->GetSequenceEnd();
+    LyricsDialog* dlgLyrics = new LyricsDialog(sequenceEndMS, parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+
+    if (dlgLyrics->ShowModal() == wxID_OK)
+    {
+        seqElements->get_undo_mgr().CreateUndoStep();
+        int total_num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
+        int num_phrases = total_num_phrases;
+        for (int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++)
+        {
+            if (dlgLyrics->TextCtrlLyrics->GetLineText(i).length() == 0)
+            {
+                num_phrases--;
+            }
+        }
+
+        if (num_phrases == 0)
+        {
+            DisplayError("No phrases found.");
+            return;
+        }
+
+        element->SetFixedTiming(0);
+        // remove all existing layers from timing track
+        int num_layers = element->GetEffectLayerCount();
+        for( int k = num_layers-1; k >= 0; k-- )
+        {
+            element->RemoveEffectLayer(k);
+        }
+        EffectLayer* phrase_layer = element->AddEffectLayer();
+
+        int start_time = std::strtod(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue().ToStdString().c_str(), nullptr) * 1000;
+        int end_time = std::strtod(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue().ToStdString().c_str(), nullptr) * 1000;
+        int total_time = end_time - start_time;
+
+        if(total_time <= 0 || total_time > sequenceEndMS)
+        {
+            start_time = 0;
+            end_time = sequenceEndMS;
+        }
+
+        xLightsFrame* xframe = seqElements->GetXLightsFrame();
+        int interval_ms = (end_time - start_time) / num_phrases;
+        for( int i = 0; i < total_num_phrases; i++ )
+        {
+            wxString wxLine = dlgLyrics->TextCtrlLyrics->GetLineText(i).Trim(true).Trim(false);
+            // Handle common unicode characters before falling back to ascii
+            wxLine.Replace(wxT("\u2019"),"'",true);
+            wxLine.Replace(wxT("\u0218"),"'",true);
+            wxLine.Replace(wxT("\u201c"),'"',true);
+            wxLine.Replace(wxT("\u201d"),'"',true);
+            wxLine.Replace(wxT("\""),"",true); // strip out double quotes
+            wxLine.Replace(wxT("<"),"",true); // strip out illegal characters
+            wxLine.Replace(wxT(">"),"",true); // strip out illegal characters
+            std::string line = wxLine.ToStdString();
+            if (line.empty()) {
+                wxString asciiLine = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToAscii();
+                asciiLine.Replace("_","'",true);
+                line = asciiLine.ToStdString();
+            }
+            if (!line.empty()) {
+                wxString wxLineForDict(line);
+                xframe->dictionary.InsertSpacesAfterPunctuation(wxLineForDict);
+                line = wxLineForDict.ToStdString();
+                end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, seqElements->GetFrequency());
+                Effect* ef = phrase_layer->AddEffect(0,line,"","",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+                start_time = end_time;
+            }
+        }
+    }
+}
+
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
@@ -1208,7 +1286,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent importNotesEvent(EVT_IMPORT_NOTES);
         wxPostEvent(GetParent(), importNotesEvent);
     } else if (id == ID_ROW_MNU_IMPORT_LYRICS) {
-        mSequenceElements->ImportLyrics(dynamic_cast<TimingElement*>(element), GetParent());
+        ImportLyrics(mSequenceElements, dynamic_cast<TimingElement*>(element), GetParent());
     } else if (id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
         int result = wxOK;
         if (element->GetEffectLayerCount() > 1) {
@@ -1716,7 +1794,7 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
     for (size_t i = 0; i < layer->GetEffectCount(); ++i) {
         Effect* effect = layer->GetEffect(i);
         std::string phrase = effect->GetEffectName();
-        mSequenceElements->BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase, mSequenceElements->get_undo_mgr());
+        BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase, mSequenceElements->GetFrequency(), mSequenceElements->get_undo_mgr());
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -1746,7 +1824,7 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
     for (int i = 0; i < word_layer->GetEffectCount(); i++) {
         Effect* effect = word_layer->GetEffect(i);
         std::string word = effect->GetEffectName();
-        mSequenceElements->BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word, mSequenceElements->get_undo_mgr());
+        BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word, mSequenceElements->GetFrequency(), mSequenceElements->GetXLightsFrame(), mSequenceElements->get_undo_mgr());
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);

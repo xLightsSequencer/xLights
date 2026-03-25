@@ -23,7 +23,6 @@ namespace pugi { class xml_node; class xml_document; }
 class SequenceFile;
 class SequenceViewManager;
 class TimeLine;
-class wxWindow;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -138,10 +137,6 @@ public:
 
     void SetSequenceEnd(int ms);
     int GetSequenceEnd() const;
-    void ImportLyrics(TimingElement* element, wxWindow* parent);
-    void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const std::string& phrase, UndoManager& undo_mgr);
-    void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word, UndoManager& undo_mgr);
-
     // Selected Ranges
     size_t GetSelectedRangeCount();
     EffectRange* GetSelectedRange(int index);

@@ -663,6 +663,9 @@
     <ClCompile Include="sequencer\MainSequencer.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\LyricBreakdown.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\RowHeading.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
@@ -2068,6 +2071,9 @@
     <ClInclude Include="sequencer\MainSequencer.h">
       <Filter>sequencer</Filter>
     </ClInclude>
+    <ClInclude Include="sequencer\LyricBreakdown.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
     <ClInclude Include="sequencer\RowHeading.h">
       <Filter>sequencer</Filter>
     </ClInclude>
@@ -2217,6 +2223,9 @@
     </ClInclude>
     <ClInclude Include="BulkEditComboDialog.h" />
     <ClInclude Include="utils\string_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\ThreadUtils.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="utils\xlPoint.h">

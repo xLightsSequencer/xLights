@@ -29,6 +29,7 @@
 #include <time.h>       /* time */
 #include <thread>
 #include <iomanip>
+#include "utils/ThreadUtils.h"
 #include <curl/curl.h>
 
 #include "xLightsApp.h"
@@ -464,6 +465,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
 
 bool xLightsApp::OnInit()
 {
+    SetMainThreadId();
     InitialiseLogging(false);
     spdlog::info("******* OnInit: XLights started.");
 #ifdef __WXMSW__

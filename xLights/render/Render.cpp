@@ -2077,15 +2077,15 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
 {
     unsigned int startFrame = 0;
     unsigned int endFrame = _seqData.NumFrames();
-    if (command.GetString().Contains('|')) {
-        auto as = wxSplit(command.GetString(), '|');
-        if (as.size() == 3) {
-            startFrame = (int)std::strtol(as[1].c_str(), nullptr, 10);
-            endFrame = (int)std::strtol(as[2].c_str(), nullptr, 10);
-        }
+    std::string cmdStr = command.GetString().ToStdString();
+    std::vector<std::string> as;
+    Split(cmdStr, '|', as);
+    if (as.size() == 3) {
+        startFrame = (int)std::strtol(as[1].c_str(), nullptr, 10);
+        endFrame = (int)std::strtol(as[2].c_str(), nullptr, 10);
     }
 
-    std::string model = command.GetString().BeforeFirst('|').ToStdString();
+    std::string model = as[0];
     Model* m = GetModel(model);
     if (m == nullptr)
         return;

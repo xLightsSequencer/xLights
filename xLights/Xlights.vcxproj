@@ -973,6 +973,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="sequencer\EffectsGrid.cpp" />
     <ClCompile Include="render\Element.cpp" />
     <ClCompile Include="sequencer\MainSequencer.cpp" />
+    <ClCompile Include="sequencer\LyricBreakdown.cpp" />
     <ClCompile Include="sequencer\RowHeading.cpp" />
     <ClCompile Include="render\SequenceElements.cpp" />
     <ClCompile Include="render\SequenceMedia.cpp" />
@@ -1534,6 +1535,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="render\Element.h" />
     <ClInclude Include="sequencer\ElementLayers.h" />
     <ClInclude Include="sequencer\MainSequencer.h" />
+    <ClInclude Include="sequencer\LyricBreakdown.h" />
     <ClInclude Include="sequencer\RowHeading.h" />
     <ClInclude Include="render\SequenceElements.h" />
     <ClInclude Include="render\SequenceMedia.h" />
@@ -1550,6 +1552,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="utils\string_utils.h" />
+    <ClInclude Include="utils\ThreadUtils.h" />
     <ClInclude Include="utils\xlPoint.h" />
     <ClInclude Include="SubBufferPanel.h" />
     <ClInclude Include="SubModelGenerateDialog.h" />

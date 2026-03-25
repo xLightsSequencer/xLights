@@ -10,7 +10,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-class NodeRange 
+// Round a time value to the nearest multiple of the frame period.
+// period is the frame rate (e.g. 20.0 for 50ms frames).
+inline int RoundToMultipleOfPeriod(int number, double period) {
+    int ms = 1000 / period;
+    int periods = (number + ms / 2) / ms;
+    return periods * ms;
+}
+
+class NodeRange
 {
 public:
 
