@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <filesystem>
 #include <wx/stdpaths.h>
 
 #include <glm/mat4x4.hpp>
@@ -73,9 +74,9 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     obj_path = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/meshobjects/SimpleMovingHead/";
 #else
 #ifdef _DEBUG
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath().ToStdString() + "/../../../meshobjects/SimpleMovingHead/";
+    obj_path = std::filesystem::path(stdp.GetExecutablePath().ToStdString()).parent_path().string() + "/../../../meshobjects/SimpleMovingHead/";
 #else
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath().ToStdString() + "/meshobjects/SimpleMovingHead/";
+    obj_path = std::filesystem::path(stdp.GetExecutablePath().ToStdString()).parent_path().string() + "/meshobjects/SimpleMovingHead/";
 #endif
 #endif
     color_ability = std::make_unique<DmxColorAbilityRGB>();

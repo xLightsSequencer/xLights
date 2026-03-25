@@ -12,6 +12,7 @@
 
 #include "../utils/xlPoint.h"
 #include <cstdlib>
+#include <filesystem>
 #include <format>
 #include "TextEffect.h" // FontMapLock
 
@@ -86,10 +87,10 @@ std::list<std::string> ShapeEffect::GetFileReferences(Model* model, const Settin
 bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_SVG"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_SVG"];
     if (FileExists(file)) {
         if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_SVG"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            SettingsMap["E_FILEPICKERCTRL_SVG"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

@@ -14,6 +14,7 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
+#include <filesystem>
 #include <format>
 
 #include "VideoEffect.h"
@@ -174,7 +175,7 @@ bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Setting
     {
         if (!frame->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, std::string(1, wxFileName::GetPathSeparator()) + "Videos");
+            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Videos");
             rc = true;
         }
     }

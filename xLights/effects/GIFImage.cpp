@@ -10,17 +10,21 @@
 
 #include "GIFImage.h"
 
+#include <algorithm>
+#include <filesystem>
+
 #include <log.h>
 
-#include <wx/filename.h>
 #include "../ui/wxUtilities.h"
 
 //#define DEBUG_GIF
 
 bool GIFImage::IsGIF(const std::string& filename)
 {
-	wxFileName fn(filename);
-	return (fn.GetExt().Lower() == "gif");
+	auto ext = std::filesystem::path(filename).extension().string();
+	if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+	return (ext == "gif");
 }
 
 GIFImage::~GIFImage()
@@ -200,16 +204,16 @@ void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool
     }
 }
 
-wxString DecodeDispose(int dispose)
+std::string DecodeDispose(int dispose)
 {
     switch (dispose) {
     case 0:
         return "DONOTREMOVE";
-    case 1: 
+    case 1:
         return "TOBACKGROUND";
-    case 2: 
+    case 2:
         return "TOPREVIOUS";
-    default: 
+    default:
         return "UNSPECIFIED";
     }
 }
@@ -233,7 +237,7 @@ wxPoint GIFImage::LoadRawImageFrame(wxImage& image, int frame, wxAnimationDispos
 #ifdef DEBUG_GIF
     wxColor color  = _gifDecoder.GetTransparentColour(frame);
     spdlog::debug("    transparent colour {}", (const char*)color.GetAsString().c_str());
-    spdlog::debug("    disposal {} {}", disposal, (const char *)DecodeDispose(disposal).c_str());
+    spdlog::debug("    disposal {} {}", disposal, DecodeDispose(disposal));
     long frameduration = _gifDecoder.GetDelay(frame);
     spdlog::debug("    delay {}ms", frameduration);
 #endif
@@ -280,8 +284,8 @@ const wxImage& GIFImage::GetFrame(int frame)
             wxAnimationDisposal dispose = wxANIM_TOBACKGROUND;
             wxPoint offset = LoadRawImageFrame(newframe, i, dispose);
 #ifdef DEBUG_GIF
-            spdlog::debug("    Frame {} loaded offset ({},{}) frame size ({},{}) dispose {} {} actual image size ({},{})", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, (const char *)DecodeDispose(dispose).c_str(), image.GetWidth(), image.GetHeight());
-            spdlog::debug("    Applying dispose from last frame {}", (const char *)DecodeDispose(_lastDispose).c_str());
+            spdlog::debug("    Frame {} loaded offset ({},{}) frame size ({},{}) dispose {} {} actual image size ({},{})", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, DecodeDispose(dispose), image.GetWidth(), image.GetHeight());
+            spdlog::debug("    Applying dispose from last frame {}", DecodeDispose(_lastDispose));
 #endif
             
             if (_suppressBackground  && (i == 0 || lastDispose == wxANIM_TOBACKGROUND)) {

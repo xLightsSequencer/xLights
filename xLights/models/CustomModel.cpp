@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <filesystem>
 #include <wx/wx.h>
 
 #include <pugixml.hpp>
@@ -135,7 +136,7 @@ bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
     bool rc = false;
     if (FileExists(_custom_background)) {
         if (!frame->IsInShowFolder(_custom_background)) {
-            _custom_background = frame->MoveToShowFolder(_custom_background, wxString(wxFileName::GetPathSeparator()) + "Images");
+            _custom_background = frame->MoveToShowFolder(_custom_background, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             Setup();
             rc = true;
         }
@@ -1015,8 +1016,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
             }
         }
 
-        wxFileName fn(filename);
-        wxString newname = xlights->AllModels.GenerateModelName(fn.GetName().ToStdString());
+        std::string newname = xlights->AllModels.GenerateModelName(std::filesystem::path(filename).stem().string());
         SetName(newname);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CustomModel::ImportLORModel");

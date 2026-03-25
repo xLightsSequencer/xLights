@@ -94,28 +94,13 @@ public:
     static std::vector<std::string> GetLayoutGroups(const ModelManager& mm);
     static std::string SafeModelName(const std::string& name)
     {
-        wxString n(Trim(name).c_str());
-        n.Replace(",", "", true);
-        n.Replace("~", "", true);
-        n.Replace("!", "", true);
-        n.Replace(";", "", true);
-        n.Replace("<", "", true);
-        n.Replace(">", "", true);
-        n.Replace("\"", "", true);
-        n.Replace("\'", "", true);
-        n.Replace("&", "", true);
-        n.Replace(":", "", true);
-        n.Replace("|", "", true);
-        //n.Replace("#", "", true);
-        n.Replace("@", "", true);
-        n.Replace("/", "", true);
-        n.Replace("\\", "", true);
-        n.Replace("\t", "", true);
-        n.Replace("\r", "", true);
-        n.Replace("\n", "", true);
+        std::string n = Trim(name);
+        for (char c : {',', '~', '!', ';', '<', '>', '"', '\'', '&', ':', '|', '@', '/', '\\', '\t', '\r', '\n'}) {
+            std::erase(n, c);
+        }
         // Other characters I could remove
         // $%^*()?|][{}`.
-        return n.ToStdString();
+        return n;
     }
 
     virtual std::string GetFullName() const { return name; }

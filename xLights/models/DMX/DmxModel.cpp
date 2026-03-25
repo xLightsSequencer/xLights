@@ -152,20 +152,18 @@ int DmxModel::GetChannelValue(int channel_coarse, int channel_fine)
 void DmxModel::SetNodeNames(const std::string& default_names, bool force)
 {
     if (nodeNames.size() == 0 || force) {
-        wxString nn = default_names;
-        wxString tempstr = nn;
         nodeNames.clear();
-        while (tempstr.size() > 0) {
-            std::string t2 = tempstr.ToStdString();
+        std::string tempstr = default_names;
+        while (!tempstr.empty()) {
+            std::string t2;
             if (tempstr[0] == ',') {
                 t2 = "";
-                tempstr = tempstr(1, tempstr.length());
-            }
-            else if (tempstr.Contains(",")) {
-                t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-                tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-            }
-            else {
+                tempstr = tempstr.substr(1);
+            } else if (auto pos = tempstr.find(','); pos != std::string::npos) {
+                t2 = tempstr.substr(0, pos);
+                tempstr = tempstr.substr(pos + 1);
+            } else {
+                t2 = tempstr;
                 tempstr = "";
             }
             nodeNames.push_back(t2);

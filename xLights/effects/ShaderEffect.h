@@ -12,6 +12,7 @@
 
 #include "RenderableEffect.h"
 #include "../UtilFunctions.h"
+#include "../utils/xlPoint.h"
 #include <format>
 #include <map>
 #include <string>
@@ -70,9 +71,9 @@ struct ShaderParm
     double _min = 0.0f;
     double _max = 0.0f;
     double _default = 0.0f;
-    wxRealPoint _minPt = { 0,0 };
-    wxRealPoint _maxPt = { 0,0 };
-    wxRealPoint _defaultPt = { 0,0 };
+    xlPointD _minPt = { 0,0 };
+    xlPointD _maxPt = { 0,0 };
+    xlPointD _defaultPt = { 0,0 };
     std::map<int, std::string> _valueOptions;
 
     std::vector<std::string> GetChoices() const
@@ -113,7 +114,7 @@ struct ShaderParm
         _default = dfault;
     }
 
-    ShaderParm(const std::string& name, const std::string& label, ShaderParmType type, wxRealPoint min, wxRealPoint max, wxRealPoint dfault)
+    ShaderParm(const std::string& name, const std::string& label, ShaderParmType type, xlPointD min, xlPointD max, xlPointD dfault)
     {
         _name = name;
         _label = label;

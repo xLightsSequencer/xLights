@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/regex.h>
+#include <regex>
 #include <cctype>
 
 #include "ObjectManager.h"
@@ -32,19 +32,19 @@ std::string ObjectManager::GenerateObjectName(const std::string& candidateName) 
     std::string base = candidateName;
     char sep = '-';
 
-    static wxRegEx dashRegex("-[0-9]+$", wxRE_ADVANCED);
-    static wxRegEx underscoreRegex("_[0-9]+$", wxRE_ADVANCED);
-    static wxRegEx spaceRegex(" [0-9]+$", wxRE_ADVANCED);
-    static wxRegEx nilRegex("[A-Za-z][0-9]+$", wxRE_ADVANCED);
-    if (dashRegex.Matches(candidateName)) {
-        base = wxString(candidateName).BeforeLast('-');
-    } else if (underscoreRegex.Matches(candidateName)) {
-        base = wxString(candidateName).BeforeLast('_');
+    static std::regex dashRegex("-[0-9]+$");
+    static std::regex underscoreRegex("_[0-9]+$");
+    static std::regex spaceRegex(" [0-9]+$");
+    static std::regex nilRegex("[A-Za-z][0-9]+$");
+    if (std::regex_search(candidateName, dashRegex)) {
+        base = candidateName.substr(0, candidateName.rfind('-'));
+    } else if (std::regex_search(candidateName, underscoreRegex)) {
+        base = candidateName.substr(0, candidateName.rfind('_'));
         sep = '_';
-    } else if (spaceRegex.Matches(candidateName)) {
-        base = wxString(candidateName).BeforeLast(' ');
+    } else if (std::regex_search(candidateName, spaceRegex)) {
+        base = candidateName.substr(0, candidateName.rfind(' '));
         sep = ' ';
-    } else if (nilRegex.Matches(candidateName)) {
+    } else if (std::regex_search(candidateName, nilRegex)) {
         while (base != "" && std::isdigit(base[base.size() - 1])) {
             base = base.substr(0, base.size() - 1);
         }

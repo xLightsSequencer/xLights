@@ -20,6 +20,7 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../Parallel.h"
+#include "../utils/xlSize.h"
 
 #include "../../include/candle-16.xpm"
 #include "../../include/candle-24.xpm"
@@ -161,9 +162,9 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
         int numStates = 1;
         if (perNode) {
-            wxPoint maxBuffer = buffer.GetMaxBuffer(SettingsMap);
-            int maxMWi = maxBuffer.x == -1 ? buffer.BufferWi : maxBuffer.x;
-            int maxMHt = maxBuffer.y == -1 ? buffer.BufferHt : maxBuffer.y;
+            xlSize maxBuffer = buffer.GetMaxBuffer(SettingsMap);
+            int maxMWi = maxBuffer.width == -1 ? buffer.BufferWi : maxBuffer.width;
+            int maxMHt = maxBuffer.height == -1 ? buffer.BufferHt : maxBuffer.height;
             cache->maxWid = maxMWi;
             numStates = maxMWi * maxMHt;
         }

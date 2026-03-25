@@ -239,8 +239,8 @@ TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowSha
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
     image->SetAlpha();
-    for(wxCoord x=0; x<BufferWi; x++) {
-        for(wxCoord y=0; y<BufferHt; y++) {
+    for(int x=0; x<BufferWi; x++) {
+        for(int y=0; y<BufferHt; y++) {
             image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
     }
@@ -312,8 +312,8 @@ void TextDrawingContext::ResetSize(int BufferWi, int BufferHt) {
     }
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
     image->SetAlpha();
-    for(wxCoord x=0; x<BufferWi; x++) {
-        for(wxCoord y=0; y<BufferHt; y++) {
+    for(int x=0; x<BufferWi; x++) {
+        for(int y=0; y<BufferHt; y++) {
             image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
     }
@@ -1489,11 +1489,11 @@ void RenderBuffer::CopyPixelsToTempBuf() {
 // Gets the maximum oversized buffer size a model could have
 // Useful for models which need to track data per cell as with value curves the buffer size could
 // get as large as this during the effect
-wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
+xlSize RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
 {
     Model* m = frame->AllModels[cur_model];
     if (m == nullptr) {
-        return wxPoint(-1, -1);
+        return xlSize(-1, -1);
     }
     std::string bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
     std::string transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
@@ -1512,7 +1512,7 @@ wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
     m->GetBufferSize(bufferstyle, camera, transform, w, h, SettingsMap.GetInt("B_SPINCTRL_BufferStagger", 0));
     float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
-    return wxPoint(xScale * w, yScale * h);
+    return xlSize(xScale * w, yScale * h);
 }
 
 float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {

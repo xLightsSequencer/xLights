@@ -9,11 +9,13 @@
  **************************************************************/
 
 #include <cassert>
+#include <chrono>
+#include <filesystem>
 #include <format>
+#include <string_view>
 #include <wx/regex.h>
 #include <wx/sstream.h>
 #include <wx/stdpaths.h>
-#include <wx/tokenzr.h>
 #include <wx/mstream.h>
 #include <wx/wfstream.h>
 #include <wx/wx.h>
@@ -499,20 +501,23 @@ void Model::UpdateFaceInfoNodes()
             for (const auto& it2 : it.second) {
                 if (it2.first != "Type" && !Contains(it2.first, "Color") && it2.second != "") {
                     std::list<int> nodes;
-                    auto wtkz = wxStringTokenizer(it2.second, ",");
-                    while (wtkz.HasMoreTokens()) {
-                        wxString valstr = wtkz.GetNextToken();
+                    std::string_view sv(it2.second);
+                    size_t pos = 0;
+                    while (pos != std::string::npos && pos <= sv.size()) {
+                        size_t next = sv.find(',', pos);
+                        std::string_view valstr = sv.substr(pos, next == std::string::npos ? next : next - pos);
+                        pos = (next == std::string::npos) ? next : next + 1;
 
                         int start, end;
-                        if (valstr.Contains("-")) {
-                            int idx = valstr.Index('-');
-                            start = (int)std::strtol(valstr.Left(idx).c_str(), nullptr, 10);
-                            end = (int)std::strtol(valstr.Right(valstr.size() - idx - 1).c_str(), nullptr, 10);
+                        auto dashpos = valstr.find('-');
+                        if (dashpos != std::string_view::npos) {
+                            start = (int)std::strtol(std::string(valstr.substr(0, dashpos)).c_str(), nullptr, 10);
+                            end = (int)std::strtol(std::string(valstr.substr(dashpos + 1)).c_str(), nullptr, 10);
                             if (end < start) {
                                 std::swap(start, end);
                             }
                         } else {
-                            start = end = (int)std::strtol(valstr.c_str(), nullptr, 10);
+                            start = end = (int)std::strtol(std::string(valstr).c_str(), nullptr, 10);
                         }
                         if (start > end) {
                             start = end;
@@ -538,20 +543,23 @@ void Model::UpdateStateInfoNodes()
             for (const auto& it2 : it.second) {
                 if (it2.first != "Type" && !Contains(it2.first, "Color") && it2.second != "") {
                     std::list<int> nodes;
-                    auto wtkz = wxStringTokenizer(it2.second, ",");
-                    while (wtkz.HasMoreTokens()) {
-                        wxString valstr = wtkz.GetNextToken();
+                    std::string_view sv(it2.second);
+                    size_t pos = 0;
+                    while (pos != std::string::npos && pos <= sv.size()) {
+                        size_t next = sv.find(',', pos);
+                        std::string_view valstr = sv.substr(pos, next == std::string::npos ? next : next - pos);
+                        pos = (next == std::string::npos) ? next : next + 1;
 
                         int start, end;
-                        if (valstr.Contains("-")) {
-                            int idx = valstr.Index('-');
-                            start = (int)std::strtol(valstr.Left(idx).c_str(), nullptr, 10);
-                            end = (int)std::strtol(valstr.Right(valstr.size() - idx - 1).c_str(), nullptr, 10);
+                        auto dashpos = valstr.find('-');
+                        if (dashpos != std::string_view::npos) {
+                            start = (int)std::strtol(std::string(valstr.substr(0, dashpos)).c_str(), nullptr, 10);
+                            end = (int)std::strtol(std::string(valstr.substr(dashpos + 1)).c_str(), nullptr, 10);
                             if (end < start) {
                                 std::swap(start, end);
                             }
                         } else {
-                            start = end = (int)std::strtol(valstr.c_str(), nullptr, 10);
+                            start = end = (int)std::strtol(std::string(valstr).c_str(), nullptr, 10);
                         }
                         if (start > end) {
                             start = end;
@@ -923,19 +931,22 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
 {
     std::list<int> res;
 
-    wxStringTokenizer wtkz(channels, ",");
-    while (wtkz.HasMoreTokens()) {
-        wxString valstr = wtkz.GetNextToken();
+    std::string_view sv(channels);
+    size_t pos = 0;
+    while (pos != std::string::npos && pos <= sv.size()) {
+        size_t next = sv.find(',', pos);
+        std::string_view valstr = sv.substr(pos, next == std::string::npos ? next : next - pos);
+        pos = (next == std::string::npos) ? next : next + 1;
 
         int start, end;
-        if (valstr.Contains("-")) {
-            int idx = valstr.Index('-');
-            start = (int)std::strtol(valstr.Left(idx).c_str(), nullptr, 10);
-            end = (int)std::strtol(valstr.Right(valstr.size() - idx - 1).c_str(), nullptr, 10);
+        auto dashpos = valstr.find('-');
+        if (dashpos != std::string_view::npos) {
+            start = (int)std::strtol(std::string(valstr.substr(0, dashpos)).c_str(), nullptr, 10);
+            end = (int)std::strtol(std::string(valstr.substr(dashpos + 1)).c_str(), nullptr, 10);
             if (end < start)
                 std::swap(start, end);
         } else {
-            start = end = (int)std::strtol(valstr.c_str(), nullptr, 10);
+            start = end = (int)std::strtol(std::string(valstr).c_str(), nullptr, 10);
         }
         if (start > end) {
             start = end;
@@ -952,18 +963,19 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
 
 void Model::SetNodeNames(std::string const& nodes)
 {
-    wxString tempstr = nodes;
-    _nodeNamesString = tempstr;
+    _nodeNamesString = nodes;
     nodeNames.clear();
-    while (tempstr.size() > 0) {
-        std::string t2 = tempstr.ToStdString();
+    std::string tempstr = nodes;
+    while (!tempstr.empty()) {
+        std::string t2;
         if (tempstr[0] == ',') {
             t2 = "";
-            tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+            tempstr = tempstr.substr(1);
+        } else if (auto pos = tempstr.find(','); pos != std::string::npos) {
+            t2 = tempstr.substr(0, pos);
+            tempstr = tempstr.substr(pos + 1);
         } else {
+            t2 = tempstr;
             tempstr = "";
         }
         nodeNames.push_back(t2);
@@ -972,18 +984,19 @@ void Model::SetNodeNames(std::string const& nodes)
 
 void Model::SetStrandNames(std::string const& strands)
 {
-    wxString tempstr = strands;
-    _strandNamesString = tempstr;
+    _strandNamesString = strands;
     strandNames.clear();
-    while (tempstr.size() > 0) {
-        std::string t2 = tempstr.ToStdString();
+    std::string tempstr = strands;
+    while (!tempstr.empty()) {
+        std::string t2;
         if (tempstr[0] == ',') {
             t2 = "";
-            tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+            tempstr = tempstr.substr(1);
+        } else if (auto pos = tempstr.find(','); pos != std::string::npos) {
+            t2 = tempstr.substr(0, pos);
+            tempstr = tempstr.substr(pos + 1);
         } else {
+            t2 = tempstr;
             tempstr = "";
         }
         strandNames.push_back(t2);
@@ -1018,7 +1031,7 @@ void Model::UpdateChannels()
 void Model::Setup()
 {
     
-    wxStopWatch sw;
+    auto swStart = std::chrono::steady_clock::now();
 
     StrobeRate = 0;
 
@@ -1045,8 +1058,9 @@ void Model::Setup()
 
     UpdateChannels();
     
-    if (sw.Time() > 10) {
-        spdlog::debug("{} model {} took {}ms to initialise.", DisplayAsTypeToString(DisplayAs).c_str(), (const char*)name.c_str(), sw.Time());
+    auto swElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - swStart).count();
+    if (swElapsed > 10) {
+        spdlog::debug("{} model {} took {}ms to initialise.", DisplayAsTypeToString(DisplayAs).c_str(), (const char*)name.c_str(), swElapsed);
     }
     for (auto &sm : subModels) {
         sm->Setup();
@@ -1116,17 +1130,17 @@ void Model::ReplaceIPInStartChannels(const std::string& oldIP, const std::string
 {
     bool changed = false;
     if (Contains(ModelStartChannel, oldIP)) {
-        wxString sc(ModelStartChannel);
-        sc.Replace(oldIP, newIP);
+        std::string sc = ModelStartChannel;
+        Replace(sc, oldIP, newIP);
         SetStartChannel(sc);
         changed = true;
     }
 
     size_t NumberOfStrings = GetNumStrings();
     for (size_t i = 0; i < NumberOfStrings && i < _indivStartChannels.size(); ++i) {
-        wxString sc = _indivStartChannels[i];
+        std::string sc = _indivStartChannels[i];
         if (Contains(sc, oldIP)) {
-            sc.Replace(oldIP, newIP);
+            Replace(sc, oldIP, newIP);
             _indivStartChannels[i] = sc;
             changed = true;
         }
@@ -2520,9 +2534,14 @@ bool Model::ParseFaceElement(const std::string& multi_str, std::vector<xlPoint>&
 {
     //    first_xy->x = first_xy->y = 0;
     //    first_xy.clear();
-    wxStringTokenizer wtkz(multi_str, "+");
-    while (wtkz.HasMoreTokens()) {
-        wxString str = wtkz.GetNextToken();
+    std::string_view sv(multi_str);
+    size_t tpos = 0;
+    while (tpos != std::string::npos && tpos <= sv.size()) {
+        size_t tnext = sv.find('+', tpos);
+        std::string_view token = sv.substr(tpos, tnext == std::string::npos ? tnext : tnext - tpos);
+        tpos = (tnext == std::string::npos) ? tnext : tnext + 1;
+
+        wxString str{std::string(token)};
         if (str.empty())
             continue;
         if (str.Find('@') == wxNOT_FOUND)
@@ -2569,9 +2588,14 @@ bool Model::ParseStateElement(const std::string& multi_str, std::vector<xlPoint>
 {
     //    first_xy->x = first_xy->y = 0;
     //    first_xy.clear();
-    wxStringTokenizer wtkz(multi_str, "+");
-    while (wtkz.HasMoreTokens()) {
-        wxString str = wtkz.GetNextToken();
+    std::string_view sv(multi_str);
+    size_t tpos = 0;
+    while (tpos != std::string::npos && tpos <= sv.size()) {
+        size_t tnext = sv.find('+', tpos);
+        std::string_view token = sv.substr(tpos, tnext == std::string::npos ? tnext : tnext - tpos);
+        tpos = (tnext == std::string::npos) ? tnext : tnext + 1;
+
+        wxString str{std::string(token)};
         if (str.empty())
             continue;
         if (str.Find('@') == wxNOT_FOUND)
@@ -4078,7 +4102,7 @@ std::list<std::string> Model::CheckModelSettings()
             float maxGamma = 0.0;
             int maxBrightness = -100;
             for (auto& it : dimmingInfo) {
-                maxGamma = std::max(maxGamma, (float)wxAtof(it.second["gamma"]));
+                maxGamma = std::max(maxGamma, (float)std::strtod(it.second["gamma"].c_str(), nullptr));
                 maxBrightness = std::max(maxBrightness, (int)std::strtol(it.second["brightness"].c_str(), nullptr, 10));
             }
             if (maxGamma == 0.0) {
@@ -4359,7 +4383,7 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
                 if (it2.first != "CustomColors" && it2.first != "ImagePlacement" && it2.first != "Type" && it2.second != "") {
                     if (FileExists(it2.second)) {
                         if (!frame->IsInShowFolder(it2.second)) {
-                            it2.second = frame->MoveToShowFolder(it2.second, wxString(wxFileName::GetPathSeparator()) + "Faces");
+                            it2.second = frame->MoveToShowFolder(it2.second, std::string(1, std::filesystem::path::preferred_separator) + "Faces");
                             rc = true;
                         }
                     }

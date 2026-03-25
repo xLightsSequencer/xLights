@@ -1630,7 +1630,7 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files) {
             if (IsDroppingBetweenTimingMarks()) {
                 Model* m = xlights->GetModel(effectLayer->GetParentElement()->GetModelName());
                 if (m != nullptr) {
-                    wxSize size(m->GetDefaultBufferWi(), m->GetDefaultBufferHt());
+                    xlSize size(m->GetDefaultBufferWi(), m->GetDefaultBufferHt());
                     GlediatorReader gr(file, size);
                     long glediatorEnd = mDropStartTimeMS + gr.GetFrames() * mTimeline->GetFrameMS();
 

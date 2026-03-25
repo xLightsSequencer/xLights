@@ -10,13 +10,13 @@
 
 #include "GlediatorEffect.h"
 
+#include <algorithm>
 #include <cstdlib>
+#include <filesystem>
 #include <format>
 
 #include "../render/SequenceElements.h"
 #include "../utils/string_utils.h"
-
-#include <wx/filename.h>
 #include <wx/filepicker.h>
 
 #include "../render/Effect.h"
@@ -33,7 +33,7 @@
 #include <log.h>
 #include "../UtilFunctions.h"
 
-GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size)
+GlediatorReader::GlediatorReader(const std::string& filename, const xlSize& size)
 {
     
 
@@ -48,7 +48,7 @@ GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size
 
         if (_frames * GetBufferSize() != _f.Length())
         {
-            spdlog::warn("Opening glediator file {} size ({},{}) looks suspicious as it does not match file size {}.", (const char *)_filename.c_str(), _size.x, _size.y, (long)_f.Length());
+            spdlog::warn("Opening glediator file {} size ({},{}) looks suspicious as it does not match file size {}.", (const char *)_filename.c_str(), _size.width, _size.height, (long)_f.Length());
         }
     }
     else
@@ -169,8 +169,9 @@ void GlediatorEffect::SetSequenceElements(SequenceElements *els) {
 
 bool GlediatorEffect::IsGlediatorFile(std::string filename)
 {
-    wxFileName fn(filename);
-    auto ext = fn.GetExt().Lower().ToStdString();
+    auto ext = std::filesystem::path(filename).extension().string();
+    if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
     if (ext == "gled" ||
         ext == "csv" ||
@@ -185,8 +186,9 @@ bool GlediatorEffect::IsGlediatorFile(std::string filename)
 
 bool GlediatorEffect::IsCSVFile(std::string filename) const
 {
-    wxFileName fn(filename);
-    auto ext = fn.GetExt().Lower().ToStdString();
+    auto ext = std::filesystem::path(filename).extension().string();
+    if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
     if (ext == "csv")
     {
@@ -235,12 +237,12 @@ std::list<std::string> GlediatorEffect::GetFileReferences(Model* model, const Se
 bool GlediatorEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"];
     if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Glediator");
+            SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Glediator");
             rc = true;
         }
     }
@@ -339,7 +341,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             else
             {
                 // have to open the file
-                _glediatorReader = new GlediatorReader(glediatorFilename, wxSize(buffer.BufferWi, buffer.BufferHt));
+                _glediatorReader = new GlediatorReader(glediatorFilename, xlSize(buffer.BufferWi, buffer.BufferHt));
 
                 if (_glediatorReader == nullptr)
                 {

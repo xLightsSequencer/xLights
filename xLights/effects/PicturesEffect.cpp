@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+#include <filesystem>
 #include <format>
 
 #include <wx/regex.h>
@@ -30,7 +32,8 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
-#include "../xLightsMain.h" 
+#include "../xLightsMain.h"
+#include "../utils/xlPoint.h"
 
 #include <log.h>
 
@@ -121,7 +124,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
     if (!file.empty() && !media.HasImage(file)) {
         // Only run FixFile for absolute paths — relative paths are intentionally
         // stored as-is and will be resolved by SequenceMedia::GetImage() via FixFile.
-        if (!wxFileName(file).IsAbsolute()) {
+        if (!std::filesystem::path(file).is_absolute()) {
             // relative path: just let GetImage() resolve it below
         } else if (!FileExists(file, false)) {
             wxString fixed = FixFile("", file);
@@ -136,9 +139,8 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
                 settings["E_TEXTCTRL_Pictures_Filename"] = rel;
         }
         std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
-        wxFileName fn(NewPictureName);
         std::string suffix = "";
-        std::string fnName = fn.GetName().ToStdString();
+        std::string fnName = std::filesystem::path(NewPictureName).stem().string();
         if (fnName.length() >= 2) {
             suffix = fnName.substr(fnName.length() - 2);
         }
@@ -245,7 +247,7 @@ static inline int GetPicturesDirection(const std::string &dir) {
     return RENDER_PICTURE_NONE;
 }
 
-typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
+typedef std::vector< std::pair<xlPoint, xlColor> > PixelVector;
 
 class PicturesRenderCache : public EffectRenderCache {
 public:
@@ -302,7 +304,7 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
     std::string file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
     if (!file.empty()) {
         // Relative paths must be resolved to absolute so callers can locate the file.
-        if (!wxFileName(file).IsAbsolute()) {
+        if (!std::filesystem::path(file).is_absolute()) {
             wxString resolved = FixFile("", file);
             if (!resolved.IsEmpty() && FileExists(resolved))
                 res.push_back(resolved.ToStdString());
@@ -316,10 +318,10 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
 bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
+    std::string file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
     if (FileExists(file)) {
         if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_TEXTCTRL_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            SettingsMap["E_TEXTCTRL_Pictures_Filename"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }
@@ -329,8 +331,9 @@ bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Sett
 
 bool PicturesEffect::IsPictureFile(std::string filename)
 {
-    wxFileName fn(filename);
-    auto ext = fn.GetExt().Lower().ToStdString();
+    auto ext = std::filesystem::path(filename).extension().string();
+    if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
     if (ext == "gif" ||
         ext == "jpg" ||
@@ -396,9 +399,8 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         noImageFile = true;
     } else {
 
-        wxFileName fn(NewPictureName);
         std::string suffix = "";
-        std::string fnName = fn.GetName().ToStdString();
+        std::string fnName = std::filesystem::path(NewPictureName).stem().string();
         if (fnName.length() >= 2) {
             suffix = fnName.substr(fnName.length() - 2);
         }

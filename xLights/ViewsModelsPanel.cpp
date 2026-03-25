@@ -16,6 +16,7 @@
 //*)
 
 #include <pugixml.hpp>
+#include <wx/artprov.h>
 #include <wx/dnd.h>
 
 #include "../include/model-16.xpm"

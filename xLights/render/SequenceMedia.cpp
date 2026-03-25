@@ -11,13 +11,13 @@
 #include "SequenceMedia.h"
 #include "pugixml.hpp"
 #include <cstring>
+#include <filesystem>
 #include <wx/base64.h>
 #include <wx/mstream.h>
 #include <wx/wfstream.h>
 #include <wx/imaggif.h>
 #include <wx/anidecod.h>
 #include <wx/quantize.h>
-#include <wx/filename.h>
 #include <wx/file.h>
 
 #include <log.h>
@@ -86,7 +86,6 @@ void ImageCacheEntry::LoadFromData(const std::string& data) {
 void ImageCacheEntry::LoadFromFile(const std::string& filepath) {
     ObtainAccessToURL(filepath);
     FileExists(filepath, true);
-    wxFileName fn(filepath);
     wxFileInputStream stream(filepath);
     if (stream.IsOk()) {
         wxMemoryBuffer buffer;
@@ -461,12 +460,11 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
 
     // For relative paths, resolve to an absolute path using FixFile so the
     // entry can be loaded from disk.  The cache key stays as the relative path.
-    wxFileName fn(filepath);
     std::string loadPath = filepath;
-    if (!fn.IsAbsolute()) {
-        wxString resolved = FixFile("", filepath);
-        if (!resolved.IsEmpty())
-            loadPath = resolved.ToStdString();
+    if (!std::filesystem::path(filepath).is_absolute()) {
+        std::string resolved = FixFile("", filepath).ToStdString();
+        if (!resolved.empty())
+            loadPath = resolved;
     }
 
     //wasn't found, we'll create it and add to the cache
@@ -494,16 +492,16 @@ void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTim
     // Resolve relative paths the same way GetImage does, so FileExists and
     // LoadFile operate on a valid absolute path.
     std::string loadPath = filepath;
-    wxFileName fn(filepath);
-    if (!fn.IsAbsolute()) {
-        wxString resolved = FixFile("", filepath);
-        if (!resolved.IsEmpty()) {
-            loadPath = resolved.ToStdString();
-            fn = wxFileName(loadPath);
+    if (!std::filesystem::path(filepath).is_absolute()) {
+        std::string resolved = FixFile("", filepath).ToStdString();
+        if (!resolved.empty()) {
+            loadPath = resolved;
         }
     }
-    std::string extension = "." + fn.GetExt().ToStdString();
-    std::string BasePicture = fn.GetPathWithSep().ToStdString() + fn.GetName().Left(fn.GetName().Length() - 2).ToStdString() + "-";
+    std::filesystem::path loadFsPath(loadPath);
+    std::string extension = loadFsPath.extension().string();
+    std::string stemStr = loadFsPath.stem().string();
+    std::string BasePicture = (loadFsPath.parent_path() / "").string() + stemStr.substr(0, stemStr.length() - 2) + "-";
     int cur = 1;
     std::string fname = BasePicture + std::to_string(cur++) + extension;
     std::vector<wxImage> images;

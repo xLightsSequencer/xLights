@@ -100,9 +100,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     }
 
     // assign global xml file object
-    wxFileName xml_file;
-    xml_file.SetPath(CurrentDir);
-    CurrentSeqXmlFile = new SequenceFile(xml_file, frameMS);
+    CurrentSeqXmlFile = new SequenceFile(CurrentDir.ToStdString(), frameMS);
 
     if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
@@ -399,7 +397,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         }
 
         // assign global xml file object
-        CurrentSeqXmlFile = new SequenceFile(xml_file);
+        CurrentSeqXmlFile = new SequenceFile(xml_file.GetFullPath().ToStdString());
 
         // open the xml file so we can see if it has media
         auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath.GetFullPath().ToStdString());
@@ -1273,7 +1271,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         return;
     }
 
-    SequenceFile xlf(xsqPkg.GetXsqFile());
+    SequenceFile xlf(xsqPkg.GetXsqFile().GetFullPath().ToStdString());
     auto importDoc = xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile().GetFullPath().ToStdString());
     if (!importDoc) return;
     SequenceElements se(this);

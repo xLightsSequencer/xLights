@@ -26,6 +26,7 @@
 #include "../../include/globals.h"
 
 #include "Color.h"
+#include "utils/xlSize.h"
 #include "ColorCurve.h"
 #include "models/Node.h"
 
@@ -44,7 +45,6 @@
 #include <queue> //priority_queue
 #include <deque>
 #include <vector>
-#define wxPoint_  long //std::pair<int, int> //kludge: wxPoint doesn't work with std::hash_map, so use equiv sttr
 
 class AudioManager;
 class xLightsFrame;
@@ -524,7 +524,7 @@ public:
     xlColor *GetTempBuf() { return tempbuf; }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
-    wxPoint GetMaxBuffer(const SettingsMap& SettingsMap) const;
+    xlSize GetMaxBuffer(const SettingsMap& SettingsMap) const;
     void EnableFixedDMXChannels(const DmxModel* dmx);
 
     PaletteClass palette;

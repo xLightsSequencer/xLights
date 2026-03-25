@@ -22,7 +22,6 @@
 
 class SequenceElements;
 class xLightsFrame;
-class wxFileName;
 class wxWindow;
 class AudioManager;
 class EffectLayer;
@@ -58,7 +57,6 @@ class SequenceFile
 
 public:
     SequenceFile(const std::string& filepath, uint32_t frameMS = 0);
-    SequenceFile(const wxFileName& filename, uint32_t frameMS = 0);
     ~SequenceFile();
 
     SequenceFile(const SequenceFile&) = delete;

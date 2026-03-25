@@ -19,6 +19,7 @@
 #include "../AudioManager.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
+#include "../utils/xlSize.h"
 
 #include "../../include/fire-16.xpm"
 #include "../../include/fire-24.xpm"
@@ -156,7 +157,7 @@ public:
     virtual ~FireRenderCache() {};
 
     std::vector<int> FireBuffer;
-    wxPoint maxBuffer;
+    xlSize maxBuffer;
 };
 
 static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
@@ -216,8 +217,8 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         buffer.needToInit = false;
 
         cache->maxBuffer = buffer.GetMaxBuffer(SettingsMap);
-        int w = std::max(buffer.BufferWi, cache->maxBuffer.x);
-        int h = std::max(buffer.BufferHt, cache->maxBuffer.y);
+        int w = std::max(buffer.BufferWi, cache->maxBuffer.width);
+        int h = std::max(buffer.BufferHt, cache->maxBuffer.height);
 
         cache->FireBuffer.resize(w * h);
         for (size_t i = 0; i < cache->FireBuffer.size(); ++i) {
@@ -226,8 +227,8 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     } else {
         mod_state = 4 / (buffer.curPeriod % 4 + 1);
     }
-    int maxMWi = cache->maxBuffer.x == -1 ? buffer.BufferWi : cache->maxBuffer.x;
-    int maxMHt = cache->maxBuffer.y == -1 ? buffer.BufferHt : cache->maxBuffer.y;
+    int maxMWi = cache->maxBuffer.width == -1 ? buffer.BufferWi : cache->maxBuffer.width;
+    int maxMHt = cache->maxBuffer.height == -1 ? buffer.BufferHt : cache->maxBuffer.height;
     if (loc == 2 || loc == 3) {
         std::swap(maxMHt, maxMWi);
     }

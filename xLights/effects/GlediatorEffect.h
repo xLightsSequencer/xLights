@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
+#include "../utils/xlSize.h"
 #include <wx/file.h>
 #include <wx/textfile.h>
 
@@ -18,17 +19,17 @@ class GlediatorReader
 {
     std::string _filename;
     wxFile _f;
-    wxSize _size;
+    xlSize _size;
     size_t _frames;
 
 public:
-    GlediatorReader(const std::string& filename, const wxSize& size);
+    GlediatorReader(const std::string& filename, const xlSize& size);
     virtual ~GlediatorReader();
     size_t GetFrames() { return _frames; }
     std::string GetFilename() const { return _filename; }
     void GetFrame(size_t frame, char* buffer, size_t size);
     size_t GetFrameCount() const { return _frames; };
-    size_t GetBufferSize() const { return _size.x * _size.y * 3; }
+    size_t GetBufferSize() const { return _size.width * _size.height * 3; }
 };
 
 // CSV Files have one line per frame.

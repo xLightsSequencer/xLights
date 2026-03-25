@@ -951,7 +951,7 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
 {
     bool res = false;
 
-    memset(&_config, 0x00, sizeof(_config));
+    memset((void*)&_config, 0x00, sizeof(_config));
 
     // broadcast packet to find all of them
     localAddr.Service(PIXLITE_PORT);
@@ -1210,7 +1210,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
         spdlog::error("    Advatech discovery packet type : {}.", data[10]);
         if (data[10] == 0x02) {
             Pixlite16::Config it;
-            memset(&it, 0x00, sizeof(it));
+            memset((void*)&it, 0x00, sizeof(it));
             bool connected = false;
             it._protocolVersion = data[11];
             switch (it._protocolVersion) {

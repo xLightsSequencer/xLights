@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <filesystem>
 #include <format>
 
 #include "VUMeterEffect.h"
@@ -198,10 +199,10 @@ std::list<std::string> VUMeterEffect::GetFileReferences(Model* model, const Sett
 bool VUMeterEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_SVGFile"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_SVGFile"];
     if (FileExists(file)) {
         if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_SVGFile"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            SettingsMap["E_FILEPICKERCTRL_SVGFile"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

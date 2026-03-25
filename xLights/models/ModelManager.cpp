@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <format>
 
@@ -241,7 +242,7 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     clear();
     previewWidth = previewW;
     previewHeight = previewH;
-    wxStopWatch timer;
+    auto timerStart = std::chrono::steady_clock::now();
     std::list<pugi::xml_node> modelsToLoad;
     for (pugi::xml_node e = modelNode.first_child(); e; e = e.next_sibling()) {
         if (std::string_view(e.name()) == "model") {
@@ -256,7 +257,8 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     };
     RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
-    spdlog::debug("Models loaded in {}ms", timer.Time());
+    auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
+    spdlog::debug("Models loaded in {}ms", timerElapsed);
     _modelsLoading = false;
 
     // Check all recorded shadow models actually exist
@@ -541,7 +543,7 @@ bool ModelManager::RecalcStartChannels() const
     
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
-    wxStopWatch sw;
+    auto swStart = std::chrono::steady_clock::now();
     bool changed = false;
     std::set<std::string> modelsDone;
     std::set<std::string> modelsOnNoController;
@@ -632,7 +634,7 @@ bool ModelManager::RecalcStartChannels() const
     // current caller of this method, xLightsMain>>RecalcStartChannels, already adds RELOAD_MODELLIST work if changes exist
     // xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
 
-    long end = sw.Time();
+    auto end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - swStart).count();
     spdlog::debug("RecalcStartChannels takes {}ms.", end);
 
     if (countInvalid > 0) {
@@ -1071,9 +1073,9 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
     if (!m->CouldComputeStartChannel) // this should stop this looping forever due to chain loops
         return false;
 
-    wxString sc = m->ModelStartChannel;
+    std::string sc = m->ModelStartChannel;
     if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
-        std::string dependson = sc.substr(1).BeforeFirst(':');
+        std::string dependson = BeforeFirst(sc.substr(1), ':');
         Model* mm = GetModel(dependson);
         if (mm != nullptr) {
             if (mm->GetControllerName() == NO_CONTROLLER)

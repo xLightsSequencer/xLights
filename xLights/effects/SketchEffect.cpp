@@ -10,6 +10,8 @@
 
 #include "SketchEffect.h"
 
+#include <filesystem>
+
 #include "../BulkEditControls.h"
 #include "../render/RenderBuffer.h"
 #include "SketchEffectDrawing.h"
@@ -131,10 +133,10 @@ void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, Rende
 bool SketchEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKER_SketchBackground"];
+    std::string file = SettingsMap["E_FILEPICKER_SketchBackground"];
     if (FileExists(file)) {
         if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKER_SketchBackground"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            SettingsMap["E_FILEPICKER_SketchBackground"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }
@@ -161,13 +163,13 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (!xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage")) {
-        wxString filename = settings.Get("E_FILEPICKER_SketchBackground", "");
-        if (filename == "" || !FileExists(filename)) {
+        std::string filename = settings.Get("E_FILEPICKER_SketchBackground", "");
+        if (filename.empty() || !FileExists(filename)) {
             // this is only a warning as it does not affect rendering
-            res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename.ToStdString(), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
-            if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename.ToStdString())) {
-                res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename.ToStdString(), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename)) {
+                res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }

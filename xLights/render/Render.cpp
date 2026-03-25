@@ -8,6 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <chrono>
+#include <cstdlib>
+#include <filesystem>
 #include <mutex>
 #include <condition_variable>
 #include <map>
@@ -989,7 +992,7 @@ private:
         }
     }
 
-    Effect* findEffectForFrame(const wxString& model, const int layer, int frame)
+    Effect* findEffectForFrame(const std::string& model, const int layer, int frame)
     {
         Effect* res = nullptr;
 
@@ -1819,15 +1822,15 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
 
 
 #ifdef DOTIMING
-    wxStopWatch sw;
+    auto sw = std::chrono::steady_clock::now();
     Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw, callback] {
-        printf("%s  Render 1:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw.Time());
-        wxStopWatch sw2;
+        printf("%s  Render 1:  %lld ms\n", (const char *)xlightsFilename.c_str(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count());
+        auto sw2 = std::chrono::steady_clock::now();
         Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw2, callback] {
-            printf("%s  Render 2:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw2.Time());
-            wxStopWatch sw3;
+            printf("%s  Render 2:  %lld ms\n", (const char *)xlightsFilename.c_str(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw2).count());
+            auto sw3 = std::chrono::steady_clock::now();
             Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [sw3, callback] {
-                printf("%s  Render 3:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw3.Time());
+                printf("%s  Render 3:  %lld ms\n", (const char *)xlightsFilename.c_str(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw3).count());
                 callback(abortedRenderJobs > 0);
             } );
         });
@@ -1955,12 +1958,12 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     ProgressBar->SetValue(0);
     _appProgress->SetValue(0);
     _appProgress->Reset();
-    wxStopWatch sw; // start a stopwatch timer
+    auto sw = std::chrono::steady_clock::now(); // start a stopwatch timer
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] (bool aborted) {
-        
+
         spdlog::info("   Effects done.");
         ProgressBar->SetValue(100);
-        float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+        float elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
         wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
         CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
         mRendering = false;
@@ -1984,23 +1987,23 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
         return false;
 
-    wxString filename(fn);
-    wxString format(fmt);
+    std::string filename(fn);
+    std::string format(fmt);
 
-    wxStopWatch sw;
-    wxString Out3 = format.Left(3);
+    auto sw = std::chrono::steady_clock::now();
+    std::string Out3 = format.substr(0, 3);
 
     if (Out3 == "LSP") {
         filename = filename + "_USER";
     }
-    wxFileName oName(filename);
+    std::filesystem::path oName(filename);
 
-    if (oName.GetPathWithSep() == "") {
-        oName.SetPath(CurrentDir);
+    if (oName.parent_path().empty()) {
+        oName = std::filesystem::path(CurrentDir.ToStdString()) / oName.filename();
     }
-    wxString fullpath;
+    std::string fullpath;
 
-    SetStatusText(wxString::Format("Starting Export for %s - %s", format, Out3));
+    SetStatusText(wxString::Format("Starting Export for %s - %s", wxString(format), wxString(Out3)));
     wxYield();
 
     NextRenderer wait;
@@ -2042,54 +2045,54 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     delete job;
 
     if (Out3 == "Lcb") {
-        oName.SetExt(_("lcb"));
-        fullpath = oName.GetFullPath();
+        oName.replace_extension(".lcb");
+        fullpath = oName.string();
         int lcbVer = 1;
-        if (format.Contains("S5")) {
+        if (format.find("S5") != std::string::npos) {
             lcbVer = 2;
         }
         WriteLcbFile(fullpath, data->NumChannels(), startFrame, endFrame, data, lcbVer, cpn);
     } else if (Out3 == "Vir") {
-        oName.SetExt(_("vir"));
-        fullpath = oName.GetFullPath();
+        oName.replace_extension(".vir");
+        fullpath = oName.string();
         WriteVirFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
     } else if (Out3 == "LSP") {
-        oName.SetExt(_("xml"));
-        fullpath = oName.GetFullPath();
+        oName.replace_extension(".xml");
+        fullpath = oName.string();
         WriteLSPFile(fullpath, data->NumChannels(), startFrame, endFrame, data, cpn);
     } else if (Out3 == "HLS") {
-        oName.SetExt(_("hlsnc"));
-        fullpath = oName.GetFullPath();
+        oName.replace_extension(".hlsnc");
+        fullpath = oName.string();
         WriteHLSFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
     } else if (Out3 == "FPP") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("eseq"));
-        fullpath = oName.GetFullPath();
-        bool v2 = format.Contains("Compressed");
+        oName.replace_extension(".eseq");
+        fullpath = oName.string();
+        bool v2 = format.find("Compressed") != std::string::npos;
         WriteFalconPiModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), v2);
     } else if (Out3 == "Com") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("mp4"));
-        fullpath = oName.GetFullPath();
+        oName.replace_extension(".mp4");
+        fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
     } else if (Out3 == "Unc") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        fullpath = oName.GetFullPath();
+        fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
     } else if (Out3 == "Min") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("bin"));
-        fullpath = oName.GetFullPath();
+        oName.replace_extension(".bin");
+        fullpath = oName.string();
         WriteMinleonNECModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model));
     } else if (Out3 == "GIF") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.SetExt(_("gif"));
-        fullpath = oName.GetFullPath();
+        oName.replace_extension(".gif");
+        fullpath = oName.string();
         WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), _seqData.FrameTime());
     }
-    float s = sw.Time();
+    float s = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
     s /= 1000;
-    SetStatusText(wxString::Format("Finished writing model: %s in %0.3fs ", fullpath, s));
+    SetStatusText(wxString::Format("Finished writing model: %s in %0.3fs ", wxString(fullpath), s));
 
     delete data;
     EnableSequenceControls(true);
@@ -2104,8 +2107,8 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
     if (command.GetString().Contains('|')) {
         auto as = wxSplit(command.GetString(), '|');
         if (as.size() == 3) {
-            startFrame = wxAtoi(as[1]);
-            endFrame = wxAtoi(as[2]);
+            startFrame = (int)std::strtol(as[1].c_str(), nullptr, 10);
+            endFrame = (int)std::strtol(as[2].c_str(), nullptr, 10);
         }
     }
 
@@ -2274,7 +2277,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                 rb->infoCache = oldBuffer->infoCache;
                             }
 
-                            wxStopWatch sw;
+                            auto sw = std::chrono::steady_clock::now();
                             if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
                                 if (!effectObj->GetFrame(*rb, _renderCache)) {
                                     reff->Render(effectObj, SettingsMap, *rb);
@@ -2287,8 +2290,9 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             }
 
                             // Log slow render frames ... this takes time but at this point it is already slow
-                            if (sw.Time() > 150) {
-                                logger_render->info("Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) took more than 150 ms => {}ms.", rb->curPeriod, (const char*)buffer.GetModelName().c_str(), rb->BufferWi, rb->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), rb->curEffStartPer, effectObj->GetEndTimeMS(), rb->curEffEndPer, sw.Time());
+                            auto swElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
+                            if (swElapsed > 150) {
+                                logger_render->info("Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) took more than 150 ms => {}ms.", rb->curPeriod, (const char*)buffer.GetModelName().c_str(), rb->BufferWi, rb->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), rb->curEffStartPer, effectObj->GetEndTimeMS(), rb->curEffEndPer, swElapsed);
                             }
 
                             if (suppress && oldBuffer != nullptr) {

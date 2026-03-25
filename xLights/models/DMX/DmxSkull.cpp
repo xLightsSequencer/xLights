@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <filesystem>
 #include <format>
 #include <wx/stdpaths.h>
 
@@ -36,7 +37,7 @@ DmxSkull::DmxSkull(const ModelManager& manager) :
 #ifndef __WXMSW__
     obj_path = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/meshobjects/Skull/";
 #else
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath().ToStdString() + "/meshobjects/Skull/";
+    obj_path = std::filesystem::path(stdp.GetExecutablePath().ToStdString()).parent_path().string() + "/meshobjects/Skull/";
 #endif
 
     default_channels[JAW] = 1;

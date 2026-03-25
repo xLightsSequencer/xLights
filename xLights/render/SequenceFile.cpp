@@ -8,7 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/filename.h>
 #include <wx/numdlg.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
@@ -65,11 +64,6 @@ SequenceFile::SequenceFile(const std::string& filepath, uint32_t frameMS) :
         seq_timing = std::to_string(frameMS) + " ms";
     }
     CreateNew();
-}
-
-SequenceFile::SequenceFile(const wxFileName& filename, uint32_t frameMS) :
-    SequenceFile(filename.GetFullPath().ToStdString(), frameMS)
-{
 }
 
 SequenceFile::~SequenceFile()
@@ -250,25 +244,6 @@ std::string SequenceFile::GetRenderMode()
     }
     return ERASE_MODE;
 }
-
-
-
-static std::string GetSetting(const std::string& setting, const std::string& text)
-{
-    std::string settings = text;
-    while (!settings.empty()) {
-        auto commaPos = settings.find(',');
-        std::string before = settings.substr(0, commaPos);
-        if (before.find(setting) != std::string::npos) {
-            auto eqPos = before.rfind('=');
-            return (eqPos != std::string::npos) ? before.substr(eqPos + 1) : "";
-        }
-        if (commaPos == std::string::npos) break;
-        settings = settings.substr(commaPos + 1);
-    }
-    return "";
-}
-
 
 const std::string& SequenceFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) const
 {

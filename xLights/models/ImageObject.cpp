@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <filesystem>
 #include <format>
 #include "ImageObject.h"
 #include "UtilFunctions.h"
@@ -167,7 +168,7 @@ bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
     bool rc = false;
     if (FileExists(_imageFile)) {
         if (!frame->IsInShowFolder(_imageFile)) {
-            _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
+            _imageFile = frame->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

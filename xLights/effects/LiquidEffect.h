@@ -17,7 +17,6 @@
 #include <string>
 #include <list>
 
-class wxString;
 class b2World;
 class b2ParticleSystem;
 

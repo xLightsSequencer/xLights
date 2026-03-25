@@ -69,7 +69,7 @@ std::list<std::string> DuplicateEffect::CheckEffectSettings(const SettingsMap& s
     return res;
 }
 
-int DuplicateEffect::GetLayersForModel(const wxString& model)
+int DuplicateEffect::GetLayersForModel(const std::string& model)
 {
     int res = 1;
 

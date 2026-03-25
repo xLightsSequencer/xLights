@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <filesystem>
 #include <format>
 #include <list>
 
@@ -665,12 +666,11 @@ static bool parse_model(const wxString& want_model)
 {
     if (model_xy.find((const char*)want_model.c_str()) != model_xy.end()) return true; //already have info
 
-    wxFileName pgoFile;
     pugi::xml_document pgoXml;
-    pgoFile.AssignDir(xLightsFrame::CurrentDir);
-    pgoFile.SetFullName(_(XLIGHTS_PGOFACES_FILE));
-    if (!FileExists(pgoFile)) return false;
-    if (!pgoXml.load_file(pgoFile.GetFullPath().mb_str())) return false;
+    std::filesystem::path pgoFile = std::filesystem::path(xLightsFrame::CurrentDir.ToStdString()) / XLIGHTS_PGOFACES_FILE;
+    std::string pgoFileStr = pgoFile.string();
+    if (!FileExists(pgoFileStr)) return false;
+    if (!pgoXml.load_file(pgoFileStr.c_str())) return false;
     pugi::xml_node root = pgoXml.document_element();
     if (!root || (std::string_view(root.name()) != "papagayo")) return false;
     for (int compat = 0; compat < 2; ++compat)

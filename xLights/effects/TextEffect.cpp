@@ -12,6 +12,7 @@
 #include "../AudioManager.h"
 
 #include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <mutex>
 #include <array>
@@ -31,6 +32,7 @@
 #include "../ExternalHooks.h"
 #include "../render/SequenceFile.h"
 #include "../utils/string_utils.h"
+#include "../utils/xlSize.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -92,7 +94,7 @@ bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Settings
     {
         if (!frame->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Text_File"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()));
+            SettingsMap["E_FILEPICKERCTRL_Text_File"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator));
             rc = true;
         }
     }
@@ -499,11 +501,11 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     }
 }
 
-wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
+xlSize GetMultiLineTextExtent(TextDrawingContext *dc,
                               const wxString& text,
-                              wxCoord *widthText,
-                              wxCoord *heightText,
-                              wxCoord *hl)
+                              int *widthText,
+                              int *heightText,
+                              int *hl)
 {
     double widthTextMax = 0, widthLine;
     double heightTextTotal = 0;
@@ -559,7 +561,7 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
     *widthText = widthTextMax;
     *heightText = heightTextTotal;
     *hl = heightLine;
-    return wxSize(widthTextMax, heightTextTotal);
+    return xlSize(widthTextMax, heightTextTotal);
 }
 
 class CachedTextInfo {
@@ -597,14 +599,14 @@ struct CachedTextInfoHasher {
 
 class TextRenderCache : public EffectRenderCache {
 public:
-    TextRenderCache() : timer_countdown(0), synced_textsize(wxSize(0,0)) {};
+    TextRenderCache() : timer_countdown(0), synced_textsize(xlSize(0,0)) {};
     virtual ~TextRenderCache() {
         for (const auto& it : textCache) {
             delete it.second;
         }
     };
     int timer_countdown;
-    wxSize synced_textsize;
+    xlSize synced_textsize;
     
     wxImage *GetImage(const CachedTextInfo &inf) {
         return textCache[inf];
@@ -613,37 +615,37 @@ public:
         textCache[inf] = img;
     }
     
-    wxSize GetMultiLineTextExtent(const std::string &font, const wxString &msg) {
+    xlSize GetMultiLineTextExtent(const std::string &font, const wxString &msg) {
         std::pair<std::string, wxString> key(font, msg);
         auto i = textExtentCache.find(key);
         if (i == textExtentCache.end()) {
-            return wxSize(-1, -1);
+            return xlSize(-1, -1);
         }
         return i->second;
     }
-    void PutMultiLineTextExtent(const std::string &font, const wxString &msg, const wxSize &sz) {
+    void PutMultiLineTextExtent(const std::string &font, const wxString &msg, const xlSize &sz) {
         std::pair<std::string, wxString> key(font, msg);
         textExtentCache[key] = sz;
     }
-    
+
     std::unordered_map<CachedTextInfo, wxImage*, CachedTextInfoHasher> textCache;
-    std::map<std::pair<std::string, wxString>, wxSize> textExtentCache;
+    std::map<std::pair<std::string, wxString>, xlSize> textExtentCache;
 };
 
-wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
+xlSize GetMultiLineTextExtent(TextDrawingContext *dc,
                               const wxString& text,
                               TextRenderCache *cache,
                               const std::string &font,
                               bool &fontSet)
 {
-    wxSize i = cache->GetMultiLineTextExtent(font, text);
-    if (i.x == -1 && i.y == -1) {
+    xlSize i = cache->GetMultiLineTextExtent(font, text);
+    if (i.width == -1 && i.height == -1) {
         if (!fontSet) {
             dc->Clear();
             SetFont(dc, font, xlWHITE);
             fontSet = true;
         }
-        wxCoord x,y,z;
+        int x,y,z;
         i = GetMultiLineTextExtent(dc, text, &x, &y, &z);
         cache->PutMultiLineTextExtent(font, text, i);
     }
@@ -660,13 +662,13 @@ void DrawLabel(TextDrawingContext *dc,
                const bool perWord = false)
 {
     // find the text position
-    wxCoord widthText, heightText, heightLine;
+    int widthText, heightText, heightLine;
     GetMultiLineTextExtent(dc, text, &widthText, &heightText, &heightLine);
 
-    wxCoord width = widthText;
-    wxCoord height = heightText;
+    int width = widthText;
+    int height = heightText;
 
-    wxCoord x, y;
+    int x, y;
     if ( alignment & wxALIGN_RIGHT )
     {
         x = rect.GetRight() - width;
@@ -712,8 +714,8 @@ void DrawLabel(TextDrawingContext *dc,
                 //     wxALIGN_LEFT is 0
                 if ( alignment & (wxALIGN_RIGHT | wxALIGN_CENTRE_HORIZONTAL) )
                 {
-                    wxCoord x1,y1,z1;
-                    wxCoord widthLine = GetMultiLineTextExtent(dc, curLine, &x1, &y1, &z1).x;
+                    int x1,y1,z1;
+                    int widthLine = GetMultiLineTextExtent(dc, curLine, &x1, &y1, &z1).width;
 
                     if ( alignment & wxALIGN_RIGHT )
                     {
@@ -863,9 +865,9 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     TextRenderCache *cache = GetCache(buffer, id);
     bool fontSet = false;
     
-    wxSize textsize = GetMultiLineTextExtent(dc, msg, cache, fontString, fontSet);
-    int extra_left = IsGoingLeft(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(false), cache, fontString, fontSet).x: 0; //CAUTION: trim() alters object, so make a copy first
-    int extra_right = IsGoingRight(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(true), cache, fontString, fontSet).x: 0;
+    xlSize textsize = GetMultiLineTextExtent(dc, msg, cache, fontString, fontSet);
+    int extra_left = IsGoingLeft(dir)? textsize.width - GetMultiLineTextExtent(dc, wxString(msg).Trim(false), cache, fontString, fontSet).width: 0; //CAUTION: trim() alters object, so make a copy first
+    int extra_right = IsGoingRight(dir)? textsize.width - GetMultiLineTextExtent(dc, wxString(msg).Trim(true), cache, fontString, fontSet).width: 0;
     int xoffset=0;
     int yoffset=0;
 
@@ -876,19 +878,19 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             TextRotation=45.0;
             yoffset=int(0.707*double(textsize.GetHeight()));
             i=int(0.707*double(textsize.GetWidth()+textsize.GetHeight()));
-            textsize.Set(i,i);
+            textsize = xlSize(i,i);
             break;
         case 4:
             // rotate up 90
             TextRotation=90.0;
-            textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
+            textsize = xlSize(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
             break;
         case 5:
             // rotate down 45
             TextRotation=-45.0;
             xoffset=int(0.707*double(textsize.GetHeight()));
             i=int(0.707*double(textsize.GetWidth()+textsize.GetHeight()));
-            textsize.Set(i,i);
+            textsize = xlSize(i,i);
             yoffset=i;
             break;
         case 6:
@@ -896,7 +898,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             TextRotation=-90.0;
             xoffset=textsize.GetHeight();
             yoffset=textsize.GetWidth();
-            textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
+            textsize = xlSize(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
             break;
         default: break;
     }

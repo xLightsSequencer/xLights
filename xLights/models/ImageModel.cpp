@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <filesystem>
 #include <format>
 
 #include "ImageModel.h"
@@ -403,7 +404,7 @@ bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
     bool rc = false;
     if (FileExists(_imageFile)) {
         if (!frame->IsInShowFolder(_imageFile)) {
-            _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
+            _imageFile = frame->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             Setup();
             rc = true;
         }

@@ -14,6 +14,7 @@
 
 #include "../utils/string_utils.h"
 
+#include <filesystem>
 #include <format>
 
 #include "../render/Effect.h"
@@ -1661,10 +1662,10 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
 bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"];
     if (FileExists(file)) {
         if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

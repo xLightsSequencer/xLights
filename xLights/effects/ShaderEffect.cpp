@@ -15,10 +15,11 @@
 #include "../../include/shader_16.xpm"
 #include <wx/wx.h>
 #include <wx/config.h>
+#include <algorithm>
 #include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <semaphore>
-#include <algorithm>
 
 #ifndef __WXOSX__
     #include <GL/gl.h>
@@ -197,8 +198,9 @@ bool ShaderEffect::useBackgroundRender = false;
 
 bool ShaderEffect::IsShaderFile(std::string filename)
 {
-    wxFileName fn(filename);
-    auto ext = fn.GetExt().Lower().ToStdString();
+    auto ext = std::filesystem::path(filename).extension().string();
+    if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
     if (ext == "fs") {
         return true;
@@ -234,12 +236,12 @@ std::list<std::string> ShaderEffect::GetFileReferences(Model* model, const Setti
 bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_0FILEPICKERCTRL_IFS"];
+    std::string file = SettingsMap["E_0FILEPICKERCTRL_IFS"];
     if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
-            SettingsMap["E_0FILEPICKERCTRL_IFS"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Shaders", true);
+            SettingsMap["E_0FILEPICKERCTRL_IFS"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Shaders", true);
             rc = true;
         }
     }
@@ -1431,7 +1433,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
 
     auto getPointProperty = [](nlohmann::json const& item, std::string const& name, double defaultX, double defaultY) {
         if (!item.contains(name) || item.at(name).empty()) {
-            return wxRealPoint(defaultX, defaultY);
+            return xlPointD(defaultX, defaultY);
         }
         if (item.at(name)[0].is_number()) {
             defaultX = item.at(name)[0].get<double>();
@@ -1459,7 +1461,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                 spdlog::warn("Error parsing shader Property : {} (not a number).", name);
             }
         }
-        return wxRealPoint(defaultX, defaultY);
+        return xlPointD(defaultX, defaultY);
     };
 
     try {
@@ -1547,9 +1549,9 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                         0.0,
                         getNumberProperty(input, "DEFAULT", 0.0));
                 } else if (type == "point2D") {
-                    wxRealPoint const minPt = getPointProperty(input, "MIN", 0.0, 0.0);
-                    wxRealPoint const maxPt = getPointProperty(input, "MAX", 1.0, 1.0);
-                    wxRealPoint const defPt = getPointProperty(input, "DEFAULT", 0.0, 0.0);
+                    xlPointD const minPt = getPointProperty(input, "MIN", 0.0, 0.0);
+                    xlPointD const maxPt = getPointProperty(input, "MAX", 1.0, 1.0);
+                    xlPointD const defPt = getPointProperty(input, "DEFAULT", 0.0, 0.0);
                     _parms.emplace_back(
                         input.contains("NAME") ? input["NAME"].get<std::string>() : "",
                         input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
@@ -1695,13 +1697,13 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                 0.0,
                 (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString().ToStdString()).c_str(), nullptr) : 0.0f)));
         } else if (type == "point2D") {
-            wxRealPoint minPt = wxRealPoint(
+            xlPointD minPt = xlPointD(
                 inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][0].IsDouble() ? inputs[i]["MIN"][0].AsDouble() : inputs[i]["MIN"][0].AsInt()) : 0.0f,
                 inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][1].IsDouble() ? inputs[i]["MIN"][1].AsDouble() : inputs[i]["MIN"][1].AsInt()) : 0.0f);
-            wxRealPoint maxPt = wxRealPoint(
+            xlPointD maxPt = xlPointD(
                 inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][0].IsDouble() ? inputs[i]["MAX"][0].AsDouble() : inputs[i]["MAX"][0].AsInt()) : 1.0f,
                 inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][1].IsDouble() ? inputs[i]["MAX"][1].AsDouble() : inputs[i]["MAX"][1].AsInt()) : 1.0f);
-            wxRealPoint defPt = wxRealPoint(
+            xlPointD defPt = xlPointD(
                 inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][0].IsDouble() ? inputs[i]["DEFAULT"][0].AsDouble() : inputs[i]["DEFAULT"][0].AsInt()) : 0.0f,
                 inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][1].IsDouble() ? inputs[i]["DEFAULT"][1].AsDouble() : inputs[i]["DEFAULT"][1].AsInt()) : 0.0f);
             _parms.push_back(ShaderParm(
