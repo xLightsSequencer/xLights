@@ -33,8 +33,8 @@ class DmxBeamAbility
         void SetBeamWidth( float width ) {
             beam_width = width; }
         void SetDefaultBeamWidth( float width ) { default_beam_width = width; }
-        void SetBeamYOffset(float offset) { default_beam_y_offset = offset; }
-        void SetDefaultBeamYOffset(float offset) { beam_y_offset = offset; }
+        void SetBeamYOffset(float offset) { beam_y_offset = offset; }
+        void SetDefaultBeamYOffset(float offset) { default_beam_y_offset = offset; }
         void SetBeamOrient(int orient) { beam_orient = orient; }
 
         void SetSupportsOrient(bool val) { supports_orient = val; }
