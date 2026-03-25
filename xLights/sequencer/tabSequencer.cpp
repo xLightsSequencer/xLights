@@ -32,6 +32,7 @@
 #include "../SeqSettingsDialog.h"
 #include "../ViewsModelsPanel.h"
 #include "../effects/RenderableEffect.h"
+#include "../ui/effectpanels/EffectIconCache.h"
 #include "../xlCustomControl.h"
 #include "../NoteImportDialog.h"
 #include "../MIDI/MidiFile.h"
@@ -1294,7 +1295,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     if (event.updateUI || event.updateBtn) {
         RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-        effectsPnl->SetDragIconBuffer(eff->GetEffectIcon());
+        effectsPnl->SetDragIconBuffer(EffectIconCache::GetEffectIcon(eff));
         effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
         if( effect != nullptr ) {
             UpdateEffectAssistWindow(effect, eff);

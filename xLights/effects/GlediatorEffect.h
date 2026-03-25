@@ -13,6 +13,7 @@
 #include "RenderableEffect.h"
 #include "../utils/xlSize.h"
 #include <wx/file.h>
+#include <wx/gdicmn.h>
 #include <wx/textfile.h>
 
 class GlediatorReader

@@ -772,6 +772,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\effectpanels\DMXPanel.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="ui\effectpanels\EffectPanelManager.cpp" />
+    <ClCompile Include="ui\effectpanels\EffectIconCache.cpp" />
     <ClCompile Include="ui\effectpanels\EffectPanelUtils.cpp" />
     <ClCompile Include="effects\FacesEffect.cpp" />
     <ClCompile Include="ui\effectpanels\FacesPanel.cpp" />
@@ -1334,6 +1335,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui\effectpanels\DMXPanel.h" />
     <ClInclude Include="effects\EffectManager.h" />
     <ClInclude Include="ui\effectpanels\EffectPanelManager.h" />
+    <ClInclude Include="ui\effectpanels\EffectIconCache.h" />
     <ClInclude Include="ui\effectpanels\EffectPanelUtils.h" />
     <ClInclude Include="effects\FacesEffect.h" />
     <ClInclude Include="ui\effectpanels\FacesPanel.h" />

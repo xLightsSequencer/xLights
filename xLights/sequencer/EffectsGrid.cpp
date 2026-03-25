@@ -37,6 +37,7 @@
 #include "../UtilFunctions.h"
 #include "../VideoReader.h"
 #include "../effects/RenderableEffect.h"
+#include "../ui/effectpanels/EffectIconCache.h"
 #include "../xLightsMain.h"
 #include "../render/SequenceFile.h"
 #include "effects/GlediatorEffect.h"
@@ -7136,17 +7137,17 @@ void EffectsGrid::CreateEffectIconTextures(xlGraphicsContext* ctx) {
         int xLoc = (x % 8) * 64;
         int yLoc = x / 8 * 64;
 
-        wxImage img = eff->GetEffectIcon().GetBitmap(wxSize(64, 64)).ConvertToImage();
+        wxImage img = EffectIconCache::GetEffectIcon(eff, 64).GetBitmap(wxSize(64, 64)).ConvertToImage();
         if (img.GetWidth() != 64 || img.GetHeight() != 64) {
             img = img.Rescale(64, 64, wxIMAGE_QUALITY_HIGH);
         }
         images[0].Paste(img, xLoc, yLoc);
-        img = eff->GetEffectIcon().GetBitmap(wxSize(32, 32)).ConvertToImage();
+        img = EffectIconCache::GetEffectIcon(eff, 32).GetBitmap(wxSize(32, 32)).ConvertToImage();
         if (img.GetWidth() != 32 || img.GetHeight() != 32) {
             img = img.Rescale(32, 32, wxIMAGE_QUALITY_HIGH);
         }
         images[1].Paste(img, xLoc / 2, yLoc / 2);
-        img = eff->GetEffectIcon().GetBitmap(wxSize(16, 16)).ConvertToImage();
+        img = EffectIconCache::GetEffectIcon(eff, 16).GetBitmap(wxSize(16, 16)).ConvertToImage();
         if (img.GetWidth() != 16 || img.GetHeight() != 16) {
             img = img.Rescale(16, 16, wxIMAGE_QUALITY_HIGH);
         }

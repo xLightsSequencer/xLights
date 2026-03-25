@@ -28,6 +28,7 @@
 #include "../EffectsPanel.h"
 #include "../ExternalHooks.h"
 #include "../effects/RenderableEffect.h"
+#include "../ui/effectpanels/EffectIconCache.h"
 #include "../graphics/xlGraphicsBase.h"
 
 #include <log.h>
@@ -1258,7 +1259,7 @@ void MainSequencer::SetupTouchBar(EffectManager &effectManager, ColorPanelTouchB
                                        0,
                                        wxDefaultValidator,
                                        (*it)->Name());
-            b->SetBitmap((*it)->GetEffectIcon());
+            b->SetBitmap(EffectIconCache::GetEffectIcon(*it));
             b->Connect(wxEVT_BUTTON, (wxObjectEventFunction)&MainSequencer::TouchButtonEvent, nullptr, this);
             
             items.push_back(new wxControlTouchBarItem(b));

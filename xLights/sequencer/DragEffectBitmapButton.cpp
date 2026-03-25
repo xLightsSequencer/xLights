@@ -13,6 +13,7 @@
 #include "../BitmapCache.h"
 #include "../xLightsMain.h"
 #include "../effects/RenderableEffect.h"
+#include "../ui/effectpanels/EffectIconCache.h"
 #include "../RenderCommandEvent.h"
 #include "../UtilFunctions.h"
 #include "MainSequencer.h"
@@ -87,7 +88,7 @@ void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
 {
     mEffect = eff;
     if (eff != nullptr) {
-        SetBitmap(eff->GetEffectIcon(sz));
+        SetBitmap(EffectIconCache::GetEffectIcon(eff, sz));
         SetToolTip(eff->ToolTip());
     }
 }
@@ -114,9 +115,9 @@ void DragEffectBitmapButton::OnMouseLeftDown(wxMouseEvent& event)
 
 #ifdef __linux__
     wxIcon dragCursor;
-    dragCursor.CopyFromBitmap(mEffect->GetEffectIcon().GetBitmap(wxSize(16, 16)));
+    dragCursor.CopyFromBitmap(EffectIconCache::GetEffectIcon(mEffect).GetBitmap(wxSize(16, 16)));
 #else
-    wxCursor dragCursor(mEffect->GetEffectIcon().GetBitmapFor(this).ConvertToImage());
+    wxCursor dragCursor(EffectIconCache::GetEffectIcon(mEffect).GetBitmapFor(this).ConvertToImage());
 #endif
 
     EffectButtonDropSource dragSource((xLightsFrame*)wxTheApp->GetMainTopWindow(), this, dragCursor, dragCursor, dragCursor);

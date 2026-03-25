@@ -1314,6 +1314,9 @@
     <ClCompile Include="models\Node.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="ui\effectpanels\EffectIconCache.cpp">
+      <Filter>ui\effectpanels</Filter>
+    </ClCompile>
     <ClCompile Include="ui\effectpanels\EffectPanelUtils.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
@@ -2760,6 +2763,9 @@
     </ClInclude>
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h">
       <Filter>wxHTTPServer</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\effectpanels\EffectIconCache.h">
+      <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="ui\effectpanels\EffectPanelUtils.h">
       <Filter>ui\effectpanels</Filter>

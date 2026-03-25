@@ -639,6 +639,8 @@
 		<Unit filename="ui/effectpanels/DuplicatePanel.h" />
 		<Unit filename="effects/EffectManager.cpp" />
 		<Unit filename="effects/EffectManager.h" />
+		<Unit filename="ui/effectpanels/EffectIconCache.cpp" />
+		<Unit filename="ui/effectpanels/EffectIconCache.h" />
 		<Unit filename="ui/effectpanels/EffectPanelUtils.cpp" />
 		<Unit filename="ui/effectpanels/EffectPanelUtils.h" />
 		<Unit filename="ui/effectpanels/EffectPanelManager.cpp" />

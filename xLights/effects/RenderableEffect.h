@@ -10,14 +10,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/bmpbndl.h>
+#include <cassert>
 #include <string>
 #include "../Color.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
-class wxPanel;
-class wxWindow;
-class wxBitmap;
 class Model;
 class SequenceElements;
 class Effect;
@@ -50,7 +47,10 @@ public:
         return tooltip;
     };
 
-    virtual const wxBitmapBundle& GetEffectIcon(int defSize = 16) const;
+    const char* const* GetIconData(int sizeIndex) const
+    {
+        return iconData[sizeIndex];
+    }
     virtual int GetId() const
     {
         return id;
@@ -127,12 +127,12 @@ public:
 protected:
     virtual double GetSettingVCMin(const std::string& name) const
     {
-        wxASSERT(false);
+        assert(false);
         return 0.0;
     }
     virtual double GetSettingVCMax(const std::string& name) const
     {
-        wxASSERT(false);
+        assert(false);
         return 100.0;
     }
     virtual int GetSettingVCDivisor(const std::string& name) const
@@ -150,20 +150,11 @@ protected:
     void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap& settings, int startMS, int endMS, xlColorVector& colors);
     virtual void RemoveDefaults(const std::string& version, Effect* effect);
 
-    void initBitmaps(const char** data16,
-                     const char** data24,
-                     const char** data32,
-                     const char** data48,
-                     const char** data64);
-
     std::string name;
     std::string tooltip;
     int id;
     SequenceElements* mSequenceElements;
-    wxBitmapBundle icon16;
-    wxBitmapBundle icon24;
-    wxBitmapBundle icon32;
-    wxBitmapBundle icon48;
+    const char** iconData[5];
 
 private:
 };

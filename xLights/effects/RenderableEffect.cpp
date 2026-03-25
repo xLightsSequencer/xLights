@@ -14,30 +14,18 @@
 #include <format>
 
 #include "../render/Effect.h"
-#include "EffectManager.h"
-#include "../ui/effectpanels/assist/xlGridCanvasEmpty.h"
-#include "../UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h"
-
-#include <wx/fontpicker.h>
-#include <wx/filepicker.h>
-#include <wx/notebook.h>
-#include <wx/spinctrl.h>
-
-#include <sstream>
+#include "../render/ValueCurve.h"
 #include "../UtilFunctions.h"
-#include "ui/ValueCurveButton.h"
-#include "../render/PixelBuffer.h"
+#include "EffectManager.h"
 #include "FanEffect.h"
-#include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
-#include "../ui/effectpanels/EffectPanelUtils.h"
-#include "../ColorPanel.h"
-#include "../BufferPanel.h"
-#include "../TimingPanel.h"
-#include "../BitmapCache.h"
+#include "SpiralsEffect.h"
 
+#include "../BufferPanel.h"
+#include "../ColorPanel.h"
+#include "../TimingPanel.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
 #include "../models/SubModel.h"
@@ -48,27 +36,15 @@ RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data32,
                                    const char **data48,
                                    const char **data64)
-    : id(i), name(n), tooltip(n), mSequenceElements(nullptr)
+    : id(i), name(n), tooltip(n), mSequenceElements(nullptr),
+      iconData{data16, data24, data32, data48, data64}
 {
-    initBitmaps(data16, data24, data32, data48, data64);
 }
 
 RenderableEffect::~RenderableEffect()
 {
     //dtor
 }
-
-const wxBitmapBundle &RenderableEffect::GetEffectIcon(int sz) const {
-    if (sz >= 48) {
-        return icon48;
-    } else if (sz >= 32) {
-        return icon32;
-    } else if (sz >= 24) {
-        return icon24;
-    }
-    return icon16;
-}
-
 
 int RenderableEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                            xlVertexColorAccumulator &background, xlColor* colorMask, bool ramps) {
@@ -79,70 +55,6 @@ int RenderableEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int 
     return 1;
 }
 
-
-void AdjustAndSetBitmap(int size, wxImage &image, wxImage &dbl, wxBitmap&bitmap) {
-    if (dbl.GetHeight() == (2 * size)) {
-        bitmap = wxBitmap(dbl, -1, 2.0);
-    } else if (dbl.GetHeight() > (2*size)) {
-        wxImage scaled = image.Scale(size*2, size*2, wxIMAGE_QUALITY_HIGH);
-        bitmap = wxBitmap(scaled, -1, 2.0);
-    } else if (image.GetHeight() == size) {
-        bitmap = wxBitmap(image);
-    } else {
-        wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-        bitmap = wxBitmap(scaled);
-    }
-}
-
-void RenderableEffect::initBitmaps(const char **data16,
-                                   const char **data24,
-                                   const char **data32,
-                                   const char **data48,
-                                   const char **data64) {
-    wxVector<wxBitmap> bitmaps;
-    wxImage image(data16);
-    if (image.GetHeight() != 16) {
-        wxImage scaled = image.Scale(16, 16, wxIMAGE_QUALITY_HIGH);
-        bitmaps.push_back(wxBitmap(scaled));
-    } else {
-        bitmaps.push_back(wxBitmap(image));
-    }
-    image = wxImage(data24);
-    if (image.GetHeight() != 24) {
-        wxImage scaled = image.Scale(24, 24, wxIMAGE_QUALITY_HIGH);
-        bitmaps.push_back(wxBitmap(scaled));
-    } else {
-        bitmaps.push_back(wxBitmap(image));
-    }
-    image = wxImage(data32);
-    if (image.GetHeight() != 32) {
-        wxImage scaled = image.Scale(32, 32, wxIMAGE_QUALITY_HIGH);
-        bitmaps.push_back(wxBitmap(scaled));
-    } else {
-        bitmaps.push_back(wxBitmap(image));
-    }
-    image = wxImage(data48);
-    if (image.GetHeight() != 48) {
-        wxImage scaled = image.Scale(48, 48, wxIMAGE_QUALITY_HIGH);
-        bitmaps.push_back(wxBitmap(scaled));
-    } else {
-        bitmaps.push_back(wxBitmap(image));
-    }
-    image = wxImage(data64);
-    if (image.GetHeight() != 64) {
-        wxImage scaled = image.Scale(64, 64, wxIMAGE_QUALITY_HIGH);
-        bitmaps.push_back(wxBitmap(scaled));
-        if (image.GetHeight() > 64) {
-            bitmaps.push_back(wxBitmap(image));
-        }
-    } else {
-        bitmaps.push_back(wxBitmap(image));
-    }
-    icon16 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 16, bitmaps));
-    icon24 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 24, bitmaps));
-    icon32 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 32, bitmaps));
-    icon48 = wxBitmapBundle::FromImpl(new xlNamedBitmapBundleImpl(name, 48, bitmaps));
-}
 
 // return true if version string is older than compare string
 bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::string& version)
@@ -184,7 +96,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             vc.SetDivisor(10);
             vc.Deserialise(rzRotations);
             sm["B_VALUECURVE_Rotations"] = vc.Serialise();
-            wxASSERT(vc.IsRealValue());
+            assert(vc.IsRealValue());
         }
 
         std::string rzZoom = sm.Get("B_VALUECURVE_Zoom", "");
@@ -195,7 +107,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             vc.SetDivisor(10);
             vc.Deserialise(rzZoom);
             sm["B_VALUECURVE_Zoom"] = vc.Serialise();
-            wxASSERT(vc.IsRealValue());
+            assert(vc.IsRealValue());
         }
 
         if (IsVersionOlder("2018.50", version))
@@ -215,7 +127,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     vc.SetDivisor(1);
                     vc.Deserialise(vs);
                     sm[s] = vc.Serialise();
-                    wxASSERT(vc.IsRealValue());
+                    assert(vc.IsRealValue());
                 }
                 else if (Contains(vs, "ID_VALUECURVE_Fan_Blade_Angle"))
                 {
@@ -224,7 +136,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     vc.SetDivisor(1);
                     vc.Deserialise(vs);
                     sm[s] = vc.Serialise();
-                    wxASSERT(vc.IsRealValue());
+                    assert(vc.IsRealValue());
                 }
                 else if (Contains(vs, "ID_VALUECURVE_Spirals_Rotation"))
                 {
@@ -233,7 +145,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
                     vc.Deserialise(vs);
                     sm[s] = vc.Serialise();
-                    wxASSERT(vc.IsRealValue());
+                    assert(vc.IsRealValue());
                 }
                 else if (Contains(vs, "ID_VALUECURVE_Fan_Start_Angle"))
                 {
@@ -241,7 +153,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
                     vc.Deserialise(vs);
                     sm[s] = vc.Serialise();
-                    wxASSERT(vc.IsRealValue());
+                    assert(vc.IsRealValue());
                 }
                 else if (Contains(vs, "ID_VALUECURVE_PinwheelXC"))
                 {
@@ -249,7 +161,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
                     vc.Deserialise(vs);
                     sm[s] = vc.Serialise();
-                    wxASSERT(vc.IsRealValue());
+                    assert(vc.IsRealValue());
                 }
                 else if (Contains(vs, "ID_VALUECURVE_PinwheelYC"))
                 {
@@ -257,7 +169,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
                     vc.Deserialise(vs);
                     sm[s] = vc.Serialise();
-                    wxASSERT(vc.IsRealValue());
+                    assert(vc.IsRealValue());
                 }
                 else if (Contains(vs, "ID_VALUECURVE_Spirals_Count"))
                 {
@@ -265,7 +177,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
                     vc.Deserialise(vs);
                     sm[s] = vc.Serialise();
-                    wxASSERT(vc.IsRealValue());
+                    assert(vc.IsRealValue());
                 }
             }
 

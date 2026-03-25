@@ -227,21 +227,12 @@ public:
     wxBitmap lastBitmap;
 };
 
-static std::list<std::string> NAMED;
 
 xlNamedBitmapBundleImpl::xlNamedBitmapBundleImpl(const std::string &n, int i, const wxVector<wxBitmap>& b) : name(n), size(i, i), bitmaps(b) {
-    NAMED.push_back(name);
 }
 xlNamedBitmapBundleImpl::xlNamedBitmapBundleImpl(const std::string &n, const wxSize &sz, const wxVector<wxBitmap>& b) : name(n), size(sz), bitmaps(b)  {
-    NAMED.push_back(name);
 }
 xlNamedBitmapBundleImpl::~xlNamedBitmapBundleImpl() {
-    const auto &idx = std::find(NAMED.begin(), NAMED.end(), name);
-    if (idx == NAMED.end()) {
-        printf("Not found\n");
-    } else {
-        NAMED.erase(idx);
-    }
 }
 
 
