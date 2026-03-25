@@ -10,7 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/file.h>
 #include <vector>
 #include <glm/glm.hpp>
 #include "../../graphics/tiny_obj_loader.h"

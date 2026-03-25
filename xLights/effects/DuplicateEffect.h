@@ -11,7 +11,6 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include <wx/string.h>
 
 class DuplicateEffect : public RenderableEffect
 {

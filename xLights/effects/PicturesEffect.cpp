@@ -12,8 +12,6 @@
 #include <filesystem>
 #include <format>
 
-#include <wx/regex.h>
-#include <wx/tokenzr.h>
 #include <wx/gifdecod.h>
 #include <wx/image.h>
 

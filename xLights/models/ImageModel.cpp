@@ -426,9 +426,9 @@ std::list<std::string> ImageModel::CheckModelSettings()
 {
     std::list<std::string> res;
 
-    if (_imageFile == "" || !wxFile::Exists(_imageFile)) {
+    if (_imageFile == "" || !FileExists(_imageFile)) {
         res.push_back(std::format("    ERR: Image model '{}' cant find image file '{}'", GetName(), _imageFile));
-    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
+    } else if (!wxImage::CanRead(_imageFile)) {
         res.push_back(std::format("    ERR: Image model '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {

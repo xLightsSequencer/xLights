@@ -19,7 +19,6 @@
 #define PICTURES_YC_MAX 100
 
 #include <string>
-class wxFile;
 
 class PicturesEffect : public RenderableEffect
 {

@@ -36,12 +36,13 @@
 #endif
 
 #include <cassert>
+#include <chrono>
 #include <mutex>
 #include "FX.h"
 
 #ifdef XLIGHTS_FX
 #define boolean bool
-#define GET_MILLIS() ((uint32_t) wxGetLocalTimeMillis().GetLo())
+#define GET_MILLIS() ((uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()))
 #define max std::max
 #define min std::min
 
@@ -508,12 +509,12 @@ uint8_t DecodePalette(const std::string& palette)
         std::unique_lock lk(mtx);
 
         if (palettes.size() == 0) {
-            wxString names = JSON_palette_names;
-            names.Replace("\n", "");
-            names.Replace("\"", "");
-            names.Replace("[", "");
-            names.Replace("]", "");
-            palettes = Split(names.ToStdString(), ',');
+            std::string names = JSON_palette_names;
+            std::erase(names, '\n');
+            std::erase(names, '"');
+            std::erase(names, '[');
+            std::erase(names, ']');
+            palettes = Split(names, ',');
         }
     }
 

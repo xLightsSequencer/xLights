@@ -18,7 +18,6 @@
 
 #include "../render/SequenceElements.h"
 #include "../utils/string_utils.h"
-#include <wx/filepicker.h>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"

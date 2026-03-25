@@ -152,7 +152,7 @@ std::list<std::string> ImageObject::CheckModelSettings()
 
     if (_imageFile == "" || !FileExists(_imageFile)) {
         res.push_back(std::format("    ERR: Image object '{}' cant find image file '{}'", GetName(), _imageFile));
-    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
+    } else if (!wxImage::CanRead(_imageFile)) {
         res.push_back(std::format("    ERR: Image object '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {

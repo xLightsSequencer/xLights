@@ -18,7 +18,6 @@ class DmxColorAbility;
 class DmxDimmerAbility;
 class DmxPresetAbility;
 class DmxShutterAbility;
-class wxFile;
 
 class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
