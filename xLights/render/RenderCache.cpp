@@ -846,7 +846,7 @@ void RenderCacheItem::Save()
     for (const auto& itm : _frames) {
         for (const auto& it : itm.second) {
             // we are missing data
-            //wxASSERT(false);
+            //assert(false);
             if (it == nullptr) return;
         }
     }

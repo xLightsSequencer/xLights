@@ -18,7 +18,6 @@
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
 #include <log.h>
-#include <wx/tokenzr.h>
 #include "utils/xlPoint.h"
 #include <cassert>
 #include <cstdlib>

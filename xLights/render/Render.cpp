@@ -12,7 +12,9 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <mutex>
+#include <thread>
 #include <condition_variable>
 #include <map>
 #include <memory>
@@ -341,24 +343,18 @@ public:
         if ((debug && logLevel == spdlog::level::debug) ||
             (info && logLevel == spdlog::level::info))
         {
-            m_logger->log((spdlog::level::level_enum)logLevel, GetwxStatus().ToStdString());
+            m_logger->log((spdlog::level::level_enum)logLevel, GetStatusString());
         }
     }
 
-    void SetGenericStatus(const wxString &msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
+    void SetGenericStatus(const std::string &msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
         statusType = includeStatusMap ? 8 : 4;
         statusMsg = msg;
         statusFrame = frame;
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
-    void SetGenericStatus(const char *msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
-        statusType = includeStatusMap ? 10 : 6;
-        statusMsgChars = msg;
-        statusFrame = frame;
-        LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
-    }
-    void SetGenericStatus(const wxString &msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
+    void SetGenericStatus(const std::string &msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
         statusType = includeStatusMap ? 9 : 5;
         statusMsg = msg;
         statusFrame = frame;
@@ -366,23 +362,9 @@ public:
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
-    void SetGenericStatus(const char *msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
-        statusType = includeStatusMap ? 11 : 7;
-        statusMsgChars = msg;
-        statusFrame = frame;
-        statusLayer = layer;
-        LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
-    }
-
-    wxString PctSafe(const wxString& s) {
-        wxString res(s);
-        res.Replace("%", "%%");
-        return res;
-    }
-
-    wxString PrintStatusMap() {
+    std::string PrintStatusMap() {
         if (statusMap == nullptr) return "";
-        return PctSafe(statusMap->AsString());
+        return statusMap->AsString();
     }
 
     void SetRenderingStatus(int frame, SettingsMap*map, int layer, int submodel, int strand, int node, bool debugLog = false) {
@@ -418,23 +400,17 @@ public:
         statusType = 13;
         statusFrame = frame;
     }
-    void SetStatus(const wxString &st, bool debugLog = false) {
+    void SetStatus(const std::string &st, bool debugLog = false) {
         statusMsg = st;
         statusType = 0;
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
-    void SetStatus(const char *st, bool debugLog = false) {
-        statusMsgChars = st;
-        statusType = 12;
-        LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
-    }
-
     std::string GetStatus() override {
-        return GetwxStatus().ToStdString();
+        return GetStatusString();
     }
 
-    wxString GetStatusForUser()
+    std::string GetStatusForUser()
     {
         int lastIdx = 0;
         int submodel = -1;
@@ -444,69 +420,64 @@ public:
         Effect* effect = findEffectForFrame(this->statusLayer, GetCurrentFrame(), submodel, lastIdx);
 
         if (effect != nullptr) {
-            std::string mname = "";
+            std::string mname;
             if (submodel >= 0) {
                 mname = "Submodel: " + subModelInfos[submodel]->element->GetName() + " ";
             }
-            return wxString::Format("%sEffect: %s Start: %s End %s", mname.c_str(), effect->GetEffectName().c_str(),
-                                    FORMATTIME(effect->GetStartTimeMS()), FORMATTIME(effect->GetEndTimeMS()));
+            return std::format("{}Effect: {} Start: {} End {}", mname, effect->GetEffectName(),
+                               FORMATTIME(effect->GetStartTimeMS()), FORMATTIME(effect->GetEndTimeMS()));
         }
         if (statusType == 13) {
-            return wxString::Format("Waiting to start frame %d", statusFrame);
+            return std::format("Waiting to start frame {}", (int)statusFrame);
         }
 
         return "";
     }
 
-    wxString GetwxStatus() {
-        std::string n = (statusSubmodel == -1 || statusSubmodel >= subModelInfos.size()) ? name : subModelInfos[statusSubmodel]->element->GetFullName();
+    std::string GetStatusString() {
+        int frame = statusFrame;
+        int layer = statusLayer;
+        int strand = statusStrand;
+        int node = statusNode;
+        int submodel = statusSubmodel;
+        std::string n = (submodel == -1 || submodel >= (int)subModelInfos.size()) ? name : subModelInfos[submodel]->element->GetFullName();
         switch (statusType) {
         case 0:
             return statusMsg;
         case 1:
-            if (statusStrand == -1) {
-                return wxString::Format("Initializing effect at frame %d for %s, layer %d", statusFrame, n, statusLayer);
-            } else if (statusNode == -1) {
-                return wxString::Format("Initializing strand effect at frame %d for %s, strand %d", statusFrame, n, statusStrand);
+            if (strand == -1) {
+                return std::format("Initializing effect at frame {} for {}, layer {}", frame, n, layer);
+            } else if (node == -1) {
+                return std::format("Initializing strand effect at frame {} for {}, strand {}", frame, n, strand);
             } else {
-                return wxString::Format("Initializing node effect at frame %d for %s, strand %d, node %d", statusFrame, n, statusStrand, statusNode);
+                return std::format("Initializing node effect at frame {} for {}, strand {}, node {}", frame, n, strand, node);
             }
         case 2:
-            if (statusStrand == -1) {
-                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d: ", statusFrame, n, statusLayer) + PrintStatusMap();
-            } else if (statusNode == -1) {
-                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d: ", statusFrame, n, statusStrand) + PrintStatusMap();
+            if (strand == -1) {
+                return std::format("Rendering layer effect for frame {} of {}, layer {}: ", frame, n, layer) + PrintStatusMap();
+            } else if (node == -1) {
+                return std::format("Rendering strand effect for frame {} of {}, strand {}: ", frame, n, strand) + PrintStatusMap();
             } else {
-                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d: ", statusFrame, n, statusLayer, statusNode) + PrintStatusMap();
+                return std::format("Rendering node effect for frame {} of {}, strand {}, node {}: ", frame, n, layer, node) + PrintStatusMap();
             }
         case 3:
-            if (statusStrand == -1) {
-                return wxString::Format("Calculating output at frame %d for %s: ", statusFrame, n) + PrintStatusMap();
-            } else if (statusNode == -1) {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d: ", statusFrame, n, statusStrand) + PrintStatusMap();
+            if (strand == -1) {
+                return std::format("Calculating output at frame {} for {}: ", frame, n) + PrintStatusMap();
+            } else if (node == -1) {
+                return std::format("Calculating output at frame {} for {}, strand {}: ", frame, n, strand) + PrintStatusMap();
             } else {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d: ", statusFrame, n, statusStrand, statusNode) + PrintStatusMap();
+                return std::format("Calculating output at frame {} for {}, strand {}, node {}: ", frame, n, strand, node) + PrintStatusMap();
             }
         case 4:
-            return wxString::Format(statusMsg, name, statusFrame);
+            return std::vformat(statusMsg, std::make_format_args(name, frame));
         case 5:
-            return wxString::Format(statusMsg, name, statusFrame, statusLayer);
-        case 6:
-            return wxString::Format(statusMsgChars, name, statusFrame);
-        case 7:
-            return wxString::Format(statusMsgChars, name, statusFrame, statusLayer);
+            return std::vformat(statusMsg, std::make_format_args(name, frame, layer));
         case 8:
-            return wxString::Format(statusMsg, name, statusFrame) + PrintStatusMap();
+            return std::vformat(statusMsg, std::make_format_args(name, frame)) + PrintStatusMap();
         case 9:
-            return wxString::Format(statusMsg, name, statusFrame, statusLayer) + PrintStatusMap();
-        case 10:
-            return wxString::Format(statusMsgChars, name, statusFrame) + PrintStatusMap();
-        case 11:
-            return wxString::Format(statusMsgChars, name, statusFrame, statusLayer) + PrintStatusMap();
-        case 12:
-            return statusMsgChars;
+            return std::vformat(statusMsg, std::make_format_args(name, frame, layer)) + PrintStatusMap();
         case 13:
-            return wxString::Format("Waiting to start frame %d for %s", statusFrame, n);
+            return std::format("Waiting to start frame {} for {}", frame, n);
         }
         return statusMsg;
     }
@@ -776,15 +747,17 @@ public:
         if (frame >= maxFrameBeforeCheck) {
             SetWaitingStatus(frame);
             maxFrameBeforeCheck = waitForFrame(frame);
-            SetGenericStatus("%s: Processing frame %d ", frame, true, true);
+            SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
     }
     virtual void Process() override {
         
         auto logger_jobpool = spdlog::get("job");
-        logger_jobpool->debug("Render job thread id {0:x} or  {0:d}", wxThread::GetCurrentId(), wxThread::GetCurrentId());
+        // Log the thread ID as a hash value
+        size_t tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        logger_jobpool->debug("Render job thread id {0:x} or {0:d}", tid);
 
-        SetGenericStatus("Initializing rendering thread for %s", 0);
+        SetGenericStatus("Initializing rendering thread for {}", 0);
         int origChangeCount;
         int ss, es;
 
@@ -796,7 +769,7 @@ public:
             currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
             return;
         }
-        SetGenericStatus("Got lock on rendering thread for %s", 0);
+        SetGenericStatus("Got lock on rendering thread for {}", 0);
 
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
         if (ss != -1) {
@@ -828,18 +801,18 @@ public:
         try {
             //for (int layer = 0; layer < numLayers; ++layer) {
             for (int layer = numLayers - 1; layer >= 0; --layer) {
-                SetGenericStatus("Finding starting effect for %s, startFrame %d, and layer %d ", (int)startFrame, layer, false, true);
+                SetGenericStatus("Finding starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
                 EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
                 std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
                 mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
-                SetGenericStatus("Initializing starting effect for %s, startFrame %d, and layer %d ", (int)startFrame, layer, false, true);
+                SetGenericStatus("Initializing starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
                 mainModelInfo.effectStates[layer] = true;
             }
 
             for (int frame = startFrame; frame <= endFrame; ++frame) {
                 currentFrame = frame;
-                SetGenericStatus("%s: Starting frame %d ", frame, true, true);
+                SetGenericStatus("{}: Starting frame {} ", frame, true, true);
 
                 if (abort) {
                     rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
@@ -925,11 +898,11 @@ public:
                 }
                 //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
                 if (HasNext()) {
-                    SetGenericStatus("%s: Notifying next renderer of frame %d done", frame, true);
+                    SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
                     FrameDone(frame);
                 }
             }
-            SetGenericStatus("%s: All done - Completed frame %d ", endFrame, true, false);
+            SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
         } catch ( std::exception &ex) {
             assert(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
@@ -944,14 +917,14 @@ public:
         if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
-            SetGenericStatus("%s: Waiting on previous renderer for final frame", 0, true);
+            SetGenericStatus("{}: Waiting on previous renderer for final frame", 0, true);
             waitForFrame(END_OF_RENDER_FRAME);
 
             //let the next know we're done
-            SetGenericStatus("%s: Notifying next renderer of final frame", 0, true);
+            SetGenericStatus("{}: Notifying next renderer of final frame", 0, true);
             FrameDone(END_OF_RENDER_FRAME);
-            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering \"" + rowToRender->GetModelName() + "\""), 0);
-            SetGenericStatus("%s: All done - Completed frame %d ", endFrame, true, false);
+            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering \"" + rowToRender->GetModelName() + "\""), 0); // wxString needed for CallAfter
+            SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
@@ -1057,8 +1030,7 @@ private:
     RenderEvent renderEvent;
 
     //stuff for handling the status;
-    wxString statusMsg;
-    const char *statusMsgChars;
+    std::string statusMsg;
     volatile int statusType;
     volatile int statusFrame;
     SettingsMap *statusMap;
@@ -1177,7 +1149,7 @@ void xLightsFrame::LogRenderStatus()
 
                 auto row = job->GetModelElement();
                 if (row != nullptr) {
-                    bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
+                    bool blocked = job->GetStatusString().starts_with("Initializing rendering thread");
                     if (blocked || row->GetWaitCount()) {
                         spdlog::debug("             Element {}, Blocked {}, Wait Count {}.",
                                           (const char *)row->GetModelName().c_str(), blocked,
@@ -1965,8 +1937,8 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
         spdlog::info("   Effects done.");
         ProgressBar->SetValue(100);
         float elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
-        wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
-        CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
+        std::string displayBuff = std::format("Rendered in {:7.3f} seconds", elapsedTime);
+        CallAfter(&xLightsFrame::SetStatusText, wxString(displayBuff), 0);
         mRendering = false;
         EnableSequenceControls(true);
         ProgressBar->Hide();
@@ -2004,7 +1976,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     }
     std::string fullpath;
 
-    SetStatusText(wxString::Format("Starting Export for %s - %s", wxString(format), wxString(Out3)));
+    SetStatusText(std::format("Starting Export for {} - {}", format, Out3));
     wxYield();
 
     NextRenderer wait;
@@ -2093,7 +2065,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     }
     float s = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
     s /= 1000;
-    SetStatusText(wxString::Format("Finished writing model: %s in %0.3fs ", wxString(fullpath), s));
+    SetStatusText(std::format("Finished writing model: {} in {:.3f}s ", fullpath, s));
 
     delete data;
     EnableSequenceControls(true);
@@ -2131,10 +2103,10 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
     dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {
-        wxString filename = dialog.TextCtrlFilename->GetValue();
+        std::string filename = dialog.TextCtrlFilename->GetValue().ToStdString();
         ObtainAccessToURL(filename);
         EnableSequenceControls(false);
-        wxString format = dialog.ChoiceFormat->GetStringSelection();
+        std::string format = dialog.ChoiceFormat->GetStringSelection().ToStdString();
 
         DoExportModel(startFrame, endFrame, model, filename, format, command.GetInt() == 1);
     }
@@ -2252,7 +2224,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                         //dispatch thread never being able to empty the CallAfter
                         //queue and thus effectively blocking.   We'll yield periodically to
                         //allow the main thread to hopefully continue
-                        wxThread::Yield();
+                        std::this_thread::yield();
 
                         // After yield who knows what may or may not be valid so we need to revalidate it
                         if (!_sequenceElements.IsValidEffect(event->effect)) {
