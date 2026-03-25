@@ -350,14 +350,14 @@ int DoXLDoCommands(int argc, char **argv) {
 
             if (parser.Found("i", &ip)) {
                 if (verbose) {
-                    spdlog::info("Connecting to xLights on ip: %s." , ip.ToStdString());
+                    spdlog::info("Connecting to xLights on ip: {}.", ip.ToStdString());
                     //fprintf(stderr, "\u001b[36;1mConnecting to xLights on ip: %s.\u001b[0m\n", (const char*)ip.c_str());
                 }
             }
 
             if (parser.Found("s", &script)) {
                 if (verbose) {
-                    spdlog::info("Creating script: %s.", script.ToStdString());
+                    spdlog::info("Creating script: {}.", script.ToStdString());
                     //fprintf(stderr, "\u001b[36;1mCreating script: %s.\u001b[0m\n", (const char*)script.c_str());
                 }
             }
@@ -369,13 +369,13 @@ int DoXLDoCommands(int argc, char **argv) {
 
             if (parser.Found("t", &templateFile)) {
                 if (verbose) {
-                    spdlog::info("Template file: %s.", templateFile.ToStdString());
+                    spdlog::info("Template file: {}.", templateFile.ToStdString());
                     //fprintf(stderr, "\u001b[36;1mTemplate file: %s.\u001b[0m\n", (const char*)templateFile.c_str());
                 }
             }
             else if (parser.Found("c", &command)) {
                 if (verbose) {
-                    spdlog::info("Command: %s.", command.ToStdString());
+                    spdlog::info("Command: {}.", command.ToStdString());
                     //fprintf(stderr, "\u001b[36;1mCommand: %s.\u001b[0m\n", (const char*)command.c_str());
                 }
             } else {
