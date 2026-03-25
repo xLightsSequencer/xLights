@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include <filesystem>
-#include <wx/stdpaths.h>
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -69,16 +68,7 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
     DisplayAs = DisplayAsType::DmxMovingHeadAdv;
-    wxStandardPaths stdp = wxStandardPaths::Get();
-#ifndef __WXMSW__
-    obj_path = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/meshobjects/SimpleMovingHead/";
-#else
-#ifdef _DEBUG
-    obj_path = std::filesystem::path(stdp.GetExecutablePath().ToStdString()).parent_path().string() + "/../../../meshobjects/SimpleMovingHead/";
-#else
-    obj_path = std::filesystem::path(stdp.GetExecutablePath().ToStdString()).parent_path().string() + "/meshobjects/SimpleMovingHead/";
-#endif
-#endif
+    obj_path = GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
     color_ability = std::make_unique<DmxColorAbilityRGB>();
     dimmer_ability = std::make_unique<DmxDimmerAbility>();
     shutter_ability = std::make_unique<DmxShutterAbility>();

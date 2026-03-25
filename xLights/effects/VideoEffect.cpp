@@ -453,9 +453,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     int startx = (buffer.BufferWi - _videoreader->GetWidth() * (cropRight - cropLeft) / 100) / 2;
                     int starty = (buffer.BufferHt - _videoreader->GetHeight() * (cropTop - cropBottom) / 100) / 2;
 
-                    // wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
-                    // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
-
                     ispc::VideoData rdata;
                     rdata.width = _videoreader->GetWidth() - xoffset - xtail;
                     rdata.height = _videoreader->GetHeight() - yoffset - ytail;
@@ -501,9 +498,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     int yoffset = cropBottom * _videoreader->GetHeight() / 100;
                     int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
                     int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
-
-                    // wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
-                    // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
                     ispc::VideoData rdata;
                     rdata.width = buffer.BufferWi;

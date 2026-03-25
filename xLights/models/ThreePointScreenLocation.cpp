@@ -56,10 +56,6 @@ CursorType ThreePointScreenLocation::InitializeLocation(int &handle, int x, int 
 
 void ThreePointScreenLocation::Init() {
     TwoPointScreenLocation::Init();
-    /*height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
-    angle = wxAtoi(node->GetAttribute("Angle", "0"));
-    shear = wxAtof(node->GetAttribute("Shear", "0.0"));
-    rotatex = wxAtof(node->GetAttribute("RotateX", "0"));*/
 }
 
 std::string ThreePointScreenLocation::GetDimension(float factor) const

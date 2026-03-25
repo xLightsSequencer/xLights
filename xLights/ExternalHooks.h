@@ -26,6 +26,7 @@
 
 #ifndef __XL_EXTERNAL_HOOKS__
 
+#include <filesystem>
 #include <string>
 #include <list>
 
@@ -33,6 +34,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/dir.h>
+#include <wx/stdpaths.h>
 #include <wx/button.h>
 #include "Color.h"
 
@@ -70,6 +72,13 @@ inline void SetButtonBackground(wxButton* b, const wxColour& c, int bgType)
 {
     b->SetBackgroundColour(c);
     b->Refresh();
+}
+inline std::string GetResourcesDir() {
+#ifdef __WXMSW__
+    return std::filesystem::path(wxStandardPaths::Get().GetExecutablePath().ToStdString()).parent_path().string();
+#else
+    return wxStandardPaths::Get().GetResourcesDir().ToStdString();
+#endif
 }
 inline void MarkNewFileRevision(const std::string &path, int retainMax = 15) {}
 inline std::list<std::string> GetFileRevisions(const std::string &path) { return std::list<std::string>(); }

@@ -36,6 +36,7 @@
 #include "../ExternalHooks.h"
 #include "../render/SequenceFile.h"
 #include "../utils/string_utils.h"
+#include "../utils/xlRect.h"
 #include "../utils/xlSize.h"
 
 #include "../../include/text-16.xpm"
@@ -580,7 +581,7 @@ xlSize GetMultiLineTextExtent(TextDrawingContext *dc,
 class CachedTextInfo {
 public:
     CachedTextInfo() {}
-    CachedTextInfo(const std::string &txt, const std::string font, const std::vector<xlColor> &c, const wxRect &r)
+    CachedTextInfo(const std::string &txt, const std::string font, const std::vector<xlColor> &c, const xlRect &r)
     : text(txt), rect(r), color(c), fontString(font) {}
     ~CachedTextInfo() {}
     
@@ -592,7 +593,7 @@ public:
     }
     
     std::string text;
-    wxRect rect;
+    xlRect rect;
     std::vector<xlColor> color;
     std::string fontString;
 };
@@ -667,7 +668,7 @@ xlSize GetMultiLineTextExtent(TextDrawingContext *dc,
 
 void DrawLabel(TextDrawingContext *dc,
                const std::string& text,
-               const wxRect& rect,
+               const xlRect& rect,
                int alignment,
                TextRenderCache *cache,
                const std::string &fontString,
@@ -935,7 +936,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
 
     if (TextRotation == 0.0)
     {
-        wxRect rect(0,0,buffer.BufferWi,buffer.BufferHt);
+        xlRect rect(0,0,buffer.BufferWi,buffer.BufferHt);
         switch (dir)
         {
             case TEXTDIR_VECTOR: {

@@ -15,7 +15,6 @@
 #include <string_view>
 #include <regex>
 #include <wx/sstream.h>
-#include <wx/stdpaths.h>
 #include <wx/mstream.h>
 #include <wx/wfstream.h>
 #include <wx/wx.h>
@@ -3868,7 +3867,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                         wxURI mappingJson("https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/model_vendor_mapping.json");
                         std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
                         if (json == "") {
-                            json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";
+                            json = GetResourcesDir() + "/model_vendor_mapping.json";
                         }
                         if (json != "" && !FileExists(json)) {
                             json = "";

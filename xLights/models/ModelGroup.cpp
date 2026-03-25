@@ -16,6 +16,7 @@
 #include "ModelScreenLocation.h"
 #include "../UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
+#include "../utils/ThreadUtils.h"
 
 #include <log.h>
 
@@ -933,7 +934,7 @@ bool ModelGroup::CheckForChanges() const {
     }
 
     if (l != changeCount) {
-        if (!wxThread::IsMain()) {
+        if (!IsMainThread()) {
             //calling reset on any thread other than the main thread is bad.  In theory, any changes to the group/model
             //would only be done on the main thread after an abortRender call so we shouldn't get here, but we are
             //seeing stack traces in crash reports that show otherwise so likely some abortRender calls are missing.

@@ -10,7 +10,6 @@
 
 #include <filesystem>
 #include <format>
-#include <wx/stdpaths.h>
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -33,12 +32,7 @@ DmxSkull::DmxSkull(const ModelManager& manager) :
     DisplayAs = DisplayAsType::DmxSkull;
     color_ability = std::make_unique<DmxColorAbilityRGB>();
 
-    wxStandardPaths stdp = wxStandardPaths::Get();
-#ifndef __WXMSW__
-    obj_path = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/meshobjects/Skull/";
-#else
-    obj_path = std::filesystem::path(stdp.GetExecutablePath().ToStdString()).parent_path().string() + "/meshobjects/Skull/";
-#endif
+    obj_path = GetResourcesDir() + "/meshobjects/Skull/";
 
     default_channels[JAW] = 1;
     default_channels[PAN] = 3;
