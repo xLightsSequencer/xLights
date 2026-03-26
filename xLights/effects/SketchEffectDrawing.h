@@ -9,14 +9,46 @@
 
 #include "../ui/effectpanels/assist/SketchCanvasPanel.h"
 
-class wxGraphicsContext;
-class wxGraphicsPath;
+// A single sub-path: a starting point followed by cubic bezier segments.
+// cubics stores groups of 6 floats: [cpx1,cpy1, cpx2,cpy2, x1,y1, ...]
+struct SketchSubPath {
+    float startX = 0;
+    float startY = 0;
+    std::vector<float> cubics;
+};
+
+// Collection of sub-paths emitted by Draw methods.
+struct SketchPathData {
+    std::vector<SketchSubPath> subPaths;
+
+    void moveTo(float x, float y) {
+        subPaths.push_back({x, y, {}});
+    }
+    void cubicTo(float cp1x, float cp1y, float cp2x, float cp2y, float ex, float ey) {
+        if (subPaths.empty()) subPaths.push_back({0, 0, {}});
+        auto& c = subPaths.back().cubics;
+        c.push_back(cp1x); c.push_back(cp1y);
+        c.push_back(cp2x); c.push_back(cp2y);
+        c.push_back(ex);   c.push_back(ey);
+    }
+    // Emit a line as a degenerate cubic (cp1=from, cp2=to)
+    void lineTo(float fromX, float fromY, float toX, float toY) {
+        cubicTo(fromX, fromY, toX, toY, toX, toY);
+    }
+    void append(const SketchPathData& other) {
+        subPaths.insert(subPaths.end(), other.subPaths.begin(), other.subPaths.end());
+    }
+    bool empty() const {
+        return subPaths.empty();
+    }
+};
 
 // A segment can currently be either a line segment (start and end point)
 // or a quadratic-bezier segment (start and end point with one control point)
 // or a cubic-bezier segment (start and end point with two control points).
 //
-// Coordinates are normalized to [0,1] and scaled for drawing in the Draw*() methods
+// Coordinates are normalized to [0,1] and scaled for drawing in the Draw*() methods.
+// Draw methods emit cubic bezier data into a SketchPathData structure.
 class SketchPathSegment
 {
 public:
@@ -27,8 +59,8 @@ public:
     virtual void SetStartPoint(const xlPointD& pt) = 0;
     [[nodiscard]] virtual xlPointD EndPoint() const = 0;
     virtual void SetEndPoint(const xlPointD& pt) = 0;
-    virtual void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const = 0;
-    virtual void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    virtual void DrawEntireSegment(SketchPathData& pathData, int w, int h) const = 0;
+    virtual void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                                     std::optional<double> startPercentage,
                                     double endPercentage) const = 0;
     [[nodiscard]] virtual bool HitTest(const xlPointD& pt) const = 0;
@@ -37,7 +69,9 @@ public:
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
-// the path can be closed to potentially represent a polygon
+// the path can be closed to potentially represent a polygon.
+// collectEntirePath/collectPartialPath emit cubic bezier points in nanosvg format
+// into a float vector. The first two floats are the initial moveTo point.
 class SketchEffectPath
 {
 public:
@@ -47,13 +81,11 @@ public:
 
     void appendSegment(std::shared_ptr<SketchPathSegment> cmd);
     void closePath(bool updateSegments, SketchCanvasPathState state);
-    void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const;
-    void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
+    void collectEntirePath(SketchPathData& pathData, int w, int h) const;
+    void collectPartialPath(SketchPathData& pathData, int w, int h,
                          std::optional<double> startPercentage,
                          double endPercentage) const;
     void reversePath();
-
-    //virtual void getProgressPosition( double progress, double& x, double& y ) = 0;
 
     [[nodiscard]] const std::vector<std::shared_ptr<SketchPathSegment>>& segments() const
     {
@@ -103,7 +135,7 @@ public:
     void reversePath(int pathIndex);
     void deletePath(int pathIndex);
     void swapPaths(int pathIndex0, int pathIndex1);
-    
+
     void getProgressPosition( double progress, double& x, double& y );
     [[nodiscard]] double getLength();
 
@@ -138,8 +170,8 @@ public:
     {
         m_toPt = pt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    void DrawEntireSegment(SketchPathData& pathData, int w, int h) const override;
+    void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
     bool HitTest(const xlPointD& pt) const override;
@@ -179,8 +211,8 @@ public:
     {
         m_toPt = pt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    void DrawEntireSegment(SketchPathData& pathData, int w, int h) const override;
+    void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
     bool HitTest(const xlPointD& pt) const override;
@@ -232,8 +264,8 @@ public:
     {
         m_toPt = pt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    void DrawEntireSegment(SketchPathData& pathData, int w, int h) const override;
+    void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
     [[nodiscard]] bool HitTest(const xlPointD& pt) const override;

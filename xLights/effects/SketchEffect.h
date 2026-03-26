@@ -12,15 +12,13 @@
 
 #include "RenderableEffect.h"
 
-class wxImage;
-
 class SketchAssistPanel;
 class SketchEffectSketch;
 class SketchPanel;
 
 class SketchEffect : public RenderableEffect
 {
-public: 
+public:
     SketchEffect( int id );
     virtual ~SketchEffect();
 
@@ -43,7 +41,7 @@ protected:
     void RemoveDefaults( const std::string& version, Effect* effect ) override;
 
     void renderSketch(const SketchEffectSketch& sketch,
-                      wxImage& img, double progress,
+                      RenderBuffer& buffer, double progress,
                       double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage,
                       const xlColorVector& colors);
 
