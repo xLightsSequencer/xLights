@@ -7,6 +7,7 @@ class BulkEditCheckBox;
 class BulkEditSlider;
 class BulkEditTextCtrl;
 class BulkEditValueCurveButton;
+class MediaPickerCtrl;
 class SketchAssistPanel;
 
 class wxFilePickerCtrl;
@@ -95,4 +96,5 @@ private:
     void updateSketchAssist(SketchAssistPanel* panel);
     void updateSketchAssistBackground() const;
     mutable SketchAssistPanel* m_sketchAssistPanel = nullptr;
+    MediaPickerCtrl* _mediaPicker = nullptr;
 };

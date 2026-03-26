@@ -821,6 +821,9 @@
     <ClCompile Include="utils\Curl.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="ui\MediaPickerCtrl.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
     <ClCompile Include="ui\wxUtilities.cpp">
       <Filter>ui</Filter>
     </ClCompile>
@@ -2260,6 +2263,9 @@
     <ClInclude Include="MetronomeLabelDialog.h" />
     <ClInclude Include="utils\CurlManager.h">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\MediaPickerCtrl.h">
+      <Filter>ui</Filter>
     </ClInclude>
     <ClInclude Include="ui\wxUtilities.h">
       <Filter>ui</Filter>

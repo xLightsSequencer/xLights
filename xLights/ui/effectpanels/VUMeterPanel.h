@@ -25,6 +25,8 @@ class wxTextCtrl;
 #include "../../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
+class MediaPickerCtrl;
+
 class VUMeterPanel: public xlEffectPanel
 {
 	public:
@@ -34,6 +36,8 @@ class VUMeterPanel: public xlEffectPanel
 		virtual void ValidateWindow() override;
 		virtual void SetDefaultParameters() override;
 		virtual void SetPanelStatus(Model* cls) override;
+
+		MediaPickerCtrl* _mediaPicker = nullptr;
 
 		//(*Declarations(VUMeterPanel)
 		BulkEditCheckBox* CheckBox_LogarithmicXAxis;

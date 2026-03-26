@@ -17,6 +17,7 @@
 #include "../utils/xlPoint.h"
 #include "../AudioManager.h"
 #include "../render/SequenceElements.h"
+#include "../render/SequenceMedia.h"
 #include "../xLightsMain.h"
 
 #include "../render/Effect.h"
@@ -176,11 +177,19 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVGFile", "");
 
-        if (svgFilename == "" || !FileExists(svgFilename)) {
+        if (svgFilename.empty()) {
             res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
-            if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(std::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            auto svgEntry = mm.GetSVG(svgFilename);
+            if (svgEntry->GetSVGContent().empty()) {
+                res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            } else {
+                if (!svgEntry->IsEmbedded()) {
+                    if (!IsFileInShowDir(std::string(), svgFilename)) {
+                        res.push_back(std::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
+                }
             }
         }
     }
@@ -226,6 +235,25 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
         if (settings.Get("CHOICE_VUMeter_Type", "Waveform") == "Timing Event Color") {
             settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
         }
+    }
+
+    // Convert absolute file paths to relative for portability
+    std::string file = settings["E_FILEPICKERCTRL_SVGFile"];
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_SVGFile"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_SVGFile"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetSVG(settings["E_FILEPICKERCTRL_SVGFile"]);
     }
 }
 
@@ -283,7 +311,7 @@ public:
             _svgRasterizer = nullptr;
         }
     };
-    void InitialiseSVG(const std::string filename)
+    void InitialiseSVG(const std::string filename, RenderBuffer& buffer)
     {
         if (_svgImage != nullptr)
         {
@@ -292,7 +320,17 @@ public:
         }
 
         _svgFilename = filename;
-        _svgImage = nsvgParseFromFile(_svgFilename.c_str(), "px", 96);
+        auto* seqMedia = buffer.GetSequenceMedia();
+        if (seqMedia) {
+            auto svgEntry = seqMedia->GetSVG(filename);
+            svgEntry->MarkIsUsed();
+            std::string content = svgEntry->GetSVGContent();
+            if (!content.empty()) {
+                char* svgCopy = strdup(content.c_str());
+                _svgImage = nsvgParse(svgCopy, "px", 96);
+                free(svgCopy);
+            }
+        }
         if (_svgImage != nullptr) {
             auto max = std::max(_svgImage->height, _svgImage->width);
             _svgScaleBase = 1.0f / (float)max;
@@ -517,9 +555,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             elements->AddRenderDependency(timingtrack, buffer.cur_model);
         }
 
-        if (shape == "SVG" && svgFile != "" && FileExists(svgFile))
+        if (shape == "SVG" && svgFile != "")
         {
-            cache->InitialiseSVG(svgFile);
+            cache->InitialiseSVG(svgFile, buffer);
         }
 	}
 

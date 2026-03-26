@@ -18,11 +18,13 @@
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <list>
+#include <optional>
 #include <string>
 #include <vector>
 #include <memory>
 
-class SequenceMedia;
+#include "render/SequenceMedia.h"
+
 class SequenceElements;
 class xLightsFrame;
 
@@ -44,6 +46,7 @@ struct MediaNode {
     wxString sizeStr;
     wxString framesStr;
     wxString statusStr;
+    MediaType mediaType = MediaType::Image;
     bool canLoad = true;    // false when entry->IsOk() returns false
 
     // children (only valid for group nodes)
@@ -58,7 +61,8 @@ public:
     MediaViewModel();
 
     void Rebuild(SequenceMedia* media, const std::string& showDirectory,
-                 const std::list<std::string>& mediaDirs = {});
+                 const std::list<std::string>& mediaDirs = {},
+                 std::optional<MediaType> filterType = std::nullopt);
     void Clear();
 
     // Returns the file path for an item, or empty if it's a group node
@@ -92,6 +96,7 @@ public:
                      const std::string& showDirectory = {},
                      xLightsFrame* xlFrame = nullptr,
                      bool singleSelect = false,
+                     std::optional<MediaType> filterType = std::nullopt,
                      wxWindowID id = wxID_ANY);
     virtual ~ManageMediaPanel();
 
@@ -113,7 +118,7 @@ private:
     void OnRemoveButtonClick(wxCommandEvent& event);
 
     void UpdateButtons();
-    void UpdatePreview(const std::string& filepath);
+    void UpdatePreview(const std::string& filepath, MediaType type = MediaType::Image);
     // Returns full paths for all selected leaf items
     std::vector<std::string> GetSelectedPaths() const;
 
@@ -133,6 +138,7 @@ private:
     SequenceElements* _sequenceElements = nullptr;
     xLightsFrame* _xlFrame = nullptr;
     std::string _showDirectory;
+    std::optional<MediaType> _filterType;
 
     wxDataViewCtrl* _mediaTree = nullptr;
     wxObjectDataPtr<MediaViewModel> _model;
@@ -160,14 +166,18 @@ public:
     SelectMediaDialog(wxWindow* parent, SequenceMedia* sequenceMedia,
                       SequenceElements* sequenceElements,
                       const std::string& showDirectory = {},
-                      xLightsFrame* xlFrame = nullptr);
+                      xLightsFrame* xlFrame = nullptr,
+                      std::optional<MediaType> filterType = std::nullopt);
 
     std::string GetSelectedPath() const;
 
 private:
     void OnOK(wxCommandEvent& event);
     void OnSelectionChanged(wxDataViewEvent& event);
+    void OnAddFromDisk(wxCommandEvent& event);
 
     ManageMediaPanel* _panel = nullptr;
     wxButton* _okButton = nullptr;
+    wxButton* _addFromDiskButton = nullptr;
+    std::optional<MediaType> _filterType;
 };

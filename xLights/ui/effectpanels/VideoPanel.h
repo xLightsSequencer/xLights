@@ -32,6 +32,8 @@ class wxTextCtrl;
 
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif"
 
+class MediaPickerCtrl;
+
 wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 
 class xlVideoFilePickerCtrl : public BulkEditFilePickerCtrl {
@@ -158,6 +160,8 @@ protected:
 		//*)
 
         void SetVideoDetails(wxCommandEvent& event);
+
+        MediaPickerCtrl* _mediaPicker = nullptr;
 
 		DECLARE_EVENT_TABLE()
 };

@@ -17,6 +17,8 @@
 #include "SketchEffectDrawing.h"
 #include "../ui/effectpanels/SketchPanel.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
+#include "../render/Effect.h"
+#include "../render/SequenceMedia.h"
 #include "../UtilFunctions.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
@@ -131,6 +133,26 @@ void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bo
     if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
+
+    // Convert absolute file paths to relative for portability
+    SettingsMap& settings = effect->GetSettings();
+    std::string file = settings["E_FILEPICKER_SketchBackground"];
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKER_SketchBackground"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKER_SketchBackground"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetImage(settings["E_FILEPICKER_SketchBackground"]);
+    }
 }
 
 std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -139,12 +161,23 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
 
     if (!xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage")) {
         std::string filename = settings.Get("E_FILEPICKER_SketchBackground", "");
-        if (filename.empty() || !FileExists(filename)) {
+        if (filename.empty()) {
             // this is only a warning as it does not affect rendering
             res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
-            if (!IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), filename)) {
-                res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            auto imgEntry = mm.GetImage(filename);
+            imgEntry->MarkIsUsed();
+
+            if (!imgEntry->IsOk()) {
+                // this is only a warning as it does not affect rendering
+                res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            } else {
+                if (!imgEntry->IsEmbedded()) {
+                    if (!IsFileInShowDir(std::string(), filename)) {
+                        res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
+                }
             }
         }
     }

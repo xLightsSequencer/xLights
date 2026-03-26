@@ -83,6 +83,8 @@
 #include "../ui/effectpanels/EffectPanelManager.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
+#include "../render/SequenceElements.h"
+#include "../render/SequenceMedia.h"
 #include "../UtilClasses.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
@@ -221,10 +223,20 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
 
     std::string ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
 
-    if (ifsFilename == "" || !FileExists(ifsFilename)) {
+    if (ifsFilename.empty()) {
         res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, ifsFilename)) {
-        res.push_back(std::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else {
+        auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        auto entry = mm.GetShader(ifsFilename);
+        entry->MarkIsUsed();
+
+        if (entry->GetShaderSource().empty()) {
+            res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        } else if (!entry->IsEmbedded()) {
+            if (!IsFileInShowDir(std::string(), ifsFilename)) {
+                res.push_back(std::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            }
+        }
     }
 
     return res;
@@ -255,24 +267,12 @@ bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
     return rc;
 }
 
-ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
-    if (!FileExists(filename))
-        return nullptr;
-
-    std::ifstream f(filename, std::ios::in);
-    if (!f.is_open()) {
+ShaderConfig* ShaderEffect::ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements) {
+    if (source.empty()) {
         return nullptr;
     }
 
-    std::ostringstream ss;
-    ss << f.rdbuf();
-    f.close();
-    std::string code = ss.str();
-
-    if (code.empty()) {
-        return nullptr;
-    }
-
+    std::string code = source;
     if (code[0] == '{' && code[1] == '"') {
         nlohmann::json root = nlohmann::json::parse(code);
         if (root.contains("rawFragmentSource")) {
@@ -283,13 +283,17 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
         }
     }
 
-    std::string codeStr = code;
     std::smatch match;
-    std::regex re("\\/\\*(.*?)\\*\\/", std::regex_constants::ECMAScript);
-    if (!std::regex_search(codeStr, match, re)) {
+    std::regex re("\\/\\*([\\s\\S]*?)\\*\\/", std::regex_constants::ECMAScript);
+    if (!std::regex_search(code, match, re)) {
         return nullptr;
     }
-    return new ShaderConfig(filename, codeStr, match[1].str(), sequenceElements);
+    return new ShaderConfig(filename, code, match[1].str(), sequenceElements);
+}
+
+ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
+    std::string code = sequenceElements->GetSequenceMedia().GetShader(filename)->GetShaderSource();
+    return ParseShaderFromSource(filename, code, sequenceElements);
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
@@ -305,13 +309,6 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     }
 
     SettingsMap& settings = effect->GetSettings();
-
-    std::string file = settings["E_0FILEPICKERCTRL_IFS"];
-    if (file != "") {
-        if (!FileExists(file)) {
-            settings["E_0FILEPICKERCTRL_IFS"] = FixFile("", file);
-        }
-    }
 
     // The way we used to do names allowed for potential settings name clashes ... this should minimise them
     std::list<std::pair<std::string, std::string>> renames;
@@ -338,6 +335,32 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     for (const auto& it : renames) {
         settings[it.second] = settings[it.first];
         settings.erase(it.first);
+    }
+
+    // Resolve broken paths first, then convert to relative for portability
+    std::string file = settings["E_0FILEPICKERCTRL_IFS"];
+    if (!file.empty() && !FileExists(file)) {
+        std::string fixed = FixFile("", file);
+        if (!fixed.empty() && fixed != file) {
+            settings["E_0FILEPICKERCTRL_IFS"] = fixed;
+            file = fixed;
+        }
+    }
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_0FILEPICKERCTRL_IFS"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_0FILEPICKERCTRL_IFS"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetShader(settings["E_0FILEPICKERCTRL_IFS"]);
     }
 }
 

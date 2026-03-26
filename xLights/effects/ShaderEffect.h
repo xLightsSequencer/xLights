@@ -217,6 +217,7 @@ public:
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
 
     static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
+    static ShaderConfig* ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements);
     static bool IsShaderFile(std::string filename);
 
     static void SetBackgroundRender(bool b) { useBackgroundRender = b; }

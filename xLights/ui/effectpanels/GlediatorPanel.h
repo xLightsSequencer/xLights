@@ -21,6 +21,8 @@
 #include "../../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
+class MediaPickerCtrl;
+
 class GlediatorPanel: public xlEffectPanel
 {
 	public:
@@ -37,6 +39,7 @@ class GlediatorPanel: public xlEffectPanel
 		wxStaticText* StaticText2;
 		//*)
     
+        MediaPickerCtrl* _mediaPicker = nullptr;
         wxString defaultDir;
 
 	protected:

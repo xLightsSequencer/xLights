@@ -10,6 +10,7 @@
 
 #include "RipplePanel.h"
 #include "EffectPanelUtils.h"
+#include "../MediaPickerCtrl.h"
 #include "../../effects/RippleEffect.h"
 
 //(*InternalHeaders(RipplePanel)
@@ -380,6 +381,17 @@ RipplePanel::RipplePanel(wxWindow* parent) : xlEffectPanel()
 	Connect(ID_VALUECURVE_Ripple_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	//*)
+
+    // Replace file picker with media-aware picker
+    FilePickerCtrl_Ripple_SVG->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::SVG);
+    _mediaPicker->SetLinkedPicker(FilePickerCtrl_Ripple_SVG);
+    auto* sizer = FilePickerCtrl_Ripple_SVG->GetContainingSizer();
+    if (sizer) {
+        sizer->Replace(FilePickerCtrl_Ripple_SVG, _mediaPicker);
+        sizer->Layout();
+    }
+
     SetName("ID_PANEL_RIPPLE");
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Thickness, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RipplePanel::OnLockButtonClick);

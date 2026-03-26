@@ -11,6 +11,7 @@
 #include "ShapePanel.h"
 #include "../wxUtilities.h"
 #include "EffectPanelUtils.h"
+#include "../MediaPickerCtrl.h"
 #include "../../utils/string_utils.h"
 #include "../../effects/ShapeEffect.h"
 #include "../../render/RenderBuffer.h"
@@ -432,6 +433,17 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel()
     Connect(ID_CHECKBOX_Shape_FireTiming,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shape_FireTimingClick);
     Connect(ID_CHOICE_Shape_FireTimingTrack,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ShapePanel::OnChoice_Shape_TimingTrackSelect);
     //*)
+
+    // Replace file picker with media-aware picker
+    FilePickerCtrl_SVG->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::SVG);
+    _mediaPicker->SetLinkedPicker(FilePickerCtrl_SVG);
+    auto* sizer = FilePickerCtrl_SVG->GetContainingSizer();
+    if (sizer) {
+        sizer->Replace(FilePickerCtrl_SVG, _mediaPicker);
+        sizer->Layout();
+    }
+
     SetName("ID_PANEL_SHAPE");
 
     wxFont font(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, NATIVE_EMOJI_FONT, wxFONTENCODING_DEFAULT);

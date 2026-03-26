@@ -10,6 +10,7 @@
 
 #include "GlediatorPanel.h"
 #include "EffectPanelUtils.h"
+#include "../MediaPickerCtrl.h"
 #include <wx/filedlg.h>
 
 //(*InternalHeaders(GlediatorPanel)
@@ -55,7 +56,17 @@ GlediatorPanel::GlediatorPanel(wxWindow* parent) : xlEffectPanel()
 	FlexGridSizer53->Fit(this);
 	FlexGridSizer53->SetSizeHints(this);
 	//*)
-	
+
+    // Replace file picker with media-aware picker
+    FilePickerCtrl_Glediator_Filename->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::BinaryFile);
+    _mediaPicker->SetLinkedPicker(FilePickerCtrl_Glediator_Filename);
+    auto* sizer = FilePickerCtrl_Glediator_Filename->GetContainingSizer();
+    if (sizer) {
+        sizer->Replace(FilePickerCtrl_Glediator_Filename, _mediaPicker);
+        sizer->Layout();
+    }
+
 	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GlediatorPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&GlediatorPanel::OnValidateWindow, 0, this);
 

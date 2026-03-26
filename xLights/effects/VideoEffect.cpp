@@ -26,7 +26,8 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../render/SequenceFile.h"
-#include "../xLightsMain.h" 
+#include "../render/SequenceMedia.h"
+#include "../xLightsMain.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
@@ -56,54 +57,52 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
-    if (filename == "" || !FileExists(filename))
-    {
+    if (filename.empty()) {
         res.push_back(std::format("    ERR: Video effect video file '{}' does not exist. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    }
-    else
-    {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename))
-        {
-            res.push_back(std::format("    WARN: Video effect video file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-        }
+    } else {
+        auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        auto videoEntry = mm.GetVideo(filename);
+        videoEntry->MarkIsUsed();
 
-        VideoReader* videoreader = new VideoReader(filename, 100, 100, false, true, true);
-        if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
-        {
-            res.push_back(std::format("    ERR: Video effect video file '{}' could not be understood. Format may not be supported. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-        }
-        else if (videoreader != nullptr)
-        {
-            double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
-            std::string treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
-
-            if (treatment == "Normal")
-            {
-                int videoduration = videoreader->GetLengthMS() - starttime;
-                int effectduration = eff->GetEndTimeMS() - eff->GetStartTimeMS();
-                if (videoduration < effectduration)
-                {
-                    res.push_back(std::format("    WARN: Video effect video file '{}' is shorter {} than effect duration {}. Model '{}', Start {}", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        if (videoEntry->GetResolvedPath().empty()) {
+            res.push_back(std::format("    ERR: Video effect video file '{}' does not exist. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        } else {
+            if (!videoEntry->IsEmbedded()) {
+                if (!IsFileInShowDir(std::string(), filename)) {
+                    res.push_back(std::format("    WARN: Video effect video file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
 
-            if (!renderCache)
-            {
-                int vh = videoreader->GetHeight();
-                int vw = videoreader->GetHeight();
+            VideoReader* videoreader = new VideoReader(videoEntry->GetResolvedPath(), 100, 100, false, true, true);
+            if (videoreader == nullptr || videoreader->GetLengthMS() == 0) {
+                res.push_back(std::format("    ERR: Video effect video file '{}' could not be understood. Format may not be supported. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            } else if (videoreader != nullptr) {
+                double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
+                std::string treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
+
+                if (treatment == "Normal") {
+                    int videoduration = videoreader->GetLengthMS() - starttime;
+                    int effectduration = eff->GetEndTimeMS() - eff->GetStartTimeMS();
+                    if (videoduration < effectduration) {
+                        res.push_back(std::format("    WARN: Video effect video file '{}' is shorter {} than effect duration {}. Model '{}', Start {}", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
+                }
+
+                if (!renderCache) {
+                    int vh = videoreader->GetHeight();
+                    int vw = videoreader->GetHeight();
 
 #define VIDEOSIZETHRESHOLD 10
-                if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi())
-                {
-                    float scale = std::max((float)vh / model->GetDefaultBufferHt(), (float)vw / model->GetDefaultBufferWi());
-                    res.push_back(std::format("    WARN: Video effect video file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '{}', Start {}", filename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi()) {
+                        float scale = std::max((float)vh / model->GetDefaultBufferHt(), (float)vw / model->GetDefaultBufferWi());
+                        res.push_back(std::format("    WARN: Video effect video file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '{}', Start {}", filename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
                 }
             }
-        }
 
-        if (videoreader != nullptr)
-        {
-            delete videoreader;
+            if (videoreader != nullptr) {
+                delete videoreader;
+            }
         }
     }
 
@@ -144,16 +143,34 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
         settings.erase("E_CHECKBOX_Video_Loop");
     }
 
-    std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
-
-    if (file != "") {
-        if (!FileExists(file, false)) {
-            settings["E_FILEPICKERCTRL_Video_Filename"] = FixFile("", file);
-        }
-    }
-
     if (settings.Contains("E_SLIDER_Video_Starttime")) {
         settings.erase("E_SLIDER_Video_Starttime");
+    }
+
+    // Resolve broken paths first, then convert to relative for portability
+    std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
+    if (!file.empty() && !FileExists(file)) {
+        std::string fixed = FixFile("", file);
+        if (!fixed.empty() && fixed != file) {
+            settings["E_FILEPICKERCTRL_Video_Filename"] = fixed;
+            file = fixed;
+        }
+    }
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_Video_Filename"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_Video_Filename"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetVideo(settings["E_FILEPICKERCTRL_Video_Filename"]);
     }
 }
 
@@ -310,8 +327,14 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         {
             spdlog::warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
         }
-        else if (FileExists(filename))
-        {
+        else if (auto* sm = buffer.GetSequenceMedia(); sm != nullptr) {
+            auto vidEntry = sm->GetVideo(filename);
+            vidEntry->MarkIsUsed();
+            std::string resolved = vidEntry->GetResolvedPath();
+            if (resolved.empty() || !FileExists(resolved)) {
+                spdlog::warn("VideoEffect: Cannot find video file '{}'.", filename);
+            } else {
+            filename = resolved;
             // have to open the file
             int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
             int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
@@ -365,6 +388,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 spdlog::debug("Video effect length: {}, video length: {}, startoffset: {}, duration treatment: {}.",
                     (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
                     (const char *)durationTreatment.c_str());
+            }
             }
         }
         else

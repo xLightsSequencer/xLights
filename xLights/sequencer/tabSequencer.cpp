@@ -1421,7 +1421,9 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
 
     // Check if the file is outside the show/media directories
     wxFileName fn(filename);
-    bool isPictures = (effectName == "Pictures");
+    bool isVideo = (effectName == "Video");
+    bool isGlediator = (effectName == "Glediator");
+    bool canEmbed = !isVideo && !isGlediator;
     bool isOutside = !IsInShowOrMediaFolder(filename);
 
     if (isOutside && fn.FileExists()) {
@@ -1443,7 +1445,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
         }
 
         wxArrayString choices;
-        if (isPictures)
+        if (canEmbed)
             choices.Add("Embed in sequence");
         for (const auto& dir : copyTargets)
             choices.Add("Copy to: " + wxString(dir));
@@ -1458,29 +1460,32 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
         const wxString& chosen = choices[choice];
 
         if (chosen == "Embed in sequence") {
-            // Load and embed as SequenceMedia entry
-            wxImage img(fn.GetFullPath());
-            if (!img.IsOk()) {
-                wxMessageBox("Failed to load image for embedding.", "Error", wxICON_ERROR | wxOK, this);
-                return;
-            }
+            // Load and embed via SequenceMedia
             SequenceMedia& media = _sequenceElements.GetSequenceMedia();
-            media.GetImage(fn.GetFullPath());
-            std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
-            int suffix = 1;
-            std::string candidate = embeddedName;
-            while (media.HasImage(candidate)) {
-                candidate = "Images/" + fn.GetName().ToStdString() +
-                            "_" + std::to_string(suffix++) + "." + fn.GetExt().ToStdString();
+            std::string filePath = fn.GetFullPath().ToStdString();
+
+            if (effectName == "Pictures") {
+                media.GetImage(filePath);
+                std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                int suffix = 1;
+                std::string candidate = embeddedName;
+                while (media.HasImage(candidate)) {
+                    candidate = "Images/" + fn.GetName().ToStdString() +
+                                "_" + std::to_string(suffix++) + "." + fn.GetExt().Lower().ToStdString();
+                }
+                embeddedName = candidate;
+                media.RenameImage(filePath, embeddedName);
+                media.EmbedImage(embeddedName);
+                filename = embeddedName;
+            } else if (effectName == "Shader") {
+                auto entry = media.GetShader(filePath);
+                entry->Embed();
+                filename = filePath;
             }
-            embeddedName = candidate;
-            media.RenameImage(fn.GetFullPath(), embeddedName);
-            media.EmbedImage(embeddedName);
-            filename = embeddedName;
         } else {
             // One of the "Copy to: <dir>" choices — adjust index for the
             // "Embed in sequence" entry that precedes the copy targets.
-            int copyIdx = isPictures ? choice - 1 : choice;
+            int copyIdx = canEmbed ? choice - 1 : choice;
             std::string targetDir = copyTargets[copyIdx];
             // Use MoveToShowFolder only when the target is the show directory;
             // for extra media folders, copy directly into the folder (+ subdir).
@@ -1544,18 +1549,21 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             _sequenceElements.GetSelectedRange(i)->EndTime,
             EFFECT_SELECTED, false);
 
-        // Now set the filename
+        // Now set the filename and register with SequenceMedia
+        // (adjustSettings is not called for drag-and-drop created effects)
+        SequenceMedia& media = _sequenceElements.GetSequenceMedia();
         if (effectName == "Video") {
             effect->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = filename;
+            media.GetVideo(filename);
         } else if (effectName == "Pictures") {
             effect->GetSettings()["E_TEXTCTRL_Pictures_Filename"] = filename;
-            // Register the image with SequenceMedia so the renderer can find it
-            // (adjustSettings is not called for drag-and-drop created effects)
-            _sequenceElements.GetSequenceMedia().GetImage(filename);
+            media.GetImage(filename);
         } else if (effectName == "Glediator") {
             effect->GetSettings()["E_FILEPICKERCTRL_Glediator_Filename"] = filename;
+            media.GetBinaryFile(filename, "glediator");
         } else if (effectName == "Shader") {
             effect->GetSettings()["E_0FILEPICKERCTRL_IFS"] = filename;
+            media.GetShader(filename);
         }
 
         last_effect_created = effect;

@@ -1256,6 +1256,8 @@
 		<Unit filename="ui/modelproperties/ViewObjectPropertyAdapter.h" />
 		<Unit filename="ui/modelproperties/ViewObjectPropertyManager.cpp" />
 		<Unit filename="ui/modelproperties/ViewObjectPropertyManager.h" />
+		<Unit filename="ui/MediaPickerCtrl.cpp" />
+		<Unit filename="ui/MediaPickerCtrl.h" />
 		<Unit filename="ui/wxUtilities.cpp" />
 		<Unit filename="ui/wxUtilities.h" />
 		<Unit filename="utils/Curl.cpp" />

@@ -24,6 +24,10 @@
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
+#include "render/SequenceMedia.h"
+#include "render/SequenceElements.h"
+
+#include <filesystem>
 
 #include <log.h>
 
@@ -121,9 +125,106 @@ void BulkEditFilePickerCtrl::ValidateControl()
     }
 }
 
+static bool IsVideoExtension(const std::string& ext) {
+    return ext == ".mp4" || ext == ".avi" || ext == ".mov" || ext == ".mkv" ||
+           ext == ".mts" || ext == ".m2ts" || ext == ".wmv" || ext == ".flv" ||
+           ext == ".mpg" || ext == ".mpeg" || ext == ".m4v" || ext == ".asf";
+}
+
+static bool IsGlediatorExtension(const std::string& ext) {
+    return ext == ".gled" || ext == ".csv" || ext == ".out";
+}
+
+// Determine a reasonable subdirectory for the media type based on file extension
+static std::string SubdirectoryForFile(const std::string& filepath) {
+    std::string ext = std::filesystem::path(filepath).extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    std::string sep(1, std::filesystem::path::preferred_separator);
+    if (ext == ".fs") return sep + "Shaders";
+    if (ext == ".svg") return sep + "Images";
+    if (IsGlediatorExtension(ext)) return sep + "Glediator";
+    if (IsVideoExtension(ext)) return sep + "Videos";
+    if (ext == ".txt") return sep;
+    return sep + "Images";
+}
+
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
 {
-    if (!GetFileName().GetFullPath().IsEmpty()) {
+    wxString file = GetFileName().GetFullPath();
+    if (!file.IsEmpty()) {
+        std::string filepath = file.ToStdString();
+
+        // Check if file is outside show/media directories and prompt user
+        if (FileExists(filepath) && !IsFileInShowDir(std::string(), filepath)) {
+            // Find xLightsFrame via parent chain
+            xLightsFrame* xl = nullptr;
+            for (wxWindow* w = GetParent(); w != nullptr; w = w->GetParent()) {
+                xl = dynamic_cast<xLightsFrame*>(w);
+                if (xl) break;
+            }
+
+            if (xl) {
+                wxString msg = wxString::Format(
+                    "The selected file is not in the show directory or media directories:\n\n%s\n\n"
+                    "What would you like to do?",
+                    file);
+                // Check if this is a video file (too large to embed)
+                std::string ext = std::filesystem::path(filepath).extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                bool canEmbed = !IsVideoExtension(ext) && !IsGlediatorExtension(ext);
+
+                wxArrayString choices;
+                choices.Add("Copy to show folder");
+                if (canEmbed)
+                    choices.Add("Embed in sequence");
+                choices.Add("Use from current location");
+
+                wxSingleChoiceDialog dlg(this, msg, "File Outside Show Directory", choices);
+                dlg.SetSelection(0);
+                if (dlg.ShowModal() == wxID_OK) {
+                    wxString chosen = dlg.GetStringSelection();
+                    if (chosen == "Copy to show folder") {
+                        std::string subdir = SubdirectoryForFile(filepath);
+                        std::string newPath = xl->MoveToShowFolder(filepath, subdir);
+                        if (!newPath.empty()) {
+                            SetFileName(wxFileName(newPath));
+                        }
+                    } else if (chosen == "Embed in sequence") {
+                        auto& elements = xl->GetSequenceElements();
+                        auto& media = elements.GetSequenceMedia();
+
+                        // Load the file into the cache, then embed it.
+                        // Use a clean embedded name so the cache key matches
+                        // what gets stored in effect settings.
+                        std::string fname = std::filesystem::path(filepath).filename().string();
+                        if (ext == ".fs") {
+                            media.GetShader(filepath);
+                            media.EmbedMedia(filepath);
+                            SetFileName(wxFileName(filepath));
+                        } else if (ext == ".svg") {
+                            media.GetSVG(filepath);
+                            media.EmbedMedia(filepath);
+                            SetFileName(wxFileName(filepath));
+                        } else if (ext == ".txt") {
+                            media.GetTextFile(filepath);
+                            media.EmbedMedia(filepath);
+                            SetFileName(wxFileName(filepath));
+                        } else {
+                            // Image: use the existing rename+embed pattern
+                            media.GetImage(filepath);
+                            std::string embeddedName = "Images/" + fname;
+                            if (!media.RenameImage(filepath, embeddedName)) {
+                                embeddedName = filepath;
+                            }
+                            media.EmbedImage(embeddedName);
+                            SetFileName(wxFileName(embeddedName));
+                        }
+                    }
+                    // choice == 2: keep as-is, no action needed
+                }
+            }
+        }
+
         ValidateControl();
     }
     event.Skip();

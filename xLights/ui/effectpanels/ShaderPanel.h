@@ -14,8 +14,12 @@
 #include "../../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
+#include <memory>
+
+class MediaPickerCtrl;
 class ShaderConfig;
-class SequenceEelements;
+class ShaderMediaCacheEntry;
+class SequenceElements;
 
 //(*Headers(ShaderPanel)
 #include <wx/bmpbuttn.h>
@@ -107,7 +111,11 @@ class ShaderPanel: public xlEffectPanel
 		void OnButton_DownloadClick(wxCommandEvent& event);
 		//*)
 
-        bool BuildUI(const wxString& filename, SequenceElements* sequenceElements);
+        bool BuildUI(ShaderMediaCacheEntry* shaderEntry, SequenceElements* sequenceElements);
+
+        // Hold a ref to keep the ShaderMediaCacheEntry alive while we reference its _shaderConfig
+        std::shared_ptr<ShaderMediaCacheEntry> _shaderCacheEntry;
+        MediaPickerCtrl* _mediaPicker = nullptr;
 
 		DECLARE_EVENT_TABLE()
 };

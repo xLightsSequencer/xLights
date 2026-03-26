@@ -24,7 +24,7 @@ public:
 
     xlImage(int width, int height) : _width(width), _height(height) {
         if (width > 0 && height > 0) {
-            _data.reset(new uint8_t[width * height * 4]());
+            _data.reset(new uint8_t[static_cast<size_t>(width) * height * 4]());
         }
     }
 
@@ -33,7 +33,7 @@ public:
 
     xlImage(const xlImage& other) : _width(other._width), _height(other._height) {
         if (other._data && _width > 0 && _height > 0) {
-            size_t sz = _width * _height * 4;
+            size_t sz = static_cast<size_t>(_width) * _height * 4;
             _data.reset(new uint8_t[sz]);
             std::memcpy(_data.get(), other._data.get(), sz);
         }
@@ -49,7 +49,7 @@ public:
             _width = other._width;
             _height = other._height;
             if (other._data && _width > 0 && _height > 0) {
-                size_t sz = _width * _height * 4;
+                size_t sz = static_cast<size_t>(_width) * _height * 4;
                 _data.reset(new uint8_t[sz]);
                 std::memcpy(_data.get(), other._data.get(), sz);
             } else {
@@ -132,7 +132,7 @@ public:
         _width = width;
         _height = height;
         if (width > 0 && height > 0) {
-            _data.reset(new uint8_t[width * height * 4]());
+            _data.reset(new uint8_t[static_cast<size_t>(width) * height * 4]());
         } else {
             _data.reset();
         }

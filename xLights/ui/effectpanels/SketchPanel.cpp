@@ -4,6 +4,7 @@
 #include "../../effects/SketchEffectDrawing.h"
 #include "../../BulkEditControls.h"
 #include "../../xLightsMain.h"
+#include "../MediaPickerCtrl.h"
 
 #include <wx/filepicker.h>
 #include <wx/hyperlink.h>
@@ -199,6 +200,16 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SketchPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SketchPanel::OnValidateWindow, 0, this);
+
+    // Replace file picker with media-aware picker
+    FilePicker_SketchBackground->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::Image);
+    _mediaPicker->SetLinkedPicker(FilePicker_SketchBackground);
+    auto* fpSizer = FilePicker_SketchBackground->GetContainingSizer();
+    if (fpSizer) {
+        fpSizer->Replace(FilePicker_SketchBackground, _mediaPicker);
+        fpSizer->Layout();
+    }
 
     SetName("ID_PANEL_SKETCH");
 

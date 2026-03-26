@@ -32,11 +32,13 @@ class wxTextCtrl;
 
 class Emoji;
 class ClickableStaticText;
+class MediaPickerCtrl;
 class Model;
 
 class ShapePanel: public xlEffectPanel
 {
     std::list<Emoji*> _emojis;
+    MediaPickerCtrl* _mediaPicker = nullptr;
 
 	public:
 

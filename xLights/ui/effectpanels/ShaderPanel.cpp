@@ -14,6 +14,9 @@
 #include "EffectPanelUtils.h"
 #include "../../ShaderDownloadDialog.h"
 #include "../../ExternalHooks.h"
+#include "../MediaPickerCtrl.h"
+#include "../../render/SequenceMedia.h"
+#include "../../render/SequenceElements.h"
 
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
@@ -152,6 +155,16 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShaderPanel::OnButton_DownloadClick);
     //*)
 
+    // Replace file picker with media-aware picker
+    FilePickerCtrl1->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::Shader);
+    _mediaPicker->SetLinkedPicker(FilePickerCtrl1);
+    auto* fpSizer = FilePickerCtrl1->GetContainingSizer();
+    if (fpSizer) {
+        fpSizer->Replace(FilePickerCtrl1, _mediaPicker);
+        fpSizer->Layout();
+    }
+
     Connect(ID_VALUECURVE_Shader_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shader_Offset_X, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shader_Offset_Y, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
@@ -176,7 +189,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 
 ShaderPanel::~ShaderPanel()
 {
-    if (_shaderConfig != nullptr) delete _shaderConfig;
+    // _shaderConfig is owned by ShaderMediaCacheEntry, don't delete here
     //(*Destroy(ShaderPanel)
     //*)
 }
@@ -223,8 +236,14 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     TextCtrl_Shader_Offset_Y->SetValue("0");
     TextCtrl_Shader_Zoom->SetValue("0");
 
-    if (wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath())) {
-        if (BuildUI(FilePickerCtrl1->GetFileName().GetFullPath(), &((xLightsFrame*)xLightsApp::GetFrame())->GetSequenceElements())) {
+    // Resolve shader through SequenceMedia (handles relative paths and embedded shaders)
+    wxString fullPath = FilePickerCtrl1->GetFileName().GetFullPath();
+    auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
+    auto& media = xl->GetSequenceElements().GetSequenceMedia();
+    _shaderCacheEntry = media.GetShader(fullPath.ToStdString());
+    _shaderCacheEntry->MarkIsUsed();
+    if (!_shaderCacheEntry->GetShaderSource().empty()) {
+        if (BuildUI(_shaderCacheEntry.get(), &xl->GetSequenceElements())) {
             last = newf;
         }
         FilePickerCtrl1->Enable(true); // force a validate
@@ -232,6 +251,8 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     else {
         Freeze();
         last = "";
+        _shaderCacheEntry.reset();
+        _shaderConfig = nullptr;
         FlexGridSizer_Dynamic->DeleteWindows();
         FilePickerCtrl1->UnsetToolTip();
         Thaw();
@@ -239,15 +260,15 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     FireChangeEvent();
 }
 
-bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceElements)
+bool ShaderPanel::BuildUI(ShaderMediaCacheEntry* shaderEntry, SequenceElements* sequenceElements)
 {
     Freeze();
 
     FlexGridSizer_Dynamic->DeleteWindows();
     FilePickerCtrl1->UnsetToolTip();
 
-    if (_shaderConfig != nullptr) delete _shaderConfig;
-    _shaderConfig = ShaderEffect::ParseShader(filename.ToStdString(), sequenceElements);
+    // Use the cached ShaderConfig from the media entry
+    _shaderConfig = shaderEntry->GetShaderConfig(sequenceElements);
 
     if (_shaderConfig != nullptr) {
         wxString desc = _shaderConfig->GetDescription();
@@ -521,6 +542,10 @@ void ShaderPanel::OnButton_DownloadClick(wxCommandEvent& event)
 
 void ShaderPanel::SetDefaultParameters()
 {
+    // Release the shader cache entry ref and clear the config pointer
+    _shaderCacheEntry.reset();
+    _shaderConfig = nullptr;
+
     BitmapButton_Shader_Speed->SetActive(false);
     BitmapButton_Shader_Offset_X->SetActive(false);
     BitmapButton_Shader_Offset_Y->SetActive(false);

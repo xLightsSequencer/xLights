@@ -15,6 +15,7 @@
 #include "../../ExternalHooks.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
+#include "../MediaPickerCtrl.h"
 
 //(*InternalHeaders(VideoPanel)
 #include <wx/bitmap.h>
@@ -241,6 +242,16 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel()
 	//*)
 
     SetName("ID_PANEL_Video");
+
+    // Replace file picker with media-aware picker
+    FilePicker_Video_Filename->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::Video);
+    _mediaPicker->SetLinkedPicker(FilePicker_Video_Filename);
+    auto* fpSizer = FilePicker_Video_Filename->GetContainingSizer();
+    if (fpSizer) {
+        fpSizer->Replace(FilePicker_Video_Filename, _mediaPicker);
+        fpSizer->Layout();
+    }
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VideoPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&VideoPanel::OnValidateWindow, 0, this);

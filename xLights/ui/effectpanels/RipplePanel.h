@@ -25,6 +25,8 @@ class wxTextCtrl;
 #include "../../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
+class MediaPickerCtrl;
+
 class RipplePanel: public xlEffectPanel
 {
 	public:
@@ -33,6 +35,8 @@ class RipplePanel: public xlEffectPanel
 		virtual ~RipplePanel();
 		virtual void ValidateWindow() override;
 		virtual void SetDefaultParameters() override;
+
+		MediaPickerCtrl* _mediaPicker = nullptr;
 
 		//(*Declarations(RipplePanel)
 		BulkEditCheckBox* CheckBox_Ripple3D;

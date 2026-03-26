@@ -119,7 +119,7 @@ void xlImage::Rescale(int newWidth, int newHeight) {
 
 void xlImage::Clear() {
     if (_data && _width > 0 && _height > 0) {
-        std::memset(_data.get(), 0, _width * _height * 4);
+        std::memset(_data.get(), 0, static_cast<size_t>(_width) * _height * 4);
     }
 }
 

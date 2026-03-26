@@ -479,8 +479,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
                                              sequenceElements,
                                              xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
                                              xLightsParent);
-        //Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Media"), false);
-        Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Images"), false);
+        Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Media"), false);
     }
 
     TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);

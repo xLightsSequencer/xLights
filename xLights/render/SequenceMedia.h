@@ -17,10 +17,69 @@
 #include <string>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 
 class AnimatedImage;
 namespace pugi { class xml_node; }
+
+/**
+ * MediaType - Identifies the type of media cached in SequenceMedia
+ */
+enum class MediaType {
+    Image,
+    SVG,
+    Shader,
+    TextFile,
+    BinaryFile,
+    Video
+};
+
+/**
+ * MediaCacheEntry - Base class for all cached media entries
+ *
+ * Provides common path management, embedding, usage tracking, and serialization.
+ */
+class MediaCacheEntry
+{
+public:
+    MediaCacheEntry(MediaType type);
+    MediaCacheEntry(MediaType type, const std::string& filePath);
+    MediaCacheEntry(MediaType type, const std::string& path, const std::string& base64Data);
+    virtual ~MediaCacheEntry();
+
+    MediaType GetType() const { return _type; }
+    const std::string& GetFilePath() const { return _filePath; }
+    void SetFilePath(const std::string& path) { _filePath = path; }
+    const std::string& GetEmbeddedData() const { return _embeddedData; }
+    bool IsEmbedded() const { return _isEmbedded; }
+    virtual bool IsEmbeddable() const { return true; }
+
+    void MarkIsUsed(bool used = true) { _used = used; }
+    bool IsUsed() const { return _used; }
+
+    void Embed() { if (IsEmbeddable()) _isEmbedded.store(true); }
+    void Extract() { _isEmbedded.store(false); }
+    bool SaveToFile(const std::string& path) const;
+
+    virtual void Load() = 0;
+    bool isLoaded() const { return _loadingDone; }
+
+    virtual bool LoadFromXml(const pugi::xml_node& node) = 0;
+    virtual void SaveToXml(pugi::xml_node& parent) const = 0;
+
+protected:
+    // Read a file from disk into _embeddedData as base64
+    void LoadRawFromFile(const std::string& filepath);
+
+    MediaType _type;
+    std::string _filePath;
+    std::string _embeddedData;      // Base64 encoded data
+    std::atomic_bool _used;
+    std::atomic_bool _loadingDone{false};
+    std::atomic_bool _isEmbedded{false};
+    mutable std::recursive_mutex _cacheMutex;
+};
 
 /**
  * ScaledImageCacheKey - Key for scaled image cache
@@ -45,42 +104,30 @@ using AnimationLoaderFunc = std::function<AnimatedImageData(const uint8_t* data,
 /**
  * ImageCacheEntry - Represents a cached image with its metadata
  */
-class ImageCacheEntry
+class ImageCacheEntry : public MediaCacheEntry
 {
 public:
     ImageCacheEntry();
     ImageCacheEntry(const std::string &filePath);
     ImageCacheEntry(const std::string &path, const std::string &base64Data);
     ImageCacheEntry(const std::string &path, const std::vector<xlImage> &images, int ft, const std::string &base64Data = "");
-    ~ImageCacheEntry();
+    ~ImageCacheEntry() override;
 
-    // Accessors
-    const std::string &GetFilePath() const { return _filePath; }
-    const std::string &GetEmbeddedData() const { return _embeddedData; }
-    bool IsEmbedded() const { return _isEmbedded; }
-    bool IsEmbeddable() const { return !_embeddedData.empty(); }
+    // Image-specific accessors
+    bool IsEmbeddable() const override { return !_embeddedData.empty(); }
     int GetImageCount() const { return _imageCount; }
-
-    void MarkIsUsed(bool used = true) { _used = used; }
-    bool IsUsed() const { return _used; }
-    void SetFilePath(const std::string& path) { _filePath = path; }
 
     int GetImageWidth() const { return _imageWidth; }
     int GetImageHeight() const { return _imageHeight; }
 
     // Serialization
-    bool LoadFromXml(const pugi::xml_node& node);
-    void SaveToXml(pugi::xml_node& parent) const;
+    bool LoadFromXml(const pugi::xml_node& node) override;
+    void SaveToXml(pugi::xml_node& parent) const override;
 
-    // Conversion to/from embedded format (base64 encoded PNG)
-    void EmbedImage() {
-        _isEmbedded = true;
-    }
-    void ExtractImage() {
-        _isEmbedded = false;
-    }
-    // Write the raw embedded bytes to disk. Returns true on success.
-    bool SaveToFile(const std::string& path) const;
+    // Legacy embed/extract names (delegate to base)
+    void EmbedImage() { Embed(); }
+    void ExtractImage() { Extract(); }
+
     bool IsOk() {
         return !_frameImages.empty() && _frameImages[0]->IsOk();
     }
@@ -93,8 +140,7 @@ public:
 
     void ClearScaledImageCache();
 
-    void Load();
-    bool isLoaded() const { return _loadingDone; }
+    void Load() override;
 
     // Pre-cache a base64 PNG string for frame i to avoid re-encoding on save.
     void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
@@ -111,12 +157,9 @@ private:
     void loadImage(const std::vector<uint8_t> &data);
     int GetExifOrientation(const uint8_t* data, size_t len);
 
-    std::string _filePath;          // Original file path
-    std::string _embeddedData;      // Base64 encoded image data (when embedded, single-frame)
     mutable std::vector<std::string> _frameData; // Base64 encoded PNG per frame (multi-frame embedded, cached to avoid re-encode)
     int _imageCount = 0;                // Number of frames in image (1 for static, >1 for animated)
     bool _frameBasedAnimation = true;
-    std::atomic_bool _used;
 
     std::vector<long> _frameTimes;
     std::vector<std::shared_ptr<xlImage>> _frameImages;
@@ -125,12 +168,9 @@ private:
     int _imageHeight = 0;
     long _totalTime = 0;
 
-    bool _loadingDone = false;
-    bool _isEmbedded = false;
     std::shared_ptr<xlImage> invalidImage;
 
     // Scaled image cache
-    mutable std::recursive_mutex _cacheMutex;
     mutable std::map<ScaledImageCacheKey, std::shared_ptr<xlImage>> _scaledImageCache;
 
     static AnimationLoaderFunc _gifLoader;
@@ -138,11 +178,138 @@ private:
 };
 
 /**
- * SequenceMedia - Manages media caching for a sequence
+ * TextMediaCacheEntry - Cached text file content (for TextEffect text-from-file)
+ */
+class TextMediaCacheEntry : public MediaCacheEntry
+{
+public:
+    TextMediaCacheEntry();
+    TextMediaCacheEntry(const std::string& filePath);
+    TextMediaCacheEntry(const std::string& path, const std::string& base64Data);
+
+    const std::string& GetContent() const { return _content; }
+
+    void Load() override;
+    bool LoadFromXml(const pugi::xml_node& node) override;
+    void SaveToXml(pugi::xml_node& parent) const override;
+
+private:
+    std::string _content;
+};
+
+/**
+ * SVGMediaCacheEntry - Cached SVG file content
+ */
+class SVGMediaCacheEntry : public MediaCacheEntry
+{
+public:
+    SVGMediaCacheEntry();
+    SVGMediaCacheEntry(const std::string& filePath);
+    SVGMediaCacheEntry(const std::string& path, const std::string& base64Data);
+
+    const std::string& GetSVGContent() const { return _svgContent; }
+
+    // Generate a thumbnail by rasterizing the SVG at the given max dimensions
+    std::shared_ptr<xlImage> GetThumbnail(int maxWidth, int maxHeight);
+
+    void Load() override;
+    bool LoadFromXml(const pugi::xml_node& node) override;
+    void SaveToXml(pugi::xml_node& parent) const override;
+
+private:
+    std::string _svgContent;
+    std::shared_ptr<xlImage> _thumbnail;
+    int _thumbW = 0, _thumbH = 0;
+};
+
+class ShaderConfig;
+class SequenceElements;
+
+/**
+ * ShaderMediaCacheEntry - Cached shader source (.fs files)
+ */
+class ShaderMediaCacheEntry : public MediaCacheEntry
+{
+public:
+    ShaderMediaCacheEntry();
+    ShaderMediaCacheEntry(const std::string& filePath);
+    ShaderMediaCacheEntry(const std::string& path, const std::string& base64Data);
+    ~ShaderMediaCacheEntry() override;
+
+    const std::string& GetShaderSource() const { return _shaderSource; }
+
+    // Get or create the parsed ShaderConfig. Caches the result.
+    // sequenceElements is needed for timing track enumeration.
+    ShaderConfig* GetShaderConfig(SequenceElements* sequenceElements);
+
+    void Load() override;
+    bool LoadFromXml(const pugi::xml_node& node) override;
+    void SaveToXml(pugi::xml_node& parent) const override;
+
+private:
+    std::string _shaderSource;
+    ShaderConfig* _shaderConfig = nullptr;
+};
+
+/**
+ * BinaryMediaCacheEntry - Cached binary file data (Glediator files, etc.)
+ */
+class BinaryMediaCacheEntry : public MediaCacheEntry
+{
+public:
+    BinaryMediaCacheEntry();
+    BinaryMediaCacheEntry(const std::string& filePath, const std::string& subtype = "");
+    BinaryMediaCacheEntry(const std::string& path, const std::string& base64Data, const std::string& subtype);
+
+    // Binary files (Glediator, etc.) cannot be embedded — readers open files directly from disk
+    bool IsEmbeddable() const override { return false; }
+
+    const std::vector<uint8_t>& GetData() const { return _data; }
+    const std::string& GetSubtype() const { return _subtype; }
+
+    void Load() override;
+    bool LoadFromXml(const pugi::xml_node& node) override;
+    void SaveToXml(pugi::xml_node& parent) const override;
+
+private:
+    std::vector<uint8_t> _data;
+    std::string _subtype;  // e.g., "glediator"
+};
+
+/**
+ * VideoMediaCacheEntry - Path-only entry for video files (too large to embed)
+ */
+class VideoMediaCacheEntry : public MediaCacheEntry
+{
+public:
+    VideoMediaCacheEntry();
+    VideoMediaCacheEntry(const std::string& filePath);
+
+    bool IsEmbeddable() const override { return false; }
+
+    // Returns the resolved absolute path for VideoReader to open
+    const std::string& GetResolvedPath() const { return _resolvedPath; }
+
+    // Generate a thumbnail from the first frame of the video
+    std::shared_ptr<xlImage> GetThumbnail(int maxWidth, int maxHeight);
+
+    void Load() override;
+    bool LoadFromXml(const pugi::xml_node& node) override;
+    void SaveToXml(pugi::xml_node& parent) const override;
+
+private:
+    std::string _resolvedPath;
+    std::shared_ptr<xlImage> _thumbnail;
+    int _thumbW = 0, _thumbH = 0;
+};
+
+/**
+ * SequenceMedia - Manages all media caching for a sequence
  *
- * This class currently caches images referenced by PicturesEffect to avoid
- * reloading them repeatedly. It also supports embedding images
- * directly in the xsq file for portability.
+ * Provides unified access to images, SVGs, shaders, text files, binary files,
+ * and videos referenced by effects. Supports embedding media directly in the
+ * xsq file for portability. All file resolution goes through FixFile() so
+ * effects don't need access to xLightsFrame::CurrentDir.
  */
 class SequenceMedia
 {
@@ -150,50 +317,65 @@ public:
     SequenceMedia();
     ~SequenceMedia();
 
-    // Image retrieval and caching
+    // === Image-specific API (existing, unchanged) ===
     std::shared_ptr<ImageCacheEntry> GetImage(const std::string& filepath);
     bool HasImage(const std::string& filepath) const;
     void AddAnimatedImage(const std::string& filepath, int msFrameTime);
-
-    // Remove an image from the cache
     void RemoveImage(const std::string& filepath);
-
-    // Clear all cached images
-    void Clear();
-
-
-    // Embed/extract operations
     void EmbedImage(const std::string& filepath);
     void EmbedAllImages();
-    // Add an xlImage directly as an embedded entry with the given name.
     void AddEmbeddedImage(const std::string& name, const xlImage& image);
     void AddEmbeddedImage(const std::string& name, const std::string& imageData);
-    // Add multiple frames as a single animated embedded entry. frameTimeMs is the
-    // duration of each frame in milliseconds.
     void AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs);
     void ExtractImage(const std::string& filepath);
     void ExtractAllImages();
-    // Save embedded image data to newPath on disk, rename cache key, mark external.
-    // Returns true on success.
     bool ExtractImageToFile(const std::string& oldPath, const std::string& newPath);
-
-    // Rename the cache key (and internal path) for an image entry.
-    // Returns true if the rename succeeded (oldPath existed, newPath didn't conflict).
     bool RenameImage(const std::string& oldPath, const std::string& newPath);
+    size_t GetImageCount() const { return _imageCache.size(); }
+    std::vector<std::string> GetImagePaths() const;
+    void RemoveUnusedImages();
 
-    // Serialization for xsq file format
+    // === Type-specific retrieval (create-on-first-access, resolve via FixFile) ===
+    std::shared_ptr<TextMediaCacheEntry> GetTextFile(const std::string& filepath);
+    std::shared_ptr<SVGMediaCacheEntry> GetSVG(const std::string& filepath);
+    std::shared_ptr<ShaderMediaCacheEntry> GetShader(const std::string& filepath);
+    std::shared_ptr<BinaryMediaCacheEntry> GetBinaryFile(const std::string& filepath, const std::string& subtype = "");
+    std::shared_ptr<VideoMediaCacheEntry> GetVideo(const std::string& filepath);
+
+    // === Cross-type queries ===
+    bool HasMedia(const std::string& filepath) const;
+    void RemoveMedia(const std::string& filepath);
+    size_t GetMediaCount() const;
+    std::vector<std::pair<std::string, MediaType>> GetAllMediaPaths() const;
+    // Returns {isEmbedded, isEmbeddable} for any media path across all caches
+    std::pair<bool, bool> GetMediaEmbedState(const std::string& filepath) const;
+
+    // === Generalized embed/extract ===
+    void EmbedMedia(const std::string& filepath);
+    void EmbedAllMedia();
+    void ExtractMedia(const std::string& filepath);
+    void ExtractAllMedia();
+
+    // === Lifecycle ===
+    void Clear();
+    void MarkAllUnused();
+    void RemoveUnusedMedia();
+
+    // === Serialization ===
     bool LoadFromXml(const pugi::xml_node& node);
     void SaveToXml(pugi::xml_node& parent) const;
 
-    // Utilities
-    size_t GetImageCount() const { return _imageCache.size(); }
-    std::vector<std::string> GetImagePaths() const;
-    void RemoveUnusedImages(); // Remove images with zero references
-    void MarkAllUnused();
 private:
-    // Cache mapping file path to image entry
-    std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
+    // Helper to resolve relative paths via FixFile
+    static std::string ResolvePath(const std::string& filepath);
 
-    // Mutex for thread-safe access to the cache
+    // Per-type caches
+    std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
+    std::map<std::string, std::shared_ptr<TextMediaCacheEntry>> _textCache;
+    std::map<std::string, std::shared_ptr<SVGMediaCacheEntry>> _svgCache;
+    std::map<std::string, std::shared_ptr<ShaderMediaCacheEntry>> _shaderCache;
+    std::map<std::string, std::shared_ptr<BinaryMediaCacheEntry>> _binaryCache;
+    std::map<std::string, std::shared_ptr<VideoMediaCacheEntry>> _videoCache;
+
     mutable std::recursive_mutex _cacheMutex;
 };

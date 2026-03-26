@@ -21,26 +21,69 @@
 #include "../UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
+#include "../utils/nanosvg_xl.h"
+#include "../effects/ShaderEffect.h"
+#include "../VideoReader.h"
+
+// =====================================================================
+// MediaCacheEntry (base class) Implementation
+// =====================================================================
+
+MediaCacheEntry::MediaCacheEntry(MediaType type) : _type(type), _used(false) {}
+MediaCacheEntry::MediaCacheEntry(MediaType type, const std::string& filePath)
+    : _type(type), _filePath(filePath), _used(false) {}
+MediaCacheEntry::MediaCacheEntry(MediaType type, const std::string& path, const std::string& base64Data)
+    : _type(type), _filePath(path), _embeddedData(base64Data), _used(false) {
+    _isEmbedded.store(true);
+}
+MediaCacheEntry::~MediaCacheEntry() {}
+
+void MediaCacheEntry::LoadRawFromFile(const std::string& filepath) {
+    ObtainAccessToURL(filepath);
+    FileExists(filepath, true);
+    std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
+    if (stream.is_open()) {
+        auto size = stream.tellg();
+        if (size <= 0) return;
+        stream.seekg(0);
+        std::vector<uint8_t> buffer(static_cast<size_t>(size));
+        stream.read(reinterpret_cast<char*>(buffer.data()), size);
+        if (!stream) return;
+        _embeddedData = Base64::Encode(buffer.data(), buffer.size());
+    }
+}
+
+bool MediaCacheEntry::SaveToFile(const std::string& path) const {
+    if (_embeddedData.empty()) return false;
+    ObtainAccessToURL(path, true);
+    std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+    if (buf.empty()) return false;
+    std::ofstream f(path, std::ios::binary);
+    if (!f.is_open()) return false;
+    f.write(reinterpret_cast<const char*>(buf.data()), buf.size());
+    return f.good();
+}
+
+// =====================================================================
+// ImageCacheEntry Implementation
+// =====================================================================
 
 AnimationLoaderFunc ImageCacheEntry::_gifLoader;
 AnimationLoaderFunc ImageCacheEntry::_webpLoader;
 
-// ImageCacheEntry Implementation
-ImageCacheEntry::ImageCacheEntry() : _used(false) {
+ImageCacheEntry::ImageCacheEntry() : MediaCacheEntry(MediaType::Image) {
     invalidImage = std::make_shared<xlImage>();
 }
 
-ImageCacheEntry::ImageCacheEntry(const std::string &filePath) : _used(false), _filePath(filePath) {
+ImageCacheEntry::ImageCacheEntry(const std::string &filePath) : MediaCacheEntry(MediaType::Image, filePath) {
     invalidImage = std::make_shared<xlImage>();
-    _isEmbedded = false;
 }
-ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
+ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::string &base64Data) : MediaCacheEntry(MediaType::Image, path, base64Data) {
     invalidImage = std::make_shared<xlImage>();
-    _isEmbedded = true;
 }
-ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<xlImage> &imgs, int ft, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
+ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<xlImage> &imgs, int ft, const std::string &base64Data) : MediaCacheEntry(MediaType::Image, path) {
+    _embeddedData = base64Data;
     invalidImage = std::make_shared<xlImage>();
-    _isEmbedded = false;
     _frameBasedAnimation = true;
     _imageCount = (int)imgs.size();
     _frameImages.resize(_imageCount);
@@ -84,17 +127,8 @@ void ImageCacheEntry::LoadFromData(const std::string& data) {
     }
 }
 void ImageCacheEntry::LoadFromFile(const std::string& filepath) {
-    ObtainAccessToURL(filepath);
-    FileExists(filepath, true);
-    std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
-    if (stream.is_open()) {
-        auto size = stream.tellg();
-        if (size <= 0) return;
-        stream.seekg(0);
-        std::vector<uint8_t> buffer(static_cast<size_t>(size));
-        stream.read(reinterpret_cast<char*>(buffer.data()), size);
-        if (!stream) return;
-        _embeddedData = Base64::Encode(buffer.data(), buffer.size());
+    LoadRawFromFile(filepath);
+    if (!_embeddedData.empty()) {
         LoadFromData(_embeddedData);
     }
 }
@@ -110,16 +144,15 @@ int ImageCacheEntry::GetExifOrientation(const uint8_t* data, size_t maxLen) {
     }
 
     size_t curPos = 2;
-    while (curPos < maxLen) {
+    while (curPos + 1 < maxLen) {
         byte1 = data[curPos++];
         if (byte1 != 0xFF) break;
         byte2 = data[curPos++];
         if (byte2 == 0xD9 || byte2 == 0xDA) break;
 
-        unsigned short len = data[curPos++] << 8;
-        len += data[curPos++];
-
-        len = ((len >> 8) & 0xFF) | ((len << 8) & 0xFF00); // big-endian
+        if (curPos + 1 >= maxLen) break;
+        unsigned short len = (data[curPos] << 8) | data[curPos + 1];
+        curPos += 2;
         if (len < 2) break;
 
         if (byte2 == 0xE1) { // APP1 segment
@@ -318,7 +351,7 @@ void ImageCacheEntry::SaveToXml(pugi::xml_node& parent) const
 }
 
 std::shared_ptr<xlImage> ImageCacheEntry::GetFrame(int x, bool suppressGIFBackground) {
-    if (x >= (int)_frameImages.size()) {
+    if (x < 0 || x >= (int)_frameImages.size()) {
         return invalidImage;
     }
     if (suppressGIFBackground && !_frameImagesNoBG.empty()) {
@@ -339,7 +372,7 @@ int ImageCacheEntry::GetFrameForTime(int msec, bool loop) {
     }
 
     if (msec > _totalTime) {
-        return _frameTimes.size();
+        return std::max(0, (int)_frameTimes.size() - 1);
     }
 
     int frame = 0;
@@ -415,8 +448,6 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
         if (!resolved.empty())
             loadPath = resolved;
     }
-
-    //wasn't found, we'll create it and add to the cache
     std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(loadPath);
     _imageCache.emplace(filepath, np);
     lock.unlock();
@@ -476,6 +507,11 @@ void SequenceMedia::Clear()
 {
     std::scoped_lock lock(_cacheMutex);
     _imageCache.clear();
+    _textCache.clear();
+    _svgCache.clear();
+    _shaderCache.clear();
+    _binaryCache.clear();
+    _videoCache.clear();
 }
 
 void SequenceMedia::EmbedImage(const std::string& filepath)
@@ -558,18 +594,6 @@ void SequenceMedia::ExtractAllImages()
     }
 }
 
-bool ImageCacheEntry::SaveToFile(const std::string& path) const
-{
-    if (_embeddedData.empty()) return false;
-    ObtainAccessToURL(path);
-    std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
-    if (buf.empty()) return false;
-    std::ofstream f(path, std::ios::binary);
-    if (!f.is_open()) return false;
-    f.write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    return f.good();
-}
-
 bool SequenceMedia::ExtractImageToFile(const std::string& oldPath, const std::string& newPath)
 {
     std::shared_ptr<ImageCacheEntry> entry;
@@ -604,20 +628,52 @@ bool SequenceMedia::RenameImage(const std::string& oldPath, const std::string& n
 
 bool SequenceMedia::LoadFromXml(const pugi::xml_node& node)
 {
-
     if (!node || strcmp(node.name(), "SequenceMedia") != 0) {
         return false;
     }
 
     std::scoped_lock lock(_cacheMutex);
     _imageCache.clear();
+    _textCache.clear();
+    _svgCache.clear();
+    _shaderCache.clear();
+    _binaryCache.clear();
+    _videoCache.clear();
 
-    for (auto imageNode : node.children("Image")) {
-        auto entry = std::make_shared<ImageCacheEntry>();
-        if (entry->LoadFromXml(imageNode)) {
-            _imageCache[entry->GetFilePath()] = entry;
-        } else {
-            spdlog::warn("Failed to load image entry from XML");
+    for (auto child : node.children()) {
+        std::string name = child.name();
+        if (name == "Image") {
+            auto entry = std::make_shared<ImageCacheEntry>();
+            if (entry->LoadFromXml(child)) {
+                _imageCache[entry->GetFilePath()] = entry;
+            } else {
+                spdlog::warn("Failed to load image entry from XML");
+            }
+        } else if (name == "TextFile") {
+            auto entry = std::make_shared<TextMediaCacheEntry>();
+            if (entry->LoadFromXml(child)) {
+                _textCache[entry->GetFilePath()] = entry;
+            }
+        } else if (name == "SVG") {
+            auto entry = std::make_shared<SVGMediaCacheEntry>();
+            if (entry->LoadFromXml(child)) {
+                _svgCache[entry->GetFilePath()] = entry;
+            }
+        } else if (name == "Shader") {
+            auto entry = std::make_shared<ShaderMediaCacheEntry>();
+            if (entry->LoadFromXml(child)) {
+                _shaderCache[entry->GetFilePath()] = entry;
+            }
+        } else if (name == "BinaryFile") {
+            auto entry = std::make_shared<BinaryMediaCacheEntry>();
+            if (entry->LoadFromXml(child)) {
+                _binaryCache[entry->GetFilePath()] = entry;
+            }
+        } else if (name == "Video") {
+            auto entry = std::make_shared<VideoMediaCacheEntry>();
+            if (entry->LoadFromXml(child)) {
+                _videoCache[entry->GetFilePath()] = entry;
+            }
         }
     }
 
@@ -629,8 +685,24 @@ void SequenceMedia::SaveToXml(pugi::xml_node& parent) const
     std::scoped_lock lock(_cacheMutex);
 
     auto node = parent.append_child("SequenceMedia");
-    for (const auto& pair : _imageCache) {
-        if (pair.second->IsEmbedded()) {
+
+    // Save all embedded entries across all types
+    auto saveEmbedded = [&node](const auto& cache) {
+        for (const auto& pair : cache) {
+            if (pair.second->IsEmbedded()) {
+                pair.second->SaveToXml(node);
+            }
+        }
+    };
+    saveEmbedded(_imageCache);
+    saveEmbedded(_textCache);
+    saveEmbedded(_svgCache);
+    saveEmbedded(_shaderCache);
+    saveEmbedded(_binaryCache);
+
+    // Videos are path-only (not embedded) — only save used entries
+    for (const auto& pair : _videoCache) {
+        if (pair.second->IsUsed()) {
             pair.second->SaveToXml(node);
         }
     }
@@ -671,4 +743,573 @@ void SequenceMedia::MarkAllUnused() {
     for (const auto& pair : _imageCache) {
         pair.second->MarkIsUsed(false);
     }
+    for (const auto& pair : _textCache) {
+        pair.second->MarkIsUsed(false);
+    }
+    for (const auto& pair : _svgCache) {
+        pair.second->MarkIsUsed(false);
+    }
+    for (const auto& pair : _shaderCache) {
+        pair.second->MarkIsUsed(false);
+    }
+    for (const auto& pair : _binaryCache) {
+        pair.second->MarkIsUsed(false);
+    }
+    for (const auto& pair : _videoCache) {
+        pair.second->MarkIsUsed(false);
+    }
+}
+
+// =====================================================================
+// TextMediaCacheEntry Implementation
+// =====================================================================
+
+TextMediaCacheEntry::TextMediaCacheEntry() : MediaCacheEntry(MediaType::TextFile) {}
+TextMediaCacheEntry::TextMediaCacheEntry(const std::string& filePath)
+    : MediaCacheEntry(MediaType::TextFile, filePath) {}
+TextMediaCacheEntry::TextMediaCacheEntry(const std::string& path, const std::string& base64Data)
+    : MediaCacheEntry(MediaType::TextFile, path, base64Data) {}
+
+void TextMediaCacheEntry::Load() {
+    std::scoped_lock lock(_cacheMutex);
+    if (!_loadingDone) {
+        if (_isEmbedded && !_embeddedData.empty()) {
+            std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+            _content.assign(buf.begin(), buf.end());
+            _loadingDone = true;
+        } else {
+            LoadRawFromFile(_filePath);
+            if (!_embeddedData.empty()) {
+                std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+                _content.assign(buf.begin(), buf.end());
+                _loadingDone = true;
+            }
+        }
+    }
+}
+
+bool TextMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
+    if (!node || strcmp(node.name(), "TextFile") != 0) return false;
+    _filePath = node.attribute("path").as_string("");
+    auto dataChild = node.child("Data");
+    if (dataChild) {
+        _embeddedData = dataChild.text().as_string("");
+        _isEmbedded = true;
+        // Decode content immediately for embedded entries
+        std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+        _content.assign(buf.begin(), buf.end());
+        _loadingDone = true;
+    }
+    return true;
+}
+
+void TextMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
+    if (!_isEmbedded) return;
+    auto node = parent.append_child("TextFile");
+    node.append_attribute("path") = _filePath;
+    if (!_embeddedData.empty()) {
+        auto dataNode = node.append_child("Data");
+        dataNode.text().set(_embeddedData);
+    }
+}
+
+// =====================================================================
+// SVGMediaCacheEntry Implementation
+// =====================================================================
+
+SVGMediaCacheEntry::SVGMediaCacheEntry() : MediaCacheEntry(MediaType::SVG) {}
+SVGMediaCacheEntry::SVGMediaCacheEntry(const std::string& filePath)
+    : MediaCacheEntry(MediaType::SVG, filePath) {}
+SVGMediaCacheEntry::SVGMediaCacheEntry(const std::string& path, const std::string& base64Data)
+    : MediaCacheEntry(MediaType::SVG, path, base64Data) {}
+
+void SVGMediaCacheEntry::Load() {
+    std::scoped_lock lock(_cacheMutex);
+    if (!_loadingDone) {
+        if (_isEmbedded && !_embeddedData.empty()) {
+            std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+            _svgContent.assign(buf.begin(), buf.end());
+            _loadingDone = true;
+        } else {
+            LoadRawFromFile(_filePath);
+            if (!_embeddedData.empty()) {
+                std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+                _svgContent.assign(buf.begin(), buf.end());
+                _loadingDone = true;
+            }
+        }
+    }
+}
+
+bool SVGMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
+    if (!node || strcmp(node.name(), "SVG") != 0) return false;
+    _filePath = node.attribute("path").as_string("");
+    auto dataChild = node.child("Data");
+    if (dataChild) {
+        _embeddedData = dataChild.text().as_string("");
+        _isEmbedded = true;
+        std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+        _svgContent.assign(buf.begin(), buf.end());
+        _loadingDone = true;
+    }
+    return true;
+}
+
+void SVGMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
+    if (!_isEmbedded) return;
+    auto node = parent.append_child("SVG");
+    node.append_attribute("path") = _filePath;
+    if (!_embeddedData.empty()) {
+        auto dataNode = node.append_child("Data");
+        dataNode.text().set(_embeddedData);
+    }
+}
+
+std::shared_ptr<xlImage> SVGMediaCacheEntry::GetThumbnail(int maxWidth, int maxHeight) {
+    std::scoped_lock lock(_cacheMutex);
+    if (_thumbnail && _thumbW == maxWidth && _thumbH == maxHeight) {
+        return _thumbnail;
+    }
+    if (_svgContent.empty()) return nullptr;
+
+    // Parse SVG
+    std::string svgCopy = _svgContent;  // nsvgParse modifies input
+    xl_NSVGimage* img = nsvgParse(svgCopy.data(), "px", 96);
+    if (!img || img->width <= 0 || img->height <= 0) {
+        if (img) nsvgDelete(img);
+        return nullptr;
+    }
+
+    // Calculate scaled dimensions maintaining aspect ratio
+    float scale = std::min((float)maxWidth / img->width, (float)maxHeight / img->height);
+    int w = std::max(1, (int)(img->width * scale));
+    int h = std::max(1, (int)(img->height * scale));
+
+    // Rasterize
+    xl_NSVGrasterizer* rast = nsvgCreateRasterizer();
+    std::vector<uint8_t> buf(w * h * 4, 0);
+    nsvgRasterize(rast, img, 0, 0, scale, buf.data(), w, h, w * 4);
+    nsvgDeleteRasterizer(rast);
+    nsvgDelete(img);
+
+    // Convert RGBA buffer to xlImage
+    _thumbnail = std::make_shared<xlImage>(w, h);
+    memcpy(_thumbnail->GetData(), buf.data(), w * h * 4);
+    _thumbW = maxWidth;
+    _thumbH = maxHeight;
+    return _thumbnail;
+}
+
+// =====================================================================
+// ShaderMediaCacheEntry Implementation
+// =====================================================================
+
+ShaderMediaCacheEntry::ShaderMediaCacheEntry() : MediaCacheEntry(MediaType::Shader) {}
+ShaderMediaCacheEntry::ShaderMediaCacheEntry(const std::string& filePath)
+    : MediaCacheEntry(MediaType::Shader, filePath) {}
+ShaderMediaCacheEntry::ShaderMediaCacheEntry(const std::string& path, const std::string& base64Data)
+    : MediaCacheEntry(MediaType::Shader, path, base64Data) {}
+ShaderMediaCacheEntry::~ShaderMediaCacheEntry() {
+    delete _shaderConfig;
+}
+
+ShaderConfig* ShaderMediaCacheEntry::GetShaderConfig(SequenceElements* sequenceElements) {
+    std::scoped_lock lock(_cacheMutex);
+    if (_shaderConfig == nullptr && !_shaderSource.empty()) {
+        _shaderConfig = ShaderEffect::ParseShaderFromSource(_filePath, _shaderSource, sequenceElements);
+    }
+    return _shaderConfig;
+}
+
+void ShaderMediaCacheEntry::Load() {
+    std::scoped_lock lock(_cacheMutex);
+    if (!_loadingDone) {
+        if (_isEmbedded && !_embeddedData.empty()) {
+            std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+            _shaderSource.assign(buf.begin(), buf.end());
+            _loadingDone = true;
+        } else {
+            LoadRawFromFile(_filePath);
+            if (!_embeddedData.empty()) {
+                std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+                _shaderSource.assign(buf.begin(), buf.end());
+                _loadingDone = true;
+            }
+        }
+    }
+}
+
+bool ShaderMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
+    if (!node || strcmp(node.name(), "Shader") != 0) return false;
+    _filePath = node.attribute("path").as_string("");
+    auto dataChild = node.child("Data");
+    if (dataChild) {
+        _embeddedData = dataChild.text().as_string("");
+        _isEmbedded = true;
+        std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+        _shaderSource.assign(buf.begin(), buf.end());
+        _loadingDone = true;
+    }
+    return true;
+}
+
+void ShaderMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
+    if (!_isEmbedded) return;
+    auto node = parent.append_child("Shader");
+    node.append_attribute("path") = _filePath;
+    if (!_embeddedData.empty()) {
+        auto dataNode = node.append_child("Data");
+        dataNode.text().set(_embeddedData);
+    }
+}
+
+// =====================================================================
+// BinaryMediaCacheEntry Implementation
+// =====================================================================
+
+BinaryMediaCacheEntry::BinaryMediaCacheEntry() : MediaCacheEntry(MediaType::BinaryFile) {}
+BinaryMediaCacheEntry::BinaryMediaCacheEntry(const std::string& filePath, const std::string& subtype)
+    : MediaCacheEntry(MediaType::BinaryFile, filePath), _subtype(subtype) {}
+BinaryMediaCacheEntry::BinaryMediaCacheEntry(const std::string& path, const std::string& base64Data, const std::string& subtype)
+    : MediaCacheEntry(MediaType::BinaryFile, path, base64Data), _subtype(subtype) {}
+
+void BinaryMediaCacheEntry::Load() {
+    std::scoped_lock lock(_cacheMutex);
+    if (!_loadingDone) {
+        // Binary files (Glediator) are not embeddable — readers open files directly.
+        // Just verify the file exists, don't load into memory.
+        if (FileExists(_filePath)) {
+            _loadingDone = true;
+        }
+    }
+}
+
+bool BinaryMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
+    if (!node || strcmp(node.name(), "BinaryFile") != 0) return false;
+    _filePath = node.attribute("path").as_string("");
+    _subtype = node.attribute("subtype").as_string("");
+    auto dataChild = node.child("Data");
+    if (dataChild) {
+        _embeddedData = dataChild.text().as_string("");
+        _isEmbedded = true;
+        _data = Base64::Decode(_embeddedData);
+        _loadingDone = true;
+    }
+    return true;
+}
+
+void BinaryMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
+    if (!_isEmbedded) return;
+    auto node = parent.append_child("BinaryFile");
+    node.append_attribute("path") = _filePath;
+    if (!_subtype.empty()) {
+        node.append_attribute("subtype") = _subtype;
+    }
+    if (!_embeddedData.empty()) {
+        auto dataNode = node.append_child("Data");
+        dataNode.text().set(_embeddedData);
+    }
+}
+
+// =====================================================================
+// VideoMediaCacheEntry Implementation
+// =====================================================================
+
+VideoMediaCacheEntry::VideoMediaCacheEntry() : MediaCacheEntry(MediaType::Video) {}
+VideoMediaCacheEntry::VideoMediaCacheEntry(const std::string& filePath)
+    : MediaCacheEntry(MediaType::Video, filePath) {}
+
+void VideoMediaCacheEntry::Load() {
+    std::scoped_lock lock(_cacheMutex);
+    if (!_loadingDone) {
+        // Videos are path-only: resolve to absolute path for VideoReader
+        _resolvedPath = _filePath;
+        if (!std::filesystem::path(_filePath).is_absolute()) {
+            std::string resolved = FixFile("", _filePath);
+            if (!resolved.empty()) {
+                _resolvedPath = resolved;
+            }
+        }
+        _loadingDone = true;
+    }
+}
+
+std::shared_ptr<xlImage> VideoMediaCacheEntry::GetThumbnail(int maxWidth, int maxHeight) {
+    std::scoped_lock lock(_cacheMutex);
+    if (_thumbnail && _thumbW == maxWidth && _thumbH == maxHeight) {
+        return _thumbnail;
+    }
+    if (_resolvedPath.empty() || !FileExists(_resolvedPath)) return nullptr;
+
+    // Open video at thumbnail dimensions, grab first frame
+    VideoReader reader(_resolvedPath, maxWidth, maxHeight, true, false, true);
+    if (!reader.IsValid()) return nullptr;
+
+    AVFrame* frame = reader.GetNextFrame(0);
+    if (!frame || !frame->data[0]) return nullptr;
+
+    int w = reader.GetWidth();
+    int h = reader.GetHeight();
+    if (w <= 0 || h <= 0) return nullptr;
+
+    // AVFrame with wantAlpha=true is RGBA, matching xlImage layout
+    _thumbnail = std::make_shared<xlImage>(w, h);
+    int srcStride = frame->linesize[0];
+    uint8_t* dst = _thumbnail->GetData();
+    for (int y = 0; y < h; y++) {
+        memcpy(dst + y * w * 4, frame->data[0] + y * srcStride, w * 4);
+    }
+    _thumbW = maxWidth;
+    _thumbH = maxHeight;
+    return _thumbnail;
+}
+
+bool VideoMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
+    if (!node || strcmp(node.name(), "Video") != 0) return false;
+    _filePath = node.attribute("path").as_string("");
+    return true;
+}
+
+void VideoMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
+    // Videos are never embedded but we track them in SequenceMedia for inventory
+    auto node = parent.append_child("Video");
+    node.append_attribute("path") = _filePath;
+}
+
+// =====================================================================
+// SequenceMedia — New type-specific retrieval methods
+// =====================================================================
+
+std::string SequenceMedia::ResolvePath(const std::string& filepath) {
+    if (!std::filesystem::path(filepath).is_absolute()) {
+        std::string resolved = FixFile("", filepath);
+        if (!resolved.empty()) return resolved;
+    }
+    return filepath;
+}
+
+std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::string& filepath) {
+    std::unique_lock lock(_cacheMutex);
+    auto it = _textCache.find(filepath);
+    if (it != _textCache.end()) {
+        auto ret = it->second;
+        if (!ret->isLoaded()) {
+            lock.unlock();
+            ret->Load();
+        }
+        return ret;
+    }
+    std::string loadPath = ResolvePath(filepath);
+    auto np = std::make_shared<TextMediaCacheEntry>(loadPath);
+    _textCache.emplace(filepath, np);
+    lock.unlock();
+    np->Load();
+    return np;
+}
+
+std::shared_ptr<SVGMediaCacheEntry> SequenceMedia::GetSVG(const std::string& filepath) {
+    std::unique_lock lock(_cacheMutex);
+    auto it = _svgCache.find(filepath);
+    if (it != _svgCache.end()) {
+        auto ret = it->second;
+        if (!ret->isLoaded()) {
+            lock.unlock();
+            ret->Load();
+        }
+        return ret;
+    }
+    std::string loadPath = ResolvePath(filepath);
+    auto np = std::make_shared<SVGMediaCacheEntry>(loadPath);
+    _svgCache.emplace(filepath, np);
+    lock.unlock();
+    np->Load();
+    return np;
+}
+
+std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::string& filepath) {
+    std::unique_lock lock(_cacheMutex);
+    auto it = _shaderCache.find(filepath);
+    if (it != _shaderCache.end()) {
+        auto ret = it->second;
+        if (!ret->isLoaded()) {
+            lock.unlock();
+            ret->Load();
+        }
+        return ret;
+    }
+    std::string loadPath = ResolvePath(filepath);
+    auto np = std::make_shared<ShaderMediaCacheEntry>(loadPath);
+    _shaderCache.emplace(filepath, np);
+    lock.unlock();
+    np->Load();
+    return np;
+}
+
+std::shared_ptr<BinaryMediaCacheEntry> SequenceMedia::GetBinaryFile(const std::string& filepath, const std::string& subtype) {
+    std::unique_lock lock(_cacheMutex);
+    auto it = _binaryCache.find(filepath);
+    if (it != _binaryCache.end()) {
+        auto ret = it->second;
+        if (!ret->isLoaded()) {
+            lock.unlock();
+            ret->Load();
+        }
+        return ret;
+    }
+    std::string loadPath = ResolvePath(filepath);
+    auto np = std::make_shared<BinaryMediaCacheEntry>(loadPath, subtype);
+    _binaryCache.emplace(filepath, np);
+    lock.unlock();
+    np->Load();
+    return np;
+}
+
+std::shared_ptr<VideoMediaCacheEntry> SequenceMedia::GetVideo(const std::string& filepath) {
+    std::unique_lock lock(_cacheMutex);
+    auto it = _videoCache.find(filepath);
+    if (it != _videoCache.end()) {
+        auto ret = it->second;
+        if (!ret->isLoaded()) {
+            lock.unlock();
+            ret->Load();
+        }
+        return ret;
+    }
+    auto np = std::make_shared<VideoMediaCacheEntry>(filepath);
+    _videoCache.emplace(filepath, np);
+    lock.unlock();
+    np->Load();
+    return np;
+}
+
+// =====================================================================
+// SequenceMedia — Cross-type queries
+// =====================================================================
+
+bool SequenceMedia::HasMedia(const std::string& filepath) const {
+    std::scoped_lock lock(_cacheMutex);
+    return _imageCache.count(filepath) || _textCache.count(filepath) ||
+           _svgCache.count(filepath) || _shaderCache.count(filepath) ||
+           _binaryCache.count(filepath) || _videoCache.count(filepath);
+}
+
+std::pair<bool, bool> SequenceMedia::GetMediaEmbedState(const std::string& filepath) const {
+    std::scoped_lock lock(_cacheMutex);
+    auto checkCache = [&](const auto& cache) -> std::optional<std::pair<bool, bool>> {
+        auto it = cache.find(filepath);
+        if (it != cache.end())
+            return std::pair{ it->second->IsEmbedded(), it->second->IsEmbeddable() };
+        return std::nullopt;
+    };
+    if (auto r = checkCache(_imageCache)) return *r;
+    if (auto r = checkCache(_textCache)) return *r;
+    if (auto r = checkCache(_svgCache)) return *r;
+    if (auto r = checkCache(_shaderCache)) return *r;
+    if (auto r = checkCache(_binaryCache)) return *r;
+    if (auto r = checkCache(_videoCache)) return *r;
+    return { false, false };
+}
+
+void SequenceMedia::RemoveMedia(const std::string& filepath) {
+    std::scoped_lock lock(_cacheMutex);
+    _imageCache.erase(filepath);
+    _textCache.erase(filepath);
+    _svgCache.erase(filepath);
+    _shaderCache.erase(filepath);
+    _binaryCache.erase(filepath);
+    _videoCache.erase(filepath);
+}
+
+size_t SequenceMedia::GetMediaCount() const {
+    std::scoped_lock lock(_cacheMutex);
+    return _imageCache.size() + _textCache.size() + _svgCache.size() +
+           _shaderCache.size() + _binaryCache.size() + _videoCache.size();
+}
+
+std::vector<std::pair<std::string, MediaType>> SequenceMedia::GetAllMediaPaths() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::pair<std::string, MediaType>> paths;
+    paths.reserve(_imageCache.size() + _textCache.size() + _svgCache.size() +
+                   _shaderCache.size() + _binaryCache.size() + _videoCache.size());
+    for (const auto& p : _imageCache) paths.emplace_back(p.first, MediaType::Image);
+    for (const auto& p : _svgCache) paths.emplace_back(p.first, MediaType::SVG);
+    for (const auto& p : _shaderCache) paths.emplace_back(p.first, MediaType::Shader);
+    for (const auto& p : _textCache) paths.emplace_back(p.first, MediaType::TextFile);
+    for (const auto& p : _binaryCache) paths.emplace_back(p.first, MediaType::BinaryFile);
+    for (const auto& p : _videoCache) paths.emplace_back(p.first, MediaType::Video);
+    return paths;
+}
+
+// =====================================================================
+// SequenceMedia — Generalized embed/extract
+// =====================================================================
+
+void SequenceMedia::EmbedMedia(const std::string& filepath) {
+    std::scoped_lock lock(_cacheMutex);
+    auto ii = _imageCache.find(filepath);
+    if (ii != _imageCache.end()) { ii->second->Embed(); return; }
+    auto it = _textCache.find(filepath);
+    if (it != _textCache.end()) { it->second->Embed(); return; }
+    auto is = _svgCache.find(filepath);
+    if (is != _svgCache.end()) { is->second->Embed(); return; }
+    auto ih = _shaderCache.find(filepath);
+    if (ih != _shaderCache.end()) { ih->second->Embed(); return; }
+    auto ib = _binaryCache.find(filepath);
+    if (ib != _binaryCache.end()) { ib->second->Embed(); return; }
+    // Videos are not embeddable
+}
+
+void SequenceMedia::EmbedAllMedia() {
+    std::scoped_lock lock(_cacheMutex);
+    for (auto& p : _imageCache) p.second->Embed();
+    for (auto& p : _textCache) p.second->Embed();
+    for (auto& p : _svgCache) p.second->Embed();
+    for (auto& p : _shaderCache) p.second->Embed();
+    for (auto& p : _binaryCache) p.second->Embed();
+    // Videos are not embeddable
+}
+
+void SequenceMedia::ExtractMedia(const std::string& filepath) {
+    std::scoped_lock lock(_cacheMutex);
+    auto ii = _imageCache.find(filepath);
+    if (ii != _imageCache.end()) { ii->second->Extract(); return; }
+    auto it = _textCache.find(filepath);
+    if (it != _textCache.end()) { it->second->Extract(); return; }
+    auto is = _svgCache.find(filepath);
+    if (is != _svgCache.end()) { is->second->Extract(); return; }
+    auto ih = _shaderCache.find(filepath);
+    if (ih != _shaderCache.end()) { ih->second->Extract(); return; }
+    auto ib = _binaryCache.find(filepath);
+    if (ib != _binaryCache.end()) { ib->second->Extract(); return; }
+}
+
+void SequenceMedia::ExtractAllMedia() {
+    std::scoped_lock lock(_cacheMutex);
+    for (auto& p : _imageCache) p.second->Extract();
+    for (auto& p : _textCache) p.second->Extract();
+    for (auto& p : _svgCache) p.second->Extract();
+    for (auto& p : _shaderCache) p.second->Extract();
+    for (auto& p : _binaryCache) p.second->Extract();
+}
+
+void SequenceMedia::RemoveUnusedMedia() {
+    std::scoped_lock lock(_cacheMutex);
+    auto removeUnused = [](auto& cache, const char* typeName) {
+        std::vector<std::string> toRemove;
+        for (const auto& pair : cache) {
+            if (!pair.second->IsUsed()) {
+                toRemove.push_back(pair.first);
+            }
+        }
+        for (const auto& path : toRemove) {
+            spdlog::debug("Removing unused {} from cache: {}", typeName, path);
+            cache.erase(path);
+        }
+    };
+    removeUnused(_imageCache, "image");
+    removeUnused(_textCache, "text file");
+    removeUnused(_svgCache, "SVG");
+    removeUnused(_shaderCache, "shader");
+    removeUnused(_binaryCache, "binary file");
+    removeUnused(_videoCache, "video");
 }

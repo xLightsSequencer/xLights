@@ -17,6 +17,7 @@
 #include <format>
 
 #include "../render/SequenceElements.h"
+#include "../render/SequenceMedia.h"
 #include "../utils/string_utils.h"
 
 #include "../render/Effect.h"
@@ -159,10 +160,20 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
 
     std::string GledFilename = settings.Get("E_FILEPICKERCTRL_Glediator_Filename", "");
 
-    if (GledFilename == "" || !FileExists(GledFilename)) {
+    if (GledFilename.empty()) {
         res.push_back(std::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, GledFilename)) {
-        res.push_back(std::format("    WARN: Glediator effect file '{}' not under show directory. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else {
+        auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        auto entry = mm.GetBinaryFile(GledFilename, "glediator");
+        entry->MarkIsUsed();
+
+        if (!entry->isLoaded()) {
+            res.push_back(std::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        } else if (!entry->IsEmbedded()) {
+            if (!IsFileInShowDir(std::string(), GledFilename)) {
+                res.push_back(std::format("    WARN: Glediator effect file '{}' not under show directory. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            }
+        }
     }
 
     return res;
@@ -221,12 +232,30 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
         settings["E_FILEPICKERCTRL_Glediator_Filename"] = file;
     }
 
-    if (file != "")
-    {
-        if (!FileExists(file))
-        {
-            settings["E_FILEPICKERCTRL_Glediator_Filename"] = FixFile("", file);
+    // Resolve broken paths first, then convert to relative for portability
+    file = settings["E_FILEPICKERCTRL_Glediator_Filename"];
+    if (!file.empty() && !FileExists(file)) {
+        std::string fixed = FixFile("", file);
+        if (!fixed.empty() && fixed != file) {
+            settings["E_FILEPICKERCTRL_Glediator_Filename"] = fixed;
+            file = fixed;
         }
+    }
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_Glediator_Filename"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_Glediator_Filename"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetBinaryFile(settings["E_FILEPICKERCTRL_Glediator_Filename"], "glediator");
     }
 }
 
@@ -318,11 +347,17 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             _csvReader = nullptr;
         }
 
-        if (FileExists(glediatorFilename))
+        auto* sm = buffer.GetSequenceMedia();
+        if (sm == nullptr) return;
+        auto binaryEntry = sm->GetBinaryFile(glediatorFilename, "glediator");
+        binaryEntry->MarkIsUsed();
+        // Use resolved path so the readers can find the file on disk
+        std::string resolvedFile = binaryEntry->GetFilePath();
+        if (binaryEntry->isLoaded())
         {
             if (IsCSVFile(glediatorFilename))
             {
-                _csvReader = new CSVReader(glediatorFilename);
+                _csvReader = new CSVReader(resolvedFile);
 
                 if (_csvReader == nullptr)
                 {
@@ -346,7 +381,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             else
             {
                 // have to open the file
-                _glediatorReader = new GlediatorReader(glediatorFilename, xlSize(buffer.BufferWi, buffer.BufferHt));
+                _glediatorReader = new GlediatorReader(resolvedFile, xlSize(buffer.BufferWi, buffer.BufferHt));
 
                 if (_glediatorReader == nullptr)
                 {

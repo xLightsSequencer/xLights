@@ -10,6 +10,7 @@
 
 #include "ManageMediaPanel.h"
 #include "render/SequenceMedia.h"
+#include "VideoReader.h"
 #include "render/SequenceElements.h"
 #include "render/Element.h"
 #include "render/EffectLayer.h"  // also defines NodeLayer
@@ -22,6 +23,7 @@
 
 #include <wx/filename.h>
 #include <wx/filedlg.h>
+#include <wx/image.h>
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
@@ -30,6 +32,31 @@
 #include <algorithm>
 
 #include "ExternalHooks.h"
+
+static std::string MediaTypeName(MediaType t) {
+    switch (t) {
+        case MediaType::Image: return "Images";
+        case MediaType::SVG: return "SVGs";
+        case MediaType::Shader: return "Shaders";
+        case MediaType::TextFile: return "Text Files";
+        case MediaType::BinaryFile: return "Other Files";
+        case MediaType::Video: return "Videos";
+    }
+    return "Unknown";
+}
+
+static wxString WildcardForMediaType(std::optional<MediaType> type) {
+    if (!type.has_value()) return "All files (*.*)|*.*";
+    switch (*type) {
+        case MediaType::Image: return wxImage::GetImageExtWildcard();
+        case MediaType::Video: return "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv";
+        case MediaType::Shader: return "Shader Files (*.fs)|*.fs";
+        case MediaType::SVG: return "SVG Files (*.svg)|*.svg";
+        case MediaType::TextFile: return "Text Files (*.txt)|*.txt";
+        case MediaType::BinaryFile: return "Glediator Files|*.gled;*.out;*.csv";
+    }
+    return "All files (*.*)|*.*";
+}
 
 // ---------------------------------------------------------------------------
 // MediaViewModel
@@ -45,7 +72,8 @@ void MediaViewModel::Clear()
 }
 
 void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirectory,
-                             const std::list<std::string>& mediaDirs)
+                             const std::list<std::string>& mediaDirs,
+                             std::optional<MediaType> filterType)
 {
     _groups.clear();
 
@@ -71,7 +99,7 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
     // Returns the display path for a file: strips show/media dir prefix when present.
     // For relative cache keys, uses the resolved absolute path from the entry to
     // determine which directory the file belongs to.
-    auto displayPath = [&](const std::string& cachePath, const std::shared_ptr<ImageCacheEntry>& entry) -> wxString {
+    auto displayPath = [&](const std::string& cachePath, const std::string& resolvedPath) -> wxString {
         wxString wx(cachePath);
         // Try stripping show dir prefix from the cache key
         if (!showDir.IsEmpty() && wx.StartsWith(showDir)) {
@@ -84,8 +112,8 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
         }
         // For relative paths, check the resolved absolute path to determine
         // which directory the file actually lives in.
-        if (entry) {
-            wxString resolved(entry->GetFilePath());
+        if (!resolvedPath.empty()) {
+            wxString resolved(resolvedPath);
             if (!showDir.IsEmpty() && resolved.StartsWith(showDir)) {
                 return wx;  // relative to show dir — return as-is
             }
@@ -99,62 +127,139 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
         return wx;
     };
 
-    std::vector<std::string> paths = media->GetImagePaths();
+    auto allMedia = media->GetAllMediaPaths();
 
-    // Helper to build a leaf node
-    auto makeLeaf = [&](const std::string& path, const std::shared_ptr<ImageCacheEntry>& entry, MediaNode* parent) -> std::shared_ptr<MediaNode> {
-        auto node = std::make_shared<MediaNode>();
-        node->isGroup = false;
-        node->filePath = path;   // always the cache key for lookups
-        node->parent = parent;
+    // Filter if type specified
+    if (filterType.has_value()) {
+        std::erase_if(allMedia, [&](const auto& p) { return p.second != *filterType; });
+    }
 
-        // Display label: just the filename portion
-        wxFileName fn(path);
-        node->label = fn.GetFullName().ToStdString();
+    // Group entries first by MediaType, then by directory within each type
+    // Use an ordered map so types appear in a consistent order
+    std::map<MediaType, std::vector<std::pair<std::string, MediaType>>> byType;
+    for (const auto& [path, type] : allMedia) {
+        byType[type].push_back({path, type});
+    }
 
-        if (entry) {
-            node->canLoad = entry->IsOk();
-            wxSize sz(entry->GetImageWidth(), entry->GetImageHeight());
-            node->sizeStr = (sz.x > 0) ? wxString::Format("%dx%d", sz.x, sz.y) : "?";
-            node->framesStr = (entry->GetImageCount() > 1)
-                ? wxString::Format("%d", entry->GetImageCount()) : "-";
-            node->statusStr = entry->IsEmbedded() ? "Embedded" : "External";
-            if (!node->canLoad)
-                node->statusStr += " (broken)";
-        }
-        return node;
-    };
+    // When filtering by a single type, skip the top-level type grouping
+    // and go directly to directory grouping (single level).
+    bool singleTypeMode = filterType.has_value() && byType.size() <= 1;
 
-    // Group all images (external and embedded alike) by their display directory
-    std::map<wxString, std::shared_ptr<MediaNode>> dirGroups;
-    for (const auto& path : paths) {
-        auto entry = media->GetImage(path);
-        if (!entry) continue;
-
-        wxFileName fn(displayPath(path, entry));
-        wxString dir = fn.GetPath();
-        if (dir.IsEmpty()) dir = "(show directory)";
-
-        auto it = dirGroups.find(dir);
-        if (it == dirGroups.end()) {
-            auto grp = std::make_shared<MediaNode>();
-            grp->isGroup = true;
-            grp->label = dir.ToStdString();
-            grp->parent = nullptr;
-            dirGroups[dir] = grp;
-            _groups.push_back(grp);
+    for (const auto& [type, entries] : byType) {
+        // In single-type mode, directory groups are top-level; otherwise
+        // they nest under a type group node.
+        MediaNode* typeParent = nullptr;
+        std::shared_ptr<MediaNode> typeGroup;
+        if (!singleTypeMode) {
+            // Create a top-level group node for this media type
+            typeGroup = std::make_shared<MediaNode>();
+            typeGroup->isGroup = true;
+            typeGroup->label = MediaTypeName(type);
+            typeGroup->parent = nullptr;
+            typeParent = typeGroup.get();
         }
 
-        dirGroups[dir]->children.push_back(makeLeaf(path, entry, dirGroups[dir].get()));
+        // Sub-group by directory within this type
+        std::map<wxString, std::shared_ptr<MediaNode>> dirGroups;
+
+        for (const auto& [path, mtype] : entries) {
+            std::string resolvedPath;
+            auto node = std::make_shared<MediaNode>();
+            node->isGroup = false;
+            node->filePath = path;
+            node->mediaType = mtype;
+
+            // Display label: just the filename portion
+            wxFileName fnName(path);
+            node->label = fnName.GetFullName().ToStdString();
+
+            if (type == MediaType::Image) {
+                auto entry = media->GetImage(path);
+                if (!entry) continue;
+                resolvedPath = entry->GetFilePath();
+                node->canLoad = entry->IsOk();
+                wxSize sz(entry->GetImageWidth(), entry->GetImageHeight());
+                node->sizeStr = (sz.x > 0) ? wxString::Format("%dx%d", sz.x, sz.y) : "?";
+                node->framesStr = (entry->GetImageCount() > 1)
+                    ? wxString::Format("%d", entry->GetImageCount()) : "-";
+                node->statusStr = entry->IsEmbedded() ? "Embedded" : "External";
+                if (!node->canLoad)
+                    node->statusStr += " (broken)";
+            } else if (type == MediaType::Video) {
+                auto entry = media->GetVideo(path);
+                if (!entry) continue;
+                resolvedPath = entry->GetFilePath();
+                node->canLoad = true;
+                node->sizeStr = "-";
+                node->framesStr = "-";
+                node->statusStr = "External";
+            } else {
+                // SVG, Shader, TextFile, BinaryFile — all share the base MediaCacheEntry interface
+                MediaCacheEntry* baseEntry = nullptr;
+                std::shared_ptr<MediaCacheEntry> holder;
+                if (type == MediaType::SVG) {
+                    auto e = media->GetSVG(path);
+                    holder = e; baseEntry = e.get();
+                } else if (type == MediaType::Shader) {
+                    auto e = media->GetShader(path);
+                    holder = e; baseEntry = e.get();
+                } else if (type == MediaType::TextFile) {
+                    auto e = media->GetTextFile(path);
+                    holder = e; baseEntry = e.get();
+                } else if (type == MediaType::BinaryFile) {
+                    auto e = media->GetBinaryFile(path);
+                    holder = e; baseEntry = e.get();
+                }
+                if (!baseEntry) continue;
+                resolvedPath = baseEntry->GetFilePath();
+                node->canLoad = true;
+                node->sizeStr = "-";
+                node->framesStr = "-";
+                node->statusStr = baseEntry->IsEmbedded() ? "Embedded" : "External";
+            }
+
+            wxFileName fn(displayPath(path, resolvedPath));
+            wxString dir = fn.GetPath();
+            if (dir.IsEmpty()) dir = "(show directory)";
+
+            auto it = dirGroups.find(dir);
+            if (it == dirGroups.end()) {
+                auto grp = std::make_shared<MediaNode>();
+                grp->isGroup = true;
+                grp->label = dir.ToStdString();
+                grp->parent = typeParent;
+                dirGroups[dir] = grp;
+                if (singleTypeMode) {
+                    _groups.push_back(grp);
+                } else {
+                    typeGroup->children.push_back(grp);
+                }
+            }
+
+            node->parent = dirGroups[dir].get();
+            dirGroups[dir]->children.push_back(node);
+        }
+
+        if (!singleTypeMode && typeGroup && !typeGroup->children.empty()) {
+            _groups.push_back(typeGroup);
+        }
     }
 }
 
 wxDataViewItem MediaViewModel::FindItem(const std::string& filePath) const
 {
-    for (const auto& grp : _groups) {
-        for (const auto& child : grp->children) {
-            if (child->filePath == filePath)
-                return wxDataViewItem(child.get());
+    for (const auto& typeGrp : _groups) {
+        for (const auto& dirGrp : typeGrp->children) {
+            if (!dirGrp->isGroup) {
+                // In case a leaf is directly under a type group (shouldn't happen, but safe)
+                if (dirGrp->filePath == filePath)
+                    return wxDataViewItem(dirGrp.get());
+                continue;
+            }
+            for (const auto& child : dirGrp->children) {
+                if (child->filePath == filePath)
+                    return wxDataViewItem(child.get());
+            }
         }
     }
     return wxDataViewItem(nullptr);
@@ -255,12 +360,14 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
                                    const std::string& showDirectory,
                                    xLightsFrame* xlFrame,
                                    bool singleSelect,
+                                   std::optional<MediaType> filterType,
                                    wxWindowID id)
     : wxPanel(parent, id)
     , _sequenceMedia(sequenceMedia)
     , _sequenceElements(sequenceElements)
     , _xlFrame(xlFrame)
     , _showDirectory(showDirectory)
+    , _filterType(filterType)
     , _model(new MediaViewModel())
 {
     wxFlexGridSizer* mainSizer = new wxFlexGridSizer(1, 2, 0, 0);
@@ -304,7 +411,8 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     rightSizer->Add(0, 10, 0);
 
     _addButton = new wxButton(this, wxID_ANY, "Add...");
-    _addButton->SetToolTip("Add an image file to the sequence media");
+    _addButton->SetToolTip("Add a media file to the sequence");
+    _addButton->Show(!singleSelect);  // Hidden in SelectMediaDialog (it has its own "Add from disk...")
     rightSizer->Add(_addButton, 0, wxALL | wxEXPAND, 5);
 
     _aiGenerateButton = new wxButton(this, wxID_ANY, "AI Generate...");
@@ -321,30 +429,31 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     rightSizer->Add(0, 10, 0);
 
     _embedButton = new wxButton(this, wxID_ANY, "Embed");
-    _embedButton->SetToolTip("Store this image inside the sequence file");
+    _embedButton->SetToolTip("Store this media inside the sequence file");
     _embedButton->Disable();
     rightSizer->Add(_embedButton, 0, wxALL | wxEXPAND, 5);
 
     _extractButton = new wxButton(this, wxID_ANY, "Extract");
-    _extractButton->SetToolTip("Reference this image from an external file path");
+    _extractButton->SetToolTip("Reference this media from an external file path");
     _extractButton->Disable();
     rightSizer->Add(_extractButton, 0, wxALL | wxEXPAND, 5);
 
     rightSizer->Add(0, 10, 0);
 
     _embedAllButton = new wxButton(this, wxID_ANY, "Embed All");
-    _embedAllButton->SetToolTip("Store all images inside the sequence file");
+    _embedAllButton->SetToolTip("Store all media inside the sequence file");
     rightSizer->Add(_embedAllButton, 0, wxALL | wxEXPAND, 5);
 
     _extractAllButton = new wxButton(this, wxID_ANY, "Extract All");
-    _extractAllButton->SetToolTip("Reference all images from external file paths");
+    _extractAllButton->SetToolTip("Reference all media from external file paths");
     rightSizer->Add(_extractAllButton, 0, wxALL | wxEXPAND, 5);
 
     rightSizer->Add(0, 10, 0);
 
     _removeButton = new wxButton(this, wxID_ANY, "Remove");
-    _removeButton->SetToolTip("Remove the selected embedded image(s) from the sequence");
+    _removeButton->SetToolTip("Remove the selected embedded media from the sequence");
     _removeButton->Disable();
+    _removeButton->Show(!singleSelect);  // Hidden in SelectMediaDialog
     rightSizer->Add(_removeButton, 0, wxALL | wxEXPAND, 5);
 
     mainSizer->Add(rightSizer, 0, wxALL | wxEXPAND, 0);
@@ -387,8 +496,19 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
     _model->Clear();
     _model->Cleared();   // notify the control the whole model changed
 
+    // AI generate only available for image type
     bool hasAI = _xlFrame && !_xlFrame->GetAIServices(aiType::TYPE::IMAGES).empty();
+    _aiGenerateButton->Show(!_filterType.has_value() || *_filterType == MediaType::Image);
     _aiGenerateButton->Enable(hasAI);
+
+    // Hide embed/extract buttons for non-embeddable types
+    bool typeIsEmbeddable = !_filterType.has_value() ||
+        (*_filterType != MediaType::Video && *_filterType != MediaType::BinaryFile);
+    _embedButton->Show(typeIsEmbeddable);
+    _extractButton->Show(typeIsEmbeddable);
+    _embedAllButton->Show(typeIsEmbeddable);
+    _extractAllButton->Show(typeIsEmbeddable);
+    _renameButton->Show(typeIsEmbeddable);
 
     if (_sequenceMedia == nullptr) {
         _addButton->Disable();
@@ -401,24 +521,46 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
 
     std::list<std::string> mediaDirs;
     if (_xlFrame) mediaDirs = _xlFrame->GetMediaFolders();
-    _model->Rebuild(_sequenceMedia, _showDirectory, mediaDirs);
+    _model->Rebuild(_sequenceMedia, _showDirectory, mediaDirs, _filterType);
     _model->Cleared();
 
-    // Expand all top-level groups
+    // Expand all top-level and second-level groups
     wxDataViewItemArray groups;
     _model->GetChildren(wxDataViewItem(nullptr), groups);
     for (const auto& grp : groups) {
         _mediaTree->Expand(grp);
+        wxDataViewItemArray subGroups;
+        _model->GetChildren(grp, subGroups);
+        for (const auto& sub : subGroups) {
+            if (_model->IsContainer(sub))
+                _mediaTree->Expand(sub);
+        }
     }
 
-    // Determine Embed All / Extract All availability
-    std::vector<std::string> paths = _sequenceMedia->GetImagePaths();
+    // Determine Embed All / Extract All availability (only for filtered type if set)
+    auto allPaths = _sequenceMedia->GetAllMediaPaths();
     bool hasEmbeddable = false, hasExtractable = false;
-    for (const auto& path : paths) {
-        auto entry = _sequenceMedia->GetImage(path);
-        if (!entry) continue;
-        if (!entry->IsEmbedded() && entry->IsEmbeddable()) hasEmbeddable = true;
-        if (entry->IsEmbedded()) hasExtractable = true;
+    for (const auto& [path, type] : allPaths) {
+        if (_filterType.has_value() && type != *_filterType) continue;
+        if (type == MediaType::Image) {
+            auto entry = _sequenceMedia->GetImage(path);
+            if (!entry) continue;
+            if (!entry->IsEmbedded() && entry->IsEmbeddable()) hasEmbeddable = true;
+            if (entry->IsEmbedded()) hasExtractable = true;
+        } else if (type == MediaType::Video) {
+            // Videos are not embeddable
+        } else {
+            // For other types, check via the appropriate accessor
+            MediaCacheEntry* baseEntry = nullptr;
+            std::shared_ptr<MediaCacheEntry> holder;
+            if (type == MediaType::SVG) { auto e = _sequenceMedia->GetSVG(path); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::Shader) { auto e = _sequenceMedia->GetShader(path); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::TextFile) { auto e = _sequenceMedia->GetTextFile(path); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::BinaryFile) { auto e = _sequenceMedia->GetBinaryFile(path); holder = e; baseEntry = e.get(); }
+            if (!baseEntry) continue;
+            if (!baseEntry->IsEmbedded() && baseEntry->IsEmbeddable()) hasEmbeddable = true;
+            if (baseEntry->IsEmbedded()) hasExtractable = true;
+        }
     }
     _embedAllButton->Enable(hasEmbeddable);
     _extractAllButton->Enable(hasExtractable);
@@ -429,7 +571,9 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
         if (item.IsOk()) {
             _mediaTree->Select(item);
             _mediaTree->EnsureVisible(item);
-            UpdatePreview(selectPath);
+            MediaNode* node = static_cast<MediaNode*>(item.GetID());
+            MediaType selType = (node && !node->isGroup) ? node->mediaType : MediaType::Image;
+            UpdatePreview(selectPath, selType);
             UpdateButtons();
             wxDataViewEvent evt(wxEVT_DATAVIEW_SELECTION_CHANGED, _mediaTree, item);
             wxPostEvent(_mediaTree, evt);
@@ -462,7 +606,14 @@ void ManageMediaPanel::OnTreeItemSelected(wxDataViewEvent& event)
         _removeButton->Disable();
         return;
     }
-    UpdatePreview(paths[0]);
+
+    // Get the media type from the selected tree node
+    wxDataViewItemArray items;
+    _mediaTree->GetSelections(items);
+    MediaNode* node = items.empty() ? nullptr : static_cast<MediaNode*>(items[0].GetID());
+    MediaType selectedType = (node && !node->isGroup) ? node->mediaType : MediaType::Image;
+
+    UpdatePreview(paths[0], selectedType);
     UpdateButtons();
 }
 
@@ -476,15 +627,46 @@ void ManageMediaPanel::UpdateButtons()
         _removeButton->Disable();
         return;
     }
+    // Build a lookup of path -> MediaType from the model
+    auto allMedia = _sequenceMedia->GetAllMediaPaths();
+    std::map<std::string, MediaType> mediaTypeMap;
+    for (const auto& [p, t] : allMedia) {
+        mediaTypeMap[p] = t;
+    }
+
     bool canEmbed = false, canExtract = false, canRename = false, canRemove = false;
     for (const auto& path : paths) {
-        auto entry = _sequenceMedia->GetImage(path);
-        if (!entry) continue;
-        if (!entry->IsEmbedded() && entry->IsEmbeddable()) canEmbed = true;
-        if (entry->IsEmbedded()) { canExtract = true; canRemove = true; }
+        auto typeIt = mediaTypeMap.find(path);
+        if (typeIt == mediaTypeMap.end()) continue;
+        MediaType mtype = typeIt->second;
+
+        bool isEmbedded = false, isEmbeddable = false;
+        if (mtype == MediaType::Image) {
+            auto entry = _sequenceMedia->GetImage(path);
+            if (!entry) continue;
+            isEmbedded = entry->IsEmbedded();
+            isEmbeddable = entry->IsEmbeddable();
+        } else if (mtype == MediaType::Video) {
+            auto entry = _sequenceMedia->GetVideo(path);
+            if (!entry) continue;
+            isEmbedded = false;
+            isEmbeddable = false;
+        } else {
+            std::shared_ptr<MediaCacheEntry> holder;
+            if (mtype == MediaType::SVG) holder = _sequenceMedia->GetSVG(path);
+            else if (mtype == MediaType::Shader) holder = _sequenceMedia->GetShader(path);
+            else if (mtype == MediaType::TextFile) holder = _sequenceMedia->GetTextFile(path);
+            else if (mtype == MediaType::BinaryFile) holder = _sequenceMedia->GetBinaryFile(path);
+            if (!holder) continue;
+            isEmbedded = holder->IsEmbedded();
+            isEmbeddable = holder->IsEmbeddable();
+        }
+
+        if (!isEmbedded && isEmbeddable) canEmbed = true;
+        if (isEmbedded) { canExtract = true; canRemove = true; }
     }
-    // Rename only for a single embedded selection
-    if (paths.size() == 1) {
+    // Rename only for a single embedded image selection
+    if (paths.size() == 1 && _sequenceMedia->HasImage(paths[0])) {
         auto entry = _sequenceMedia->GetImage(paths[0]);
         canRename = entry && entry->IsEmbedded();
     }
@@ -492,9 +674,12 @@ void ManageMediaPanel::UpdateButtons()
     _embedButton->Enable(canEmbed);
     _extractButton->Enable(canExtract);
     _removeButton->Enable(canRemove);
+    // AI Generate only makes sense for images
+    bool hasAI = _xlFrame && !_xlFrame->GetAIServices(aiType::TYPE::IMAGES).empty();
+    _aiGenerateButton->Enable(hasAI);
 }
 
-void ManageMediaPanel::UpdatePreview(const std::string& filepath)
+void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type)
 {
     auto refreshPreview = [this](const wxBitmap& bmp) {
         _preview->SetBitmap(bmp);
@@ -505,42 +690,109 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath)
 
     if (_sequenceMedia == nullptr) return;
 
-    auto entry = _sequenceMedia->GetImage(filepath);
-    if (!entry || !entry->IsOk()) {
-        refreshPreview(wxNullBitmap);
-        _infoLabel->SetLabel(wxEmptyString);
+    // Clear previous state
+    _infoLabel->SetLabel(wxEmptyString);
+    refreshPreview(wxNullBitmap);
+
+    // Image preview
+    if (type == MediaType::Image && _sequenceMedia->HasImage(filepath)) {
+        auto entry = _sequenceMedia->GetImage(filepath);
+        if (!entry || !entry->IsOk()) {
+            refreshPreview(wxNullBitmap);
+            _infoLabel->SetLabel(wxEmptyString);
+            return;
+        }
+
+        wxSize sz(entry->GetImageWidth(), entry->GetImageHeight());
+        wxString info = wxString::Format("%dx%d", sz.x, sz.y);
+        if (entry->GetImageCount() > 1)
+            info += wxString::Format("\n%d frames", entry->GetImageCount());
+        if (entry->IsEmbedded()) {
+            info += "\nEmbedded";
+        } else {
+            info += "\nExternal";
+            wxFileName fn(filepath);
+            if (fn.FileExists())
+                info += wxString::Format("\n%.1f KB", fn.GetSize().ToDouble() / 1024.0);
+            else
+                info += "\n(file missing)";
+        }
+        _infoLabel->SetLabel(info);
+
+        auto img = entry->GetFrame(0, false);
+        if (img && img->IsOk()) {
+            double scaleFactor = GetContentScaleFactor();
+            double maxPx = 150.0 * scaleFactor;
+            double scale = std::min(maxPx / img->GetWidth(), maxPx / img->GetHeight());
+            int w = std::max(1, (int)(img->GetWidth() * scale));
+            int h = std::max(1, (int)(img->GetHeight() * scale));
+            wxBitmap bmp(xlImageToWxImage(*entry->GetScaledImage(0, w, h, false)));
+            bmp.SetScaleFactor(scaleFactor);
+            refreshPreview(bmp);
+        } else {
+            refreshPreview(wxNullBitmap);
+        }
         return;
     }
 
-    wxSize sz(entry->GetImageWidth(), entry->GetImageHeight());
-    wxString info = wxString::Format("%dx%d", sz.x, sz.y);
-    if (entry->GetImageCount() > 1)
-        info += wxString::Format("\n%d frames", entry->GetImageCount());
-    if (entry->IsEmbedded()) {
-        info += "\nEmbedded";
-    } else {
-        info += "\nExternal";
-        wxFileName fn(filepath);
-        if (fn.FileExists())
-            info += wxString::Format("\n%.1f KB", fn.GetSize().ToDouble() / 1024.0);
-        else
-            info += "\n(file missing)";
-    }
-    _infoLabel->SetLabel(info);
+    // Non-image media types
+    auto allMedia = _sequenceMedia->GetAllMediaPaths();
+    for (const auto& [p, t] : allMedia) {
+        if (p != filepath) continue;
+        wxString info = wxString(MediaTypeName(t));
+        MediaCacheEntry* baseEntry = nullptr;
+        std::shared_ptr<MediaCacheEntry> holder;
+        switch (t) {
+            case MediaType::SVG: { auto e = _sequenceMedia->GetSVG(p); holder = e; baseEntry = e.get(); break; }
+            case MediaType::Shader: { auto e = _sequenceMedia->GetShader(p); holder = e; baseEntry = e.get(); break; }
+            case MediaType::TextFile: { auto e = _sequenceMedia->GetTextFile(p); holder = e; baseEntry = e.get(); break; }
+            case MediaType::BinaryFile: { auto e = _sequenceMedia->GetBinaryFile(p); holder = e; baseEntry = e.get(); break; }
+            case MediaType::Video: { auto e = _sequenceMedia->GetVideo(p); holder = e; baseEntry = e.get(); break; }
+            default: break;
+        }
+        if (baseEntry) {
+            info += baseEntry->IsEmbedded() ? "\nEmbedded" : "\nExternal";
+        }
+        _infoLabel->SetLabel(info);
 
-    auto img = entry->GetFrame(0, false);
-    if (img && img->IsOk()) {
+        // Try to show thumbnails for supported types
         double scaleFactor = GetContentScaleFactor();
-        double maxPx = 150.0 * scaleFactor;
-        double scale = std::min(maxPx / img->GetWidth(), maxPx / img->GetHeight());
-        int w = std::max(1, (int)(img->GetWidth() * scale));
-        int h = std::max(1, (int)(img->GetHeight() * scale));
-        wxBitmap bmp(xlImageToWxImage(*entry->GetScaledImage(0, w, h, false)));
-        bmp.SetScaleFactor(scaleFactor);
-        refreshPreview(bmp);
-    } else {
+        int maxPx = (int)(150.0 * scaleFactor);
+        std::shared_ptr<xlImage> thumb;
+
+        if (t == MediaType::SVG) {
+            auto svgEntry = _sequenceMedia->GetSVG(p);
+            if (svgEntry && !svgEntry->GetSVGContent().empty()) {
+                thumb = svgEntry->GetThumbnail(maxPx, maxPx);
+            }
+        } else if (t == MediaType::Video) {
+            auto vidEntry = _sequenceMedia->GetVideo(p);
+            if (vidEntry && !vidEntry->GetResolvedPath().empty()) {
+                thumb = vidEntry->GetThumbnail(maxPx, maxPx);
+                // Add video dimensions and duration to info
+                if (thumb && thumb->IsOk()) {
+                    long duration = VideoReader::GetVideoLength(vidEntry->GetResolvedPath());
+                    info += wxString::Format("\n%dx%d", thumb->GetWidth(), thumb->GetHeight());
+                    if (duration > 0) {
+                        info += wxString::Format("\n%.1fs", duration / 1000.0);
+                    }
+                    _infoLabel->SetLabel(info);
+                }
+            }
+        }
+        // TODO: Shader preview via effect rendering
+
+        if (thumb && thumb->IsOk()) {
+            wxBitmap bmp(xlImageToWxImage(*thumb));
+            bmp.SetScaleFactor(scaleFactor);
+            refreshPreview(bmp);
+            return;
+        }
         refreshPreview(wxNullBitmap);
+        return;
     }
+    refreshPreview(wxNullBitmap);
+    _infoLabel->SetLabel(wxEmptyString);
 }
 
 std::string ManageMediaPanel::StrippedPath(const std::string& fullPath) const
@@ -557,17 +809,29 @@ std::string ManageMediaPanel::StrippedPath(const std::string& fullPath) const
 
 std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
 {
+    // Check if this is an image or another media type
+    bool isImage = _sequenceMedia->HasImage(fullPath);
+
     // Compute the new (stripped) path. If it's the same, just embed as-is.
     std::string newPath = StrippedPath(fullPath);
     if (newPath.empty() || newPath == fullPath) {
-        _sequenceMedia->EmbedImage(fullPath);
+        if (isImage)
+            _sequenceMedia->EmbedImage(fullPath);
+        else
+            _sequenceMedia->EmbedMedia(fullPath);
         return fullPath;
     }
 
-    // Rename in the cache first
-    if (!_sequenceMedia->RenameImage(fullPath, newPath)) {
-        // Rename failed (e.g. newPath already exists) — embed under old name
-        _sequenceMedia->EmbedImage(fullPath);
+    // Rename in the cache first (rename is image-only for now)
+    if (isImage) {
+        if (!_sequenceMedia->RenameImage(fullPath, newPath)) {
+            // Rename failed (e.g. newPath already exists) — embed under old name
+            _sequenceMedia->EmbedImage(fullPath);
+            return fullPath;
+        }
+    } else {
+        // For non-image types, just embed under original name
+        _sequenceMedia->EmbedMedia(fullPath);
         return fullPath;
     }
 
@@ -632,16 +896,13 @@ void ManageMediaPanel::OnTreeMouseMotion(wxMouseEvent& event)
 
     if (item.IsOk() && !_model->IsGroup(item)) {
         std::string path = _model->GetFilePath(item);
-        if (!path.empty() && _sequenceMedia) {
-            auto entry = _sequenceMedia->GetImage(path);
-            // Show full path tooltip only for external images
-            if (entry && !entry->IsEmbedded()) {
-                inner->SetToolTip(wxString(path));
-                return;
-            }
+        if (!path.empty() && _sequenceMedia && _sequenceMedia->HasMedia(path)) {
+            // Show full path tooltip only for external media
+            inner->SetToolTip(wxString(path));
+            return;
         }
     }
-    // No external image under cursor — clear tooltip
+    // No external media under cursor — clear tooltip
     inner->UnsetToolTip();
 }
 
@@ -772,6 +1033,7 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
     std::string path = _model->GetFilePath(item);
     if (path.empty() || _sequenceMedia == nullptr) return;
 
+    if (!_sequenceMedia->HasImage(path)) return;  // context menu is image-only for now
     auto entry = _sequenceMedia->GetImage(path);
     if (!entry || entry->IsOk()) return;  // only show menu for broken images
 
@@ -1386,10 +1648,20 @@ void ManageMediaPanel::OnEmbedButtonClick(wxCommandEvent& event)
     if (paths.empty()) return;
     std::string lastNewPath;
     for (const auto& path : paths) {
-        auto entry = _sequenceMedia->GetImage(path);
-        if (entry && !entry->IsEmbedded() && entry->IsEmbeddable()) {
-            std::string newPath = EmbedWithRename(path);
-            if (!newPath.empty()) lastNewPath = newPath;
+        // Check if media exists and is embeddable (works for all types)
+        if (_sequenceMedia->HasMedia(path)) {
+            // For images, use the existing image-aware path
+            if (_sequenceMedia->HasImage(path)) {
+                auto entry = _sequenceMedia->GetImage(path);
+                if (entry && !entry->IsEmbedded() && entry->IsEmbeddable()) {
+                    std::string newPath = EmbedWithRename(path);
+                    if (!newPath.empty()) lastNewPath = newPath;
+                }
+            } else {
+                // Non-image: use generic EmbedMedia
+                _sequenceMedia->EmbedMedia(path);
+                lastNewPath = path;
+            }
         }
     }
     Populate(lastNewPath);
@@ -1402,10 +1674,16 @@ void ManageMediaPanel::OnExtractButtonClick(wxCommandEvent& event)
     if (paths.empty()) return;
     std::string lastNewPath;
     for (const auto& path : paths) {
-        auto entry = _sequenceMedia->GetImage(path);
-        if (entry && entry->IsEmbedded()) {
-            std::string newPath = ExtractWithRename(path);
-            if (!newPath.empty()) lastNewPath = newPath;
+        if (_sequenceMedia->HasImage(path)) {
+            auto entry = _sequenceMedia->GetImage(path);
+            if (entry && entry->IsEmbedded()) {
+                std::string newPath = ExtractWithRename(path);
+                if (!newPath.empty()) lastNewPath = newPath;
+            }
+        } else if (_sequenceMedia->HasMedia(path)) {
+            // Non-image: use generic ExtractMedia
+            _sequenceMedia->ExtractMedia(path);
+            lastNewPath = path;
         }
     }
     if (!lastNewPath.empty())
@@ -1416,11 +1694,16 @@ void ManageMediaPanel::OnEmbedAllButtonClick(wxCommandEvent& event)
 {
     if (_sequenceMedia == nullptr) return;
     // Snapshot paths first since EmbedWithRename may rename keys mid-iteration
-    std::vector<std::string> paths = _sequenceMedia->GetImagePaths();
-    for (const auto& path : paths) {
-        auto entry = _sequenceMedia->GetImage(path);
-        if (entry && !entry->IsEmbedded() && entry->IsEmbeddable())
-            EmbedWithRename(path);
+    auto allPaths = _sequenceMedia->GetAllMediaPaths();
+    for (const auto& [path, type] : allPaths) {
+        if (type == MediaType::Image) {
+            auto entry = _sequenceMedia->GetImage(path);
+            if (entry && !entry->IsEmbedded() && entry->IsEmbeddable())
+                EmbedWithRename(path);
+        } else if (type != MediaType::Video) {
+            // Non-image, non-video: use generic embed
+            _sequenceMedia->EmbedMedia(path);
+        }
     }
     Populate();
 }
@@ -1433,7 +1716,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
     wxString destDir;
     for (;;) {
-        wxDirDialog dlg(this, "Choose directory to extract images into", defaultDir,
+        wxDirDialog dlg(this, "Choose directory to extract media into", defaultDir,
                         wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK) return;
         destDir = dlg.GetPath();
@@ -1454,11 +1737,30 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
         destDir += wxFileName::GetPathSeparator();
     }
 
-    std::vector<std::string> paths = _sequenceMedia->GetImagePaths();
+    auto allPaths = _sequenceMedia->GetAllMediaPaths();
     int failed = 0;
-    for (const auto& path : paths) {
-        auto entry = _sequenceMedia->GetImage(path);
-        if (!entry || !entry->IsEmbedded()) continue;
+    for (const auto& [path, type] : allPaths) {
+        // Skip non-embeddable types (Video)
+        if (type == MediaType::Video) continue;
+
+        // Check if this entry is embedded
+        bool isEmbedded = false;
+        if (type == MediaType::Image) {
+            auto entry = _sequenceMedia->GetImage(path);
+            if (!entry || !entry->IsEmbedded()) continue;
+            isEmbedded = true;
+        } else {
+            // Check via type-specific accessor
+            MediaCacheEntry* baseEntry = nullptr;
+            std::shared_ptr<MediaCacheEntry> holder;
+            if (type == MediaType::SVG) { auto e = _sequenceMedia->GetSVG(path); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::Shader) { auto e = _sequenceMedia->GetShader(path); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::TextFile) { auto e = _sequenceMedia->GetTextFile(path); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::BinaryFile) { auto e = _sequenceMedia->GetBinaryFile(path); holder = e; baseEntry = e.get(); }
+            if (!baseEntry || !baseEntry->IsEmbedded()) continue;
+            isEmbedded = true;
+        }
+        if (!isEmbedded) continue;
 
         // Build destination: use just the filename portion of the cache key
         wxFileName fn(path);
@@ -1467,11 +1769,27 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
 
         std::string oldPath = path;
         std::string newPath = destPath.ToStdString();
-        
+
         ObtainAccessToURL(newPath);
-        if (!_sequenceMedia->ExtractImageToFile(oldPath, newPath)) {
-            ++failed;
-            continue;
+
+        if (type == MediaType::Image) {
+            if (!_sequenceMedia->ExtractImageToFile(oldPath, newPath)) {
+                ++failed;
+                continue;
+            }
+        } else {
+            // For non-image types, save embedded data to file and mark as external
+            MediaCacheEntry* baseEntry = nullptr;
+            std::shared_ptr<MediaCacheEntry> holder;
+            if (type == MediaType::SVG) { auto e = _sequenceMedia->GetSVG(oldPath); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::Shader) { auto e = _sequenceMedia->GetShader(oldPath); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::TextFile) { auto e = _sequenceMedia->GetTextFile(oldPath); holder = e; baseEntry = e.get(); }
+            else if (type == MediaType::BinaryFile) { auto e = _sequenceMedia->GetBinaryFile(oldPath); holder = e; baseEntry = e.get(); }
+            if (!baseEntry || !baseEntry->SaveToFile(newPath)) {
+                ++failed;
+                continue;
+            }
+            _sequenceMedia->ExtractMedia(oldPath);
         }
 
         // Convert absolute path to relative (relative to show/media folder)
@@ -1479,7 +1797,8 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
         if (_xlFrame) {
             std::string rel = _xlFrame->MakeRelativePath(newPath);
             if (!rel.empty()) {
-                _sequenceMedia->RenameImage(newPath, rel);
+                if (type == MediaType::Image)
+                    _sequenceMedia->RenameImage(newPath, rel);
                 finalPath = rel;
             }
         }
@@ -1526,7 +1845,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
     }
 
     if (failed > 0)
-        wxMessageBox(wxString::Format("%d image(s) could not be extracted.", failed),
+        wxMessageBox(wxString::Format("%d media file(s) could not be extracted.", failed),
                      "Extract All", wxICON_WARNING | wxOK, this);
     Populate();
 }
@@ -1534,12 +1853,32 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
 {
     if (_sequenceMedia == nullptr) return;
 
-    // Collect selected paths that are embedded
+    // Collect selected paths that are embedded (any media type)
     std::vector<std::string> toRemove;
     for (const auto& path : GetSelectedPaths()) {
-        auto entry = _sequenceMedia->GetImage(path);
-        if (entry && entry->IsEmbedded())
-            toRemove.push_back(path);
+        if (_sequenceMedia->HasImage(path)) {
+            auto entry = _sequenceMedia->GetImage(path);
+            if (entry && entry->IsEmbedded())
+                toRemove.push_back(path);
+        } else if (_sequenceMedia->HasMedia(path)) {
+            // Check non-image types for embedded status
+            auto allMedia = _sequenceMedia->GetAllMediaPaths();
+            for (const auto& [p, t] : allMedia) {
+                if (p != path) continue;
+                MediaCacheEntry* baseEntry = nullptr;
+                std::shared_ptr<MediaCacheEntry> holder;
+                switch (t) {
+                    case MediaType::SVG: { auto e = _sequenceMedia->GetSVG(p); holder = e; baseEntry = e.get(); break; }
+                    case MediaType::Shader: { auto e = _sequenceMedia->GetShader(p); holder = e; baseEntry = e.get(); break; }
+                    case MediaType::TextFile: { auto e = _sequenceMedia->GetTextFile(p); holder = e; baseEntry = e.get(); break; }
+                    case MediaType::BinaryFile: { auto e = _sequenceMedia->GetBinaryFile(p); holder = e; baseEntry = e.get(); break; }
+                    default: break;
+                }
+                if (baseEntry && baseEntry->IsEmbedded())
+                    toRemove.push_back(path);
+                break;
+            }
+        }
     }
     if (toRemove.empty()) return;
 
@@ -1585,27 +1924,27 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
         }
     }
 
-    // Warn if any effects reference the images
+    // Warn if any effects reference the media
     if (usageCount > 0) {
         wxString msg = wxString::Format(
-            "%d effect(s) reference the selected image(s).\n"
-            "Removing them will leave those effects with a missing image.\n\n"
+            "%d effect(s) reference the selected media file(s).\n"
+            "Removing them will leave those effects with missing media.\n\n"
             "Remove anyway?",
             usageCount);
-        if (wxMessageBox(msg, "Remove Embedded Image(s)",
+        if (wxMessageBox(msg, "Remove Embedded Media",
                          wxYES_NO | wxNO_DEFAULT | wxICON_WARNING, this) != wxYES)
             return;
     } else {
         wxString msg = wxString::Format(
-            "Remove %d embedded image(s) from the sequence?",
+            "Remove %d embedded media file(s) from the sequence?",
             (int)toRemove.size());
-        if (wxMessageBox(msg, "Remove Embedded Image(s)",
+        if (wxMessageBox(msg, "Remove Embedded Media",
                          wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) != wxYES)
             return;
     }
 
     for (const auto& path : toRemove)
-        _sequenceMedia->RemoveImage(path);
+        _sequenceMedia->RemoveMedia(path);
 
     Populate();
 }
@@ -1617,36 +1956,50 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
 SelectMediaDialog::SelectMediaDialog(wxWindow* parent, SequenceMedia* sequenceMedia,
                                      SequenceElements* sequenceElements,
                                      const std::string& showDirectory,
-                                     xLightsFrame* xlFrame)
-    : wxDialog(parent, wxID_ANY, "Select Image", wxDefaultPosition, wxDefaultSize,
+                                     xLightsFrame* xlFrame,
+                                     std::optional<MediaType> filterType)
+    : wxDialog(parent, wxID_ANY,
+               filterType.has_value() ? wxString("Select ") + MediaTypeName(*filterType) : wxString("Select Media"),
+               wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    , _filterType(filterType)
 {
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     // Embed the panel (single-select mode via wxDV_SINGLE)
     _panel = new ManageMediaPanel(this, sequenceMedia, sequenceElements,
-                                  showDirectory, xlFrame, /*singleSelect=*/true);
+                                  showDirectory, xlFrame, /*singleSelect=*/true,
+                                  filterType);
 
     topSizer->Add(_panel, 1, wxEXPAND | wxALL, 0);
 
-    // OK / Cancel buttons
-    wxStdDialogButtonSizer* btnSizer = new wxStdDialogButtonSizer();
+    // "Add from disk..." and OK / Cancel buttons
+    wxBoxSizer* btnRowSizer = new wxBoxSizer(wxHORIZONTAL);
+    _addFromDiskButton = new wxButton(this, wxID_ANY, "Add from disk...");
+    _addFromDiskButton->SetToolTip("Browse for a file on disk to add to the sequence media");
+    btnRowSizer->Add(_addFromDiskButton, 0, wxALL, 4);
+
+    btnRowSizer->AddStretchSpacer();
+
+    wxStdDialogButtonSizer* stdBtnSizer = new wxStdDialogButtonSizer();
     _okButton = new wxButton(this, wxID_OK, "OK");
     _okButton->Enable(false);
-    btnSizer->AddButton(_okButton);
-    btnSizer->AddButton(new wxButton(this, wxID_CANCEL, "Cancel"));
-    btnSizer->Realize();
-    topSizer->Add(btnSizer, 0, wxEXPAND | wxALL, 8);
+    stdBtnSizer->AddButton(_okButton);
+    stdBtnSizer->AddButton(new wxButton(this, wxID_CANCEL, "Cancel"));
+    stdBtnSizer->Realize();
+    btnRowSizer->Add(stdBtnSizer, 0, wxALL, 4);
+
+    topSizer->Add(btnRowSizer, 0, wxEXPAND | wxALL, 4);
 
     SetSizerAndFit(topSizer);
     Fit();
-    //SetSize(wxSize(750, 500));
 
     // Enable OK when a single leaf item is selected in the panel's tree
     _panel->_mediaTree->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED,
                              &SelectMediaDialog::OnSelectionChanged, this);
 
     _okButton->Bind(wxEVT_BUTTON, &SelectMediaDialog::OnOK, this);
+    _addFromDiskButton->Bind(wxEVT_BUTTON, &SelectMediaDialog::OnAddFromDisk, this);
 }
 
 std::string SelectMediaDialog::GetSelectedPath() const
@@ -1663,6 +2016,127 @@ void SelectMediaDialog::OnSelectionChanged(wxDataViewEvent& event)
     _okButton->Enable(paths.size() == 1);
     // Ensure panel's own handler (UpdatePreview etc.) still runs
     event.Skip();
+}
+
+void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
+{
+    if (!_panel->_sequenceMedia) return;
+
+    wxString defaultDir = _panel->_showDirectory.empty() ? wxString() : wxString(_panel->_showDirectory);
+    wxFileDialog dlg(this, "Select Media File", defaultDir, wxEmptyString,
+                     WildcardForMediaType(_filterType),
+                     wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    std::string path = dlg.GetPath().ToStdString();
+    const std::string sep(1, wxFileName::GetPathSeparator());
+
+    // Determine which MediaType to register as
+    MediaType regType = _filterType.has_value() ? *_filterType : MediaType::Image;
+
+    // If the file is outside show/media folders, require the user to
+    // choose where to place it.
+    bool outsideFolders = _panel->_xlFrame
+        ? !_panel->_xlFrame->IsInShowOrMediaFolder(path)
+        : (!_panel->_showDirectory.empty() && !wxString(path).StartsWith(wxString(_panel->_showDirectory)));
+
+    if (outsideFolders) {
+        wxFileName fn(path);
+
+        // Build copy-target list: show directory first, then extra media folders
+        std::vector<std::string> copyTargets;
+        if (!_panel->_showDirectory.empty())
+            copyTargets.push_back(_panel->_showDirectory);
+        if (_panel->_xlFrame) {
+            for (const auto& md : _panel->_xlFrame->GetMediaFolders()) {
+                if (md != _panel->_showDirectory)
+                    copyTargets.push_back(md);
+            }
+        }
+
+        wxArrayString choices;
+        choices.Add("Embed in sequence");
+        for (const auto& dir : copyTargets)
+            choices.Add("Copy to: " + wxString(dir));
+
+        wxSingleChoiceDialog choiceDlg(this,
+            wxString::Format("'%s' is outside the show/media folder(s).\nChoose where to place it:",
+                             fn.GetFullName()),
+            "File Outside Show/Media Folder", choices);
+        if (choiceDlg.ShowModal() == wxID_CANCEL) return;
+
+        int sel = choiceDlg.GetSelection();
+        if (sel == 0) {
+            // Embed in sequence — register, rename to embedded key, embed
+            std::string subdir = MediaTypeName(regType);
+            // Register with original path first
+            switch (regType) {
+                case MediaType::Image:    _panel->_sequenceMedia->GetImage(path); break;
+                case MediaType::Video:    _panel->_sequenceMedia->GetVideo(path); break;
+                case MediaType::SVG:      _panel->_sequenceMedia->GetSVG(path); break;
+                case MediaType::Shader:   _panel->_sequenceMedia->GetShader(path); break;
+                case MediaType::TextFile: _panel->_sequenceMedia->GetTextFile(path); break;
+                case MediaType::BinaryFile: _panel->_sequenceMedia->GetBinaryFile(path); break;
+            }
+            if (regType == MediaType::Image) {
+                std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                int suffix = 1;
+                std::string candidate = embeddedName;
+                while (_panel->_sequenceMedia->HasImage(candidate)) {
+                    candidate = "Images/" + fn.GetName().ToStdString() +
+                                "_" + std::to_string(suffix++) + "." +
+                                fn.GetExt().ToStdString();
+                }
+                embeddedName = candidate;
+                _panel->_sequenceMedia->RenameImage(path, embeddedName);
+                _panel->_sequenceMedia->EmbedImage(embeddedName);
+                path = embeddedName;
+            } else {
+                _panel->_sequenceMedia->EmbedMedia(path);
+            }
+            _panel->Populate(path);
+            return;
+        } else {
+            // Copy to one of the folders
+            std::string targetDir = copyTargets[sel - 1];
+            std::string newPath;
+            std::string subFolder = sep + MediaTypeName(regType);
+            if (_panel->_xlFrame && targetDir == _panel->_showDirectory) {
+                newPath = _panel->_xlFrame->MoveToShowFolder(path, subFolder);
+            } else {
+                wxString dest = wxString(targetDir) + wxString(subFolder);
+                if (!wxDirExists(dest)) wxMkdir(dest);
+                wxFileName fn2(path);
+                dest += wxString(sep) + fn2.GetFullName();
+                if (wxCopyFile(wxString(path), dest, false))
+                    newPath = dest.ToStdString();
+            }
+            if (newPath.empty()) {
+                wxMessageBox("Failed to copy file to the selected folder.", "Error",
+                             wxICON_ERROR | wxOK, this);
+                return;
+            }
+            path = newPath;
+        }
+    }
+
+    // Make path relative if possible
+    if (_panel->_xlFrame) {
+        std::string rel = _panel->_xlFrame->MakeRelativePath(path);
+        if (!rel.empty()) path = rel;
+    }
+
+    // Register with SequenceMedia
+    switch (regType) {
+        case MediaType::Image:    _panel->_sequenceMedia->GetImage(path); break;
+        case MediaType::Video:    _panel->_sequenceMedia->GetVideo(path); break;
+        case MediaType::SVG:      _panel->_sequenceMedia->GetSVG(path); break;
+        case MediaType::Shader:   _panel->_sequenceMedia->GetShader(path); break;
+        case MediaType::TextFile: _panel->_sequenceMedia->GetTextFile(path); break;
+        case MediaType::BinaryFile: _panel->_sequenceMedia->GetBinaryFile(path); break;
+    }
+
+    _panel->Populate(path);
 }
 
 void SelectMediaDialog::OnOK(wxCommandEvent& event)

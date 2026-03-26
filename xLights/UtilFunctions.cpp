@@ -1047,7 +1047,8 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
         if (compLower == sdLower) {
             appending = true;
         } else if (appending) {
-            appendPath += std::string(1, std::filesystem::path::preferred_separator) + comp;
+            if (!appendPath.empty()) appendPath += std::filesystem::path::preferred_separator;
+            appendPath += comp;
         }
     }
     if (!appendPath.empty()) {
@@ -1076,7 +1077,8 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     for (int x = (int)components.size() - 1; x >= 0; x--) {
         std::string revPath;
         for (int y = x; y < (int)components.size(); y++) {
-            revPath += std::string(1, std::filesystem::path::preferred_separator) + components[y];
+            if (!revPath.empty()) revPath += std::filesystem::path::preferred_separator;
+            revPath += components[y];
         }
         if (doesFileExistInDirs(sd, revPath, filename, resultPath)) {
             lock.lock();
@@ -1132,12 +1134,14 @@ std::string MakeRelativeFile(const std::string& file) {
 }
 
 bool IsFileInShowDir(const std::string& showDir, const std::string& filename) {
-    std::string fixedFile = FixFile(showDir, filename);
+    std::string sd = showDir.empty() ? _fixFileShowDir : showDir;
+    if (sd.empty()) return false;
+    std::string fixedFile = FixFile(sd, filename);
 
 #ifdef _WIN32
     std::string fixedLower = fixedFile;
     std::transform(fixedLower.begin(), fixedLower.end(), fixedLower.begin(), ::tolower);
-    std::string sdLower = showDir;
+    std::string sdLower = sd;
     std::transform(sdLower.begin(), sdLower.end(), sdLower.begin(), ::tolower);
     if (fixedLower.substr(0, sdLower.size()) == sdLower) return true;
     for (auto d : _fixFileSearchDirs) {
@@ -1145,7 +1149,7 @@ bool IsFileInShowDir(const std::string& showDir, const std::string& filename) {
         if (fixedLower.substr(0, d.size()) == d) return true;
     }
 #else
-    if (fixedFile.substr(0, showDir.size()) == showDir) return true;
+    if (fixedFile.substr(0, sd.size()) == sd) return true;
     for (const auto& d : _fixFileSearchDirs) {
         if (fixedFile.substr(0, d.size()) == d) return true;
     }

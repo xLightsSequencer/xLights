@@ -62,7 +62,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
             res.push_back(std::format("    ERR: Picture effect cant load image '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!img->IsEmbedded()) {
-                if (!IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), pictureFilename)) {
+                if (!IsFileInShowDir(std::string(), pictureFilename)) {
                     res.push_back(std::format("    WARN: Picture effect image file '{}' not under show directory. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }

@@ -31,6 +31,8 @@ class wxTextCtrl;
 #include "EffectPanelUtils.h"
 #include "../../ExternalHooks.h"
 
+class MediaPickerCtrl;
+
 class xlTextFilePickerCtrl : public BulkEditFilePickerCtrl {
 public:
     xlTextFilePickerCtrl(wxWindow *parent,
@@ -163,6 +165,8 @@ class TextPanel: public xlEffectPanel
 		void OnChoice_LyricTrackSelect(wxCommandEvent& event);
 		void OnChoice_Text_DirSelect(wxCommandEvent& event);
 		//*)
+
+		MediaPickerCtrl* _mediaPicker = nullptr;
 
 		DECLARE_EVENT_TABLE()
 };

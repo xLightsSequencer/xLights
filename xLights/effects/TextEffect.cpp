@@ -34,6 +34,7 @@
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"
 #include "../render/SequenceFile.h"
+#include "../render/SequenceMedia.h"
 #include "../utils/string_utils.h"
 #include "../utils/xlRect.h"
 #include "../utils/xlSize.h"
@@ -73,10 +74,15 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
 
     if (text == "" && textFilename == "" && lyricTrack == "") {
         res.push_back(std::format("    ERR: Text effect has no actual text. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (textFilename != "" && !FileExists(textFilename)) {
-        res.push_back(std::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), textFilename)) {
-        res.push_back(std::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else if (textFilename != "") {
+        auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        auto entry = mm.GetTextFile(textFilename);
+        entry->MarkIsUsed();
+        if (entry->GetContent().empty() && !entry->IsEmbedded()) {
+            res.push_back(std::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        } else if (!entry->IsEmbedded() && !IsFileInShowDir(std::string(), textFilename)) {
+            res.push_back(std::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        }
     }
 
     if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
@@ -131,13 +137,30 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
 
     SettingsMap &settings = effect->GetSettings();
 
+    // Resolve broken paths first, then convert to relative for portability
     std::string file = settings["E_FILEPICKERCTRL_Text_File"];
-    if (file != "")
-    {
-        if (!FileExists(file))
-        {
-            settings["E_FILEPICKERCTRL_Text_File"] = FixFile("", file);
+    if (!file.empty() && !FileExists(file)) {
+        std::string fixed = FixFile("", file);
+        if (!fixed.empty() && fixed != file) {
+            settings["E_FILEPICKERCTRL_Text_File"] = fixed;
+            file = fixed;
         }
+    }
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_Text_File"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_Text_File"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetTextFile(settings["E_FILEPICKERCTRL_Text_File"]);
     }
 }
 
@@ -226,30 +249,30 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     if (text.empty())
     {
-        if (FileExists(filename)) {
-            std::ifstream file(filename, std::ios::in);
-            if (file.is_open()) {
-                std::ostringstream ss;
-                ss << file.rdbuf();
-                std::string fileContent = ss.str();
-                file.close();
+        if (!filename.empty()) {
+            auto* seqMedia = buffer.GetSequenceMedia();
+            std::string fileContent;
+            if (seqMedia) {
+                auto entry = seqMedia->GetTextFile(filename);
+                entry->MarkIsUsed();
+                fileContent = entry->GetContent();
+            }
 
-                if (!fileContent.empty()) {
-                    auto lines = Split(fileContent, '\n');
+            if (!fileContent.empty()) {
+                auto lines = Split(fileContent, '\n');
 
-                    text.clear();
-                    int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
+                text.clear();
+                int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
 
-                    for (int i = 0; i < lineCount; i++) {
-                        if (i > 0) {
-                            text += "\n";
-                        }
-                        text += lines[i];
+                for (int i = 0; i < lineCount; i++) {
+                    if (i > 0) {
+                        text += "\n";
                     }
+                    text += lines[i];
+                }
 
-                    while (!text.empty() && text.back() == '\n') {
-                        text.pop_back();
-                    }
+                while (!text.empty() && text.back() == '\n') {
+                    text.pop_back();
                 }
             }
         }
@@ -1350,30 +1373,30 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     std::string lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
     if (text == "") {
-        if (FileExists(filename)) {
-            std::ifstream file(filename, std::ios::in);
-            if (file.is_open()) {
-                std::ostringstream ss;
-                ss << file.rdbuf();
-                std::string fileContent = ss.str();
-                file.close();
+        if (!filename.empty()) {
+            auto* seqMedia = buffer.GetSequenceMedia();
+            std::string fileContent;
+            if (seqMedia) {
+                auto entry = seqMedia->GetTextFile(filename);
+                entry->MarkIsUsed();
+                fileContent = entry->GetContent();
+            }
 
-                if (!fileContent.empty()) {
-                    auto lines = Split(fileContent, '\n');
+            if (!fileContent.empty()) {
+                auto lines = Split(fileContent, '\n');
 
-                    text.clear();
-                    int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
+                text.clear();
+                int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
 
-                    for (int i = 0; i < lineCount; i++) {
-                        if (i > 0) {
-                            text += "\n";
-                        }
-                        text += lines[i];
+                for (int i = 0; i < lineCount; i++) {
+                    if (i > 0) {
+                        text += "\n";
                     }
+                    text += lines[i];
+                }
 
-                    while (!text.empty() && text.back() == '\n') {
-                        text.pop_back();
-                    }
+                while (!text.empty() && text.back() == '\n') {
+                    text.pop_back();
                 }
             }
         }

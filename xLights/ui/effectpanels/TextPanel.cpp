@@ -13,6 +13,7 @@
 #include "../../ExternalHooks.h"
 #include "../../FontManager.h"
 #include "../../render/SequenceElements.h"
+#include "../MediaPickerCtrl.h"
 #include <wx/settings.h>
 
 //(*InternalHeaders(TextPanel)
@@ -328,6 +329,16 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel()
 	Connect(ID_BITMAPBUTTON_CHOICE_Text_Count, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_TEXT");
+
+    // Replace file picker with media-aware picker
+    FilePickerCtrl1->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::TextFile);
+    _mediaPicker->SetLinkedPicker(FilePickerCtrl1);
+    auto* fpSizer = FilePickerCtrl1->GetContainingSizer();
+    if (fpSizer) {
+        fpSizer->Replace(FilePickerCtrl1, _mediaPicker);
+        fpSizer->Layout();
+    }
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TextPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&TextPanel::OnValidateWindow, 0, this);

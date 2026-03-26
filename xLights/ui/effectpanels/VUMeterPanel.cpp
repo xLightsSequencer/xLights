@@ -26,6 +26,7 @@
 
 #include "VUMeterPanel.h"
 #include "EffectPanelUtils.h"
+#include "../MediaPickerCtrl.h"
 #include "../../effects/VUMeterEffect.h"
 #include "../../render/SequenceElements.h"
 
@@ -288,7 +289,17 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel()
 	Connect(ID_VALUECURVE_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	//*)
-    
+
+    // Replace file picker with media-aware picker
+    FilePickerCtrl_SVGFile->Hide();
+    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::SVG);
+    _mediaPicker->SetLinkedPicker(FilePickerCtrl_SVGFile);
+    auto* sizer = FilePickerCtrl_SVGFile->GetContainingSizer();
+    if (sizer) {
+        sizer->Replace(FilePickerCtrl_SVGFile, _mediaPicker);
+        sizer->Layout();
+    }
+
     SetName("ID_PANEL_VUMeter");
 
     Choice_VUMeter_Type->Append(_("Spectrogram"));
