@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cstring>
 
 #include "../Color.h"
 #include "../utils/string_utils.h"
