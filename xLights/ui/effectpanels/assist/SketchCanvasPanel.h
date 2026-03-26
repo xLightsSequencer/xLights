@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+#include "utils/xlPoint.h"
+
 class SketchEffectPath;
 class SketchEffectSketch;
 
