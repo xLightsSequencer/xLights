@@ -140,6 +140,7 @@ bool xLightsRequest(std::string& result, int xFadePort, const wxString& request,
 
 wxImage ApplyOrientation(const wxImage& img, int orient);
 int GetExifOrientation(const std::string& filename);
+AnimatedImageData LoadGIFAnimationDataWx(const std::string& filename);
 
 std::string GetResourcesDirectory();
 

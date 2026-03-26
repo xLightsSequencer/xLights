@@ -29,6 +29,7 @@
 					<Add directory="../xFade" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
@@ -63,6 +64,7 @@
 					<Add directory="../xFade" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
@@ -91,6 +93,8 @@
 		<Unit filename="../xLights/IPEntryDialog.h" />
 		<Unit filename="../xLights/JobPool.cpp" />
 		<Unit filename="../xLights/JobPool.h" />
+		<Unit filename="../xLights/Parallel.cpp" />
+		<Unit filename="../xLights/Parallel.h" />
 		<Unit filename="../xLights/TraceLog.cpp" />
 		<Unit filename="../xLights/TraceLog.h" />
 		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
@@ -100,6 +104,8 @@
 		<Unit filename="../xLights/ui/wxUtilities.h" />
 		<Unit filename="../xLights/utils/Curl.cpp" />
 		<Unit filename="../xLights/utils/Curl.h" />
+		<Unit filename="../xLights/utils/xlImage.cpp" />
+		<Unit filename="../xLights/utils/xlImage.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />
 		<Unit filename="../xLights/utils/ip_utils.h" />
 		<Unit filename="../xLights/utils/string_utils.cpp" />

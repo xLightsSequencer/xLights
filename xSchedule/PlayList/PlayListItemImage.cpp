@@ -14,7 +14,7 @@
 #include "PlayListItemImagePanel.h"
 #include "PlayerWindow.h"
 #include "../xScheduleApp.h"
-#include "../../xLights/effects/GIFImage.h"
+#include "../../xLights/utils/AnimatedImage.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/UtilFunctions.h"
@@ -150,7 +150,7 @@ void PlayListItemImage::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
         }
         else if (_gifImage != nullptr)
         {
-            _window->SetImage(_gifImage->GetFrameForTime(ms - _delay, true));
+            _window->SetImage(xlImageToWxImage(_gifImage->GetFrameForTime(ms - _delay, true)));
         }
     }
 }
@@ -176,11 +176,18 @@ void PlayListItemImage::Start(long stepLengthMS)
             delete _gifImage;
             _gifImage = nullptr;
         }
-        _gifImage = new GIFImage(_ImageFile);
-        if (_gifImage != nullptr && !_gifImage->IsOk())
+        if (_gifImage == nullptr)
         {
-            delete _gifImage;
-            _gifImage = nullptr;
+            auto data = LoadGIFAnimationDataWx(_ImageFile);
+            if (!data.frames.empty())
+            {
+                _gifImage = new AnimatedImage(_ImageFile, data);
+                if (!_gifImage->IsOk())
+                {
+                    delete _gifImage;
+                    _gifImage = nullptr;
+                }
+            }
         }
     }
 

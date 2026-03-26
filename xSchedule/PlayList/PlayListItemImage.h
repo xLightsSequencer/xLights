@@ -16,7 +16,7 @@
 class wxXmlNode;
 class wxWindow;
 class PlayerWindow;
-class GIFImage;
+class AnimatedImage;
 class ScheduleOptions;
 
 class PlayListItemImage : public PlayListItem
@@ -28,7 +28,7 @@ protected:
 	wxPoint _origin;
 	wxSize _size;
     wxImage _image;
-    GIFImage* _gifImage;
+    AnimatedImage* _gifImage;
     PlayerWindow* _window;
     bool _topMost;
     bool _suppressVirtualMatrix;

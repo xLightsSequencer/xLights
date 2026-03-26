@@ -48,7 +48,8 @@
     <ClCompile Include="VirtualMatrixDialog.cpp" />
     <ClCompile Include="VirtualMatricesDialog.cpp" />
     <ClCompile Include="VirtualMatrix.cpp" />
-    <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
+    <ClCompile Include="..\xLights\utils\AnimatedImage.cpp" />
+    <ClCompile Include="..\xLights\utils\xlImage.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="Blend.cpp" />
     <ClCompile Include="wxJSON\jsonreader.cpp" />
@@ -619,7 +620,8 @@
     <ClInclude Include="VirtualMatricesDialog.h" />
     <ClInclude Include="VirtualMatrix.h" />
     <ClInclude Include="Control.h" />
-    <ClInclude Include="..\xLights\effects\GIFImage.h" />
+    <ClInclude Include="..\xLights\utils\AnimatedImage.h" />
+    <ClInclude Include="..\xLights\utils\xlImage.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="Blend.h" />
     <ClInclude Include="wxJSON\jsonreader.h" />

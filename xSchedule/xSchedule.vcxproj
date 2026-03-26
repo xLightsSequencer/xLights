@@ -75,28 +75,28 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath);$(VCToolsInstallDir)lib\x86</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../include/ffmpeg-6/include;..\include;..\include\zlib;..\xLights;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../include/ffmpeg-6/include;..\include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;GL;$(VCToolsInstallDir)lib\x64</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../include/ffmpeg-6/include;..\include\zlib;..\xLights;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../include/ffmpeg-6/include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;</LibraryPath>
     <DefineConstants>
     </DefineConstants>
@@ -218,7 +218,8 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
     <ClCompile Include="..\xLights\Discovery.cpp" />
-    <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
+    <ClCompile Include="..\xLights\utils\AnimatedImage.cpp" />
+    <ClCompile Include="..\xLights\utils\xlImage.cpp" />
     <ClCompile Include="..\xLights\render\FSEQFile.cpp" />
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
@@ -476,7 +477,8 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
     <ClInclude Include="..\xLights\Discovery.h" />
-    <ClInclude Include="..\xLights\effects\GIFImage.h" />
+    <ClInclude Include="..\xLights\utils\AnimatedImage.h" />
+    <ClInclude Include="..\xLights\utils\xlImage.h" />
     <ClInclude Include="..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\xLights\render\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />

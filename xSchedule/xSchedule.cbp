@@ -29,6 +29,7 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
@@ -67,6 +68,7 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
@@ -124,8 +126,10 @@
 		<Unit filename="../xLights/controllers/ControllerCaps.h" />
 		<Unit filename="../xLights/controllers/Falcon.cpp" />
 		<Unit filename="../xLights/controllers/Falcon.h" />
-		<Unit filename="../xLights/effects/GIFImage.cpp" />
-		<Unit filename="../xLights/effects/GIFImage.h" />
+		<Unit filename="../xLights/utils/AnimatedImage.cpp" />
+		<Unit filename="../xLights/utils/AnimatedImage.h" />
+		<Unit filename="../xLights/utils/xlImage.cpp" />
+		<Unit filename="../xLights/utils/xlImage.h" />
 		<Unit filename="../xLights/kiss_fft/kiss_fft.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -16,6 +16,7 @@
 #include <wx/file.h>
 #include <wx/display.h>
 #include <wx/filename.h>
+#include <wx/gifdecod.h>
 #include <wx/mimetype.h>
 #include <wx/protocol/http.h>
 #include <wx/regex.h>
@@ -23,6 +24,7 @@
 #include <wx/socket.h>
 #include <wx/sstream.h>
 #include <wx/stdpaths.h>
+#include <wx/wfstream.h>
 
 #include <fstream>
 
@@ -878,3 +880,117 @@ void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t &r, uint8_t &g, uin
 bool DoInAppPurchases(wxWindow*) { return false; }
 wxString GetOSFormattedClipboardData() { return ""; }
 #endif
+
+AnimatedImageData LoadGIFAnimationDataWx(const std::string& filename)
+{
+    AnimatedImageData result;
+    wxLogNull logNo;
+
+    wxFileInputStream stream(filename);
+    if (!stream.IsOk()) {
+        spdlog::warn("LoadGIFAnimationDataWx: cannot open {}", filename);
+        return result;
+    }
+
+    wxGIFDecoder decoder;
+    if (decoder.LoadGIF(stream) != wxGIF_OK) {
+        spdlog::warn("LoadGIFAnimationDataWx: failed to decode {}", filename);
+        return result;
+    }
+
+    int frameCount = (int)decoder.GetFrameCount();
+    if (frameCount == 0) return result;
+
+    // Background color
+    wxColour bgColor = decoder.GetBackgroundColour();
+    result.backgroundColor = bgColor.IsOk() ? wxColourToXlColor(bgColor) : xlBLACK;
+
+    // Logical GIF canvas size
+    wxSize gifSize(0, 0);
+    for (int i = 0; i < frameCount; i++) {
+        wxSize  fs = decoder.GetFrameSize(i);
+        wxPoint fo = decoder.GetFramePosition(i);
+        gifSize.SetWidth( std::max(gifSize.GetWidth(),  fo.x + fs.GetWidth()));
+        gifSize.SetHeight(std::max(gifSize.GetHeight(), fo.y + fs.GetHeight()));
+    }
+    result.width  = gifSize.GetWidth();
+    result.height = gifSize.GetHeight();
+
+    // Frame delays
+    long totalTime = 0;
+    for (int i = 0; i < frameCount; i++) {
+        long delay = decoder.GetDelay(i);
+        result.frameTimes.push_back(delay);
+        totalTime += delay;
+    }
+    if (totalTime == 0) {
+        result.frameTimes.assign(frameCount, 100);
+    }
+
+    // Helper: copy a sub-image onto canvas at offset, skipping transparent pixels
+    auto blitFrame = [](wxImage& canvas, const wxImage& src, wxPoint offset, bool skipTransparent) {
+        int tox = std::min(src.GetWidth(),  canvas.GetWidth()  - offset.x);
+        int toy = std::min(src.GetHeight(), canvas.GetHeight() - offset.y);
+        for (int y = 0; y < toy; y++) {
+            for (int x = 0; x < tox; x++) {
+                if (skipTransparent && src.IsTransparent(x, y)) continue;
+                canvas.SetRGB(x + offset.x, y + offset.y,
+                              src.GetRed(x, y), src.GetGreen(x, y), src.GetBlue(x, y));
+                canvas.SetAlpha(x + offset.x, y + offset.y,
+                                src.IsTransparent(x, y) ? 0 : 255);
+            }
+        }
+    };
+
+    auto fillSolid = [](wxImage& img, unsigned char r, unsigned char g, unsigned char b) {
+        for (int y = 0; y < img.GetHeight(); y++) {
+            for (int x = 0; x < img.GetWidth(); x++) {
+                img.SetRGB(x, y, r, g, b);
+                img.SetAlpha(x, y, 255);
+            }
+        }
+    };
+
+    auto clearTransparent = [](wxImage& img) {
+        img.UnShare();
+        img.Clear();
+        for (int y = 0; y < img.GetHeight(); y++)
+            for (int x = 0; x < img.GetWidth(); x++)
+                img.SetAlpha(x, y, 0);
+    };
+
+    // Build two composite streams: one with background filled, one transparent
+    wxImage canvasBG(gifSize);
+    canvasBG.InitAlpha();
+    wxImage canvasNoBG(gifSize);
+    canvasNoBG.InitAlpha();
+
+    wxAnimationDisposal lastDispose = wxANIM_TOBACKGROUND;
+
+    for (int i = 0; i < frameCount; i++) {
+        wxSize  frameSize = decoder.GetFrameSize(i);
+        wxPoint offset    = decoder.GetFramePosition(i);
+        wxAnimationDisposal dispose = decoder.GetDisposalMethod(i);
+
+        wxImage newframe(frameSize);
+        decoder.ConvertToImage(i, &newframe);
+
+        if (i == 0 || lastDispose == wxANIM_TOBACKGROUND) {
+            fillSolid(canvasBG,
+                      result.backgroundColor.red,
+                      result.backgroundColor.green,
+                      result.backgroundColor.blue);
+            clearTransparent(canvasNoBG);
+        }
+
+        blitFrame(canvasBG,   newframe, offset, true);
+        blitFrame(canvasNoBG, newframe, offset, true);
+
+        result.frames.push_back(wxImageToXlImage(canvasBG));
+        result.framesNoBG.push_back(wxImageToXlImage(canvasNoBG));
+
+        lastDispose = dispose;
+    }
+
+    return result;
+}
