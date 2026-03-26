@@ -23,6 +23,7 @@
 #include <log.h>
 
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "../effects/GIFImage.h"
 

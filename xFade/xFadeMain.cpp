@@ -23,6 +23,7 @@
 
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "UniverseEntryDialog.h"
 #include "Emitter.h"
 #include "SettingsDialog.h"

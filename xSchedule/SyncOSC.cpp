@@ -17,6 +17,7 @@
 #include <wx/socket.h>
 
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include <log.h>
 
 SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :

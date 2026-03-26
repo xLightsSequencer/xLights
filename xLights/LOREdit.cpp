@@ -16,6 +16,7 @@
 
 #include "sequencer/TimeLine.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "models/Model.h"
 
 #include "effects/SpiralsEffect.h"

@@ -28,6 +28,7 @@
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
 #include <wx/debugrpt.h>

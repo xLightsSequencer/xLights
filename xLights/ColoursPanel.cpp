@@ -10,6 +10,7 @@
 
 #include "ColoursPanel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ColorCurve.h"
 #include "xLightsMain.h"
 #include "DragColoursBitmapButton.h"

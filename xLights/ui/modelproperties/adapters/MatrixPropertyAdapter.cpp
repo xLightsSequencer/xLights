@@ -10,6 +10,7 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/settings.h>
 
 #include "MatrixPropertyAdapter.h"
 #include "../../../models/MatrixModel.h"

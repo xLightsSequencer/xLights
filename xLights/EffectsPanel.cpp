@@ -27,6 +27,7 @@
 #include "EffectsPanel.h"
 #include "RenderCommandEvent.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
 #include "ui/effectpanels/EffectPanelManager.h"
 #include "xLightsApp.h"

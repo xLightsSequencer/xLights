@@ -9,6 +9,7 @@
 //*)
 
 #include <wx/artprov.h>
+#include <wx/textdlg.h>
 
 //(*IdInit(EditAliasesDialog)
 const wxWindowID EditAliasesDialog::ID_LISTBOX1 = wxNewId();

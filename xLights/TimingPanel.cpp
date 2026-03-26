@@ -25,6 +25,7 @@
 #include "LayerSelectDialog.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 #include <algorithm>
 #include <vector>

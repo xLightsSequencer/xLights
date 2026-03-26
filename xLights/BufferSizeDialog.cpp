@@ -11,6 +11,7 @@
 #include "BufferSizeDialog.h"
 #include "ui/ValueCurveDialog.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include <pugixml.hpp>
 #include <string_view>
 #include "xLightsMain.h"

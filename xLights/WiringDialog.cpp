@@ -34,6 +34,7 @@
 #include "models/CustomModel.h"
 
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 #include <log.h>
 

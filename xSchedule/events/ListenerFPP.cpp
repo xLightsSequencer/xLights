@@ -11,6 +11,7 @@
 #include "ListenerFPP.h"
 #include "ListenerManager.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 #include "../../xLights/outputs/IPOutput.h"
 #include "../../xLights/xLightsVersion.h"
 #include "../Control.h"

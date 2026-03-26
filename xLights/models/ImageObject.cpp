@@ -12,6 +12,7 @@
 #include <format>
 #include "ImageObject.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"
 #include "../ExternalHooks.h"

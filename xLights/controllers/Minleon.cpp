@@ -26,6 +26,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 
 #include <log.h>
 

@@ -42,6 +42,7 @@
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../wxUtilities.h"
 #include "../../ExternalHooks.h"
 
 #include <wx/tglbtn.h>

@@ -13,6 +13,7 @@
 #include "XmlSerializeFunctions.h"
 #include "../DimmingCurve.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../models/ArchesModel.h"
 #include "../models/CandyCaneModel.h"
 #include "../models/ChannelBlockModel.h"

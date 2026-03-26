@@ -11,6 +11,7 @@
 #include "utils/Curl.h"
 #include "CachedFileDownloader.h"
 #include "ExternalHooks.h"
+#include "ui/wxUtilities.h"
 
 #include <wx/wx.h>
 #include <wx/protocol/http.h>

@@ -40,6 +40,7 @@
 #include <wx/log.h>
 #include <log.h>
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
 
 CachedFileDownloader& MatrixFaceDownloadDialog::GetCache() {

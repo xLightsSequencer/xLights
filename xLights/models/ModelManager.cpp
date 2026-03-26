@@ -42,6 +42,7 @@
 #include "SubModel.h"
 #include "TreeModel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
 #include "XmlSerializer/XmlSerializer.h"

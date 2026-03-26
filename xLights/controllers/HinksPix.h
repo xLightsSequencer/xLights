@@ -13,6 +13,7 @@
 #include <array>
 #include <list>
 #include <memory>
+#include <wx/datetime.h>
 #include <string>
 
 #include <nlohmann/json.hpp>

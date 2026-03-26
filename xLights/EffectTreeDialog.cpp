@@ -22,6 +22,7 @@
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
 #include "XmlSerializer/FileSerializingVisitor.h"

@@ -10,24 +10,31 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-#include <wx/socket.h>
-#include <wx/filename.h>
-#include <nlohmann/json.hpp>
-
+#include "globals.h"
 #include "utils/string_utils.h"
 
+#include <format>
 #include <string>
 #include <algorithm>
 #include <map>
 #include <limits>
-
-#include <locale>
-#include <codecvt>
+#include <cstdio>
+#include <cstdint>
+#include <filesystem>
+#include <list>
+#include <vector>
 
 #define AMPS_PER_PIXEL (0.055f)
-#define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
-#define FORMATTIME_H_M_S(ms) (const char*)wxString::Format("%02d:%02d:%02d.%03d", ((uint32_t)ms) / 3600000, ((uint32_t)ms % 360000) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
+
+inline std::string FormatTime(uint32_t ms) {
+    return std::format("{}:{:02}.{:03}", ms / 60000, (ms % 60000) / 1000, ms % 1000);
+}
+inline std::string FormatTimeHMS(uint32_t ms) {
+    return std::format("{:02}:{:02}:{:02}.{:03}", ms / 3600000, (ms % 3600000) / 60000, (ms % 60000) / 1000, ms % 1000);
+}
+#define FORMATTIME(ms) FormatTime(static_cast<uint32_t>(ms)).c_str()
+#define FORMATTIME_H_M_S(ms) FormatTimeHMS(static_cast<uint32_t>(ms)).c_str()
+
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
 #define UNUSED(x) (void)(x)
 constexpr double PI = 3.141592653589793238463;
@@ -36,16 +43,9 @@ namespace pugi {
     class xml_node;
 }
 
-// Consolidated set of utility functions
-void CleanupIpAddress(wxString& IpAddr);
-void DisplayError(const std::string& err, wxWindow* win = nullptr);
-void DisplayWarning(const std::string& warn, wxWindow* win = nullptr);
-void DisplayInfo(const std::string& info, wxWindow* win = nullptr);
-void DisplayCrit(const std::string& crit, wxWindow* win = nullptr);
-std::string DecodeIPError(wxSocketError err);
+// Consolidated set of wx-free utility functions
 std::string Ordinal(int i);
 std::string DecodeMidi(int midi);
-wxArrayString Split(const wxString& s, const std::vector<char>& delimiters);
 bool DeleteDirectory(std::string directory);
 bool IsEmailValid(const std::string& email);
 bool IsVersionOlder(const std::string &compare, const std::string &version);
@@ -62,22 +62,7 @@ std::string GetXmlNodeContent(const pugi::xml_node &parent, const std::string& p
 std::string GetXmlNodeAttribute(const pugi::xml_node &parent, const std::string& path, const std::string& attribute, const std::string& def = "");
 std::vector<std::string> GetXmlNodeListContent(const pugi::xml_node &parent, const std::string& path, const std::string& listNodeName);
 void SetXmlNodeAttribute(pugi::xml_node &node, const std::string& property, const std::string& value);
-void DownloadVamp();
-bool IsFileInShowDir(const wxString& showDir, const std::string filename);
-void SetFixFileDirectories(const std::list<std::string>& dirs);
-void SetFixFileShowDir(const wxString& ShowDir);
-wxString FixFile(const wxString& ShowDir, const wxString& file);
-// Returns the path of file relative to the current show directory or one of the
-// configured search directories.  Returns empty string if the file is not inside
-// any of those directories (or if the path is already relative).
-wxString MakeRelativeFile(const wxString& file);
-void ClearNonExistentFiles();
-wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
-int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 int GetxFadePort(int xfp);
-void OptimiseDialogPosition(wxDialog* dlg);
-nlohmann::json xLightsRequest(int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
-bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
 
 std::string ExpandNodes(const std::string& nodes);
 std::string CompressNodes(const std::string& nodes);
@@ -86,11 +71,6 @@ std::string CompressNodes(const std::string& nodes);
 void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max);
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
-
-wxImage ApplyOrientation(const wxImage& img, int orient);
-int GetExifOrientation(const std::string& filename);
-
-std::string GetResourcesDirectory();
 
 inline long roundTo4(long i) {
     long remainder = i % 4;
@@ -120,19 +100,12 @@ fp_equal(Ty a, Ty b, const Ty eps = std::numeric_limits<Ty>::epsilon()) {
     return std::abs(a - b) <= (std::min(abs(a), std::abs(b)) * eps);
 }
 
-void SaveWindowPosition(const std::string& tag, wxWindow* window);
-void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position);
 int intRand(const int& min, const int& max);
 int ExtractInt(std::string& s);
 int ExtractTrailingInt(const std::string& s);
-void SaveInt(const std::string& tag, int value);
-int LoadInt(const std::string& tag, int defaultValue);
 int NumberAwareStringCompare(const std::string &a, const std::string &b);
 inline int NumberAwareStringCompareRev(const std::string &a, const std::string &b) { return NumberAwareStringCompare(b, a); }
-inline int wxStringNumberAwareStringCompare(const wxString& a, const wxString& b) { return NumberAwareStringCompare(a.ToStdString(), b.ToStdString()); }
 inline bool stdlistNumberAwareStringCompare(const std::string& a, const std::string& b) { return NumberAwareStringCompare(a, b) == -1; }
-
-void EnsureWindowHeaderIsOnScreen(wxWindow* win);
 
 static inline double toRadians(float degrees)
 {
@@ -148,53 +121,23 @@ inline const char* const toStr(bool b)
     return b ? "true" : "false";
 }
 
-inline std::string ToStdString(const wxString& wxstr)
-{
-#if defined(__WXOSX__)
-    //OSX is native utf-8
-    return wxstr.ToStdString();
-#else
-    return wxstr.utf8_str().data();
-#endif
-}
-inline std::string ToUTF8(const wxString& wxstr) {
-    return ToStdString(wxstr);
-}
-inline wxString ToWXString(const std::string& stdstr)
-{
-#if defined(__WXOSX__)
-    return stdstr;
-#else
-    return wxString::FromUTF8(stdstr);
-#endif
-}
-inline wxString FromUTF8(const std::string& str) {
-    return ToWXString(str);
-}
-inline const std::string &GetPathSeparator() {
-    static std::string PATHSEP = ToUTF8(wxFileName::GetPathSeparator());
-    return PATHSEP;
+inline const std::string& GetPathSeparator() {
+    static const std::string sep(1, std::filesystem::path::preferred_separator);
+    return sep;
 }
 
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 std::list<std::string> GetLocalIPs();
 bool IsValidLocalIP(const std::string& ip);
-bool IsValidLocalIP(const wxIPV4address& ip);
 bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask = "255.255.255.0");
 
-void ViewTempFile(const wxString& content, const wxString& name = "temp", const wxString& type = "txt");
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);
 uint64_t GetPhysicalMemorySizeMB();
 
-
 bool IsxLights();
+void SetIsxLights(bool val);
+std::string GetResourcesDir();
+void SetResourcesDir(const std::string& dir);
 std::string ReverseCSV(const std::string& csv);
 void DumpBinary(uint8_t* buffer, size_t read);
-wxColor CyanOrBlue();
-wxColor LightOrMediumGrey();
-wxColor BlueOrLightBlue();
-wxColor RedOrLightRed();
 bool IsFloat(const std::string& number);
-bool IsDarkMode();
-void SetSuppressDarkMode(bool suppress);
-bool IsSuppressDarkMode();

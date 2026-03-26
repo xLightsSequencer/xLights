@@ -107,6 +107,8 @@
 		<Unit filename="../../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../../xLights/UtilFunctions.cpp" />
 		<Unit filename="../../xLights/UtilFunctions.h" />
+		<Unit filename="../../xLights/ui/wxUtilities.cpp" />
+		<Unit filename="../../xLights/ui/wxUtilities.h" />
 		<Unit filename="../../xLights/xLightsTimer.cpp" />
 		<Unit filename="../../xLights/xLightsTimer.h" />
 		<Unit filename="../../xLights/xLightsVersion.cpp" />

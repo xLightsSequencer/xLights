@@ -23,6 +23,7 @@
 #include "../controllers/Falcon.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
+#include "../ui/wxUtilities.h"
 #include "../xLightsApp.h"
 #include "../JukeboxPanel.h"
 #include "../outputs/E131Output.h"

@@ -10,6 +10,7 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/settings.h>
 
 #include "SubModelPropertyAdapter.h"
 #include "../ScreenLocationPropertyHelper.h"

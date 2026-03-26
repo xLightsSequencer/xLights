@@ -29,6 +29,7 @@
 #include "models/Model.h"
 #include "models/CustomModel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "XmlSerializer/XmlSerializer.h"

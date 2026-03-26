@@ -36,6 +36,7 @@
 #include "../FindDataPanel.h"
 #include "../RenderCommandEvent.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../VideoReader.h"
 #include "../effects/RenderableEffect.h"
 #include "../ui/effectpanels/EffectIconCache.h"

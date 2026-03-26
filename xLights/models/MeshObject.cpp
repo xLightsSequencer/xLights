@@ -14,6 +14,7 @@
 
 #include "MeshObject.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ModelPreview.h"
 #include "../ExternalHooks.h"
 #include "xLightsMain.h"

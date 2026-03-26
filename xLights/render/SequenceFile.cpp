@@ -38,6 +38,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../xLightsVersion.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../sequencer/TimeLine.h"
 #include "../Vixen3.h"
 #include "../ExternalHooks.h"

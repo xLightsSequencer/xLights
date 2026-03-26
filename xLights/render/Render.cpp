@@ -29,6 +29,7 @@
 #include "models/ModelGroup.h"
 #include "sequencer/MainSequencer.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "PixelBuffer.h"
 #include "Parallel.h"
 #include "ExternalHooks.h"

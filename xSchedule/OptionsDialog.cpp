@@ -19,6 +19,7 @@
 #include "xScheduleMain.h"
 #include "../xLights/AudioManager.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/xLightsVersion.h"
 #include "PlayList/VideoWindowPositionDialog.h"

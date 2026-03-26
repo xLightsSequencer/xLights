@@ -19,6 +19,7 @@
 #include <wx/config.h>
 
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "xLightsMain.h"
 #include "utils/Curl.h"
 #include "CachedFileDownloader.h"

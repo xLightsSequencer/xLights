@@ -8,6 +8,7 @@
 #include "Settings.h"
 #include "PacketData.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 
 #include <log.h>
 

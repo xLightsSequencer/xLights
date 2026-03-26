@@ -10,6 +10,7 @@
 
 #include "RenderProgressDialog.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 //(*InternalHeaders(RenderProgressDialog)
 #include <wx/button.h>

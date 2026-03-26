@@ -25,6 +25,7 @@
 #include "ExternalHooks.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "../xSchedule/md5.h"
 #include "kiss_fft/tools/kiss_fftr.h"
 

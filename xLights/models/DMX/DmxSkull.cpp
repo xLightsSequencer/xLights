@@ -24,6 +24,7 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../../ui/wxUtilities.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxSkull::DmxSkull(const ModelManager& manager) :

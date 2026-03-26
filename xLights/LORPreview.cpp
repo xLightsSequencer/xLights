@@ -12,6 +12,7 @@
 
 #include "ModelPreview.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"

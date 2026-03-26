@@ -114,6 +114,8 @@
 		<Unit filename="../xLights/TraceLog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
+		<Unit filename="../xLights/ui/wxUtilities.cpp" />
+		<Unit filename="../xLights/ui/wxUtilities.h" />
 		<Unit filename="../xLights/VideoReader.cpp" />
 		<Unit filename="../xLights/VideoReader.h" />
 		<Unit filename="../xLights/controllers/BaseController.cpp" />

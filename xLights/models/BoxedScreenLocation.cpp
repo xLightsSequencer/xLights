@@ -22,6 +22,7 @@
 #include "../support/VectorMath.h"
 #include "RulerObject.h"
 #include "ColorManager.h"
+#include "../ui/wxUtilities.h"
 
 #include <log.h>
 

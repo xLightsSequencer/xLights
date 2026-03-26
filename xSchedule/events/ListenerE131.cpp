@@ -14,6 +14,7 @@
 #include "../../xLights/outputs/E131Output.h"
 #include "ListenerManager.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 
 #include <sys/types.h>
 #ifdef __WXMSW__

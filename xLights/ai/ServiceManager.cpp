@@ -13,6 +13,7 @@
 #include "xLightsMain.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 #include <wx/secretstore.h>
 

@@ -22,6 +22,7 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../ExternalHooks.h"
+#include "../ui/wxUtilities.h"
 #include "../models/Model.h"
 #include "../xLightsMain.h"
 

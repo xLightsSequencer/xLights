@@ -10,6 +10,7 @@
 
 #include "VideoCache.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/VideoReader.h"
 
 #include <log.h>

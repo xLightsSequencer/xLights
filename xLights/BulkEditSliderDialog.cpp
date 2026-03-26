@@ -17,6 +17,7 @@
 
 #include "ui/ValueCurveDialog.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 //(*IdInit(BulkEditSliderDialog)
 const long BulkEditSliderDialog::ID_STATICTEXT_BulkEdit = wxNewId();

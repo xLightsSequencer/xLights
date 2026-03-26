@@ -15,6 +15,7 @@
 #include "Waveform.h"
 #include "../render/RenderUtils.h"
 #include "../xLightsMain.h"
+#include "../ui/wxUtilities.h"
 #include <log.h>
 
 const long TimeLine::ID_ZOOMSEL = wxNewId();

@@ -10,6 +10,7 @@
 
 #include "ValueCurvesPanel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "render/ValueCurve.h"
 #include "ValueCurveButton.h"
 #include "xLightsApp.h"

@@ -16,6 +16,7 @@
 //*)
 
 #include <sstream>
+#include <wx/settings.h>
 #include "models/Model.h"
 #include "models/DMX/DmxModel.h"
 

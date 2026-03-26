@@ -26,12 +26,14 @@
 #include "../render/SequenceFile.h"
 #include "../xLightsMain.h" 
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 
 #include "../../include/glediator-16.xpm"
 #include "../../include/glediator-64.xpm"
 #include <log.h>
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 
 GlediatorReader::GlediatorReader(const std::string& filename, const xlSize& size)
 {

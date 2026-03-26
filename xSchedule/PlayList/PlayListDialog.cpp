@@ -45,6 +45,7 @@
 #include "PlayListItemProjector.h"
 #include "PlayListItemARTNetTrigger.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 
 #include <wx/xml/xml.h>
 #include <wx/menu.h>

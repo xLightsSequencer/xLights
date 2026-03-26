@@ -19,6 +19,7 @@
 #include <wx/config.h>
 
 #include "../xLightsMain.h"
+#include "../ui/wxUtilities.h"
 #include "SequenceElements.h"
 #include "SequenceMedia.h"
 #include "../ManageMediaPanel.h"

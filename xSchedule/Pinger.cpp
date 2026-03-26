@@ -10,6 +10,7 @@
 
 #include "Pinger.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/outputs/ControllerSerial.h"
 #include "../xLights/outputs/OutputManager.h"

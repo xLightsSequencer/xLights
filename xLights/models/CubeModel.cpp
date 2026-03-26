@@ -18,6 +18,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Controller.h"
 #include "../ModelPreview.h"

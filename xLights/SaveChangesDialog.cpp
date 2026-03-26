@@ -10,6 +10,7 @@
 
 #include "SaveChangesDialog.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 //(*InternalHeaders(SaveChangesDialog)
 #include <wx/font.h>

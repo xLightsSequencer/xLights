@@ -13,6 +13,7 @@
 #include "xLightsVersion.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "AudioManager.h"
 #include "ExternalHooks.h"
 #include "SequenceElements.h"

@@ -17,6 +17,7 @@
 #include "Shapes.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "RulerObject.h"
 
 #include <log.h>

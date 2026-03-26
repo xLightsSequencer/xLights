@@ -17,6 +17,7 @@
 #include "LayoutPanel.h"
 #include "ViewObjectPanel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "models/ViewObject.h"
 #include "xLightsMain.h"
 #include "ui/modelproperties/ViewObjectPropertyAdapter.h"

@@ -29,6 +29,7 @@
 #include "../render/SequenceFile.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "../xLightsMain.h"
 #include "../utils/xlPoint.h"

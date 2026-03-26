@@ -28,6 +28,7 @@
 #include <wx/config.h>
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "globals.h"
 #include "xLightsMain.h"
 

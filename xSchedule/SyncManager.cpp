@@ -12,6 +12,7 @@
 #include "ScheduleManager.h"
 #include "ScheduleOptions.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "events/ListenerManager.h"
 
 #include "SyncArtNet.h"

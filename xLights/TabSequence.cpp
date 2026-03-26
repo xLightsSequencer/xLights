@@ -26,6 +26,7 @@
 #include "SequenceViewManager.h"
 #include "LayoutPanel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
 #include "BufferPanel.h"
 #include "EffectIconPanel.h"

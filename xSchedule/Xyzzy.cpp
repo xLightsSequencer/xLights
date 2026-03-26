@@ -17,6 +17,7 @@
 #include <log.h>
 #include "xScheduleApp.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 
 #ifdef SHOWVIRTUALMATRIX
 #include "VirtualMatrix.h"

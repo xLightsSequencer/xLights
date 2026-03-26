@@ -24,6 +24,7 @@
 #include "render/SequenceElements.h"
 #include "MusicXML.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
 
 //(*IdInit(NoteImportDialog)

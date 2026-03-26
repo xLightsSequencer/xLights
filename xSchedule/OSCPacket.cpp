@@ -11,6 +11,7 @@
 #include "OSCPacket.h"
 #include "ScheduleOptions.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/utils/ip_utils.h"
 #include <log.h>

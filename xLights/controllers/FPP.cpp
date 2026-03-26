@@ -51,6 +51,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/ControllerSerial.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../xLightsVersion.h"
 #include "../Parallel.h"
 #include "ControllerCaps.h"

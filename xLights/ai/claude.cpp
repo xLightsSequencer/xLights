@@ -3,6 +3,7 @@
 #include "ServiceManager.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/msgdlg.h>

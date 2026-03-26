@@ -35,6 +35,7 @@
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "TraceLog.h"
 #include "ExternalHooks.h"
 #include "BitmapCache.h"
@@ -482,6 +483,8 @@ bool xLightsApp::OnInit()
 #endif
 
     wxTheApp->SetAppName("xLights");
+    SetIsxLights(true);
+    GetResourcesDirectory(); // bootstrap GetResourcesDir() with wx-dependent path lookup
     DumpConfig();
 
     int id = (int)wxThread::GetCurrentId();

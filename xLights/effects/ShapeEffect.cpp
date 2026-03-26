@@ -23,6 +23,7 @@
 #include "../models/Model.h"
 #include "../render/SequenceElements.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "AudioManager.h"
 #include "../ExternalHooks.h"
 #include "../xLightsMain.h" 

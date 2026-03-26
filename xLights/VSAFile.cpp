@@ -13,6 +13,7 @@
 #include <log.h>
 #include <wx/filename.h>
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 VSAFile::VSAFile()
 {

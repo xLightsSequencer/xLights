@@ -32,6 +32,7 @@
 #include "OpenDMXOutput.h"
 #include "GenericSerialOutput.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "OutputManager.h"
 #include "../utils/ip_utils.h"
 #include "Controller.h"

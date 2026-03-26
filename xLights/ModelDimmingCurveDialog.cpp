@@ -18,6 +18,7 @@
 //*)
 
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
 
 //(*IdInit(ModelDimmingCurveDialog)

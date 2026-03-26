@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <list>
+#include <wx/sckaddr.h>
 
 #ifndef DISCOVERYONLY
 #include "../models/ModelManager.h"

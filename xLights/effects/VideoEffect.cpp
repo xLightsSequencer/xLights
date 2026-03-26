@@ -18,6 +18,7 @@
 #include <format>
 
 #include "VideoEffect.h"
+#include "../ui/wxUtilities.h"
 #include "../AudioManager.h"
 #include "../ui/effectpanels/VideoPanel.h"
 #include "../VideoReader.h"

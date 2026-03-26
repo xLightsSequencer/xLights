@@ -15,6 +15,7 @@
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 
 class SMSMessage
 {

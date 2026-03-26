@@ -12,6 +12,8 @@
 #include "models/Model.h"
 #include "models/SubModel.h"
 
+#include <wx/textdlg.h>
+
 #include <log.h>
 
 //(*InternalHeaders(EditSubmodelAliasesDialog)

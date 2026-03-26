@@ -18,6 +18,7 @@
 #include "RemoteFalconOptions.h"
 #include "xSchedule.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 
 //(*IdInit(RemoteFalconSettingsDialog)
 const long RemoteFalconSettingsDialog::ID_STATICTEXT5 = wxNewId();

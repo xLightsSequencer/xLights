@@ -31,6 +31,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../FontManager.h"
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"

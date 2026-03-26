@@ -20,6 +20,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 #include "PlayerFrame.h"
 #include "PlayerWindow.h"
 #include "../ScheduleOptions.h"

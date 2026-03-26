@@ -35,6 +35,7 @@
 #include "SequenceVideoPanel.h"
 #include "SuperStarImportDialog.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "VSAFile.h"
 #include "ViewsModelsPanel.h"
 #include "VsaImportDialog.h"

@@ -84,6 +84,7 @@
 #include "TraceLog.h"
 #include "UpdaterDialog.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ui/ValueCurveButton.h"
 #include "ui/ValueCurvesPanel.h"
 #include "VendorModelDialog.h"

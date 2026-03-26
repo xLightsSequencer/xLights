@@ -14,6 +14,7 @@
 
 #include <log.h>
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 
 SyncSMPTE::SyncSMPTE(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager) : SyncBase(sm, rm, options, schm)
 {

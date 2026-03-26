@@ -20,6 +20,7 @@
 #include "xScheduleApp.h"
 #include "ScheduleOptions.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "md5.h"
 
 #include <log.h>

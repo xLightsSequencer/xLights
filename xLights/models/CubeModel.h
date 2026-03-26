@@ -89,5 +89,5 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _cubeStrings = 1;
         int _cubeStyle = 0;
         int _strandStyle = 0;
-        bool _strandPerLayer = FALSE;
+        bool _strandPerLayer = false;
 };

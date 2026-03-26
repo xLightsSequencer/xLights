@@ -10,6 +10,7 @@
 
 #include "EmailDialog.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 //(*InternalHeaders(EmailDialog)
 #include <wx/intl.h>

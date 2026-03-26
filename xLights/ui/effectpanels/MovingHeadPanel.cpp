@@ -26,6 +26,7 @@
 #include "../../render/Element.h"
 #include "../../models/ModelGroup.h"
 #include "../../xLightsApp.h"
+#include "../wxUtilities.h"
 #include <wx/stdpaths.h>
 
 #include "../../ExternalHooks.h"

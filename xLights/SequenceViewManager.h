@@ -12,6 +12,7 @@
 
 #include <list>
 #include <string>
+#include <wx/arrstr.h>
 #include <pugixml.hpp>
 
 #include "XmlSerializer/BaseSerializingVisitor.h"

@@ -12,6 +12,7 @@
 #include "ArtNetOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "ControllerEthernet.h"
 #include "../OutputModelManager.h"
 #include "../SpecialOptions.h"

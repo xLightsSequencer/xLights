@@ -30,6 +30,7 @@
 #include "xLightsMain.h"
 #include "SequenceViewManager.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "models/ModelGroup.h"
 
 #include <log.h>

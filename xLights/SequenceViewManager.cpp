@@ -13,6 +13,7 @@
 #include "models/ModelManager.h"
 #include "models/Model.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
 #include <log.h>

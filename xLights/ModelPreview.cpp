@@ -28,6 +28,7 @@
 #include "xLightsMain.h"
 #include "models/ModelGroup.h"
 #include "ExternalHooks.h"
+#include "ui/wxUtilities.h"
 
 #include <log.h>
 

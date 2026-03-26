@@ -13,6 +13,7 @@
 #include "XmlNodeKeys.h"
 #include "CheckboxSelectDialog.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../models/ModelGroup.h"
 #include "../models/ModelManager.h"
 #include "../xLightsMain.h"

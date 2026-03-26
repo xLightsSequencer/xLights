@@ -14,6 +14,7 @@
 #include "xScannerApp.h"
 #include "../xLights/utils/Curl.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/controllers/Falcon.h"
 #include "../xLights/controllers/Pixlite16.h"
 #include "../xLights/outputs/ControllerEthernet.h"

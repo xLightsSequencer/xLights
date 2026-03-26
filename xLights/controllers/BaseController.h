@@ -12,6 +12,7 @@
 
 #include <list>
 #include <string>
+#include <wx/intl.h>
 
 #include "ControllerUploadData.h"
 #include "../UtilClasses.h"

@@ -29,6 +29,7 @@
 #include "render/SequenceFile.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "xLightsMain.h"
 #include "ExternalHooks.h"
 #include "Parallel.h"

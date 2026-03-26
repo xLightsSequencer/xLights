@@ -15,10 +15,7 @@
 #include <vector>
 #include <regex>
 
-#include <wx/string.h>
-
 extern const std::string xlEMPTY_STRING;
-extern const wxString xlEMPTY_WXSTRING;
 
 //namespace string_utils
 //{

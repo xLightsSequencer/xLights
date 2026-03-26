@@ -19,6 +19,7 @@
 #include "../../xLights/AudioManager.h"
 #include "../../xLights/render/FSEQFile.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 #include "../../xLights/VideoReader.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "../ScheduleManager.h"

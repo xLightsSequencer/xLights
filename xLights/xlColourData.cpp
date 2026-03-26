@@ -1,4 +1,5 @@
 #include "xlColourData.h"
+#include "ui/wxUtilities.h"
 #include <wx/string.h>
 
 #include <wx/colordlg.h>

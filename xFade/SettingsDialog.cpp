@@ -12,6 +12,7 @@
 #include "UniverseEntryDialog.h"
 #include "FadeExcludeDialog.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/utils/ip_utils.h"
 #include "../xLights/IPEntryDialog.h"
 

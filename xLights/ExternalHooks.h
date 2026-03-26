@@ -10,11 +10,11 @@
  **************************************************************/
 
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
 #if __has_include("ExternalHooksMacOS.h")
 #include "osxUtils/ExternalHooksMacOS.h"
 #endif
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
 #if __has_include("ExternalHooksMSW.h")
 #include "mswUtils/ExternalHooksMSW.h"
 #endif
@@ -29,56 +29,24 @@
 #include <filesystem>
 #include <string>
 #include <list>
-
 #include <functional>
-#include <wx/file.h>
-#include <wx/filename.h>
-#include <wx/dir.h>
-#include <wx/stdpaths.h>
-#include <wx/button.h>
-#include "Color.h"
 
 #define EnableSleepModes()
 #define DisableSleepModes()
 #define AddAudioDeviceChangeListener(a)
 #define RemoveAudioDeviceChangeListener()
-#define AdjustModalDialogParent(par)
-#define DoInAppPurchases(w)
 #define WXGLUnsetCurrentContext()
-#define GetOSFormattedClipboardData() ""
 #define SetThreadQOS(a)
 
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool ObtainAccessToURL(const std::string &path, bool enforceWritable = false) { return true; }
 inline bool IsFromAppStore() { return false; }
-inline void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) { r = c.Red(); g = c.Green(); b = c.Blue(); a = c.Alpha();}
 inline bool IsMouseEventFromTouchpad() { return false; }
 inline void RunInAutoReleasePool(std::function<void()> &&f) { f(); }
 
 inline bool FileExists(const std::string &s, bool waitForDownload = true) {
-    return wxFile::Exists(s);
-}
-inline bool FileExists(const wxString &s, bool waitForDownload = true) {
-    return wxFile::Exists(s);
-}
-inline bool FileExists(const wxFileName &fn, bool waitForDownload = true) {
-    return fn.FileExists();
-}
-inline void GetAllFilesInDir(const wxString& dir, wxArrayString& files, const wxString& filespec, int flags = wxDIR_FILES)
-{
-    wxDir::GetAllFiles(dir, &files, filespec, flags);
-}
-inline void SetButtonBackground(wxButton* b, const wxColour& c, int bgType)
-{
-    b->SetBackgroundColour(c);
-    b->Refresh();
-}
-inline std::string GetResourcesDir() {
-#ifdef __WXMSW__
-    return std::filesystem::path(wxStandardPaths::Get().GetExecutablePath().ToStdString()).parent_path().string();
-#else
-    return wxStandardPaths::Get().GetResourcesDir().ToStdString();
-#endif
+    std::error_code ec;
+    return std::filesystem::exists(s, ec);
 }
 inline void MarkNewFileRevision(const std::string &path, int retainMax = 15) {}
 inline std::list<std::string> GetFileRevisions(const std::string &path) { return std::list<std::string>(); }

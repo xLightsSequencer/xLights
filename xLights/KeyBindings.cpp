@@ -14,6 +14,7 @@
 #include "KeyBindings.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
 
 #include <log.h>

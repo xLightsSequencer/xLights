@@ -20,6 +20,7 @@
 
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
+#include "../ui/wxUtilities.h"
 #include "../outputs/Controller.h"
 
 #include <log.h>

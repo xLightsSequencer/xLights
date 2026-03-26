@@ -16,6 +16,7 @@
 
 #include "PlayListSimpleDialog.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 #include "../ReentrancyCounter.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"

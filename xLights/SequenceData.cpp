@@ -17,6 +17,7 @@
 #include "../common/xlBaseApp.h"
 #include "SequenceData.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 const unsigned char SequenceData::FrameData::_constzero = 0;
 

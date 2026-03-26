@@ -23,6 +23,7 @@
 
 #include "render/ValueCurve.h"
 #include "ExternalHooks.h"
+#include "ui/wxUtilities.h"
 
 #include <log.h>
 

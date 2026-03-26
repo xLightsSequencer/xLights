@@ -18,6 +18,7 @@
 #include "../ui/effectpanels/SketchPanel.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"

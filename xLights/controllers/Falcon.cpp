@@ -25,6 +25,7 @@
 
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/DDPOutput.h"
 

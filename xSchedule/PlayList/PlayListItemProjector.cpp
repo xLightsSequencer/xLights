@@ -21,6 +21,7 @@
 #include <log.h>
 #include "../../xLights/outputs/SerialOutput.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 
 std::string PlayListItemProjector::BuildSerialConfiguration()
 {

@@ -21,6 +21,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 //*)
+#include <wx/filename.h>
 
 #include <nlohmann/json.hpp>
 #include "../render/FSEQFile.h"

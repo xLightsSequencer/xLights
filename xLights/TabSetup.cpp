@@ -30,6 +30,7 @@
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "models/Model.h"
 #include "SpecialOptions.h"
 #include "LayoutGroup.h"

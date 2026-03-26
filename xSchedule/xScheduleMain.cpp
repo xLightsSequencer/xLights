@@ -56,6 +56,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "PlayList/PlayListItemOSC.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/utils/ip_utils.h"
 #include "ConfigureMIDITimecodeDialog.h"
 #include "City.h"

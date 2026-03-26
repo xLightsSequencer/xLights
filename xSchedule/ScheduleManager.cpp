@@ -32,6 +32,7 @@
 #include "../xLights/AudioManager.h"
 #include "../xLights/Parallel.h"
 #include "../xLights/UtilFunctions.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "../xLights/VideoReader.h"
 #include "../xLights/outputs/Controller.h"
 #include "../xLights/outputs/ControllerEthernet.h"

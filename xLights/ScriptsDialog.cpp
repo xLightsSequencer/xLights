@@ -26,6 +26,7 @@
 #include "automation/PythonRunner.h"
 #endif
 #include "ExternalHooks.h"
+#include "ui/wxUtilities.h"
 
 #include <log.h>
 #include <wx/mimetype.h>

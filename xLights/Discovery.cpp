@@ -22,6 +22,7 @@
 
 #include "Discovery.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 // This stuff is excluded from xSchedule build and this #define is only present in non xLights builds
 #ifndef EXCLUDENETWORKUI

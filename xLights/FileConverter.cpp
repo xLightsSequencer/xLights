@@ -36,6 +36,7 @@
 #include <pugixml.hpp>
 #include <sstream>
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Controller.h"
 #ifndef FPP

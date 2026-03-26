@@ -15,6 +15,7 @@
 #include "../outputs/DDPOutput.h"
 #include "../models/ModelManager.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 

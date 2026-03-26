@@ -23,6 +23,7 @@
 #include "../xLightsVersion.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
 #include "RulerObject.h"

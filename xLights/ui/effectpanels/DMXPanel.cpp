@@ -38,6 +38,7 @@
 #include "../../xLightsApp.h"
 #include "EffectPanelUtils.h"
 #include "../../UtilFunctions.h"
+#include "../wxUtilities.h"
 
 //(*IdInit(DMXPanel)
 const wxWindowID DMXPanel::ID_STATICTEXT_DMX1 = wxNewId();

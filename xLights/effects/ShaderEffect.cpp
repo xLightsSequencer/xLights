@@ -89,6 +89,7 @@
 #include "../TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "graphics/opengl/DrawGLUtils.h"
 //#include <nlohmann/json.hpp>

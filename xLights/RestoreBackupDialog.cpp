@@ -18,6 +18,8 @@
 #include <wx/dir.h>
 #include <wx/file.h>
 #include <wx/filename.h>
+#include <wx/log.h>
+#include <wx/msgdlg.h>
 #include <wx/string.h>
 #include <pugixml.hpp>
 
@@ -28,6 +30,7 @@
 #include "../include/globals.h"
 
 #include "ExternalHooks.h"
+#include "ui/wxUtilities.h"
 
 struct BController {
     wxString Name;

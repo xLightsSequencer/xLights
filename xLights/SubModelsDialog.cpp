@@ -43,6 +43,7 @@
 #include "EditSubmodelAliasesDialog.h"
 #include "NodeSelectGrid.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "xLightsApp.h"
 #include "models/ModelManager.h"
 #include "xLightsMain.h"

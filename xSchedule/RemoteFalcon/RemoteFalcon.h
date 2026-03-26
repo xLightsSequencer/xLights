@@ -18,6 +18,7 @@
 #include <wx/wx.h>
 
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 #include "../wxJSON/jsonreader.h"
 #include "RemoteFalconOptions.h"
 #include "../../xLights/SpecialOptions.h"

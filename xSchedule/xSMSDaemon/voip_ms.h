@@ -11,6 +11,7 @@
 #include <log.h>
 
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/ui/wxUtilities.h"
 #include "../wxJSON/jsonreader.h"
 #include "SMSMessage.h"
 #include "SMSService.h"

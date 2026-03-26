@@ -19,6 +19,7 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include "ExternalHooks.h"
+#include "ui/wxUtilities.h"
 #include "xLightsMain.h"
 
 #include <log.h>

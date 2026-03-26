@@ -24,6 +24,7 @@
 
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 #include "render/ValueCurve.h"
 #include "ValueCurveDialog.h"
 #include "ValueCurveRendering.h"

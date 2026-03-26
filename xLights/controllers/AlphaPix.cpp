@@ -22,6 +22,7 @@
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 
 #include <log.h>
 

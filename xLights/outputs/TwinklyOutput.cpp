@@ -12,6 +12,7 @@
 #include "TwinklyOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 
 #include "../utils/Curl.h"
 #include <log.h>

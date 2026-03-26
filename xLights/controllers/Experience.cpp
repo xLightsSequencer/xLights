@@ -11,6 +11,7 @@
 #include "Experience.h"
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
 #include "../outputs/ControllerEthernet.h"
