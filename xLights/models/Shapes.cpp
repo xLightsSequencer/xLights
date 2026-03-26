@@ -11,6 +11,7 @@
 #include "Shapes.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
+#include "globals.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/mat3x3.hpp>
