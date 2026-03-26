@@ -41,6 +41,7 @@
 #include "../../ai/AIImageDialog.h"
 #include "../../ai/aiType.h"
 #include "../../ManageMediaPanel.h"
+#include "../wxUtilities.h"
 #include <wx/datetime.h>
 #include <wx/msgdlg.h>
 
@@ -450,7 +451,7 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
     double scale = std::min((double)pw / (double)img->GetWidth(), (double)ph / (double)img->GetHeight());
     int sw = std::max(1, (int)(img->GetWidth() * scale));
     int sh = std::max(1, (int)(img->GetHeight() * scale));
-    wxBitmap bmp(*entry->GetScaledImage(0, sw, sh, false));
+    wxBitmap bmp(xlImageToWxImage(*entry->GetScaledImage(0, sw, sh, false)));
     bmp.SetScaleFactor(scaleFactor);
     refreshPreview(bmp, !entry->IsFrameBasedAnimation());
 }
@@ -498,7 +499,7 @@ void PicturesPanel::OnAIGenerateButtonClick(wxCommandEvent& event)
     SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
     wxString name = wxString::Format("AIImages/ai_generated_%lld.png",
                                      (long long)wxDateTime::Now().GetTicks());
-    media.AddEmbeddedImage(name.ToStdString(), img);
+    media.AddEmbeddedImage(name.ToStdString(), wxImageToXlImage(img));
 
     // Update the filename control and notify the effect
     FileNameCtrl->SetValue(name);

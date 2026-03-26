@@ -8,7 +8,7 @@
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
-    <ClCompile Include="effects\GIFImage.cpp" />
+    <ClCompile Include="utils\AnimatedImage.cpp" />
     <ClCompile Include="FontManager.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
@@ -970,6 +970,7 @@
     </ClCompile>
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="xlColourData.cpp" />
+    <ClCompile Include="utils\xlImage.cpp" />
     <ClCompile Include="effects\MovingHeadEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -1411,7 +1412,7 @@
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="CustomTimingDialog.h" />
-    <ClInclude Include="effects\GIFImage.h" />
+    <ClInclude Include="utils\AnimatedImage.h" />
     <ClInclude Include="IPEntryDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
@@ -2395,6 +2396,8 @@
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
+    <ClInclude Include="utils\xlImage.h" />
+    <ClInclude Include="utils\Base64.h" />
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>

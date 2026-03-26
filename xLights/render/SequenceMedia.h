@@ -10,17 +10,16 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-#include <wx/image.h>
-#include <wx/gifdecod.h>
+#include "../utils/xlImage.h"
 #include <atomic>
+#include <functional>
 #include <map>
 #include <string>
 #include <memory>
 #include <mutex>
 
 
-class GIFImage;
+class AnimatedImage;
 namespace pugi { class xml_node; }
 
 /**
@@ -31,14 +30,17 @@ struct ScaledImageCacheKey {
     int width;
     int height;
     bool suppressGIFBackground;
-    
+
     bool operator<(const ScaledImageCacheKey& other) const {
         if (frameNumber != other.frameNumber) return frameNumber < other.frameNumber;
         if (width != other.width) return width < other.width;
         if (height != other.height) return height < other.height;
-        return suppressGIFBackground == other.suppressGIFBackground ? 0 : suppressGIFBackground ? 1 : -1;
+        return suppressGIFBackground < other.suppressGIFBackground;
     }
 };
+
+// Callback type for loading animated images (GIF, WebP). Registered by UI layer.
+using AnimationLoaderFunc = std::function<AnimatedImageData(const uint8_t* data, size_t len, const std::string& filename)>;
 
 /**
  * ImageCacheEntry - Represents a cached image with its metadata
@@ -49,7 +51,7 @@ public:
     ImageCacheEntry();
     ImageCacheEntry(const std::string &filePath);
     ImageCacheEntry(const std::string &path, const std::string &base64Data);
-    ImageCacheEntry(const std::string &path, const std::vector<wxImage> &images, int ft, const std::string &base64Data = "");
+    ImageCacheEntry(const std::string &path, const std::vector<xlImage> &images, int ft, const std::string &base64Data = "");
     ~ImageCacheEntry();
 
     // Accessors
@@ -62,8 +64,9 @@ public:
     void MarkIsUsed(bool used = true) { _used = used; }
     bool IsUsed() const { return _used; }
     void SetFilePath(const std::string& path) { _filePath = path; }
-    
-    wxSize GetImageSize() const { return _imageSize; }
+
+    int GetImageWidth() const { return _imageWidth; }
+    int GetImageHeight() const { return _imageHeight; }
 
     // Serialization
     bool LoadFromXml(const pugi::xml_node& node);
@@ -81,12 +84,12 @@ public:
     bool IsOk() {
         return !_frameImages.empty() && _frameImages[0]->IsOk();
     }
-    
-    std::shared_ptr<wxImage> GetFrame(int x, bool suppressGIFBackground);
+
+    std::shared_ptr<xlImage> GetFrame(int x, bool suppressGIFBackground);
     int GetFrameForTime(int ms, bool loop);
     bool IsFrameBasedAnimation() const { return _frameBasedAnimation; }
-    
-    std::shared_ptr<wxImage> GetScaledImage(int frameNumber, int width, int height, bool bgSuppressed);
+
+    std::shared_ptr<xlImage> GetScaledImage(int frameNumber, int width, int height, bool bgSuppressed);
 
     void ClearScaledImageCache();
 
@@ -96,14 +99,18 @@ public:
     // Pre-cache a base64 PNG string for frame i to avoid re-encoding on save.
     void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
 
+    // Set animation loaders (called once during app init)
+    static void SetGIFLoader(AnimationLoaderFunc loader) { _gifLoader = std::move(loader); }
+    static void SetWebPLoader(AnimationLoaderFunc loader) { _webpLoader = std::move(loader); }
+    static const AnimationLoaderFunc& GetGIFLoader() { return _gifLoader; }
+
 private:
     void LoadFromFile(const std::string& filepath);
     void LoadFromData(const std::string& base64Data);
-    void loadGIF(wxMemoryBuffer &ins);
-    void loadWEBP(wxMemoryBuffer &ins);
-    void loadImage(wxMemoryBuffer &ins);
-    int GetExifOrientation(wxMemoryBuffer& buffer);
-    
+    void loadAnimated(const std::vector<uint8_t> &data, const AnimationLoaderFunc &loader);
+    void loadImage(const std::vector<uint8_t> &data);
+    int GetExifOrientation(const uint8_t* data, size_t len);
+
     std::string _filePath;          // Original file path
     std::string _embeddedData;      // Base64 encoded image data (when embedded, single-frame)
     mutable std::vector<std::string> _frameData; // Base64 encoded PNG per frame (multi-frame embedded, cached to avoid re-encode)
@@ -112,23 +119,27 @@ private:
     std::atomic_bool _used;
 
     std::vector<long> _frameTimes;
-    std::vector<std::shared_ptr<wxImage>> _frameImages;
-    std::vector<std::shared_ptr<wxImage>> _frameImagesNoBG;
-    wxSize _imageSize;
+    std::vector<std::shared_ptr<xlImage>> _frameImages;
+    std::vector<std::shared_ptr<xlImage>> _frameImagesNoBG;
+    int _imageWidth = 0;
+    int _imageHeight = 0;
     long _totalTime = 0;
-    
+
     bool _loadingDone = false;
     bool _isEmbedded = false;
-    std::shared_ptr<wxImage> invalidImage;
-    
+    std::shared_ptr<xlImage> invalidImage;
+
     // Scaled image cache
     mutable std::recursive_mutex _cacheMutex;
-    mutable std::map<ScaledImageCacheKey, std::shared_ptr<wxImage>> _scaledImageCache;
+    mutable std::map<ScaledImageCacheKey, std::shared_ptr<xlImage>> _scaledImageCache;
+
+    static AnimationLoaderFunc _gifLoader;
+    static AnimationLoaderFunc _webpLoader;
 };
 
 /**
  * SequenceMedia - Manages media caching for a sequence
- * 
+ *
  * This class currently caches images referenced by PicturesEffect to avoid
  * reloading them repeatedly. It also supports embedding images
  * directly in the xsq file for portability.
@@ -143,23 +154,23 @@ public:
     std::shared_ptr<ImageCacheEntry> GetImage(const std::string& filepath);
     bool HasImage(const std::string& filepath) const;
     void AddAnimatedImage(const std::string& filepath, int msFrameTime);
-        
+
     // Remove an image from the cache
     void RemoveImage(const std::string& filepath);
-    
+
     // Clear all cached images
     void Clear();
-    
-    
+
+
     // Embed/extract operations
     void EmbedImage(const std::string& filepath);
     void EmbedAllImages();
-    // Add a wxImage directly as an embedded entry with the given name.
-    void AddEmbeddedImage(const std::string& name, const wxImage& image);
+    // Add an xlImage directly as an embedded entry with the given name.
+    void AddEmbeddedImage(const std::string& name, const xlImage& image);
     void AddEmbeddedImage(const std::string& name, const std::string& imageData);
     // Add multiple frames as a single animated embedded entry. frameTimeMs is the
     // duration of each frame in milliseconds.
-    void AddEmbeddedImage(const std::string& name, const std::vector<wxImage>& frames, int frameTimeMs);
+    void AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs);
     void ExtractImage(const std::string& filepath);
     void ExtractAllImages();
     // Save embedded image data to newPath on disk, rename cache key, mark external.
@@ -169,11 +180,11 @@ public:
     // Rename the cache key (and internal path) for an image entry.
     // Returns true if the rename succeeded (oldPath existed, newPath didn't conflict).
     bool RenameImage(const std::string& oldPath, const std::string& newPath);
-    
+
     // Serialization for xsq file format
     bool LoadFromXml(const pugi::xml_node& node);
     void SaveToXml(pugi::xml_node& parent) const;
-    
+
     // Utilities
     size_t GetImageCount() const { return _imageCache.size(); }
     std::vector<std::string> GetImagePaths() const;
@@ -182,7 +193,7 @@ public:
 private:
     // Cache mapping file path to image entry
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
-        
+
     // Mutex for thread-safe access to the cache
     mutable std::recursive_mutex _cacheMutex;
 };

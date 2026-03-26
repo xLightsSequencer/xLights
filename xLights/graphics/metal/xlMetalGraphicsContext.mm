@@ -843,6 +843,13 @@ public:
             Finalize();
         }
     }
+    xlMetalTexture(const xlImage &image, const std::string &name, bool finalize) : xlTexture(), texture(nil) {
+        SetName(name);
+        LoadImage(image);
+        if (finalize) {
+            Finalize();
+        }
+    }
     xlMetalTexture(int w, int h, bool bgr, bool alpha) {
         @autoreleasepool {
             MTLPixelFormat pf = bgr? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm;
@@ -890,6 +897,30 @@ public:
 
             textureSize = MTLSizeMake(w, h, 1);
             free(bytes);
+        }
+    }
+    void LoadImage(const xlImage &image) {
+        @autoreleasepool {
+            const uint32_t w = image.GetWidth();
+            const uint32_t h = image.GetHeight();
+
+            MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                                   width:w
+                                                                                                  height:h
+                                                                                               mipmapped:false];
+            description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
+            id <MTLTexture> srcTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+            // xlImage data is already RGBA interleaved - no conversion needed
+            int rlen = w * 4;
+            MTLRegion region = {0, 0, 0, w, h , 1};
+            [srcTexture replaceRegion:region mipmapLevel:0 withBytes:image.GetData() bytesPerRow:rlen];
+            texture = srcTexture;
+
+            std::string n2 = name + " Texture";
+            NSString *n = [NSString stringWithUTF8String:n2.c_str()];
+            [texture setLabel:n];
+
+            textureSize = MTLSizeMake(w, h, 1);
         }
     }
     virtual void UpdateData(uint8_t *data, bool bgr, bool alpha) override {
@@ -1076,6 +1107,44 @@ xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, bool pvt,
 }
 xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, const std::string &name, bool finalize) {
     return createTexture(image, finalize, name);
+}
+xlTexture *xlMetalGraphicsContext::createTexture(const xlImage &image, bool pvt, const std::string &name) {
+    return new xlMetalTexture(image, name, pvt);
+}
+xlTexture *xlMetalGraphicsContext::createTexture(const xlImage &image, const std::string &name, bool finalize) {
+    return createTexture(image, finalize, name);
+}
+xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) {
+    xlMetalTexture *txt = new xlMetalTexture();
+    txt->SetName(name);
+
+    @autoreleasepool {
+        MTLTextureDescriptor * desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                        width:images[0].GetWidth()
+                                                                                        height:images[0].GetHeight()
+                                                                                        mipmapped:true];
+        txt->texture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
+        txt->textureSize = MTLSizeMake(images[0].GetWidth(), images[0].GetHeight(), 1);
+
+        int levels = [txt->texture mipmapLevelCount];
+        xlImage img;
+        for (int x = 0; x < levels; x++) {
+            if (x < images.size()) {
+                img = images[x];
+            } else {
+                xlImage scaled = img.Copy();
+                scaled.Rescale(img.GetWidth() / 2, img.GetHeight() / 2);
+                img = std::move(scaled);
+            }
+            const uint32_t w = img.GetWidth();
+            const uint32_t h = img.GetHeight();
+            int rlen = w * 4;
+            MTLRegion region = {0, 0, 0, w, h , 1};
+            [txt->texture replaceRegion:region mipmapLevel:x withBytes:img.GetData() bytesPerRow:rlen];
+        }
+        txt->Finalize();
+    }
+    return txt;
 }
 xlTexture *xlMetalGraphicsContext::createTexture(int w, int h, bool bgr, bool alpha) {
     return new xlMetalTexture(w, h, bgr, alpha);

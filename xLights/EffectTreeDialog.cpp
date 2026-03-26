@@ -19,6 +19,9 @@
 #include <wx/artprov.h>
 
 #include "EffectTreeDialog.h"
+#include "ui/wxUtilities.h"
+#include "render/SequenceMedia.h"
+#include <fstream>
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
@@ -1102,8 +1105,18 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
 void EffectTreeDialog::LoadGifImage(wxString const& path)
 {
     TimerGif.Stop();
-    if (FileExists(path) && GIFImage::IsGIF(path) && !xLightParent->HidePresetPreview()) {
-        gifImage = std::make_unique<GIFImage>(path);
+    if (FileExists(path) && AnimatedImage::IsGIF(path) && !xLightParent->HidePresetPreview()) {
+        auto& loader = ImageCacheEntry::GetGIFLoader();
+        if (!loader) return;
+        std::ifstream file(path.ToStdString(), std::ios::binary | std::ios::ate);
+        if (!file.is_open()) return;
+        auto sz = file.tellg();
+        if (sz <= 0) return;
+        file.seekg(0);
+        std::vector<uint8_t> data(static_cast<size_t>(sz));
+        file.read(reinterpret_cast<char*>(data.data()), sz);
+        auto animData = loader(data.data(), data.size(), path.ToStdString());
+        gifImage = std::make_unique<AnimatedImage>(path.ToStdString(), animData);
 
         if (!gifImage->IsOk()) {
             gifImage = nullptr;
@@ -1122,9 +1135,10 @@ void EffectTreeDialog::PlayGifImage()
 {
     if(gifImage) {
         int previewSize = GetOptimalPreviewSize();
-        wxImage frame = gifImage->GetFrameForTime(frameCount * GIF_DELAY, true);
-        frame.Rescale(previewSize, previewSize);
-        StaticBitmapGif->SetBitmap(wxBitmap(frame));
+        const xlImage& xlFrame = gifImage->GetFrameForTime(frameCount * GIF_DELAY, true);
+        xlImage scaled = xlFrame.Copy();
+        scaled.Rescale(previewSize, previewSize);
+        StaticBitmapGif->SetBitmap(wxBitmap(xlImageToWxImage(scaled)));
 
         // Set MinSize same as gif size AFTER or resize doesn't work on MSW
         StaticBitmapGif->SetMinSize(wxSize(previewSize, previewSize));

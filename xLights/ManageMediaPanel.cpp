@@ -18,6 +18,7 @@
 #include "xLightsMain.h"
 #include "ai/AIImageDialog.h"
 #include "ai/aiType.h"
+#include "ui/wxUtilities.h"
 
 #include <wx/filename.h>
 #include <wx/filedlg.h>
@@ -113,7 +114,7 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
 
         if (entry) {
             node->canLoad = entry->IsOk();
-            wxSize sz = entry->GetImageSize();
+            wxSize sz(entry->GetImageWidth(), entry->GetImageHeight());
             node->sizeStr = (sz.x > 0) ? wxString::Format("%dx%d", sz.x, sz.y) : "?";
             node->framesStr = (entry->GetImageCount() > 1)
                 ? wxString::Format("%d", entry->GetImageCount()) : "-";
@@ -511,7 +512,7 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath)
         return;
     }
 
-    wxSize sz = entry->GetImageSize();
+    wxSize sz(entry->GetImageWidth(), entry->GetImageHeight());
     wxString info = wxString::Format("%dx%d", sz.x, sz.y);
     if (entry->GetImageCount() > 1)
         info += wxString::Format("\n%d frames", entry->GetImageCount());
@@ -534,7 +535,7 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath)
         double scale = std::min(maxPx / img->GetWidth(), maxPx / img->GetHeight());
         int w = std::max(1, (int)(img->GetWidth() * scale));
         int h = std::max(1, (int)(img->GetHeight() * scale));
-        wxBitmap bmp(*entry->GetScaledImage(0, w, h, false));
+        wxBitmap bmp(xlImageToWxImage(*entry->GetScaledImage(0, w, h, false)));
         bmp.SetScaleFactor(scaleFactor);
         refreshPreview(bmp);
     } else {
@@ -1296,7 +1297,7 @@ void ManageMediaPanel::OnAIGenerateButtonClick(wxCommandEvent& event)
     wxString name = wxString::Format("AIImages/ai_generated_%lld.png",
                                      (long long)wxDateTime::Now().GetTicks());
     std::string namePath = name.ToStdString();
-    _sequenceMedia->AddEmbeddedImage(namePath, img);
+    _sequenceMedia->AddEmbeddedImage(namePath, wxImageToXlImage(img));
     Populate(namePath);
 }
 

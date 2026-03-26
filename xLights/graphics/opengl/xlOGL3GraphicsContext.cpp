@@ -682,6 +682,9 @@ public:
     xlGLTexture(const wxImage &i, bool cp) : xlTexture(), coreProfile(cp)  {
         LoadImage(i);
     }
+    xlGLTexture(const xlImage &i, bool cp) : xlTexture(), coreProfile(cp) {
+        LoadImage(i);
+    }
 
     xlGLTexture(int w, int h, bool bgr, bool alpha, bool cp) : xlTexture(), coreProfile(cp) {
         this->alpha = alpha;
@@ -796,6 +799,53 @@ public:
         // set texture parameters as you wish
         LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)); // GL_LINEAR
         LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)); // GL_LINEAR
+        LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+        LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+        if (!coreProfile) {
+            LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+        }
+    }
+
+    void LoadImage(const xlImage &image) {
+        if (!coreProfile) {
+            LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+        }
+        int maxSize = 0;
+        LOG_GL_ERRORV(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
+        LOG_GL_ERRORV(glGenTextures( 1, &_texId ));
+        LOG_GL_ERRORV(glBindTexture( GL_TEXTURE_2D, _texId ));
+
+        width = image.GetWidth();
+        height = image.GetHeight();
+
+        LOG_GL_ERRORV(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+        xlImage scaled;
+        const xlImage *src = &image;
+        if (width > maxSize || height > maxSize) {
+            int newWid = std::min(width, maxSize);
+            int newHi = std::min(height, maxSize);
+            scaled = image.Copy();
+            scaled.Rescale(newWid, newHi);
+            src = &scaled;
+            width = newWid;
+            height = newHi;
+        }
+
+        alpha = true; // xlImage always has alpha
+        // xlImage data is already RGBA interleaved - no conversion needed
+        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     width,
+                     height,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     src->GetData()));
+
+        LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+        LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
         LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
         LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
         if (!coreProfile) {
@@ -1216,6 +1266,23 @@ xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxImage
     return t;
 }
 xlTexture *xlOGL3GraphicsContext::createTexture(const wxImage &image, const std::string &name, bool finalize) {
+    xlTexture *t = new xlGLTexture(image, canvas->IsCoreProfile());
+    if (!name.empty()) {
+        t->SetName(name);
+    }
+    if (finalize) {
+        t->Finalize();
+    }
+    return t;
+}
+xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) {
+    // For xlImage mip maps, create from the first image and ignore the rest for now
+    // (mip map generation from xlImage can be enhanced later)
+    xlGLTexture *t = new xlGLTexture(images[0], canvas->IsCoreProfile());
+    t->SetName(name);
+    return t;
+}
+xlTexture *xlOGL3GraphicsContext::createTexture(const xlImage &image, const std::string &name, bool finalize) {
     xlTexture *t = new xlGLTexture(image, canvas->IsCoreProfile());
     if (!name.empty()) {
         t->SetName(name);

@@ -72,6 +72,9 @@ void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, 
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
 
+class xlImage;
+xlImage ApplyOrientation(const xlImage& img, int orient);
+
 inline long roundTo4(long i) {
     long remainder = i % 4;
     if (remainder == 0) {

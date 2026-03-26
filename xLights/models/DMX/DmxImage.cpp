@@ -12,6 +12,7 @@
 
 #include "DmxModel.h"
 #include "DmxImage.h"
+#include "../../utils/xlImage.h"
 #include "../../UtilFunctions.h"
 #include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
@@ -71,8 +72,8 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
                 (const char*)base->GetName().c_str(),
                 (const char*)_imageFile.c_str(),
                 (const char*)preview->GetName().c_str());
-            wxImage img(_imageFile);
-            if (img.IsOk()) {
+            xlImage img;
+            if (img.LoadFromFile(_imageFile)) {
                 xlTexture *t = preview->getCurrentGraphicsContext()->createTexture(img, _imageFile, true);
                 _images[preview->GetName().ToStdString()] = t;
                 width = img.GetWidth();

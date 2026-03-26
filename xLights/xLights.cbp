@@ -667,8 +667,8 @@
 		<Unit filename="effects/FireworksEffect.h" />
 		<Unit filename="ui/effectpanels/FireworksPanel.cpp" />
 		<Unit filename="ui/effectpanels/FireworksPanel.h" />
-		<Unit filename="effects/GIFImage.cpp" />
-		<Unit filename="effects/GIFImage.h" />
+		<Unit filename="utils/AnimatedImage.cpp" />
+		<Unit filename="utils/AnimatedImage.h" />
 		<Unit filename="effects/GalaxyEffect.cpp" />
 		<Unit filename="effects/GalaxyEffect.h" />
 		<Unit filename="ui/effectpanels/GalaxyPanel.cpp" />
@@ -1505,6 +1505,9 @@
 		<Unit filename="xlColorPickerFields.h" />
 		<Unit filename="xlColourData.cpp" />
 		<Unit filename="xlColourData.h" />
+		<Unit filename="utils/xlImage.cpp" />
+		<Unit filename="utils/xlImage.h" />
+		<Unit filename="utils/Base64.h" />
 		<Unit filename="xlGridCanvas.cpp" />
 		<Unit filename="xlGridCanvas.h" />
 		<Unit filename="xlLockButton.cpp" />

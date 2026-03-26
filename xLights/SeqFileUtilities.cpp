@@ -62,6 +62,7 @@
 
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "ui/wxUtilities.h"
 
 #include <log.h>
 void xLightsFrame::AddAllModelsToSequence()
@@ -4822,7 +4823,7 @@ wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFi
     im.Set(0, 0, numCols, numRows, name);
     ScaleImage(i, resizeType, modelSize, numCols, numRows, im, false);
     if (media) {
-        media->AddEmbeddedImage(name, i);
+        media->AddEmbeddedImage(name, wxImageToXlImage(i));
     }
     return name;
 }
@@ -5133,7 +5134,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                                 imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
                             }
                             ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx], reverse_xy);
-                            seqMedia.AddEmbeddedImage(fname, image);
+                            seqMedia.AddEmbeddedImage(fname, wxImageToXlImage(image));
                         }
                     }
                 }
@@ -5332,7 +5333,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                             int ft = _seqData.FrameTime();
                             int numFrames = time / ft;
                             std::string animName = imagePfx + "/s" + element.attribute("savedIndex").as_string() + ".png";
-                            std::vector<wxImage> animFrames;
+                            std::vector<xlImage> animFrames;
                             animFrames.reserve(numFrames);
                             for (int x = 0; x < numFrames; x++) {
                                 double ratio = (double)x / numFrames;
@@ -5360,7 +5361,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                                 ImageInfo im;
                                 im.Set(0, 0, num_columns, num_rows, animName);
                                 ScaleImage(img, imageResizeType, modelSize, num_columns, num_rows, im, reverse_xy);
-                                animFrames.push_back(std::move(img));
+                                animFrames.push_back(wxImageToXlImage(img));
                             }
                             seqMedia.AddEmbeddedImage(animName, animFrames, ft);
                             imageName = animName;

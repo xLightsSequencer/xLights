@@ -597,7 +597,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="ui\effectpanels\CandlePanel.cpp" />
-    <ClCompile Include="effects\GIFImage.cpp" />
+    <ClCompile Include="utils\AnimatedImage.cpp" />
     <ClCompile Include="effects\LiquidEffect.cpp" />
     <ClCompile Include="ui\effectpanels\LiquidPanel.cpp" />
     <ClCompile Include="effects\ServoEffect.cpp" />
@@ -1048,6 +1048,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="xlColorPicker.cpp" />
     <ClCompile Include="xlColorPickerFields.cpp" />
     <ClCompile Include="xlColourData.cpp" />
+    <ClCompile Include="utils\xlImage.cpp" />
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
     <ClCompile Include="xLightsImportChannelMapDialog.cpp" />
@@ -1288,7 +1289,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
     <ClInclude Include="ui\effectpanels\CandlePanel.h" />
-    <ClInclude Include="effects\GIFImage.h" />
+    <ClInclude Include="utils\AnimatedImage.h" />
     <ClInclude Include="effects\LiquidEffect.h" />
     <ClInclude Include="ui\effectpanels\LiquidPanel.h" />
     <ClInclude Include="effects\ServoEffect.h" />
@@ -1616,6 +1617,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="xlColorPicker.h" />
     <ClInclude Include="xlColorPickerFields.h" />
     <ClInclude Include="xlColourData.h" />
+    <ClInclude Include="utils\xlImage.h" />
+    <ClInclude Include="utils\Base64.h" />
     <ClInclude Include="xlCustomControl.h" />
     <ClInclude Include="xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />

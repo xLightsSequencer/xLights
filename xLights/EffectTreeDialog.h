@@ -26,7 +26,7 @@
 #include <mutex>
 #include <memory>
 
-#include "effects/GIFImage.h"
+#include "utils/AnimatedImage.h"
 #include "EffectPresetManager.h"
 
 class xLightsFrame;
@@ -118,7 +118,7 @@ class EffectTreeDialog : public wxDialog
         void DeleteSelectedItem();
 
 		std::unique_ptr<wxBitmap> _blankGIFImage;
-        std::unique_ptr<GIFImage> gifImage;
+        std::unique_ptr<AnimatedImage> gifImage;
         int frameCount = 0;
         xLightsFrame* xLightParent = nullptr;
 		EffectPresetManager* _presetManager = nullptr;

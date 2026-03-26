@@ -58,6 +58,12 @@
 #include "ExternalHooks.h"
 #include "FindDataPanel.h"
 #include "render/GPURenderUtils.h"
+#include "render/SequenceMedia.h"
+#include "ui/wxUtilities.h"
+#include "utils/xlImage.h"
+#include <wx/mstream.h>
+#include <wx/gifdecod.h>
+#include <wx/anidecod.h>
 #include "GenerateCustomModelDialog.h"
 #include "GenerateLyricsDialog.h"
 #include "HousePreviewPanel.h"
@@ -1975,6 +1981,147 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     wxImage::AddHandler(new wxGIFHandler);
     wxImage::AddHandler(new wxWEBPHandler);
+
+    // Helper lambda: convert wxImage to xlImage (handles both alpha and mask transparency)
+    auto wxToXl = [](const wxImage& img) -> xlImage {
+        return wxImageToXlImage(img);
+    };
+
+    // Register GIF animation loader (uses wxGIFDecoder for proper frame compositing)
+    ImageCacheEntry::SetGIFLoader([wxToXl](const uint8_t* data, size_t len, const std::string& filename) -> AnimatedImageData {
+        AnimatedImageData result;
+        wxMemoryInputStream stream(data, len);
+        wxGIFDecoder decoder;
+        if (decoder.LoadGIF(stream) != wxGIF_OK) return result;
+
+        auto bgColour = decoder.GetBackgroundColour();
+        if (bgColour.IsOk()) {
+            result.backgroundColor = xlColor(bgColour.Red(), bgColour.Green(), bgColour.Blue());
+        }
+
+        int frameCount = decoder.GetFrameCount();
+        // Compute overall GIF size from frame sizes + offsets
+        int gifW = 0, gifH = 0;
+        for (unsigned int i = 0; i < frameCount; i++) {
+            wxSize fs = decoder.GetFrameSize(i);
+            wxPoint fo = decoder.GetFramePosition(i);
+            gifW = std::max(gifW, fs.GetWidth() + fo.x);
+            gifH = std::max(gifH, fs.GetHeight() + fo.y);
+        }
+        result.width = gifW;
+        result.height = gifH;
+
+        // Read frame times
+        long totalTime = 0;
+        std::vector<long> frameTimes;
+        for (unsigned int i = 0; i < frameCount; i++) {
+            long ft = decoder.GetDelay(i);
+            frameTimes.push_back(ft);
+            totalTime += ft;
+        }
+        if (totalTime == 0) {
+            frameTimes.clear();
+            for (unsigned int i = 0; i < frameCount; i++) frameTimes.push_back(100);
+        }
+        result.frameTimes = frameTimes;
+
+        // Helper: overlay rawFrame onto image at offset
+        auto overlayFrame = [](xlImage& image, const xlImage& rawFrame, wxPoint offset, bool clearTransparent) {
+            int tox = std::min(rawFrame.GetWidth(), image.GetWidth() - offset.x);
+            int toy = std::min(rawFrame.GetHeight(), image.GetHeight() - offset.y);
+            for (int y = 0; y < toy; y++) {
+                for (int x = 0; x < tox; x++) {
+                    if (!rawFrame.IsTransparent(x, y)) {
+                        image.SetAlpha(x + offset.x, y + offset.y, 255);
+                        image.SetRGB(x + offset.x, y + offset.y,
+                                     rawFrame.GetRed(x, y), rawFrame.GetGreen(x, y), rawFrame.GetBlue(x, y));
+                    } else if (clearTransparent) {
+                        image.SetAlpha(x + offset.x, y + offset.y, 0);
+                    }
+                }
+            }
+        };
+
+        // Composite TWO sets: with BG color filled, and with transparent BG
+        // This matches the old GIFImage two-pass approach
+        auto compositePass = [&](bool suppressBG) -> std::vector<xlImage> {
+            std::vector<xlImage> composited(frameCount);
+            std::vector<wxAnimationDisposal> disposals(frameCount);
+            wxAnimationDisposal lastDispose = wxANIM_TOBACKGROUND;
+
+            for (unsigned int i = 0; i < frameCount; i++) {
+                int startframe = i;
+                while (startframe >= 0 && !composited[startframe].IsOk()) --startframe;
+
+                xlImage image;
+                if (startframe >= 0) {
+                    image = composited[startframe];
+                    lastDispose = disposals[startframe];
+                } else {
+                    image.Create(gifW, gifH);
+                }
+                startframe++;
+
+                for (unsigned int f = startframe; f <= i; f++) {
+                    wxSize fsize = decoder.GetFrameSize(f);
+                    wxImage wxFrame(fsize);
+                    decoder.ConvertToImage(f, &wxFrame);
+                    xlImage rawFrame = wxToXl(wxFrame);
+
+                    wxAnimationDisposal dispose = decoder.GetDisposalMethod(f);
+                    wxPoint offset = decoder.GetFramePosition(f);
+
+                    if (suppressBG && (f == 0 || lastDispose == wxANIM_TOBACKGROUND)) {
+                        image.Clear();
+                        overlayFrame(image, rawFrame, offset, true);
+                    } else if (f == 0 || lastDispose == wxANIM_TOBACKGROUND) {
+                        unsigned char bgR = result.backgroundColor.Red();
+                        unsigned char bgG = result.backgroundColor.Green();
+                        unsigned char bgB = result.backgroundColor.Blue();
+                        for (int y = 0; y < image.GetHeight(); y++) {
+                            for (int x = 0; x < image.GetWidth(); x++) {
+                                image.SetRGB(x, y, bgR, bgG, bgB);
+                                image.SetAlpha(x, y, 255);
+                            }
+                        }
+                        overlayFrame(image, rawFrame, offset, true);
+                    } else if (lastDispose == wxANIM_DONOTREMOVE) {
+                        overlayFrame(image, rawFrame, offset, false);
+                    } else {
+                        overlayFrame(image, rawFrame, offset, false);
+                    }
+                    composited[f] = image;
+                    disposals[f] = dispose;
+                    lastDispose = dispose;
+                }
+            }
+            return composited;
+        };
+
+        result.frames = compositePass(false);      // with BG color
+        result.framesNoBG = compositePass(true);    // transparent BG
+        return result;
+    });
+
+    // Register WebP animation loader
+    ImageCacheEntry::SetWebPLoader([wxToXl](const uint8_t* data, size_t len, const std::string&) -> AnimatedImageData {
+        AnimatedImageData result;
+        wxMemoryInputStream stream(data, len);
+        std::vector<wxWebPAnimationFrame> frames;
+        wxWEBPHandler handler;
+        if (handler.LoadAnimation(frames, stream)) {
+            for (const auto& frame : frames) {
+                result.frames.push_back(wxToXl(frame.image));
+                result.frameTimes.push_back(frame.duration);
+            }
+            if (!frames.empty()) {
+                result.width = frames[0].image.GetWidth();
+                result.height = frames[0].image.GetHeight();
+                result.backgroundColor = xlColor(frames[0].bgColour.Red(), frames[0].bgColour.Green(), frames[0].bgColour.Blue());
+            }
+        }
+        return result;
+    });
 
     config->Read("xLightse131Sync", &me131Sync, false);
     _outputManager.SetSyncEnabled(me131Sync);

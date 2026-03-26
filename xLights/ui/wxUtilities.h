@@ -22,6 +22,7 @@
 
 #include "../Color.h"
 #include "../UtilFunctions.h"
+#include "../utils/xlImage.h"
 
 #include <nlohmann/json.hpp>
 
@@ -35,6 +36,56 @@ inline wxColour xlColorToWxColour(const xlColor& c) {
 
 inline xlColor wxColourToXlColor(const wxColour& c) {
     return xlColor(c.Red(), c.Green(), c.Blue());
+}
+
+inline xlImage wxImageToXlImage(const wxImage& img) {
+    if (!img.IsOk()) return xlImage();
+    int w = img.GetWidth();
+    int h = img.GetHeight();
+    xlImage result(w, h);
+    const unsigned char* rgb = img.GetData();
+    const unsigned char* alpha = img.HasAlpha() ? img.GetAlpha() : nullptr;
+    bool hasMask = img.HasMask();
+    unsigned char maskR = hasMask ? img.GetMaskRed() : 0;
+    unsigned char maskG = hasMask ? img.GetMaskGreen() : 0;
+    unsigned char maskB = hasMask ? img.GetMaskBlue() : 0;
+    uint8_t* dst = result.GetData();
+    int count = w * h;
+    for (int i = 0; i < count; i++) {
+        unsigned char r = rgb[i * 3];
+        unsigned char g = rgb[i * 3 + 1];
+        unsigned char b = rgb[i * 3 + 2];
+        dst[i * 4]     = r;
+        dst[i * 4 + 1] = g;
+        dst[i * 4 + 2] = b;
+        if (alpha) {
+            dst[i * 4 + 3] = alpha[i];
+        } else if (hasMask && r == maskR && g == maskG && b == maskB) {
+            dst[i * 4 + 3] = 0;
+        } else {
+            dst[i * 4 + 3] = 255;
+        }
+    }
+    return result;
+}
+
+inline wxImage xlImageToWxImage(const xlImage& img) {
+    if (!img.IsOk()) return wxImage();
+    int w = img.GetWidth();
+    int h = img.GetHeight();
+    wxImage result(w, h);
+    result.InitAlpha();
+    const uint8_t* src = img.GetData();
+    unsigned char* rgb = result.GetData();
+    unsigned char* alpha = result.GetAlpha();
+    int count = w * h;
+    for (int i = 0; i < count; i++) {
+        rgb[i * 3]     = src[i * 4];
+        rgb[i * 3 + 1] = src[i * 4 + 1];
+        rgb[i * 3 + 2] = src[i * 4 + 2];
+        alpha[i]        = src[i * 4 + 3];
+    }
+    return result;
 }
 
 // wx<->std string conversion helpers

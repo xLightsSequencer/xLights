@@ -13,6 +13,7 @@
 #include <list>
 
 #include "FacesEffect.h"
+#include "../utils/xlImage.h"
 #include "../models/Model.h"
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
@@ -149,8 +150,8 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                     }
 
                     if (FileExists(picture)) {
-                        wxImage i;
-                        i.LoadFile(picture);
+                        xlImage i;
+                        i.LoadFromFile(picture);
                         if (i.IsOk()) {
                             int ih = i.GetHeight();
                             int iw = i.GetWidth();

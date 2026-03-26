@@ -44,6 +44,8 @@ public:
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) override;
     virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) override;
     virtual xlTexture *createTexture(const wxImage &image, const std::string &name, bool finalize = false) override;
+    virtual xlTexture *createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) override;
+    virtual xlTexture *createTexture(const xlImage &image, const std::string &name, bool finalize = false) override;
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) override;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) override;
     virtual xlGraphicsProgram *createGraphicsProgram() override;

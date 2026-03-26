@@ -10,38 +10,36 @@
 
 #include "SequenceMedia.h"
 #include "pugixml.hpp"
+#include "../utils/Base64.h"
+#include "../utils/xlImage.h"
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <wx/base64.h>
-#include <wx/mstream.h>
-#include <wx/wfstream.h>
-#include <wx/imaggif.h>
-#include <wx/anidecod.h>
-#include <wx/quantize.h>
 
 #include <log.h>
 
 #include "../UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
-#include "../effects/GIFImage.h"
+
+AnimationLoaderFunc ImageCacheEntry::_gifLoader;
+AnimationLoaderFunc ImageCacheEntry::_webpLoader;
 
 // ImageCacheEntry Implementation
 ImageCacheEntry::ImageCacheEntry() : _used(false) {
-    invalidImage = std::make_shared<wxImage>(wxImage());
+    invalidImage = std::make_shared<xlImage>();
 }
 
 ImageCacheEntry::ImageCacheEntry(const std::string &filePath) : _used(false), _filePath(filePath) {
-    invalidImage = std::make_shared<wxImage>(wxImage());
+    invalidImage = std::make_shared<xlImage>();
     _isEmbedded = false;
 }
 ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
-    invalidImage = std::make_shared<wxImage>(wxImage());
+    invalidImage = std::make_shared<xlImage>();
     _isEmbedded = true;
 }
-ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<wxImage> &imgs, int ft, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
-    invalidImage = std::make_shared<wxImage>(wxImage());
+ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<xlImage> &imgs, int ft, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
+    invalidImage = std::make_shared<xlImage>();
     _isEmbedded = false;
     _frameBasedAnimation = true;
     _imageCount = (int)imgs.size();
@@ -50,13 +48,14 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<wxIm
     _frameTimes.resize(_imageCount);
     _totalTime = 0;
     for (int x = 0; x < _imageCount; x++) {
-        std::shared_ptr<wxImage> i = std::make_shared<wxImage>(imgs[x]);
+        auto i = std::make_shared<xlImage>(imgs[x]);
         _frameImages[x] = i;
         _frameImagesNoBG[x] = i;
         _frameTimes[x] = ft;
         _totalTime += ft;
     }
-    _imageSize = imgs[0].GetSize();
+    _imageWidth = imgs[0].GetWidth();
+    _imageHeight = imgs[0].GetHeight();
     _loadingDone = true;
 }
 ImageCacheEntry::~ImageCacheEntry()
@@ -74,12 +73,12 @@ void ImageCacheEntry::Load() {
     }
 }
 void ImageCacheEntry::LoadFromData(const std::string& data) {
-    wxMemoryBuffer buffer = wxBase64Decode(data.c_str());
-    if (buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F') {
-        loadGIF(buffer);
-    } else if (buffer[0] == 'R' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == 'F'
+    std::vector<uint8_t> buffer = Base64::Decode(data);
+    if (buffer.size() >= 4 && buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F') {
+        loadAnimated(buffer, _gifLoader);
+    } else if (buffer.size() >= 12 && buffer[0] == 'R' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == 'F'
                && buffer[8] == 'W' && buffer[9] == 'E' && buffer[10] == 'B' && buffer[11] == 'P') {
-        loadWEBP(buffer);
+        loadAnimated(buffer, _webpLoader);
     } else {
         loadImage(buffer);
     }
@@ -87,34 +86,30 @@ void ImageCacheEntry::LoadFromData(const std::string& data) {
 void ImageCacheEntry::LoadFromFile(const std::string& filepath) {
     ObtainAccessToURL(filepath);
     FileExists(filepath, true);
-    wxFileInputStream stream(filepath);
-    if (stream.IsOk()) {
-        wxMemoryBuffer buffer;
-        uint8_t tempBuf[4096]; // 4KB chunks
-        while (!stream.Eof()) {
-            stream.Read(tempBuf, sizeof(tempBuf));
-            if (stream.LastRead() > 0) {
-                buffer.AppendData(tempBuf, stream.LastRead());
-            }
-        }
-        _embeddedData = wxBase64Encode(buffer).ToStdString();
-        buffer.Clear();
+    std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
+    if (stream.is_open()) {
+        auto size = stream.tellg();
+        if (size <= 0) return;
+        stream.seekg(0);
+        std::vector<uint8_t> buffer(static_cast<size_t>(size));
+        stream.read(reinterpret_cast<char*>(buffer.data()), size);
+        if (!stream) return;
+        _embeddedData = Base64::Encode(buffer.data(), buffer.size());
         LoadFromData(_embeddedData);
     }
 }
 
 
-int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
+int ImageCacheEntry::GetExifOrientation(const uint8_t* data, size_t maxLen) {
 
-    char *data = reinterpret_cast<char*>(buffer.GetData());
-    int maxLen = buffer.GetDataLen();
+    if (maxLen < 2) return 1;
     unsigned char byte1 = data[0];
     unsigned char byte2 = data[1];
     if (byte1 != 0xFF || byte2 != 0xD8) {
         return 1;
     }
 
-    int curPos = 2;
+    size_t curPos = 2;
     while (curPos < maxLen) {
         byte1 = data[curPos++];
         if (byte1 != 0xFF) break;
@@ -128,7 +123,7 @@ int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
         if (len < 2) break;
 
         if (byte2 == 0xE1) { // APP1 segment
-            char *ldata = &data[curPos];
+            const char *ldata = reinterpret_cast<const char*>(&data[curPos]);
             int ldataSize = len - 2;
 
             if (ldataSize < 16) continue; // too small to hold Exif header
@@ -163,7 +158,7 @@ int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
             }
 
             size_t pos = tiff_header + ifd_offset;
-            if (pos + 2 > ldataSize) return 1;
+            if (pos + 2 > (size_t)ldataSize) return 1;
 
             unsigned short num_entries = littleEndian ?
                 ((unsigned char)ldata[pos + 1] << 8) | (unsigned char)ldata[pos] :
@@ -171,7 +166,7 @@ int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
             pos += 2;
 
             for (unsigned short i = 0; i < num_entries; ++i) {
-                if (pos + 12 > ldataSize) break;
+                if (pos + 12 > (size_t)ldataSize) break;
 
                 unsigned short tag = littleEndian ?
                     ((unsigned char)ldata[pos + 1] << 8) | (unsigned char)ldata[pos] :
@@ -190,110 +185,65 @@ int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
         }
     }
 
-    // Fallback: wxImage may know the orientation
-    wxLogNull logNo;
-    wxImage img;
-    wxMemoryInputStream ins(data, maxLen);
-    img.SetLoadFlags(0);
-    if (img.LoadFile(ins, wxBITMAP_TYPE_JPEG)) {
-        if (img.HasOption("Orientation")) {
-            int orient = img.GetOptionInt("Orientation");
-            return orient;
-        }
-    }
     return 1; // default
 }
 
-void ImageCacheEntry::loadGIF(wxMemoryBuffer &ins) {
-
-    wxMemoryInputStream stream(ins.GetData(), ins.GetDataLen());
-    
-    GIFImage gif(_filePath, stream, false);
-    if (gif.IsOk()) {
-        _imageCount = gif.GetNumFrames();
-        _frameImages.resize(_imageCount);
-        _frameImagesNoBG.resize(_imageCount);
-        _frameTimes.resize(_imageCount);
-        _imageSize = gif.GetImageSize();
-        //printf("%s\n", _filePath.c_str());
-        for (int x = 0; x < _imageCount; x++) {
-            _frameImages[x] = std::make_shared<wxImage>(gif.GetFrame(x));
-            _frameTimes[x] = gif.GetFrameTime(x);
-            //printf("    Frame %d:   %d\n", x, (int)_frameTimes[x]);
-        }
-        gif.ResetSuppressBackground(true);
-        for (int x = 0; x < _imageCount; x++) {
-            _frameImagesNoBG[x] = std::make_shared<wxImage>(gif.GetFrame(x));
-        }
-        _totalTime = gif.GetTotalTime();
-        if (_imageCount == 1) {
-            // if only a single image, we can optimize things a bit
-            _totalTime = 0;
-            _frameTimes[0] = 0;
-        }
-        _frameBasedAnimation = false;
+void ImageCacheEntry::loadAnimated(const std::vector<uint8_t> &data, const AnimationLoaderFunc &loader) {
+    if (!loader) {
+        spdlog::warn("Animation loader not registered, cannot load: {}", _filePath);
+        return;
     }
-}
+    auto result = loader(data.data(), data.size(), _filePath);
+    if (result.frames.empty()) return;
 
-void ImageCacheEntry::loadWEBP(wxMemoryBuffer &ins) {
-    wxMemoryInputStream stream(ins.GetData(), ins.GetDataLen());
-    std::vector<wxWebPAnimationFrame> frames;
-    wxWEBPHandler handler;
-    if (handler.LoadAnimation(frames, stream)) {
-        // 'frames' now contains all frames
+    _imageCount = (int)result.frames.size();
+    _frameTimes = std::move(result.frameTimes);
+    _imageWidth = result.width;
+    _imageHeight = result.height;
+
+    _totalTime = 0;
+    for (int x = 0; x < _imageCount; x++) {
+        _frameImages.push_back(std::make_shared<xlImage>(std::move(result.frames[x])));
+        _totalTime += _frameTimes[x];
+    }
+
+    // Use pre-composited background-suppressed frames if available
+    if (!result.framesNoBG.empty()) {
+        for (int x = 0; x < _imageCount; x++) {
+            _frameImagesNoBG.push_back(std::make_shared<xlImage>(std::move(result.framesNoBG[x])));
+        }
+    } else {
+        _frameImagesNoBG = _frameImages;
+    }
+
+    if (_imageCount == 1) {
         _totalTime = 0;
-        for (const auto& frame : frames) {
-            _frameImages.push_back(std::make_shared<wxImage>(frame.image));
-            _frameTimes.push_back(frame.duration);
-            _totalTime += frame.duration;
-            
-            xlColor bg(frame.bgColour.Red(), frame.bgColour.Green(), frame.bgColour.Blue());
-            wxSize sz = frame.image.GetSize();
-            bool hasAlpha = frame.image.HasAlpha();
-            wxImage i(frame.image);
-            for (int x = 0; x < sz.GetWidth(); ++x) {
-                for (int y = 0; y < sz.GetHeight(); ++y) {
-                    xlColor c(i.GetRed(x, y), i.GetGreen(x, y), i.GetBlue(x, y),
-                              hasAlpha ? i.GetAlpha(x, y) : 255);
-                    if (c == bg) {
-                        i.SetRGB(x, y, 0, 0, 0);
-                        if (hasAlpha) {
-                            i.SetAlpha(x, y, 255);
-                        }
-                    }
-                }
-            }
-            _frameImagesNoBG.push_back(std::make_shared<wxImage>(i));
-        }
-        _imageCount = _frameTimes.size();
-        _imageSize = _frameImages.front().get()->GetSize();
-        _frameBasedAnimation = _imageCount <= 1;
+        _frameTimes[0] = 0;
     }
+    _frameBasedAnimation = _imageCount <= 1;
 }
 
-void ImageCacheEntry::loadImage(wxMemoryBuffer &ins) {
-    wxImage i;
-    wxMemoryInputStream stream(ins.GetData(), ins.GetDataLen());
-    i.SetLoadFlags(0);
-    if (!i.LoadFile(stream, wxBITMAP_TYPE_ANY, 0)) {
+void ImageCacheEntry::loadImage(const std::vector<uint8_t> &data) {
+    auto i = std::make_shared<xlImage>();
+    if (!i->LoadFromMemory(data.data(), data.size())) {
         spdlog::error("Error loading image file: {}.", _filePath);
-        i.Create(5, 5, true);
+        i = std::make_shared<xlImage>(5, 5);
     }
     _imageCount = 1;
-    int orientation = GetExifOrientation(ins);
-    ApplyOrientation(i, orientation);
+    int orientation = GetExifOrientation(data.data(), data.size());
+    *i = ApplyOrientation(*i, orientation);
     _frameTimes.push_back(0);
-    _frameImages.emplace_back(std::make_shared<wxImage>(i));
-    _imageSize = i.GetSize();
+    _frameImages.emplace_back(i);
+    _imageWidth = i->GetWidth();
+    _imageHeight = i->GetHeight();
 }
 
 
-static std::string PngToBase64(const wxImage& img)
+static std::string PngToBase64(const xlImage& img)
 {
-    wxMemoryOutputStream mos;
-    img.SaveFile(mos, wxBITMAP_TYPE_PNG);
-    wxStreamBuffer* buf = mos.GetOutputStreamBuffer();
-    return wxBase64Encode(buf->GetBufferStart(), buf->GetIntPosition()).ToStdString();
+    std::vector<uint8_t> pngData;
+    img.SaveAsPNG(pngData);
+    return Base64::Encode(pngData.data(), pngData.size());
 }
 
 // --- pugixml implementations ---
@@ -320,10 +270,9 @@ bool ImageCacheEntry::LoadFromXml(const pugi::xml_node& node)
             long ft = f.attribute("time").as_int(0);
             std::string b64 = f.text().as_string("");
             _frameData.push_back(b64);
-            wxMemoryBuffer buf = wxBase64Decode(b64);
-            wxMemoryInputStream mis(buf.GetData(), buf.GetDataLen());
-            auto sp = std::make_shared<wxImage>();
-            sp->LoadFile(mis, wxBITMAP_TYPE_PNG);
+            std::vector<uint8_t> buf = Base64::Decode(b64);
+            auto sp = std::make_shared<xlImage>();
+            sp->LoadFromMemory(buf.data(), buf.size());
             _frameImages.push_back(sp);
             _frameImagesNoBG.push_back(sp);
             _frameTimes.push_back(ft);
@@ -331,7 +280,10 @@ bool ImageCacheEntry::LoadFromXml(const pugi::xml_node& node)
         }
         _frameBasedAnimation = true;
         _imageCount = (int)_frameImages.size();
-        if (_imageCount > 0) _imageSize = _frameImages[0]->GetSize();
+        if (_imageCount > 0) {
+            _imageWidth = _frameImages[0]->GetWidth();
+            _imageHeight = _frameImages[0]->GetHeight();
+        }
         _loadingDone = true;
     }
     return true;
@@ -365,8 +317,8 @@ void ImageCacheEntry::SaveToXml(pugi::xml_node& parent) const
     }
 }
 
-std::shared_ptr<wxImage> ImageCacheEntry::GetFrame(int x, bool suppressGIFBackground) {
-    if (x >= _frameImages.size()) {
+std::shared_ptr<xlImage> ImageCacheEntry::GetFrame(int x, bool suppressGIFBackground) {
+    if (x >= (int)_frameImages.size()) {
         return invalidImage;
     }
     if (suppressGIFBackground && !_frameImagesNoBG.empty()) {
@@ -401,28 +353,24 @@ int ImageCacheEntry::GetFrameForTime(int msec, bool loop) {
     return frame - 1;
 }
 
-std::shared_ptr<wxImage> ImageCacheEntry::GetScaledImage(int frameNumber, int width, int height, bool suppressedBg) {
+std::shared_ptr<xlImage> ImageCacheEntry::GetScaledImage(int frameNumber, int width, int height, bool suppressedBg) {
     ScaledImageCacheKey key;
     key.frameNumber = frameNumber;
     key.width = width;
     key.height = height;
     key.suppressGIFBackground = suppressedBg;
-    
+
     std::scoped_lock lock(_cacheMutex);
     auto it = _scaledImageCache.find(key);
     if (it != _scaledImageCache.end()) {
         return it->second;
     }
-    
-    std::shared_ptr<wxImage> img = GetFrame(frameNumber, suppressedBg);
+
+    std::shared_ptr<xlImage> img = GetFrame(frameNumber, suppressedBg);
     if (!img->IsOk()) {
         return img;
     }
-    wxImage *image = new wxImage(*img.get());
-    image->SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
-    if (!image->HasAlpha()) {
-        image->InitAlpha();
-    }
+    xlImage *image = new xlImage(*img);
     image->Rescale(width, height);
     _scaledImageCache.emplace(key, image);
     return _scaledImageCache[key];
@@ -446,7 +394,7 @@ SequenceMedia::~SequenceMedia()
 }
 
 std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& filepath)
-{    
+{
     std::unique_lock lock(_cacheMutex);
     // Check if image is already cached
     auto it = _imageCache.find(filepath);
@@ -472,7 +420,7 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
     std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(loadPath);
     _imageCache.emplace(filepath, np);
     lock.unlock();
-    
+
     np->Load();
     return np;
 }
@@ -505,11 +453,10 @@ void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTim
     std::string BasePicture = (loadFsPath.parent_path() / "").string() + stemStr.substr(0, stemStr.length() - 2) + "-";
     int cur = 1;
     std::string fname = BasePicture + std::to_string(cur++) + extension;
-    std::vector<wxImage> images;
+    std::vector<xlImage> images;
     while (FileExists(fname)) {
-        wxImage i;
-        i.SetLoadFlags(0);
-        i.LoadFile(fname);
+        xlImage i;
+        i.LoadFromFile(fname);
         images.push_back(std::move(i));
         fname = BasePicture + std::to_string(cur++) + extension;
     }
@@ -558,17 +505,14 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::string&
     entry->Load();
 }
 
-void SequenceMedia::AddEmbeddedImage(const std::string& name, const wxImage& image)
+void SequenceMedia::AddEmbeddedImage(const std::string& name, const xlImage& image)
 {
-    // Encode the wxImage as PNG into a memory stream, then base64-encode it
-    wxMemoryOutputStream mos;
-    if (!image.SaveFile(mos, wxBITMAP_TYPE_PNG)) {
+    // Encode the xlImage as PNG, then base64-encode it
+    std::vector<uint8_t> pngData;
+    if (!image.SaveAsPNG(pngData)) {
         return;
     }
-    wxStreamBuffer* buf = mos.GetOutputStreamBuffer();
-    wxMemoryBuffer mb;
-    mb.AppendData(buf->GetBufferStart(), buf->GetIntPosition());
-    std::string b64 = wxBase64Encode(mb).ToStdString();
+    std::string b64 = Base64::Encode(pngData.data(), pngData.size());
 
     std::shared_ptr<ImageCacheEntry> entry;
     {
@@ -580,7 +524,7 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const wxImage& ima
     entry->Load();
 }
 
-void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::vector<wxImage>& frames, int frameTimeMs)
+void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs)
 {
     if (frames.empty()) return;
     std::scoped_lock lock(_cacheMutex);
@@ -618,11 +562,11 @@ bool ImageCacheEntry::SaveToFile(const std::string& path) const
 {
     if (_embeddedData.empty()) return false;
     ObtainAccessToURL(path);
-    wxMemoryBuffer buf = wxBase64Decode(_embeddedData);
-    if (buf.GetDataLen() == 0) return false;
+    std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
+    if (buf.empty()) return false;
     std::ofstream f(path, std::ios::binary);
     if (!f.is_open()) return false;
-    f.write(static_cast<const char*>(buf.GetData()), buf.GetDataLen());
+    f.write(reinterpret_cast<const char*>(buf.data()), buf.size());
     return f.good();
 }
 
@@ -704,18 +648,18 @@ std::vector<std::string> SequenceMedia::GetImagePaths() const
 
 void SequenceMedia::RemoveUnusedImages()
 {
-    
+
     std::scoped_lock lock(_cacheMutex);
-    
+
     // Remove unused static images
     std::vector<std::string> toRemove;
-    
+
     for (const auto& pair : _imageCache) {
         if (!pair.second->IsUsed()) {
             toRemove.push_back(pair.first);
         }
     }
-    
+
     for (const auto& path : toRemove) {
         spdlog::debug("Removing unused image from cache: {}", path);
         _imageCache.erase(path);

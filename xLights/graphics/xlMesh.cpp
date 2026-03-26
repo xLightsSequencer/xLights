@@ -11,6 +11,7 @@
 
 #include "../ExternalHooks.h"
 #include "../UtilFunctions.h"
+#include "../utils/xlImage.h"
 
 #include <log.h>
 
@@ -58,8 +59,8 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
             }
             if (FileExists(texName)) {
                 ObtainAccessToURL(texName);
-                wxImage image(texName);
-                if (image.IsOk()) {
+                xlImage image;
+                if (image.LoadFromFile(texName)) {
                     image = image.Mirror(false);
                     materials[idx].texture = ctx->createTexture(image, m.diffuse_texname, true);
                 }

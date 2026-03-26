@@ -13,6 +13,7 @@
 #include <format>
 
 #include "ImageModel.h"
+#include "../utils/xlImage.h"
 #include "ModelScreenLocation.h"
 #include "../ModelPreview.h"
 #include "../render/RenderBuffer.h"
@@ -124,14 +125,12 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         xlTexture *texture = _images[preview->GetName().ToStdString()];
         xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
         if (texture == nullptr && FileExists(_imageFile)) {
-            wxImage img(_imageFile);
-            if (img.IsOk()) {
-                bool mAlpha = img.HasAlpha();
-                if (!mAlpha && _whiteAsAlpha) {
-                    img.InitAlpha();
+            xlImage img;
+            if (img.LoadFromFile(_imageFile)) {
+                if (_whiteAsAlpha) {
                     for (int x = 0; x < img.GetWidth(); x++) {
                         for (int y = 0; y < img.GetHeight(); y++) {
-                            int r = img.GetRed(x,y);
+                            int r = img.GetRed(x, y);
                             if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y)) {
                                 img.SetAlpha(x, y, r);
                             }
@@ -159,9 +158,6 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
                 // Modify image for color overlay
                 if (drawColor) {
-                    if (!mAlpha) {
-                        img.InitAlpha();
-                    }
                     for (int x = 0; x < img.GetWidth(); x++) {
                         for (int y = 0; y < img.GetHeight(); y++) {
                             int l = img.GetGreen(x, y); // Take green as luminance. Red, Green, Blue should now be equal after grayscale conversion
@@ -269,14 +265,12 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     xlTexture *texture = _images[preview->GetName().ToStdString()];
     xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
     if (texture == nullptr && FileExists(_imageFile)) {
-        wxImage img(_imageFile);
-        if (img.IsOk()) {
-            bool mAlpha = img.HasAlpha();
-            if (!mAlpha && _whiteAsAlpha) {
-                img.InitAlpha();
+        xlImage img;
+        if (img.LoadFromFile(_imageFile)) {
+            if (_whiteAsAlpha) {
                 for (int x = 0; x < img.GetWidth(); x++) {
                     for (int y = 0; y < img.GetHeight(); y++) {
-                        int r = img.GetRed(x,y);
+                        int r = img.GetRed(x, y);
                         if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y)) {
                             img.SetAlpha(x, y, r);
                         }
@@ -298,18 +292,15 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                     }
                 }
             }
-            
+
             width = img.GetWidth();
             height = img.GetHeight();
-            hasAlpha = img.HasAlpha();
+            hasAlpha = true; // xlImage always has alpha
             texture = ctx->createTexture(img, GetName(), true);
             _images[preview->GetName().ToStdString()] = texture;
 
             // Modify image for color overlay
             if (drawColor) {
-                if (!mAlpha) {
-                    img.InitAlpha();
-                }
                 for (int x = 0; x < img.GetWidth(); x++) {
                     for (int y = 0; y < img.GetHeight(); y++) {
                         int l = img.GetGreen(x, y); // Take green as luminance. Red and Blue should now be equal to Green after grayscale conversion
@@ -429,7 +420,7 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
     if (_imageFile == "" || !FileExists(_imageFile)) {
         res.push_back(std::format("    ERR: Image model '{}' cant find image file '{}'", GetName(), _imageFile));
-    } else if (!wxImage::CanRead(_imageFile)) {
+    } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
         res.push_back(std::format("    ERR: Image model '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
