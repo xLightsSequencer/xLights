@@ -343,7 +343,9 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                     banks_changed[shift_offset] = bank_changed;
                     bank_changed = false;
                     ++shift_offset;
-                    color_mode[shift_offset] = false;
+                    if (shift_offset < MAX_BANKS) {
+                        color_mode[shift_offset] = false;
+                    }
                 }
                 --channels_to_process;
                 ++cur_channel;

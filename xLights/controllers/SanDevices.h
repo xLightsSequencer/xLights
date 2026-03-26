@@ -103,6 +103,7 @@ class SimpleHTTP : public wxHTTP
     bool MyBuildRequest(const wxString& path, const wxString& method, wxString& startResult);
 
 public:
+    using wxHTTP::GetInputStream;
     SimpleHTTP() : wxHTTP() { }
     virtual ~SimpleHTTP() { }
     wxInputStream *GetInputStream(const wxString& path, wxString& startResult);

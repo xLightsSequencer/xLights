@@ -105,7 +105,7 @@ std::string DecodeMidi(int midi) {
         break;
     }
 
-    char buf[8];
+    char buf[16];
     if (sharp) {
         snprintf(buf, sizeof(buf), "%c#%d", note, o);
     } else {
