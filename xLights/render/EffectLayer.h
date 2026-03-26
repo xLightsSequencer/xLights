@@ -150,7 +150,6 @@ private:
     std::unique_lock<std::recursive_mutex> acquireLockWaitForRender();
 
     void SortEffects();
-    void PlayEffect(Effect* effect);
 
     static std::atomic_int exclusive_index;
 

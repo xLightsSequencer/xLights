@@ -411,7 +411,7 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
     // entry can be loaded from disk.  The cache key stays as the relative path.
     std::string loadPath = filepath;
     if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FixFile("", filepath).ToStdString();
+        std::string resolved = FixFile("", filepath);
         if (!resolved.empty())
             loadPath = resolved;
     }
@@ -442,7 +442,7 @@ void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTim
     // LoadFile operate on a valid absolute path.
     std::string loadPath = filepath;
     if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FixFile("", filepath).ToStdString();
+        std::string resolved = FixFile("", filepath);
         if (!resolved.empty()) {
             loadPath = resolved;
         }

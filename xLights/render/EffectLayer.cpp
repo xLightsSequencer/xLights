@@ -586,18 +586,6 @@ std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTi
     return effs;
 }
 
-void EffectLayer::PlayEffect(Effect* effect)
-{
-    EventPlayEffectArgs playArgs;
-    wxCommandEvent eventPlayModelEffect(EVT_PLAY_MODEL_EFFECT);
-    playArgs.element = GetParentElement();
-    playArgs.effect = effect;
-    playArgs.renderEffect = false;
-    eventPlayModelEffect.SetClientData(&playArgs);
-    // Pass it this way to prevent risk of effect being deleted before pointer is used
-    GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetEventHandler()->ProcessEvent(eventPlayModelEffect);
-}
-
 Effect* EffectLayer::SelectEffectUsingDescription(std::string description)
 {
     for (int i = 0; i < mEffects.size(); i++)
@@ -605,7 +593,6 @@ Effect* EffectLayer::SelectEffectUsingDescription(std::string description)
         if (mEffects[i]->GetDescription() == description)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
-            PlayEffect(mEffects[i]);
             return mEffects[i];
         }
     }
@@ -633,7 +620,6 @@ Effect* EffectLayer::SelectEffectUsingTime(int time)
         if (time >= mEffects[i]->GetStartTimeMS() && time < mEffects[i]->GetEndTimeMS())
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
-            PlayEffect(mEffects[i]);
             return mEffects[i];
         }
     }

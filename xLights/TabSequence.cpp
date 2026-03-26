@@ -473,7 +473,7 @@ void xLightsFrame::LoadEffectsFile()
     }
     SetPreviewSize(previewWidth, previewHeight);
 
-    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", "")).ToStdString();
+    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
     ObtainAccessToURL(mBackgroundImage);
     if (!mBackgroundImage.empty() && (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
         //image doesn't exist there, lets look for it in media directories

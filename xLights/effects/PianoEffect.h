@@ -61,7 +61,6 @@ protected:
         return true;
     };
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-    void SetPanelTimingTracks();
 
 private:
     void RenderPiano(RenderBuffer& buffer, SequenceElements* elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset, bool fadeNotes);

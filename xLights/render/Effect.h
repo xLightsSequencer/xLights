@@ -10,8 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/event.h>
-
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -36,8 +34,6 @@ class EffectManager;
 #define EFFECT_LT_SELECTED      1
 #define EFFECT_RT_SELECTED      2
 #define EFFECT_SELECTED         3
-
-wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
 // An effect represents a generic effect
 class Effect

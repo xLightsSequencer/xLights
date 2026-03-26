@@ -216,7 +216,7 @@ void DeserializeFaceInfo(pugi::xml_node f, FaceStateData & faceInfo) {
         if (attName != XmlNodeKeys::StateNameAttribute) {
             if (attName.substr(0, 5) == "Mouth" || attName.substr(0, 4) == "Eyes") {
                 if (type == XmlNodeKeys::MatrixType) {
-                    faceInfo[name][std::string(attName)] = FixFile("", att.value());
+                    faceInfo[name][std::string(attName)] = FixFile(std::string(""), std::string(att.value()));
                     if (std::string(att.value()) != faceInfo[name][std::string(attName)])
                         att.set_value(faceInfo[name][std::string(attName)]);
                 } else {

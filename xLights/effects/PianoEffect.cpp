@@ -57,24 +57,6 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-void PianoEffect::SetPanelTimingTracks()
-{
-    if (mSequenceElements == nullptr) {
-        return;
-    }
-
-    auto fp = xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr);
-    if (fp == nullptr) {
-        return;
-    }
-
-    // Load the names of the timing tracks
-    std::string timingtracks = GetTimingTracks(1);
-    wxCommandEvent event(EVT_SETTIMINGTRACKS);
-    event.SetString(timingtracks);
-    wxPostEvent(fp, event);
-}
-
 void PianoEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
@@ -109,8 +91,6 @@ void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     if (timing == oldname) {
         effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = newname;
     }
-
-    SetPanelTimingTracks();
 }
 
 void PianoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -152,9 +132,6 @@ void PianoEffect::RenderPiano(RenderBuffer& buffer, SequenceElements* elements, 
     std::string& _MIDITrack = cache->_MIDItrack;
 
     if (buffer.needToInit) {
-        // just in case the timing tracks have changed
-        SetPanelTimingTracks();
-
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack) {
             _timings.clear();

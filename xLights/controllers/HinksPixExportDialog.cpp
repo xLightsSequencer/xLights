@@ -973,7 +973,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                         }
                     }
                     if (!FileExists(mediaName)) {
-                        const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
+                        const std::string fixedMN = FixFile(frame->CurrentDir.ToStdString(), mediaName);
                         if (!FileExists(fixedMN)) {
                             spdlog::info("Could not find media: {}", mediaName);
                             mediaName = "";

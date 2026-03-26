@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ShapePanel.h"
+#include "../wxUtilities.h"
 #include "EffectPanelUtils.h"
 #include "../../utils/string_utils.h"
 #include "../../effects/ShapeEffect.h"

@@ -32,8 +32,6 @@
 
 #include <log.h>
 
-wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
-
 class ControlRenameMap
 {
 public:

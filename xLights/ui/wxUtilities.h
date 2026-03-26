@@ -88,6 +88,9 @@ inline wxImage xlImageToWxImage(const xlImage& img) {
     return result;
 }
 
+// UI events used by effect panels (moved from render/Effect.h to keep render core wx-free)
+wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
+
 // wx<->std string conversion helpers
 inline std::string ToStdString(const wxString& wxstr)
 {
@@ -126,13 +129,14 @@ void DisplayInfo(const std::string& info, wxWindow* win = nullptr);
 void DisplayCrit(const std::string& crit, wxWindow* win = nullptr);
 std::string DecodeIPError(wxSocketError err);
 wxArrayString Split(const wxString& s, const std::vector<char>& delimiters);
-bool IsFileInShowDir(const wxString& showDir, const std::string filename);
-void SetFixFileShowDir(const wxString& ShowDir);
-void SetFixFileDirectories(const std::list<std::string>& dirs);
-wxString FixFile(const wxString& ShowDir, const wxString& file);
-wxString MakeRelativeFile(const wxString& file);
-void ClearNonExistentFiles();
-wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
+inline bool IsFileInShowDir(const wxString& showDir, const std::string filename) { return IsFileInShowDir(showDir.ToStdString(), filename); }
+// wxString wrappers around std::string versions in UtilFunctions.h
+inline void SetFixFileShowDir(const wxString& ShowDir) { SetFixFileShowDir(ShowDir.ToStdString()); }
+inline wxString FixFile(const wxString& ShowDir, const wxString& file) { return wxString(FixFile(ShowDir.ToStdString(), file.ToStdString())); }
+inline wxString MakeRelativeFile(const wxString& file) { return wxString(MakeRelativeFile(file.ToStdString())); }
+inline wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir) {
+    return wxString(FixEffectFileParameter(paramname.ToStdString(), parametervalue.ToStdString(), ShowDir.ToStdString()));
+}
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 void OptimiseDialogPosition(wxDialog* dlg);
 nlohmann::json xLightsRequest(int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");

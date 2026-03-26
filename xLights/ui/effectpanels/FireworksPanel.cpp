@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "FireworksPanel.h"
+#include "../wxUtilities.h"
 #include "EffectPanelUtils.h"
 #include "../../utils/string_utils.h"
 #include "../../render/Effect.h"

@@ -3452,6 +3452,22 @@ void xLightsFrame::RenameTimingElement(const std::string& old_name, const std::s
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     CurrentSeqXmlFile->SetTimingSectionName(old_name, new_name);
+
+    // Refresh timing track choices on effect panels that use them
+    wxCommandEvent evt(EVT_SETTIMINGTRACKS);
+    std::string timingtracks;
+    for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
+        Element* e = _sequenceElements.GetElement(i);
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            if (!timingtracks.empty()) timingtracks += "|";
+            timingtracks += e->GetName();
+        }
+    }
+    evt.SetString(timingtracks);
+    for (int i = 0; i < effectManager.size(); i++) {
+        auto panel = effectPanelManager.GetPanel(i, nullptr);
+        if (panel) wxPostEvent(panel, evt);
+    }
 }
 
 int LowerTS(float t, int intervalMS)

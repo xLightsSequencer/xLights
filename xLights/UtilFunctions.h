@@ -72,6 +72,18 @@ void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, 
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
 
+class xlImage;
+xlImage ApplyOrientation(const xlImage& img, int orient);
+
+// File path resolution — resolves missing/moved files by searching show dir, media dirs, etc.
+std::string FixFile(const std::string& showDir, const std::string& file);
+void SetFixFileShowDir(const std::string& showDir);
+void SetFixFileDirectories(const std::list<std::string>& dirs);
+std::string MakeRelativeFile(const std::string& file);
+void ClearNonExistentFiles();
+bool IsFileInShowDir(const std::string& showDir, const std::string& filename);
+std::string FixEffectFileParameter(const std::string& paramname, const std::string& paramvalue, const std::string& showDir);
+
 inline long roundTo4(long i) {
     long remainder = i % 4;
     if (remainder == 0) {

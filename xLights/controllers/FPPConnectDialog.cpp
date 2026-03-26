@@ -935,12 +935,12 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                         }
                     }
                     if (!FileExists(mediaName)) {
-                        const wxString fixedMN = FixFile(frame->CurrentDir, mediaName);
+                        std::string fixedMN = FixFile(frame->CurrentDir.ToStdString(), mediaName);
                         if (!FileExists(fixedMN)) {
                             spdlog::info("Could not find media: {} ", mediaName.c_str());
                             mediaName = "";
                         } else {
-                            mediaName = ToUTF8(fixedMN);
+                            mediaName = fixedMN;
                         }
                     }
                 }
@@ -1048,8 +1048,8 @@ void FPPConnectDialog::LoadSequences()
             if (file != nullptr) {
                 for (auto& header : file->getVariableHeaders()) {
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
-                        wxString mediaName = (const char*)(&header.data[0]);
-                        mediaName = FixFile("", mediaName);
+                        std::string mediaName = (const char*)(&header.data[0]);
+                        mediaName = FixFile(std::string(""), mediaName);
                         if (FileExists(mediaName)) {
                             CheckListBox_Sequences->SetItemText(item, 2, mediaName);
                         }

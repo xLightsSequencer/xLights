@@ -23,10 +23,10 @@ DataLayer::DataLayer(const std::string& name, const std::string& source, const s
   lor_convert_params(0)
 {
     if (!source.empty() && source[0] != '<') {
-        mSource = FixFile("", source).ToStdString();
+        mSource = FixFile("", source);
     }
     if (!data_source.empty() && data_source[0] != '<') {
-        mDataSource = FixFile("", data_source).ToStdString();
+        mDataSource = FixFile("", data_source);
     }
 }
 

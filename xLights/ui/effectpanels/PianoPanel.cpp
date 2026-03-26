@@ -25,6 +25,7 @@
 //*)
 
 #include <wx/filename.h>
+#include "../wxUtilities.h"
 #include <wx/valnum.h>
 
 #include "PianoPanel.h"

@@ -123,14 +123,14 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
         if (!std::filesystem::path(file).is_absolute()) {
             // relative path: just let GetImage() resolve it below
         } else if (!FileExists(file, false)) {
-            std::string fixed = FixFile("", file).ToStdString();
+            std::string fixed = FixFile("", file);
             // If the resolved path is inside a show/media directory, store as
             // relative so the sequence is portable across machines.
-            std::string rel = MakeRelativeFile(fixed).ToStdString();
+            std::string rel = MakeRelativeFile(fixed);
             settings["E_TEXTCTRL_Pictures_Filename"] = rel.empty() ? fixed : rel;
         } else {
             // File exists at its absolute path — still prefer relative storage
-            std::string rel = MakeRelativeFile(file).ToStdString();
+            std::string rel = MakeRelativeFile(file);
             if (!rel.empty())
                 settings["E_TEXTCTRL_Pictures_Filename"] = rel;
         }
@@ -301,7 +301,7 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
     if (!file.empty()) {
         // Relative paths must be resolved to absolute so callers can locate the file.
         if (!std::filesystem::path(file).is_absolute()) {
-            std::string resolved = FixFile("", file).ToStdString();
+            std::string resolved = FixFile("", file);
             if (!resolved.empty() && FileExists(resolved))
                 res.push_back(resolved);
         } else if (FileExists(file)) {
