@@ -24,9 +24,9 @@
 #include <string_view>
 
 #ifdef _WIN32
+#include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <psapi.h>
-#include <ws2tcpip.h>
 #else
 #include <arpa/inet.h>
 #include <sys/socket.h>
