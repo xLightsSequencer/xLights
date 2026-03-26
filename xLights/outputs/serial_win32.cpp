@@ -148,7 +148,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     // wordlen, valid values are 5,6,7,8
     dcb.ByteSize = protocol[0] - '0';
     if (!SetCommState(_fd, &dcb)) {
-        spdlog::error("Failed to set Comm State DevName: %s BaudRate: {} Protocol: {} -> returning -2.", (const char*)devName.c_str(), baudRate, protocol);
+        spdlog::error("Failed to set Comm State DevName: {} BaudRate: {} Protocol: {} -> returning -2.", (const char*)devName.c_str(), baudRate, protocol);
         return -2;
     }
 
@@ -161,7 +161,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
                             NULL); // LPTSTR lpszEventName
 
     if (_ov.hEvent == INVALID_HANDLE_VALUE) {
-        spdlog::error("Failed to set Comm State DevName: %s BaudRate: {} Protocol: {} -> returning -2.", (const char*)devName.c_str(), baudRate, protocol);
+        spdlog::error("Failed to set Comm State DevName: {} BaudRate: {} Protocol: {} -> returning -2.", (const char*)devName.c_str(), baudRate, protocol);
         return -3;
     }
 
