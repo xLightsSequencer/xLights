@@ -562,6 +562,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="EditAliasesDialog.cpp" />
     <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
+    <ClCompile Include="import_export\ExportEffects.cpp" />
+    <ClCompile Include="import_export\ImportEffects.cpp" />
+    <ClCompile Include="import_export\TimingImport.cpp" />
     <ClCompile Include="effects\AdjustEffect.cpp" />
     <ClCompile Include="ui\effectpanels\AdjustPanel.cpp" />
     <ClCompile Include="ui\effectpanels\assist\SketchAssistPanel.cpp" />
@@ -679,7 +682,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="LayoutUtils.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
-    <ClCompile Include="LOREdit.cpp" />
+    <ClCompile Include="import_export\LOREdit.cpp" />
     <ClCompile Include="LORPreview.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
@@ -853,7 +856,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="EffectPresetManager.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
-    <ClCompile Include="FileConverter.cpp" />
+    <ClCompile Include="import_export\FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
     <ClCompile Include="JobPool.cpp" />
@@ -1037,8 +1040,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ViewpointDialog.cpp" />
     <ClCompile Include="ViewpointMgr.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
-    <ClCompile Include="Vixen3.cpp" />
-    <ClCompile Include="VSAFile.cpp" />
+    <ClCompile Include="import_export\Vixen3.cpp" />
+    <ClCompile Include="import_export\VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
     <ClCompile Include="WindowsHardwareVideoReader.cpp" />
     <ClCompile Include="WiringDialog.cpp" />
@@ -1241,7 +1244,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="KeyBindingEditDialog.h" />
     <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
-    <ClInclude Include="LOREdit.h" />
+    <ClInclude Include="import_export\LOREdit.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="MediaImportOptionsDialog.h" />
@@ -1418,7 +1421,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="EffectPresetManager.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
-    <ClInclude Include="FileConverter.h" />
+    <ClInclude Include="import_export\FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
     <ClInclude Include="Images_png.h" />
@@ -1606,8 +1609,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ViewpointDialog.h" />
     <ClInclude Include="ViewpointMgr.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
-    <ClInclude Include="Vixen3.h" />
-    <ClInclude Include="VSAFile.h" />
+    <ClInclude Include="import_export\Vixen3.h" />
+    <ClInclude Include="import_export\VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />
     <ClInclude Include="WindowsHardwareVideoReader.h" />
     <ClInclude Include="WiringDialog.h" />

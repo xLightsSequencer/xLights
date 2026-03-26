@@ -22,7 +22,7 @@
 //*)
 
 #include "ConvertDialog.h"
-#include "FileConverter.h"
+#include "import_export/FileConverter.h"
 #include "xLightsMain.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"

@@ -28,7 +28,7 @@
 #include "NewTimingDialog.h"
 #include "render/SequenceFile.h"
 #include "render/DataLayer.h"
-#include "FileConverter.h"
+#include "import_export/FileConverter.h"
 #include "LorConvertDialog.h"
 #include "ConvertLogDialog.h"
 #include "VAMPPluginDialog.h"

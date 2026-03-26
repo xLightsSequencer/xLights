@@ -259,8 +259,8 @@
 		<Unit filename="ExportSettings.h" />
 		<Unit filename="render/FSEQFile.cpp" />
 		<Unit filename="render/FSEQFile.h" />
-		<Unit filename="FileConverter.cpp" />
-		<Unit filename="FileConverter.h" />
+		<Unit filename="import_export/FileConverter.cpp" />
+		<Unit filename="import_export/FileConverter.h" />
 		<Unit filename="FindDataPanel.cpp" />
 		<Unit filename="FindDataPanel.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
@@ -290,8 +290,8 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
-		<Unit filename="LOREdit.cpp" />
-		<Unit filename="LOREdit.h" />
+		<Unit filename="import_export/LOREdit.cpp" />
+		<Unit filename="import_export/LOREdit.h" />
 		<Unit filename="LORPreview.cpp" />
 		<Unit filename="LORPreview.h" />
 		<Unit filename="LayerSelectDialog.cpp" />
@@ -463,8 +463,8 @@
 		<Unit filename="UtilFunctions.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
 		<Unit filename="VAMPPluginDialog.h" />
-		<Unit filename="VSAFile.cpp" />
-		<Unit filename="VSAFile.h" />
+		<Unit filename="import_export/VSAFile.cpp" />
+		<Unit filename="import_export/VSAFile.h" />
 		<Unit filename="render/ValueCurve.cpp" />
 		<Unit filename="render/ValueCurve.h" />
 		<Unit filename="ui/ValueCurveButton.cpp" />
@@ -493,8 +493,8 @@
 		<Unit filename="ViewpointMgr.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
-		<Unit filename="Vixen3.cpp" />
-		<Unit filename="Vixen3.h" />
+		<Unit filename="import_export/Vixen3.cpp" />
+		<Unit filename="import_export/Vixen3.h" />
 		<Unit filename="VsaImportDialog.cpp" />
 		<Unit filename="VsaImportDialog.h" />
 		<Unit filename="WiringDialog.cpp" />
@@ -601,6 +601,9 @@
 		<Unit filename="controllers/WLED.h" />
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
+		<Unit filename="import_export/ExportEffects.cpp" />
+		<Unit filename="import_export/ImportEffects.cpp" />
+		<Unit filename="import_export/TimingImport.cpp" />
 		<Unit filename="effects/AdjustEffect.cpp" />
 		<Unit filename="effects/AdjustEffect.h" />
 		<Unit filename="ui/effectpanels/AdjustPanel.cpp" />

@@ -22,7 +22,7 @@
 #include "render/SequenceElements.h"
 #include "xLightsMain.h"
 #include "models/Model.h"
-#include "VSAFile.h"
+#include "import_export/VSAFile.h"
 #include "support/FastComboEditor.h"
 #include "support/GridCellChoiceRenderer.h"
 #include "support/EzGrid.h"

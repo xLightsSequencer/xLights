@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "DataLayer.h"
-#include "../Vixen3.h"
+#include "../import_export/Vixen3.h"
 #include "pugixml.hpp"
 
 #include <array>
