@@ -9,16 +9,11 @@
  **************************************************************/
 
 // Single translation unit that provides the nanosvg rasterizer implementation.
-// All other files that need nanosvgrast.h should include it WITHOUT defining
-// NANOSVGRAST_IMPLEMENTATION — this file provides it for the linker.
-#ifndef _MSC_VER
-// On Windows, wxWidgets provides the nanosvg implementation, we cannot define
-// it here or we get duplicate symbols.   On the other platforms, we have
-// to define it here or we get missing symbols.
+// All other files that need nanosvg should include nanosvg_xl.h which prefixes
+// all symbols with xl_ to avoid conflicts with wxWidgets' bundled nanosvg.
+#define NANOSVG_IMPLEMENTATION
 #define NANOSVGRAST_IMPLEMENTATION
-#endif
-#include "nanosvg/src/nanosvgrast.h"
-#include "nanosvg/src/nanosvg.h"
+#include "../utils/nanosvg_xl.h"
 
 #include "nanosvgrast_impl.h"
 #include "../render/RenderBuffer.h"

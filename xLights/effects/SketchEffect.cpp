@@ -34,8 +34,7 @@
 #include <cstring>
 #include <format>
 
-#include "nanosvg/src/nanosvg.h"
-#include "nanosvg/src/nanosvgrast.h"
+#include "../utils/nanosvg_xl.h"
 
 namespace
 {

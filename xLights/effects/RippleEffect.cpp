@@ -26,7 +26,7 @@
 #include "../models/Model.h"
 #include "../xLightsMain.h"
 
-#include "nanosvg/src/nanosvg.h"
+#include "../utils/nanosvg_xl.h"
 
 #include "../../include/ripple-16.xpm"
 #include "../../include/ripple-24.xpm"

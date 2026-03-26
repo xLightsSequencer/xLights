@@ -32,8 +32,7 @@
 #include "../../include/vumeter-48.xpm"
 #include "../../include/vumeter-64.xpm"
 
-#include "nanosvg/src/nanosvg.h"
-#include "nanosvg/src/nanosvgrast.h"
+#include "../utils/nanosvg_xl.h"
 #include "nanosvgrast_impl.h"
 
 #include <algorithm>
