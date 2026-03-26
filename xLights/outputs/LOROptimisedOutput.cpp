@@ -313,8 +313,9 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
 
                 wxASSERT(cur_channel < sizeof(_curData));
                 if ((data[cur_channel] > 0) && (data[cur_channel] < 0xFF)) {
-                    wxASSERT(shift_offset < sizeof(color_mode));
-                    color_mode[shift_offset] = true;
+                    if (shift_offset < MAX_BANKS) {
+                        color_mode[shift_offset] = true;
+                    }
                 }
 
                 wxASSERT(shift_offset < sizeof(lorBankData));
