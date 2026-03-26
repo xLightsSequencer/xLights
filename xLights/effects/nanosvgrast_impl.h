@@ -13,6 +13,9 @@
 #include <cstdint>
 #include <vector>
 
+// Use prefixed nanosvg types to avoid conflicts with wxWidgets' bundled version
+#define NSVGimage xl_NSVGimage
+#define NSVGrasterizer xl_NSVGrasterizer
 struct NSVGimage;
 struct NSVGrasterizer;
 class RenderBuffer;

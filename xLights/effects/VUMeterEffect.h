@@ -23,6 +23,8 @@
 #define VUMETER_GAIN_MIN -100
 #define VUMETER_GAIN_MAX 100
 
+// Use prefixed nanosvg type to avoid conflicts with wxWidgets' bundled version
+#define NSVGimage xl_NSVGimage
 struct NSVGimage;
 
 class VUMeterEffect : public RenderableEffect

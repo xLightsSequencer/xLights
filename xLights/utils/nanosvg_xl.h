@@ -4,6 +4,29 @@
 // bundled nanosvg on Windows. All public nanosvg symbols are renamed
 // with an xl_ prefix so the linker picks up our version.
 
+// --- Public type renames (avoid struct layout mismatches with wx's nanosvg) ---
+#define NSVGgradientStop    xl_NSVGgradientStop
+#define NSVGgradient        xl_NSVGgradient
+#define NSVGpaint           xl_NSVGpaint
+#define NSVGpath            xl_NSVGpath
+#define NSVGshape           xl_NSVGshape
+#define NSVGimage           xl_NSVGimage
+#define NSVGrasterizer      xl_NSVGrasterizer
+
+// --- Internal types (in implementation sections) ---
+#define NSVGcoordinate      xl_NSVGcoordinate
+#define NSVGlinearData      xl_NSVGlinearData
+#define NSVGradialData      xl_NSVGradialData
+#define NSVGgradientData    xl_NSVGgradientData
+#define NSVGattrib          xl_NSVGattrib
+#define NSVGparser          xl_NSVGparser
+#define NSVGNamedColor      xl_NSVGNamedColor
+#define NSVGedge            xl_NSVGedge
+#define NSVGpoint           xl_NSVGpoint
+#define NSVGactiveEdge      xl_NSVGactiveEdge
+#define NSVGmemPage         xl_NSVGmemPage
+#define NSVGcachedPaint     xl_NSVGcachedPaint
+
 // --- Public API function renames ---
 #define nsvgParseFromFile       xl_nsvgParseFromFile
 #define nsvgParse               xl_nsvgParse
