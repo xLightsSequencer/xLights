@@ -172,3 +172,16 @@ xlImage xlImage::Rotate180() const {
     return result;
 }
 
+xlImage xlImage::ApplyOrientation(int orient) const {
+    switch (orient) {
+    case 2: return Mirror(true);  // horizontal flip
+    case 3: return Rotate180();
+    case 4: return Mirror(false); // vertical flip
+    case 5: return Mirror(true).Rotate90(false); // horizontal flip + 90 CCW
+    case 6: return Rotate90(true);  // 90 CW
+    case 7: return Mirror(true).Rotate90(true);  // horizontal flip + 90 CW
+    case 8: return Rotate90(false); // 90 CCW
+    default: return Copy();
+    }
+}
+

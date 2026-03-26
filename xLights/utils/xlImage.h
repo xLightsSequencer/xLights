@@ -125,6 +125,7 @@ public:
     xlImage Mirror(bool horizontal) const;
     xlImage Rotate90(bool clockwise) const;
     xlImage Rotate180() const;
+    xlImage ApplyOrientation(int orient) const;
 
     // Initialize to a blank image (all black, fully transparent)
     void Create(int width, int height) {

@@ -19,7 +19,6 @@
 
 #include "UtilFunctions.h"
 #include "utils/string_utils.h"
-#include "utils/xlImage.h"
 
 #include <mutex>
 #include <string_view>
@@ -684,12 +683,12 @@ void DumpBinary(uint8_t* buffer, size_t sz) {
     for (size_t i = 0; i < (sz + 15) / 16; i++) {
         std::string out;
         char hex[4];
-        for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
+        for (size_t j = i * 16; j < (std::min)(sz, (i + 1) * 16); j++) {
             snprintf(hex, sizeof(hex), "%02x ", buffer[j]);
             out += hex;
         }
         out += "    ";
-        for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
+        for (size_t j = i * 16; j < (std::min)(sz, (i + 1) * 16); j++) {
             if (buffer[j] < 32 || buffer[j] > 126) {
                 out += '.';
             } else {
@@ -894,15 +893,3 @@ bool IsFloat(const std::string& number) {
     return true;
 }
 
-xlImage ApplyOrientation(const xlImage& img, int orient) {
-    switch (orient) {
-    case 2: return img.Mirror(true);  // horizontal flip
-    case 3: return img.Rotate180();
-    case 4: return img.Mirror(false); // vertical flip
-    case 5: return img.Mirror(true).Rotate90(false); // horizontal flip + 90 CCW
-    case 6: return img.Rotate90(true);  // 90 CW
-    case 7: return img.Mirror(true).Rotate90(true);  // horizontal flip + 90 CW
-    case 8: return img.Rotate90(false); // 90 CCW
-    default: return img.Copy();
-    }
-}

@@ -231,7 +231,7 @@ void ImageCacheEntry::loadImage(const std::vector<uint8_t> &data) {
     }
     _imageCount = 1;
     int orientation = GetExifOrientation(data.data(), data.size());
-    *i = ApplyOrientation(*i, orientation);
+    *i = i->ApplyOrientation(orientation);
     _frameTimes.push_back(0);
     _frameImages.emplace_back(i);
     _imageWidth = i->GetWidth();
