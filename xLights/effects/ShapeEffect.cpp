@@ -23,7 +23,6 @@
 #include "../models/Model.h"
 #include "../render/SequenceElements.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
 #include "AudioManager.h"
 #include "../ExternalHooks.h"
 #include "../xLightsMain.h" 
@@ -67,7 +66,7 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
         if (svgFilename == "" || !FileExists(svgFilename)) {
             res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
-            if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
+            if (!IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), svgFilename)) {
                 res.push_back(std::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }

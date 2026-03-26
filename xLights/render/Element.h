@@ -83,6 +83,7 @@ public:
     }
 
     EffectLayer* AddEffectLayer();
+    EffectLayer* FindOpenLayer(int startTimeMS, int endTimeMS);
     void RemoveEffectLayer(int index);
     EffectLayer* InsertEffectLayer(int index);
     bool operator==(const Element& e) const;

@@ -26,12 +26,10 @@
 
 #include "../render/Effect.h"
 #include "../render/Element.h"
-#include "../sequencer/EffectsGrid.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../FontManager.h"
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"
@@ -77,7 +75,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
         res.push_back(std::format("    ERR: Text effect has no actual text. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else if (textFilename != "" && !FileExists(textFilename)) {
         res.push_back(std::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir, textFilename)) {
+    } else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), textFilename)) {
         res.push_back(std::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
@@ -164,7 +162,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
 
             if (line2 != "") {
                 std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                EffectLayer* layer = elem->FindOpenLayer(effect->GetStartTimeMS(), effect->GetEndTimeMS());
                 Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
                 SettingsMap &new_settings = new_eff->GetSettings();
                 new_settings["Converted"] = "1";
@@ -187,7 +185,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
             }
             if (line3 != "") {
                 std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                EffectLayer* layer = elem->FindOpenLayer(effect->GetStartTimeMS(), effect->GetEndTimeMS());
                 Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
                 SettingsMap &new_settings = new_eff->GetSettings();
                 new_settings["Converted"] = "1";
@@ -210,7 +208,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
             }
             if (line4 != "") {
                 std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                EffectLayer* layer = elem->FindOpenLayer(effect->GetStartTimeMS(), effect->GetEndTimeMS());
                 Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
                 SettingsMap &new_settings = new_eff->GetSettings();
                 new_settings["Converted"] = "1";

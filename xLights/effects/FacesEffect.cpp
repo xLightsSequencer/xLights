@@ -22,7 +22,6 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../xLightsMain.h" 
 #include "PicturesEffect.h"
 #include "../ExternalHooks.h"
@@ -75,7 +74,6 @@ FacesEffect::~FacesEffect() {
 }
 
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
-    wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
@@ -145,7 +143,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 if (picture != "") {
                     if (!FileExists(picture)) {
                         res.push_back(std::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
-                    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture)) {
+                    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), picture)) {
                         res.push_back(std::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     }
 

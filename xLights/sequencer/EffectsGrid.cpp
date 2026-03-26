@@ -240,20 +240,7 @@ void EffectsGrid::UnselectEffect(bool force) {
 }
 
 EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS) {
-    EffectLayer* layer;
-
-    // need to search for open layer
-    for (size_t i = 0; i < elem->GetEffectLayerCount(); i++) {
-        layer = elem->GetEffectLayer(i);
-        if (layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
-            return layer;
-        }
-    }
-
-    // empty layer not found so create a new one
-    layer = elem->AddEffectLayer();
-
-    return layer;
+    return elem->FindOpenLayer(startTimeMS, endTimeMS);
 }
 
 void EffectsGrid::PlayLoopedEffect(Effect* eff, bool loop = false) {

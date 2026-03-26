@@ -215,6 +215,17 @@ EffectLayer* Element::AddEffectLayer()
     return new_layer;
 }
 
+EffectLayer* Element::FindOpenLayer(int startTimeMS, int endTimeMS)
+{
+    for (size_t i = 0; i < GetEffectLayerCount(); i++) {
+        EffectLayer* layer = GetEffectLayer(i);
+        if (layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
+            return layer;
+        }
+    }
+    return AddEffectLayer();
+}
+
 EffectLayer* Element::AddEffectLayerInternal()
 {
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again

@@ -26,7 +26,6 @@
 #include "../render/SequenceFile.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "../xLightsMain.h"
 #include "../utils/xlPoint.h"
@@ -50,7 +49,6 @@ PicturesEffect::~PicturesEffect()
 
 std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     std::string pictureFilename = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
@@ -64,7 +62,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
             res.push_back(std::format("    ERR: Picture effect cant load image '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!img->IsEmbedded()) {
-                if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename)) {
+                if (!IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), pictureFilename)) {
                     res.push_back(std::format("    WARN: Picture effect image file '{}' not under show directory. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }

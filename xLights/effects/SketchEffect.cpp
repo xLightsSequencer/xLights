@@ -18,7 +18,6 @@
 #include "../ui/effectpanels/SketchPanel.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
 #include "../UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"
@@ -136,7 +135,6 @@ void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
 std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (!xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage")) {
@@ -145,7 +143,7 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
             // this is only a warning as it does not affect rendering
             res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
-            if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename)) {
+            if (!IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), filename)) {
                 res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
