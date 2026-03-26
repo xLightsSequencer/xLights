@@ -45,6 +45,9 @@
 #define NANOSVG_ALL_COLOR_KEYWORDS
 #endif
 
-// Include the actual nanosvg headers (they will use the prefixed names)
-#include "nanosvg/src/nanosvg.h"
-#include "nanosvg/src/nanosvgrast.h"
+// Include the actual nanosvg headers (they will use the prefixed names).
+// Use a direct relative path to our dependencies copy so that the compiler
+// never accidentally picks up wxWidgets' modified 3rdparty/nanosvg (which
+// has a different NSVGshape layout with a paintOrder field).
+#include "../../dependencies/nanosvg/src/nanosvg.h"
+#include "../../dependencies/nanosvg/src/nanosvgrast.h"
