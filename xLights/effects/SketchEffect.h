@@ -38,8 +38,6 @@ public:
     virtual double GetSettingVCMax(const std::string& name) const override;
 
 protected:
-    void RemoveDefaults( const std::string& version, Effect* effect ) override;
-
     void renderSketch(const SketchEffectSketch& sketch,
                       RenderBuffer& buffer, double progress,
                       double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage,

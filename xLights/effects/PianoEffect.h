@@ -55,13 +55,6 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-protected:
-    virtual bool needToAdjustSettings(const std::string& version) override
-    {
-        return true;
-    };
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-
 private:
     void RenderPiano(RenderBuffer& buffer, SequenceElements* elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset, bool fadeNotes);
     void ReduceChannels(std::list<std::pair<float, float>>* pdata, int start, int end, bool sharps);

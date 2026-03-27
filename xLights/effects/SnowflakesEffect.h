@@ -44,7 +44,5 @@ public:
     }
 
 protected:
-    virtual bool needToAdjustSettings(const std::string& version) override;
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     void MoveFlakes(RenderBuffer& buffer, int snowflakeType, const std::string& falling, int count, const xlColor& color1, int& effectState);
 };

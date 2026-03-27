@@ -404,6 +404,27 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         // open the xml file so we can see if it has media
         auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath.GetFullPath().ToStdString());
 
+        // Check if sequence was created with a very old version of xLights
+        if (loadDoc.has_value() && !CurrentSeqXmlFile->GetVersion().empty() &&
+            IsVersionOlder("2020.01", CurrentSeqXmlFile->GetVersion())) {
+            spdlog::warn("Sequence '{}' was last saved with xLights {} which is no longer directly supported.",
+                         CurrentSeqXmlFile->GetName(), CurrentSeqXmlFile->GetVersion());
+            if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+                if (wxMessageBox(
+                    wxString::Format("This sequence was last saved with xLights %s which is no longer directly supported.\n\n"
+                                     "To properly migrate this sequence, please first open and save it using a version of xLights from 2025.\n\n"
+                                     "If you continue loading, effects may render very differently than expected.\n\n"
+                                     "Do you want to continue loading anyway?",
+                                     CurrentSeqXmlFile->GetVersion()),
+                    "Old Sequence Version",
+                    wxYES_NO | wxNO_DEFAULT | wxICON_WARNING) == wxNO) {
+                    delete CurrentSeqXmlFile;
+                    CurrentSeqXmlFile = nullptr;
+                    return;
+                }
+            }
+        }
+
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName());
 
         // if fseq didn't have media check xml

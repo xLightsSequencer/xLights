@@ -26,55 +26,6 @@
 
 #define wrdebug(...)
 
-bool TendrilEffect::needToAdjustSettings(const std::string &version)
-{
-	return IsVersionOlder("2016.8", version);
-}
-
-void TendrilEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
-{
-    SettingsMap& settings = effect->GetSettings();
-    int movement = settings.GetInt("E_SLIDER_Tendril_Movement", -1);
-
-    if (movement != -1) {
-        settings.erase("E_SLIDER_Tendril_Movement");
-        switch (movement) {
-        case 1:
-            settings["E_CHOICE_Tendril_Movement"] = "Random";
-            break;
-        case 2:
-            settings["E_CHOICE_Tendril_Movement"] = "Square";
-            break;
-        case 3:
-            settings["E_CHOICE_Tendril_Movement"] = "Circle";
-            break;
-        case 4:
-            settings["E_CHOICE_Tendril_Movement"] = "Horizontal Zig Zag";
-            break;
-        case 5:
-            settings["E_CHOICE_Tendril_Movement"] = "Vertical Zig Zag";
-            break;
-        case 6:
-            settings["E_CHOICE_Tendril_Movement"] = "Music Line";
-            break;
-        case 7:
-            settings["E_CHOICE_Tendril_Movement"] = "Music Circle";
-            break;
-        case 8:
-            settings["E_CHOICE_Tendril_Movement"] = "Vert. Zig Zag Return";
-            break;
-        case 9:
-            settings["E_CHOICE_Tendril_Movement"] = "Horiz. Zig Zag Return";
-            break;
-        }
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 TendrilNode::TendrilNode(float x_, float y_)
 {
     x = x_;

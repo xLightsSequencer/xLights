@@ -213,18 +213,15 @@ bool VUMeterEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Setti
 
 bool VUMeterEffect::needToAdjustSettings(const std::string& version)
 {
-    return IsVersionOlder("2022.04", version);
+    return IsVersionOlder("2022.04", version) || RenderableEffect::needToAdjustSettings(version);
 }
 
 void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
-    SettingsMap& settings = effect->GetSettings();
-    if (IsVersionOlder("2019.16", version)) {
-        if (settings.Contains("E_CHECKBOX_Fireworks_LogarithmicX")) {
-            settings["E_CHECKBOX_VUMeter_LogarithmicX"] = settings.Get("E_CHECKBOX_Fireworks_LogarithmicX", "0");
-            settings.erase("E_CHECKBOX_Fireworks_LogarithmicX");
-        }
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
+    SettingsMap& settings = effect->GetSettings();
     if (IsVersionOlder("2022.04", version)) {
         if (settings.Get("CHOICE_VUMeter_Type", "Waveform") == "Timing Event Color") {
             settings["E_SLIDER_VUMeter_Sensitivity"] = "100";

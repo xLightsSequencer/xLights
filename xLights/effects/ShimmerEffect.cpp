@@ -26,31 +26,6 @@ ShimmerEffect::~ShimmerEffect()
     //dtor
 }
 
-bool ShimmerEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2017.7", version);
-}
-
-void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    if (IsVersionOlder("2017.7", version))
-    {
-        SettingsMap &settings = effect->GetSettings();
-
-        int old = settings.GetInt("E_CHECKBOX_PRE_2017_7", 2);
-        if (old == 2)
-        {
-            settings["E_CHECKBOX_PRE_2017_7"] = "1";
-        }
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();

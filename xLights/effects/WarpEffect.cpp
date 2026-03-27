@@ -502,29 +502,6 @@ WarpEffect::~WarpEffect()
 {
 }
 
-bool WarpEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2018.20", version);
-}
-
-void WarpEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    SettingsMap &settings = effect->GetSettings();
-
-    auto treatment = settings.Get("E_CHOICE_Warp_Treatment", "");
-    if (treatment != "")
-    {
-        settings["E_CHOICE_Warp_Treatment_APPLYLAST"] = treatment;
-        settings.erase("E_CHOICE_Warp_Treatment");
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -535,24 +512,6 @@ std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settin
     }
 
     return res;
-}
-
-void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
-{
-    SettingsMap &settingsMap = effect->GetSettings();
-
-    if ( settingsMap.Get( "E_CHOICE_Warp_Type", "" )== "water drops" )
-      settingsMap.erase( "E_CHOICE_Warp_Type" );
-    if ( settingsMap.Get( "E_CHOICE_Warp_Treatment_APPLYLAST", "" )== "constant" )
-      settingsMap.erase( "E_CHOICE_Warp_Treatment_APPLYLAST" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Cycle_Count", "" ) == "1" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Cycle_Count" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Speed", "" )== "20" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Speed" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Frequency", "" )== "20" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Frequency" );
-
-    RenderableEffect::RemoveDefaults(version, effect);
 }
 
 void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer)

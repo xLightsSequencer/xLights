@@ -185,11 +185,6 @@ double SketchEffect::GetSettingVCMax(const std::string& name) const
     return RenderableEffect::GetSettingVCMax(name);
 }
 
-void SketchEffect::RemoveDefaults(const std::string& version, Effect* effect)
-{
-}
-
-
 namespace {
     // Build an NSVGpath from a SketchSubPath.
     // nanosvg format: pts[0],pts[1] = start, then groups of 6: cpx1,cpy1,cpx2,cpy2,x,y

@@ -12,6 +12,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.04  March ??, 2026
+    -change (dkulp)             Drop support for importing sequences saved with xLights versions prior to
+                                    2020. A warning dialog is shown when opening such sequences, suggesting
+                                    they first be opened and saved with a 2025 version of xLights.
     -change (gil/dkulp)         Major internal refactor: models are now stored as native objects instead of
                                     raw XML nodes. New serialization visitor pattern replaces direct XML
                                     manipulation for rgbeffects.xml. This improves maintainability and

@@ -34,24 +34,6 @@ PinwheelEffect::~PinwheelEffect()
 {
     //dtor
 }
-bool PinwheelEffect::needToAdjustSettings(const std::string &version) {
-    // give the base class a chance to adjust any settings
-    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2017.5", version);
-}
-
-void PinwheelEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
-    // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-    SettingsMap& settings = effect->GetSettings();
-    if (settings.Contains("E_TEXTCTRL_Pinwheel_Speed")) {
-        std::string val = settings["E_TEXTCTRL_Pinwheel_Speed"];
-        settings.erase("E_TEXTCTRL_Pinwheel_Speed");
-        settings["E_SLIDER_Pinwheel_Speed"] = val;
-    }
-}
-
 PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string& pinwheel_3d) {
     if (pinwheel_3d == "3D") {
         return PW_3D;

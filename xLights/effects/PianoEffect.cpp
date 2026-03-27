@@ -57,33 +57,6 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-void PianoEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
-{
-    // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-
-    if (IsVersionOlder("2016.45", version)) {
-        SettingsMap& settings = effect->GetSettings();
-        std::string oldsettings = settings.Get("E_CHOICE_Piano_Notes_Source", "newsettings");
-
-        if (oldsettings != "newsettings") {
-            if (oldsettings == "Timing Track") {
-                DisplayWarning("Piano effect has changed. Old settings have been removed but you should be ok.");
-            } else {
-                DisplayWarning("Piano effect has changed. Old settings have been removed. Please create a notes timing track using 'import notes' by right clicking on the timing track in the sequencer and then adjust piano settings.");
-            }
-
-            // strip out old settings
-            settings.erase("E_CHOICE_Piano_Notes_Source");
-            settings.erase("E_TEXTCTRL_Piano_File");
-            settings.erase("E_SLIDER_Piano_MIDI_Start");
-            settings.erase("E_SLIDER_Piano_MIDI_Speed");
-        }
-    }
-}
-
 void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
     std::string timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");

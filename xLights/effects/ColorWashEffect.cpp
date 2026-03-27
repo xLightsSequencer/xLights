@@ -52,56 +52,6 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
     return 2;
 }
 
-bool ColorWashEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2016.34", version) || RenderableEffect::needToAdjustSettings(version);
-}
-void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-    if (!effect->GetSettings().GetBool("E_CHECKBOX_ColorWash_EntireModel", true) ) {
-        float x1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X1", 0);
-        float y1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_Y1", 0);
-        float x2 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X2", 100);
-        float y2 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_Y2", 100);
-        if (std::abs(x1) > 0.001f
-            || std::abs(y1) > 0.001f
-            || std::abs(100.0f - x2) > 0.001f
-            || std::abs(100.0f - y2) > 0.001f) {
-            std::string val = std::format("{:.2f}x{:.2f}x{:.2f}x{:.2f}", x1, y1, x2, y2);
-            effect->GetSettings()["B_CUSTOM_SubBuffer"] = val;
-        }
-    }
-    effect->GetSettings().erase("E_CHECKBOX_ColorWash_EntireModel");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_X1");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_X2");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_Y1");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_Y2");
-}
-
-void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect) {
-    SettingsMap &settingsMap = effect->GetSettings();
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_HFade", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_HFade");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_VFade", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_VFade");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWashColorWash_ReverseFades", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_ColorWash_ReverseFades");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_Shimmer", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_Shimmer");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_CircularPalette", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_CircularPalette");
-    }
-    if (settingsMap.GetFloat("E_TEXTCTRL_ColorWash_Cycles", 0.0f) == 1.0f) {
-        settingsMap.erase("E_TEXTCTRL_ColorWash_Cycles");
-    }
-    RenderableEffect::RemoveDefaults(version, effect);
-}
-
 void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();

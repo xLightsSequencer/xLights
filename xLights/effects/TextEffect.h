@@ -39,7 +39,6 @@ public:
 
 protected:
 private:
-    void SelectTextColor(std::string& palette, int index) const;
     void FormatCountdown(int Countdown, int state, std::string& Line, RenderBuffer& buffer, std::string& msg, std::string Line_orig) const;
     std::vector<std::string> WordSplit(const std::string& text) const;
     std::string FlipWord(const SettingsMap& settings, const std::string& text, RenderBuffer& buffer) const;

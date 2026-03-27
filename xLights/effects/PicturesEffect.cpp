@@ -153,15 +153,6 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
         }
         effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia().GetImage(settings["E_TEXTCTRL_Pictures_Filename"]);
     }
-
-    if (IsVersionOlder("2016.9", version)) {
-        if (settings["E_CHOICE_Pictures_Direction"] == "scaled") {
-            settings["E_CHOICE_Pictures_Direction"] = "none";
-            settings["E_CHOICE_Scaling"] = "Scale To Fit";
-        }
-        settings["E_SLIDER_Pictures_StartScale"] = "100";
-        settings["E_SLIDER_Pictures_EndScale"] = "100";
-    }
 }
 
 //CAUTION: these must match EffectDirections exactly:

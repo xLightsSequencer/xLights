@@ -86,6 +86,4 @@ public:
 
 protected:
     static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
-    virtual bool needToAdjustSettings(const std::string& version) override;
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 };

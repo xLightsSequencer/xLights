@@ -147,8 +147,6 @@ protected:
     Effect* GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const;
     std::string GetTimingTracks(const int maxLayers = 0, const int absoluteLayers = 0) const;
     bool IsVersionOlder(const std::string& compare, const std::string& version);
-    void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap& settings, int startMS, int endMS, xlColorVector& colors);
-    virtual void RemoveDefaults(const std::string& version, Effect* effect);
 
     std::string name;
     std::string tooltip;

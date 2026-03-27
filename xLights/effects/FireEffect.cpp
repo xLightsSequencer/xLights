@@ -48,31 +48,6 @@ std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
-bool FireEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2018.44", version);
-}
-
-void FireEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
-{
-    SettingsMap& settings = effect->GetSettings();
-
-    std::string growthcycles = settings.Get("E_VALUECURVE_Fire_GrowthCycles", "");
-
-    if (growthcycles.find("Active=TRUE") != std::string::npos) {
-        ValueCurve vc(growthcycles);
-        vc.SetLimits(FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
-        vc.SetDivisor(FIRE_GROWTHCYCLES_DIVISOR);
-        vc.FixScale(10);
-        settings["E_VALUECURVE_Fire_GrowthCycles"] = vc.Serialise();
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 class FirePaletteClass {
 public:
     FirePaletteClass()

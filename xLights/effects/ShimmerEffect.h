@@ -51,7 +51,4 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-protected:
-    virtual bool needToAdjustSettings(const std::string& version) override;
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 };

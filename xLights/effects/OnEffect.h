@@ -52,6 +52,4 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-protected:
-    virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
 };

@@ -263,8 +263,6 @@ protected:
     bool SetGLContext(ShaderRenderCache*);
     void UnsetGLContext(ShaderRenderCache*);
 
-    virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
-
     void sizeForRenderBuffer(const RenderBuffer& rb,
         bool& s_shadersInit,
         unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,

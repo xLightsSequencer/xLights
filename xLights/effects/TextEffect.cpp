@@ -125,152 +125,11 @@ bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
 
 void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
-    SettingsMap &settings = effect->GetSettings();
-    if (IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version))
-    {
-        // this is to prevent recursive adjustments since we are adding
-        // layers and may be called by for loops based on number of layers
-        if (settings.Get("Converted", "xxx") == "1") {
-            settings.erase("Converted");
-            return;
-        }
-
-        if (RenderableEffect::needToAdjustSettings(version)) {
-            RenderableEffect::adjustSettings(version, effect, removeDefaults);
-        }
-
-        if (IsVersionOlder("2016.46", version)) {
-            settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter1"];
-            settings["E_CHECKBOX_Text_PixelOffsets"] = settings["E_CHECKBOX_Text_PixelOffsets1"];
-            settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count1"];
-            settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir1"];
-            settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect1"];
-            settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font1"];
-            settings["E_SLIDER_Text_XEnd"] = settings["E_SLIDER_Text_XEnd1"];
-            settings["E_SLIDER_Text_XStart"] = settings["E_SLIDER_Text_XStart1"];
-            settings["E_SLIDER_Text_YEnd"] = settings["E_SLIDER_Text_YEnd1"];
-            settings["E_SLIDER_Text_YStart"] = settings["E_SLIDER_Text_YStart1"];
-            settings["E_TEXTCTRL_Text"] = settings["E_TEXTCTRL_Text_Line1"];
-            settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed1"];
-
-            EffectLayer* el = effect->GetParentEffectLayer();
-            Element* elem = el->GetParentElement();
-
-            std::string line2 = settings["E_TEXTCTRL_Text_Line2"];
-            std::string line3 = settings["E_TEXTCTRL_Text_Line3"];
-            std::string line4 = settings["E_TEXTCTRL_Text_Line4"];
-
-            if (line2 != "") {
-                std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = elem->FindOpenLayer(effect->GetStartTimeMS(), effect->GetEndTimeMS());
-                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-                SettingsMap &new_settings = new_eff->GetSettings();
-                new_settings["Converted"] = "1";
-                new_settings["E_TEXTCTRL_Text"] = line2;
-                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter2"];
-                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count2"];
-                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir2"];
-                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect2"];
-                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font2"];
-                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
-                int pos = (std::strtol(settings["E_SLIDER_Text_Position2"].c_str(), nullptr, 10) * 2) - 100;
-                std::string strpos = std::format("{}", pos);
-                new_settings["E_SLIDER_Text_XStart"] = "0";
-                new_settings["E_SLIDER_Text_XEnd"] = "0";
-                new_settings["E_SLIDER_Text_YStart"] = strpos;
-                new_settings["E_SLIDER_Text_YEnd"] = strpos;
-                SelectTextColor(palette, 2);
-                new_eff->SetPalette(palette);
-            }
-            if (line3 != "") {
-                std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = elem->FindOpenLayer(effect->GetStartTimeMS(), effect->GetEndTimeMS());
-                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-                SettingsMap &new_settings = new_eff->GetSettings();
-                new_settings["Converted"] = "1";
-                new_settings["E_TEXTCTRL_Text"] = line3;
-                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter3"];
-                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count3"];
-                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir3"];
-                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect3"];
-                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font3"];
-                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
-                int pos = (std::strtol(settings["E_SLIDER_Text_Position3"].c_str(), nullptr, 10) * 2) - 100;
-                std::string strpos = std::format("{}", pos);
-                new_settings["E_SLIDER_Text_XStart"] = "0";
-                new_settings["E_SLIDER_Text_XEnd"] = "0";
-                new_settings["E_SLIDER_Text_YStart"] = strpos;
-                new_settings["E_SLIDER_Text_YEnd"] = strpos;
-                SelectTextColor(palette, 3);
-                new_eff->SetPalette(palette);
-            }
-            if (line4 != "") {
-                std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = elem->FindOpenLayer(effect->GetStartTimeMS(), effect->GetEndTimeMS());
-                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-                SettingsMap &new_settings = new_eff->GetSettings();
-                new_settings["Converted"] = "1";
-                new_settings["E_TEXTCTRL_Text"] = line4;
-                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter4"];
-                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count4"];
-                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir4"];
-                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect4"];
-                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font4"];
-                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
-                int pos = (std::strtol(settings["E_SLIDER_Text_Position4"].c_str(), nullptr, 10) * 2) - 100;
-                std::string strpos = std::format("{}", pos);
-                new_settings["E_SLIDER_Text_XStart"] = "0";
-                new_settings["E_SLIDER_Text_XEnd"] = "0";
-                new_settings["E_SLIDER_Text_YStart"] = strpos;
-                new_settings["E_SLIDER_Text_YEnd"] = strpos;
-                SelectTextColor(palette, 4);
-                new_eff->SetPalette(palette);
-            }
-            std::string palette = effect->GetPaletteAsString();
-            SelectTextColor(palette, 1);
-            effect->SetPalette(palette);
-
-            settings.erase("E_CHECKBOX_TextToCenter1");
-            settings.erase("E_CHECKBOX_TextToCenter2");
-            settings.erase("E_CHECKBOX_TextToCenter3");
-            settings.erase("E_CHECKBOX_TextToCenter4");
-            settings.erase("E_CHECKBOX_Text_PixelOffsets1");
-            settings.erase("E_CHOICE_Text_Count1");
-            settings.erase("E_CHOICE_Text_Count2");
-            settings.erase("E_CHOICE_Text_Count3");
-            settings.erase("E_CHOICE_Text_Count4");
-            settings.erase("E_CHOICE_Text_Dir1");
-            settings.erase("E_CHOICE_Text_Dir2");
-            settings.erase("E_CHOICE_Text_Dir3");
-            settings.erase("E_CHOICE_Text_Dir4");
-            settings.erase("E_CHOICE_Text_Effect1");
-            settings.erase("E_CHOICE_Text_Effect2");
-            settings.erase("E_CHOICE_Text_Effect3");
-            settings.erase("E_CHOICE_Text_Effect4");
-            settings.erase("E_FONTPICKER_Text_Font1");
-            settings.erase("E_FONTPICKER_Text_Font2");
-            settings.erase("E_FONTPICKER_Text_Font3");
-            settings.erase("E_FONTPICKER_Text_Font4");
-            settings.erase("E_SLIDER_Text_Position2");
-            settings.erase("E_SLIDER_Text_Position3");
-            settings.erase("E_SLIDER_Text_Position4");
-            settings.erase("E_SLIDER_Text_XEnd1");
-            settings.erase("E_SLIDER_Text_XStart1");
-            settings.erase("E_SLIDER_Text_YEnd1");
-            settings.erase("E_SLIDER_Text_YStart1");
-            settings.erase("E_TEXTCTRL_Text_Line1");
-            settings.erase("E_TEXTCTRL_Text_Line2");
-            settings.erase("E_TEXTCTRL_Text_Line3");
-            settings.erase("E_TEXTCTRL_Text_Line4");
-            settings.erase("E_TEXTCTRL_Text_Speed1");
-            settings.erase("E_TEXTCTRL_Text_Speed2");
-            settings.erase("E_TEXTCTRL_Text_Speed3");
-            settings.erase("E_TEXTCTRL_Text_Speed4");
-        }
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
+
+    SettingsMap &settings = effect->GetSettings();
 
     std::string file = settings["E_FILEPICKERCTRL_Text_File"];
     if (file != "")
@@ -280,26 +139,6 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
             settings["E_FILEPICKERCTRL_Text_File"] = FixFile("", file);
         }
     }
-}
-
-void TextEffect::SelectTextColor(std::string& palette, int index) const
-{
-    std::string new_palette;
-    auto palette_array = Split(palette, ',');
-    int found_color = 0;
-    for( int i=0; i < palette_array.size(); i++ ) {
-        if( StartsWith(palette_array[i], "C_CHECKBOX_Palette") ) {
-            found_color++;
-            if( found_color != index ) {
-                continue;
-            }
-        }
-        new_palette += palette_array[i];
-        if( i < palette_array.size() - 1 ) {
-            new_palette += ",";
-        }
-    }
-    palette = new_palette;
 }
 
 //formatting notes:

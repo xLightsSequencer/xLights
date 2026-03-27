@@ -30,38 +30,6 @@ SnowflakesEffect::~SnowflakesEffect()
     //dtor
 }
 
-bool SnowflakesEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("4.3.03", version);
-}
-
-void SnowflakesEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    SettingsMap &settings = effect->GetSettings();
-    bool accumulate = settings.GetBool("E_CHECKBOX_Snowflakes_Accumulate", false);
-
-    // if it was accumulate then clear it and change the falling type from the default
-    if (accumulate)
-    {
-        settings["E_CHOICE_Falling"] = "Falling & Accumulating";
-        settings.erase("E_CHECKBOX_Snowflakes_Accumulate");
-    }
-
-    // if it was not accumulate then it should be driving
-    bool accumulate2 = settings.GetBool("E_CHECKBOX_Snowflakes_Accumulate", true);
-    if (!accumulate2)
-    {
-        settings["E_CHOICE_Falling"] = "Driving";
-        settings.erase("E_CHECKBOX_Snowflakes_Accumulate");
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 int static possible_downward_moves(RenderBuffer &buffer, int x, int y)
 {
     int moves = 0;

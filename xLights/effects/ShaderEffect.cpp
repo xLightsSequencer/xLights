@@ -341,11 +341,6 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     }
 }
 
-void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
-{
-    RenderableEffect::RemoveDefaults(version, effect);
-}
-
 #ifdef __WXMSW__
 typedef HGLRC(WINAPI * wglCreateContextAttribsARB_t)
 (HDC hDC, HGLRC hShareContext, const int *attribList);

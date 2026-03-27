@@ -212,24 +212,6 @@ public:
 
 #define REPEATTRIGGER 20
 
-bool FireworksEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2019.9", version);
-}
-
-void FireworksEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    SettingsMap &settings = effect->GetSettings();
-    bool gravity = settings.GetBool("E_CHECKBOX_Fireworks_Gravity", false);
-    settings["E_CHECKBOX_Fireworks_Gravity"] = gravity ? "1" : "0";
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
     std::string timing = effect->GetSettings().Get("E_CHOICE_FIRETIMINGTRACK", "");
