@@ -14,6 +14,7 @@
 #include <wx/statbmp.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
+#include <wx/filepicker.h>
 #include <optional>
 #include <string>
 
