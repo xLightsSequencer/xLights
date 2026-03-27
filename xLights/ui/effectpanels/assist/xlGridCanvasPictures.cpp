@@ -170,7 +170,8 @@ void xlGridCanvasPictures::LoadImage()
     // If SequenceMedia is available, show the SelectMediaDialog to pick an embedded image
     if (mSequenceMedia != nullptr && mXLFrame != nullptr) {
         SelectMediaDialog dlg(this, mSequenceMedia, mSequenceElements,
-                              mXLFrame->GetShowDirectory(), mXLFrame);
+                              mXLFrame->GetShowDirectory(), mXLFrame,
+                              MediaType::Image, PictureName.ToStdString());
         if (dlg.ShowModal() != wxID_OK) return;
         std::string selected = dlg.GetSelectedPath();
         if (selected.empty()) return;

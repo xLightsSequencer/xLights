@@ -14,14 +14,18 @@
 #include "EffectPanelUtils.h"
 #include "../../ShaderDownloadDialog.h"
 #include "../../ExternalHooks.h"
-#include "../MediaPickerCtrl.h"
+#include "../wxUtilities.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
+#include "../../ManageMediaPanel.h"
+#include "../../utils/xlImage.h"
 
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
 #include "../../TimingPanel.h"
 #include "../../UtilFunctions.h"
+
+#include <wx/statbmp.h>
 
  //(*InternalHeaders(ShaderPanel)
  #include <wx/bitmap.h>
@@ -155,15 +159,61 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShaderPanel::OnButton_DownloadClick);
     //*)
 
-    // Replace file picker with media-aware picker
+    // Hide the original file picker and its row - we replace with Select/x/Download + preview
     FilePickerCtrl1->Hide();
-    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::Shader);
-    _mediaPicker->SetLinkedPicker(FilePickerCtrl1);
-    auto* fpSizer = FilePickerCtrl1->GetContainingSizer();
-    if (fpSizer) {
-        fpSizer->Replace(FilePickerCtrl1, _mediaPicker);
-        fpSizer->Layout();
+    StaticText1->Hide(); // "Shader File:" label
+
+    // Build top section: buttons left, preview right (like PicturesPanel)
+    auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
+    topRow->AddGrowableCol(1);
+
+    auto* buttonSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    // Select + x on one row
+    auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
+    _selectButton = new wxButton(this, wxID_ANY, "Select...");
+    selectRow->Add(_selectButton, 1, wxRIGHT, 2);
+    _clearButton = new wxButton(this, wxID_ANY, "x", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    selectRow->Add(_clearButton, 0, 0, 0);
+    buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
+    // Detach download button from its old sizer before adding to new one
+    if (auto* oldSizer = Button_Download->GetContainingSizer()) {
+        oldSizer->Detach(Button_Download);
     }
+    buttonSizer->Add(Button_Download, 0, wxALL | wxEXPAND, 5);
+    topRow->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+
+    _previewBitmap = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+    _previewBitmap->SetMinSize(wxDLG_UNIT(this, wxSize(0, 50)));
+    topRow->Add(_previewBitmap, 1, wxALL | wxEXPAND, 5);
+
+    FlexGridSizer1->Insert(0, topRow, 1, wxALL | wxEXPAND, 0);
+
+    _filenameLabel = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                       wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
+    FlexGridSizer1->Insert(1, _filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
+
+    // Bind Select/Clear button events
+    _selectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
+        if (!xl) return;
+        SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
+        SequenceElements& elements = xl->GetSequenceElements();
+        std::string currentPath = FilePickerCtrl1->GetFileName().GetFullPath().ToStdString();
+        SelectMediaDialog dlg(this, &media, &elements,
+                              xl->GetShowDirectory(), xl, MediaType::Shader, currentPath);
+        if (dlg.ShowModal() != wxID_OK) return;
+        std::string selected = dlg.GetSelectedPath();
+        if (selected.empty()) return;
+        FilePickerCtrl1->SetFileName(wxFileName(selected));
+        // Trigger the existing file change handler
+        wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, FilePickerCtrl1, FilePickerCtrl1->GetId(), selected);
+        ProcessWindowEvent(evt);
+    });
+    _clearButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        FilePickerCtrl1->SetFileName(wxFileName());
+        wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, FilePickerCtrl1, FilePickerCtrl1->GetId(), "");
+        ProcessWindowEvent(evt);
+    });
 
     Connect(ID_VALUECURVE_Shader_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shader_Offset_X, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
@@ -180,6 +230,9 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     BitmapButton_Shader_Offset_Y->GetValue()->SetLimits(SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX);
     BitmapButton_Shader_Zoom->GetValue()->SetLimits(SHADER_ZOOM_MIN, SHADER_ZOOM_MAX);
 
+    _previewTimer.SetOwner(this);
+    Bind(wxEVT_TIMER, &ShaderPanel::OnPreviewTimer, this, _previewTimer.GetId());
+
     ValidateWindow();
 
 #ifndef __WXOSX__
@@ -189,6 +242,7 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 
 ShaderPanel::~ShaderPanel()
 {
+    _previewTimer.Stop();
     // _shaderConfig is owned by ShaderMediaCacheEntry, don't delete here
     //(*Destroy(ShaderPanel)
     //*)
@@ -257,6 +311,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
         FilePickerCtrl1->UnsetToolTip();
         Thaw();
     }
+    UpdatePreview();
     FireChangeEvent();
 }
 
@@ -585,4 +640,100 @@ void ShaderPanel::SetDefaultParameters()
             }
         }
     }
+}
+
+void ShaderPanel::UpdatePreview()
+{
+    _previewTimer.Stop();
+    _previewFrames.clear();
+    _previewFrameTimes.clear();
+    _currentPreviewFrame = 0;
+
+    if (!_previewBitmap) return;
+
+    auto file = FilePickerCtrl1->GetFileName().GetFullPath().ToStdString();
+    if (_filenameLabel) _filenameLabel->SetLabel(wxFileName(file).GetFullName());
+    if (file.empty()) {
+        _previewBitmap->SetBitmap(wxNullBitmap);
+        return;
+    }
+
+    // Find xLightsFrame via parent chain
+    xLightsFrame* xl = nullptr;
+    wxWindow* w = GetParent();
+    while (w) {
+        xl = dynamic_cast<xLightsFrame*>(w);
+        if (xl) break;
+        w = w->GetParent();
+    }
+    if (!xl) return;
+
+    // Look up shader through SequenceMedia (handles embedded and relative paths)
+    SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
+    auto entry = media.GetShader(file);
+    if (!entry || entry->GetShaderSource().empty()) {
+        _previewBitmap->SetBitmap(wxNullBitmap);
+        return;
+    }
+
+    // Generate and cache shader preview frames (rendered with default parameters)
+    entry->GenerateShaderPreview(xl);
+
+    for (size_t i = 0; i < entry->GetPreviewFrameCount(); i++) {
+        _previewFrames.push_back(entry->GetPreviewFrame(i));
+        _previewFrameTimes.push_back(entry->GetPreviewFrameTime(i));
+    }
+
+    if (_previewFrames.empty()) return;
+
+    ShowPreviewFrame(0);
+
+    if (_previewFrames.size() > 1) {
+        long interval = (_previewFrameTimes[0] > 0) ? _previewFrameTimes[0] : 50;
+        _previewTimer.Start(interval);
+    }
+}
+
+void ShaderPanel::OnPreviewTimer(wxTimerEvent& event)
+{
+    if (_previewFrames.empty()) {
+        _previewTimer.Stop();
+        return;
+    }
+    _currentPreviewFrame = (_currentPreviewFrame + 1) % _previewFrames.size();
+    ShowPreviewFrame(_currentPreviewFrame);
+
+    long interval = (_currentPreviewFrame < _previewFrameTimes.size() && _previewFrameTimes[_currentPreviewFrame] > 0)
+                        ? _previewFrameTimes[_currentPreviewFrame]
+                        : 50;
+    _previewTimer.Start(interval);
+}
+
+void ShaderPanel::ShowPreviewFrame(size_t index)
+{
+    if (index >= _previewFrames.size() || !_previewFrames[index] || !_previewFrames[index]->IsOk()) return;
+
+    const auto& img = _previewFrames[index];
+    double scaleFactor = GetContentScaleFactor();
+
+    wxSize widgetSize = _previewBitmap->GetSize();
+    int sw = img->GetWidth();
+    int sh = img->GetHeight();
+    if (widgetSize.x > 0 && widgetSize.y > 0) {
+        double pw = widgetSize.x * scaleFactor;
+        double ph = widgetSize.y * scaleFactor;
+        double scale = std::min(pw / sw, ph / sh);
+        sw = std::max(1, (int)(sw * scale));
+        sh = std::max(1, (int)(sh * scale));
+    }
+
+    xlImage scaled(*img);
+    if (sw != img->GetWidth() || sh != img->GetHeight()) {
+        scaled.Rescale(sw, sh);
+    }
+
+    wxBitmap bmp(xlImageToWxImage(scaled));
+    bmp.SetScaleFactor(scaleFactor);
+    _previewBitmap->SetBitmap(bmp);
+    _previewBitmap->Refresh();
 }

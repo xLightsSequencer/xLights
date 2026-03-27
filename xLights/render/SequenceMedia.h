@@ -68,6 +68,14 @@ public:
     virtual bool LoadFromXml(const pugi::xml_node& node) = 0;
     virtual void SaveToXml(pugi::xml_node& parent) const = 0;
 
+    // Preview frame cache - generates scaled frames for panel previews
+    virtual void GeneratePreview(int maxWidth, int maxHeight);
+    bool HasPreview() const { std::scoped_lock lock(_cacheMutex); return !_previewFrames.empty(); }
+    size_t GetPreviewFrameCount() const { std::scoped_lock lock(_cacheMutex); return _previewFrames.size(); }
+    std::shared_ptr<xlImage> GetPreviewFrame(size_t index) const;
+    long GetPreviewFrameTime(size_t index) const;
+    void ClearPreview();
+
 protected:
     // Read a file from disk into _embeddedData as base64
     void LoadRawFromFile(const std::string& filepath);
@@ -79,6 +87,12 @@ protected:
     std::atomic_bool _loadingDone{false};
     std::atomic_bool _isEmbedded{false};
     mutable std::recursive_mutex _cacheMutex;
+
+    // Preview frame cache
+    std::vector<std::shared_ptr<xlImage>> _previewFrames;
+    std::vector<long> _previewFrameTimes;  // ms per frame
+    int _previewWidth = 0;
+    int _previewHeight = 0;
 };
 
 /**
@@ -139,6 +153,8 @@ public:
     std::shared_ptr<xlImage> GetScaledImage(int frameNumber, int width, int height, bool bgSuppressed);
 
     void ClearScaledImageCache();
+
+    void GeneratePreview(int maxWidth, int maxHeight) override;
 
     void Load() override;
 
@@ -212,6 +228,8 @@ public:
     // Generate a thumbnail by rasterizing the SVG at the given max dimensions
     std::shared_ptr<xlImage> GetThumbnail(int maxWidth, int maxHeight);
 
+    void GeneratePreview(int maxWidth, int maxHeight) override;
+
     void Load() override;
     bool LoadFromXml(const pugi::xml_node& node) override;
     void SaveToXml(pugi::xml_node& parent) const override;
@@ -224,6 +242,7 @@ private:
 
 class ShaderConfig;
 class SequenceElements;
+class xLightsFrame;
 
 /**
  * ShaderMediaCacheEntry - Cached shader source (.fs files)
@@ -241,6 +260,10 @@ public:
     // Get or create the parsed ShaderConfig. Caches the result.
     // sequenceElements is needed for timing track enumeration.
     ShaderConfig* GetShaderConfig(SequenceElements* sequenceElements);
+
+    // Generate preview by rendering the shader effect with default parameters.
+    // Requires xLightsFrame for access to the render engine.
+    void GenerateShaderPreview(xLightsFrame* frame);
 
     void Load() override;
     bool LoadFromXml(const pugi::xml_node& node) override;
@@ -292,6 +315,8 @@ public:
 
     // Generate a thumbnail from the first frame of the video
     std::shared_ptr<xlImage> GetThumbnail(int maxWidth, int maxHeight);
+
+    void GeneratePreview(int maxWidth, int maxHeight) override;
 
     void Load() override;
     bool LoadFromXml(const pugi::xml_node& node) override;

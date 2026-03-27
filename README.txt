@@ -12,6 +12,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.04  March ??, 2026
+    -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
+                                    and media manager. Animated GIFs/WebP cycle through all frames, videos
+                                    show first 1 second, SVGs show static preview.
     -change (dkulp)             Drop support for importing sequences saved with xLights versions prior to
                                     2020. A warning dialog is shown when opening such sequences, suggesting
                                     they first be opened and saved with a 2025 version of xLights.

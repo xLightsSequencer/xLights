@@ -254,8 +254,10 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             std::string fileContent;
             if (seqMedia) {
                 auto entry = seqMedia->GetTextFile(filename);
-                entry->MarkIsUsed();
-                fileContent = entry->GetContent();
+                if (entry) {
+                    entry->MarkIsUsed();
+                    fileContent = entry->GetContent();
+                }
             }
 
             if (!fileContent.empty()) {
@@ -1378,8 +1380,10 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
             std::string fileContent;
             if (seqMedia) {
                 auto entry = seqMedia->GetTextFile(filename);
-                entry->MarkIsUsed();
-                fileContent = entry->GetContent();
+                if (entry) {
+                    entry->MarkIsUsed();
+                    fileContent = entry->GetContent();
+                }
             }
 
             if (!fileContent.empty()) {

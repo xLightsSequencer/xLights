@@ -403,8 +403,12 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             } else {
                 cache->PictureName = NewPictureName;
                 cache->imageCache = buffer.GetSequenceMedia()->GetImage(NewPictureName);
-                cache->imageCache->MarkIsUsed();
-                cache->imageCount = cache->imageCache->GetImageCount();
+                if (!cache->imageCache) {
+                    noImageFile = true;
+                } else {
+                    cache->imageCache->MarkIsUsed();
+                    cache->imageCount = cache->imageCache->GetImageCount();
+                }
             }
         }
         if (!noImageFile && !cache->imageCache->IsOk()) {

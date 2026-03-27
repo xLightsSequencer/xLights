@@ -29,6 +29,7 @@ extern "C"
     #include <libavutil/imgutils.h>
 }
 
+#include "utils/xlImage.h"
 #include "models/ModelManager.h"
 #include "ConvertDialog.h"
 #include "import_export/FileConverter.h"
@@ -794,6 +795,98 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, 
     }
 }
 
+static void RenderModelOnXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0, bool invert = false)
+{
+    int outheight = image.GetHeight();
+    int outwidth = image.GetWidth();
+    uint8_t* imagedata = image.GetData();
+
+    int chs = model->GetChanCountPerNode();
+    uint8_t* ps = framedata + startAddr;
+
+    char r = model->GetChannelColorLetter(0);
+    int rr = 0, gg = 1, bb = 2;
+    if (r == 'G') gg = 0;
+    else if (r == 'B') bb = 0;
+    char g = model->GetChannelColorLetter(1);
+    if (g == 'R') rr = 1;
+    else if (g == 'B') bb = 1;
+    char b = model->GetChannelColorLetter(2);
+    if (b == 'R') rr = 2;
+    else if (b == 'G') gg = 2;
+
+    for (size_t i = 0; i < model->GetNodeCount(); i++) {
+        xlColor c = model->GetNodeColor(i);
+        std::vector<xlPoint> pts;
+        model->GetNodeCoords(i, pts);
+
+        for (const auto& it : pts) {
+            int xx = x + it.x;
+            int yy = y + it.y;
+            if (invert) yy = outheight - yy - 1;
+
+            if (xx >= 0 && xx < outwidth && yy >= 0 && yy < outheight) {
+                uint8_t* p = imagedata + (yy * outwidth + xx) * 4; // RGBA
+                if (chs == 1) {
+                    p[0] = c.Red();
+                    p[1] = c.Green();
+                    p[2] = c.Blue();
+                } else {
+                    p[0] = *(ps + rr);
+                    p[1] = *(ps + gg);
+                    p[2] = *(ps + bb);
+                }
+                p[3] = 255; // fully opaque
+            }
+        }
+        ps += chs;
+    }
+}
+
+static void FillXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr, bool invert)
+{
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
+        ModelGroup* mg = static_cast<ModelGroup*>(model);
+        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m) {
+            int start = (*m)->GetFirstChannel() - startAddr;
+            RenderModelOnXlImage(image, *m, framedata, start, 0, 0, invert);
+        }
+    } else {
+        RenderModelOnXlImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1, 0, 0, invert);
+    }
+}
+
+std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
+    Model* matrixModel, SequenceData& seqData, SequenceElements& seqElements,
+    size_t numFrames, int frameTimeMs)
+{
+    std::vector<std::shared_ptr<xlImage>> result;
+
+    if (numFrames == 0) return result;
+
+    int width, height;
+    matrixModel->GetBufferSize("Default", "2D", "None", width, height, 0);
+    if (width <= 0 || height <= 0) return result;
+
+    size_t channels = width * height * 3;
+    seqData.init(channels, numFrames, frameTimeMs, true);
+
+    Render(seqElements, seqData, { matrixModel }, { matrixModel },
+           0, numFrames - 1, false, true, [](bool) {});
+
+    while (!renderProgressInfo.empty()) {
+        wxYield();
+    }
+
+    for (size_t i = 0; i < numFrames; i++) {
+        auto img = std::make_shared<xlImage>(width, height);
+        FillXlImage(*img, matrixModel, (uint8_t*)&seqData[i][0], 1, true);
+        result.push_back(img);
+    }
+
+    return result;
+}
+
 std::string DecodeAVError(int err)
 {
     char buffer[AV_ERROR_MAX_STRING_SIZE];
@@ -1119,9 +1212,71 @@ void xLightsFrame::CreatePresetIcons()
 }
 
 #define PRESET_ICON_SIZE 64
+
+void xLightsFrame::EnsurePresetModel()
+{
+    if (_presetModel != nullptr) return;
+
+    ModelManager mm(nullptr, this);
+    auto* matrixModel = new MatrixModel(mm);
+    _presetModel = matrixModel;
+
+    matrixModel->SetStringType("RGB Nodes");
+    matrixModel->SetPixelStyle(Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH);
+    matrixModel->SetPixelSize(2);
+    matrixModel->SetTransparency(0);
+    matrixModel->SetNumMatrixStrings(PRESET_ICON_SIZE);
+    matrixModel->SetNodesPerString(PRESET_ICON_SIZE);
+    matrixModel->SetStrandsPerString(1);
+    matrixModel->SetVertical(false);
+    matrixModel->SetDirection("L");
+    matrixModel->SetStartSide("T");
+
+    auto& screenLoc = matrixModel->GetModelScreenLocation();
+    screenLoc.SetWorldPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+    auto& boxedLoc = dynamic_cast<BoxedScreenLocation&>(screenLoc);
+    boxedLoc.SetScale(1.0f, 1.0f);
+    boxedLoc.SetScaleZ(1.0f);
+    screenLoc.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+
+    matrixModel->SetLayoutGroup("Unassigned");
+    matrixModel->SetName(PRESET_MODEL_NAME);
+    matrixModel->SetStartChannel("1");
+    matrixModel->Setup();
+    _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false, false);
+}
+
+void xLightsFrame::LoadPresetEffects(const CopyFormat1& pd)
+{
+    Element* elem = _presetSequenceElements.GetElement(_presetModel->GetName());
+    wxASSERT(elem != nullptr);
+
+    for (const auto& it : elem->GetEffectLayers()) {
+        it->DeleteAllEffects();
+    }
+
+    // Normalize negative row values to prevent infinite loops
+    int startRow = 0;
+    for (const auto& it : pd.Effects()) {
+        if (it->Row() < startRow) {
+            startRow = it->Row();
+        }
+    }
+
+    for (const auto& it : pd.Effects()) {
+        int row = it->Row() - startRow;
+        while (row >= elem->GetEffectLayerCount()) {
+            elem->AddEffectLayer();
+        }
+        EffectLayer* el = elem->GetEffectLayer(row);
+        el->AddEffect(0, it->EffectName(), it->Settings(), it->Palette(),
+                      it->StartTime() - pd.StartTime(), it->EndTime() - pd.StartTime(),
+                      false, false, true);
+    }
+}
+
 void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 {
-    
     spdlog::debug("Writing preset GIF for {}.", (const char*)preset.c_str());
 
     wxMkDir(showDirectory + "/presets", wxS_DIR_DEFAULT);
@@ -1139,92 +1294,19 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
             if (frames == 0)
                 frames = 1;
 
-            if (_presetModel == nullptr) {
-                // create a model to render with
-                ModelManager mm(nullptr, this);
-                auto* matrixModel = new MatrixModel(mm);
-                _presetModel = matrixModel;
-                
-                // Set model properties using direct setters
-                matrixModel->SetStringType("RGB Nodes");
-                matrixModel->SetPixelStyle(Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH); // Antialias = 1
-                matrixModel->SetPixelSize(2);
-                matrixModel->SetTransparency(0);
-                matrixModel->SetNumMatrixStrings(PRESET_ICON_SIZE);
-                matrixModel->SetNodesPerString(PRESET_ICON_SIZE);
-                matrixModel->SetStrandsPerString(1);
-                matrixModel->SetVertical(false); // Horiz Matrix
-                matrixModel->SetDirection("L");
-                matrixModel->SetStartSide("T");
-                
-                // Set screen location properties using direct setters
-                auto& screenLoc = matrixModel->GetModelScreenLocation();
-                screenLoc.SetWorldPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-                auto& boxedLoc = dynamic_cast<BoxedScreenLocation&>(screenLoc);
-                boxedLoc.SetScale(1.0f, 1.0f);
-                boxedLoc.SetScaleZ(1.0f);
-                screenLoc.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
-                
-                matrixModel->SetLayoutGroup("Unassigned");
-                
-                // Properties that still need proper setters
-                matrixModel->SetName(PRESET_MODEL_NAME);
-                matrixModel->SetStartChannel("1");
-                
-                
-                matrixModel->Setup();
-                _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false, false);
-            }
+            EnsurePresetModel();
+            LoadPresetEffects(pd);
 
             size_t channels = PRESET_ICON_SIZE * PRESET_ICON_SIZE * 3;
 
-            Element* elem = _presetSequenceElements.GetElement(_presetModel->GetName());
-            wxASSERT(elem != nullptr);
-
-            for (const auto& it : elem->GetEffectLayers()) {
-                it->DeleteAllEffects();
-            }
-
-            // I have seen a few presets where there are negative values for the effects row.
-            // We have to handle these and normalize the row value or we get in an infinite
-            // loop below. To do this we need the lowest row value to adjust below.
-            // example: preset had rows -4,-3,-2,-1,0,1,2,3,4 for the copy data
-            int startRow = 0;
-            for (const auto& it : pd.Effects()) {
-                if (it->Row() < startRow) {
-                    startRow = it->Row();
-                }
-            }
-
-            for (const auto& it : pd.Effects()) {
-                // adjust before loop so we don't end up with a (-) row value but still maintaining effect
-                // layer order. If we get to the while loop with a neg int it gets converted to a really
-                // huge number when comparing to size_t returned from GetEffectLayerCount and we run out
-                // of memory really fast.
-                int row = it->Row() - startRow;
-
-                while (row >= elem->GetEffectLayerCount()) {
-                    elem->AddEffectLayer();
-                }
-
-                EffectLayer* el = elem->GetEffectLayer(row);
-                el->AddEffect(0, it->EffectName(), it->Settings(), it->Palette(), it->StartTime() - pd.StartTime(), it->EndTime() - pd.StartTime(), false, false, true);
-            }
-
-            _presetSequenceData.init(channels, frames, 50, true);
-
-            AbortRender(); // abort any existing render so this doesn't block too long
-
-            // only render if the preset contains effects
+            // Only render if the preset contains effects
             if (pd.Effects().size() > 0) {
-                Render(_presetSequenceElements,
-                       _presetSequenceData,
-                       { _presetModel },
-                       { _presetModel },
-                       0, frames - 1,
-                       false, true, [](bool) {});
+                _presetSequenceData.init(channels, frames, 50, true);
 
-                // wait for all rendering to complete
+                AbortRender();
+                Render(_presetSequenceElements, _presetSequenceData,
+                       { _presetModel }, { _presetModel },
+                       0, frames - 1, false, true, [](bool) {});
                 while (!renderProgressInfo.empty()) {
                     wxYield();
                 }

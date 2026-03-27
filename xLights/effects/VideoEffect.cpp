@@ -317,78 +317,79 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         _loops = 0;
         _nextManualMS = 0;
         _frameMS = buffer.frameTimeInMs;
-        if (_videoreader != nullptr)
-        {
+        if (_videoreader != nullptr) {
             delete _videoreader;
             _videoreader = nullptr;
         }
 
-        if (buffer.BufferHt == 1)
-        {
+        if (buffer.BufferHt == 1) {
             spdlog::warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
-        }
-        else if (auto* sm = buffer.GetSequenceMedia(); sm != nullptr) {
+        } else if (auto* sm = buffer.GetSequenceMedia(); sm != nullptr) {
             auto vidEntry = sm->GetVideo(filename);
-            vidEntry->MarkIsUsed();
-            std::string resolved = vidEntry->GetResolvedPath();
-            if (resolved.empty() || !FileExists(resolved)) {
-                spdlog::warn("VideoEffect: Cannot find video file '{}'.", filename);
+            if (!vidEntry) {
+                spdlog::warn("VideoEffect: No video file specified.");
             } else {
-            filename = resolved;
-            // have to open the file
-            int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
-            int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+                vidEntry->MarkIsUsed();
+                std::string resolved = vidEntry->GetResolvedPath();
+                if (resolved.empty() || !FileExists(resolved)) {
+                    spdlog::warn("VideoEffect: Cannot find video file '{}'.", filename);
+                } else {
+                    filename = resolved;
+                    // have to open the file
+                    int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
+                    int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
 
-            bool useNativeResolution = (sampleSpacing > 0);
+                    bool useNativeResolution = (sampleSpacing > 0);
 
-            _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
+                    _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
 
-            if (_videoreader == nullptr)
-            {
-                spdlog::warn("VideoEffect: Failed to load video file {}.", (const char *)filename.c_str());
-            }
-            else
-            {
-                // extract the video length
-                int videolen = _videoreader->GetLengthMS();
+                    if (_videoreader == nullptr)
+                    {
+                        spdlog::warn("VideoEffect: Failed to load video file {}.", (const char *)filename.c_str());
+                    }
+                    else
+                    {
+                        // extract the video length
+                        int videolen = _videoreader->GetLengthMS();
 
-                if (videolen == 0)
-                {
-                    spdlog::warn("VideoEffect: Video {} was read as 0 length.", (const char *)filename.c_str());
+                        if (videolen == 0)
+                        {
+                            spdlog::warn("VideoEffect: Video {} was read as 0 length.", (const char *)filename.c_str());
+                        }
+
+                        // read the first frame ... if i dont it thinks the first frame i read is the first frame
+                        _videoreader->GetNextFrame(0);
+
+                        // TODO: Future cleanup needed - this code accesses the panel from the render
+                        // thread which is not safe. Need to find an alternative way to communicate
+                        // video details back to the panel (e.g., via an event to the main thread).
+                        // VideoPanel *fp = static_cast<VideoPanel*>(panel);
+                        // if (fp != nullptr)
+                        // {
+                        //     wxCommandEvent event(EVT_VIDEODETAILS);
+                        //     event.SetInt(videolen);
+                        //     event.SetString(filename);
+                        //     wxPostEvent(fp, event);
+                        // }
+
+                        if (starttime != 0)
+                        {
+                            spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
+                            _videoreader->Seek(starttime * 1000);
+                        }
+
+                        if (durationTreatment == "Slow/Accelerate")
+                        {
+                            int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+                            int videoFrames = (videolen - (starttime * 1000)) / buffer.frameTimeInMs;
+                            float speedFactor = (float)videoFrames / (float)effectFrames;
+                            _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
+                        }
+                        spdlog::debug("Video effect length: {}, video length: {}, startoffset: {}, duration treatment: {}.",
+                            (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
+                            (const char *)durationTreatment.c_str());
+                    }
                 }
-
-                // read the first frame ... if i dont it thinks the first frame i read is the first frame
-                _videoreader->GetNextFrame(0);
-
-                // TODO: Future cleanup needed - this code accesses the panel from the render
-                // thread which is not safe. Need to find an alternative way to communicate
-                // video details back to the panel (e.g., via an event to the main thread).
-                // VideoPanel *fp = static_cast<VideoPanel*>(panel);
-                // if (fp != nullptr)
-                // {
-                //     wxCommandEvent event(EVT_VIDEODETAILS);
-                //     event.SetInt(videolen);
-                //     event.SetString(filename);
-                //     wxPostEvent(fp, event);
-                // }
-
-                if (starttime != 0)
-                {
-                    spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
-                    _videoreader->Seek(starttime * 1000);
-                }
-
-                if (durationTreatment == "Slow/Accelerate")
-                {
-                    int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-                    int videoFrames = (videolen - (starttime * 1000)) / buffer.frameTimeInMs;
-                    float speedFactor = (float)videoFrames / (float)effectFrames;
-                    _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
-                }
-                spdlog::debug("Video effect length: {}, video length: {}, startoffset: {}, duration treatment: {}.",
-                    (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
-                    (const char *)durationTreatment.c_str());
-            }
             }
         }
         else

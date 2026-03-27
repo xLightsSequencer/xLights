@@ -105,8 +105,9 @@ void MediaPickerCtrl::OnSelectClick(wxCommandEvent& event) {
     SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
     SequenceElements& elements = xl->GetSequenceElements();
 
+    std::string currentPath = _pathCtrl->GetValue().ToStdString();
     SelectMediaDialog dlg(this, &media, &elements,
-                          xl->GetShowDirectory(), xl, _mediaType);
+                          xl->GetShowDirectory(), xl, _mediaType, currentPath);
     if (dlg.ShowModal() != wxID_OK) return;
 
     std::string selected = dlg.GetSelectedPath();

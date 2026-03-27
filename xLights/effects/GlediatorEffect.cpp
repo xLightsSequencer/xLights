@@ -350,6 +350,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         auto* sm = buffer.GetSequenceMedia();
         if (sm == nullptr) return;
         auto binaryEntry = sm->GetBinaryFile(glediatorFilename, "glediator");
+        if (!binaryEntry) return;
         binaryEntry->MarkIsUsed();
         // Use resolved path so the readers can find the file on disk
         std::string resolvedFile = binaryEntry->GetFilePath();

@@ -22,11 +22,13 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <wx/timer.h>
 
 #include "render/SequenceMedia.h"
 
 class SequenceElements;
 class xLightsFrame;
+class xlImage;
 
 // Column indices
 enum MediaModelCol {
@@ -153,6 +155,14 @@ private:
     wxButton* _extractAllButton = nullptr;
     wxButton* _removeButton = nullptr;
 
+    // Animated preview
+    void OnPreviewTimer(wxTimerEvent& event);
+    void ShowPreviewFrame(size_t index);
+    wxTimer _previewTimer;
+    std::vector<std::shared_ptr<xlImage>> _previewFrames;
+    std::vector<long> _previewFrameTimes;
+    size_t _currentPreviewFrame = 0;
+
     wxDECLARE_EVENT_TABLE();
 
     friend class SelectMediaDialog;
@@ -167,7 +177,8 @@ public:
                       SequenceElements* sequenceElements,
                       const std::string& showDirectory = {},
                       xLightsFrame* xlFrame = nullptr,
-                      std::optional<MediaType> filterType = std::nullopt);
+                      std::optional<MediaType> filterType = std::nullopt,
+                      const std::string& selectPath = {});
 
     std::string GetSelectedPath() const;
 

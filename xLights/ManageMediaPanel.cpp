@@ -20,6 +20,7 @@
 #include "ai/AIImageDialog.h"
 #include "ai/aiType.h"
 #include "ui/wxUtilities.h"
+#include "utils/xlImage.h"
 
 #include <wx/filename.h>
 #include <wx/filedlg.h>
@@ -241,6 +242,18 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
         }
 
         if (!singleTypeMode && typeGroup && !typeGroup->children.empty()) {
+            // If there's only one directory sub-group, promote its children
+            // directly into the type group to avoid redundant nesting
+            // (e.g., "Shaders > Shaders > file.fs" becomes "Shaders > file.fs")
+            if (typeGroup->children.size() == 1 && typeGroup->children[0]->isGroup) {
+                auto& onlyDir = typeGroup->children[0];
+                std::vector<std::shared_ptr<MediaNode>> promoted;
+                for (auto& child : onlyDir->children) {
+                    child->parent = typeGroup.get();
+                    promoted.push_back(child);
+                }
+                typeGroup->children = std::move(promoted);
+            }
             _groups.push_back(typeGroup);
         }
     }
@@ -476,11 +489,15 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     _extractAllButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnExtractAllButtonClick, this);
     _removeButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnRemoveButtonClick, this);
 
+    _previewTimer.SetOwner(this);
+    Bind(wxEVT_TIMER, &ManageMediaPanel::OnPreviewTimer, this, _previewTimer.GetId());
+
     Populate();
 }
 
 ManageMediaPanel::~ManageMediaPanel()
 {
+    _previewTimer.Stop();
 }
 
 void ManageMediaPanel::Populate(const std::string& selectPath)
@@ -681,6 +698,11 @@ void ManageMediaPanel::UpdateButtons()
 
 void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type)
 {
+    _previewTimer.Stop();
+    _previewFrames.clear();
+    _previewFrameTimes.clear();
+    _currentPreviewFrame = 0;
+
     auto refreshPreview = [this](const wxBitmap& bmp) {
         _preview->SetBitmap(bmp);
         _preview->InvalidateBestSize();
@@ -693,6 +715,9 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type
     // Clear previous state
     _infoLabel->SetLabel(wxEmptyString);
     refreshPreview(wxNullBitmap);
+
+    double scaleFactor = GetContentScaleFactor();
+    int maxPx = (int)(150.0 * scaleFactor);
 
     // Image preview
     if (type == MediaType::Image && _sequenceMedia->HasImage(filepath)) {
@@ -719,18 +744,19 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type
         }
         _infoLabel->SetLabel(info);
 
-        auto img = entry->GetFrame(0, false);
-        if (img && img->IsOk()) {
-            double scaleFactor = GetContentScaleFactor();
-            double maxPx = 150.0 * scaleFactor;
-            double scale = std::min(maxPx / img->GetWidth(), maxPx / img->GetHeight());
-            int w = std::max(1, (int)(img->GetWidth() * scale));
-            int h = std::max(1, (int)(img->GetHeight() * scale));
-            wxBitmap bmp(xlImageToWxImage(*entry->GetScaledImage(0, w, h, false)));
-            bmp.SetScaleFactor(scaleFactor);
-            refreshPreview(bmp);
-        } else {
-            refreshPreview(wxNullBitmap);
+        // Generate animated preview frames
+        entry->GeneratePreview(maxPx, maxPx);
+        for (size_t i = 0; i < entry->GetPreviewFrameCount(); i++) {
+            _previewFrames.push_back(entry->GetPreviewFrame(i));
+            _previewFrameTimes.push_back(entry->GetPreviewFrameTime(i));
+        }
+
+        if (!_previewFrames.empty()) {
+            ShowPreviewFrame(0);
+            if (_previewFrames.size() > 1) {
+                long interval = (_previewFrameTimes[0] > 0) ? _previewFrameTimes[0] : 50;
+                _previewTimer.Start(interval);
+            }
         }
         return;
     }
@@ -753,39 +779,45 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type
         if (baseEntry) {
             info += baseEntry->IsEmbedded() ? "\nEmbedded" : "\nExternal";
         }
-        _infoLabel->SetLabel(info);
 
-        // Try to show thumbnails for supported types
-        double scaleFactor = GetContentScaleFactor();
-        int maxPx = (int)(150.0 * scaleFactor);
-        std::shared_ptr<xlImage> thumb;
-
-        if (t == MediaType::SVG) {
-            auto svgEntry = _sequenceMedia->GetSVG(p);
-            if (svgEntry && !svgEntry->GetSVGContent().empty()) {
-                thumb = svgEntry->GetThumbnail(maxPx, maxPx);
+        // Generate preview frames for supported types
+        if (t == MediaType::Shader && _xlFrame) {
+            auto shaderEntry = _sequenceMedia->GetShader(p);
+            if (shaderEntry) {
+                shaderEntry->GenerateShaderPreview(_xlFrame);
             }
-        } else if (t == MediaType::Video) {
+        } else if (holder) {
+            holder->GeneratePreview(maxPx, maxPx);
+        }
+        if (holder) {
+            for (size_t i = 0; i < holder->GetPreviewFrameCount(); i++) {
+                _previewFrames.push_back(holder->GetPreviewFrame(i));
+                _previewFrameTimes.push_back(holder->GetPreviewFrameTime(i));
+            }
+        }
+
+        // Add extra info for video
+        if (t == MediaType::Video) {
             auto vidEntry = _sequenceMedia->GetVideo(p);
             if (vidEntry && !vidEntry->GetResolvedPath().empty()) {
-                thumb = vidEntry->GetThumbnail(maxPx, maxPx);
-                // Add video dimensions and duration to info
-                if (thumb && thumb->IsOk()) {
-                    long duration = VideoReader::GetVideoLength(vidEntry->GetResolvedPath());
-                    info += wxString::Format("\n%dx%d", thumb->GetWidth(), thumb->GetHeight());
-                    if (duration > 0) {
-                        info += wxString::Format("\n%.1fs", duration / 1000.0);
-                    }
-                    _infoLabel->SetLabel(info);
+                long duration = VideoReader::GetVideoLength(vidEntry->GetResolvedPath());
+                if (!_previewFrames.empty() && _previewFrames[0]->IsOk()) {
+                    info += wxString::Format("\n%dx%d", _previewFrames[0]->GetWidth(), _previewFrames[0]->GetHeight());
+                }
+                if (duration > 0) {
+                    info += wxString::Format("\n%.1fs", duration / 1000.0);
                 }
             }
         }
-        // TODO: Shader preview via effect rendering
 
-        if (thumb && thumb->IsOk()) {
-            wxBitmap bmp(xlImageToWxImage(*thumb));
-            bmp.SetScaleFactor(scaleFactor);
-            refreshPreview(bmp);
+        _infoLabel->SetLabel(info);
+
+        if (!_previewFrames.empty()) {
+            ShowPreviewFrame(0);
+            if (_previewFrames.size() > 1) {
+                long interval = (_previewFrameTimes[0] > 0) ? _previewFrameTimes[0] : 50;
+                _previewTimer.Start(interval);
+            }
             return;
         }
         refreshPreview(wxNullBitmap);
@@ -793,6 +825,51 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type
     }
     refreshPreview(wxNullBitmap);
     _infoLabel->SetLabel(wxEmptyString);
+}
+
+void ManageMediaPanel::OnPreviewTimer(wxTimerEvent& event)
+{
+    if (_previewFrames.empty()) {
+        _previewTimer.Stop();
+        return;
+    }
+    _currentPreviewFrame = (_currentPreviewFrame + 1) % _previewFrames.size();
+    ShowPreviewFrame(_currentPreviewFrame);
+
+    long interval = (_currentPreviewFrame < _previewFrameTimes.size() && _previewFrameTimes[_currentPreviewFrame] > 0)
+                        ? _previewFrameTimes[_currentPreviewFrame]
+                        : 50;
+    _previewTimer.Start(interval);
+}
+
+void ManageMediaPanel::ShowPreviewFrame(size_t index)
+{
+    if (index >= _previewFrames.size() || !_previewFrames[index] || !_previewFrames[index]->IsOk()) return;
+
+    const auto& img = _previewFrames[index];
+    double scaleFactor = GetContentScaleFactor();
+
+    // Scale to fill the 150x150 preview area, maintaining aspect ratio
+    wxSize widgetSize = _preview->GetSize();
+    int sw = img->GetWidth();
+    int sh = img->GetHeight();
+    if (widgetSize.x > 0 && widgetSize.y > 0) {
+        double pw = widgetSize.x * scaleFactor;
+        double ph = widgetSize.y * scaleFactor;
+        double scale = std::min(pw / sw, ph / sh);
+        sw = std::max(1, (int)(sw * scale));
+        sh = std::max(1, (int)(sh * scale));
+    }
+
+    xlImage scaled(*img);
+    if (sw != img->GetWidth() || sh != img->GetHeight()) {
+        scaled.Rescale(sw, sh);
+    }
+
+    wxBitmap bmp(xlImageToWxImage(scaled));
+    bmp.SetScaleFactor(scaleFactor);
+    _preview->SetBitmap(bmp);
+    _preview->Refresh();
 }
 
 std::string ManageMediaPanel::StrippedPath(const std::string& fullPath) const
@@ -1957,7 +2034,8 @@ SelectMediaDialog::SelectMediaDialog(wxWindow* parent, SequenceMedia* sequenceMe
                                      SequenceElements* sequenceElements,
                                      const std::string& showDirectory,
                                      xLightsFrame* xlFrame,
-                                     std::optional<MediaType> filterType)
+                                     std::optional<MediaType> filterType,
+                                     const std::string& selectPath)
     : wxDialog(parent, wxID_ANY,
                filterType.has_value() ? wxString("Select ") + MediaTypeName(*filterType) : wxString("Select Media"),
                wxDefaultPosition, wxDefaultSize,
@@ -2000,6 +2078,11 @@ SelectMediaDialog::SelectMediaDialog(wxWindow* parent, SequenceMedia* sequenceMe
 
     _okButton->Bind(wxEVT_BUTTON, &SelectMediaDialog::OnOK, this);
     _addFromDiskButton->Bind(wxEVT_BUTTON, &SelectMediaDialog::OnAddFromDisk, this);
+
+    // Pre-select the specified media file if provided
+    if (!selectPath.empty()) {
+        _panel->Populate(selectPath);
+    }
 }
 
 std::string SelectMediaDialog::GetSelectedPath() const

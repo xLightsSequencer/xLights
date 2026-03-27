@@ -54,6 +54,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/appprogress.h>
 
+#include <memory>
 #include <unordered_map>
 #include <map>
 #include <set>
@@ -99,6 +100,7 @@ class wxDebugReport;
 
 class aiBase;
 class BaseSerializingVisitor;
+class CopyFormat1;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -1523,6 +1525,20 @@ public:
     OutputManager* GetOutputManager() { return &_outputManager; };
     OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
+
+    // Render effects into a list of xlImage frames. Used for preset GIF generation
+    // and shader preview thumbnails. The model, sequence data, and elements must
+    // already be set up with effects loaded.
+    std::vector<std::shared_ptr<xlImage>> RenderEffectToFrames(
+        Model* matrixModel, SequenceData& seqData, SequenceElements& seqElements,
+        size_t numFrames, int frameTimeMs);
+
+    // Helper methods for preset rendering
+    void EnsurePresetModel();
+    void LoadPresetEffects(const CopyFormat1& pd);
+    Model* GetPresetModel() { EnsurePresetModel(); return _presetModel; }
+    SequenceData& GetPresetSequenceData() { return _presetSequenceData; }
+    SequenceElements& GetPresetSequenceElements() { return _presetSequenceElements; }
 
 private:
 

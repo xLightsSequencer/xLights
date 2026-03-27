@@ -877,12 +877,14 @@ public:
         auto* seqMedia = buffer.GetSequenceMedia();
         if (seqMedia) {
             auto svgEntry = seqMedia->GetSVG(filename);
-            svgEntry->MarkIsUsed();
-            std::string content = svgEntry->GetSVGContent();
-            if (!content.empty()) {
-                char* svgCopy = strdup(content.c_str());
-                _svgImage = nsvgParse(svgCopy, "px", 96);
-                free(svgCopy);
+            if (svgEntry) {
+                svgEntry->MarkIsUsed();
+                std::string content = svgEntry->GetSVGContent();
+                if (!content.empty()) {
+                    char* svgCopy = strdup(content.c_str());
+                    _svgImage = nsvgParse(svgCopy, "px", 96);
+                    free(svgCopy);
+                }
             }
         }
         if (_svgImage != nullptr) {

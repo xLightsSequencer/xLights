@@ -23,7 +23,10 @@ class wxStaticText;
 class wxTextCtrl;
 //*)
 
+#include <memory>
+#include <vector>
 #include <wx/filepicker.h>
+#include <wx/timer.h>
 #include <mutex>
 #include <map>
 
@@ -32,7 +35,8 @@ class wxTextCtrl;
 
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif"
 
-class MediaPickerCtrl;
+class xlImage;
+class wxStaticBitmap;
 
 wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 
@@ -161,7 +165,19 @@ protected:
 
         void SetVideoDetails(wxCommandEvent& event);
 
-        MediaPickerCtrl* _mediaPicker = nullptr;
+        // Animated preview
+        void UpdatePreview();
+        void OnPreviewTimer(wxTimerEvent& event);
+        void ShowPreviewFrame(size_t index);
+
+        wxStaticBitmap* _previewBitmap = nullptr;
+        wxStaticText* _filenameLabel = nullptr;
+        wxButton* _selectButton = nullptr;
+        wxButton* _clearButton = nullptr;
+        wxTimer _previewTimer;
+        std::vector<std::shared_ptr<xlImage>> _previewFrames;
+        std::vector<long> _previewFrameTimes;
+        size_t _currentPreviewFrame = 0;
 
 		DECLARE_EVENT_TABLE()
 };

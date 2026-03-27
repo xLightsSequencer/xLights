@@ -24,6 +24,10 @@
 #include "../utils/nanosvg_xl.h"
 #include "../effects/ShaderEffect.h"
 #include "../VideoReader.h"
+#include "../xLightsMain.h"
+#include "Element.h"
+#include "EffectLayer.h"
+#include "SequenceElements.h"
 
 // =====================================================================
 // MediaCacheEntry (base class) Implementation
@@ -51,6 +55,31 @@ void MediaCacheEntry::LoadRawFromFile(const std::string& filepath) {
         if (!stream) return;
         _embeddedData = Base64::Encode(buffer.data(), buffer.size());
     }
+}
+
+// Preview frame cache base implementations
+void MediaCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
+    // Default: no preview (text, binary, etc.)
+}
+
+std::shared_ptr<xlImage> MediaCacheEntry::GetPreviewFrame(size_t index) const {
+    std::scoped_lock lock(_cacheMutex);
+    if (index < _previewFrames.size()) return _previewFrames[index];
+    return nullptr;
+}
+
+long MediaCacheEntry::GetPreviewFrameTime(size_t index) const {
+    std::scoped_lock lock(_cacheMutex);
+    if (index < _previewFrameTimes.size()) return _previewFrameTimes[index];
+    return 50; // default 50ms
+}
+
+void MediaCacheEntry::ClearPreview() {
+    std::scoped_lock lock(_cacheMutex);
+    _previewFrames.clear();
+    _previewFrameTimes.clear();
+    _previewWidth = 0;
+    _previewHeight = 0;
 }
 
 bool MediaCacheEntry::SaveToFile(const std::string& path) const {
@@ -414,6 +443,29 @@ void ImageCacheEntry::ClearScaledImageCache() {
     _scaledImageCache.clear();
 }
 
+void ImageCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
+    std::scoped_lock lock(_cacheMutex);
+    if (_previewWidth == maxWidth && _previewHeight == maxHeight && !_previewFrames.empty()) return;
+
+    _previewFrames.clear();
+    _previewFrameTimes.clear();
+
+    if (_frameImages.empty() || _imageWidth <= 0 || _imageHeight <= 0) return;
+
+    // Calculate scaled size maintaining aspect ratio
+    double scale = std::min((double)maxWidth / _imageWidth, (double)maxHeight / _imageHeight);
+    int sw = std::max(1, (int)(_imageWidth * scale));
+    int sh = std::max(1, (int)(_imageHeight * scale));
+
+    for (int i = 0; i < _imageCount; i++) {
+        auto scaled = GetScaledImage(i, sw, sh, false);
+        _previewFrames.push_back(scaled);
+        _previewFrameTimes.push_back(i < (int)_frameTimes.size() ? _frameTimes[i] : 50);
+    }
+    _previewWidth = maxWidth;
+    _previewHeight = maxHeight;
+}
+
 
 // SequenceMedia Implementation
 
@@ -428,6 +480,7 @@ SequenceMedia::~SequenceMedia()
 
 std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& filepath)
 {
+    if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
     // Check if image is already cached
     auto it = _imageCache.find(filepath);
@@ -447,6 +500,16 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
         std::string resolved = FixFile("", filepath);
         if (!resolved.empty())
             loadPath = resolved;
+    }
+    // Check if the resolved path matches an existing entry
+    for (auto& [key, entry] : _imageCache) {
+        if (entry->GetFilePath() == loadPath || (!std::filesystem::path(key).is_absolute() ? FixFile("", key) : key) == loadPath) {
+            if (!entry->isLoaded()) {
+                lock.unlock();
+                entry->Load();
+            }
+            return entry;
+        }
     }
     std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(loadPath);
     _imageCache.emplace(filepath, np);
@@ -900,6 +963,22 @@ std::shared_ptr<xlImage> SVGMediaCacheEntry::GetThumbnail(int maxWidth, int maxH
     return _thumbnail;
 }
 
+void SVGMediaCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
+    std::scoped_lock lock(_cacheMutex);
+    if (_previewWidth == maxWidth && _previewHeight == maxHeight && !_previewFrames.empty()) return;
+
+    _previewFrames.clear();
+    _previewFrameTimes.clear();
+
+    auto thumb = GetThumbnail(maxWidth, maxHeight);
+    if (thumb) {
+        _previewFrames.push_back(thumb);
+        _previewFrameTimes.push_back(0); // single frame, no animation
+    }
+    _previewWidth = maxWidth;
+    _previewHeight = maxHeight;
+}
+
 // =====================================================================
 // ShaderMediaCacheEntry Implementation
 // =====================================================================
@@ -919,6 +998,101 @@ ShaderConfig* ShaderMediaCacheEntry::GetShaderConfig(SequenceElements* sequenceE
         _shaderConfig = ShaderEffect::ParseShaderFromSource(_filePath, _shaderSource, sequenceElements);
     }
     return _shaderConfig;
+}
+
+void ShaderMediaCacheEntry::GenerateShaderPreview(xLightsFrame* xl) {
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (!_previewFrames.empty()) return; // already cached
+    }
+
+    if (!xl || _shaderSource.empty()) return;
+
+    ShaderConfig* config = GetShaderConfig(&xl->GetSequenceElements());
+    if (!config) return;
+
+    // Build settings string with default values for all shader parameters
+    std::string settings = "E_0FILEPICKERCTRL_IFS=" + _filePath;
+    settings += ",E_SLIDER_Shader_Speed=100";
+    settings += ",E_TEXTCTRL_Shader_Offset_X=0,E_TEXTCTRL_Shader_Offset_Y=0";
+    settings += ",E_TEXTCTRL_Shader_Zoom=0,E_TEXTCTRL_Shader_LeadIn=0";
+
+    for (const auto& parm : config->GetParms()) {
+        if (!parm.ShowParm()) continue;
+        switch (parm._type) {
+            case ShaderParmType::SHADER_PARM_FLOAT: {
+                std::string key = "E_TEXTCTRL_" + parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL);
+                char buf[64];
+                snprintf(buf, sizeof(buf), "%.4f", parm._default);
+                settings += "," + key + "=" + buf;
+                break;
+            }
+            case ShaderParmType::SHADER_PARM_BOOL: {
+                std::string key = "E_CHECKBOX_" + parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX);
+                settings += "," + key + "=" + (parm._default != 0.0 ? "1" : "0");
+                break;
+            }
+            case ShaderParmType::SHADER_PARM_LONGCHOICE: {
+                std::string key = "E_CHOICE_" + parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHOICE);
+                auto choices = parm.GetChoices();
+                if (!choices.empty()) {
+                    int idx = (int)parm._default;
+                    std::string choiceStr = choices[0];
+                    for (const auto& [val, str] : parm._valueOptions) {
+                        if (val == idx) { choiceStr = str; break; }
+                    }
+                    settings += "," + key + "=" + choiceStr;
+                }
+                break;
+            }
+            case ShaderParmType::SHADER_PARM_POINT2D: {
+                std::string keyBase = parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL);
+                char bufX[64], bufY[64];
+                snprintf(bufX, sizeof(bufX), "%.4f", parm._defaultPt.x);
+                snprintf(bufY, sizeof(bufY), "%.4f", parm._defaultPt.y);
+                settings += ",E_TEXTCTRL_" + keyBase + "X=" + bufX;
+                settings += ",E_TEXTCTRL_" + keyBase + "Y=" + bufY;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_BUTTON_Palette2=#FF0000,"
+                          "C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1";
+
+    Model* presetModel = xl->GetPresetModel();
+    SequenceElements& presetElements = xl->GetPresetSequenceElements();
+
+    Element* elem = presetElements.GetElement(presetModel->GetName());
+    if (!elem) return;
+
+    for (const auto& it : elem->GetEffectLayers()) {
+        it->DeleteAllEffects();
+    }
+    if (elem->GetEffectLayerCount() == 0) {
+        elem->AddEffectLayer();
+    }
+
+    EffectLayer* el = elem->GetEffectLayer(0);
+    el->AddEffect(0, "Shader", settings, palette, 0, 1000, false, false, true);
+
+    // Render without holding _cacheMutex (Render uses wxYield which can re-enter)
+    int frameTimeMs = 50;
+    size_t numFrames = 20; // 1 second at 50ms
+    auto frames = xl->RenderEffectToFrames(
+        presetModel, xl->GetPresetSequenceData(),
+        presetElements, numFrames, frameTimeMs);
+
+    // Store results under lock
+    std::scoped_lock lock(_cacheMutex);
+    if (_previewFrames.empty()) { // double-check after render
+        _previewFrames = std::move(frames);
+        for (size_t i = 0; i < _previewFrames.size(); i++) {
+            _previewFrameTimes.push_back(frameTimeMs);
+        }
+    }
 }
 
 void ShaderMediaCacheEntry::Load() {
@@ -1064,6 +1238,59 @@ std::shared_ptr<xlImage> VideoMediaCacheEntry::GetThumbnail(int maxWidth, int ma
     return _thumbnail;
 }
 
+void VideoMediaCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (_previewWidth == maxWidth && _previewHeight == maxHeight && !_previewFrames.empty()) return;
+    }
+
+    std::string path;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        path = _resolvedPath;
+    }
+    if (path.empty() || !FileExists(path)) return;
+
+    // Decode video frames without holding the mutex (may do network I/O)
+    VideoReader reader(path, maxWidth, maxHeight, true, false, true);
+    if (!reader.IsValid()) return;
+
+    int w = reader.GetWidth();
+    int h = reader.GetHeight();
+    if (w <= 0 || h <= 0) return;
+
+    std::vector<std::shared_ptr<xlImage>> frames;
+    std::vector<long> frameTimes;
+
+    // Extract first 1 second of frames at 50ms intervals
+    int lengthMS = reader.GetLengthMS();
+    int maxMS = std::min(lengthMS, 1000);
+    int frameTimeMS = 50;
+
+    for (int ts = 0; ts < maxMS; ts += frameTimeMS) {
+        AVFrame* frame = reader.GetNextFrame(ts);
+        if (!frame || !frame->data[0]) break;
+
+        auto img = std::make_shared<xlImage>(w, h);
+        int srcStride = frame->linesize[0];
+        uint8_t* dst = img->GetData();
+        for (int y = 0; y < h; y++) {
+            memcpy(dst + y * w * 4, frame->data[0] + y * srcStride, w * 4);
+        }
+        frames.push_back(img);
+        frameTimes.push_back(frameTimeMS);
+    }
+
+    // Store results under lock
+    std::scoped_lock lock(_cacheMutex);
+    if (_previewFrames.empty()) {
+        _previewFrames = std::move(frames);
+        _previewFrameTimes = std::move(frameTimes);
+        _previewWidth = maxWidth;
+        _previewHeight = maxHeight;
+    }
+}
+
 bool VideoMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
     if (!node || strcmp(node.name(), "Video") != 0) return false;
     _filePath = node.attribute("path").as_string("");
@@ -1089,6 +1316,7 @@ std::string SequenceMedia::ResolvePath(const std::string& filepath) {
 }
 
 std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::string& filepath) {
+    if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
     auto it = _textCache.find(filepath);
     if (it != _textCache.end()) {
@@ -1100,6 +1328,12 @@ std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::strin
         return ret;
     }
     std::string loadPath = ResolvePath(filepath);
+    for (auto& [key, entry] : _textCache) {
+        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
+            if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            return entry;
+        }
+    }
     auto np = std::make_shared<TextMediaCacheEntry>(loadPath);
     _textCache.emplace(filepath, np);
     lock.unlock();
@@ -1108,6 +1342,7 @@ std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::strin
 }
 
 std::shared_ptr<SVGMediaCacheEntry> SequenceMedia::GetSVG(const std::string& filepath) {
+    if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
     auto it = _svgCache.find(filepath);
     if (it != _svgCache.end()) {
@@ -1119,6 +1354,12 @@ std::shared_ptr<SVGMediaCacheEntry> SequenceMedia::GetSVG(const std::string& fil
         return ret;
     }
     std::string loadPath = ResolvePath(filepath);
+    for (auto& [key, entry] : _svgCache) {
+        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
+            if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            return entry;
+        }
+    }
     auto np = std::make_shared<SVGMediaCacheEntry>(loadPath);
     _svgCache.emplace(filepath, np);
     lock.unlock();
@@ -1127,6 +1368,7 @@ std::shared_ptr<SVGMediaCacheEntry> SequenceMedia::GetSVG(const std::string& fil
 }
 
 std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::string& filepath) {
+    if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
     auto it = _shaderCache.find(filepath);
     if (it != _shaderCache.end()) {
@@ -1137,7 +1379,15 @@ std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::strin
         }
         return ret;
     }
+    // Check if the resolved path matches an existing entry (avoids duplicates
+    // when the same file is referenced by both relative and absolute paths)
     std::string loadPath = ResolvePath(filepath);
+    for (auto& [key, entry] : _shaderCache) {
+        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
+            if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            return entry;
+        }
+    }
     auto np = std::make_shared<ShaderMediaCacheEntry>(loadPath);
     _shaderCache.emplace(filepath, np);
     lock.unlock();
@@ -1146,6 +1396,7 @@ std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::strin
 }
 
 std::shared_ptr<BinaryMediaCacheEntry> SequenceMedia::GetBinaryFile(const std::string& filepath, const std::string& subtype) {
+    if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
     auto it = _binaryCache.find(filepath);
     if (it != _binaryCache.end()) {
@@ -1157,6 +1408,12 @@ std::shared_ptr<BinaryMediaCacheEntry> SequenceMedia::GetBinaryFile(const std::s
         return ret;
     }
     std::string loadPath = ResolvePath(filepath);
+    for (auto& [key, entry] : _binaryCache) {
+        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
+            if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            return entry;
+        }
+    }
     auto np = std::make_shared<BinaryMediaCacheEntry>(loadPath, subtype);
     _binaryCache.emplace(filepath, np);
     lock.unlock();
@@ -1165,6 +1422,7 @@ std::shared_ptr<BinaryMediaCacheEntry> SequenceMedia::GetBinaryFile(const std::s
 }
 
 std::shared_ptr<VideoMediaCacheEntry> SequenceMedia::GetVideo(const std::string& filepath) {
+    if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
     auto it = _videoCache.find(filepath);
     if (it != _videoCache.end()) {
@@ -1174,6 +1432,14 @@ std::shared_ptr<VideoMediaCacheEntry> SequenceMedia::GetVideo(const std::string&
             ret->Load();
         }
         return ret;
+    }
+    // Check if the resolved path matches an existing entry
+    std::string resolved = ResolvePath(filepath);
+    for (auto& [key, entry] : _videoCache) {
+        if (entry->GetFilePath() == resolved || ResolvePath(key) == resolved) {
+            if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            return entry;
+        }
     }
     auto np = std::make_shared<VideoMediaCacheEntry>(filepath);
     _videoCache.emplace(filepath, np);

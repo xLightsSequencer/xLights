@@ -15,11 +15,14 @@
 #include "EffectPanelUtils.h"
 
 #include <memory>
+#include <vector>
+#include <wx/timer.h>
 
-class MediaPickerCtrl;
 class ShaderConfig;
 class ShaderMediaCacheEntry;
 class SequenceElements;
+class xlImage;
+class wxStaticBitmap;
 
 //(*Headers(ShaderPanel)
 #include <wx/bmpbuttn.h>
@@ -112,10 +115,22 @@ class ShaderPanel: public xlEffectPanel
 		//*)
 
         bool BuildUI(ShaderMediaCacheEntry* shaderEntry, SequenceElements* sequenceElements);
+        void UpdatePreview();
+        void OnPreviewTimer(wxTimerEvent& event);
+        void ShowPreviewFrame(size_t index);
 
         // Hold a ref to keep the ShaderMediaCacheEntry alive while we reference its _shaderConfig
         std::shared_ptr<ShaderMediaCacheEntry> _shaderCacheEntry;
-        MediaPickerCtrl* _mediaPicker = nullptr;
+
+        // Animated preview
+        wxStaticBitmap* _previewBitmap = nullptr;
+        wxStaticText* _filenameLabel = nullptr;
+        wxButton* _selectButton = nullptr;
+        wxButton* _clearButton = nullptr;
+        wxTimer _previewTimer;
+        std::vector<std::shared_ptr<xlImage>> _previewFrames;
+        std::vector<long> _previewFrameTimes;
+        size_t _currentPreviewFrame = 0;
 
 		DECLARE_EVENT_TABLE()
 };

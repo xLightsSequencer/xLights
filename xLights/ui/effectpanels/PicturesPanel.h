@@ -26,11 +26,15 @@ class wxStaticText;
 class wxTextCtrl;
 //*)
 
+#include <memory>
+#include <vector>
 #include <wx/filepicker.h>
+#include <wx/timer.h>
 #include "../../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class SequenceMedia;
+class xlImage;
 
 class xlPictureFilePickerCtrl : public BulkEditFilePickerCtrl {
 public:
@@ -170,5 +174,13 @@ class PicturesPanel: public xlEffectPanel
 
 private:
 		void UpdatePreviewBitmap(const wxString& filename);
+		void OnPreviewTimer(wxTimerEvent& event);
+		void ShowPreviewFrame(size_t index);
+
 		SequenceMedia* _sequenceMedia = nullptr;
+		wxTimer _previewTimer;
+		std::vector<std::shared_ptr<xlImage>> _previewFrames;
+		std::vector<long> _previewFrameTimes;
+		size_t _currentPreviewFrame = 0;
+		wxStaticText* _filenameLabel = nullptr;
 };

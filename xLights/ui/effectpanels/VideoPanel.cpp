@@ -15,7 +15,13 @@
 #include "../../ExternalHooks.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
-#include "../MediaPickerCtrl.h"
+#include "../wxUtilities.h"
+#include "../../render/SequenceMedia.h"
+#include "../../render/SequenceElements.h"
+#include "../../ManageMediaPanel.h"
+#include "../../utils/xlImage.h"
+
+#include <wx/statbmp.h>
 
 //(*InternalHeaders(VideoPanel)
 #include <wx/bitmap.h>
@@ -243,15 +249,68 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel()
 
     SetName("ID_PANEL_Video");
 
-    // Replace file picker with media-aware picker
+    // Hide the original file picker - we replace it with Select/x buttons + preview
     FilePicker_Video_Filename->Hide();
-    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::Video);
-    _mediaPicker->SetLinkedPicker(FilePicker_Video_Filename);
     auto* fpSizer = FilePicker_Video_Filename->GetContainingSizer();
+
+    // Build top section: buttons left, preview right (like PicturesPanel)
+    auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
+    topRow->AddGrowableCol(1);
+
+    auto* buttonSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    // Select + x on one row
+    auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
+    _selectButton = new wxButton(this, wxID_ANY, "Select...");
+    selectRow->Add(_selectButton, 1, wxRIGHT, 2);
+    _clearButton = new wxButton(this, wxID_ANY, "x", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    selectRow->Add(_clearButton, 0, 0, 0);
+    buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
+    topRow->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+
+    _previewBitmap = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+    _previewBitmap->SetMinSize(wxDLG_UNIT(this, wxSize(0, 50)));
+    topRow->Add(_previewBitmap, 1, wxALL | wxEXPAND, 5);
+
+    FlexGridSizer42->Insert(0, topRow, 1, wxALL | wxEXPAND, 0);
+
+    _filenameLabel = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                       wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
+    FlexGridSizer42->Insert(1, _filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
+
+    // Hide the old file picker sizer row
     if (fpSizer) {
-        fpSizer->Replace(FilePicker_Video_Filename, _mediaPicker);
-        fpSizer->Layout();
+        // Remove the original file picker from its sizer
+        fpSizer->Hide(FilePicker_Video_Filename);
     }
+
+    // Bind Select/Clear button events
+    _selectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        xLightsFrame* xl = nullptr;
+        for (wxWindow* w = GetParent(); w; w = w->GetParent()) {
+            xl = dynamic_cast<xLightsFrame*>(w);
+            if (xl) break;
+        }
+        if (!xl) return;
+        SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
+        SequenceElements& elements = xl->GetSequenceElements();
+        std::string currentPath = FilePicker_Video_Filename->GetFileName().GetFullPath().ToStdString();
+        SelectMediaDialog dlg(this, &media, &elements,
+                              xl->GetShowDirectory(), xl, MediaType::Video, currentPath);
+        if (dlg.ShowModal() != wxID_OK) return;
+        std::string selected = dlg.GetSelectedPath();
+        if (selected.empty()) return;
+        FilePicker_Video_Filename->SetFileName(wxFileName(selected));
+        UpdatePreview();
+        FireChangeEvent();
+    });
+    _clearButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        FilePicker_Video_Filename->SetFileName(wxFileName());
+        UpdatePreview();
+        FireChangeEvent();
+    });
+
+    _previewTimer.SetOwner(this);
+    Bind(wxEVT_TIMER, &VideoPanel::OnPreviewTimer, this, _previewTimer.GetId());
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VideoPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&VideoPanel::OnValidateWindow, 0, this);
@@ -273,6 +332,7 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel()
 
 VideoPanel::~VideoPanel()
 {
+    _previewTimer.Stop();
 	//(*Destroy(VideoPanel)
 	//*)
 }
@@ -311,6 +371,8 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
         Slider_Video_Starttime->SetMax(99999);
         TextCtrl2->SetValue(FORMATTIME(0));
     }
+    locker.unlock();
+    UpdatePreview();
 }
 
 void VideoPanel::OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event)
@@ -404,4 +466,107 @@ void VideoPanel::OnButton_MatchVideoDurationClick(wxCommandEvent& event)
         e.SetInt(duration);
         wxPostEvent(wxTheApp->GetTopWindow(), e);
     }
+}
+
+void VideoPanel::UpdatePreview()
+{
+    _previewTimer.Stop();
+    _previewFrames.clear();
+    _previewFrameTimes.clear();
+    _currentPreviewFrame = 0;
+
+    if (!_previewBitmap) return;
+
+    wxFileName fn = FilePicker_Video_Filename->GetFileName();
+    std::string file = fn.GetFullPath().ToStdString();
+    if (_filenameLabel) _filenameLabel->SetLabel(fn.GetFullName());
+    if (file.empty()) {
+        _previewBitmap->SetBitmap(wxNullBitmap);
+        return;
+    }
+
+    // Look up video through SequenceMedia (handles relative paths)
+    SequenceMedia* media = nullptr;
+    wxWindow* w = GetParent();
+    while (w) {
+        if (auto* xl = dynamic_cast<xLightsFrame*>(w)) {
+            media = &xl->GetSequenceElements().GetSequenceMedia();
+            break;
+        }
+        w = w->GetParent();
+    }
+    if (!media) return;
+
+    auto entry = media->GetVideo(file);
+    if (!entry || entry->GetResolvedPath().empty()) {
+        _previewBitmap->SetBitmap(wxNullBitmap);
+        return;
+    }
+
+    // Use a fixed generation size since the widget may not be laid out yet.
+    // ShowPreviewFrame will scale to fit the actual widget size.
+    int genSize = 300;
+    entry->GeneratePreview(genSize, genSize);
+
+    for (size_t i = 0; i < entry->GetPreviewFrameCount(); i++) {
+        _previewFrames.push_back(entry->GetPreviewFrame(i));
+        _previewFrameTimes.push_back(entry->GetPreviewFrameTime(i));
+    }
+
+    if (_previewFrames.empty()) return;
+
+    ShowPreviewFrame(0);
+
+    if (_previewFrames.size() > 1) {
+        long interval = (_previewFrameTimes[0] > 0) ? _previewFrameTimes[0] : 50;
+        _previewTimer.Start(interval);
+    }
+}
+
+void VideoPanel::OnPreviewTimer(wxTimerEvent& event)
+{
+    if (_previewFrames.empty()) {
+        _previewTimer.Stop();
+        return;
+    }
+    _currentPreviewFrame = (_currentPreviewFrame + 1) % _previewFrames.size();
+    ShowPreviewFrame(_currentPreviewFrame);
+
+    long interval = (_currentPreviewFrame < _previewFrameTimes.size() && _previewFrameTimes[_currentPreviewFrame] > 0)
+                        ? _previewFrameTimes[_currentPreviewFrame]
+                        : 50;
+    _previewTimer.Start(interval);
+}
+
+void VideoPanel::ShowPreviewFrame(size_t index)
+{
+    if (index >= _previewFrames.size() || !_previewFrames[index] || !_previewFrames[index]->IsOk()) return;
+
+    const auto& img = _previewFrames[index];
+    double scaleFactor = GetContentScaleFactor();
+
+    wxSize widgetSize = _previewBitmap->GetSize();
+    int sw = img->GetWidth();
+    int sh = img->GetHeight();
+    if (widgetSize.x > 0 && widgetSize.y > 0) {
+        double pw = widgetSize.x * scaleFactor;
+        double ph = widgetSize.y * scaleFactor;
+        double scale = std::min(pw / sw, ph / sh);
+        sw = std::max(1, (int)(sw * scale));
+        sh = std::max(1, (int)(sh * scale));
+    }
+
+    xlImage scaled(*img);
+    if (sw != img->GetWidth() || sh != img->GetHeight()) {
+        scaled.Rescale(sw, sh);
+    }
+
+    wxBitmap bmp(xlImageToWxImage(scaled));
+    bmp.SetScaleFactor(scaleFactor);
+    _previewBitmap->SetBitmap(bmp);
+    _previewBitmap->InvalidateBestSize();
+    _previewBitmap->Refresh();
+    _previewBitmap->Update();
+    if (_previewBitmap->GetParent())
+        _previewBitmap->GetParent()->Layout();
 }

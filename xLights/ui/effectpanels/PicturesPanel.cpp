@@ -37,6 +37,7 @@
 #include "../../UtilFunctions.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
+#include "../../utils/xlImage.h"
 #include "../../xLightsMain.h"
 #include "../../ai/AIImageDialog.h"
 #include "../../ai/aiType.h"
@@ -348,11 +349,20 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel()
     SetName("ID_PANEL_PICTURES");
     BitmapPreview->SetMaxSize(wxDLG_UNIT(this,wxSize(0,50)));
 
+    // Add filename label below the Select/Preview row (FlexGridSizer19 is in FlexGridSizer42)
+    _filenameLabel = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                       wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
+    FlexGridSizer42->Insert(1, _filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
+
+    _previewTimer.SetOwner(this);
+    Bind(wxEVT_TIMER, &PicturesPanel::OnPreviewTimer, this, _previewTimer.GetId());
+
 	ValidateWindow();
 }
 
 PicturesPanel::~PicturesPanel()
 {
+    _previewTimer.Stop();
 	//(*Destroy(PicturesPanel)
 	//*)
 }
@@ -393,6 +403,11 @@ void PicturesPanel::ValidateWindow()
 
 void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
 {
+    _previewTimer.Stop();
+    _previewFrames.clear();
+    _previewFrameTimes.clear();
+    _currentPreviewFrame = 0;
+
     auto refreshPreview = [this](const wxBitmap& bmp, bool enable) {
         BitmapPreview->SetBitmap(bmp);
         BitmapPreview->InvalidateBestSize();
@@ -409,6 +424,8 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
         img.SetRGB(wxRect(0, 0, 64, 64), 255, 0, 0);
         return wxBitmap(img);
     };
+
+    if (_filenameLabel) _filenameLabel->SetLabel(filename);
 
     if (filename.IsEmpty()) {
         refreshPreview(makeRedBitmap(), false);
@@ -427,7 +444,7 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
             w = w->GetParent();
         }
     }
-    if (media == nullptr || !media->HasImage(filename.ToStdString())) {
+    if (media == nullptr) {
         refreshPreview(makeRedBitmap(), false);
         return;
     }
@@ -443,17 +460,79 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
         refreshPreview(makeRedBitmap(), false);
         return;
     }
-        
-    wxSize previewSz = BitmapPreview->GetSize();
+
+    // Use a fixed generation size - ShowPreviewFrame scales to fit the widget
+    int genSize = 300;
+    entry->GeneratePreview(genSize, genSize);
+
+    // Copy frames for animation
+    for (size_t i = 0; i < entry->GetPreviewFrameCount(); i++) {
+        _previewFrames.push_back(entry->GetPreviewFrame(i));
+        _previewFrameTimes.push_back(entry->GetPreviewFrameTime(i));
+    }
+
+    // Show first frame
+    ShowPreviewFrame(0);
+
+    bool isAnimated = entry->IsFrameBasedAnimation();
+    CheckBox_LoopGIF->Enable(!isAnimated);
+    CheckBox_SuppressGIFBackground->Enable(!isAnimated);
+
+    // Start animation timer if multiple frames
+    if (_previewFrames.size() > 1) {
+        long interval = (_previewFrameTimes[0] > 0) ? _previewFrameTimes[0] : 50;
+        _previewTimer.Start(interval);
+    }
+}
+
+void PicturesPanel::OnPreviewTimer(wxTimerEvent& event)
+{
+    if (_previewFrames.empty()) {
+        _previewTimer.Stop();
+        return;
+    }
+    _currentPreviewFrame = (_currentPreviewFrame + 1) % _previewFrames.size();
+    ShowPreviewFrame(_currentPreviewFrame);
+
+    // Adjust for variable frame rates
+    long interval = (_currentPreviewFrame < _previewFrameTimes.size() && _previewFrameTimes[_currentPreviewFrame] > 0)
+                        ? _previewFrameTimes[_currentPreviewFrame]
+                        : 50;
+    _previewTimer.Start(interval);
+}
+
+void PicturesPanel::ShowPreviewFrame(size_t index)
+{
+    if (index >= _previewFrames.size() || !_previewFrames[index] || !_previewFrames[index]->IsOk()) return;
+
+    const auto& img = _previewFrames[index];
     double scaleFactor = GetContentScaleFactor();
-    double pw = std::max(1.0, (double)previewSz.x * scaleFactor);
-    double ph = std::max(1.0, (double)previewSz.y * scaleFactor);
-    double scale = std::min((double)pw / (double)img->GetWidth(), (double)ph / (double)img->GetHeight());
-    int sw = std::max(1, (int)(img->GetWidth() * scale));
-    int sh = std::max(1, (int)(img->GetHeight() * scale));
-    wxBitmap bmp(xlImageToWxImage(*entry->GetScaledImage(0, sw, sh, false)));
+
+    // Scale to fit widget if it has been laid out, otherwise use image as-is
+    wxSize widgetSize = BitmapPreview->GetSize();
+    int sw = img->GetWidth();
+    int sh = img->GetHeight();
+    if (widgetSize.x > 0 && widgetSize.y > 0) {
+        double pw = widgetSize.x * scaleFactor;
+        double ph = widgetSize.y * scaleFactor;
+        double scale = std::min(pw / sw, ph / sh);
+        sw = std::max(1, (int)(sw * scale));
+        sh = std::max(1, (int)(sh * scale));
+    }
+
+    xlImage scaled(*img);
+    if (sw != img->GetWidth() || sh != img->GetHeight()) {
+        scaled.Rescale(sw, sh);
+    }
+
+    wxBitmap bmp(xlImageToWxImage(scaled));
     bmp.SetScaleFactor(scaleFactor);
-    refreshPreview(bmp, !entry->IsFrameBasedAnimation());
+    BitmapPreview->SetBitmap(bmp);
+    BitmapPreview->InvalidateBestSize();
+    BitmapPreview->Refresh();
+    BitmapPreview->Update();
+    if (BitmapPreview->GetParent())
+        BitmapPreview->GetParent()->Layout();
 }
 
 void PicturesPanel::OnAIGenerateButtonClick(wxCommandEvent& event)
@@ -522,8 +601,9 @@ void PicturesPanel::OnSelectButtonClick(wxCommandEvent& event)
     SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
     SequenceElements& elements = xl->GetSequenceElements();
 
+    std::string currentPath = FileNameCtrl->GetValue().ToStdString();
     SelectMediaDialog dlg(this, &media, &elements,
-                          xl->GetShowDirectory(), xl);
+                          xl->GetShowDirectory(), xl, MediaType::Image, currentPath);
     if (dlg.ShowModal() != wxID_OK) return;
 
     std::string selected = dlg.GetSelectedPath();
