@@ -22,6 +22,7 @@
 #include "../../utils/xlImage.h"
 
 #include <wx/statbmp.h>
+#include <wx/artprov.h>
 
 //(*InternalHeaders(VideoPanel)
 #include <wx/bitmap.h>
@@ -262,7 +263,8 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel()
     auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
     _selectButton = new wxButton(this, wxID_ANY, "Select...");
     selectRow->Add(_selectButton, 1, wxRIGHT, 2);
-    _clearButton = new wxButton(this, wxID_ANY, "x", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
+    _clearButton = new wxBitmapButton(this, wxID_ANY, clearBmp, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
     selectRow->Add(_clearButton, 0, 0, 0);
     buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
     topRow->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);

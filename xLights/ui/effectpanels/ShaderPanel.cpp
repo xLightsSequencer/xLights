@@ -172,7 +172,8 @@ ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
     _selectButton = new wxButton(this, wxID_ANY, "Select...");
     selectRow->Add(_selectButton, 1, wxRIGHT, 2);
-    _clearButton = new wxButton(this, wxID_ANY, "x", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
+    _clearButton = new wxBitmapButton(this, wxID_ANY, clearBmp, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
     selectRow->Add(_clearButton, 0, 0, 0);
     buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
     // Detach download button from its old sizer before adding to new one
