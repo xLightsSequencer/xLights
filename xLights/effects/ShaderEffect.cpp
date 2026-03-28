@@ -292,8 +292,23 @@ ShaderConfig* ShaderEffect::ParseShaderFromSource(const std::string& filename, c
 }
 
 ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
-    std::string code = sequenceElements->GetSequenceMedia().GetShader(filename)->GetShaderSource();
-    return ParseShaderFromSource(filename, code, sequenceElements);
+    // Try SequenceMedia first (handles embedded shaders and cached entries)
+    if (sequenceElements != nullptr) {
+        auto entry = sequenceElements->GetSequenceMedia().GetShader(filename);
+        if (entry != nullptr && !entry->GetShaderSource().empty()) {
+            return ParseShaderFromSource(filename, entry->GetShaderSource(), sequenceElements);
+        }
+    }
+    // Fallback: read file directly (handles path resolution edge cases)
+    std::string resolvedPath = FixFile("", filename);
+    if (resolvedPath.empty()) resolvedPath = filename;
+    if (!FileExists(resolvedPath)) return nullptr;
+    std::ifstream f(resolvedPath, std::ios::in);
+    if (!f.is_open()) return nullptr;
+    std::ostringstream ss;
+    ss << f.rdbuf();
+    std::string code = ss.str();
+    return ParseShaderFromSource(resolvedPath, code, sequenceElements);
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
@@ -1078,7 +1093,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
-            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
+            cache->InitialiseShaderConfig(SettingsMap.Get("E_0FILEPICKERCTRL_IFS", ""), mSequenceElements);
             programId = programIdForShaderCode(_shaderConfig, cache);
         } else {
             spdlog::warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
