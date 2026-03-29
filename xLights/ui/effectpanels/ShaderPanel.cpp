@@ -272,7 +272,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     ObtainAccessToURL(newf.ToStdString());
 
     // if shader name hasnt changed dont reset
-    if (newf == last) {
+    if (newf == last && newf == "") {
         return;
     }
 

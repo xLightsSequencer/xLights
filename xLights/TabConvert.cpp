@@ -874,6 +874,11 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     //Need to make sure all the ASAP work is done first or it
     //may abort the render
     DoASAPWork();
+    // Abort any existing renders so renderProgressInfo only contains our
+    // preview job. Without this the loop below waits for renders it didn't
+    // start (e.g. a main-sequence render) that can never finish because
+    // the sleep-based poll never processes DoASAPWork or normal events.
+    AbortRender();
     Render(seqElements, seqData, { matrixModel }, { matrixModel },
            0, numFrames - 1, false, true, [](bool) {});
 

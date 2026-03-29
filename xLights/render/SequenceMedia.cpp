@@ -1011,6 +1011,21 @@ void ShaderMediaCacheEntry::GenerateShaderPreview(xLightsFrame* xl) {
     ShaderConfig* config = GetShaderConfig(&xl->GetSequenceElements());
     if (!config) return;
 
+    // Only one preview render at a time.  GenerateShaderPreview is re-entered when
+    // a second shader is clicked while the first is still rendering: the new Render()
+    // call adds jobs to renderProgressInfo and the outer loop never drains -- stuck.
+    // If that happens, abort the in-flight render so its loop can exit, then bail.
+    // The user can click again once the first generation has returned.
+    static std::atomic<bool> s_generating{false};
+    {
+        bool expected = false;
+        if (!s_generating.compare_exchange_strong(expected, true)) {
+            xl->AbortRender();
+            return;
+        }
+    }
+    struct GenerateGuard { ~GenerateGuard() { s_generating = false; } } _guard;
+
     // Build settings string with default values for all shader parameters
     std::string settings = "E_0FILEPICKERCTRL_IFS=" + _filePath;
     settings += ",E_SLIDER_Shader_Speed=100";
