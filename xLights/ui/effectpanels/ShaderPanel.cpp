@@ -672,7 +672,7 @@ void ShaderPanel::UpdatePreview()
     if (!_previewBitmap) return;
 
     auto file = FilePickerCtrl1->GetFileName().GetFullPath().ToStdString();
-    if (_filenameLabel) _filenameLabel->SetLabel(wxFileName(file).GetFullName());
+    if (_filenameLabel) _filenameLabel->SetLabel(file);
     if (file.empty()) {
         _previewBitmap->SetBitmap(wxNullBitmap);
         return;

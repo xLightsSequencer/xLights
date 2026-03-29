@@ -481,7 +481,7 @@ void VideoPanel::UpdatePreview()
 
     wxFileName fn = FilePicker_Video_Filename->GetFileName();
     std::string file = fn.GetFullPath().ToStdString();
-    if (_filenameLabel) _filenameLabel->SetLabel(fn.GetFullName());
+    if (_filenameLabel) _filenameLabel->SetLabel(file);
     if (file.empty()) {
         _previewBitmap->SetBitmap(wxNullBitmap);
         return;
