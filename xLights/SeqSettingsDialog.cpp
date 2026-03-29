@@ -435,7 +435,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer7->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Close = new wxButton(this, ID_BUTTON_Close, _("Done"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Close"));
     FlexGridSizer7->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer7, 1, wxLEFT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer7, 1, wxLEFT|wxBOTTOM|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -480,6 +480,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
                                              xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
                                              xLightsParent);
         Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Media"), false);
+        GetSizer()->SetSizeHints(this);
     }
 
     TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
@@ -870,6 +871,12 @@ void SeqSettingsDialog::SetHash()
 void SeqSettingsDialog::OnNotebook_Seq_SettingsPageChanged(wxBookCtrlEvent& event)
 {
     SetHash();
+    // Expand the media tree groups when the Media tab becomes visible.  We can't
+    // do this during Populate() because GTK's FindNode() asserts if Expand() is
+    // called before the widget is shown on screen.
+    if (Panel_ManageMedia != nullptr && event.GetSelection() == 3) {
+        Panel_ManageMedia->RequestExpandGroups();
+    }
 }
 
 void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)

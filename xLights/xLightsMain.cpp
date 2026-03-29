@@ -32,6 +32,8 @@
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
 #include <wx/tokenzr.h>
+#include <wx/settings.h>
+#include <wx/display.h>
 #include <wx/tooltip.h>
 #include <wx/valnum.h>
 #include <wx/version.h>
@@ -3368,7 +3370,17 @@ void xLightsFrame::ShowSequenceSettings()
 
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, &_sequenceElements, mediaDirectories, wxEmptyString, wxEmptyString);
+    // Constrain before Fit() so Fit() → SetSize() → DoSetSize() clips to the max.
+    // Setting max size here is the reliable cross-platform approach: DoSetSize()
+    // checks GetMaxSize() and won't exceed it, even on Wayland where post-Fit
+    // SetSize() calls may be ignored until the window is first mapped.
+    {
+        wxRect usable = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea();
+        // Reserve ~40px each side for window decorations / compositor shadows.
+        dialog.SetMaxSize(wxSize(usable.GetWidth() - 40, usable.GetHeight() - 40));
+    }
     dialog.Fit();
+    dialog.Centre();
     int ret_code = dialog.ShowModal();
 
     if (ret_code == NEEDS_RENDER || numThreadsAborted > 0) {

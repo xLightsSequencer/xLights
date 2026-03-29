@@ -103,8 +103,11 @@ public:
     virtual ~ManageMediaPanel();
 
     void Populate(const std::string& selectPath = {});
+    void ExpandGroups();
+    void RequestExpandGroups();
 
 private:
+    void OnIdle(wxIdleEvent& event);
     void OnTreeItemSelected(wxDataViewEvent& event);
     void OnTreeMouseMotion(wxMouseEvent& event);
     void OnTreeContextMenu(wxDataViewEvent& event);
@@ -154,6 +157,7 @@ private:
     wxButton* _embedAllButton = nullptr;
     wxButton* _extractAllButton = nullptr;
     wxButton* _removeButton = nullptr;
+    bool _expandPending = false;
 
     // Animated preview
     void OnPreviewTimer(wxTimerEvent& event);

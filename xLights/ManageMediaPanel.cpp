@@ -330,7 +330,10 @@ wxDataViewItem MediaViewModel::GetParent(const wxDataViewItem& item) const
 {
     if (!item.IsOk()) return wxDataViewItem(nullptr);
     MediaNode* node = static_cast<MediaNode*>(item.GetID());
-    if (!node || node->isGroup) return wxDataViewItem(nullptr);
+    if (!node) return wxDataViewItem(nullptr);
+    // Return actual parent for all nodes — nullptr parent means top-level (root).
+    // Previously this returned nullptr for all group nodes, which broke GTK's
+    // FindNode() for nested directory groups under type groups.
     return wxDataViewItem(node->parent);
 }
 
@@ -383,6 +386,7 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     , _filterType(filterType)
     , _model(new MediaViewModel())
 {
+    // Two-column layout: tree on the left (grows), preview+buttons on the right.
     wxFlexGridSizer* mainSizer = new wxFlexGridSizer(1, 2, 0, 0);
     mainSizer->AddGrowableCol(0);
     mainSizer->AddGrowableRow(0);
@@ -392,84 +396,77 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
                                     (singleSelect ? wxDV_SINGLE : wxDV_MULTIPLE) | wxBORDER_SUNKEN);
     _mediaTree->AssociateModel(_model.get());
 
-    _mediaTree->AppendTextColumn("File",   COL_NAME,   wxDATAVIEW_CELL_INERT, 300, wxALIGN_LEFT,
+    _mediaTree->AppendTextColumn("File",   COL_NAME,   wxDATAVIEW_CELL_INERT, 220, wxALIGN_LEFT,
                                  wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-    _mediaTree->AppendTextColumn("Size",   COL_SIZE,   wxDATAVIEW_CELL_INERT,  80, wxALIGN_LEFT,
+    _mediaTree->AppendTextColumn("Size",   COL_SIZE,   wxDATAVIEW_CELL_INERT,  70, wxALIGN_LEFT,
                                  wxDATAVIEW_COL_RESIZABLE);
-    _mediaTree->AppendTextColumn("Frames", COL_FRAMES, wxDATAVIEW_CELL_INERT,  55, wxALIGN_LEFT,
+    _mediaTree->AppendTextColumn("Frames", COL_FRAMES, wxDATAVIEW_CELL_INERT,  50, wxALIGN_LEFT,
                                  wxDATAVIEW_COL_RESIZABLE);
-    // On macOS the native control expands the last column; giving it -1 (auto)
-    // lets it take remaining space naturally rather than being clipped.
     _mediaTree->AppendTextColumn("Status", COL_STATUS, wxDATAVIEW_CELL_INERT,  -1, wxALIGN_LEFT,
                                  wxDATAVIEW_COL_RESIZABLE);
-    // Minimum width: File(300) + Size(80) + Frames(55) + Status(~80) + scrollbar+padding(~50)
-    _mediaTree->SetMinSize(wxSize(600, 300));
-
+    // Only constrain height — width fills whatever space the dialog provides.
+    _mediaTree->SetMinSize(wxSize(-1, 100));
     mainSizer->Add(_mediaTree, 1, wxALL | wxEXPAND, 5);
 
-    // Right side: preview and buttons
-    wxFlexGridSizer* rightSizer = new wxFlexGridSizer(0, 1, 0, 0);
-    rightSizer->AddGrowableCol(0);
+    // Right side: preview + single-column stacked buttons.
+    wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
 
-    _preview = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(150, 150));
-    _preview->SetMinSize(wxSize(150, 150));
-    _preview->SetMaxSize(wxSize(150, 150));
-    rightSizer->Add(_preview, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+    _preview = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(100, 100));
+    _preview->SetMinSize(wxSize(100, 100));
+    _preview->SetMaxSize(wxSize(100, 100));
+    rightSizer->Add(_preview, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 4);
 
-    _infoLabel = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, -1),
+    _infoLabel = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(130, -1),
                                   wxST_NO_AUTORESIZE);
-    _infoLabel->SetMinSize(wxSize(150, -1));
-    rightSizer->Add(_infoLabel, 0, wxALL | wxEXPAND, 5);
+    rightSizer->Add(_infoLabel, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 4);
 
-    rightSizer->Add(0, 10, 0);
+    rightSizer->Add(0, 2, 0);
 
     _addButton = new wxButton(this, wxID_ANY, "Add...");
     _addButton->SetToolTip("Add a media file to the sequence");
-    _addButton->Show(!singleSelect);  // Hidden in SelectMediaDialog (it has its own "Add from disk...")
-    rightSizer->Add(_addButton, 0, wxALL | wxEXPAND, 5);
+    _addButton->Show(!singleSelect);
+    rightSizer->Add(_addButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
     _aiGenerateButton = new wxButton(this, wxID_ANY, "AI Generate...");
     _aiGenerateButton->SetToolTip("Generate an image using an AI service and add it to the sequence media");
-    rightSizer->Add(_aiGenerateButton, 0, wxALL | wxEXPAND, 5);
+    rightSizer->Add(_aiGenerateButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
-    rightSizer->Add(0, 10, 0);
+    rightSizer->Add(0, 4, 0);
 
     _renameButton = new wxButton(this, wxID_ANY, "Rename...");
     _renameButton->SetToolTip("Rename the selected embedded image and update all sequence references");
     _renameButton->Disable();
-    rightSizer->Add(_renameButton, 0, wxALL | wxEXPAND, 5);
+    rightSizer->Add(_renameButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
-    rightSizer->Add(0, 10, 0);
+    rightSizer->Add(0, 4, 0);
 
     _embedButton = new wxButton(this, wxID_ANY, "Embed");
     _embedButton->SetToolTip("Store this media inside the sequence file");
     _embedButton->Disable();
-    rightSizer->Add(_embedButton, 0, wxALL | wxEXPAND, 5);
+    rightSizer->Add(_embedButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
     _extractButton = new wxButton(this, wxID_ANY, "Extract");
     _extractButton->SetToolTip("Reference this media from an external file path");
     _extractButton->Disable();
-    rightSizer->Add(_extractButton, 0, wxALL | wxEXPAND, 5);
-
-    rightSizer->Add(0, 10, 0);
+    rightSizer->Add(_extractButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
     _embedAllButton = new wxButton(this, wxID_ANY, "Embed All");
     _embedAllButton->SetToolTip("Store all media inside the sequence file");
-    rightSizer->Add(_embedAllButton, 0, wxALL | wxEXPAND, 5);
+    rightSizer->Add(_embedAllButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
     _extractAllButton = new wxButton(this, wxID_ANY, "Extract All");
     _extractAllButton->SetToolTip("Reference all media from external file paths");
-    rightSizer->Add(_extractAllButton, 0, wxALL | wxEXPAND, 5);
+    rightSizer->Add(_extractAllButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
-    rightSizer->Add(0, 10, 0);
+    rightSizer->Add(0, 4, 0);
 
     _removeButton = new wxButton(this, wxID_ANY, "Remove");
     _removeButton->SetToolTip("Remove the selected embedded media from the sequence");
     _removeButton->Disable();
-    _removeButton->Show(!singleSelect);  // Hidden in SelectMediaDialog
-    rightSizer->Add(_removeButton, 0, wxALL | wxEXPAND, 5);
+    _removeButton->Show(!singleSelect);
+    rightSizer->Add(_removeButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
-    mainSizer->Add(rightSizer, 0, wxALL | wxEXPAND, 0);
+    mainSizer->Add(rightSizer, 0, wxALL | wxEXPAND, 2);
 
     SetSizer(mainSizer);
 
@@ -538,21 +535,20 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
 
     std::list<std::string> mediaDirs;
     if (_xlFrame) mediaDirs = _xlFrame->GetMediaFolders();
+    // Rebuild the model data silently, then force GTK to rebuild its internal row
+    // structure by dissociating and re-associating the model.  This is safer than
+    // Cleared() + ItemAdded(): Cleared() sets GTK's internal count to 0, and mixing
+    // it with ItemAdded() causes a count disparity that triggers the
+    // "model changed without letting the view know" GTK-CRITICAL during paint.
+    // AssociateModel() calls gtk_tree_view_set_model() which runs
+    // gtk_tree_view_build_tree() synchronously, so Expand() works immediately after.
     _model->Rebuild(_sequenceMedia, _showDirectory, mediaDirs, _filterType);
-    _model->Cleared();
+    _mediaTree->AssociateModel(nullptr);
+    _mediaTree->AssociateModel(_model.get());
 
-    // Expand all top-level and second-level groups
-    wxDataViewItemArray groups;
-    _model->GetChildren(wxDataViewItem(nullptr), groups);
-    for (const auto& grp : groups) {
-        _mediaTree->Expand(grp);
-        wxDataViewItemArray subGroups;
-        _model->GetChildren(grp, subGroups);
-        for (const auto& sub : subGroups) {
-            if (_model->IsContainer(sub))
-                _mediaTree->Expand(sub);
-        }
-    }
+    // Request expansion — the actual Expand() calls are deferred to an idle
+    // handler so that GTK has fully realized and mapped the widget first.
+    RequestExpandGroups();
 
     // Determine Embed All / Extract All availability (only for filtered type if set)
     auto allPaths = _sequenceMedia->GetAllMediaPaths();
@@ -595,6 +591,38 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
             wxDataViewEvent evt(wxEVT_DATAVIEW_SELECTION_CHANGED, _mediaTree, item);
             wxPostEvent(_mediaTree, evt);
         }
+    }
+}
+
+void ManageMediaPanel::ExpandGroups()
+{
+    wxDataViewItemArray groups;
+    _model->GetChildren(wxDataViewItem(nullptr), groups);
+    for (const auto& grp : groups) {
+        _mediaTree->Expand(grp);
+        wxDataViewItemArray subGroups;
+        _model->GetChildren(grp, subGroups);
+        for (const auto& sub : subGroups) {
+            if (_model->IsContainer(sub))
+                _mediaTree->Expand(sub);
+        }
+    }
+}
+
+void ManageMediaPanel::RequestExpandGroups()
+{
+    if (!_expandPending) {
+        _expandPending = true;
+        Bind(wxEVT_IDLE, &ManageMediaPanel::OnIdle, this);
+    }
+}
+
+void ManageMediaPanel::OnIdle(wxIdleEvent& event)
+{
+    if (_expandPending && IsShownOnScreen()) {
+        _expandPending = false;
+        Unbind(wxEVT_IDLE, &ManageMediaPanel::OnIdle, this);
+        ExpandGroups();
     }
 }
 
@@ -2070,6 +2098,7 @@ SelectMediaDialog::SelectMediaDialog(wxWindow* parent, SequenceMedia* sequenceMe
     topSizer->Add(btnRowSizer, 0, wxEXPAND | wxALL, 4);
 
     SetSizerAndFit(topSizer);
+    SetMinSize(wxSize(600, 400));
     Fit();
 
     // Enable OK when a single leaf item is selected in the panel's tree
