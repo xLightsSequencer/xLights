@@ -272,7 +272,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     ObtainAccessToURL(newf.ToStdString());
 
     // if shader name hasnt changed dont reset
-    if (newf == last && newf == "") {
+    if (newf == last) {
         return;
     }
 
@@ -312,7 +312,11 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
         FilePickerCtrl1->UnsetToolTip();
         Thaw();
     }
-    UpdatePreview();
+    // Defer preview generation so it runs outside the event-handler stack.
+    // GenerateShaderPreview uses wxYield() internally; calling it synchronously
+    // here (while ApplySetting/OnEffectSettingsTimerTrigger are on the stack)
+    // causes re-entrant timer fires and GL-context switches that flash the preview.
+    CallAfter([this]() { UpdatePreview(); });
     FireChangeEvent();
 }
 

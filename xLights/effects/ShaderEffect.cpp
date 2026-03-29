@@ -292,8 +292,25 @@ ShaderConfig* ShaderEffect::ParseShaderFromSource(const std::string& filename, c
 }
 
 ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
-    std::string code = sequenceElements->GetSequenceMedia().GetShader(filename)->GetShaderSource();
-    return ParseShaderFromSource(filename, code, sequenceElements);
+    // Try SequenceMedia first (handles embedded shaders and cached entries)
+    if (sequenceElements != nullptr) {
+        auto entry = sequenceElements->GetSequenceMedia().GetShader(filename);
+        if (entry != nullptr && !entry->GetShaderSource().empty()) {
+            return ParseShaderFromSource(filename, entry->GetShaderSource(), sequenceElements);
+        }
+    }
+    // Fallback: read file directly (handles path resolution edge cases)
+    std::string resolvedPath = FixFile("", filename);
+    if (resolvedPath.empty()) resolvedPath = filename;
+    ObtainAccessToURL(resolvedPath);
+
+    if (!FileExists(resolvedPath)) return nullptr;
+    std::ifstream f(resolvedPath, std::ios::in);
+    if (!f.is_open()) return nullptr;
+    std::ostringstream ss;
+    ss << f.rdbuf();
+    std::string code = ss.str();
+    return ParseShaderFromSource(resolvedPath, code, sequenceElements);
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
@@ -1021,12 +1038,15 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 
 void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    
-
     // Bail out right away if we don't have the necessary OpenGL support
     if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport()) {
         setRenderBufferAll(buffer, xlCYAN);
         spdlog::error("ShaderEffect::Render() - missing OpenGL support!!");
+        return;
+    }
+
+    // No shader file configured - nothing to render, skip all GL work
+    if (SettingsMap.Get("0FILEPICKERCTRL_IFS", "").empty()) {
         return;
     }
 
@@ -1079,7 +1099,9 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
-            programId = programIdForShaderCode(_shaderConfig, cache);
+            if (_shaderConfig != nullptr) {
+                programId = programIdForShaderCode(_shaderConfig, cache);
+            }
         } else {
             spdlog::warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
@@ -1090,8 +1112,6 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         }
         if (_shaderConfig != nullptr) {
             programId = cache->RefreshProgramId();
-        } else if (programId == 0) {
-            programId = programIdForShaderCode(_shaderConfig, cache);
         }
         _timeMS += buffer.frameTimeInMs * timeRate;
     }

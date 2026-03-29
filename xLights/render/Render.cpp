@@ -1088,7 +1088,8 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     std::unique_lock<std::mutex> lock(ev->mutex);
 
     // validate that the effect still exists as this could be being processed after the effect was deleted
-    if (_sequenceElements.IsValidEffect(ev->effect)) {
+    // Also check preset elements - used when rendering shader/effect previews via RenderEffectToFrames
+    if (_sequenceElements.IsValidEffect(ev->effect) || _presetSequenceElements.IsValidEffect(ev->effect)) {
         ev->returnVal = RenderEffectFromMap(ev->suppress, ev->effect,
             ev->layer,
             ev->period,
@@ -2229,7 +2230,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
                         // After yield who knows what may or may not be valid so we need to revalidate it
                         if (!_sequenceElements.IsValidEffect(event->effect)) {
-                            logger_render->error("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
+                            logger_render->error("In RenderEffectFromMap after Yield() call: effect is no longer valid (expected during abort/delete).");
                         }
                     }
                 }
