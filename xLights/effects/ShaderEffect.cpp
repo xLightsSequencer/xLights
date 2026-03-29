@@ -292,7 +292,9 @@ ShaderConfig* ShaderEffect::ParseShaderFromSource(const std::string& filename, c
 }
 
 ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
-    std::string code = sequenceElements->GetSequenceMedia().GetShader(filename)->GetShaderSource();
+    auto shader = sequenceElements->GetSequenceMedia().GetShader(filename);
+    if (!shader) return nullptr;
+    std::string code = shader->GetShaderSource();
     return ParseShaderFromSource(filename, code, sequenceElements);
 }
 
