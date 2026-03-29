@@ -1045,8 +1045,9 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         return;
     }
 
-    // No shader file configured - nothing to render, skip all GL work
+    // No shader file configured - render red just like video/pictures effect
     if (SettingsMap.Get("0FILEPICKERCTRL_IFS", "").empty()) {
+        setRenderBufferAll(buffer, xlRED);
         return;
     }
 
