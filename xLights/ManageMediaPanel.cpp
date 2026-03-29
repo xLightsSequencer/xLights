@@ -386,6 +386,8 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     , _filterType(filterType)
     , _model(new MediaViewModel())
 {
+    SetExtraStyle(GetExtraStyle() | wxWS_EX_PROCESS_IDLE);
+
     // Two-column layout: tree on the left (grows), preview+buttons on the right.
     wxFlexGridSizer* mainSizer = new wxFlexGridSizer(1, 2, 0, 0);
     mainSizer->AddGrowableCol(0);
