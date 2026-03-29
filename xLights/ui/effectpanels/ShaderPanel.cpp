@@ -268,11 +268,13 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
     static wxString last = "";
 
-    wxString newf = FilePickerCtrl1->GetFileName().GetFullName();
-    ObtainAccessToURL(newf.ToStdString());
+    // Use event path — GetFileName() on the control can lag or return empty
+    wxString fullPath = event.GetPath();
+    wxString newf = wxFileName(fullPath).GetFullName();
+    ObtainAccessToURL(fullPath.ToStdString());
 
     // if shader name hasnt changed dont reset
-    if (newf == last && newf == "") {
+    if (newf == last) {
         return;
     }
 
@@ -291,11 +293,27 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     TextCtrl_Shader_Offset_Y->SetValue("0");
     TextCtrl_Shader_Zoom->SetValue("0");
 
+    if (fullPath.empty()) {
+        Freeze();
+        last = "";
+        _shaderCacheEntry.reset();
+        _shaderConfig = nullptr;
+        FlexGridSizer_Dynamic->DeleteWindows();
+        FilePickerCtrl1->UnsetToolTip();
+        Thaw();
+        CallAfter([this]() { UpdatePreview(); });
+        FireChangeEvent();
+        return;
+    }
+
     // Resolve shader through SequenceMedia (handles relative paths and embedded shaders)
-    wxString fullPath = FilePickerCtrl1->GetFileName().GetFullPath();
     auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
     auto& media = xl->GetSequenceElements().GetSequenceMedia();
     _shaderCacheEntry = media.GetShader(fullPath.ToStdString());
+    if (!_shaderCacheEntry) {
+        _shaderConfig = nullptr;
+        return;
+    }
     _shaderCacheEntry->MarkIsUsed();
     if (!_shaderCacheEntry->GetShaderSource().empty()) {
         if (BuildUI(_shaderCacheEntry.get(), &xl->GetSequenceElements())) {
@@ -312,10 +330,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
         FilePickerCtrl1->UnsetToolTip();
         Thaw();
     }
-    // Defer preview generation so it runs outside the event-handler stack.
-    // GenerateShaderPreview uses wxYield() internally; calling it synchronously
-    // here (while ApplySetting/OnEffectSettingsTimerTrigger are on the stack)
-    // causes re-entrant timer fires and GL-context switches that flash the preview.
+    // Defer so GenerateShaderPreview's render loop doesn't re-enter event handlers
     CallAfter([this]() { UpdatePreview(); });
     FireChangeEvent();
 }
@@ -691,6 +706,10 @@ void ShaderPanel::UpdatePreview()
 
     if (_previewFrames.empty()) return;
 
+    // Ensure the sizer has run so _previewBitmap->GetSize() is valid before scaling
+    if (_previewBitmap->GetSize().x <= 0)
+        Layout();
+
     ShowPreviewFrame(0);
 
     if (_previewFrames.size() > 1) {
@@ -737,7 +756,16 @@ void ShaderPanel::ShowPreviewFrame(size_t index)
         scaled.Rescale(sw, sh);
     }
 
-    wxBitmap bmp(xlImageToWxImage(scaled));
+    // Paint the scaled image centred on a canvas that exactly fills the widget.
+    // wxStaticBitmap always draws at (0,0), so without this the image is
+    // left-justified whenever it is narrower than the widget (aspect ratio fit).
+    int cw = std::max(1, (int)(widgetSize.x * scaleFactor));
+    int ch = std::max(1, (int)(widgetSize.y * scaleFactor));
+    wxImage canvas(cw, ch);
+    wxColour bg = GetBackgroundColour();
+    canvas.SetRGB(wxRect(0, 0, cw, ch), bg.Red(), bg.Green(), bg.Blue());
+    canvas.Paste(xlImageToWxImage(scaled), (cw - sw) / 2, (ch - sh) / 2);
+    wxBitmap bmp(canvas);
     bmp.SetScaleFactor(scaleFactor);
     _previewBitmap->SetBitmap(bmp);
     _previewBitmap->Refresh();

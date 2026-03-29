@@ -1011,16 +1011,13 @@ void ShaderMediaCacheEntry::GenerateShaderPreview(xLightsFrame* xl) {
     ShaderConfig* config = GetShaderConfig(&xl->GetSequenceElements());
     if (!config) return;
 
-    // Only one preview render at a time.  GenerateShaderPreview is re-entered when
-    // a second shader is clicked while the first is still rendering: the new Render()
-    // call adds jobs to renderProgressInfo and the outer loop never drains -- stuck.
-    // If that happens, abort the in-flight render so its loop can exit, then bail.
-    // The user can click again once the first generation has returned.
+    // Prevent re-entrancy: a second click while rendering would add jobs to
+    // renderProgressInfo and the poll loop would never drain -- stuck.
     static std::atomic<bool> s_generating{false};
     {
         bool expected = false;
         if (!s_generating.compare_exchange_strong(expected, true)) {
-            xl->AbortRender();
+            xl->AbortRender(); // unblock the in-flight loop so it can exit
             return;
         }
     }

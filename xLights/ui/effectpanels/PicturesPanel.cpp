@@ -43,6 +43,7 @@
 #include "../../ai/aiType.h"
 #include "../../ManageMediaPanel.h"
 #include "../wxUtilities.h"
+#include <wx/artprov.h>
 #include <wx/datetime.h>
 #include <wx/msgdlg.h>
 
@@ -336,6 +337,25 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel()
 	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	//*)
+
+    // Add X (clear) button next to SelectButton
+    {
+        wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
+        _clearButton = new wxBitmapButton(this, wxID_ANY, clearBmp, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+        _clearButton->SetToolTip("Clear image");
+
+        wxSizer* fgs6 = SelectButton->GetContainingSizer();
+        fgs6->Detach(SelectButton);
+        wxBoxSizer* selectRow = new wxBoxSizer(wxHORIZONTAL);
+        selectRow->Add(SelectButton, 1, wxRIGHT, 2);
+        selectRow->Add(_clearButton, 0, 0, 0);
+        fgs6->Insert(0, selectRow, 1, wxALL | wxEXPAND, 5);
+    }
+    _clearButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        FileNameCtrl->SetValue("");
+        UpdatePreviewBitmap("");
+        FireChangeEvent();
+    });
 
 	Connect(ID_VALUECURVE_PicturesXC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_PicturesYC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnVCButtonClick);
