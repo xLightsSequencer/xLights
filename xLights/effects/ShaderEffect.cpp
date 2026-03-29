@@ -293,7 +293,9 @@ ShaderConfig* ShaderEffect::ParseShaderFromSource(const std::string& filename, c
 
 ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
     auto shader = sequenceElements->GetSequenceMedia().GetShader(filename);
-    if (!shader) return nullptr;
+    if (!shader) {
+        return nullptr;
+    }
     std::string code = shader->GetShaderSource();
     return ParseShaderFromSource(filename, code, sequenceElements);
 }
@@ -1023,12 +1025,16 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 
 void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    
-
     // Bail out right away if we don't have the necessary OpenGL support
     if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport()) {
         setRenderBufferAll(buffer, xlCYAN);
         spdlog::error("ShaderEffect::Render() - missing OpenGL support!!");
+        return;
+    }
+
+    // No shader file configured - render red just like video/pictures effect
+    if (SettingsMap.Get("0FILEPICKERCTRL_IFS", "").empty()) {
+        setRenderBufferAll(buffer, xlRED);
         return;
     }
 
@@ -1081,7 +1087,9 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
-            programId = programIdForShaderCode(_shaderConfig, cache);
+            if (_shaderConfig != nullptr) {
+                programId = programIdForShaderCode(_shaderConfig, cache);
+            }
         } else {
             spdlog::warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
@@ -1092,8 +1100,6 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         }
         if (_shaderConfig != nullptr) {
             programId = cache->RefreshProgramId();
-        } else if (programId == 0) {
-            programId = programIdForShaderCode(_shaderConfig, cache);
         }
         _timeMS += buffer.frameTimeInMs * timeRate;
     }

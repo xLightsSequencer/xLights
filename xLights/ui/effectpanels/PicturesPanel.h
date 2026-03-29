@@ -28,6 +28,7 @@ class wxTextCtrl;
 
 #include <memory>
 #include <vector>
+#include <wx/bmpbuttn.h>
 #include <wx/filepicker.h>
 #include <wx/timer.h>
 #include "../../BulkEditControls.h"
@@ -183,4 +184,5 @@ private:
 		std::vector<long> _previewFrameTimes;
 		size_t _currentPreviewFrame = 0;
 		wxStaticText* _filenameLabel = nullptr;
+		wxBitmapButton* _clearButton = nullptr;
 };

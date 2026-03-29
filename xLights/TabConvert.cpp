@@ -874,13 +874,14 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     //Need to make sure all the ASAP work is done first or it
     //may abort the render
     DoASAPWork();
-    Render(seqElements, seqData, { matrixModel }, { matrixModel },
-           0, numFrames - 1, false, true, [](bool) {});
 
-    // Poll for render completion without wxYield() to avoid processing
-    // arbitrary events (e.g. RecalcModels via DoASAPWork) that would call
-    // AbortRender and kill this render job mid-flight.
-    while (!renderProgressInfo.empty()) {
+    // Use the callback to wait only for this render, not all of renderProgressInfo
+    // (which may contain an unrelated main-sequence render that won't finish here).
+    std::atomic<bool> renderComplete{false};
+    Render(seqElements, seqData, { matrixModel }, { matrixModel },
+           0, numFrames - 1, false, true, [&renderComplete](bool) { renderComplete = true; });
+
+    while (!renderComplete) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         RenderMainThreadEffects();
         UpdateRenderStatus();

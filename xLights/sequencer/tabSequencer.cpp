@@ -2238,6 +2238,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     if( playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
+        if (args == nullptr || args->effect == nullptr || !_sequenceElements.IsValidEffect(args->effect)) return;
         playModel = GetModel(args->element->GetModelName());
         if (playModel != nullptr) {
             SetPlayStatus(PLAY_TYPE_EFFECT);
@@ -2411,11 +2412,10 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
 
 void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 {
-    
     if (CurrentSeqXmlFile == nullptr) {
         return;
     }
-    
+
     PushTraceContext();
     AddTraceMessage("In OnEffectSettingsTimerTrigger");
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
@@ -2924,7 +2924,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			}
 		} else if (name.StartsWith("ID_FILEPICKER") || name.StartsWith("ID_0FILEPICKER")) {
 			wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
-			picker->SetFileName(value);
+			picker->SetPath(value);  // SetPath bypasses wxFLP_FILE_MUST_EXIST so empty paths clear the control correctly
 
 			wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
 			evt.SetEventObject(picker);

@@ -268,11 +268,13 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 {
     static wxString last = "";
 
-    wxString newf = FilePickerCtrl1->GetFileName().GetFullName();
-    ObtainAccessToURL(newf.ToStdString());
+    // Use event path — GetFileName() on the control can lag or return empty
+    wxString fullPath = event.GetPath();
+    wxString newf = wxFileName(fullPath).GetFullName();
+    ObtainAccessToURL(fullPath.ToStdString());
 
     // if shader name hasnt changed dont reset
-    if (newf == last && newf == "") {
+    if (newf == last) {
         return;
     }
 
@@ -291,11 +293,27 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     TextCtrl_Shader_Offset_Y->SetValue("0");
     TextCtrl_Shader_Zoom->SetValue("0");
 
+    if (fullPath.empty()) {
+        Freeze();
+        last = "";
+        _shaderCacheEntry.reset();
+        _shaderConfig = nullptr;
+        FlexGridSizer_Dynamic->DeleteWindows();
+        FilePickerCtrl1->UnsetToolTip();
+        Thaw();
+        CallAfter([this]() { UpdatePreview(); });
+        FireChangeEvent();
+        return;
+    }
+
     // Resolve shader through SequenceMedia (handles relative paths and embedded shaders)
-    wxString fullPath = FilePickerCtrl1->GetFileName().GetFullPath();
     auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
     auto& media = xl->GetSequenceElements().GetSequenceMedia();
     _shaderCacheEntry = media.GetShader(fullPath.ToStdString());
+    if (!_shaderCacheEntry) {
+        _shaderConfig = nullptr;
+        return;
+    }
     _shaderCacheEntry->MarkIsUsed();
     if (!_shaderCacheEntry->GetShaderSource().empty()) {
         if (BuildUI(_shaderCacheEntry.get(), &xl->GetSequenceElements())) {
@@ -312,7 +330,8 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
         FilePickerCtrl1->UnsetToolTip();
         Thaw();
     }
-    UpdatePreview();
+    // Defer so GenerateShaderPreview's render loop doesn't re-enter event handlers
+    CallAfter([this]() { UpdatePreview(); });
     FireChangeEvent();
 }
 
@@ -687,6 +706,10 @@ void ShaderPanel::UpdatePreview()
 
     if (_previewFrames.empty()) return;
 
+    // Ensure the sizer has run so _previewBitmap->GetSize() is valid before scaling
+    if (_previewBitmap->GetSize().x <= 0)
+        Layout();
+
     ShowPreviewFrame(0);
 
     if (_previewFrames.size() > 1) {
@@ -736,5 +759,9 @@ void ShaderPanel::ShowPreviewFrame(size_t index)
     wxBitmap bmp(xlImageToWxImage(scaled));
     bmp.SetScaleFactor(scaleFactor);
     _previewBitmap->SetBitmap(bmp);
+    _previewBitmap->InvalidateBestSize();
     _previewBitmap->Refresh();
+    _previewBitmap->Update();
+    if (_previewBitmap->GetParent())
+        _previewBitmap->GetParent()->Layout();
 }

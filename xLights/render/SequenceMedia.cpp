@@ -1003,13 +1003,25 @@ ShaderConfig* ShaderMediaCacheEntry::GetShaderConfig(SequenceElements* sequenceE
 void ShaderMediaCacheEntry::GenerateShaderPreview(xLightsFrame* xl) {
     {
         std::scoped_lock lock(_cacheMutex);
-        if (!_previewFrames.empty()) return; // already cached
+        if (!_previewFrames.empty()) return; // already cached  
     }
 
     if (!xl || _shaderSource.empty()) return;
 
     ShaderConfig* config = GetShaderConfig(&xl->GetSequenceElements());
     if (!config) return;
+
+    // Prevent re-entrancy: a second click while rendering would add jobs to
+    // renderProgressInfo and the poll loop would never drain -- stuck.
+    static std::atomic<bool> s_generating{false};
+    {
+        bool expected = false;
+        if (!s_generating.compare_exchange_strong(expected, true)) {
+            xl->AbortRender(); // unblock the in-flight loop so it can exit
+            return;
+        }
+    }
+    struct GenerateGuard { ~GenerateGuard() { s_generating = false; } } _guard;
 
     // Build settings string with default values for all shader parameters
     std::string settings = "E_0FILEPICKERCTRL_IFS=" + _filePath;
@@ -1091,6 +1103,10 @@ void ShaderMediaCacheEntry::GenerateShaderPreview(xLightsFrame* xl) {
         _previewFrames = std::move(frames);
         for (size_t i = 0; i < _previewFrames.size(); i++) {
             _previewFrameTimes.push_back(frameTimeMs);
+        }
+        if (!_previewFrames.empty() && _previewFrames[0]) {
+            _previewWidth = _previewFrames[0]->GetWidth();
+            _previewHeight = _previewFrames[0]->GetHeight();
         }
     }
 }
