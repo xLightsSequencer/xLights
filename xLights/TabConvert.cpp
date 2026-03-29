@@ -871,11 +871,19 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     size_t channels = width * height * 3;
     seqData.init(channels, numFrames, frameTimeMs, true);
 
+    //Need to make sure all the ASAP work is done first or it
+    //may abort the render
+    DoASAPWork();
     Render(seqElements, seqData, { matrixModel }, { matrixModel },
            0, numFrames - 1, false, true, [](bool) {});
 
+    // Poll for render completion without wxYield() to avoid processing
+    // arbitrary events (e.g. RecalcModels via DoASAPWork) that would call
+    // AbortRender and kill this render job mid-flight.
     while (!renderProgressInfo.empty()) {
-        wxYield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        RenderMainThreadEffects();
+        UpdateRenderStatus();
     }
 
     for (size_t i = 0; i < numFrames; i++) {
@@ -1225,8 +1233,8 @@ void xLightsFrame::EnsurePresetModel()
     matrixModel->SetPixelStyle(Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH);
     matrixModel->SetPixelSize(2);
     matrixModel->SetTransparency(0);
-    matrixModel->SetNumMatrixStrings(PRESET_ICON_SIZE);
-    matrixModel->SetNodesPerString(PRESET_ICON_SIZE);
+    matrixModel->SetNumMatrixStrings(PRESET_ICON_SIZE * GetDPIScaleFactor());
+    matrixModel->SetNodesPerString(PRESET_ICON_SIZE * GetDPIScaleFactor());
     matrixModel->SetStrandsPerString(1);
     matrixModel->SetVertical(false);
     matrixModel->SetDirection("L");
@@ -1297,18 +1305,22 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
             EnsurePresetModel();
             LoadPresetEffects(pd);
 
-            size_t channels = PRESET_ICON_SIZE * PRESET_ICON_SIZE * 3;
-
+            size_t channels = _presetModel->GetNumChannels();
             // Only render if the preset contains effects
             if (pd.Effects().size() > 0) {
                 _presetSequenceData.init(channels, frames, 50, true);
 
                 AbortRender();
+                //Need to make sure all the ASAP work is done first or it
+                //may abort the render
+                DoASAPWork();
                 Render(_presetSequenceElements, _presetSequenceData,
                        { _presetModel }, { _presetModel },
                        0, frames - 1, false, true, [](bool) {});
                 while (!renderProgressInfo.empty()) {
-                    wxYield();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    RenderMainThreadEffects();
+                    UpdateRenderStatus();
                 }
             }
 
