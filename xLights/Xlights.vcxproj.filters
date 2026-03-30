@@ -67,9 +67,13 @@
     <ClCompile Include="render\Render.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="render\RenderUI.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="render\RenderBuffer.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="RenderCommandEvent.cpp" />
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />

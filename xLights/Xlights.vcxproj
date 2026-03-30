@@ -954,8 +954,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
     <ClCompile Include="render\Render.cpp" />
+    <ClCompile Include="render\RenderUI.cpp" />
     <ClCompile Include="render\RenderBuffer.cpp" />
     <ClCompile Include="render\RenderCache.cpp" />
+    <ClCompile Include="RenderCommandEvent.cpp" />
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="RestoreBackupDialog.cpp" />

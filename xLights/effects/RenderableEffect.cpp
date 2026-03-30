@@ -19,9 +19,6 @@
 #include "../render/ValueCurve.h"
 #include "../UtilFunctions.h"
 #include "EffectManager.h"
-#include "FanEffect.h"
-#include "PinwheelEffect.h"
-#include "SpiralsEffect.h"
 
 #include "../BufferPanel.h"
 #include "../ColorPanel.h"

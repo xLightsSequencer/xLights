@@ -379,10 +379,12 @@
 		<Unit filename="RenameTextDialog.cpp" />
 		<Unit filename="RenameTextDialog.h" />
 		<Unit filename="render/Render.cpp" />
+		<Unit filename="render/RenderUI.cpp" />
 		<Unit filename="render/RenderBuffer.cpp" />
 		<Unit filename="render/RenderBuffer.h" />
 		<Unit filename="render/RenderCache.cpp" />
 		<Unit filename="render/RenderCache.h" />
+		<Unit filename="RenderCommandEvent.cpp" />
 		<Unit filename="RenderCommandEvent.h" />
 		<Unit filename="RenderProgressDialog.cpp" />
 		<Unit filename="RenderProgressDialog.h" />

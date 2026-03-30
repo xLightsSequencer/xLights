@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <format>
+#include <functional>
 #include <mutex>
 #include <thread>
 #include <condition_variable>
@@ -24,7 +25,6 @@
 #include "RenderCommandEvent.h"
 #include "effects/RenderableEffect.h"
 #include "RenderProgressDialog.h"
-#include "SeqExportDialog.h"
 #include "RenderUtils.h"
 #include "models/ModelGroup.h"
 #include "sequencer/MainSequencer.h"
@@ -222,7 +222,7 @@ public:
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe)
-        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), gauge(nullptr), currentFrame(0), m_logger(spdlog::get("render")),
+        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), currentFrame(0), m_logger(spdlog::get("render")),
             supportsModelBlending(false), abort(false), statusMap(nullptr)
     {
         name = "";
@@ -322,8 +322,10 @@ public:
         }
     }
 
-    wxGauge *GetGauge() const { return gauge;}
-    void SetGauge(wxGauge *g) { gauge = g;}
+    void SetProgressCallback(std::function<void(int, const std::string&)> cb) { progressCallback = std::move(cb); }
+    void UpdateProgress(int value, const std::string& tooltip = {}) const {
+        if (progressCallback) progressCallback(value, tooltip);
+    }
     int GetCurrentFrame() const { return currentFrame;}
     int GetEndFrame() const { return endFrame;}
     int GetStartFrame() const { return startFrame;}
@@ -1041,7 +1043,7 @@ private:
     volatile int statusNode = -1;
     std::shared_ptr<spdlog::logger> m_logger{ nullptr };
 
-    wxGauge *gauge;
+    std::function<void(int, const std::string&)> progressCallback;
     std::atomic_int currentFrame;
     std::atomic_bool abort;
 
@@ -1050,9 +1052,6 @@ private:
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
 };
 
-
-IMPLEMENT_DYNAMIC_CLASS(RenderCommandEvent, wxCommandEvent)
-IMPLEMENT_DYNAMIC_CLASS(SelectedEffectChangedEvent, wxCommandEvent)
 
 void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
     if (evt.deleted) {
@@ -1196,6 +1195,7 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
         }
     }
 }
+
 void xLightsFrame::OnRenderStatusTimerTrigger(wxTimerEvent& event) {
     UpdateRenderStatus();
 }
@@ -1238,20 +1238,13 @@ void xLightsFrame::UpdateRenderStatus() {
                 if (i == END_OF_RENDER_FRAME) {
                     countFrames += rpi->jobs[row]->GetEndFrame() - rpi->jobs[row]->GetStartFrame() + 1;
                     if (shown) {
-                        wxGauge *g = rpi->jobs[row]->GetGauge();
-                        if (g != nullptr && g->GetValue() != 100) {
-                            g->SetValue(100);
-                        }
+                        rpi->jobs[row]->UpdateProgress(100);
                     }
                 } else {
                     i -= rpi->jobs[row]->GetStartFrame();
                     if (shown) {
                         int val = (i > rpi->endFrame) ? 100 : (100 * i)/frames;
-                        wxGauge *g = rpi->jobs[row]->GetGauge();
-                        if (g != nullptr && g->GetValue() != val) {
-                            g->SetValue(val);
-                            g->SetToolTip(rpi->jobs[row]->GetStatusForUser());
-                        }
+                        rpi->jobs[row]->UpdateProgress(val, rpi->jobs[row]->GetStatusForUser());
                     }
                     countFrames += i;
                 }
@@ -1566,7 +1559,14 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                 g->SetValue(0);
                 g->SetMinSize(wxSize(200, -1));
                 renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
-                jobs[row]->SetGauge(g);
+                jobs[row]->SetProgressCallback([g](int value, const std::string& tooltip) {
+                    if (g->GetValue() != value) {
+                        g->SetValue(value);
+                        if (!tooltip.empty()) {
+                            g->SetToolTip(tooltip);
+                        }
+                    }
+                });
             }
         }
     }
@@ -2073,45 +2073,6 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     EnableSequenceControls(true);
 
     return true;
-}
-
-void xLightsFrame::ExportModel(wxCommandEvent& command)
-{
-    unsigned int startFrame = 0;
-    unsigned int endFrame = _seqData.NumFrames();
-    std::string cmdStr = command.GetString().ToStdString();
-    std::vector<std::string> as;
-    Split(cmdStr, '|', as);
-    if (as.size() == 3) {
-        startFrame = (int)std::strtol(as[1].c_str(), nullptr, 10);
-        endFrame = (int)std::strtol(as[2].c_str(), nullptr, 10);
-    }
-
-    std::string model = as[0];
-    Model* m = GetModel(model);
-    if (m == nullptr)
-        return;
-
-    bool isgroup = (m->GetDisplayAs() == DisplayAsType::ModelGroup);
-
-    bool isboxed = false;
-    if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(m) != nullptr) {
-        // line models, arches etc make no sense for videos
-        isboxed = true;
-    }
-
-    SeqExportDialog dialog(this, m->GetName());
-    dialog.ModelExportTypes(isgroup || !isboxed);
-    dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
-
-    if (dialog.ShowModal() == wxID_OK) {
-        std::string filename = dialog.TextCtrlFilename->GetValue().ToStdString();
-        ObtainAccessToURL(filename);
-        EnableSequenceControls(false);
-        std::string format = dialog.ChoiceFormat->GetStringSelection().ToStdString();
-
-        DoExportModel(startFrame, endFrame, model, filename, format, command.GetInt() == 1);
-    }
 }
 
 bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int layer, int period, SettingsMap& SettingsMap,
