@@ -266,7 +266,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Premilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL2, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo, wxSize(50, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
     TextCtrl_Premilliseconds->SetMaxLength(5);
-    TextCtrl_Premilliseconds->SetToolTip(_("Milliseconds to add to the begining of the sequence"));
+    TextCtrl_Premilliseconds->SetToolTip(_("Milliseconds to add to the beginning of the sequence"));
     FlexGridSizer10->Add(TextCtrl_Premilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Postmilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL3, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo, wxSize(50, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
     TextCtrl_Postmilliseconds->SetMaxLength(5);
