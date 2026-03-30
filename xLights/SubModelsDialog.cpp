@@ -639,7 +639,7 @@ void SubModelsDialog::SaveSubModelInfoIntoThisModel(Model *m)
     std::vector<std::pair<wxString, wxString>> submodelAliases;
     const std::vector<Model*>& subs = m->GetSubModels();
     for (auto& sub : subs) {
-        const std::list<std::string> & aliases = m->GetAliases();
+        const std::list<std::string> & aliases = sub->GetAliases();
         for (auto& alias : aliases) {
             submodelAliases.push_back(std::make_pair(sub->GetName(), alias));
         }
