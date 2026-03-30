@@ -637,6 +637,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="utils\ip_utils.cpp" />
     <ClCompile Include="utils\Curl.cpp" />
     <ClCompile Include="ui\MediaPickerCtrl.cpp" />
+    <ClCompile Include="ui\wxTextDrawingContext.cpp" />
     <ClCompile Include="ui\wxUtilities.cpp" />
     <ClCompile Include="ui\modelproperties\ModelPropertyAdapter.cpp" />
     <ClCompile Include="ui\modelproperties\ModelPropertyManager.cpp" />
@@ -983,6 +984,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="sequencer\RowHeading.cpp" />
     <ClCompile Include="render\SequenceElements.cpp" />
     <ClCompile Include="render\SequenceMedia.cpp" />
+    <ClCompile Include="render\TextDrawingContext.cpp" />
     <ClCompile Include="sequencer\tabSequencer.cpp" />
     <ClCompile Include="sequencer\TimeLine.cpp" />
     <ClCompile Include="sequencer\UndoManager.cpp" />
@@ -1546,6 +1548,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="sequencer\RowHeading.h" />
     <ClInclude Include="render\SequenceElements.h" />
     <ClInclude Include="render\SequenceMedia.h" />
+    <ClInclude Include="render\TextDrawingContext.h" />
     <ClInclude Include="sequencer\TimeLine.h" />
     <ClInclude Include="sequencer\UndoManager.h" />
     <ClInclude Include="sequencer\Waveform.h" />
@@ -1636,6 +1639,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="xlSlider.h" />
     <ClInclude Include="ui\MediaPickerCtrl.h" />
+    <ClInclude Include="ui\wxTextDrawingContext.h" />
     <ClInclude Include="ui\wxUtilities.h" />
     <ClInclude Include="ui\modelproperties\ModelPropertyAdapter.h" />
     <ClInclude Include="ui\modelproperties\ModelPropertyManager.h" />

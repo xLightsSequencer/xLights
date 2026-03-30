@@ -164,13 +164,20 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
     }
 }
 
+// RGBA image data returned by FlushAndGetImage and cached
+struct CachedRGBAImage {
+    std::vector<uint8_t> data;
+    int width = 0;
+    int height = 0;
+};
+
 //formatting notes:
 //countdown == seconds: put a non-0 value in text line 1 to count down
 //countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
 //countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
 
 void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
-    const wxFontInfo& fnt = TextDrawingContext::GetTextFont(FontString);
+    TextFontInfo fnt = TextDrawingContext::GetTextFont(FontString);
     dc->SetFont(fnt, color);
 }
 
@@ -336,7 +343,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         bool pixelOffsets = std::strtol(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0").c_str(), nullptr, 10);
         bool perWord = std::strtol(SettingsMap.Get("CHECKBOX_Text_Color_PerWord", "0").c_str(), nullptr, 10);
 
-        wxImage * i = RenderTextLine(buffer,
+        const CachedRGBAImage* i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
                        text,
                        SettingsMap["FONTPICKER_Text_Font"],
@@ -347,31 +354,19 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                        TextCountDownIndex(SettingsMap["CHOICE_Text_Count"]),
                        std::strtol(SettingsMap.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10),
                        startx, starty, endx, endy, pixelOffsets, perWord);
-        
+
         if (i == nullptr) {
             return;
         }
+        const uint8_t* rgba = i->data.data();
+        int w = i->width;
+        int h = i->height;
         xlColor c;
-        bool ha = i->HasAlpha();
-        unsigned char* data = i->GetData();
-        unsigned char* alpha = ha ? i->GetAlpha() : nullptr;
-        int w = i->GetWidth();
-        int h = i->GetHeight();
         int cur = 0;
-        int cura = 0;
-        for(int y = h - 1; y >= 0; y--)
-        {
-            for(int x=0; x < w; x++)
-            {
-                if (ha) {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2], alpha[cura++]);
-                } else {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2]);
-                    if (c == xlBLACK) {
-                        c.alpha = 0;
-                    }
-                }
-                cur += 3;
+        for (int y = h - 1; y >= 0; y--) {
+            for (int x = 0; x < w; x++) {
+                c.Set(rgba[cur], rgba[cur + 1], rgba[cur + 2], rgba[cur + 3]);
+                cur += 4;
                 buffer.SetPixel(x, y, c);
             }
         }
@@ -477,19 +472,21 @@ struct CachedTextInfoHasher {
 class TextRenderCache : public EffectRenderCache {
 public:
     TextRenderCache() : timer_countdown(0), synced_textsize(xlSize(0,0)) {};
-    virtual ~TextRenderCache() {
-        for (const auto& it : textCache) {
-            delete it.second;
-        }
-    };
+    virtual ~TextRenderCache() = default;
     int timer_countdown;
     xlSize synced_textsize;
-    
-    wxImage *GetImage(const CachedTextInfo &inf) {
-        return textCache[inf];
+
+    CachedRGBAImage *GetImage(const CachedTextInfo &inf) {
+        auto it = textCache.find(inf);
+        if (it != textCache.end()) return &it->second;
+        return nullptr;
     }
-    void PutImage(const CachedTextInfo &inf, wxImage *img) {
-        textCache[inf] = img;
+    CachedRGBAImage* PutImage(const CachedTextInfo &inf, std::vector<uint8_t> rgbaData, int w, int h) {
+        auto& img = textCache[inf];
+        img.width = w;
+        img.height = h;
+        img.data = std::move(rgbaData);
+        return &img;
     }
     
     xlSize GetMultiLineTextExtent(const std::string &font, const std::string &msg) {
@@ -505,7 +502,8 @@ public:
         textExtentCache[key] = sz;
     }
 
-    std::unordered_map<CachedTextInfo, wxImage*, CachedTextInfoHasher> textCache;
+    CachedRGBAImage lastRendered; // temp storage for uncached FlushAndGetImage results
+    std::unordered_map<CachedTextInfo, CachedRGBAImage, CachedTextInfoHasher> textCache;
     std::map<std::pair<std::string, std::string>, xlSize> textExtentCache;
 };
 
@@ -694,7 +692,7 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
 }
 
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
-wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
+const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     TextDrawingContext* dc,
                                     const std::string& Line_orig,
                                     const std::string &fontString,
@@ -935,15 +933,15 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             colors.push_back(xlWHITE);
         }
         CachedTextInfo inf(msg, fontString, colors, rect);
-        wxImage *img = GetCache(buffer,id)->GetImage(inf);
+        CachedRGBAImage *img = GetCache(buffer,id)->GetImage(inf);
         if (img == nullptr) {
             dc->Clear();
             SetFont(dc, fontString, colors[0]);
             DrawLabel(dc, msg, rect, TEXT_ALIGN_CENTER_HORIZONTAL|TEXT_ALIGN_CENTER_VERTICAL, GetCache(buffer,id), fontString, colors, perWord);
-            wxImage *i2 = dc->FlushAndGetImage();
-            img = new wxImage(i2->GetSize());
-            *img = i2->Copy();
-            GetCache(buffer,id)->PutImage(inf, img);
+            int iw, ih;
+            const uint8_t* rgba = dc->FlushAndGetImage(&iw, &ih);
+            std::vector<uint8_t> rgbaData(rgba, rgba + (size_t)iw * ih * 4);
+            img = GetCache(buffer,id)->PutImage(inf, std::move(rgbaData), iw, ih);
         }
         return img;
     }
@@ -1003,7 +1001,13 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             break; // static
     }
 
-    return buffer.GetTextDrawingContext()->FlushAndGetImage();
+    int iw, ih;
+    const uint8_t* rgba = buffer.GetTextDrawingContext()->FlushAndGetImage(&iw, &ih);
+    cache->lastRendered.width = iw;
+    cache->lastRendered.height = ih;
+    cache->lastRendered.data.assign(rgba, rgba + (size_t)iw * ih * 4);
+    return &cache->lastRendered;
+
 }
 
 void TextEffect::FormatCountdown(int Countdown, int state, std::string& Line, RenderBuffer &buffer, std::string& msg, std::string Line_orig) const

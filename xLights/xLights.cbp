@@ -1160,6 +1160,8 @@
 		<Unit filename="render/SequenceElements.h" />
 		<Unit filename="render/SequenceMedia.cpp" />
 		<Unit filename="render/SequenceMedia.h" />
+		<Unit filename="render/TextDrawingContext.cpp" />
+		<Unit filename="render/TextDrawingContext.h" />
 		<Unit filename="sequencer/TimeLine.cpp" />
 		<Unit filename="sequencer/TimeLine.h" />
 		<Unit filename="sequencer/UndoManager.cpp" />
@@ -1260,6 +1262,8 @@
 		<Unit filename="ui/modelproperties/ViewObjectPropertyManager.h" />
 		<Unit filename="ui/MediaPickerCtrl.cpp" />
 		<Unit filename="ui/MediaPickerCtrl.h" />
+		<Unit filename="ui/wxTextDrawingContext.cpp" />
+		<Unit filename="ui/wxTextDrawingContext.h" />
 		<Unit filename="ui/wxUtilities.cpp" />
 		<Unit filename="ui/wxUtilities.h" />
 		<Unit filename="utils/Curl.cpp" />

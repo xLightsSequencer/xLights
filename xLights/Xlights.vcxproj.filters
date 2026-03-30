@@ -682,6 +682,9 @@
     <ClCompile Include="render\SequenceMedia.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="render\TextDrawingContext.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\tabSequencer.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
@@ -826,6 +829,9 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="ui\MediaPickerCtrl.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\wxTextDrawingContext.cpp">
       <Filter>ui</Filter>
     </ClCompile>
     <ClCompile Include="ui\wxUtilities.cpp">
@@ -2094,6 +2100,9 @@
     <ClInclude Include="render\SequenceMedia.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="render\TextDrawingContext.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="sequencer\TimeLine.h">
       <Filter>sequencer</Filter>
     </ClInclude>
@@ -2269,6 +2278,9 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="ui\MediaPickerCtrl.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\wxTextDrawingContext.h">
       <Filter>ui</Filter>
     </ClInclude>
     <ClInclude Include="ui\wxUtilities.h">

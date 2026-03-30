@@ -220,7 +220,7 @@ public:
     std::list<ShapeData*> _shapes;
     int _lastColorIdx = 0;
     int _sinceLastTriggered = 0;
-    wxFontInfo _font;
+    TextFontInfo _font;
     NSVGimage* _svgImage = nullptr;
     NSVGrasterizer* _svgRasterizer = nullptr;
     std::vector<uint8_t> _rasterBuf;
@@ -450,7 +450,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     std::list<ShapeData*>& _shapes = cache->_shapes;
     int& _lastColorIdx = cache->_lastColorIdx;
     int& _sinceLastTriggered = cache->_sinceLastTriggered;
-    wxFontInfo& _font = cache->_font;
+    TextFontInfo& _font = cache->_font;
 
     float lifetimeFrames = (float)(buffer.curEffEndPer - buffer.curEffStartPer) * lifetime / 100.0;
     if (lifetimeFrames < 1) lifetimeFrames = 1;
@@ -721,32 +721,19 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     }
 
     if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
-        wxImage *i = buffer.GetTextDrawingContext()->FlushAndGetImage();
-        unsigned char* data = i->GetData();
-        unsigned char* alpha = i->HasAlpha() ? i->GetAlpha() : nullptr;
-        int w = i->GetWidth();
-        int h = i->GetHeight();
+        int w, h;
+        const uint8_t* rgba = buffer.GetTextDrawingContext()->FlushAndGetImage(&w, &h);
         int cur = 0;
-        int curA = 0;
         xlColor c, c2;
         for (int y = h - 1; y >= 0; y--) {
             for (int x = 0; x < w; x++) {
-                xlColor c(data[cur], data[cur + 1], data[cur + 2]);
-                if (alpha) {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2], alpha[curA]);
-                } else {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2]);
-                    if (c == xlBLACK) {
-                        c.alpha = 0;
-                    }
-                }
+                c.Set(rgba[cur], rgba[cur + 1], rgba[cur + 2], rgba[cur + 3]);
                 buffer.GetPixel(x, y, c2);
                 if (c2 != xlBLACK) {
                     c.AlphaBlend(c2);
                 }
                 buffer.SetPixel(x, y, c);
-                cur += 3;
-                ++curA;
+                cur += 4;
             }
         }
     }
@@ -1197,28 +1184,43 @@ void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, boo
     }
 }
 
-void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const
+// Convert a Unicode code point to a UTF-8 std::string
+static std::string CodePointToUTF8(int cp) {
+    std::string result;
+    if (cp < 0x80) {
+        result += (char)cp;
+    } else if (cp < 0x800) {
+        result += (char)(0xC0 | (cp >> 6));
+        result += (char)(0x80 | (cp & 0x3F));
+    } else if (cp < 0x10000) {
+        result += (char)(0xE0 | (cp >> 12));
+        result += (char)(0x80 | ((cp >> 6) & 0x3F));
+        result += (char)(0x80 | (cp & 0x3F));
+    } else {
+        result += (char)(0xF0 | (cp >> 18));
+        result += (char)(0x80 | ((cp >> 12) & 0x3F));
+        result += (char)(0x80 | ((cp >> 6) & 0x3F));
+        result += (char)(0x80 | (cp & 0x3F));
+    }
+    return result;
+}
+
+void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font) const
 {
     if (radius < 1)
         return;
 
     auto context = buffer.GetTextDrawingContext();
 
-    wxFontInfo fi(wxSize(0, radius));
-    fi.FaceName(font.GetFaceName());
-    fi.Light(font.GetWeight() == wxFONTWEIGHT_LIGHT);
-    fi.AntiAliased(font.IsAntiAliased());
-    fi.Encoding(font.GetEncoding());
+    TextFontInfo fi = font;
+    fi.pixelSize = (int)radius;
 
     context->SetFont(fi, color);
 
-    wxUniChar ch = emoji;
-    auto text = wxString(ch);
+    std::string textStr = CodePointToUTF8(emoji);
     if (emojiTone) {
-        wxUniChar ch2 = emojiTone;
-        text.Append(wxString(ch2));
+        textStr += CodePointToUTF8(emojiTone);
     }
-    std::string textStr = text.ToStdString();
 
     double width;
     double height;

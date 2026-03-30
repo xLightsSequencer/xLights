@@ -62,6 +62,7 @@
 #include "render/GPURenderUtils.h"
 #include "render/SequenceMedia.h"
 #include "ui/wxUtilities.h"
+#include "ui/wxTextDrawingContext.h"
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include <wx/gifdecod.h>
@@ -2246,7 +2247,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ShaderEffect::SetBackgroundRender(bgShaders);
 #endif
 
-    TextDrawingContext::Initialize(this);
+    TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
+                                        wxTextDrawingContext::ParseTextFont,
+                                        wxTextDrawingContext::ParseShapeFont);
+    TextDrawingContext::Initialize();
 
     MenuItem_File_Save->Enable(true);
     MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");

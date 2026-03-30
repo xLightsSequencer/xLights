@@ -17,16 +17,10 @@
 #include <list>
 #include <vector>
 #include <atomic>
-#include <wx/colour.h>
-#include <wx/dcclient.h>
-#include <wx/dcmemory.h>
-#include <wx/graphics.h>
-#include <wx/image.h>
-#include <wx/textfile.h>
-
 #include "../../include/globals.h"
 
 #include "Color.h"
+#include "TextDrawingContext.h"
 #include "utils/xlSize.h"
 #include "ColorCurve.h"
 #include "models/Node.h"
@@ -74,59 +68,7 @@ class MetalRenderBufferComputeData;
 class PixelBufferClass;
 
 
-constexpr char WIN_NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
-constexpr char OSX_NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
-constexpr char LINUX_NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
-
-#ifdef __WXMSW__
-constexpr char NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
-#elif defined(__WXOSX__)
-constexpr char NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
-#else
-constexpr char NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
-#endif
-
-class TextDrawingContext {
-public:
-    TextDrawingContext(int BufferWi, int BufferHt, bool allowShared);
-    ~TextDrawingContext();
-
-    static void Initialize(wxWindow *parent);
-    static void CleanUp();
-
-    static TextDrawingContext* GetContext();
-    static void ReleaseContext(TextDrawingContext* pdc);
-
-    static const wxFontInfo& GetTextFont(const std::string& fnt);
-    static const wxFontInfo& GetShapeFont(const std::string& fnt);
-
-    void ResetSize(int BufferWi, int BufferHt);
-    size_t GetWidth() const;
-    size_t GetHeight() const;
-    void Clear();
-    wxImage *FlushAndGetImage();
-
-    void SetPen(wxPen& pen);
-
-    void SetFont(const wxFontInfo &font, const xlColor &color);
-    void DrawText(const std::string &msg, int x, int y, double rotation);
-    void DrawText(const std::string &msg, int x, int y);
-    void GetTextExtent(const std::string &msg, double *width, double *height);
-    void GetTextExtents(const std::string &msg, std::vector<double> &extents);
-
-    void SetOverlayMode(bool b = true);
-private:
-    wxImage *image;
-    wxBitmap *bitmap;
-    wxBitmap nullBitmap;
-    wxMemoryDC *dc;
-    wxGraphicsContext *gc;
-    std::string fontName;
-    int fontStyle;
-    int fontSize;
-    xlColor fontColor;
-    wxGraphicsFont font;
-};
+// TextDrawingContext is now defined in TextDrawingContext.h
 
 class PaletteClass
 {
