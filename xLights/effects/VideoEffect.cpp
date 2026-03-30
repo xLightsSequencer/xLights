@@ -27,7 +27,10 @@
 #include "../UtilClasses.h"
 #include "../render/SequenceFile.h"
 #include "../render/SequenceMedia.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
+#include "../render/EffectLayer.h"
+#include "../render/Element.h"
+#include "../render/SequenceElements.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
@@ -183,15 +186,15 @@ std::list<std::string> VideoEffect::GetFileReferences(Model* model, const Settin
     return res;
 }
 
-bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+bool VideoEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
     if (FileExists(file))
     {
-        if (!frame->IsInShowFolder(file))
+        if (!ctx->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Videos");
+            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Videos");
             rc = true;
         }
     }

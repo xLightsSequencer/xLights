@@ -31,7 +31,7 @@ public:
     virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
     virtual std::list<std::string> GetFileReferences() override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx) override;
     virtual std::list<std::string> CheckModelSettings() override;
 
     void SetObjectFile(const std::string & objFile);

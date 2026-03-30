@@ -17,6 +17,7 @@
 #include <wx/msgdlg.h>
 #include <pugixml.hpp>
 
+#include "../render/UICallbacks.h"
 #include "ArchesModel.h"
 #include "BaseObject.h"
 #include "CandyCaneModel.h"
@@ -74,6 +75,10 @@ ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _modelsLoading(false)
 {
     // ctor
+}
+
+UICallbacks* ModelManager::GetUICallbacks() const {
+    return xlights ? xlights->GetUICallbacks() : nullptr;
 }
 
 ModelManager::~ModelManager()
@@ -389,10 +394,11 @@ void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::str
 
     if (models.find(mgname) != models.end()) {
         if (ask && !alias) {
-            wxMessageDialog confirm(GetXLightsFrame(), _("Model contains Model Group(s) that Already Exist.\n Would you Like to Add this Model to the Existing Groups?"), _("Model Group(s) Already Exists"), wxYES_NO);
-            int returnCode = confirm.ShowModal();
-            if (returnCode == wxID_YES)
-                merge = true;
+            if (auto* ui = GetUICallbacks()) {
+                if (ui->PromptYesNo("Model contains Model Group(s) that Already Exist.\n Would you Like to Add this Model to the Existing Groups?",
+                                    "Model Group(s) Already Exists"))
+                    merge = true;
+            }
             ask = false;
         }
         if (merge || alias) { // merge
@@ -1916,9 +1922,11 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
             if (name.empty()) continue;
             auto curr = GetModel(name);
             if (curr != nullptr && !curr->IsFromBase()) {
-                if (wxMessageBox(std::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
-                                 "Model clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
-                    curr->SetFromBase(true);
+                if (auto* ui = GetUICallbacks()) {
+                    if (ui->PromptYesNo(std::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                                        "Model clash")) {
+                        curr->SetFromBase(true);
+                    }
                 }
             }
         }
@@ -1929,9 +1937,11 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 if (name.empty()) continue;
                 auto curr = GetModel(name);
                 if (curr != nullptr && !curr->IsFromBase()) {
-                    if (wxMessageBox(std::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
-                                     "Model group clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
-                        curr->SetFromBase(true);
+                    if (auto* ui = GetUICallbacks()) {
+                        if (ui->PromptYesNo(std::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                                            "Model group clash")) {
+                            curr->SetFromBase(true);
+                        }
                     }
                 }
             }
@@ -2020,8 +2030,10 @@ bool ModelManager::Delete(const std::string& name)
             }
 
             if (effects_exist) {
-                if (wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) != wxYES)
-                    return false;
+                if (auto* ui = GetUICallbacks()) {
+                    if (!ui->PromptYesNo("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?"))
+                        return false;
+                }
             }
 
             // Delete the model from the sequencer grid and views

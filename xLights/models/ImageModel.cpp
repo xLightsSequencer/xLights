@@ -17,7 +17,7 @@
 #include "ModelScreenLocation.h"
 #include "../ModelPreview.h"
 #include "../render/RenderBuffer.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "../ExternalHooks.h"
@@ -391,18 +391,18 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     }
 }
 
-bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
+bool ImageModel::CleanupFileLocations(RenderContext* ctx)
 {
     bool rc = false;
     if (FileExists(_imageFile)) {
-        if (!frame->IsInShowFolder(_imageFile)) {
-            _imageFile = frame->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(_imageFile)) {
+            _imageFile = ctx->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             Setup();
             rc = true;
         }
     }
 
-    return Model::CleanupFileLocations(frame) || rc;
+    return Model::CleanupFileLocations(ctx) || rc;
 }
 
 std::list<std::string> ImageModel::GetFileReferences()
@@ -423,7 +423,7 @@ std::list<std::string> ImageModel::CheckModelSettings()
     } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
         res.push_back(std::format("    ERR: Image model '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
+        if (!IsFileInShowDir(std::string(), _imageFile)) {
             res.push_back(std::format("    WARN: Image model '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }

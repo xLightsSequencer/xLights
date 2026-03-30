@@ -22,7 +22,7 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
-#include "../xLightsMain.h" 
+#include "../render/RenderContext.h"
 #include "PicturesEffect.h"
 #include "../ExternalHooks.h"
 
@@ -143,7 +143,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 if (picture != "") {
                     if (!FileExists(picture)) {
                         res.push_back(std::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
-                    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir.ToStdString(), picture)) {
+                    } else if (!IsFileInShowDir(std::string(), picture)) {
                         res.push_back(std::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     }
 
@@ -662,12 +662,12 @@ static std::string NoInactive(std::string name)
 //cached model info:
 static std::unordered_map<std::string, std::unordered_map<std::string, /*wxPoint*/ std::string> > model_xy;
 
-static bool parse_model(const std::string& want_model)
+static bool parse_model(const std::string& want_model, const std::string& showDir)
 {
     if (model_xy.find(want_model) != model_xy.end()) return true; //already have info
 
     pugi::xml_document pgoXml;
-    std::filesystem::path pgoFile = std::filesystem::path(xLightsFrame::CurrentDir.ToStdString()) / XLIGHTS_PGOFACES_FILE;
+    std::filesystem::path pgoFile = std::filesystem::path(showDir) / XLIGHTS_PGOFACES_FILE;
     std::string pgoFileStr = pgoFile.string();
     if (!FileExists(pgoFileStr)) return false;
     if (!pgoXml.load_file(pgoFileStr.c_str())) return false;
@@ -675,7 +675,7 @@ static bool parse_model(const std::string& want_model)
     if (!root || (std::string_view(root.name()) != "papagayo")) return false;
     for (int compat = 0; compat < 2; ++compat)
     {
-        pugi::xml_node Presets = xLightsFrame::FindNode(pgoXml.document_element(), compat? "corofaces": "presets", "Name", "", false); //kludge: backwards compatible with current settings
+        pugi::xml_node Presets = FindXmlNode(pgoXml.document_element(), compat? "corofaces": "presets", "Name", "", false); //kludge: backwards compatible with current settings
         if (!Presets) continue; //should be there if seq was generated in this folder
         //group name is not available, so use first occurrence of model in *any* group:
         //NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
@@ -735,7 +735,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     std::vector<xlPoint> first_xy;
     const Model* model_info = buffer.GetModel();
 
-    if (!model_info || !parse_model(buffer.cur_model))
+    if (!model_info || !parse_model(buffer.cur_model, buffer.renderContext->GetShowDirectory()))
     {
         return;
     }

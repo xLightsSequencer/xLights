@@ -21,8 +21,8 @@
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"
 #include "Element.h"
-#include "../xLightsMain.h"
-#include "../xLightsApp.h"
+#include "RenderContext.h"
+#include "SequenceElements.h"
 
 #include <log.h>
 #include "effects/DMXEffect.h"
@@ -66,7 +66,9 @@ std::unique_lock<std::recursive_mutex> EffectLayer::acquireLockWaitForRender() {
             // could not get the lock, we'll render any main thread effects
             // and then try again, possibly yielding to allow the background
             // thread to get to a point where the lock can be released
-            xLightsApp::GetFrame()->RenderMainThreadEffects();
+            if (mParentElement) {
+                mParentElement->GetSequenceElements()->GetRenderContext()->RenderMainThreadEffects();
+            }
             UNUSED(locker.try_lock());
             if (!locker.owns_lock()) {
                 std::this_thread::yield();
@@ -217,8 +219,6 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     EffectManager* em = nullptr;
     if (GetParentElement() != nullptr) {
         em = &(GetParentElement()->GetSequenceElements()->GetEffectManager());
-    } else {
-        em = &(xLightsApp::GetFrame()->GetEffectManager());
     }
     assert(em != nullptr);
 
@@ -1385,7 +1385,7 @@ std::list<std::string> EffectLayer::GetFacesUsed(EffectManager& em) const
     return res;
 }
 
-bool EffectLayer::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
+bool EffectLayer::CleanupFileLocations(RenderContext* ctx, EffectManager& em)
 {
     bool rc = false;
 
@@ -1396,7 +1396,7 @@ bool EffectLayer::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
         if (ef->GetEffectIndex() >= 0)
         {
             RenderableEffect *eff = em[ef->GetEffectIndex()];
-            rc = eff->CleanupFileLocations(frame, ef->GetSettings()) || rc;
+            rc = eff->CleanupFileLocations(ctx, ef->GetSettings()) || rc;
         }
     }
 

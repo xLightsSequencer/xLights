@@ -32,7 +32,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
 
         [[nodiscard]] virtual std::list<std::string> GetFileReferences() override;
-        [[nodiscard]] virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+        [[nodiscard]] virtual bool CleanupFileLocations(RenderContext* ctx) override;
 
         [[nodiscard]] virtual std::string GetStartLocation() const override { return "n/a"; }
 

@@ -27,7 +27,8 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
+#include "../render/SequenceElements.h"
 #include "../utils/xlPoint.h"
 
 #include <log.h>
@@ -300,13 +301,13 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
     return res;
 }
 
-bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+bool PicturesEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
     if (FileExists(file)) {
-        if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_TEXTCTRL_Pictures_Filename"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(file)) {
+            SettingsMap["E_TEXTCTRL_Pictures_Filename"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

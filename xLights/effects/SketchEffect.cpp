@@ -22,6 +22,7 @@
 #include "../UtilFunctions.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
+#include "../render/RenderContext.h"
 #include "../ExternalHooks.h"
 
 #include "../../include/sketch-16.xpm"
@@ -108,13 +109,13 @@ void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, Rende
     renderSketch(sketch, buffer, progress, 0.01 * drawPercentage, thickness, motionEnabled, 0.01 * motionPercentage, colors);
 }
 
-bool SketchEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool SketchEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_FILEPICKER_SketchBackground"];
     if (FileExists(file)) {
-        if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKER_SketchBackground"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKER_SketchBackground"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }
@@ -159,7 +160,7 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (!xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage")) {
+    if (!xLightsFrame::IsCheckSequenceOptionDisabledS("SketchImage")) {
         std::string filename = settings.Get("E_FILEPICKER_SketchBackground", "");
         if (filename.empty()) {
             // this is only a warning as it does not affect rendering

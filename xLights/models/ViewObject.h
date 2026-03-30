@@ -39,9 +39,13 @@ public:
     virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
 
     virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) { return false; }
+
+    const ObjectManager& GetObjectManager() const { return objectManager; }
+
 protected:
 
 private:
+    const ObjectManager& objectManager;
     bool only_3d {true};
 };
 

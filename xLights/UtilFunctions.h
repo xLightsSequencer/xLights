@@ -43,6 +43,9 @@ namespace pugi {
     class xml_node;
 }
 
+// XML utility: find (or optionally create) a child node matching tag/attr/value
+pugi::xml_node FindXmlNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create = false);
+
 // Consolidated set of wx-free utility functions
 std::string Ordinal(int i);
 std::string DecodeMidi(int midi);

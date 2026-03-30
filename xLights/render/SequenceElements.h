@@ -59,13 +59,14 @@ struct EventPlayEffectArgs
 };
 
 class EffectLayer;
+class RenderContext;
 class xLightsFrame;
 class EffectManager;
 
 class SequenceElements : public ChangeListener
 {
 public:
-    SequenceElements(xLightsFrame *frame);
+    SequenceElements(RenderContext *ctx);
     virtual ~SequenceElements();
     bool LoadSequencerFile(SequenceFile& xml_file, pugi::xml_document& doc, const std::string& ShowDir, bool importing = false);
     void Clear();
@@ -198,7 +199,8 @@ public:
     void SetSupportsModelBlending(bool b) { supportsModelBlending = b; }
 
     EffectManager &GetEffectManager();
-    xLightsFrame *GetXLightsFrame() const { return xframe; };
+    RenderContext *GetRenderContext() const { return renderContext; };
+    xLightsFrame *GetXLightsFrame() const;
     
     // Color palettes from the loaded sequence
     const std::vector<std::string>& GetColorPalettes() const { return mColorPalettes; }
@@ -237,7 +239,7 @@ private:
     int mSelectedTimingRow;
     SequenceViewManager* _viewsManager = nullptr;
     TimeLine* _timeLine = nullptr;
-    xLightsFrame *xframe = nullptr;
+    RenderContext *renderContext = nullptr;
     double mFrequency;
     int mTimingRowCount = 0;
     int mMaxRowsDisplayed = 0;

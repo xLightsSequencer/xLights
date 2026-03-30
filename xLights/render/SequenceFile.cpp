@@ -28,6 +28,7 @@
 
 #include "SequenceFile.h"
 #include "SequenceElements.h"
+#include "UICallbacks.h"
 #include "../AudioManager.h"
 #include "../xLightsMain.h"
 #include "../JukeboxPanel.h"
@@ -281,7 +282,7 @@ std::optional<pugi::xml_document> SequenceFile::Open(const std::string& ShowDir,
 
     sequence_loaded = false;
     if (IsV3Sequence()) {
-        wxMessageBox("Loading of xLights v3 Sequences is no longer supported.", "Error", wxOK | wxCENTRE |wxICON_ERROR, xLightsFrame::GetFrame());
+        DisplayError("Loading of xLights v3 Sequences is no longer supported.");
         return std::nullopt;
     }
     else if (IsXmlSequence(mFilePath)) {
@@ -498,19 +499,19 @@ void SequenceFile::SetSequenceDuration(const std::string& length)
     seq_duration = std::strtod(length.c_str(), nullptr);
 }
 
-std::string SequenceFile::GetImageDir(wxWindow* parent)
+std::string SequenceFile::GetImageDir(UICallbacks* ui)
 {
     if (!image_dir.empty()) {
         return image_dir;
     }
 
-    wxDirDialog* dlg = new wxDirDialog(parent, _("Select Directory for storing image files for this sequence"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
-
-    if (dlg->ShowModal() != wxID_OK) {
-        return "";
+    if (ui) {
+        std::string chosen = ui->PromptForDirectory("Select Directory for storing image files for this sequence");
+        if (chosen.empty()) {
+            return "";
+        }
+        SetImageDir(chosen);
     }
-
-    SetImageDir(dlg->GetPath());
     return image_dir;
 }
 
@@ -915,7 +916,10 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, xL
         if (GetMedia() != nullptr) {
             maxframe = GetMedia()->LengthMS() / ms;
         }
-        int offset = wxGetNumberFromUser("Enter the number of frames to offset the papagayo data by", "", "Offset", 0, 0, maxframe, xLightsParent);
+        int offset = 0;
+        if (auto* ui = xLightsParent->GetUICallbacks()) {
+            offset = ui->PromptForNumber("Enter the number of frames to offset the papagayo data by", "Offset", 0, 0, maxframe);
+        }
 
         line = nextLine();
         int numsamp = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;

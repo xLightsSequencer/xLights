@@ -60,8 +60,8 @@ class PixelBufferClass {
 private:
     class LayerInfo {
     public:
-        LayerInfo(xLightsFrame* frame, PixelBufferClass *p, const Model *m) :
-            buffer(frame, p, m) {
+        LayerInfo(RenderContext* ctx, PixelBufferClass *p, const Model *m) :
+            buffer(ctx, p, m) {
             inMaskFactor = 1.0;
             outMaskFactor = 1.0;
             blur = 0;
@@ -256,7 +256,7 @@ private:
     const Model* model = nullptr;
     Model* zbModel = nullptr;
     SingleLineModel* ssModel = nullptr;
-    xLightsFrame* frame = nullptr;
+    RenderContext* renderContext = nullptr;
 
 public:
     static std::vector<std::string> GetMixTypes();
@@ -277,7 +277,7 @@ public:
     bool IsVariableSubBuffer(int layer) const;
     void PrepareVariableSubBuffer(int EffectPeriod, int layer);
 
-    PixelBufferClass(xLightsFrame* f);
+    PixelBufferClass(RenderContext* ctx);
     virtual ~PixelBufferClass();
 
     const std::string& GetModelName() const {

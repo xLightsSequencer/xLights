@@ -23,8 +23,6 @@
 #include "../ViewpointMgr.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
 #include "RulerObject.h"
 
 #include <log.h>
@@ -640,7 +638,9 @@ void ModelScreenLocation::TranslateVector(glm::vec3& point) const
 
 void ModelScreenLocation::AddASAPWork(uint32_t work, const std::string& from)
 {
-    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from);
+    if (_outputModelManager != nullptr) {
+        _outputModelManager->AddASAPWork(work, from);
+    }
 }
 
 void ModelScreenLocation::SetDefaultMatrices() const

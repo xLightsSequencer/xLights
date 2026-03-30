@@ -12,9 +12,8 @@
 
 #include <pugixml.hpp>
 
-#include <wx/msgdlg.h>
-
 #include "ViewObjectManager.h"
+#include "../render/UICallbacks.h"
 #include "UtilFunctions.h"
 #include "GridlinesObject.h"
 #include "RulerObject.h"
@@ -30,6 +29,10 @@
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {
     //ctor
+}
+
+UICallbacks* ViewObjectManager::GetUICallbacks() const {
+    return xlights ? xlights->GetUICallbacks() : nullptr;
 }
 
 ViewObjectManager::~ViewObjectManager()
@@ -66,7 +69,9 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
     } else if (type == "Terrain") {
         view_object = new TerrainObject(*this);
     } else {
-        wxMessageBox(type + " is not a valid type for View Object ");
+        if (auto* ui = GetUICallbacks()) {
+            ui->ShowMessage(type + " is not a valid type for View Object ");
+        }
         return nullptr;
     }
     view_object->SetName(GenerateObjectName(type));
@@ -295,9 +300,11 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
             if (name.empty()) continue;
             auto curr = GetObject(name);
             if (curr != nullptr && !curr->IsFromBase()) {
-                if (wxMessageBox(std::format("Object {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
-                                 "Object clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
-                    curr->SetFromBase(true);
+                if (auto* ui = GetUICallbacks()) {
+                    if (ui->PromptYesNo(std::format("Object {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                                        "Object clash")) {
+                        curr->SetFromBase(true);
+                    }
                 }
             }
         }

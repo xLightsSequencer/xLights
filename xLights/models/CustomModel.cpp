@@ -132,18 +132,18 @@ void CustomModel::SetCustomBackground(std::string background)
     _custom_background = background;
 }
 
-bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
+bool CustomModel::CleanupFileLocations(RenderContext* ctx)
 {
     bool rc = false;
     if (FileExists(_custom_background)) {
-        if (!frame->IsInShowFolder(_custom_background)) {
-            _custom_background = frame->MoveToShowFolder(_custom_background, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(_custom_background)) {
+            _custom_background = ctx->MoveToShowFolder(_custom_background, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             Setup();
             rc = true;
         }
     }
 
-    return Model::CleanupFileLocations(frame) || rc;
+    return Model::CleanupFileLocations(ctx) || rc;
 }
 
 bool CustomModel::IsAllNodesUnique() const
@@ -670,7 +670,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
         res.push_back(std::format("    ERR: Custom model '{}' has no nodes defined.", GetName()));
     }
 
-    if (!xLightsFrame::IsCheckSequenceOptionDisabled("CustomSizeCheck")) {
+    if (!xLightsFrame::IsCheckSequenceOptionDisabledS("CustomSizeCheck")) {
         if (_customWidth > PERFORMANCE_IMPACT_SIZE || _customHeight > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
             float pop = ((float)GetNodeCount() * 100) / (float)(_customWidth * _customHeight);
             if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
@@ -1024,7 +1024,9 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
 
         if (chs.size() == 0) {
             spdlog::error("No model data found.");
-            wxMessageBox("Unable to import model data.");
+            if (auto* ui = xlights->GetUICallbacks()) {
+                ui->ShowMessage("Unable to import model data.");
+            }
             return false;
         }
 

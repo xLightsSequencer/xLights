@@ -104,13 +104,13 @@ CheckSequenceSettingsPanel::~CheckSequenceSettingsPanel()
 }
 
 bool CheckSequenceSettingsPanel::TransferDataToWindow() {
-    CheckBox_DupUniv->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("DupUniv"));
-    CheckBox_NonContigChOnPort->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("NonContigChOnPort"));
-    CheckBox_PreviewGroup->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("PreviewGroup"));
-    CheckBox_DupNodeMG->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("DupNodeMG"));
-    CheckBox_TransTime->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("TransTime"));
-    CheckBox_CustomSizeCheck->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("CustomSizeCheck"));
-    CheckBox_DisableSketch->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage"));
+    CheckBox_DupUniv->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("DupUniv"));
+    CheckBox_NonContigChOnPort->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("NonContigChOnPort"));
+    CheckBox_PreviewGroup->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("PreviewGroup"));
+    CheckBox_DupNodeMG->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("DupNodeMG"));
+    CheckBox_TransTime->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("TransTime"));
+    CheckBox_CustomSizeCheck->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("CustomSizeCheck"));
+    CheckBox_DisableSketch->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("SketchImage"));
     return true;
 }
 bool CheckSequenceSettingsPanel::TransferDataFromWindow() {

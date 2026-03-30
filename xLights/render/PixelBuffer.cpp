@@ -13,7 +13,6 @@
 #include "DimmingCurve.h"
 #include "PixelBuffer.h"
 #include "UtilClasses.h"
-#include "xLightsMain.h"
 #include "models/ModelGroup.h"
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
@@ -884,8 +883,8 @@ namespace {
     }
 }
 
-PixelBufferClass::PixelBufferClass(xLightsFrame* f) :
-    frame(f) {
+PixelBufferClass::PixelBufferClass(RenderContext* ctx) :
+    renderContext(ctx) {
     frameTimeInMs = 50;
     model = nullptr;
     numLayers = 0;
@@ -919,7 +918,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
     layers.resize(nlayers);
 
     for (int x = 0; x < numLayers; x++) {
-        layers[x] = new LayerInfo(frame, this, model);
+        layers[x] = new LayerInfo(renderContext, this, model);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         if (x == (numLayers - 1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
@@ -970,7 +969,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
     for (const auto& it : model.ActiveModels()) {
         Model* m = it;
         assert(m != nullptr);
-        RenderBuffer* buf = new RenderBuffer(frame, this, m);
+        RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
@@ -984,7 +983,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
     for (const auto& it : model.GetFlatModels(false, true)) {
         Model* m = it;
         assert(m != nullptr);
-        RenderBuffer* buf = new RenderBuffer(frame, this, m);
+        RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");

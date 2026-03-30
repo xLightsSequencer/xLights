@@ -22,9 +22,8 @@
 #include "../ui/wxUtilities.h"
 #include "../render/Effect.h"
 #include "../render/SequenceFile.h"
+#include "../render/SequenceElements.h"
 #include "models/Model.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
 #include "../ui/effectpanels/EffectPanelUtils.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
 

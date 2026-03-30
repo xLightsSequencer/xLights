@@ -13,6 +13,7 @@
 #include "Model.h"
 
 ViewObject::ViewObject(const ObjectManager &manager)
+    : objectManager(manager)
 {
 }
 

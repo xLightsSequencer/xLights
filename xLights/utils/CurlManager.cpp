@@ -11,8 +11,6 @@
 #include "CurlManager.h"
 
 
-#include <wx/string.h>
-#include <wx/app.h>
 #include "../xLightsVersion.h"
 #include "string_utils.h"
 
@@ -76,7 +74,7 @@ static int urlSeekData(void *userp, curl_off_t offset, int origin) {
     return CURL_SEEKFUNC_OK;
 }
 CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd, bool upload) {
-    static std::string USERAGENT = wxAppConsole::GetInstance()->GetAppName().ToStdString() + "-" + xlights_version_string;
+    static std::string USERAGENT = "xLights-" + xlights_version_string;
 
     const std::string host = getHost(fullUrl);
     HostData* hd = getHostData(host);
@@ -203,7 +201,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     bool done = false;
     addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
     while (!done && processCurls()) {
-        wxYieldIfNeeded();
+        CurlManager::INSTANCE.yield();
     }
 
     CurlPrivateData* data = nullptr;
@@ -276,7 +274,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     bool done = false;
     addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
     while (!done && processCurls()) {
-        wxYieldIfNeeded();
+        CurlManager::INSTANCE.yield();
     }
 
     CurlPrivateData* cdata = nullptr;
@@ -332,7 +330,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
 
     addCURL(furl, curl, [](CURL* c) {}, false);
     while (processCurls()) {
-        wxYieldIfNeeded();
+        CurlManager::INSTANCE.yield();
     }
 
     CurlPrivateData* cdata = nullptr;

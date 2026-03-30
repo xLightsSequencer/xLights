@@ -55,6 +55,7 @@ class PreviewCamera;
 #include <glm/gtx/quaternion.hpp>
 
 class BezierCurveCubic3D;
+class OutputModelManager;
 class xlGraphicsProgram;
 class xlGraphicsContext;
 class xlVertexColorAccumulator;
@@ -211,6 +212,7 @@ protected:
         float z;
     };
 
+    void SetOutputModelManager(OutputModelManager* omm) { _outputModelManager = omm; }
     void AddASAPWork(uint32_t work, const std::string& from);
     void SetDefaultMatrices() const;  // for models that draw themselves
     virtual void SetActiveHandle(int handle);
@@ -336,4 +338,5 @@ protected:
     bool mouse_down = false;
     MSLPLANE preferred_selection_plane = MSLPLANE::XY_PLANE;
     MSLPLANE active_plane = MSLPLANE::NO_PLANE;
+    OutputModelManager* _outputModelManager = nullptr;
 };

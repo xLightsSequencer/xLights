@@ -17,7 +17,9 @@
 #include "ui/wxUtilities.h"
 #include "ModelPreview.h"
 #include "../ExternalHooks.h"
-#include "xLightsMain.h"
+#include "../render/RenderContext.h"
+
+#include "../render/UICallbacks.h"
 
 #include <log.h>
 
@@ -53,33 +55,35 @@ void MeshObject::SetObjectFile(const std::string & objFile)
 }
 
 
-bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
+bool MeshObject::CleanupFileLocations(RenderContext* ctx)
 {
     bool rc = false;
     if (FileExists(_objFile)) {
-        if (!frame->IsInShowFolder(_objFile)) {
+        if (!ctx->IsInShowFolder(_objFile)) {
             auto fr = GetFileReferences();
             for (auto f: fr) {
                 if (f != _objFile) {
-                    frame->MoveToShowFolder(f, std::string(1, std::filesystem::path::preferred_separator) + "3D");
+                    ctx->MoveToShowFolder(f, std::string(1, std::filesystem::path::preferred_separator) + "3D");
                 }
             }
 
-            _objFile = frame->MoveToShowFolder(_objFile, std::string(1, std::filesystem::path::preferred_separator) + "3D");
+            _objFile = ctx->MoveToShowFolder(_objFile, std::string(1, std::filesystem::path::preferred_separator) + "3D");
             rc = true;
         }
     }
-    return BaseObject::CleanupFileLocations(frame) || rc;
+    return BaseObject::CleanupFileLocations(ctx) || rc;
 }
 
 void MeshObject::checkAccessToFile(const std::string &url) {
     if (FileExists(url) && !ObtainAccessToURL(url)) {
-        wxMessageBox("Could not obtain access to " + url + "\n\nTry giving xLights permission to access to the directory.",
-                     "Access Denied");
-        std::string dirPath = std::filesystem::path(url).parent_path().string();
-        wxDirDialog dlg(nullptr, "Select Directory For Mesh Resources", dirPath);
-        if (dlg.ShowModal()) {
-            ObtainAccessToURL(url);
+        if (auto* ui = GetObjectManager().GetUICallbacks()) {
+            ui->ShowMessage("Could not obtain access to " + url + "\n\nTry giving xLights permission to access to the directory.",
+                           "Access Denied");
+            std::string dirPath = std::filesystem::path(url).parent_path().string();
+            std::string chosen = ui->PromptForDirectory("Select Directory For Mesh Resources", dirPath);
+            if (!chosen.empty()) {
+                ObtainAccessToURL(url);
+            }
         }
     }
 }
@@ -91,7 +95,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
     if (_objFile == "" || !FileExists(_objFile)) {
         res.push_back(std::format("    ERR: Mesh object '{}' cant find obj file '{}'", GetName(), _objFile));
     } else {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _objFile)) {
+        if (!IsFileInShowDir(std::string(), _objFile)) {
             res.push_back(std::format("    WARN: Mesh object '{}' obj file '{}' not under show/media/resource directories.", GetName(), _objFile));
         }
 

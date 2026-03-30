@@ -486,7 +486,8 @@ public:
     std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, xlPoint start, xlPoint end);
     bool IsMultiCoordsPerNode() const;
 
-    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx) override;
+    void AddASAPWork(uint32_t work, const std::string& from) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
     glm::vec3 MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
     int GetSelectedHandle();

@@ -30,7 +30,7 @@ class NetInfoClass;
 class Element;
 class ModelElement;
 class Model;
-class xLightsFrame;
+class RenderContext;
 class SequenceElements;
 
 class ChangeListener {
@@ -69,7 +69,7 @@ public:
     size_t GetEffectLayerCount() const;
     std::list<std::string> GetFileReferences(Model* model, EffectManager& em) const;
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
-    bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
+    bool CleanupFileLocations(RenderContext* ctx, EffectManager& em);
     Effect* SelectEffectUsingDescription(std::string description);
     virtual bool IsEffectValid(Effect* e) const;
     Effect* SelectEffectUsingLayerTime(int layer, int time);

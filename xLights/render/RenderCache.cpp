@@ -21,8 +21,6 @@
 #include <format>
 #include <functional>
 #include <thread>
-#include "xLightsMain.h"
-#include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
@@ -630,8 +628,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     long duration_ms = end_ms - start_ms;
     long fps = (duration_ms * 1000) / (frame_count * 1000);
 
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    int seqFPS = frame->_seqData.FrameTime();
+    int seqFPS = buffer->frameTimeInMs;
 
     if (seqFPS != fps) {
         spdlog::info("RenderCache no match because FPS {} doesn't match expected {}", fps, seqFPS);

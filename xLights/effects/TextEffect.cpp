@@ -31,7 +31,8 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../render/FontManager.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
+#include "../render/SequenceElements.h"
 #include "../ExternalHooks.h"
 #include "../render/SequenceFile.h"
 #include "../render/SequenceMedia.h"
@@ -102,15 +103,15 @@ std::list<std::string> TextEffect::GetFileReferences(Model* model, const Setting
     return res;
 }
 
-bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+bool TextEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_FILEPICKERCTRL_Text_File"];
     if (FileExists(file))
     {
-        if (!frame->IsInShowFolder(file))
+        if (!ctx->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Text_File"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator));
+            SettingsMap["E_FILEPICKERCTRL_Text_File"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator));
             rc = true;
         }
     }

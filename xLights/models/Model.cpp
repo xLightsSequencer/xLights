@@ -59,6 +59,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include "../render/UICallbacks.h"
 #include "../ui/wxUtilities.h"
 
 #define MOST_STRINGS_WE_EXPECT 480
@@ -202,8 +203,10 @@ void Model::Rename(std::string const& newName)
         oldname != modelManager.GetLastGeneratedModelName() ;
     
     if (oldname != "" && newName != "Iamgoingtodeletethismodel" && shouldPrompt ) {
-        if (wxMessageBox("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias", wxYES_NO | wxICON_QUESTION, GetModelManager().GetXLightsFrame()) == wxYES) {
-            AddAlias("oldname:" + oldname);
+        if (auto* ui = GetModelManager().GetUICallbacks()) {
+            if (ui->PromptYesNo("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias")) {
+                AddAlias("oldname:" + oldname);
+            }
         }
     }
     
@@ -1027,7 +1030,10 @@ void Model::UpdateChannels()
 
 void Model::Setup()
 {
-    
+    if (modelManager.GetXLightsFrame() != nullptr) {
+        GetBaseObjectScreenLocation().SetOutputModelManager(modelManager.GetXLightsFrame()->GetOutputModelManager());
+    }
+
     auto swStart = std::chrono::steady_clock::now();
 
     StrobeRate = 0;
@@ -3833,12 +3839,16 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 return model;
             }
         } else {
-            wxString filename = wxFileSelector(_("Choose model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf|General Device Type Format (*.gdtf)|*.gdtf", wxFD_OPEN);
-            if (filename.IsEmpty()) {
+            std::string filename;
+            if (auto* ui = xlights->GetUICallbacks()) {
+                filename = ui->PromptForFile("Choose model file",
+                    "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf|General Device Type Format (*.gdtf)|*.gdtf");
+            }
+            if (filename.empty()) {
                 cancelled = true;
                 return model;
             }
-            last_model = filename.ToStdString();
+            last_model = filename;
 
             std::string last_model_lower = last_model;
             std::transform(last_model_lower.begin(), last_model_lower.end(), last_model_lower.begin(), ::tolower);
@@ -3928,10 +3938,12 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                             if (dlg->FindModelFile(vendor, newModelName)) {
                                                 if (localBlock) {
                                                     std::string msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
-                                                    if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                        last_model = dlg->GetModelFile();
-                                                    } else {
-                                                        last_model = "";
+                                                    if (auto* ui = xlights->GetUICallbacks()) {
+                                                        if (ui->PromptYesNo(msg, "Use Vendor Certified Model?")) {
+                                                            last_model = dlg->GetModelFile();
+                                                        } else {
+                                                            last_model = "";
+                                                        }
                                                     }
                                                     docLoaded = false;
                                                     break;
@@ -3941,10 +3953,12 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                                     // my experience is noticably better or worse than any other ... they all have had their poor models.
                                                     // If you want to change the message back then have an OSX specific phrasing.
                                                     std::string msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
-                                                    if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                        last_model = dlg->GetModelFile();
-                                                        docLoaded = false;
-                                                        break;
+                                                    if (auto* ui = xlights->GetUICallbacks()) {
+                                                        if (ui->PromptYesNo(msg, "Use Vendor Certified Model?")) {
+                                                            last_model = dlg->GetModelFile();
+                                                            docLoaded = false;
+                                                            break;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -3954,7 +3968,9 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                     // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
                                     if (block) {
                                         std::string msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
-                                        wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
+                                        if (auto* ui = xlights->GetUICallbacks()) {
+                                            ui->ShowMessage(msg, "Loading of Model Blocked");
+                                        }
                                         last_model = "";
                                     }
 #endif
@@ -4354,7 +4370,12 @@ std::string Model::GetShadowModelFor() const
     return _shadowModelFor;
 }
 
-bool Model::CleanupFileLocations(xLightsFrame* frame)
+void Model::AddASAPWork(uint32_t work, const std::string& from)
+{
+    modelManager.GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
+}
+
+bool Model::CleanupFileLocations(RenderContext* ctx)
 {
     bool rc = false;
     for (auto& it : faceInfo) {
@@ -4362,8 +4383,8 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
             for (auto& it2 : it.second) {
                 if (it2.first != "CustomColors" && it2.first != "ImagePlacement" && it2.first != "Type" && it2.second != "") {
                     if (FileExists(it2.second)) {
-                        if (!frame->IsInShowFolder(it2.second)) {
-                            it2.second = frame->MoveToShowFolder(it2.second, std::string(1, std::filesystem::path::preferred_separator) + "Faces");
+                        if (!ctx->IsInShowFolder(it2.second)) {
+                            it2.second = ctx->MoveToShowFolder(it2.second, std::string(1, std::filesystem::path::preferred_separator) + "Faces");
                             rc = true;
                         }
                     }
@@ -4377,7 +4398,7 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::CleanupFileLocations");
     }
 
-    return BaseObject::CleanupFileLocations(frame) || rc;
+    return BaseObject::CleanupFileLocations(ctx) || rc;
 }
 
 // all when true includes all image files ... even if they dont really exist

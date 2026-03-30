@@ -129,6 +129,7 @@
 #include "TempFileManager.h"
 #include "xlColourData.h"
 #include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "ai/chatGPT.h"
 #include "ai/AIImageDialog.h"
 #include "models/DMX/DmxMovingHeadComm.h"
@@ -627,6 +628,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     spdlog::debug("xLightsFrame being constructed.");
 
     xLightsApp::__frame = this;
+
+    CurlManager::INSTANCE.setYieldFunction([] { wxYieldIfNeeded(); });
 
     ValueCurve::SetSequenceElements(&_sequenceElements);
 
@@ -2472,7 +2475,7 @@ xLightsFrame::~xLightsFrame()
     reenter = false;
 }
 
-bool xLightsFrame::IsCheckSequenceOptionDisabled(const std::string& option)
+bool xLightsFrame::IsCheckSequenceOptionDisabledS(const std::string& option)
 {
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr) {
@@ -2488,6 +2491,84 @@ void xLightsFrame::SetCheckSequenceOptionDisable(const std::string& option, bool
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         config->Write("xLightsCS" + option, value);
+    }
+}
+
+AudioManager* xLightsFrame::GetCurrentMediaManager() const
+{
+    if (CurrentSeqXmlFile == nullptr) {
+        return nullptr;
+    }
+    return CurrentSeqXmlFile->GetMedia();
+}
+
+const std::string& xLightsFrame::GetHeaderInfo(HEADER_INFO_TYPES type) const
+{
+    static const std::string empty;
+    if (CurrentSeqXmlFile == nullptr) {
+        return empty;
+    }
+    return CurrentSeqXmlFile->GetHeaderInfo(type);
+}
+
+// ---- UICallbacks implementation ----
+
+void xLightsFrame::ShowMessage(const std::string& message,
+                               const std::string& caption) const {
+    wxMessageBox(message, caption);
+}
+
+bool xLightsFrame::PromptYesNo(const std::string& message,
+                               const std::string& caption) const {
+    return wxMessageBox(message, caption, wxYES_NO | wxICON_QUESTION) == wxYES;
+}
+
+std::string xLightsFrame::PromptForDirectory(const std::string& message,
+                                             const std::string& defaultPath) const {
+    wxDirDialog dlg(nullptr, message, defaultPath);
+    if (dlg.ShowModal() == wxID_OK) {
+        return dlg.GetPath().ToStdString();
+    }
+    return {};
+}
+
+std::string xLightsFrame::PromptForFile(const std::string& message,
+                                        const std::string& wildcard,
+                                        const std::string& defaultPath) const {
+    wxString result = wxFileSelector(message, defaultPath, wxEmptyString,
+                                     wxEmptyString, wildcard, wxFD_OPEN);
+    return result.ToStdString();
+}
+
+long xLightsFrame::PromptForNumber(const std::string& message,
+                                   const std::string& caption,
+                                   long defaultValue,
+                                   long min, long max) const {
+    return wxGetNumberFromUser(message, "", caption, defaultValue, min, max);
+}
+
+UICallbacks::ProgressToken xLightsFrame::BeginProgress(const std::string& message,
+                                                       int maximum) {
+    auto* dlg = new wxProgressDialog(message, "", maximum, nullptr,
+                                     wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    ProgressToken token = _nextProgressToken++;
+    _progressDialogs[token] = dlg;
+    return token;
+}
+
+void xLightsFrame::UpdateProgress(ProgressToken token, int value,
+                                  const std::string& newMessage) {
+    auto it = _progressDialogs.find(token);
+    if (it != _progressDialogs.end()) {
+        it->second->Update(value, newMessage);
+    }
+}
+
+void xLightsFrame::EndProgress(ProgressToken token) {
+    auto it = _progressDialogs.find(token);
+    if (it != _progressDialogs.end()) {
+        delete it->second;
+        _progressDialogs.erase(it);
     }
 }
 
@@ -3307,19 +3388,7 @@ ModelGroup* xLightsFrame::GetSelectedModelGroup() const
 // sigh; a function like this should have been built into wxWidgets
 pugi::xml_node xLightsFrame::FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create /*= false*/)
 {
-    for (pugi::xml_node node = parent.first_child(); node; node = node.next_sibling()) {
-        if (!tag.empty() && (node.name() != tag))
-            continue;
-        if (!value.empty() && (node.attribute(attr.c_str()).as_string() != value))
-            continue;
-        return node;
-    }
-    if (!create)
-        return pugi::xml_node(); // null/empty node
-    pugi::xml_node retnode = parent.append_child(tag.c_str()); // NOTE: assumes !tag.empty()
-    if (!value.empty())
-        AddNonDupAttr(retnode, attr, value);
-    return retnode;
+    return FindXmlNode(parent, tag, attr, value, create);
 }
 
 void xLightsFrame::SetPreviewSize(int width, int height)

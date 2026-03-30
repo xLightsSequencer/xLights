@@ -86,7 +86,7 @@
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
 #include "../UtilClasses.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
 #include "../xLightsApp.h"
 #include "../TimingPanel.h"
 #include "OpenGLShaders.h"
@@ -251,15 +251,15 @@ std::list<std::string> ShaderEffect::GetFileReferences(Model* model, const Setti
     return res;
 }
 
-bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool ShaderEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_0FILEPICKERCTRL_IFS"];
     if (FileExists(file))
     {
-        if (!frame->IsInShowFolder(file))
+        if (!ctx->IsInShowFolder(file))
         {
-            SettingsMap["E_0FILEPICKERCTRL_IFS"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Shaders", true);
+            SettingsMap["E_0FILEPICKERCTRL_IFS"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Shaders", true);
             rc = true;
         }
     }

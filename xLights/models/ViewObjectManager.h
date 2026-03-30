@@ -15,6 +15,7 @@
 
 #include "ObjectManager.h"
 
+class UICallbacks;
 class ViewObject;
 class xLightsFrame;
 
@@ -27,6 +28,8 @@ public:
     virtual BaseObject *GetObject(const std::string &name) const;
     ViewObject *GetViewObject(const std::string &name) const;
 
+    xLightsFrame* GetXLightsFrame() const { return xlights; }
+    UICallbacks* GetUICallbacks() const override;
     ViewObject* CreateAndAddObject(const std::string &type);
     ViewObject* CreateObject(pugi::xml_node node) const;
     void AddViewObject(ViewObject *view_object);

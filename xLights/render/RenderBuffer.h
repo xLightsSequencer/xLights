@@ -42,7 +42,7 @@
 #include <vector>
 
 class AudioManager;
-class xLightsFrame;
+class RenderContext;
 class DmxModel;
 enum class HEADER_INFO_TYPES;
 
@@ -348,7 +348,7 @@ public:
 
 class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
-    RenderBuffer(xLightsFrame *frame, PixelBufferClass *pbc, const Model *m);
+    RenderBuffer(RenderContext *ctx, PixelBufferClass *pbc, const Model *m);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
@@ -473,7 +473,7 @@ public:
     PaletteClass palette;
     bool _nodeBuffer = false;
 
-    xLightsFrame *frame = nullptr;
+    RenderContext *renderContext = nullptr;
     std::string cur_model; //model currently in effect
 
     int curPeriod = 0;

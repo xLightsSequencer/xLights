@@ -19,8 +19,10 @@
 
 #include "RenderBuffer.h"
 #include "Effect.h"
-#include "xLightsMain.h"
+#include "RenderContext.h"
+#include "SequenceElements.h"
 #include "SequenceFile.h"
+#include "PixelBuffer.h"
 #include "UtilFunctions.h"
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
@@ -42,11 +44,10 @@ void RenderBuffer::SetFrameTimeInMs(int i) { frameTimeInMs = i; }
 
 AudioManager* RenderBuffer::GetMedia() const
 {
-	if (xLightsFrame::CurrentSeqXmlFile == nullptr)
-	{
+	if (renderContext == nullptr) {
 		return nullptr;
 	}
-	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
+	return renderContext->GetCurrentMediaManager();
 }
 
 const Model* RenderBuffer::GetModel() const
@@ -61,19 +62,19 @@ const std::string &RenderBuffer::GetModelName() const
 
 const std::string &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
 {
-    static const std::string empty;
-    if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
-        return empty;
+    if (renderContext != nullptr) {
+        return renderContext->GetHeaderInfo(node_type);
     }
-    return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
+    static const std::string empty;
+    return empty;
 }
 
 SequenceMedia* RenderBuffer::GetSequenceMedia() const
 {
-    if (frame == nullptr) {
+    if (renderContext == nullptr) {
         return nullptr;
     }
-    return &frame->GetSequenceElements().GetSequenceMedia();
+    return &renderContext->GetSequenceElements().GetSequenceMedia();
 }
 
 void RenderBuffer::AlphaBlend(const RenderBuffer& src)
@@ -104,7 +105,7 @@ void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 }
 
 
-RenderBuffer::RenderBuffer(xLightsFrame *f, PixelBufferClass *p, const Model *m) : frame(f), parent(p)
+RenderBuffer::RenderBuffer(RenderContext *ctx, PixelBufferClass *p, const Model *m) : renderContext(ctx), parent(p)
 {
     model = m == nullptr ? p->GetModel() : m;
     cur_model = model->GetFullName();
@@ -996,7 +997,7 @@ void RenderBuffer::CopyPixelsToTempBuf() {
 // get as large as this during the effect
 xlSize RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
 {
-    Model* m = frame->AllModels[cur_model];
+    Model* m = renderContext->GetModel(cur_model);
     if (m == nullptr) {
         return xlSize(-1, -1);
     }
@@ -1149,7 +1150,7 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _isCopy = true;
     parent = buffer.parent;
     model = buffer.model;
-    frame = buffer.frame;
+    renderContext = buffer.renderContext;
     curPeriod = buffer.curPeriod;
     curEffStartPer = buffer.curEffStartPer;
     curEffEndPer = buffer.curEffEndPer;

@@ -50,6 +50,25 @@
 #define thread_local __thread
 #endif
 
+pugi::xml_node FindXmlNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create)
+{
+    for (pugi::xml_node node = parent.first_child(); node; node = node.next_sibling()) {
+        if (!tag.empty() && (node.name() != tag))
+            continue;
+        if (!value.empty() && (node.attribute(attr.c_str()).as_string() != value))
+            continue;
+        return node;
+    }
+    if (!create)
+        return pugi::xml_node();
+    pugi::xml_node retnode = parent.append_child(tag.c_str());
+    if (!value.empty()) {
+        retnode.remove_attribute(attr.c_str());
+        retnode.append_attribute(attr.c_str()) = value.c_str();
+    }
+    return retnode;
+}
+
 std::string DecodeMidi(int midi) {
     int n = midi % 12;
     int o = midi / 12 - 1;

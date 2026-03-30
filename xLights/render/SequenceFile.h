@@ -21,6 +21,7 @@
 #include <filesystem>
 
 class SequenceElements;
+class UICallbacks;
 class xLightsFrame;
 class wxWindow;
 class AudioManager;
@@ -109,7 +110,7 @@ public:
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const std::string& node_value);
 
-    std::string GetImageDir(wxWindow* parent);
+    std::string GetImageDir(UICallbacks* ui);
     void SetImageDir(const std::string& dir);
 
     void SetSequenceLoaded(bool value) { sequence_loaded = value; }

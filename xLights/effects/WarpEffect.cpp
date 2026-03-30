@@ -21,7 +21,6 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../xLightsMain.h"
 #include "../render/DissolveTransitionPattern.h"
 #include "UtilFunctions.h"
 

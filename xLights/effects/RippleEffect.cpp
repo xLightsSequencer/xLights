@@ -27,7 +27,7 @@
 #include "../models/Model.h"
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
 
 #include "../utils/nanosvg_xl.h"
 
@@ -1684,13 +1684,13 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool RippleEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"];
     if (FileExists(file)) {
-        if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

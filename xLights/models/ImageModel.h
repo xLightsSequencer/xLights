@@ -36,7 +36,7 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsWiringView() const override { return false; }
         [[nodiscard]] virtual int GetNumPhysicalStrings() const override { return 1; }
         [[nodiscard]] virtual std::list<std::string> GetFileReferences() override;
-        [[nodiscard]] virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+        [[nodiscard]] virtual bool CleanupFileLocations(RenderContext* ctx) override;
         [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
         [[nodiscard]] std::string GetImageFile() const { return _imageFile; }
         [[nodiscard]] bool IsWhiteAsAlpha() const { return _whiteAsAlpha; }

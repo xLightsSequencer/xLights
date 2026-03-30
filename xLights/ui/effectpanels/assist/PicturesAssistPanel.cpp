@@ -595,7 +595,7 @@ void PicturesAssistPanel::OnButton_SaveImageClick(wxCommandEvent& event)
 
 void PicturesAssistPanel::OnButton_NewImageClick(wxCommandEvent& event)
 {
-    wxString image_dir = mxLightsParent->CurrentSeqXmlFile->GetImageDir(mxLightsParent);
+    wxString image_dir = mxLightsParent->CurrentSeqXmlFile->GetImageDir(mxLightsParent->GetUICallbacks());
     mGridCanvas->CreateNewImage(image_dir);
 }
 

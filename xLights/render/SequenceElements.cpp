@@ -36,8 +36,8 @@ static const std::string STR_NODE("Node");
 static const std::string STR_STRAND("Strand");
 static const std::string STR_TIMING("timing");
 
-SequenceElements::SequenceElements(xLightsFrame *f)
-    : xframe(f), mFrequency(20), mSequenceEndMS(0), undo_mgr(this)
+SequenceElements::SequenceElements(RenderContext *ctx)
+    : renderContext(ctx), mFrequency(20), mSequenceEndMS(0), undo_mgr(this)
 {
     _viewsManager = nullptr;
     mSelectedTimingRow = -1;
@@ -52,6 +52,10 @@ SequenceElements::SequenceElements(xLightsFrame *f)
     hasPapagayoTiming = false;
     supportsModelBlending = true;
     _timeLine = nullptr;
+}
+
+xLightsFrame* SequenceElements::GetXLightsFrame() const {
+    return dynamic_cast<xLightsFrame*>(renderContext);
 }
 
 SequenceElements::~SequenceElements()
@@ -145,7 +149,7 @@ EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
 
 static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
     bool visible, bool collapsed, bool active, bool selected,
-    xLightsFrame *xframe, bool renderDisabled) {
+    RenderContext *ctx, bool renderDisabled) {
     Element *el;
     if (type == "timing") {
         TimingElement *te = new TimingElement(se, name);
@@ -155,8 +159,8 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         el->SetVisible(te->GetMasterVisible());
     } else {
         ModelElement *me = new ModelElement(se, name, selected);
-        if (xframe != nullptr) {
-            Model *model = xframe->GetModel(name);
+        if (ctx != nullptr) {
+            Model *model = ctx->GetModel(name);
             if (model != nullptr) {
                 me->Init(*model);
             }
@@ -173,7 +177,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
     if (!ElementExists(name)) {
-        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe, renderDisabled);
+        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
 
         mAllViews[MASTER_VIEW].push_back(el);
         mMasterViewChangeCount++;
@@ -190,7 +194,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
 {
     if (!ElementExists(name) && index >= 0 && static_cast<size_t>(index) <= mAllViews[MASTER_VIEW].size())
     {
-        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe, renderDisabled);
+        Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin() + index, el);
         mMasterViewChangeCount++;
         IncrementChangeCount(el);
@@ -774,7 +778,9 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
         } else if (ename == "SequenceMedia") {
             mSequenceMedia.LoadFromXml(e);
         } else if (ename == "Jukebox") {
-            xframe->GetJukeboxPanel()->Load(e);
+            if (auto* frame = GetXLightsFrame()) {
+                frame->GetJukeboxPanel()->Load(e);
+            }
         } else if (ename == "ElementEffects") {
             // Count effects for progress
             int count = 0;
@@ -859,7 +865,9 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 }
                                 loaded += LoadEffects(effectLayer, elemType, effectLayerNode, effectStrings, colorPalettes, importing);
                                 if (count) {
-                                    GetXLightsFrame()->SetStatusText(std::format("Effects Loaded: {}%.", loaded * 100 / count));
+                                    if (auto* frame = GetXLightsFrame()) {
+                                        frame->SetStatusText(std::format("Effects Loaded: {}%.", loaded * 100 / count));
+                                    }
                                 }
                             } else {
                                 assert(false);
@@ -939,7 +947,7 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
         for(size_t m=0;m<model.size();m++)
         {
             std::string modelName = Trim(model[m]);
-            Model *model1 = xframe->AllModels[modelName];
+            Model *model1 = renderContext->GetModel(modelName);
             if (model1 != nullptr) {
                 if (model1->GetDisplayAs() == DisplayAsType::SubModel) {
                     model1 = (dynamic_cast<SubModel*>(model1))->GetParent();
@@ -1094,7 +1102,7 @@ int SequenceElements::GetSelectedTimingRow()
 
 void addSubModelElement(SubModelElement* elem,
     std::vector<Row_Information_Struct>& mRowInformation,
-    int& rowIndex, xLightsFrame* xframe,
+    int& rowIndex,
     std::vector <Element*>& elements) {
     if (elem == nullptr) {
         spdlog::error("addSubModelElement attempted to add null element.");
@@ -1130,7 +1138,7 @@ void addSubModelElement(SubModelElement* elem,
 }
 
 void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mRowInformation,
-    int& rowIndex, xLightsFrame* xframe,
+    int& rowIndex,
     std::vector <Element*>& elements,
     bool submodel)
 {
@@ -1166,7 +1174,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
         ri.submodel = submodel;
         mRowInformation.push_back(ri);
     }
-    Model* cls = xframe->GetModel(elem->GetModelName());
+    Model* cls = elem->GetSequenceElements()->GetRenderContext()->GetModel(elem->GetModelName());
     if (cls == nullptr) {
         spdlog::error("addModelElement model not found {}.", elem->GetModelName());
         return;
@@ -1187,10 +1195,10 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                     ModelElement* melem = dynamic_cast<ModelElement*>(elements[x]);
                     if (subModel != "") {
                         SubModelElement* selem = melem->GetSubModel(subModel);
-                        addSubModelElement(selem, mRowInformation, rowIndex, xframe, elements);
+                        addSubModelElement(selem, mRowInformation, rowIndex, elements);
                     }
                     else {
-                        addModelElement(melem, mRowInformation, rowIndex, xframe, elements, true);
+                        addModelElement(melem, mRowInformation, rowIndex, elements, true);
                     }
                 }
             }
@@ -1312,7 +1320,7 @@ void SequenceElements::PopulateRowInformation()
         if (elem != nullptr)
         {
             if (elem->GetVisible() && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
+                addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, mAllViews[MASTER_VIEW], false);
             }
         }
     }
@@ -1787,7 +1795,7 @@ std::list<std::string> SequenceElements::GetAllReferencedFiles()
     for (size_t i = 0; i < GetElementCount(); i++) {
         Element* e = GetElement(i);
         if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-            Model* m = xframe->AllModels[e->GetModelName()];
+            Model* m = renderContext->GetModel(e->GetModelName());
             for (const auto& it : e->GetFileReferences(m, GetEffectManager())) {
                 if (std::find(begin(res), end(res), it) == end(res)) {
                     res.push_back(it);
@@ -2106,7 +2114,9 @@ void SequenceElements::IncrementChangeCount(Element *el) {
                 if (el2 != nullptr) {
                     el2->IncrementChangeCount(ss, es);
                     modelsToRender.insert(*sit);
-                    xframe->StartOutputTimer(); // start the timer so the render will trigger
+                    if (auto* frame = GetXLightsFrame()) {
+                        frame->StartOutputTimer(); // start the timer so the render will trigger
+                    }
                 }
             }
         }
@@ -2134,5 +2144,5 @@ void SequenceElements::AddRenderDependency(const std::string &layer, const std::
 }
 
 EffectManager &SequenceElements::GetEffectManager() {
-    return xframe->GetEffectManager();
+    return renderContext->GetEffectManager();
 }

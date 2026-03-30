@@ -11,7 +11,7 @@
 #include <pugixml.hpp>
 #include "ValueCurve.h"
 #include "xLightsVersion.h"
-#include "xLightsMain.h"
+#include "RenderContext.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "AudioManager.h"
@@ -1427,9 +1427,10 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
                             {
                                 static std::string warnedfile = "";
 
-                                if (xLightsFrame::CurrentSeqXmlFile != nullptr && warnedfile != xLightsFrame::CurrentSeqXmlFile->GetFullName())
+                                std::string seqName = __sequenceElements ? __sequenceElements->GetRenderContext()->GetShowDirectory() : "";
+                                if (!seqName.empty() && warnedfile != seqName)
                                 {
-                                    warnedfile = xLightsFrame::CurrentSeqXmlFile->GetFullName();
+                                    warnedfile = seqName;
                                     DisplayWarning("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2018.23 before proceeding.");
                                 }
                             }

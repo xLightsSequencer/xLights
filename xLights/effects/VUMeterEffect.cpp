@@ -18,7 +18,7 @@
 #include "../AudioManager.h"
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -206,13 +206,13 @@ std::list<std::string> VUMeterEffect::GetFileReferences(Model* model, const Sett
     return res;
 }
 
-bool VUMeterEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool VUMeterEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_FILEPICKERCTRL_SVGFile"];
     if (FileExists(file)) {
-        if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_SVGFile"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKERCTRL_SVGFile"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

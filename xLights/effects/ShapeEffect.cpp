@@ -26,7 +26,7 @@
 #include "UtilFunctions.h"
 #include "AudioManager.h"
 #include "../ExternalHooks.h"
-#include "../xLightsMain.h" 
+#include "../render/RenderContext.h"
 
 #include "../utils/nanosvg_xl.h"
 #include "nanosvgrast_impl.h"
@@ -93,13 +93,13 @@ std::list<std::string> ShapeEffect::GetFileReferences(Model* model, const Settin
     return res;
 }
 
-bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool ShapeEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_FILEPICKERCTRL_SVG"];
     if (FileExists(file)) {
-        if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_SVG"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKERCTRL_SVG"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }

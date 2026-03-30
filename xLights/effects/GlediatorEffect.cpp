@@ -25,7 +25,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../render/SequenceFile.h"
-#include "../xLightsMain.h" 
+#include "../render/RenderContext.h"
 #include "../UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
@@ -268,15 +268,15 @@ std::list<std::string> GlediatorEffect::GetFileReferences(Model* model, const Se
     return res;
 }
 
-bool GlediatorEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+bool GlediatorEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsMap)
 {
     bool rc = false;
     std::string file = SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"];
     if (FileExists(file))
     {
-        if (!frame->IsInShowFolder(file))
+        if (!ctx->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"] = frame->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Glediator");
+            SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Glediator");
             rc = true;
         }
     }

@@ -27,6 +27,7 @@ class Element;
 class Model;
 class ValueCurve;
 class EffectsGrid;
+class RenderContext;
 class xLightsFrame;
 
 class EffectLayer {
@@ -48,7 +49,7 @@ public:
     void RemoveAllEffects(UndoManager* undo_mgr);
     std::list<std::string> GetFileReferences(Model* model, EffectManager& em) const;
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
-    bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
+    bool CleanupFileLocations(RenderContext* ctx, EffectManager& em);
 
     std::vector<Effect*> GetEffectsByTypeAndTime(const std::string& type, int startTimeMS, int endTimeMS);
     std::vector<Effect*> GetAllEffectsByTime(int startTimeMS, int endTimeMS);

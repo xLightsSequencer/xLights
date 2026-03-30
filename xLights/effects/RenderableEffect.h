@@ -23,7 +23,7 @@ class RenderBuffer;
 class AudioManager;
 class EffectManager;
 class EffectLayer;
-class xLightsFrame;
+class RenderContext;
 
 class RenderableEffect
 {
@@ -75,7 +75,7 @@ public:
     {
         return std::list<std::string>();
     }
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
     {
         return false;
     }

@@ -16,7 +16,7 @@
 #include "UtilFunctions.h"
 #include <log.h>
 #include "SequenceElements.h"
-#include "xLightsMain.h"
+#include "RenderContext.h"
 
 Element::Element(SequenceElements *p, const std::string &name) :
 parent(p),
@@ -44,7 +44,7 @@ std::string Element::GetTypeDescription() const
 {
     switch (GetType()) {
     case ElementType::ELEMENT_TYPE_MODEL: {
-        Model* m = GetSequenceElements()->GetXLightsFrame()->AllModels[GetModelName()];
+        Model* m = GetSequenceElements()->GetRenderContext()->GetModel(GetModelName());
         if (m != nullptr) {
             if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 return "Model Group";
@@ -232,7 +232,7 @@ EffectLayer* Element::AddEffectLayerInternal()
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
-        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        GetSequenceElements()->GetRenderContext()->AbortRender();
         lock.lock();
     }
 
@@ -247,7 +247,7 @@ EffectLayer* Element::InsertEffectLayer(int index)
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
-        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        GetSequenceElements()->GetRenderContext()->AbortRender();
         lock.lock();
     }
 
@@ -285,7 +285,7 @@ void Element::RemoveEffectLayer(int index)
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
-        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        GetSequenceElements()->GetRenderContext()->AbortRender();
         lock.lock();
     }
 
@@ -858,13 +858,13 @@ std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
     return res;
 }
 
-bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
+bool Element::CleanupFileLocations(RenderContext* ctx, EffectManager& em)
 {
     bool rc = false;
     if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
         for (size_t j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
-            rc = el->CleanupFileLocations(frame, em) || rc;
+            rc = el->CleanupFileLocations(ctx, em) || rc;
         }
     }
     return rc;

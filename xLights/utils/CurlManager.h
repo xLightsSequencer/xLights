@@ -5,11 +5,20 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 class CurlManager {
 public:
     static CurlManager INSTANCE;
+
+    // Callback invoked during synchronous curl operations to keep the
+    // caller responsive (e.g. pump the UI event loop).  The UI layer
+    // should set this to something like wxYieldIfNeeded(); non-UI
+    // callers can leave the default which just yields the CPU.
+    using YieldFunction = std::function<void()>;
+    void setYieldFunction(YieldFunction fn) { yieldFn = std::move(fn); }
+    void yield() { if (yieldFn) yieldFn(); }
 
     class CurlPrivateData {
     public:
@@ -95,4 +104,6 @@ private:
     };
     std::map<std::string, HostData*> hostData;
     HostData* getHostData(const std::string& host);
+
+    YieldFunction yieldFn = [] { std::this_thread::yield(); };
 };

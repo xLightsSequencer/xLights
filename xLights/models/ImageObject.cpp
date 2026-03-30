@@ -15,8 +15,8 @@
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "ModelPreview.h"
-#include "xLightsMain.h"
 #include "../ExternalHooks.h"
+#include "../render/RenderContext.h"
 
 #include <log.h>
 
@@ -157,7 +157,7 @@ std::list<std::string> ImageObject::CheckModelSettings()
     } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
         res.push_back(std::format("    ERR: Image object '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
+        if (!IsFileInShowDir(std::string(), _imageFile)) {
             res.push_back(std::format("    WARN: Image object '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }
@@ -165,16 +165,16 @@ std::list<std::string> ImageObject::CheckModelSettings()
     return res;
 }
 
-bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
+bool ImageObject::CleanupFileLocations(RenderContext* ctx)
 {
     bool rc = false;
     if (FileExists(_imageFile)) {
-        if (!frame->IsInShowFolder(_imageFile)) {
-            _imageFile = frame->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
+        if (!ctx->IsInShowFolder(_imageFile)) {
+            _imageFile = ctx->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }
-    return BaseObject::CleanupFileLocations(frame) || rc;
+    return BaseObject::CleanupFileLocations(ctx) || rc;
 }
 
 std::list<std::string> ImageObject::GetFileReferences()

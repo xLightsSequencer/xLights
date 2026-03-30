@@ -13,6 +13,7 @@
 #include <string>
 
 class BaseObject;
+class UICallbacks;
 
 class ObjectManager
 {
@@ -23,4 +24,5 @@ public:
     std::string GenerateObjectName(const std::string& candidateName) const;
 
     virtual BaseObject *GetObject(const std::string &name) const = 0;
+    virtual UICallbacks* GetUICallbacks() const { return nullptr; }
 };

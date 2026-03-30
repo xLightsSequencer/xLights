@@ -23,8 +23,7 @@
 #include "../BufferPanel.h"
 #include "../ColorPanel.h"
 #include "../TimingPanel.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
 #include "../models/SubModel.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
@@ -83,7 +82,8 @@ bool RenderableEffect::needToAdjustSettings(const std::string &version) {
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
     if (IsVersionOlder("2024.05", version)) {
         std::string mn = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
-        SubModel * m = dynamic_cast<SubModel*>(xLightsApp::GetFrame()->GetModel(mn));
+        auto* ctx = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetRenderContext();
+        SubModel * m = dynamic_cast<SubModel*>(ctx->GetModel(mn));
         if (m != nullptr) {
             uint32_t mx = 0;
             for (size_t x = 0; x < m->GetNodeCount(); ++x) {

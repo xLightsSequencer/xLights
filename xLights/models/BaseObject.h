@@ -17,7 +17,7 @@
 #include "ModelScreenLocation.h"
 #include <glm/mat3x3.hpp>
 
-class xLightsFrame;
+class RenderContext;
 class ModelScreenLocation;
 class ModelPreview;
 
@@ -32,7 +32,7 @@ public:
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() = 0;
 
-    virtual bool CleanupFileLocations(xLightsFrame* frame) { return false; }
+    virtual bool CleanupFileLocations(RenderContext* ctx) { return false; }
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 

@@ -1708,6 +1708,11 @@ void xLightsFrame::RenderDirtyModels() {
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, false, true, [] (bool) {});
 }
 
+bool xLightsFrame::AbortRender(int maxTimeMS)
+{
+    return AbortRender(maxTimeMS, nullptr);
+}
+
 bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
 {
     

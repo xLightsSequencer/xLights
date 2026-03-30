@@ -11,6 +11,9 @@
 #include "ip_utils.h"
 #include "string_utils.h"
 
+#include <chrono>
+#include <thread>
+
 #include <wx/wx.h>
 #include <wx/string.h>
 #include <wx/regex.h>
@@ -254,7 +257,7 @@ namespace ip_utils
     void waitForAllToResolve() {
         int count = 0;
         while (!RESOLVE_POOL.isEmpty() && count < 10000) {
-            wxMilliSleep(2);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
             //wxYieldIfNeeded();
         }
     }

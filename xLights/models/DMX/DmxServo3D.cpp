@@ -19,7 +19,7 @@
 #include "Servo.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
-#include "../../xLightsMain.h"
+#include "../../render/UICallbacks.h"
 #include "../../UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
@@ -113,7 +113,9 @@ void DmxServo3d::InitModel()
     if (_dmxChannelCount < min_channels) {
         UpdateChannelCount(min_channels, false);
         std::string msg = std::format("Channel count increased to {} to accommodate {} servos at {} bits.", min_channels, num_servos, _16bit ? 16 : 8);
-        wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
+        if (auto* ui = GetModelManager().GetUICallbacks()) {
+            ui->ShowMessage(msg, "Minimum Channel Violation");
+        }
     }
 
     DmxModel::InitModel();

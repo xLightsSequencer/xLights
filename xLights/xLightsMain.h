@@ -87,6 +87,8 @@
 #include "render/RenderCache.h"
 #include "outputs/ZCPP.h"
 #include "OutputModelManager.h"
+#include "render/RenderContext.h"
+#include "render/UICallbacks.h"
 #include "models/Model.h"
 #include "SequencePackage.h"
 #include "ScriptsDialog.h"
@@ -133,6 +135,7 @@ class HttpServer;
 class HttpConnection;
 class HttpRequest;
 class wxTaskBarIcon;
+class wxProgressDialog;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -298,14 +301,15 @@ private:
     int id;
 };
 
-class xLightsFrame: public xlFrame
+class xLightsFrame: public xlFrame, public RenderContext, public UICallbacks
 {
 public:
 
     xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1, bool renderOnlyMode = false);
     virtual ~xLightsFrame();
 
-    static bool IsCheckSequenceOptionDisabled(const std::string& option);
+    static bool IsCheckSequenceOptionDisabledS(const std::string& option);
+    bool IsCheckSequenceOptionDisabled(const std::string& option) const override { return IsCheckSequenceOptionDisabledS(option); }
     static void SetCheckSequenceOptionDisable(const std::string& option, bool value);
 
     enum PlayListIds
@@ -412,8 +416,10 @@ public:
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static SequenceFile* CurrentSeqXmlFile; // global object for currently opened XML file
-    const std::string &GetShowDirectory() const { return showDirectory; }
-    const std::string &GetFseqDirectory() const { return fseqDirectory; }
+    const std::string &GetShowDirectory() const override { return showDirectory; }
+    const std::string &GetFseqDirectory() const override { return fseqDirectory; }
+    AudioManager* GetCurrentMediaManager() const override;
+    const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);
@@ -474,7 +480,7 @@ public:
 	}
     void UpdateReadOnlyState();
 
-    EffectManager &GetEffectManager() { return effectManager; }
+    EffectManager &GetEffectManager() override { return effectManager; }
 
     bool ImportSuperStar(Element *el, pugi::xml_document &doc, int x_size, int y_size,
                          int x_offset, int y_offset,
@@ -1194,7 +1200,7 @@ public:
     }
     void DoAltBackup(bool prompt = true);
 
-    [[nodiscard]] const std::list<std::string>& GetMediaFolders() const {
+    [[nodiscard]] const std::list<std::string>& GetMediaFolders() const override {
         return mediaDirectories;
     }
     void SetMediaFolders(const std::list<std::string> &folders);
@@ -1506,6 +1512,10 @@ public:
     std::string mStoredLayoutGroup;
     bool _suspendAutoSave = false;
 
+    // UICallbacks progress dialog tracking
+    std::map<UICallbacks::ProgressToken, wxProgressDialog*> _progressDialogs;
+    UICallbacks::ProgressToken _nextProgressToken = 0;
+
     // convert
 public:
     bool UnsavedRgbEffectsChanges;
@@ -1513,7 +1523,31 @@ public:
     bool _renderMode = false;
     bool _checkSequenceMode = false;
 
-    void SuspendAutoSave(bool dosuspend) { _suspendAutoSave = dosuspend; }
+    void SuspendAutoSave(bool dosuspend) override { _suspendAutoSave = dosuspend; }
+
+    // ---- RenderContext: UICallbacks access ----
+    UICallbacks* GetUICallbacks() override { return this; }
+
+    // ---- UICallbacks implementation ----
+    void ShowMessage(const std::string& message,
+                     const std::string& caption = "xLights") const override;
+    bool PromptYesNo(const std::string& message,
+                     const std::string& caption = "xLights") const override;
+    std::string PromptForDirectory(const std::string& message,
+                                   const std::string& defaultPath = "") const override;
+    std::string PromptForFile(const std::string& message,
+                              const std::string& wildcard = "",
+                              const std::string& defaultPath = "") const override;
+    long PromptForNumber(const std::string& message,
+                         const std::string& caption,
+                         long defaultValue,
+                         long min, long max) const override;
+    ProgressToken BeginProgress(const std::string& message,
+                                int maximum = 100) override;
+    void UpdateProgress(ProgressToken token, int value,
+                        const std::string& newMessage = "") override;
+    void EndProgress(ProgressToken token) override;
+
     void ClearLastPeriod();
     void WriteVirFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf);  //      HLS *.hlsnc
@@ -1523,7 +1557,7 @@ public:
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename, bool allowSparse = true); //  Falcon Pi Player *.fseq
     OutputManager* GetOutputManager() { return &_outputManager; };
-    OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
+    OutputModelManager* GetOutputModelManager() override { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
 
     // Render effects into a list of xlImage frames. Used for preset GIF generation
@@ -1567,16 +1601,17 @@ public:
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount);
-    Model *GetModel(const std::string& name) const;
+    Model *GetModel(const std::string& name) const override;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
-    bool AbortRender(int maxTimeMs = 60000, int* numThreadsAborted = nullptr);
+    bool AbortRender(int maxTimeMs = 60000) override;
+    bool AbortRender(int maxTimeMs, int* numThreadsAborted);
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();
     bool RenderEffectFromMap(bool suppress, Effect *effect, int layer, int period, SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = nullptr);
-    void RenderMainThreadEffects();
+    void RenderMainThreadEffects() override;
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
     void RenderDirtyModels();
@@ -1595,7 +1630,7 @@ public:
     bool IsDrawRamps();
 
     void EnableSequenceControls(bool enable);
-    SequenceElements& GetSequenceElements() { return _sequenceElements; }
+    SequenceElements& GetSequenceElements() override { return _sequenceElements; }
     TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "");
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
@@ -2006,13 +2041,13 @@ public:
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 
-    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false);
-    bool IsInShowFolder(const std::string & file) const;
+    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false) override;
+    bool IsInShowFolder(const std::string & file) const override;
     // Returns true if file is inside the show folder or any configured media folder
-    bool IsInShowOrMediaFolder(const std::string& file) const;
+    bool IsInShowOrMediaFolder(const std::string& file) const override;
     // Returns the path of file relative to the show folder or media folder it lives in.
     // Returns empty string if file is not inside any show/media folder.
-    std::string MakeRelativePath(const std::string& file) const;
+    std::string MakeRelativePath(const std::string& file) const override;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
