@@ -583,6 +583,7 @@ void SequenceMedia::EmbedImage(const std::string& filepath)
     auto it = _imageCache.find(filepath);
     if (it != _imageCache.end()) {
         it->second->EmbedImage();
+        it->second->SetFilePath(filepath);
     }
 }
 
@@ -591,6 +592,7 @@ void SequenceMedia::EmbedAllImages()
     std::scoped_lock lock(_cacheMutex);
     for (auto& pair : _imageCache) {
         pair.second->EmbedImage();
+        pair.second->SetFilePath(pair.first);
     }
 }
 void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::string& imageData) {
@@ -1529,25 +1531,25 @@ std::vector<std::pair<std::string, MediaType>> SequenceMedia::GetAllMediaPaths()
 void SequenceMedia::EmbedMedia(const std::string& filepath) {
     std::scoped_lock lock(_cacheMutex);
     auto ii = _imageCache.find(filepath);
-    if (ii != _imageCache.end()) { ii->second->Embed(); return; }
+    if (ii != _imageCache.end()) { ii->second->Embed(); ii->second->SetFilePath(filepath); return; }
     auto it = _textCache.find(filepath);
-    if (it != _textCache.end()) { it->second->Embed(); return; }
+    if (it != _textCache.end()) { it->second->Embed(); it->second->SetFilePath(filepath); return; }
     auto is = _svgCache.find(filepath);
-    if (is != _svgCache.end()) { is->second->Embed(); return; }
+    if (is != _svgCache.end()) { is->second->Embed(); is->second->SetFilePath(filepath); return; }
     auto ih = _shaderCache.find(filepath);
-    if (ih != _shaderCache.end()) { ih->second->Embed(); return; }
+    if (ih != _shaderCache.end()) { ih->second->Embed(); ih->second->SetFilePath(filepath); return; }
     auto ib = _binaryCache.find(filepath);
-    if (ib != _binaryCache.end()) { ib->second->Embed(); return; }
+    if (ib != _binaryCache.end()) { ib->second->Embed(); ib->second->SetFilePath(filepath); return; }
     // Videos are not embeddable
 }
 
 void SequenceMedia::EmbedAllMedia() {
     std::scoped_lock lock(_cacheMutex);
-    for (auto& p : _imageCache) p.second->Embed();
-    for (auto& p : _textCache) p.second->Embed();
-    for (auto& p : _svgCache) p.second->Embed();
-    for (auto& p : _shaderCache) p.second->Embed();
-    for (auto& p : _binaryCache) p.second->Embed();
+    for (auto& p : _imageCache) { p.second->Embed(); p.second->SetFilePath(p.first); }
+    for (auto& p : _textCache) { p.second->Embed(); p.second->SetFilePath(p.first); }
+    for (auto& p : _svgCache) { p.second->Embed(); p.second->SetFilePath(p.first); }
+    for (auto& p : _shaderCache) { p.second->Embed(); p.second->SetFilePath(p.first); }
+    for (auto& p : _binaryCache) { p.second->Embed(); p.second->SetFilePath(p.first); }
     // Videos are not embeddable
 }
 
