@@ -407,6 +407,15 @@ void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, pugi::xml_n
         // Subbuffer type
         sm->AddSubbuffer(smData->subBuffer);
     }
+
+    // Load aliases for this submodel (handles both "Aliases" and legacy "aliases")
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        std::string_view childName = child.name();
+        if (childName == XmlNodeKeys::AliasesAttribute || childName == "aliases") {
+            DeserializeAliases(sm, child);
+            break;
+        }
+    }
 }
 
 void XmlDeserializingModelFactory::DeserializeAliases(Model* model, pugi::xml_node node)
