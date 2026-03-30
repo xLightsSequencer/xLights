@@ -117,7 +117,7 @@ enum {
 #endif
 
 ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id, const wxPoint& pos,const wxSize& size):
-    mPointSize(PIXEL_SIZE_ON_DIALOGS), _outputManager(outputManager)
+    _outputManager(outputManager), mPointSize(PIXEL_SIZE_ON_DIALOGS)
 {
 	//(*Initialize(ModelFaceDialog)
 	wxButton* AddButton;

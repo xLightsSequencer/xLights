@@ -39,9 +39,9 @@ struct HinksPixOutput {
         colorOrder(0),
         brightness(defaultBrightness_),
         gamma(1),
+        used(false),
         controllerStartChannel(1),
-        controllerEndChannel(0),
-        used(false){};
+        controllerEndChannel(0){};
     const int output;
     int universe;
     int startChannel;

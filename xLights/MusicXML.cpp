@@ -212,7 +212,7 @@ std::list<std::string> MusicXML::GetTracks()
     return res;
 }
 
-MusicXmlNote::MusicXmlNote(pugi::xml_node node, int s) : duration(0), durationMS(0), midi(0), start(0), startMS(0)
+MusicXmlNote::MusicXmlNote(pugi::xml_node node, int s) : midi(0), start(0), startMS(0), duration(0), durationMS(0)
 {
     start = s;
     for (pugi::xml_node n1 = node.first_child(); n1; n1 = n1.next_sibling())

@@ -218,7 +218,7 @@ class PopupDialogProperty : public wxStringProperty {
 public:
     PopupDialogProperty(Model* m, OutputManager* om, const wxString& label, const wxString& name,
                         const wxString& value, int type)
-        : wxStringProperty(label, name, value), m_model(m), m_tp(type), _outputManager(om) {}
+        : wxStringProperty(label, name, value), m_model(m), _outputManager(om), m_tp(type) {}
     virtual const wxPGEditor* DoGetEditorClass() const override { return wxPGEditor_TextCtrlAndButton; }
     virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
         switch (m_tp) {

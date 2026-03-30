@@ -73,7 +73,7 @@ BEGIN_EVENT_TABLE(ConvertDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, std::string& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id,const wxPoint& pos,const wxSize& size) : SeqData(SeqData_), _outputManager(outputManager_), mediaFilename(mediaFilename_), ChannelColors(ChannelColors_), ChannelNames(ChannelNames_), ChNames(ChNames_)
+ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputManager* outputManager_, std::string& mediaFilename_, wxArrayString& ChannelNames_, wxArrayInt& ChannelColors_, wxArrayString& ChNames_, wxWindowID id,const wxPoint& pos,const wxSize& size) : SeqData(SeqData_), _outputManager(outputManager_), mediaFilename(mediaFilename_), ChannelNames(ChannelNames_), ChannelColors(ChannelColors_), ChNames(ChNames_)
 {
     _parent = (xLightsFrame*)parent;
 
@@ -1383,18 +1383,18 @@ public:
     bool empty;
 
     LORInfo(const wxString & nm, const wxString &dt, int n, int u, int c, int s) :
-        name(nm), deviceType(dt), network(n), unit(u), circuit(c), savedIndex(s), empty(true)
+        name(nm), savedIndex(s), deviceType(dt), unit(u), circuit(c), network(n), empty(true)
     {
     }
     LORInfo(const LORInfo &li) :
-        name(li.name),
-        deviceType(li.deviceType), network(li.network), unit(li.unit),
-        circuit(li.circuit), savedIndex(li.savedIndex), empty(li.empty)
+        name(li.name), savedIndex(li.savedIndex),
+        deviceType(li.deviceType), unit(li.unit),
+        circuit(li.circuit), network(li.network), empty(li.empty)
     {
 
     }
     LORInfo() :
-        name(""), deviceType(""), network(0), unit(0), circuit(0), savedIndex(0), empty(true)
+        name(""), savedIndex(0), deviceType(""), unit(0), circuit(0), network(0), empty(true)
     {
 
     }

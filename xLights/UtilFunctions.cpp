@@ -571,7 +571,7 @@ bool DeleteDirectory(std::string directory) {
         spdlog::error("  Thats odd ... the directory cannot be found: {}.", directory);
         return false;
     }
-    auto removed = std::filesystem::remove_all(directory, ec);
+    std::filesystem::remove_all(directory, ec);
     if (ec) {
         spdlog::error("  Could not delete folder {}: {}.", directory, ec.message());
         return false;

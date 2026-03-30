@@ -46,7 +46,6 @@ std::vector<std::string> Falcon::V4_GetMediaFiles() {
 
     std::vector<std::string> res;
 
-    bool success = true;
     bool done = false;
     int batch = 0;
     nlohmann::json p;
@@ -66,7 +65,6 @@ std::vector<std::string> Falcon::V4_GetMediaFiles() {
         } else {
             done = true;
             res.clear();
-            success = false;
         }
     }
 
@@ -1121,10 +1119,6 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
 
             pp->CreateVirtualStrings(true);
             for (int sr = smartRemotes[p] == 0 ? 0 : 1; sr < smartRemotes[p] + 1; sr++) {
-                int brightness = defaultBrightness;
-                int gamma = defaultGamma;
-                int startNulls = 0;
-                int endNulls = 0;
                 int colourOrder = 0;
                 int direction = 0;
                 int group = 1;
@@ -1158,10 +1152,6 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
 
                         uploadStrings.push_back(str);
 
-                        gamma = defaultGamma;
-                        brightness = defaultBrightness;
-                        startNulls = str.startNulls;
-                        endNulls = str.endNulls;
                         colourOrder = str.colourOrder;
                         direction = str.direction;
                         group = str.group;
@@ -1509,7 +1499,7 @@ public:
     int brightness = 100;
 
     FalconString(int defaultBrightness, float defaultGamma) :
-        brightness(defaultBrightness), gamma(defaultGamma) {
+        gamma(defaultGamma), brightness(defaultBrightness) {
     }
 
     void Dump() const {
@@ -1793,10 +1783,7 @@ void Falcon::ReadStringData(const pugi::xml_document& stringsDoc, std::vector<Fa
     }
 
     int i = 0;
-    int lastString = -1;
     for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
-        int port = e.attribute("p").as_int(0);
-
         //<vs y="" p="7" u="2000" us="0" s="0" c="50" g="1" t="0" d="0" o="0" n="0" z="0" b="13" bl="0" ga="0"/>
         FalconString* string = new FalconString(defaultBrightness, defaultGamma);
         string->startChannel = e.attribute("us").as_int(0) + 1;
@@ -1833,7 +1820,6 @@ void Falcon::ReadStringData(const pugi::xml_document& stringsDoc, std::vector<Fa
         string->index = i;
         stringData[i] = string;
 
-        lastString = port;
         i++;
     }
 }

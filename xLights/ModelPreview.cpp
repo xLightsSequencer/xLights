@@ -922,10 +922,11 @@ void ModelPreview::Reset()
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int styles, bool apc, bool showFirstPixel)
     : GRAPHICS_BASE_CLASS(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
+    _showFirstPixel(showFirstPixel),
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr),
     xlights(xlights_), currentModel("&---none---&"),  currentLayoutGroup("Default"), additionalModel(nullptr), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), _showFirstPixel(showFirstPixel)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();

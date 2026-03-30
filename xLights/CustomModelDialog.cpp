@@ -340,14 +340,15 @@ class CopyPasteGrid : public wxGrid
     }
 };
 
-CustomModelDialog::CustomModelDialog(wxWindow* parent, OutputManager* om) : background_image(""),
+CustomModelDialog::CustomModelDialog(wxWindow* parent, OutputManager* om) :
+  _outputManager(om),
+  background_image(""),
   bkg_image(nullptr),
   bkgrd_active(true),
   lightness(80),
   autonumber(false),
   autoincrement(false),
-  next_channel(1),
-    _outputManager(om)
+  next_channel(1)
 {
 	//(*Initialize(CustomModelDialog)
 	wxFlexGridSizer* FlexGridSizer11;

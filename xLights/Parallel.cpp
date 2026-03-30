@@ -64,7 +64,7 @@ public:
                 std::atomic_int &it,
                 int cs,
                 int bs)
-        : max(m), func(f), iteration(it), doneCount(dc), calcSteps(cs), blockSize(bs) {}
+        : max(m), func(f), doneCount(dc), iteration(it), calcSteps(cs), blockSize(bs) {}
     virtual ~ParallelJob() {};
     virtual void Process() override {
         try {

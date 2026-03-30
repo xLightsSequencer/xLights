@@ -150,8 +150,8 @@ FPP::~FPP() {
 }
 
 struct FPPWriteData {
-    FPPWriteData() : file(nullptr), instance(nullptr), data(nullptr), dataSize(0), curPos(0),
-        postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
+    FPPWriteData() : data(nullptr), dataSize(0), curPos(0), file(nullptr),
+        postData(nullptr), postDataSize(0), instance(nullptr), totalWritten(0), lastDone(0), cancelled(false) {}
 
     wxFile realFile;
     wxMemoryBuffer memBuffPost;
@@ -431,7 +431,7 @@ static int GetJSONIntValue(const nlohmann::json& val, const std::string &key, in
     }
     return def;
 }
-static int GetJSONIntValueFromString(const nlohmann::json& val, const std::string &key, int def = 0) {
+[[maybe_unused]] static int GetJSONIntValueFromString(const nlohmann::json& val, const std::string &key, int def = 0) {
     if (val.contains(key)) {
         
         if (val[key].is_number_integer()) {
@@ -446,13 +446,13 @@ static int GetJSONIntValueFromString(const nlohmann::json& val, const std::strin
     }
     return def;
 }
-static uint32_t GetJSONUInt32Value(const nlohmann::json& val, const std::string &key, uint32_t def = 0) {
+[[maybe_unused]] static uint32_t GetJSONUInt32Value(const nlohmann::json& val, const std::string &key, uint32_t def = 0) {
     if (val.contains(key) && val[key].is_number_integer()) {
         return val[key].get<uint32_t>();
     }
     return def;
 }
-static uint64_t GetJSONUInt64Value(const nlohmann::json& val, const std::string &key, uint64_t def = 0) {
+[[maybe_unused]] static uint64_t GetJSONUInt64Value(const nlohmann::json& val, const std::string &key, uint64_t def = 0) {
     if (val.contains(key) && val[key].is_number_integer()) {
         return val[key].get<uint64_t>();
     }
@@ -464,7 +464,7 @@ static bool GetJSONBoolValue(const nlohmann::json& val, const std::string &key, 
     }
     return def;
 }
-static bool GetJSONDoubleValue(const nlohmann::json& val, const std::string &key, double def = 0.0) {
+[[maybe_unused]] static bool GetJSONDoubleValue(const nlohmann::json& val, const std::string &key, double def = 0.0) {
     if (val.contains(key) && val[key].is_number()) {
         return val[key].get<double>();
     }
@@ -4075,7 +4075,6 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
 
 void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, OutputManager* outputManager) {
     
-    bool foundActiveController = false;
     uint16_t activePlayerCount = 0;
     std::unordered_set<std::string> allProxyList;
     std::map<std::string, std::string> configuredIPs;
@@ -4090,9 +4089,6 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
             if (!c->GetFPPProxy().empty()) {
                 auto ip = ip_utils::ResolveIP(c->GetFPPProxy());
                 allProxyList.insert(ip);
-            }
-            if (Controller::DecodeActiveState(c->GetActive()) == "Active") {
-                foundActiveController = true;
             }
         }
     }

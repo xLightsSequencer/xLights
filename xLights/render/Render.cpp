@@ -152,7 +152,7 @@ private:
 class AggregatorRenderer: public NextRenderer {
 public:
 
-    AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19), data(numFrames + 20) {
+    AggregatorRenderer(int numFrames) : NextRenderer(), data(numFrames + 20), finalFrame(numFrames + 19) {
         for (int x = 0; x < (numFrames + 20); ++x) {
             data[x] = 0;
         }
@@ -222,8 +222,9 @@ public:
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe)
-        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), currentFrame(0), m_logger(spdlog::get("render")),
-            supportsModelBlending(false), abort(false), statusMap(nullptr)
+        : Job(), NextRenderer(), rowToRender(row), xLights(xframe), seqData(&data),
+            supportsModelBlending(false), statusMap(nullptr), m_logger(spdlog::get("render")),
+            currentFrame(0), abort(false)
     {
         name = "";
         if (row != nullptr) {

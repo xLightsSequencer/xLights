@@ -1277,7 +1277,7 @@ protected:
 
 public:
     ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale, const std::string &label = "") :
-        BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString), _label(label)
+        BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _label(label), _port(port), _virtualString(virtualString)
     {
         _name = name;
         _main = name == displayName;
@@ -1725,11 +1725,11 @@ class CMDTextDropTarget : public wxTextDropTarget
 {
 public:
     CMDTextDropTarget(std::list<BaseCMObject*>* objects, ControllerModelDialog* owner, wxPanel* target, bool anywhere, double& scale, ControllerCaps* caps) :
-        _owner(owner),
-        _scale(scale),
         _objects(objects),
+        _owner(owner),
         _target(target),
         _anywhere(anywhere),
+        _scale(scale),
         _caps(caps){};
 
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override

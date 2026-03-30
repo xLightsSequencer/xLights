@@ -102,7 +102,7 @@ protected:
     
     class PinwheelData {
     public:
-        PinwheelData(int i) : pinwheel_arms(i), colorarray(i), colorIsSpacial(i), colorsAsHSV(i), colorsAsColor(i) {
+        PinwheelData(int i) : colorarray(i), colorIsSpacial(i), colorsAsHSV(i), colorsAsColor(i), pinwheel_arms(i) {
             
         }
         std::vector<uint32_t> colorarray;

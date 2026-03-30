@@ -167,8 +167,13 @@ namespace {
         return tex2D(cb, st.x, st.y);
     }
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
     xlColor lerp(const xlColor& a, const xlColor& b, double progress) {
         double red = a.red + progress * (b.red - a.red);
         double green = a.green + progress * (b.green - a.green);
@@ -201,7 +206,11 @@ namespace {
         lhs.blue += rhs.blue;
         return lhs;
     }
+#ifdef __clang__
 #pragma clang diagnostic pop
+#else
+#pragma GCC diagnostic pop
+#endif
 
     struct LinearInterpolater {
         double operator()(double t) const {

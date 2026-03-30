@@ -68,8 +68,13 @@ SDLManager __sdlManager;
 #define PCMFUDGE 32768
 
 // Due to Ubuntu still using FFMpeg 4.x, we have to use some deprecated API's
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
 void fill_audio(void* udata, Uint8* stream, int len) {
     // SDL 2.0

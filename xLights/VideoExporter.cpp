@@ -94,7 +94,7 @@ namespace
 }
 
 GenericVideoExporter::GenericVideoExporter(const std::string& outPath, const Params& inParams, bool videoOnly /*=false*/) :
-    _path(outPath), _inParams(inParams), _videoOnly(videoOnly)
+    _path(outPath), _videoOnly(videoOnly), _inParams(inParams)
 {
     _outParams = inParams;
 

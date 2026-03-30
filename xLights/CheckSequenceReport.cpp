@@ -1,4 +1,6 @@
-﻿#pragma execution_character_set("utf-8")
+﻿#ifdef _MSC_VER
+#pragma execution_character_set("utf-8")
+#endif
 
 #include "CheckSequenceReport.h"
 #include "TempFileManager.h"

@@ -150,13 +150,13 @@ BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 END_EVENT_TABLE()
 
 SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
+    _outputManager(om),
     m_creating_bound_rect(false),
     m_bound_start_x(0),
     m_bound_start_y(0),
     m_bound_end_x(0),
     m_bound_end_y(0),
-    mPointSize(PIXEL_SIZE_ON_DIALOGS),
-    _outputManager(om)
+    mPointSize(PIXEL_SIZE_ON_DIALOGS)
 {
 	//(*Initialize(SubModelsDialog)
 	wxBoxSizer* BoxSizer1;

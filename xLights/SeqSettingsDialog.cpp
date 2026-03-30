@@ -159,11 +159,11 @@ private:
 
 SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_handle_, SequenceElements *se, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_, const std::string& media, uint32_t durationMS) :
     xml_file(file_to_handle_),
-    media_directories(media_dirs),
-    xLightsParent((xLightsFrame*)parent),
     sequenceElements(se),
-    selected_branch_index(-1),
+    media_directories(media_dirs),
     selected_view("All Models"),
+    xLightsParent((xLightsFrame*)parent),
+    selected_branch_index(-1),
     wizard_active(wizard_active_)
 {
     _plog = nullptr;

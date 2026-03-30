@@ -93,7 +93,7 @@ public:
 
 class CirclesRenderCache : public EffectRenderCache {
 public:
-    CirclesRenderCache() : numBalls(0), metaType(false) {
+    CirclesRenderCache() : metaType(false), numBalls(0) {
         balls = new RgbBalls[MAX_RGB_BALLS];
         metaballs = new MetaBall[MAX_RGB_BALLS];
     };

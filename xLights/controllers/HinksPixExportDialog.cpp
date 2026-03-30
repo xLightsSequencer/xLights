@@ -206,7 +206,7 @@ void HinksChannelMap::Dump() const {
 }
 
 HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager, wxWindowID id, const wxPoint& pos, const wxSize& size) :
-    m_outputManager(outputManager), m_modelManager(modelManager) {
+    m_modelManager(modelManager), m_outputManager(outputManager) {
 	//(*Initialize(HinksPixExportDialog)
 	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* BoxSizer2;
@@ -1047,7 +1047,6 @@ void HinksPixExportDialog::CreateDriveList() {
         fcont = d.GetNext(&dir);
     }
 #else
-    bool done = false;
     wxDir d;
     d.Open("/media");
     wxString dir;

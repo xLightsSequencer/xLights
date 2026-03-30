@@ -207,7 +207,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString &title, Model *m, 
 }
 
 NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, const std::vector<wxString>& rows, OutputManager* om, wxWindow* parent, wxWindowID id) :
-    model(m), _outputManager(om)
+    _outputManager(om), model(m)
 {
     unselectColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT);
     unselectBackColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX);

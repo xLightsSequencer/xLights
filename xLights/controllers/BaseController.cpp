@@ -39,7 +39,7 @@
 #include "utils/CurlManager.h"
 
 #pragma region Constructors and Destructors
-BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
+BaseController::BaseController(const std::string& ip, const std::string &proxy) : _fppProxy(proxy), _ip(ip), _baseUrl("") {
     if (!_fppProxy.empty()) {
         _baseUrl = "/proxy/" + _ip;
     }

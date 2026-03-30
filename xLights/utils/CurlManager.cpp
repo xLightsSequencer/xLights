@@ -360,10 +360,9 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
 }
 
 bool CurlManager::doProcessCurls() {
-    CURLMcode mc;
     int stillRunning = 0;
     std::unique_lock<std::mutex> l(lock);
-    mc = curl_multi_perform(curlMulti, &stillRunning);
+    curl_multi_perform(curlMulti, &stillRunning);
     if (doCurlCallbacks && stillRunning != numCurls) {
         CURLMsg* m = nullptr;
         do {
