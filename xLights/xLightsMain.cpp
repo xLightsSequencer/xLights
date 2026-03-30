@@ -3369,13 +3369,6 @@ void xLightsFrame::OnGrid1KillFocus(wxFocusEvent& event)
 void xLightsFrame::OntxtCtrlSparkleFreqText(wxCommandEvent& event)
 {}
 
-static void AddNonDupAttr(pugi::xml_node node, const std::string& name, const std::string& value)
-{
-    node.remove_attribute(name.c_str()); // remove if exists to avoid dups
-    if (!value.empty())
-        node.append_attribute(name.c_str()) = value.c_str();
-}
-
 ModelGroup* xLightsFrame::GetSelectedModelGroup() const
 {
     if (Notebook1->GetSelection() != LAYOUTTAB)

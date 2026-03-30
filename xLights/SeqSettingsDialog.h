@@ -16,7 +16,6 @@
 
 //(*Headers(SeqSettingsDialog)
 #include <wx/bmpbuttn.h>
-#include <wx/filename.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -72,7 +71,6 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* PanelMetaData;
 		wxPanel* PanelTimings;
 		wxPanel* Panel_DataLayers;
-		ManageMediaPanel* Panel_ManageMedia;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -136,6 +134,7 @@ class SeqSettingsDialog: public wxDialog
         wxButton* Button_WizardDone;
         wxChoice* ModelsChoice;
 		wxButton* ModelsChoiceNext;
+        ManageMediaPanel* Panel_ManageMedia;
 
 	protected:
 

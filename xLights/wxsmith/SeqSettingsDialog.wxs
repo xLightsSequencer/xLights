@@ -236,6 +236,7 @@
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_AddMilliseconds" variable="Button_AddMilliseconds" member="yes">
 														<label>Adjust Milliseconds</label>
+														<size>80,-1d</size>
 														<handler function="OnButton_AddMillisecondsClick" entry="EVT_BUTTON" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

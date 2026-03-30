@@ -264,11 +264,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     TextCtrl_Hash = new wxTextCtrl(PanelInfo, ID_TEXTCTRL1, _("N/A"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer10->Add(TextCtrl_Hash, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Premilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL2, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo, wxSize(50, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    TextCtrl_Premilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL2, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo,wxSize(50,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
     TextCtrl_Premilliseconds->SetMaxLength(5);
     TextCtrl_Premilliseconds->SetToolTip(_("Milliseconds to add to the beginning of the sequence"));
     FlexGridSizer10->Add(TextCtrl_Premilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Postmilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL3, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo, wxSize(50, -1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+    TextCtrl_Postmilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL3, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo,wxSize(50,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
     TextCtrl_Postmilliseconds->SetMaxLength(5);
     TextCtrl_Postmilliseconds->SetToolTip(_("Milliseconds to add to the ending of the sequence"));
     FlexGridSizer10->Add(TextCtrl_Postmilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -277,7 +277,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer10->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer16 = new wxFlexGridSizer(0, 2, 0, 0);
-    Button_AddMilliseconds = new wxButton(PanelInfo, ID_BUTTON_AddMilliseconds, _("Adjust Milliseconds"), wxDefaultPosition, wxDLG_UNIT(PanelInfo, wxSize(80,14)), 0, wxDefaultValidator, _T("ID_BUTTON_AddMilliseconds"));
+    Button_AddMilliseconds = new wxButton(PanelInfo, ID_BUTTON_AddMilliseconds, _("Adjust Milliseconds"), wxDefaultPosition, wxDLG_UNIT(PanelInfo,wxSize(80,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_AddMilliseconds"));
     FlexGridSizer16->Add(Button_AddMilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(FlexGridSizer16, 1, wxLEFT, 5);
     FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
@@ -413,7 +413,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer1->Add(Notebook_Seq_Settings, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
     StaticText_Warning = new wxStaticText(this, ID_STATICTEXT_Warning, _("Show Warning Here"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Warning"));
     StaticText_Warning->Hide();
-    StaticText_Warning->SetForegroundColour(RedOrLightRed());
+    StaticText_Warning->SetForegroundColour(wxColour(255,0,0));
     wxFont StaticText_WarningFont(wxDEFAULT,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText_Warning->SetFont(StaticText_WarningFont);
     FlexGridSizer1->Add(StaticText_Warning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -425,7 +425,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer1->Add(StaticText_Info, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Warn_No_Media = new wxStaticText(this, ID_STATICTEXT_Warn_No_Media, _("Media File must be selected or change to animation!"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Warn_No_Media"));
     StaticText_Warn_No_Media->Hide();
-    StaticText_Warn_No_Media->SetForegroundColour(RedOrLightRed());
+    StaticText_Warn_No_Media->SetForegroundColour(wxColour(255,0,0));
     wxFont StaticText_Warn_No_MediaFont(20,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText_Warn_No_Media->SetFont(StaticText_Warn_No_MediaFont);
     FlexGridSizer1->Add(StaticText_Warn_No_Media, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -435,7 +435,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer7->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Close = new wxButton(this, ID_BUTTON_Close, _("Done"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Close"));
     FlexGridSizer7->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer7, 1, wxLEFT|wxBOTTOM|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer7, 1, wxBOTTOM|wxLEFT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -472,7 +472,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     Connect(ID_BUTTON_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_CancelClick);
     Connect(ID_BUTTON_Close, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
     //*)
-    
+
+    StaticText_Warning->SetForegroundColour(RedOrLightRed());
+    StaticText_Warn_No_Media->SetForegroundColour(RedOrLightRed());
+
     if (!wizard_active) {
         Panel_ManageMedia = new ManageMediaPanel(Notebook_Seq_Settings,
                                              sequenceElements ? &sequenceElements->GetSequenceMedia() : nullptr,
