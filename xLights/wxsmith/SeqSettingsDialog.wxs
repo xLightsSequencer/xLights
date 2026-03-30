@@ -193,7 +193,7 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Premilliseconds" member="yes">
 												<value>0</value>
 												<maxlength>5</maxlength>
-												<size>50,25</size>
+												<size>50,-1d</size>
 												<tooltip>Milliseconds to add to the begining of the sequence</tooltip>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -204,7 +204,7 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Postmilliseconds" member="yes">
 												<value>0</value>
 												<maxlength>5</maxlength>
-												<size>50,25</size>
+												<size>50,-1d</size>
 												<tooltip>Milliseconds to add to the ending of the sequence</tooltip>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -236,7 +236,7 @@
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_AddMilliseconds" variable="Button_AddMilliseconds" member="yes">
 														<label>Adjust Milliseconds</label>
-														<size>143,23</size>
+														<size>143,-1d</size>
 														<handler function="OnButton_AddMillisecondsClick" entry="EVT_BUTTON" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
