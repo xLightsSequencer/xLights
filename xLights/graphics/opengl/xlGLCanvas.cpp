@@ -170,9 +170,9 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     mWindowHeight(0),
     mWindowResized(false),
     mIsInitialized(false),
+    is3d(!only2d),
     _name(name.ToStdString()),
     m_zDepth(only2d ? 0 : tempZDepth),
-    is3d(!only2d),
     m_logger(spdlog::get("opengl"))
 {
     m_logger->debug("                    Creating GL Canvas for {}", (const char*)name.c_str());

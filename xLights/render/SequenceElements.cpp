@@ -37,7 +37,7 @@ static const std::string STR_STRAND("Strand");
 static const std::string STR_TIMING("timing");
 
 SequenceElements::SequenceElements(xLightsFrame *f)
-    : undo_mgr(this), xframe(f), mFrequency(20), mSequenceEndMS(0)
+    : xframe(f), mFrequency(20), mSequenceEndMS(0), undo_mgr(this)
 {
     _viewsManager = nullptr;
     mSelectedTimingRow = -1;
@@ -188,7 +188,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     const std::string &type,
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
-    if (!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
+    if (!ElementExists(name) && index >= 0 && static_cast<size_t>(index) <= mAllViews[MASTER_VIEW].size())
     {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe, renderDisabled);
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin() + index, el);
@@ -202,14 +202,14 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
 
 size_t SequenceElements::GetElementCount(int view) const
 {
-    if (view >= mAllViews.size()) return 0;
+    if (view < 0 || static_cast<size_t>(view) >= mAllViews.size()) return 0;
 
     return mAllViews[view].size();
 }
 
 bool SequenceElements::ElementExists(const std::string& elementName, int view)
 {
-    if (view >= mAllViews.size())
+    if (view < 0 || static_cast<size_t>(view) >= mAllViews.size())
         return false;
 
     for (size_t i = 0; i < mAllViews[view].size(); ++i) {
@@ -237,18 +237,18 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
             ModelElement *elem = dynamic_cast<ModelElement *>(e);
             for (size_t j = 0; j < elem->GetEffectLayerCount(); ++j) {
                 EffectLayer* layer = elem->GetEffectLayer(j);
-                for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                for (int k = 0; k < layer->GetEffectCount(); ++k) {
                     Effect* eff = layer->GetEffect(k);
                     if (eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                         effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
                     }
                 }
             }
-            for (size_t j = 0; j < elem->GetSubModelAndStrandCount(); ++j) {
+            for (int j = 0; j < elem->GetSubModelAndStrandCount(); ++j) {
                 SubModelElement *se = elem->GetSubModel(j);
                 for (size_t l = 0; l < se->GetEffectLayerCount(); ++l) {
                     EffectLayer* layer = se->GetEffectLayer(l);
-                    for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                    for (int k = 0; k < layer->GetEffectCount(); ++k) {
                         Effect* eff = layer->GetEffect(k);
                         if (eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                             effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
@@ -371,7 +371,7 @@ Element* SequenceElements::GetElement(const std::string &name) const
 
 Element* SequenceElements::GetElement(size_t index, int view) const
 {
-    if (view < mAllViews.size() && index < mAllViews[view].size())
+    if (view >= 0 && static_cast<size_t>(view) < mAllViews.size() && index < mAllViews[view].size())
     {
         return mAllViews[view][index];
     }
@@ -830,7 +830,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 int layer = effectLayerNode.attribute("layer").as_int(0);
                                 SubModelElement* se = dynamic_cast<ModelElement*>(element)->GetSubModel(smName, true);
                                 assert(se != nullptr);
-                                while (layer >= se->GetEffectLayerCount()) {
+                                while (layer >= 0 && static_cast<size_t>(layer) >= se->GetEffectLayerCount()) {
                                     se->AddEffectLayer();
                                 }
                                 effectLayer = se->GetEffectLayer(layer);
@@ -838,7 +838,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 if (dynamic_cast<ModelElement*>(element) != nullptr) {
                                     StrandElement* se = dynamic_cast<ModelElement*>(element)->GetStrand(effectLayerNode.attribute("index").as_int(0), true);
                                     int layer = effectLayerNode.attribute("layer").as_int(0);
-                                    while (layer >= se->GetEffectLayerCount()) {
+                                    while (layer >= 0 && static_cast<size_t>(layer) >= se->GetEffectLayerCount()) {
                                         se->AddEffectLayer();
                                     }
                                     effectLayer = se->GetEffectLayer(layer);
@@ -1041,7 +1041,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
 
 void SequenceElements::PopulateView(const std::string &models, int view)
 {
-    if (view >= mAllViews.size()) return;
+    if (view < 0 || static_cast<size_t>(view) >= mAllViews.size()) return;
 
     mAllViews[view].clear();
 
@@ -1102,7 +1102,7 @@ void addSubModelElement(SubModelElement* elem,
     }
 
     if (!elem->GetCollapsed()) {
-        for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
+        for (size_t j = 0; j < elem->GetEffectLayerCount(); j++) {
             Row_Information_Struct ri;
             ri.element = elem;
             ri.displayName = elem->GetFullName();
@@ -1141,7 +1141,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     }
 
     if (!elem->GetCollapsed()) {
-        for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
+        for (size_t j = 0; j < elem->GetEffectLayerCount(); j++) {
             Row_Information_Struct ri;
             ri.element = elem;
             ri.displayName = elem->GetName();
@@ -1197,7 +1197,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
         }
     }
     else if (elem->ShowStrands()) {
-        for (size_t s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
+        for (int s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
             SubModelElement* se = elem->GetSubModel(s);
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {
@@ -1250,7 +1250,7 @@ void SequenceElements::addTimingElement(TimingElement* elem, std::vector<Row_Inf
     }
 
     if (!elem->GetCollapsed()) {
-        for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
+        for (size_t j = 0; j < elem->GetEffectLayerCount(); j++) {
             Row_Information_Struct ri;
             ri.element = elem;
             ri.Collapsed = elem->GetCollapsed();
@@ -1333,10 +1333,10 @@ void SequenceElements::PopulateVisibleRowInformation()
         }
     }
 
-    if (mFirstVisibleModelRow >= mRowInformation.size()) {
+    if (static_cast<size_t>(mFirstVisibleModelRow) >= mRowInformation.size()) {
         mFirstVisibleModelRow = 0;
     }
-    for (; row < mMaxRowsDisplayed && row + mFirstVisibleModelRow < mRowInformation.size(); row++)
+    for (; row < mMaxRowsDisplayed && static_cast<size_t>(row + mFirstVisibleModelRow) < mRowInformation.size(); row++)
     {
         mRowInformation[row + mFirstVisibleModelRow].RowNumber = row;
         mVisibleRowInformation.push_back(mRowInformation[row + mFirstVisibleModelRow]);
@@ -1348,7 +1348,7 @@ int SequenceElements::SetFirstVisibleModelRow(int row)
     int old = mFirstVisibleModelRow;
 
     // They all fit on screen. So set to first model element.
-    if(mRowInformation.size() <= mMaxRowsDisplayed)
+    if(mRowInformation.size() <= static_cast<size_t>(mMaxRowsDisplayed))
     {
         mFirstVisibleModelRow = 0;
     }
@@ -1443,9 +1443,9 @@ void SequenceElements::DeactivateAllTimingElements()
 int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS)
 {
     int num_selected = 0;
-    if(startRow<mRowInformation.size())
+    if(startRow>=0 && static_cast<size_t>(startRow)<mRowInformation.size())
     {
-        if(endRow>=mRowInformation.size())
+        if(endRow<0 || static_cast<size_t>(endRow)>=mRowInformation.size())
         {
             endRow = mRowInformation.size()-1;
         }
@@ -1461,9 +1461,9 @@ int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, i
 int SequenceElements::SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS)
 {
     int num_selected = 0;
-    if(startRow<mVisibleRowInformation.size())
+    if(startRow>=0 && static_cast<size_t>(startRow)<mVisibleRowInformation.size())
     {
-        if(endRow>=mVisibleRowInformation.size())
+        if(endRow<0 || static_cast<size_t>(endRow)>=mVisibleRowInformation.size())
         {
             endRow = mVisibleRowInformation.size()-1;
         }
@@ -1613,7 +1613,7 @@ void SequenceElements::AddSelectedRange(EffectRange* range)
 
 void SequenceElements::DeleteSelectedRange(int index)
 {
-    if(index < mSelectedRanges.size())
+    if(index >= 0 && static_cast<size_t>(index) < mSelectedRanges.size())
     {
         mSelectedRanges.erase(mSelectedRanges.begin()+index);
     }
@@ -1913,7 +1913,7 @@ int SequenceElements::GetElementLayerCount(std::string elementName, std::list<in
             {
                 if (layers != nullptr)
                 {
-                    for (int j = 0; j < e->GetEffectLayerCount(); j++)
+                    for (size_t j = 0; j < e->GetEffectLayerCount(); j++)
                     {
                         if (e->GetEffectLayer(j)->HasEffects())
                         {
@@ -1941,7 +1941,7 @@ std::list<Effect*> SequenceElements::GetElementLayerEffects(std::string elementN
         {
             if (e->GetFullName() == elementName)
             {
-                if (layer < e->GetEffectLayerCount())
+                if (layer >= 0 && static_cast<size_t>(layer) < e->GetEffectLayerCount())
                 {
                     EffectLayer* el = e->GetEffectLayer(layer);
                     return el->GetAllEffects();
@@ -1982,7 +1982,7 @@ int SequenceElements::GetIndexOfModelFromModelIndex(int modelIndex)
 {
     int count = 0;
 
-    for (int i = 0; i < GetElementCount(); ++i)
+    for (size_t i = 0; i < GetElementCount(); ++i)
     {
         if (GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
@@ -2004,7 +2004,7 @@ int SequenceElements::GetElementIndexOfTimingFromListIndex(int timingIndex)
 {
     int count = 0;
 
-    for (int i = 0; i < GetElementCount(); ++i)
+    for (size_t i = 0; i < GetElementCount(); ++i)
     {
         if (GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_TIMING)
         {
@@ -2023,7 +2023,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
     IncrementChangeCount(nullptr);
 
-    if(index < mAllViews[view].size() && dest < mAllViews[view].size())
+    if(index >= 0 && static_cast<size_t>(index) < mAllViews[view].size() && dest >= 0 && static_cast<size_t>(dest) < mAllViews[view].size())
     {
         Element* e = mAllViews[view][index];
         mAllViews[view].erase(mAllViews[view].begin()+index);
@@ -2036,7 +2036,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
             mAllViews[view].insert(mAllViews[view].begin()+(dest-1),e);
         }
     }
-    else if (index < mAllViews[view].size())
+    else if (index >= 0 && static_cast<size_t>(index) < mAllViews[view].size())
     {
         Element* e = mAllViews[view][index];
         mAllViews[view].erase(mAllViews[view].begin() + index);

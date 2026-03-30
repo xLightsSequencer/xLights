@@ -27,7 +27,7 @@ public:
         aiBase(sm) {
     }
     OpenAIAPI(std::string base_url_, std::string model_, std::string image_model_, std::string token_, ServiceManager* sm) :
-        base_url(base_url_), model(model_), image_model(image_model_), token(token_), aiBase(sm) {
+        aiBase(sm), base_url(base_url_), model(model_), image_model(image_model_), token(token_) {
     }
     virtual ~OpenAIAPI() {
     }

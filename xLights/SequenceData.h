@@ -80,8 +80,8 @@ public:
         DataBlock(DataBlock&&d) noexcept : size(d.size), data(d.data), type(d.type) {d.data = nullptr; d.size = 0; d.type = BlockType::NORMAL;};
         ~DataBlock();
         
-        unsigned char * data;
         size_t size;
+        unsigned char * data;
         BlockType type;
     };
 #ifdef USE_MMAP_BLOCKS

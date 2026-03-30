@@ -933,7 +933,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         int x2_pos = mPos[i + 1].x * scalex + worldPos_x;
         int y1_pos = mPos[i].y * scaley + worldPos_y;
         int y2_pos = mPos[i + 1].y * scaley + worldPos_y;
-        int z1_pos = mPos[i].z * scalez + worldPos_z;
+        [[maybe_unused]] int z1_pos = mPos[i].z * scalez + worldPos_z;
         int z2_pos = mPos[i + 1].z * scalez + worldPos_z;
 
         if (i == selected_segment) {
@@ -1030,7 +1030,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         if (mPos[i].has_curve && mPos[i].curve != nullptr) {
             float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - hw / 2;
             float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - hw / 2;
-            float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
+            [[maybe_unused]] float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
             vac->AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
             mPos[i].cp0.x = mPos[i].curve->get_cp0x();
             mPos[i].cp0.y = mPos[i].curve->get_cp0y();

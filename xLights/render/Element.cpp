@@ -19,12 +19,12 @@
 #include "xLightsMain.h"
 
 Element::Element(SequenceElements *p, const std::string &name) :
-mEffectLayers(),
+parent(p),
 mName(name),
 mVisible(true),
-listener((ChangeListener *)p),
 mCollapsed(false),
-parent(p)
+mEffectLayers(),
+listener((ChangeListener *)p)
 {
     
 }
@@ -118,7 +118,7 @@ int Element::GetEffectCount() const {
 
 bool TimingElement::HasLyrics(int layer) const
 {
-    if (mEffectLayers.size() > layer) {
+    if (mEffectLayers.size() > static_cast<size_t>(layer)) {
         for (const auto& it : mEffectLayers[layer]->GetAllEffects()) {
             if (it->GetEffectName() != "") return true;
         }
@@ -189,7 +189,7 @@ EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 
 EffectLayer* Element::GetEffectLayer(int index) const
 {
-    if( index >= mEffectLayers.size() ) return nullptr;
+    if( index < 0 || static_cast<size_t>(index) >= mEffectLayers.size() ) return nullptr;
     return mEffectLayers[index];
 }
 
@@ -385,10 +385,10 @@ void StrandElement::CleanupAfterRender() {
 }
 
 NodeLayer *StrandElement::GetNodeLayer(int n, bool create) {
-    while (create && n >= mNodeLayers.size()) {
+    while (create && n >= 0 && static_cast<size_t>(n) >= mNodeLayers.size()) {
         mNodeLayers.push_back(new NodeLayer(this));
     }
-    if (n < mNodeLayers.size()) {
+    if (n >= 0 && static_cast<size_t>(n) < mNodeLayers.size()) {
         return mNodeLayers[n];
     }
     return nullptr;
@@ -396,7 +396,7 @@ NodeLayer *StrandElement::GetNodeLayer(int n, bool create) {
 
 NodeLayer* StrandElement::GetNodeLayer(int n) const
 {
-    if (n < mNodeLayers.size()) {
+    if (n >= 0 && static_cast<size_t>(n) < mNodeLayers.size()) {
         return mNodeLayers[n];
     }
     return nullptr;
@@ -416,10 +416,10 @@ int StrandElement::GetNodeNumber(NodeLayer* nl)
 void StrandElement::InitFromModel(Model &model) {
     int nc = model.GetStrandLength(mStrand);
     mName = model.GetStrandName(mStrand);
-    for (int x = 0; x < mNodeLayers.size(); x++) {
+    for (size_t x = 0; x < mNodeLayers.size(); x++) {
         mNodeLayers[x]->SetNodeName(model.GetNodeName(x));
     }
-    while (mNodeLayers.size() < nc) {
+    while (mNodeLayers.size() < static_cast<size_t>(nc)) {
         NodeLayer *nl = new NodeLayer(this, model.GetNodeName(mNodeLayers.size()));
         mNodeLayers.push_back(nl);
     }
@@ -453,7 +453,7 @@ bool StrandElement::HasEffects() const
         }
     }
 
-    for (size_t x = 0; x < GetNodeLayerCount(); ++x)
+    for (int x = 0; x < GetNodeLayerCount(); ++x)
     {
         NodeLayer* nl = GetNodeLayer(x);
 
@@ -590,14 +590,14 @@ bool ModelElement::HasEffects() const
         }
     }
     
-    for (size_t x = 0; x < GetStrandCount(); ++x)
+    for (int x = 0; x < GetStrandCount(); ++x)
     {
         StrandElement* se = GetStrand(x);
 
         if (se != nullptr && se->HasEffects()) return true;
     }
 
-    for (size_t x = 0; x < GetSubModelCount(); ++x)
+    for (int x = 0; x < GetSubModelCount(); ++x)
     {
         SubModelElement* sme = GetSubModel(x);
 
@@ -742,7 +742,7 @@ void ModelElement::Init(Model &model) {
     }
     int ns = model.GetNumStrands();
     for (int x = 0; x < ns; x++) {
-        if (x >= mStrands.size()) {
+        if (static_cast<size_t>(x) >= mStrands.size()) {
             StrandElement* new_layer = new StrandElement(this, mStrands.size());
             mStrands.push_back(new_layer);
         }
@@ -751,12 +751,12 @@ void ModelElement::Init(Model &model) {
 }
 
 StrandElement* ModelElement::GetStrand(int index, bool create) {
-    while (create && index >= mStrands.size()) {
+    while (create && index >= 0 && static_cast<size_t>(index) >= mStrands.size()) {
         StrandElement* new_layer = new StrandElement(this, mStrands.size());
         mStrands.push_back(new_layer);
         IncrementChangeCount(-1, -1);
     }
-    if (index >= mStrands.size()) {
+    if (index < 0 || static_cast<size_t>(index) >= mStrands.size()) {
         return nullptr;
     }
     return mStrands[index];
@@ -764,7 +764,7 @@ StrandElement* ModelElement::GetStrand(int index, bool create) {
 
 StrandElement* ModelElement::GetStrand(int strand) const
 {
-    if (strand >= mStrands.size()) {
+    if (strand < 0 || static_cast<size_t>(strand) >= mStrands.size()) {
         return nullptr;
     }
     return mStrands[strand];
@@ -789,11 +789,11 @@ void ModelElement::RemoveSubModel(const std::string &name) {
 }
 
 SubModelElement* ModelElement::GetSubModel(int i) const {
-    if (i < mSubModels.size()) {
+    if (i >= 0 && static_cast<size_t>(i) < mSubModels.size()) {
         return mSubModels[i];
     }
     i -= mSubModels.size();
-    if (i >= mStrands.size()) {
+    if (i < 0 || static_cast<size_t>(i) >= mStrands.size()) {
         return nullptr;
     }
     return mStrands[i];
@@ -801,11 +801,11 @@ SubModelElement* ModelElement::GetSubModel(int i) const {
 
 SubModelElement* ModelElement::GetSubModel(int i)
 {
-    if (i < mSubModels.size()) {
+    if (i >= 0 && static_cast<size_t>(i) < mSubModels.size()) {
         return mSubModels[i];
     }
     i -= mSubModels.size();
-    if (i >= mStrands.size()) {
+    if (i < 0 || static_cast<size_t>(i) >= mStrands.size()) {
         return nullptr;
     }
     return mStrands[i];
@@ -838,7 +838,7 @@ std::list<std::string> Element::GetFileReferences(Model* model, EffectManager& e
 {
     std::list<std::string> res;
     if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-        for (int j = 0; j < GetEffectLayerCount(); j++) {
+        for (size_t j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             res.splice(end(res), el->GetFileReferences(model, em));
         }
@@ -850,7 +850,7 @@ std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
 {
     std::list<std::string> res;
     if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-        for (int j = 0; j < GetEffectLayerCount(); j++) {
+        for (size_t j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             res.splice(end(res), el->GetFacesUsed(em));
         }
@@ -862,7 +862,7 @@ bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
 {
     bool rc = false;
     if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-        for (int j = 0; j < GetEffectLayerCount(); j++) {
+        for (size_t j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
             rc = el->CleanupFileLocations(frame, em) || rc;
         }
@@ -872,7 +872,7 @@ bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
 
 Effect* Element::SelectEffectUsingDescription(std::string description)
 {
-    for (int j = 0; j < GetEffectLayerCount(); j++) {
+    for (size_t j = 0; j < GetEffectLayerCount(); j++) {
         EffectLayer* el = GetEffectLayer(j);
         Effect* e = el->SelectEffectUsingDescription(description);
         if (e != nullptr) {
@@ -884,7 +884,7 @@ Effect* Element::SelectEffectUsingDescription(std::string description)
 
 bool StrandElement::IsEffectValid(Effect* e) const
 {
-    for (int j = 0; j < GetEffectLayerCount(); j++) {
+    for (size_t j = 0; j < GetEffectLayerCount(); j++) {
         EffectLayer* el = GetEffectLayer(j);
         if (el->IsEffectValid(e)) {
             return true;
@@ -902,7 +902,7 @@ bool StrandElement::IsEffectValid(Effect* e) const
 
 bool Element::IsEffectValid(Effect* e) const
 {
-    for (int j = 0; j < GetEffectLayerCount(); j++) {
+    for (size_t j = 0; j < GetEffectLayerCount(); j++) {
         EffectLayer* el = GetEffectLayer(j);
         if (el->IsEffectValid(e)) {
             return true;
@@ -913,7 +913,7 @@ bool Element::IsEffectValid(Effect* e) const
 
 Effect* Element::SelectEffectUsingLayerTime(int layer, int time)
 {
-    if (layer < GetEffectLayerCount()) {
+    if (layer >= 0 && static_cast<size_t>(layer) < GetEffectLayerCount()) {
         EffectLayer* el = GetEffectLayer(layer);
         Effect* e = el->SelectEffectUsingTime(time);
         if (e != nullptr) {

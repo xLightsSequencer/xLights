@@ -30,7 +30,7 @@
 
 class xLightsPreferencesPage : public wxPreferencesPage {
 public:
-    xLightsPreferencesPage(const wxString &n, const wxBitmap &i, std::function<wxWindow*(wxWindow*)> & f) : wxPreferencesPage(), m_name(n), m_icon(i), m_createFunction(f) {
+    xLightsPreferencesPage(const wxString &n, const wxBitmap &i, std::function<wxWindow*(wxWindow*)> & f) : wxPreferencesPage(), m_icon(i), m_name(n), m_createFunction(f) {
     }
 
     virtual wxString GetName() const override {

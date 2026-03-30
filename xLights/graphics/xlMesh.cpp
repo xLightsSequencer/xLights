@@ -15,7 +15,7 @@
 
 #include <log.h>
 
-xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
+xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : filename(f), graphicsContext(ctx) {
     
     objectsLoaded = false;
     wxFileName fn(filename);

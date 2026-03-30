@@ -1949,12 +1949,10 @@ void xlOGL3GraphicsContext::drawMesh(xlMesh *mesh, int brightness, bool useViewM
         int bid = 0;
         int vnid = 1;
         int vid = 2;
-        bool setVAS = false;
         if (!canvas->bindVertexArrayID(meshTextureProgram.ProgramID)) {
             bid = glGetAttribLocation(meshTextureProgram.ProgramID, "vertexPosition_modelspace" );
             vid = glGetAttribLocation(meshTextureProgram.ProgramID, "vertexUV" );
             vnid = glGetAttribLocation(meshTextureProgram.ProgramID, "vertexNormal_modelspace" );
-            setVAS = true;
         }
         meshTextureProgram.SetMatrix(frameData.MVP);
         LOG_GL_ERRORV(glEnableVertexAttribArray(bid));
@@ -1981,7 +1979,6 @@ void xlOGL3GraphicsContext::drawMesh(xlMesh *mesh, int brightness, bool useViewM
         if (!canvas->bindVertexArrayID(meshSolidProgram.ProgramID)) {
             bids = glGetAttribLocation(meshSolidProgram.ProgramID, "vertexPosition_modelspace" );
             vnids = glGetAttribLocation(meshSolidProgram.ProgramID, "vertexNormal_modelspace" );
-            setVAS = true;
         }
         meshSolidProgram.SetMatrix(frameData.MVP);
         LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glm->indexBuffer));

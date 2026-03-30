@@ -108,7 +108,7 @@ struct FPPDInfo {
 };
 std::set<FPPDInfo> fppDiscInfo;
 
-FPP::FPP(const std::string& ad) : BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), fppType(FPP_TYPE::FPP) {
+FPP::FPP(const std::string& ad) : BaseController(ad, ""), ipAddress(ad), majorVersion(0), minorVersion(0), patchVersion(0), fppType(FPP_TYPE::FPP), parent(nullptr), outputFile(nullptr) {
         
     if (ip_utils::IsValidHostname(ipAddress)) {
         hostName = ipAddress;
@@ -119,8 +119,8 @@ FPP::FPP(const std::string& ad) : BaseController(ad, ""), majorVersion(0), minor
 
 
 FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_) :
-    BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr),
-    fppType(FPP_TYPE::FPP), pixelControllerType(model_)
+    BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0),
+    pixelControllerType(model_), fppType(FPP_TYPE::FPP), parent(nullptr), outputFile(nullptr)
 {
     ipAddress = ip_;
     if (ip_utils::IsValidHostname(ipAddress)) {
@@ -131,9 +131,10 @@ FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& m
 }
 
 FPP::FPP(const FPP &c)
-    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
-    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), 
-    fppType(c.fppType), capeInfo(c.capeInfo) {
+    : hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
+    model(c.model), majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion),
+    ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password),
+    fppType(c.fppType), parent(nullptr), capeInfo(c.capeInfo), outputFile(nullptr) {
 
 }
 

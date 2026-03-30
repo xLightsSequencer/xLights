@@ -37,7 +37,7 @@ class FPP : public BaseController
 {
     public:
     FPP() :
-            BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), fppType(FPP_TYPE::FPP) {}
+            BaseController("", ""), majorVersion(0), minorVersion(0), fppType(FPP_TYPE::FPP), parent(nullptr), outputFile(nullptr) {}
     FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_);
     FPP(const std::string &address);
     FPP(const FPP &c);

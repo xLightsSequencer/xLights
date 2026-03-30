@@ -68,7 +68,7 @@ void parallel_for(std::list<T> &list, std::function<void(T&, int)>& f, int minSt
                         std::mutex &l,
                         std::atomic_int &idx,
                         int m)
-            : Job(), doneCount(dc), func(f), iterator(it), lock(l), index(idx), max(m) {}
+            : Job(), doneCount(dc), func(f), lock(l), index(idx), iterator(it), max(m) {}
         void Process() {
             try {
                 while (true) {

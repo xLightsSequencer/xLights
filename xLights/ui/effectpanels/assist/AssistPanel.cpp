@@ -31,7 +31,7 @@ BEGIN_EVENT_TABLE(AssistPanel,wxPanel)
 END_EVENT_TABLE()
 
 AssistPanel::AssistPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
-: mGridCanvas(nullptr), mModel(nullptr), mEffect(nullptr)
+: mGridCanvas(nullptr), mEffect(nullptr), mModel(nullptr)
 {
 	//(*Initialize(AssistPanel)
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("id"));

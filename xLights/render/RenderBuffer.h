@@ -176,7 +176,7 @@ public:
         return (cc[idx].IsActive() && (cc[idx].GetTimeCurve() == TC_RADIALIN || cc[idx].GetTimeCurve() == TC_RADIALOUT || cc[idx].GetTimeCurve() == TC_CW || cc[idx].GetTimeCurve() == TC_CCW));
     }
 
-    xlColor CalcRoundColor(int idx, double round, int type) const
+    xlColor CalcRoundColor(size_t idx, double round, int type) const
     {
         if (idx < cc.size())
         {
@@ -195,7 +195,7 @@ public:
         }
     }
 
-    xlColor CalcRadialColour(int idx, int centrex, int centrey, int maxradius, int x, int y, int type) const
+    xlColor CalcRadialColour(size_t idx, int centrex, int centrey, int maxradius, int x, int y, int type) const
     {
         if (idx < cc.size())
         {

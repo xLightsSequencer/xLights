@@ -195,8 +195,8 @@ Effect::Effect(const Effect& ef)
 }
 
 Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing) :
-    mID(id), mParentLayer(parent) , mEffectIndex(-1), mName(nullptr),
-      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
+    mID(id), mEffectIndex(-1), mName(nullptr),
+      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mParentLayer(parent), mCache(nullptr)
 {
     //
 
@@ -652,10 +652,10 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                                 dirs.push_back(s);
                             }
                         }
-                        for (int i = 0; i < dirs.size(); i++)
+                        for (size_t i = 0; i < dirs.size(); i++)
                         {
                             std::filesystem::path pth(value);
-                            for (int j = i; j < dirs.size(); j++) {
+                            for (size_t j = i; j < dirs.size(); j++) {
                                 pth /= dirs[j];
                             }
                             pth /= file;

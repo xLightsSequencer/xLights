@@ -221,11 +221,12 @@ extern const std::string xlEMPTY_STRING;
         if (input.empty()) return "";
 
         size_t firstnonblank = 0;
-        int lastnonblank = input.size()-1;
+        size_t lastnonblank = input.size();
 
         while (firstnonblank < input.size() && (input[firstnonblank] == ' ' || input[firstnonblank] == '\t')) { firstnonblank++; }
+        if (firstnonblank == input.size()) return "";
+        lastnonblank = input.size() - 1;
         while (lastnonblank > 0 && (input[lastnonblank] == ' ' || input[lastnonblank] == '\t')) { --lastnonblank; }
-        if (lastnonblank < firstnonblank) return "";
         return input.substr(firstnonblank, lastnonblank - firstnonblank + 1);
     }
     inline void Split(const std::string &frag, char splitBy, std::vector<std::string>& tokens, bool trim = false)

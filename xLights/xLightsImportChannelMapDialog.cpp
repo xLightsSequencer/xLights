@@ -3243,7 +3243,6 @@ void xLightsImportChannelMapDialog::DoAutoMap(
 {
     bool selectMapAvail = (ListCtrl_Available->GetSelectedItemCount() != 0) && select;
     bool selectMapTarget = (TreeListCtrl_Mapping->GetSelectedItemsCount() != 0) && select;
-    bool modelMapped = 0;
     wxDataViewItemArray targetSelectedItems;
     TreeListCtrl_Mapping->GetSelections(targetSelectedItems);
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
@@ -3275,7 +3274,6 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                                 if (parts.size() == 2) {
                                                     if (strand->_mapping.empty()) {
                                                         strand->Map(ListCtrl_Available->GetItemText(j), "Strand");
-                                                        modelMapped = 1;
                                                     }
                                                 } else {
                                                     // need to map the node level

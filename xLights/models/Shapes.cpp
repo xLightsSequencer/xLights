@@ -18,7 +18,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 BezierCurve::BezierCurve()
-: steps(25), old_steps(-1), width(1), height(1), num_points(0), ren_width(1.0f), matrix_valid(false)
+: steps(25), width(1), height(1), num_points(0), ren_width(1.0f), matrix_valid(false), old_steps(-1)
 {
 }
 
@@ -300,7 +300,7 @@ void BezierCurve::check_min_max( float &minX, float &maxX, float &minY, float &m
 ///////////////////////////////////////////////
 
 BezierCurve3D::BezierCurve3D()
-    : steps(25), old_steps(-1), scale(glm::vec3(100.0)), world_pos(glm::vec3(0.0f)), num_points(0), matrix_valid(false), total_length(0.0f)
+    : steps(25), num_points(0), matrix_valid(false), total_length(0.0f), scale(glm::vec3(100.0)), world_pos(glm::vec3(0.0f)), old_steps(-1)
 {
 }
 

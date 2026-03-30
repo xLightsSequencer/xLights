@@ -29,7 +29,7 @@ public:
     }
 
     // Takes ownership of rgbaData (must be allocated with new[])
-    xlImage(int width, int height, uint8_t* rgbaData) : _width(width), _height(height), _data(rgbaData) {}
+    xlImage(int width, int height, uint8_t* rgbaData) : _data(rgbaData), _width(width), _height(height) {}
 
     xlImage(const xlImage& other) : _width(other._width), _height(other._height) {
         if (other._data && _width > 0 && _height > 0) {

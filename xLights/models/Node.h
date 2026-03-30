@@ -186,7 +186,7 @@ public:
         offsets[2] = 2;
     }
     NodeBaseClass(const NodeBaseClass& c) :
-        ActChan(c.ActChan), StringNum(c.StringNum), Coords(c.Coords), name(nullptr), chanCnt(c.chanCnt), model(c.model) {
+        chanCnt(c.chanCnt), ActChan(c.ActChan), StringNum(c.StringNum), Coords(c.Coords), name(nullptr), model(c.model) {
         if (c.name != nullptr) {
             name = new std::string(*(c.name));
         }

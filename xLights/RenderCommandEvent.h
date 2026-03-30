@@ -87,7 +87,7 @@ public:
         }
     }
     SelectedEffectChangedEvent(const SelectedEffectChangedEvent &evt)
-    : wxCommandEvent(evt), effect(evt.effect), isNew(evt.isNew), updateUI(evt.updateUI), updateBtn(evt.updateBtn), _elementName(evt._elementName), _layer(evt._layer), _startTime(evt._startTime), _node(evt._node) {
+    : wxCommandEvent(evt), effect(evt.effect), isNew(evt.isNew), updateUI(evt.updateUI), updateBtn(evt.updateBtn), _elementName(evt._elementName), _node(evt._node), _layer(evt._layer), _startTime(evt._startTime) {
     }
 
     virtual ~SelectedEffectChangedEvent() {}

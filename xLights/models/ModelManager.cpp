@@ -66,9 +66,9 @@
 #include <log.h>
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
+    layoutGroups(nullptr),
     _outputManager(outputManager),
     xlights(xl),
-    layoutGroups(nullptr),
     previewWidth(0),
     previewHeight(0),
     _modelsLoading(false)

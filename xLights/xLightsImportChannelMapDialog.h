@@ -75,7 +75,6 @@ public:
                            bool isSubmodel, const std::string& modelClass, int nodeCount, const wxColor& color = *wxWHITE,
                            const wxString& mappingModelType = "", const int effectCount = 0) :
         wxDataViewTreeStoreNode(parent, "XXX"),
-        m_parent(parent),
         _model(model.ToStdString()),
         _strand(strand.ToStdString()),
         _node(node.ToStdString()),
@@ -85,24 +84,24 @@ public:
         _mappingExists(mappingExists),
         _aliases(aliases),
         _modelType(modelType),
-        m_container(false),
         _groupModels(groupModels),
         _isSubmodel(isSubmodel),
         _modelClass(modelClass),
         _nodeCount(nodeCount),
         _effectCount(effectCount),
-        _mappingModelType(mappingModelType.ToStdString()) {
+        _mappingModelType(mappingModelType.ToStdString()),
+        m_container(false),
+        m_parent(parent) {
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
                            const wxString& model, const wxString& strand,
-                           const wxString& mapping, const bool mappingExists, 
-                           const std::list<std::string> aliases, const std::string& modelType, 
-                           const std::string& groupModels, 
+                           const wxString& mapping, const bool mappingExists,
+                           const std::list<std::string> aliases, const std::string& modelType,
+                           const std::string& groupModels,
                            bool isSubmodel, const std::string& modelClass, int nodeCount, const wxColor& color = *wxWHITE,
                            const wxString& mappingModelType = "", const int effectCount = 0) :
         wxDataViewTreeStoreNode(parent, "XXX"),
-        m_parent(parent),
         _model(model.ToStdString()),
         _strand(strand.ToStdString()),
         _node(),
@@ -112,25 +111,25 @@ public:
         _mappingExists(mappingExists),
         _aliases(aliases),
         _modelType(modelType),
-        m_container(true),
         _groupModels(groupModels),
         _isSubmodel(isSubmodel),
         _modelClass(modelClass),
         _nodeCount(nodeCount),
         _effectCount(effectCount),
-        _mappingModelType(mappingModelType.ToStdString())
+        _mappingModelType(mappingModelType.ToStdString()),
+        m_container(true),
+        m_parent(parent)
     { }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
                            const wxString &model,
-                           const wxString& mapping, const bool mappingExists, 
+                           const wxString& mapping, const bool mappingExists,
                            const std::list<std::string> aliases, const std::string& modelType,
                            const std::string& groupModels,
                            bool isSubmodel, const std::string& modelClass, int nodeCount, const wxColor& color = *wxWHITE,
                            const bool isGroup = false,
                            const wxString& mappingModelType = "", const int effectCount = 0) :
         wxDataViewTreeStoreNode(parent, "XXX"),
-        m_parent(parent),
         _model(model.ToStdString()),
         _strand(),
         _node(),
@@ -140,13 +139,14 @@ public:
         _mappingExists(mappingExists),
         _aliases(aliases),
         _modelType(modelType),
-        m_container(!isGroup),
         _groupModels(groupModels),
         _isSubmodel(isSubmodel),
         _modelClass(modelClass),
         _nodeCount(nodeCount),
         _effectCount(effectCount),
-        _mappingModelType(mappingModelType.ToStdString())
+        _mappingModelType(mappingModelType.ToStdString()),
+        m_container(!isGroup),
+        m_parent(parent)
     { }
 
     ~xLightsImportModelNode()

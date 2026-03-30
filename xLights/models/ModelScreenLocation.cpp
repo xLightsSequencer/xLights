@@ -35,8 +35,10 @@ constexpr float dead_zone = 10.0f;  // how many degrees close to a plane should 
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
+#endif
 void rotate_point(float cx, float cy, float angle, float &x, float &y)
 {
     float s = sin(angle);
@@ -55,8 +57,9 @@ void rotate_point(float cx, float cy, float angle, float &x, float &y)
     y = ynew + cy;
 }
 
+#ifndef NDEBUG
 // used to print matrix when debugging
-static void PrintMatrix(std::string name, glm::mat4& matrix)
+[[maybe_unused]] static void PrintMatrix(std::string name, glm::mat4& matrix)
 {
     spdlog::debug("Matrix Info: {}", name.c_str());
     spdlog::debug("Row 0: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
@@ -64,11 +67,11 @@ static void PrintMatrix(std::string name, glm::mat4& matrix)
     spdlog::debug("Row 2: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
     spdlog::debug("Row 3: {:6.2f}  {:6.2f}  {:6.2f}  {:6.2f}", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
 }
+#endif
 
 glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
 {
     double x, y, z;
-    int path = 0;
 
     double m13 = R[0][2];
     
@@ -89,13 +92,17 @@ glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
     return glm::vec3(x, y, z);
 }
 
-static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
+#ifndef NDEBUG
+[[maybe_unused]] static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
 {
     spdlog::debug("Ray Info: {}", name.c_str());
     spdlog::debug("Ray Origin: {:6.2f}  {:6.2f}  {:6.2f}", origin.x, origin.y, origin.z);
     spdlog::debug("Ray Direct: {:6.2f}  {:6.2f}  {:6.2f}", direction.x, direction.y, direction.z);
 }
+#endif
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 
 CursorType GetResizeCursor(int cornerIndex, int PreviewRotation) {

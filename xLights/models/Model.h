@@ -671,13 +671,13 @@ public:
         }
     }
     size_t GetLayerSizeCount() const { return layerSizes.size(); }
-    void SetLayerSize(int layer, int size)
+    void SetLayerSize(size_t layer, int size)
     {
         if (GetLayerSizeCount() > layer && size != 0) {
             layerSizes[layer] = size;
         }
     }
-    int GetLayerSize(int layer) const
+    int GetLayerSize(size_t layer) const
     {
         if (GetLayerSizeCount() > layer) {
             return layerSizes[layer];

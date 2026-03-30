@@ -615,13 +615,13 @@ xLightsFrame *xLightsFrame::GetFrame() {
 }
 
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
-    _sequenceElements(this),
+    _presetSequenceElements(this),
+    _renderMode(renderOnlyMode),
     jobPool("RenderPool"),
+    _sequenceElements(this),
     AllModels(&_outputManager, this),
     AllObjects(this),
-    _presetSequenceElements(this),
-    color_mgr(this),
-    _renderMode(renderOnlyMode)
+    color_mgr(this)
 {
     
     spdlog::debug("xLightsFrame being constructed.");
@@ -4283,15 +4283,15 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
 
 static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxDebugReport& report)
 {
-    wxString dir;
 #ifdef __WXMSW__
+    wxString dir;
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + "/" + fileName;
 #endif
 #ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
-    dir = home.GetFullPath();
+    wxString dir = home.GetFullPath();
     wxString filename = dir + "/Library/Logs/" + fileName;
 #endif
 #ifdef __LINUX__
@@ -4751,10 +4751,10 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    
-    wxString dir;
+
     wxString fileName = "xLights_spdlog.log";
 #ifdef __WXMSW__
+    wxString dir;
     wxGetEnv("APPDATA", &dir);
     if (dir.EndsWith("/") || dir.EndsWith("\\")) {
         dir = dir.Left(dir.Length() - 1);
@@ -4764,7 +4764,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 #ifdef __WXOSX__
     wxFileName home;
     home.AssignHomeDir();
-    dir = home.GetFullPath();
+    wxString dir = home.GetFullPath();
     if (dir.EndsWith("/")) {
         dir = dir.Left(dir.Length() - 1);
     }

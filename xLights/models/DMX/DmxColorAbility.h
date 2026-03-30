@@ -20,7 +20,7 @@
 class Model;
 class xlColor;
 
-static const char* DMX_COLOR_TYPES_VALUES[] = {
+inline const char* DMX_COLOR_TYPES_VALUES[] = {
     "RGBW",
     "ColorWheel",
     "CMYW",

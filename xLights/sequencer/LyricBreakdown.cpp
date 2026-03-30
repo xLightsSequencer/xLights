@@ -19,16 +19,6 @@
 
 #include <wx/arrstr.h>
 
-static bool removechar(std::string& word, char remove)
-{
-    auto pos = word.find(remove);
-    if (pos != std::string::npos)
-    {
-        word.erase(pos, 1);
-        return true;
-    }
-    return false;
-}
 
 void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time,
                      const std::string& phrase, double frequency, UndoManager& undo_mgr)

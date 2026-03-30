@@ -78,7 +78,7 @@ public:
         _tip = "Insert a preset effect.";
     }
 	explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& eff, const std::string& ver, bool control, bool alt, bool shift, bool rcontrol)
-		: _type("APPLYSETTING"), _control(control), _rcontrol(rcontrol), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
+		: _type("APPLYSETTING"), _effectString(eff), _effectDataVersion(ver), _control(control), _rcontrol(rcontrol), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
 	{
         _id = __nextid++;
         _scope = KBSCOPE::Sequence;
@@ -86,7 +86,7 @@ public:
         _tip = "Apply setting to selected effects.";
     }
 	explicit KeyBinding(bool disabled, const std::string& k, const std::string& eff, const std::string& ver, bool control, bool alt, bool shift, bool rcontrol)
-		: _type("APPLYSETTING"), _control(control), _effectString(eff), _effectDataVersion(ver), _alt(alt), _shift(shift), _disabled(disabled)
+		: _type("APPLYSETTING"), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
 	{
         _id = __nextid++;
         _key = DecodeKey(k);

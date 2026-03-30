@@ -369,7 +369,6 @@ void xlTimerThread::DoSleep(int millis)
 wxThread::ExitCode xlTimerThread::Entry()
 {
     
-    bool log = _log;
     bool oneshot = _oneshot;
     int interval = _interval;
     int fudgefactor = _fudgefactor;
