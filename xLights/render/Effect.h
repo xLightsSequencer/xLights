@@ -27,7 +27,7 @@ class RenderBuffer;
 class RenderCache;
 class Model;
 class RenderableEffect;
-class xLightsFrame;
+class RenderContext;
 class EffectManager;
 
 #define EFFECT_NOT_SELECTED     0
@@ -122,7 +122,7 @@ public:
     bool SettingsChanged(const std::string& settings);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
     bool UsesColour(const std::string& from);
-    int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to);
+    int ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to);
     void PressButton(RenderableEffect* re, const std::string& id);
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;

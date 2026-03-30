@@ -1266,8 +1266,6 @@
 		<Unit filename="ui/wxTextDrawingContext.h" />
 		<Unit filename="ui/wxUtilities.cpp" />
 		<Unit filename="ui/wxUtilities.h" />
-		<Unit filename="utils/Curl.cpp" />
-		<Unit filename="utils/Curl.h" />
 		<Unit filename="utils/CurlManager.cpp" />
 		<Unit filename="utils/CurlManager.h" />
 		<Unit filename="utils/ip_utils.cpp" />

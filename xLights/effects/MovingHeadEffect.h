@@ -26,7 +26,6 @@
 #define MOVING_HEAD_SCALE_MAX 100
 
 class DmxMotor;
-class MovingHeadPanel;
 class DmxColorAbility;
 
 class MovingHeadEffect : public RenderableEffect
@@ -119,7 +118,7 @@ protected:
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer& buffer);
     std::list<const Model*> GetModels(const Model* model);
     void UpdateFixturePositions(const Model* cls){};//missing function body
-    void RenderMovingHeads(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer);
+    void RenderMovingHeads(const Model* model_info, const SettingsMap& SettingsMap, RenderBuffer& buffer);
     void RenderMovingHead(std::string mh_settings, int loc, const Model* model_info, RenderBuffer &buffer);
     xlColor GetMultiColorBlend(double eff_pos, const std::vector<std::string>& colors, RenderBuffer &buffer);
     xlColor GetWheelColor(double eff_pos, const std::vector<std::string>& colors);

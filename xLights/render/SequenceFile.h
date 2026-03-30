@@ -21,6 +21,7 @@
 #include <filesystem>
 
 class SequenceElements;
+class RenderContext;
 class UICallbacks;
 class xLightsFrame;
 class wxWindow;
@@ -81,7 +82,7 @@ public:
     bool Save(SequenceElements& elements);
     bool BuildDocument(pugi::xml_document& doc, SequenceElements& elements);
 
-    void ApplyPendingTimings(xLightsFrame* xLightsParent);
+    void ApplyPendingTimings(RenderContext* renderContext);
     DataLayerSet& GetDataLayers() { return mDataLayers; }
 
     const std::string& GetVersion() const { return version_string; }
@@ -116,29 +117,29 @@ public:
     void SetSequenceLoaded(bool value) { sequence_loaded = value; }
     bool GetSequenceLoaded() const { return sequence_loaded; }
 
-    void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, const std::string& subType = "");
-    void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, std::vector<int>& starts,
+    void AddNewTimingSection(const std::string& interval_name, RenderContext* renderContext, const std::string& subType = "");
+    void AddNewTimingSection(const std::string& interval_name, RenderContext* renderContext, std::vector<int>& starts,
                              std::vector<int>& ends, std::vector<std::string>& labels);
-    void AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent);
-    void AddFixedTimingSection(const std::string& interval_name, int interval_ms, xLightsFrame* xLightsParent);
-    void AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, const std::vector<std::string>& tags,  xLightsFrame* xLightsParent, int minForRandomRange = -1, bool randomTags = false);
+    void AddFixedTimingSection(const std::string& interval_name, RenderContext* renderContext);
+    void AddFixedTimingSection(const std::string& interval_name, int interval_ms, RenderContext* renderContext);
+    void AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, const std::vector<std::string>& tags,  RenderContext* renderContext, int minForRandomRange = -1, bool randomTags = false);
     void DeleteTimingSection(const std::string& section);
     void SetTimingSectionName(const std::string& section, const std::string& name);
-    bool TimingAlreadyExists(const std::string& section, xLightsFrame* xLightsParent);
-    bool TimingMatchesModelName(const std::string& section, xLightsFrame* xLightsParent);
+    bool TimingAlreadyExists(const std::string& section, RenderContext* renderContext);
+    bool TimingMatchesModelName(const std::string& section, RenderContext* renderContext);
     std::vector<std::string> GetTimingList() const { return timing_list; }
     std::vector<std::string> GetTimingList(const SequenceElements& seq_elements);
-    void ProcessAudacityTimingFiles(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
-    void ProcessLorTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
-    void ProcessXTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
-    void ProcessXTiming(const pugi::xml_node& node, xLightsFrame* xLightsParent);
-    void ProcessPapagayo(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
-    void ProcessSRT(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
-    void ProcessLSPTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
-    void ProcessXLightsTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
-    void ProcessVixen3Timing(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent);
+    void ProcessAudacityTimingFiles(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessLorTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessXTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessXTiming(const pugi::xml_node& node, RenderContext* renderContext);
+    void ProcessPapagayo(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessSRT(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessLSPTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessXLightsTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessVixen3Timing(const std::vector<std::string>& filenames, RenderContext* renderContext);
     static void AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS);
-    std::string UniqueTimingName(xLightsFrame* xLightsParent, std::string name) const;
+    std::string UniqueTimingName(RenderContext* renderContext, std::string name) const;
     void UpdateVersion();
     void UpdateVersion(const std::string& version);
     void AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent);

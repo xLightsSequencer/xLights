@@ -16,7 +16,7 @@
 
 #include "PlayListItemCURL.h"
 #include "PlayListItemCURLPanel.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 #include <log.h>
 
@@ -39,12 +39,12 @@ public:
 
         if (_curlType == "POST")
         {
-            auto res = Curl::HTTPSPost(_url, _body, "", "", _contenttype);
+            auto res = CurlManager::HTTPSPost(_url, _body, "", "", _contenttype);
             spdlog::info("CURL POST : {}", (const char*)res.c_str());
         }
         else
         {
-            auto res = Curl::HTTPSGet(_url);
+            auto res = CurlManager::HTTPSGet(_url);
             spdlog::info("CURL GET: {}", (const char*)res.c_str());
         }
 

@@ -1,7 +1,7 @@
 #include "ollama.h"
 #include <nlohmann/json.hpp>
 #include "ServiceManager.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
 
 #include <wx/propgrid/propgrid.h>
@@ -94,7 +94,7 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 
     spdlog::debug("ollama: {}", request.c_str());
     int responseCode { 0 };	
-	std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60 * 10, {}, &responseCode);
+	std::string response = CurlManager::HTTPSPost(url, request, "", "", "JSON", 60 * 10, {}, &responseCode);
 
     spdlog::debug("ollama Response {}: {}", responseCode, response.c_str());
 
@@ -180,7 +180,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
 
     spdlog::debug("ollama: {}", (const char *)json_payload_str.c_str());
     int responseCode{ 0 };
-    std::string const response = Curl::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
+    std::string const response = CurlManager::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
 
     spdlog::debug("ollama Response {}: {}", responseCode, response.c_str());
 

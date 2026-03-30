@@ -12,6 +12,8 @@
 
 #include "RenderableEffect.h"
 
+class SequenceElements;
+
 class DuplicateEffect : public RenderableEffect
 {
     public:
@@ -24,7 +26,7 @@ class DuplicateEffect : public RenderableEffect
             return true;
         }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-        static int GetLayersForModel(const std::string& model);
+        static int GetLayersForModel(const SequenceElements& sequenceElements, const std::string& model);
 
     protected:
     private:

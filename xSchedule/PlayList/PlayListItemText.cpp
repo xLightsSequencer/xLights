@@ -21,7 +21,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
 {
@@ -363,7 +363,7 @@ wxString PlayListItemText::GetText(size_t ms)
             // we only update twitter first time ... otherwise we may pause playback
             if (_lastTwitter == "") // || wxGetUTCTime() - _lastTwitterTime > 60)
             {
-                auto resp = Curl::HTTPSGet("https://cdn.syndication.twimg.com/widgets/followbutton/info.json?screen_names=" + _parameter1, "", "", 2);
+                auto resp = CurlManager::HTTPSGet("https://cdn.syndication.twimg.com/widgets/followbutton/info.json?screen_names=" + _parameter1, "", "", 2);
                 static wxRegEx f("\"followers_count\":([0-9]*)", wxRE_ADVANCED);
                 if (f.Matches(resp))
                 {

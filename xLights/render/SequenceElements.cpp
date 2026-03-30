@@ -1546,7 +1546,7 @@ std::vector<std::string> SequenceElements::GetUsedColours(bool selectedOnly) con
     return usedColours;
 }
 
-int SequenceElements::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly)
+int SequenceElements::ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to, bool selectedOnly)
 {
     get_undo_mgr().CreateUndoStep();
     int replaced = 0;
@@ -1556,7 +1556,7 @@ int SequenceElements::ReplaceColours(xLightsFrame* frame, const std::string& fro
         }
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
         if (effectLayer != nullptr) {
-            replaced += effectLayer->ReplaceColours(frame, from, to, selectedOnly, get_undo_mgr());
+            replaced += effectLayer->ReplaceColours(ctx, from, to, selectedOnly, get_undo_mgr());
         }
     }
     return replaced;

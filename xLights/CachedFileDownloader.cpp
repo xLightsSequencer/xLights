@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "CachedFileDownloader.h"
 #include "ExternalHooks.h"
 #include "ui/wxUtilities.h"
@@ -73,7 +73,24 @@ bool FileCacheItem::operator==(const wxURI& url) const
 bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
     spdlog::debug("Making request to '{}' -> {}.", url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString());
-    return Curl::HTTPSGetFile(url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString(), "", "", 600, prog, keepProgress);
+    std::function<bool(int)> progress;
+    if (prog != nullptr) {
+        progress = [prog, low, high, keepProgress](int pos) {
+            int span = high - low;
+            if (span <= 0) {
+                span = 1;
+            }
+            int scaled = low + ((span * pos) / 1000);
+            if (keepProgress && scaled >= high) {
+                scaled = high - 1;
+            }
+            if (scaled < low) {
+                scaled = low;
+            }
+            return prog->Update(scaled);
+        };
+    }
+    return CurlManager::HTTPSGetFile(url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString(), "", "", 600, progress);
 }
 
 std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)

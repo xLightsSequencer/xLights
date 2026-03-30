@@ -28,7 +28,6 @@ class Model;
 class ValueCurve;
 class EffectsGrid;
 class RenderContext;
-class xLightsFrame;
 
 class EffectLayer {
 public:
@@ -103,7 +102,7 @@ public:
     void TagAllSelectedEffects();
     int GetSelectedEffectCount(const std::string effectName);
     std::vector<std::string> GetUsedColours(bool selectedOnly);
-    int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr);
+    int ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr);
     void ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
     void ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
     void RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings, const EffectManager& effect_manager, RangeAccumulator& range_accumulator);

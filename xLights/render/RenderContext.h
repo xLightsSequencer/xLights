@@ -18,6 +18,7 @@ class EffectManager;
 class Model;
 class OutputModelManager;
 class SequenceElements;
+class TimingElement;
 class UICallbacks;
 enum class HEADER_INFO_TYPES;
 
@@ -56,6 +57,12 @@ public:
     // ---- rendering control ----
     virtual bool AbortRender(int maxTimeMs = 60000) = 0;
     virtual void RenderMainThreadEffects() {}
+    virtual void RenderEffectForModel(const std::string& model,
+                                      int startms,
+                                      int endms,
+                                      bool clear = false) = 0;
+    virtual TimingElement* AddTimingElement(const std::string& name,
+                                            const std::string& subType = "") = 0;
 
     // ---- misc ----
     virtual void SuspendAutoSave(bool suspend) = 0;

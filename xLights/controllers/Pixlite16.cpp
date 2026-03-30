@@ -23,7 +23,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "../Discovery.h"
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 
 #include "../utils/string_utils.h"
 
@@ -1111,7 +1111,7 @@ bool Pixlite16::GetConfig()
 bool Pixlite16::GetMK3Config()
 {
     if (_mk3APIVersion == "") {
-        _mk3Ver = Curl::HTTPSGet("http://" + _ip + "/ver", "", "");
+        _mk3Ver = CurlManager::HTTPSGet("http://" + _ip + "/ver", "", "");
         try {
             nlohmann::json jsonVal = nlohmann::json::parse(_mk3Ver);
 
@@ -1129,7 +1129,7 @@ bool Pixlite16::GetMK3Config()
 
     if (_mk3APIVersion != "") {
         std::string request = "{\"req\":\"configRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
-        _mk3Config = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
+        _mk3Config = CurlManager::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
         try {
             nlohmann::json jsonVal = nlohmann::json::parse(_mk3Config);
@@ -1190,7 +1190,7 @@ bool Pixlite16::GetMK3Config()
                 }
 
                 request = "{\"req\":\"constantRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
-                _mk3Constants = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
+                _mk3Constants = CurlManager::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
                 return true;
             }
@@ -1533,7 +1533,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     spdlog::debug(request);
 
-    auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
+    auto res = CurlManager::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
     bool result = false;
 

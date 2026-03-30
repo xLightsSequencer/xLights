@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 #include <log.h>
 
@@ -36,16 +36,16 @@ class Twilio : public SMSService
             Replace(url, "{user}", user);
             Replace(url, "{token}", token);
 
-            std::vector<Curl::Var> vars;
-            vars.push_back(Curl::Var("To", number));
-            vars.push_back(Curl::Var("From", GetPhone()));
-            vars.push_back(Curl::Var("Body", message));
+            std::vector<CurlManager::Var> vars;
+            vars.push_back(CurlManager::Var("To", number));
+            vars.push_back(CurlManager::Var("From", GetPhone()));
+            vars.push_back(CurlManager::Var("Body", message));
 
             spdlog::debug("Sending SMS to:'{}' from:'{}' body:'{}'.",
                           number,
                           GetPhone(),
                           message);
-            std::string res = Curl::HTTPSPost(url, vars, user, token);
+            std::string res = CurlManager::HTTPSPost(url, vars, user, token);
             //logger_base.debug("%s", (const char*)url.c_str());
             spdlog::debug("{}", res);
             return true;
@@ -65,7 +65,7 @@ class Twilio : public SMSService
             Replace(url, "{token}", token);
 
             spdlog::debug("Retrieving messages using basic auth {Account SID:Auth Token}.");
-            std::string res = Curl::HTTPSGet(url, user, token);
+            std::string res = CurlManager::HTTPSGet(url, user, token);
             //logger_base.debug("%s", (const char*)url.c_str());
             spdlog::debug("{}", res);
 

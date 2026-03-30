@@ -30,9 +30,10 @@
 
 #include <log.h>
 #include <wx/mimetype.h>
+#include <wx/progdlg.h>
 #include <wx/stdpaths.h>
 #include <wx/txtstrm.h>
-#include <utils/Curl.h>
+#include <utils/CurlManager.h>
 #include <nlohmann/json.hpp>
 
 
@@ -294,7 +295,7 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
 {
     //https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts
-    std::string json_data = Curl::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts)");
+    std::string json_data = CurlManager::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts)");
     std::vector<std::pair<wxString, wxString>> scripts = std::vector<std::pair<wxString, wxString>>();
 
     try {
@@ -332,7 +333,17 @@ void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
         }
         for (auto const& idx : dlg.GetSelections()) {
             auto name = scripts[idx].first;
-            Curl::HTTPSGetFile(scripts[idx].second.ToStdString(), scriptFolder + wxFileName::GetPathSeparator() + name, "", "", 600, &prog, true);
+            auto progress = [&prog](int pos) {
+                int uiPos = pos / 10;
+                if (uiPos < 0) {
+                    uiPos = 0;
+                }
+                if (uiPos > 99) {
+                    uiPos = 99;
+                }
+                return prog.Update(uiPos);
+            };
+            CurlManager::HTTPSGetFile(scripts[idx].second.ToStdString(), scriptFolder + wxFileName::GetPathSeparator() + name, "", "", 600, progress);
         }
         LoadScriptDir();
     }

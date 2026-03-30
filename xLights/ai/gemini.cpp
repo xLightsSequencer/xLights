@@ -2,7 +2,7 @@
 #include "AIImageDialog.h"
 #include <nlohmann/json.hpp>
 #include "ServiceManager.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 
@@ -96,7 +96,7 @@ std::pair<std::string, bool> gemini::CallLLM(const std::string& prompt) const {
     spdlog::debug("Gemini: {}", request.c_str());
 
     int responseCode = 0;	
-    std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60, customHeaders, &responseCode);
+    std::string response = CurlManager::HTTPSPost(url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
     spdlog::debug("Gemini Response {}: {}", responseCode, response.c_str());
 
@@ -210,7 +210,7 @@ public:
         cb(wxImg, jsonBody.c_str());
 #else
         int httpCode = 0;
-        std::string response = Curl::HTTPSPost(endpoint, jsonBody, "", "", "JSON", 120, headers, &httpCode);
+        std::string response = CurlManager::HTTPSPost(endpoint, jsonBody, "", "", "JSON", 120, headers, &httpCode);
 
         spdlog::debug("Gemini image response code: {}, body length: {}", httpCode, response.size());
 

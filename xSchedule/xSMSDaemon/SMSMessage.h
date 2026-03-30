@@ -7,7 +7,7 @@
 
 #include <log.h>
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 #include <wx/wx.h>
 #include <wx/uri.h>
@@ -62,7 +62,7 @@ class SMSMessage
         if (reject)
         {
             wxURI url("https://www.purgomalum.com/service/containsprofanity?text=" + _rawMessage);
-            auto msg = Curl::HTTPSGet(url.BuildURI().ToStdString());
+            auto msg = CurlManager::HTTPSGet(url.BuildURI().ToStdString());
             if (msg == "false")
             {
                 _message = _rawMessage;
@@ -75,7 +75,7 @@ class SMSMessage
         else
         {
             wxURI url("https://www.purgomalum.com/service/xml?text=" + _rawMessage);
-            auto msg = Curl::HTTPSGet(url.BuildURI().ToStdString());
+            auto msg = CurlManager::HTTPSGet(url.BuildURI().ToStdString());
 
             wxRegEx regex("result>([^<]*)<\\/result");
             regex.Matches(msg);

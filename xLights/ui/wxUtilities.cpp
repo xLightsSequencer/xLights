@@ -33,7 +33,7 @@
 #include "wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "../xLightsVersion.h"
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 #include "../utils/string_utils.h"
 
 #include <log.h>
@@ -404,7 +404,7 @@ void OptimiseDialogPosition(wxDialog* dlg) {
 nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
     int responseCode = 0;
-    auto resultString = Curl::HTTPSPost(url, message, "", "", "application/json", 30 * 60, {}, &responseCode);
+    auto resultString = CurlManager::HTTPSPost(url, message, "", "", "application/json", 30 * 60, {}, &responseCode);
     if (resultString != "" && (responseCode == 200 || responseCode >= 500)) {
         nlohmann::json result = nlohmann::json::parse(resultString);
         result["res"] = (int)responseCode;
@@ -418,7 +418,7 @@ nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const std:
 bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
     int responseCode = 0;
-    result = Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode);
+    result = CurlManager::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode);
     return responseCode == 200;
 }
 

@@ -1141,7 +1141,7 @@ std::vector<std::string> EffectLayer::GetUsedColours(bool selectedOnly)
     return res;
 }
 
-int EffectLayer::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr)
+int EffectLayer::ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
 
@@ -1154,7 +1154,7 @@ int EffectLayer::ReplaceColours(xLightsFrame* frame, const std::string& from, co
             (mEffects[i]->GetSelected() == EFFECT_SELECTED)) {
             if (mEffects[i]->UsesColour(from)) {
                 undo_mgr.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
-                replaced += mEffects[i]->ReplaceColours(frame, from, to);
+                replaced += mEffects[i]->ReplaceColours(ctx, from, to);
             }
         }
     }

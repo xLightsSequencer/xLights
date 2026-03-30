@@ -30,7 +30,7 @@
 #include "ExternalHooks.h"
 #include <log.h>
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #undef min
 #undef max
 
@@ -169,7 +169,7 @@ public:
             // make sure the shaders folder is there
             wxMkDir(xLightsFrame::CurrentDir + "/Shaders", wxS_DIR_DEFAULT);
             std::string fn = xLightsFrame::CurrentDir + "/Shaders/" + _name + ".fs";
-            if (Curl::HTTPSGetFile(download, fn)) {
+            if (CurlManager::HTTPSGetFile(download, fn)) {
                 wxFile f;
                 if (f.Open(fn)) {
                     char token[3];

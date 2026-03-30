@@ -12,6 +12,7 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceElements.h"
+#include "RenderContext.h"
 #include "../effects/EffectManager.h"
 #include "../ColorCurve.h"
 #include "../UtilFunctions.h"
@@ -693,7 +694,7 @@ bool Effect::UsesColour(const std::string& from)
     return false;
 }
 
-int Effect::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to)
+int Effect::ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to)
 {
     int res = 0;
     for (auto it : mPaletteMap) {
@@ -712,9 +713,11 @@ int Effect::ReplaceColours(xLightsFrame* frame, const std::string& from, const s
         ParseColorMap(mPaletteMap, mColors, mCC);
 
         // we changed so this effect needs to re-render
-        frame->RenderEffectForModel(GetParentEffectLayer()->GetParentElement()->GetModelName(),
-                                    GetStartTimeMS(),
-                                    GetEndTimeMS());
+        if (ctx != nullptr) {
+            ctx->RenderEffectForModel(GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                                      GetStartTimeMS(),
+                                      GetEndTimeMS());
+        }
     }
 
     return res;

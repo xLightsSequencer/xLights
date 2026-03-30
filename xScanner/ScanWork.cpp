@@ -12,7 +12,7 @@
 #include "../xLights/Parallel.h"
 #include "xScannerMain.h"
 #include "xScannerApp.h"
-#include "../xLights/utils/Curl.h"
+#include "../xLights/utils/CurlManager.h"
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 #include "../xLights/controllers/Falcon.h"
@@ -355,7 +355,7 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 			try {
                 spdlog::debug("    Getting the web page.");
-                std::string page = Curl::HTTPSGet(_proxy + _ip, "", "", SLOW_TIMEOUT);
+                std::string page = CurlManager::HTTPSGet(_proxy + _ip, "", "", SLOW_TIMEOUT);
                 spdlog::debug("    Got the web page.");
 
 				if (page != "") {
@@ -407,7 +407,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	}
 
 	spdlog::debug("FPPWork {} {}", _proxy, _ip);
-	auto netconfig = Curl::HTTPSGet(proxy + _ip + "/api/network/interface", "", "", FAST_TIMEOUT);
+	auto netconfig = CurlManager::HTTPSGet(proxy + _ip + "/api/network/interface", "", "", FAST_TIMEOUT);
 
 	if (netconfig != "" && Contains(netconfig, "operstate")) {
 
@@ -419,7 +419,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		std::vector<std::string> networks;
 
 		spdlog::debug("    Getting wifi strength");
-		auto wificonfig = Curl::HTTPSGet(proxy + _ip + "/api/network/wifi/strength", "", "", FAST_TIMEOUT);
+		auto wificonfig = CurlManager::HTTPSGet(proxy + _ip + "/api/network/wifi/strength", "", "", FAST_TIMEOUT);
 
         nlohmann::json wifiroot;
 		bool fwifi = false;
@@ -480,7 +480,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 		int iii = 1;
 		for (const auto& it : networks) {
-			auto net = Curl::HTTPSGet(proxy + _ip + "/api/network/interface/" + it, "", "", FAST_TIMEOUT);
+			auto net = CurlManager::HTTPSGet(proxy + _ip + "/api/network/interface/" + it, "", "", FAST_TIMEOUT);
 			if (!net.empty()) {
                 try {
                     nlohmann::json root = nlohmann::json::parse(net);
@@ -497,7 +497,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		}
 
 		spdlog::debug("    Getting FPP proxies");
-		auto proxies = Curl::HTTPSGet(proxy + _ip + "/api/proxies", "", "", FAST_TIMEOUT);
+		auto proxies = CurlManager::HTTPSGet(proxy + _ip + "/api/proxies", "", "", FAST_TIMEOUT);
         if (!proxies.empty() && proxies != "[]") {
             try {
                 nlohmann::json root = nlohmann::json::parse(proxies);
@@ -523,7 +523,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		}
 
 		spdlog::debug("    Getting FPP Channel Outputs");
-		auto co = Curl::HTTPSGet(proxy + _ip + "/api/configfile/co-universes.json", "", "", FAST_TIMEOUT);
+		auto co = CurlManager::HTTPSGet(proxy + _ip + "/api/configfile/co-universes.json", "", "", FAST_TIMEOUT);
         if (!co.empty() && co[0] == '{') {
             try {
                 nlohmann::json root = nlohmann::json::parse(co);
@@ -539,7 +539,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		}
 
 		spdlog::debug("    Getting FPP status");
-		auto status = Curl::HTTPSGet(proxy + _ip + "/api/fppd/status", "", "", FAST_TIMEOUT);
+		auto status = CurlManager::HTTPSGet(proxy + _ip + "/api/fppd/status", "", "", FAST_TIMEOUT);
         if (!status.empty() && status[0] == '{') {
             try {
                 nlohmann::json root = nlohmann::json::parse(status);
@@ -555,7 +555,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		}
 
 		spdlog::debug("    Getting FPP Cape Info");
-        auto cape = Curl::HTTPSGet(proxy + _ip + "/api/cape", "", "", FAST_TIMEOUT);
+        auto cape = CurlManager::HTTPSGet(proxy + _ip + "/api/cape", "", "", FAST_TIMEOUT);
         if (!cape.empty() && cape[0] == '{') {
             try {
                 nlohmann::json root = nlohmann::json::parse(cape);
@@ -572,7 +572,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
         }
 
 		spdlog::debug("    Getting FPP multisync");
-		auto multisync = Curl::HTTPSGet(proxy + _ip + "/api/fppd/multiSyncSystems", "", "", FAST_TIMEOUT);
+		auto multisync = CurlManager::HTTPSGet(proxy + _ip + "/api/fppd/multiSyncSystems", "", "", FAST_TIMEOUT);
         if (!multisync.empty() && multisync[0] == '{') {
             try {
                 nlohmann::json root = nlohmann::json::parse(multisync);
@@ -609,7 +609,7 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	}
 
 	spdlog::debug("FalconWork {} {}", _proxy, _ip);
-	auto status = Curl::HTTPSGet(proxy + _ip + "/status.xml", "", "", SLOW_TIMEOUT);
+	auto status = CurlManager::HTTPSGet(proxy + _ip + "/status.xml", "", "", SLOW_TIMEOUT);
 
 	if (status != "" && Contains(status, "<response>") && Contains(status, "<np>") && Contains(status, "<p>")) {
 
@@ -759,7 +759,7 @@ void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 
 	std::list<std::pair<std::string, std::string>> results;
 
-	auto xs = Curl::HTTPSGet(_ip + ":" + wxString::Format("%d", _port) + "/xScheduleQuery?Query=getplayingstatus", "", "", FAST_TIMEOUT);
+	auto xs = CurlManager::HTTPSGet(_ip + ":" + wxString::Format("%d", _port) + "/xScheduleQuery?Query=getplayingstatus", "", "", FAST_TIMEOUT);
 	if (xs != "" && xs[0] == '{') {
 		spdlog::debug("    xSchedule found");
 		results.push_back({ "IP", _ip });
@@ -1152,7 +1152,7 @@ void MACWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			std::unique_lock<std::mutex> locker(lockcache); // we do this to minimise concurrent web requests
 			auto macURL = std::string("https://api.macvendors.com/" + _mac);
 			spdlog::debug("    Looking up MAC: {}", macURL);
-			vendor = Curl::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
+			vendor = CurlManager::HTTPSGet(macURL, "", "", SLOW_TIMEOUT);
 			spdlog::debug("    Looking up MAC: {} => {}", macURL, vendor);
 			if (Contains(vendor, "\"Not Found\"")) {
 				vendor = "";

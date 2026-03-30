@@ -1,6 +1,6 @@
 #include "OpenAIImageGenerator.h"
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
 
 #include <nlohmann/json.hpp>
@@ -52,7 +52,7 @@ void OpenAIImageGenerator::generateImage(const std::string& prompt,
     spdlog::debug("OpenAI image request: {}", jsonBody.c_str());
 
     int httpCode {0};
-    std::string const response = Curl::HTTPSPost(endpoint, jsonBody, "", "", "JSON", 120, headers, &httpCode);
+    std::string const response = CurlManager::HTTPSPost(endpoint, jsonBody, "", "", "JSON", 120, headers, &httpCode);
 
     spdlog::debug("OpenAI image response code: {}, body length: {}", httpCode, response.size());
 

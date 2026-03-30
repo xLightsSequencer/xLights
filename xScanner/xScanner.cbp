@@ -186,8 +186,6 @@
 		<Unit filename="../xLights/outputs/xxxEthernetOutput.h" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.cpp" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.h" />
-        <Unit filename="../xLights/utils/Curl.cpp" />
-        <Unit filename="../xLights/utils/Curl.h" />
 		<Unit filename="../xLights/utils/xlImage.cpp" />
 		<Unit filename="../xLights/utils/xlImage.h" />
 		<Unit filename="../xLights/utils/CurlManager.cpp" />

@@ -1,7 +1,7 @@
 #include "ServiceManager.h"
 #include "UtilFunctions.h"
 #include "OpenAIAPI.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include <nlohmann/json.hpp>
 
 #include "OpenAIImageGenerator.h"
@@ -10,6 +10,7 @@
 #include <vector>
 
 #include <log.h>
+#include <wx/msgdlg.h>
 
 constexpr const char* completion_url = "/chat/completions";
 
@@ -38,7 +39,7 @@ std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const
     spdlog::debug("{}: {}", GetLLMName(), request);
 
     int responseCode = 0;
-    std::string response = Curl::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
+    std::string response = CurlManager::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
     spdlog::debug("{} Response {}: {}", GetLLMName(), responseCode, response);
 
@@ -133,7 +134,7 @@ aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt
     spdlog::debug("{}: {}", GetLLMName(), request);
 
     int responseCode = 0;
-    std::string response = Curl::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
+    std::string response = CurlManager::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
     spdlog::debug("{} Response {}: {}", GetLLMName(), responseCode, response);
     if (responseCode != 200) {

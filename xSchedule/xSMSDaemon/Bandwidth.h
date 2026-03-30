@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 #include <wx/wx.h>
 
@@ -45,7 +45,7 @@ class Bandwidth : public SMSService
                           number,
                           GetPhone(),
                           message);
-            std::string res = Curl::HTTPSPost(url, b, sid, token, "JSON");
+            std::string res = CurlManager::HTTPSPost(url, b, sid, token, "JSON");
 
             //logger_base.debug("%s", (const char*)url.c_str());
             spdlog::debug("{}", res);
@@ -65,7 +65,7 @@ class Bandwidth : public SMSService
             Replace(url, "{token}", token);
             url += "/messages?page=0&size=100";
             spdlog::debug("Retrieving messages.");
-            std::string res = Curl::HTTPSGet(url, sid, token);
+            std::string res = CurlManager::HTTPSGet(url, sid, token);
             //spdlog::debug("%s", (const char*)url.c_str());
             spdlog::debug("%s", (const char*)res.c_str());
 

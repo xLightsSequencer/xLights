@@ -14,7 +14,7 @@
 #include "../UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 #include <log.h>
 #include <wx/base64.h>
 #include <wx/protocol/http.h>
@@ -319,7 +319,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     }
 
     int responseCode;
-    std::string httpResponse = Curl::HTTPSPost("http://" + _ip + (_httpPort == 80 ? "" : wxString::Format(":%d", _httpPort)) + path, bod, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
+    std::string httpResponse = CurlManager::HTTPSPost("http://" + _ip + (_httpPort == 80 ? "" : wxString::Format(":%d", _httpPort)) + path, bod, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
 
     if (responseCode != 200) {
         spdlog::error("Twinkly: Error {} : {}", responseCode, httpResponse);
@@ -664,7 +664,7 @@ bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<floa
     #else
     std::vector<std::pair<std::string, std::string>> customHeaders = {};
     int responseCode;
-    std::string httpResponse = Curl::HTTPSGet("http://" + ip + (httpPort == 80 ? "" : wxString::Format(":%d", httpPort)) + "/xled/v1/led/layout/full", "", "", HTTP_TIMEOUT, customHeaders, &responseCode);
+    std::string httpResponse = CurlManager::HTTPSGet("http://" + ip + (httpPort == 80 ? "" : wxString::Format(":%d", httpPort)) + "/xled/v1/led/layout/full", "", "", HTTP_TIMEOUT, customHeaders, &responseCode);
 
     if (responseCode != 200) {
         spdlog::error("Twinkly: Error {} : {}", responseCode, (const char*)httpResponse.c_str());

@@ -15,7 +15,7 @@
 #include <wx/regex.h>
 #include <wx/progdlg.h>
 
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
@@ -308,7 +308,7 @@ void Minleon::SetTimingsFromProtocol()
 void Minleon::PostURL(const std::string& url, const std::string& data) const
 {
     
-    auto response = Curl::HTTPSPost("http://" + _ip + url, data);
+    auto response = CurlManager::HTTPSPost("http://" + _ip + url, data);
     spdlog::debug("{}", (const char*)response.c_str());
 }
 

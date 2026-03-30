@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 #include <wx/wx.h>
 
@@ -46,7 +46,7 @@ public:
             spdlog::debug("    '{}' = '{}'", it.first, it.second);
         }
         spdlog::debug("Sending SMS response did:'{}' dst:'{}' message:'{}'", GetPhone(), number, message);
-        std::string res = Curl::HTTPSGet(url, "", "", 10, vars);
+        std::string res = CurlManager::HTTPSGet(url, "", "", 10, vars);
         spdlog::debug("{}", res);
         return Contains(res, "status\":\"success");
     }
@@ -75,7 +75,7 @@ public:
             spdlog::debug("    '{}' = '{}'", it.first, it.second);
         }
         spdlog::debug("Retrieving messages: {}", url);
-        std::string res = Curl::HTTPSGet(url, "", "", 10, vars);
+        std::string res = CurlManager::HTTPSGet(url, "", "", 10, vars);
         spdlog::debug("Result '{}'", res);
 
         // construct the JSON root object

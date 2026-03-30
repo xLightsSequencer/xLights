@@ -1,7 +1,7 @@
 #include "claude.h"
 #include <nlohmann/json.hpp>
 #include "ServiceManager.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 
@@ -89,7 +89,7 @@ static std::pair<std::string, bool> CallAnthropicAPI(const std::string& base_url
     spdlog::debug("{}: {}", serviceName, request);
 
     int responseCode = 0;
-    std::string response = Curl::HTTPSPost(base_url + "/messages", request, "", "", "JSON", 120, customHeaders, &responseCode);
+    std::string response = CurlManager::HTTPSPost(base_url + "/messages", request, "", "", "JSON", 120, customHeaders, &responseCode);
 
     spdlog::debug("{} Response {}: {}", serviceName, responseCode, response);
 

@@ -159,12 +159,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\xLights\utils\Curl.cpp" />
     <ClCompile Include="..\xLights\automation\automation.cpp" />
     <ClCompile Include="xlDo.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\xLights\utils\Curl.h" />
     <ClInclude Include="..\xLights\automation\automation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,7 +20,7 @@
 #include "ControllerUploadData.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 #endif
 
 #include "ControllerCaps.h"
@@ -2450,7 +2450,7 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
             }
 
             if (!skip && res) {
-                res = res && Curl::HTTPUploadFile(url, media, origfile, progress);
+                res = res && CurlManager::HTTPUploadFile(url, media, origfile, progress);
 
                 if (res) {
                     if (ismp3) {
@@ -2478,7 +2478,7 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
     // upload the fseq
     {
         wxFileName fn(file);
-        res = res && Curl::HTTPUploadFile(url, seq, fn.GetFullName() /*.Lower()*/.ToStdString(), progress);
+        res = res && CurlManager::HTTPUploadFile(url, seq, fn.GetFullName() /*.Lower()*/.ToStdString(), progress);
 
         if (res) {
             while (V4_IsFileUploading()) {

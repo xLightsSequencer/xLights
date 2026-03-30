@@ -12,12 +12,9 @@
 #include "string_utils.h"
 
 #include <chrono>
+#include <cstring>
+#include <regex>
 #include <thread>
-
-#include <wx/wx.h>
-#include <wx/string.h>
-#include <wx/regex.h>
-#include <wx/sckaddr.h>
 
 #ifndef __WXMSW__
 #include <netdb.h>
@@ -36,28 +33,58 @@ namespace ip_utils
     static std::map<std::string, std::string> __resolvedIPMap;
     static std::mutex __resolvedIPMapLock;
 
-	bool IsIPValid(const std::string& ip)
-    {
-        wxString ips = wxString(ip).Trim(false).Trim(true);
-        if (ips == "") {
-            return false;
-        } else if (wxIsMainThread()) {
-            static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
-            if (regxIPAddr.Matches(ips)) {
-                return true;
-            }
-        } else {
-            wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
-            if (regxIPAddr.Matches(ips)) {
-                return true;
-            }
-        }
+    namespace {
+        bool ResolveHostnameToIP(const std::string& host, std::string& outIp) {
+            struct addrinfo hints;
+            struct addrinfo* result = nullptr;
+            std::memset(&hints, 0x0, sizeof(hints));
+            hints.ai_family = PF_UNSPEC;
+            hints.ai_socktype = SOCK_STREAM;
+            hints.ai_flags |= AI_CANONNAME;
 
-        return false;
+            if (getaddrinfo(host.c_str(), nullptr, &hints, &result) != 0 || result == nullptr) {
+                return false;
+            }
+
+            std::string ip4Addr;
+            std::string ip6Addr;
+            for (auto* res = result; res != nullptr; res = res->ai_next) {
+                char addrstr[100] = { 0 };
+                void* ptr = nullptr;
+                if (res->ai_family == AF_INET) {
+                    ptr = &((struct sockaddr_in*)res->ai_addr)->sin_addr;
+                    inet_ntop(res->ai_family, ptr, addrstr, sizeof(addrstr));
+                    ip4Addr = addrstr;
+                } else if (res->ai_family == AF_INET6) {
+                    ptr = &((struct sockaddr_in6*)res->ai_addr)->sin6_addr;
+                    inet_ntop(res->ai_family, ptr, addrstr, sizeof(addrstr));
+                    ip6Addr = addrstr;
+                }
+            }
+            freeaddrinfo(result);
+
+            if (!ip4Addr.empty()) {
+                outIp = ip4Addr;
+                return true;
+            }
+            if (!ip6Addr.empty()) {
+                outIp = ip6Addr;
+                return true;
+            }
+            return false;
+        }
     }
 
-    bool IsIPValidOrHostname(const std::string& ip, bool iponly)
-    {
+	bool IsIPValid(const std::string& ip) {
+        const std::string ips = Trim(ip);
+        if (ips.empty()) {
+            return false;
+        }
+        struct in_addr addr;
+        return inet_pton(AF_INET, ips.c_str(), &addr) == 1;
+    }
+
+    bool IsIPValidOrHostname(const std::string& ip, bool iponly) {
         //check if "ip" is a valid IP address
         if (IsIPValid(ip)) {
             return true;
@@ -67,40 +94,30 @@ namespace ip_utils
             return false;
         }
 
-        wxString ips = wxString(ip).Trim(false).Trim(true);
-        if (wxIsMainThread()) {
-            //hosts only, IP address should have already passed above
-            static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
-            if (hostAddr.Matches(ips)) {
-                return true;
-            }
-        } else {
-            wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
-            if (hostAddr.Matches(ips)) {
-                return true;
-            }
+        const std::string ips = Trim(ip);
+        static const std::regex hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+        if (std::regex_match(ips, hostAddr)) {
+            return true;
         }
         //IP address should fall through to this false if not valid host too
         return false;
     }
 
     bool IsValidHostname(const std::string& ip) {
-        wxString ips = wxString(ip).Trim(false).Trim(true);
-        if (wxIsMainThread()) {
-            static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
-            return hostAddr.Matches(ips);
-        }
-        wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
-        return hostAddr.Matches(ips);
+        const std::string ips = Trim(ip);
+        static const std::regex hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+        return std::regex_match(ips, hostAddr);
     }
 
     bool IsIPv6(const std::string& ip) {
-        wxIPV6address ipv6Addr;
-        return ipv6Addr.Hostname(ip)  && ip.find(':') != std::string::npos;
+        if (ip.find(':') == std::string::npos) {
+            return false;
+        }
+        struct in6_addr addr6;
+        return inet_pton(AF_INET6, ip.c_str(), &addr6) == 1;
     }
 
-    std::string CleanupIP(const std::string& ip)
-    {
+    std::string CleanupIP(const std::string& ip) {
         bool hasChar = false;
         bool hasDot = false;
         //hostnames need at least one char in it if fully qualified
@@ -118,39 +135,26 @@ namespace ip_utils
             //hostname, not ip, don't mangle it
             return ip;
         }
-        wxString IpAddr(ip.c_str());
-        if (wxIsMainThread()) {
-            static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
-            if (leadingzero1.Matches(IpAddr)) {
-                wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
-                wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
-                leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
-            }
-            static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
-            while (leadingzero2.Matches(IpAddr)) { // need to do it several times because the results overlap
-                wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
-                wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
-                leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
-            }
-        } else {
-            wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
-            if (leadingzero1.Matches(IpAddr)) {
-                wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
-                wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
-                leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
-            }
-            wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
-            while (leadingzero2.Matches(IpAddr)) { // need to do it several times because the results overlap
-                wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
-                wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
-                leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
-            }
+        std::vector<std::string> parts;
+        Split(ip, '.', parts, false);
+        if (parts.size() != 4) {
+            return ip;
         }
-        return IpAddr.ToStdString();
+        std::string out;
+        for (size_t i = 0; i < parts.size(); ++i) {
+            const long part = std::strtol(parts[i].c_str(), nullptr, 10);
+            if (part < 0 || part > 255) {
+                return ip;
+            }
+            if (!out.empty()) {
+                out += ".";
+            }
+            out += std::to_string(part);
+        }
+        return out;
     }
 
-    std::string ResolveIP(const std::string& ip)
-    {
+    std::string ResolveIP(const std::string& ip) {
         // Dont resolve partially entered ip addresses as these resolve into unexpected addresses
         if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "" || StartsWith(ip, ".") || (ip[0] >= '0' && ip[0] <= '9')) {
             return ip;
@@ -159,9 +163,10 @@ namespace ip_utils
         const std::string& resolvedIp = __resolvedIPMap[ip];
         if (resolvedIp == "") {
             lock.unlock();
-            wxIPV4address add;
-            add.Hostname(ip);
-            std::string r = add.IPAddress();
+            std::string r;
+            if (!ResolveHostnameToIP(ip, r)) {
+                r = ip;
+            }
             if (r == "0.0.0.0") {
                 r = ip;
             }

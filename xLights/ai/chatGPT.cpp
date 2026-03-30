@@ -1,7 +1,7 @@
 #include "chatGPT.h"
 #include <nlohmann/json.hpp>
 #include "ServiceManager.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
 
 #include <wx/propgrid/propgrid.h>

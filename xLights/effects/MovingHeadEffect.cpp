@@ -16,10 +16,7 @@
 
 #include "MovingHeadEffect.h"
 #include "render/ValueCurve.h"
-#include "../ui/effectpanels/MovingHeadPanel.h"
-#include "../ui/effectpanels/EffectPanelManager.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
+#include "SketchEffectDrawing.h"
 
 #include <cstdlib>
 #include <format>
@@ -84,16 +81,12 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     if (StartsWith(string_type, "Single Color")) {
         if( model_info->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
             model_info->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
-            MovingHeadPanel *p = static_cast<MovingHeadPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
-            if (p == nullptr) {
-                return;
-            }
-            RenderMovingHeads(p, model_info, SettingsMap, buffer);
+            RenderMovingHeads(model_info, SettingsMap, buffer);
         }
     }
 }
 
-void MovingHeadEffect::RenderMovingHeads(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+void MovingHeadEffect::RenderMovingHeads(const Model* model_info, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     auto models = GetModels(model_info);
     for( int i = 1; i <= 8; ++i ) {

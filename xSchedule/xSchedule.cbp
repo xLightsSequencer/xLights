@@ -205,8 +205,6 @@
 		<Unit filename="../xLights/outputs/xxxEthernetOutput.h" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.cpp" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.h" />
-		<Unit filename="../xLights/utils/Curl.cpp" />
-		<Unit filename="../xLights/utils/Curl.h" />
 		<Unit filename="../xLights/utils/CurlManager.cpp" />
 		<Unit filename="../xLights/utils/CurlManager.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />

@@ -60,7 +60,6 @@ struct EventPlayEffectArgs
 
 class EffectLayer;
 class RenderContext;
-class xLightsFrame;
 class EffectManager;
 
 class SequenceElements : public ChangeListener
@@ -169,7 +168,7 @@ public:
     int GetMinPeriod();
 
     std::vector<std::string> GetUsedColours(bool selectedOnly) const;
-    int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly);
+    int ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to, bool selectedOnly);
     int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS);
     int SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS, int endMS);
     int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol, int endCol);

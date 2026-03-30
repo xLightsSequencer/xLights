@@ -19,7 +19,7 @@
 #include "../outputs/OutputManager.h"
 #include "../outputs/DDPOutput.h"
 
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
@@ -55,7 +55,7 @@ bool Experience::UploadSequence(std::string const& seq, std::string const& file,
     spdlog::debug("Uploading to URL: {}", url);
 
     wxFileName fn(file);
-    return Curl::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
+    return CurlManager::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
 }
 bool Experience::DecodeFirmwareInformation(std::string const& firmware) {
     //todo use std::regex

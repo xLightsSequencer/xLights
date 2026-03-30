@@ -10,7 +10,7 @@
 
 #define ZERO 0
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 //(*InternalHeaders(RemoteFalconFrame)
 #include <wx/intl.h>

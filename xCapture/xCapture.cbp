@@ -100,8 +100,6 @@
 		<Unit filename="../xLights/UtilFunctions.h" />
 		<Unit filename="../xLights/ui/wxUtilities.cpp" />
 		<Unit filename="../xLights/ui/wxUtilities.h" />
-		<Unit filename="../xLights/utils/Curl.cpp" />
-		<Unit filename="../xLights/utils/Curl.h" />
 		<Unit filename="../xLights/utils/xlImage.cpp" />
 		<Unit filename="../xLights/utils/xlImage.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />

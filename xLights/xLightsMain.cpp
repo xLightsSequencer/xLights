@@ -128,7 +128,7 @@
 #include "utils/ip_utils.h"
 #include "TempFileManager.h"
 #include "xlColourData.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "utils/CurlManager.h"
 #include "ai/chatGPT.h"
 #include "ai/AIImageDialog.h"

@@ -16,7 +16,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 #include <wx/sckaddr.h>
 #include "../UtilFunctions.h"
 #include "../ui/wxUtilities.h"
@@ -140,7 +140,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 
                 std::string url = "http://" + ip + ":" + std::to_string(::GetxFadePort(ab + 1)) + "/getVersion";
                 if (val["ifNotRunning"].get<std::string>() == "true") {
-                    std::string resp = Curl::HTTPSGet(url, command.ToStdString());
+                    std::string resp = CurlManager::HTTPSGet(url, command.ToStdString());
                     if (resp != "") {
                         xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights was already running.\"}", verbose, false);
                         return 0;
@@ -181,14 +181,14 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 #endif
 
                 int loop = 0;
-                std::string resp = Curl::HTTPSGet(url, command.ToStdString());
+                std::string resp = CurlManager::HTTPSGet(url, command.ToStdString());
                 while (resp == "") {
                     // dont wait more than a minute
                     if (loop++ > 60)
                         break;
 
                     wxSleep(1);
-                    resp = Curl::HTTPSGet(url, command.ToStdString());
+                    resp = CurlManager::HTTPSGet(url, command.ToStdString());
                 }
 
                 if (loop > 60) {
@@ -222,8 +222,8 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
     }
     //30 minute timeout?  Some of the automations like batchRender may take a LONG time
     int responseCode = 0;
-    std::string resp = command.empty() ? Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode)
-        : Curl::HTTPSPost(url, command, "", "", mime, 30*60, {}, &responseCode);
+    std::string resp = command.empty() ? CurlManager::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode)
+        : CurlManager::HTTPSPost(url, command, "", "", mime, 30*60, {}, &responseCode);
 
 
     if (command.empty()) {

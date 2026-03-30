@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 
 #include <wx/wx.h>
 
@@ -51,45 +51,45 @@ class RemoteFalcon
 
         std::string FetchCurrentPlaylistFromQueue()
         {
-            return Curl::HTTPSGet(_URLBase + "/nextPlaylistInQueue", "", "", 10, { {"remotetoken", __token} });
+            return CurlManager::HTTPSGet(_URLBase + "/nextPlaylistInQueue", "", "", 10, { {"remotetoken", __token} });
         }
 
         std::string FetchRemotePreferences()
         {
-            return Curl::HTTPSGet(_URLBase + "/remotePreferences", "", "", 10, { {"remotetoken", __token} });
+            return CurlManager::HTTPSGet(_URLBase + "/remotePreferences", "", "", 10, { {"remotetoken", __token} });
         }
 
         std::string FetchHighestVotedPlaylist()
         {
-            return Curl::HTTPSGet(_URLBase + "/highestVotedPlaylist", "", "", 10, { {"remotetoken", __token} });
+            return CurlManager::HTTPSGet(_URLBase + "/highestVotedPlaylist", "", "", 10, { {"remotetoken", __token} });
         }
 
         std::string UpdatePlaylistQueue()
         {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", __token);
-            return Curl::HTTPSPost(_URLBase + "/updatePlaylistQueue", t, "", "", "JSON", 10, { {"remotetoken", __token} });
+            return CurlManager::HTTPSPost(_URLBase + "/updatePlaylistQueue", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
         std::string PurgeQueue() {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", __token);
-            return Curl::HTTPSDelete(_URLBase + "/purgeQueue", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+            return CurlManager::HTTPSDelete(_URLBase + "/purgeQueue", t, "", "", "JSON", 10, { { "remotetoken", __token } });
         }
 
         std::string EnableMangaedPSA(bool enable) {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"managedPsaEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
-            return Curl::HTTPSPost(_URLBase + "/updateManagedPsa", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+            return CurlManager::HTTPSPost(_URLBase + "/updateManagedPsa", t, "", "", "JSON", 10, { { "remotetoken", __token } });
         }
 
         std::string EnableViewerControl(bool enable)
         {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"viewerControlEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
-            return Curl::HTTPSPost(_URLBase + "/updateViewerControl", t, "", "", "JSON", 10, { {"remotetoken", __token} });
+            return CurlManager::HTTPSPost(_URLBase + "/updateViewerControl", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
         std::string SendPlayingSong(const std::string& playing)
         {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"playlist\":\"%s\"}", __token, playing);
-            return Curl::HTTPSPost(_URLBase + "/updateWhatsPlaying", t, "", "", "JSON", 10, { {"remotetoken", __token} });
+            return CurlManager::HTTPSPost(_URLBase + "/updateWhatsPlaying", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
         std::string SyncPlayLists(const std::string& playlist, const std::string& steps)
@@ -121,6 +121,6 @@ class RemoteFalcon
             auto url = _URLBase + "/syncPlaylists";
             spdlog::debug(RemoteFalcon::DeTokenfy(url));
             spdlog::debug(RemoteFalcon::DeTokenfy(body));
-            return Curl::HTTPSPost(url, body, "", "", "JSON", 10, { {"remotetoken", __token} });
+            return CurlManager::HTTPSPost(url, body, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 };

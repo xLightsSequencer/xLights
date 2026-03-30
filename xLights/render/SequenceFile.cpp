@@ -28,6 +28,7 @@
 
 #include "SequenceFile.h"
 #include "SequenceElements.h"
+#include "RenderContext.h"
 #include "UICallbacks.h"
 #include "../AudioManager.h"
 #include "../xLightsMain.h"
@@ -530,7 +531,7 @@ void SequenceFile::UpdateVersion(const std::string& version)
     version_string = version;
 }
 
-void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
     for (size_t i = 0; i < filenames.size(); ++i) {
         std::filesystem::path next_file(filenames[i]);
@@ -622,7 +623,7 @@ void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& fi
     }
 }
 
-void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
     for (size_t i = 0; i < filenames.size(); ++i )
     {
@@ -672,7 +673,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
             }
         }
 
-        OptionChooser opt_dialog(xLightsParent);
+        OptionChooser opt_dialog(dynamic_cast<wxWindow*>(xLightsParent));
         opt_dialog.SetInstructionText("Choose Timing Grid to use for timing import:");
         opt_dialog.SetOptions(timing_options);
         wxArrayString timing_grids; // wxArrayString needed for OptionChooser UI
@@ -729,7 +730,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, x
     }
 }
 
-std::string SequenceFile::UniqueTimingName(xLightsFrame* xLightsParent, std::string name) const
+std::string SequenceFile::UniqueTimingName(RenderContext* xLightsParent, std::string name) const
 {
     std::string testname = RemoveUnsafeXmlChars(name);
     int testnamenum = 1;
@@ -755,7 +756,7 @@ std::string SequenceFile::UniqueTimingName(xLightsFrame* xLightsParent, std::str
     return testname;
 }
 
-void SequenceFile::ProcessXTiming(const pugi::xml_node& node, xLightsFrame* xLightsParent)
+void SequenceFile::ProcessXTiming(const pugi::xml_node& node, RenderContext* xLightsParent)
 {
     std::string name = UnXmlSafe(node.attribute("name").as_string(""));
     //std::string v = node.attribute("SourceVersion").as_string("");
@@ -806,7 +807,7 @@ void SequenceFile::ProcessXTiming(const pugi::xml_node& node, xLightsFrame* xLig
     }
 }
 
-void SequenceFile::ProcessXTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+void SequenceFile::ProcessXTiming(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
     for (size_t i = 0; i < filenames.size(); ++i)
     {
@@ -864,7 +865,7 @@ static bool IsAllDigits(const std::string& s) {
     return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
 }
 
-void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
     for (size_t i = 0; i < filenames.size(); ++i)
     {
@@ -1122,7 +1123,7 @@ static std::string ReadSRTLine(const std::vector<std::string>& lines, size_t& id
     return result;
 }
 
-void SequenceFile::ProcessSRT(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+void SequenceFile::ProcessSRT(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
     for (size_t i = 0; i < filenames.size(); ++i)
     {
@@ -1439,7 +1440,7 @@ bool SequenceFile::Save(SequenceElements& seq_elements)
 }
 // Legacy SaveToDoc removed — Save now uses BuildDocument + pugixml
 
-bool SequenceFile::TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent)
+bool SequenceFile::TimingAlreadyExists(const std::string & section, RenderContext* xLightsParent)
 {
     if( sequence_loaded )
     {
@@ -1459,7 +1460,7 @@ bool SequenceFile::TimingAlreadyExists(const std::string & section, xLightsFrame
     return false;
 }
 
-bool SequenceFile::TimingMatchesModelName(const std::string& section, xLightsFrame* xLightsParent) {
+bool SequenceFile::TimingMatchesModelName(const std::string& section, RenderContext* xLightsParent) {
     if (sequence_loaded) {
         SequenceElements& mSequenceElements = xLightsParent->GetSequenceElements();
         if (mSequenceElements.ElementExists(section)) {
@@ -1469,7 +1470,7 @@ bool SequenceFile::TimingMatchesModelName(const std::string& section, xLightsFra
     return false;
 }
 
-void SequenceFile::AddNewTimingSection(const std::string& filename, xLightsFrame* xLightsParent,
+void SequenceFile::AddNewTimingSection(const std::string& filename, RenderContext* xLightsParent,
                                          std::vector<int>& starts, std::vector<int>& ends, std::vector<std::string>& labels)
 {
     if (!sequence_loaded) {
@@ -1573,7 +1574,7 @@ void SequenceFile::AddNewTimingSection(const std::string& filename, xLightsFrame
     }
 }
 
-void SequenceFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent, const std::string& subType)
+void SequenceFile::AddNewTimingSection(const std::string & interval_name, RenderContext* xLightsParent, const std::string& subType)
 {
     if (sequence_loaded) {
         xLightsParent->AddTimingElement(interval_name, subType);
@@ -1586,7 +1587,7 @@ void SequenceFile::AddNewTimingSection(const std::string & interval_name, xLight
     }
 }
 
-void SequenceFile::AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent)
+void SequenceFile::AddFixedTimingSection(const std::string& interval_name, RenderContext* xLightsParent)
 {
     if (sequence_loaded) {
         if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms" && !EndsWith(interval_name, "ms Metronome"))) {
@@ -1617,7 +1618,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, xLigh
     }
 }
 
-void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int interval, xLightsFrame* xLightsParent)
+void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int interval, RenderContext* xLightsParent)
 {
     if (sequence_loaded) {
         TimingElement* element = xLightsParent->AddTimingElement(interval_name);
@@ -1641,7 +1642,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int i
     }
 }
 
-void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int _interval, const std::vector<std::string>& tags, xLightsFrame* xLightsParent, int minForRandomRange, bool randomLabels) {
+void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int _interval, const std::vector<std::string>& tags, RenderContext* xLightsParent, int minForRandomRange, bool randomLabels) {
     if (!sequence_loaded) {
         PendingTiming pt;
         pt.name = interval_name;
@@ -1691,7 +1692,7 @@ void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_na
     }
 }
 
-void SequenceFile::ApplyPendingTimings(xLightsFrame* xLightsParent)
+void SequenceFile::ApplyPendingTimings(RenderContext* xLightsParent)
 {
     if (mPendingTimings.empty()) return;
 

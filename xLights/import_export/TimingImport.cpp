@@ -17,6 +17,7 @@
 #include <pugixml.hpp>
 
 #include "../render/SequenceFile.h"
+#include "../render/RenderContext.h"
 #include "../xLightsMain.h"
 #include "../UtilFunctions.h"
 #include "../ui/wxUtilities.h"
@@ -46,9 +47,11 @@ static std::string DecodeLSPTTColour(int att)
     return std::to_string(att);
 }
 
-void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent)
+void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
-    xLightsParent->SetCursor(wxCURSOR_WAIT);
+    if (auto* frame = dynamic_cast<xLightsFrame*>(xLightsParent)) {
+        frame->SetCursor(wxCURSOR_WAIT);
+    }
 
     for (size_t i = 0; i < filenames.size(); ++i)
     {
@@ -149,11 +152,16 @@ void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, x
             ent = zin.GetNextEntry();
         }
     }
-    xLightsParent->SetCursor(wxCURSOR_ARROW);
+    if (auto* frame = dynamic_cast<xLightsFrame*>(xLightsParent)) {
+        frame->SetCursor(wxCURSOR_ARROW);
+    }
 }
 
-void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent) {
-    xLightsParent->SetCursor(wxCURSOR_WAIT);
+void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filenames, RenderContext* xLightsParent) {
+    xLightsFrame* frame = dynamic_cast<xLightsFrame*>(xLightsParent);
+    if (frame != nullptr) {
+        frame->SetCursor(wxCURSOR_WAIT);
+    }
     Element* element = nullptr;
     EffectLayer* effectLayer = nullptr;
 
@@ -168,9 +176,13 @@ void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filename
 
         SequenceElements se(xLightsParent);
         se.SetFrequency(file.GetFrequency());
-        se.SetViewsManager(xLightsParent->GetViewsManager()); // This must come first before LoadSequencerFile.
+        if (frame != nullptr) {
+            se.SetViewsManager(frame->GetViewsManager()); // This must come first before LoadSequencerFile.
+        }
         se.LoadSequencerFile(file, *loadDoc, xLightsParent->GetShowDirectory());
-        file.AdjustEffectSettingsForVersion(se, xLightsParent);
+        if (frame != nullptr) {
+            file.AdjustEffectSettingsForVersion(se, frame);
+        }
 
         std::vector<TimingElement *> elements;
         wxArrayString names;
@@ -184,7 +196,7 @@ void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filename
                 }
             }
         }
-        wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", names);
+        wxMultiChoiceDialog dlg(dynamic_cast<wxWindow*>(xLightsParent), "Select timing tracks to import", "Import Timing Tracks", names);
         if (dlg.ShowModal() == wxID_OK) {
             wxArrayInt selections = dlg.GetSelections();
 
@@ -223,7 +235,9 @@ void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filename
             }
         }
     }
-    xLightsParent->SetCursor(wxCURSOR_ARROW);
+    if (frame != nullptr) {
+        frame->SetCursor(wxCURSOR_ARROW);
+    }
 }
 
 void SequenceFile::AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS) {
@@ -246,9 +260,11 @@ void SequenceFile::AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLa
     }
 }
 
-void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames, xLightsFrame* xLightsParent) {
+void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames, RenderContext* xLightsParent) {
 
-    xLightsParent->SetCursor(wxCURSOR_WAIT);
+    if (auto* frame = dynamic_cast<xLightsFrame*>(xLightsParent)) {
+        frame->SetCursor(wxCURSOR_WAIT);
+    }
 
     for (size_t i = 0; i < filenames.size(); ++i)
     {
@@ -265,7 +281,7 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
             markNames.push_back(it);
         }
 
-        wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", markNames);
+        wxMultiChoiceDialog dlg(dynamic_cast<wxWindow*>(xLightsParent), "Select timing tracks to import", "Import Timing Tracks", markNames);
 
         if (dlg.ShowModal() == wxID_OK) {
             wxArrayInt selections = dlg.GetSelections();
@@ -302,6 +318,8 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
         }
     }
 
-    xLightsParent->SetCursor(wxCURSOR_ARROW);
+    if (auto* frame = dynamic_cast<xLightsFrame*>(xLightsParent)) {
+        frame->SetCursor(wxCURSOR_ARROW);
+    }
 }
 

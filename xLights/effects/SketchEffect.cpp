@@ -16,12 +16,13 @@
 #include "../render/RenderBuffer.h"
 #include "SketchEffectDrawing.h"
 #include "../ui/effectpanels/SketchPanel.h"
-#include "../ui/effectpanels/EffectPanelManager.h"
 #include "../render/Effect.h"
+#include "../render/EffectLayer.h"
+#include "../render/Element.h"
+#include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
+#include "../models/Model.h"
 #include "../UtilFunctions.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
 #include "../render/RenderContext.h"
 #include "../ExternalHooks.h"
 
@@ -160,7 +161,8 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (!xLightsFrame::IsCheckSequenceOptionDisabledS("SketchImage")) {
+    RenderContext* ctx = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetRenderContext();
+    if (ctx == nullptr || !ctx->IsCheckSequenceOptionDisabled("SketchImage")) {
         std::string filename = settings.Get("E_FILEPICKER_SketchBackground", "");
         if (filename.empty()) {
             // this is only a warning as it does not affect rendering
@@ -190,11 +192,6 @@ std::list<std::string> SketchEffect::GetFileReferences(Model* model, const Setti
 {
     std::list<std::string> res;
     return res;
-}
-
-SketchPanel* SketchEffect::getPanel() const
-{
-    return static_cast<SketchPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
 }
 
 double SketchEffect::GetSettingVCMin(const std::string& name) const

@@ -18,7 +18,7 @@
 #include <curl/curl.h>
 
 #ifdef __WXMSW__
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 #endif
 
 #include <log.h>

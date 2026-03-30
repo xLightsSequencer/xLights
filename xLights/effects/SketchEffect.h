@@ -14,7 +14,6 @@
 
 class SketchAssistPanel;
 class SketchEffectSketch;
-class SketchPanel;
 
 class SketchEffect : public RenderableEffect
 {
@@ -42,6 +41,4 @@ protected:
                       RenderBuffer& buffer, double progress,
                       double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage,
                       const xlColorVector& colors);
-
-    SketchPanel* getPanel() const;
 };

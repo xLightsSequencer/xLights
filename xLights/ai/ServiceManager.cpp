@@ -11,7 +11,7 @@
 #endif
 
 #include "xLightsMain.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 

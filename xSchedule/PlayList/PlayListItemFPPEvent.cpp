@@ -16,7 +16,7 @@
 #include "../Control.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/utils/ip_utils.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include <log.h>
 #include <wx/notebook.h>
 #include <wx/protocol/http.h>
@@ -52,18 +52,18 @@ public:
                 std::string eventString = GetEventString();
                 std::string url = "http://" + _ip + "/fppxml.php?command=triggerEvent&id=" + eventString;
                 spdlog::debug("FPP Event sent {}:{}", _ip, url);
-                auto res = Curl::HTTPSGet(url, "", "", 1);
+                auto res = CurlManager::HTTPSGet(url, "", "", 1);
                 spdlog::info("CURL GET: {}", res);
             } else if (_method == 1) {
                 std::string url = "http://" + _ip + "/api/command";
                 std::string body = wxString::Format("{\"command\":\"Trigger Event\",\"args\":[\"%u\",\"%u\"]}", _major, _minor).ToStdString();
                 spdlog::debug("FPP Event sent {}:{}:{}", _ip, url, body);
-                auto res = Curl::HTTPSPost("http://" + _ip + "/api/command", body);
+                auto res = CurlManager::HTTPSPost("http://" + _ip + "/api/command", body);
             } else {
                 std::string url = "http://" + _ip + "/api/command";
                 std::string body = wxString::Format("{\"command\":\"Trigger Command Preset Slot\",\"args\":[\"%u\"]}", _major).ToStdString();
                 spdlog::debug("FPP Event sent {}:{}:{}", _ip, url, body);
-                auto res = Curl::HTTPSPost("http://" + _ip + "/api/command", body);
+                auto res = CurlManager::HTTPSPost("http://" + _ip + "/api/command", body);
             }
         } else {
             // I am pretty sure this no longer works in FPP ... at least I dont seem to be able to make it work

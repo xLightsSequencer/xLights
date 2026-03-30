@@ -635,7 +635,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="utils\CurlManager.cpp" />
     <ClCompile Include="utils\ip_utils.cpp" />
-    <ClCompile Include="utils\Curl.cpp" />
     <ClCompile Include="ui\MediaPickerCtrl.cpp" />
     <ClCompile Include="ui\wxTextDrawingContext.cpp" />
     <ClCompile Include="ui\wxUtilities.cpp" />
@@ -1242,7 +1241,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="utils\CurlManager.h" />
     <ClInclude Include="utils\ip_utils.h" />
-    <ClInclude Include="utils\Curl.h" />
     <ClInclude Include="LayoutUtils.h" />
     <ClInclude Include="LORPreview.h" />
     <ClInclude Include="JukeboxPanel.h" />

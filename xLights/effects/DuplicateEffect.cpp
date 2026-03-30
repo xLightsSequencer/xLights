@@ -16,10 +16,7 @@
 #include "../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "../models/Model.h"
-#include "../models/ModelManager.h"
-#include "../xLightsMain.h"
 #include "../render/SequenceElements.h"
-#include "../xLightsApp.h"
 
 #include "../../include/Duplicate_64.xpm"
 #include "../../include/Duplicate_48.xpm"
@@ -42,9 +39,12 @@ std::list<std::string> DuplicateEffect::CheckEffectSettings(const SettingsMap& s
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     // get the sequence elements
-    auto& se = model->GetModelManager().GetXLightsFrame()->GetSequenceElements();
+    auto* se = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+    if (se == nullptr) {
+        return res;
+    }
 
-    auto element = se.GetElement(settings.Get("E_CHOICE_Duplicate_Model", ""));
+    auto element = se->GetElement(settings.Get("E_CHOICE_Duplicate_Model", ""));
 
     if (element == nullptr)
     {
@@ -70,13 +70,11 @@ std::list<std::string> DuplicateEffect::CheckEffectSettings(const SettingsMap& s
     return res;
 }
 
-int DuplicateEffect::GetLayersForModel(const std::string& model)
+int DuplicateEffect::GetLayersForModel(const SequenceElements& sequenceElements, const std::string& model)
 {
     int res = 1;
 
-    auto& se = xLightsApp::GetFrame()->GetSequenceElements();
-
-    auto element = se.GetElement(model);
+    auto element = sequenceElements.GetElement(model);
 
     if (element != nullptr)
     {

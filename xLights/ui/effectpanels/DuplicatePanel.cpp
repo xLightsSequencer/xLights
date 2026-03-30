@@ -103,7 +103,9 @@ void DuplicatePanel::OnCheckBox1Click(wxCommandEvent& event)
 
 void DuplicatePanel::OnChoice_ModelSelect(wxCommandEvent& event)
 {
-    SpinCtrl_Layer->SetRange(1, DuplicateEffect::GetLayersForModel(Choice_Model->GetStringSelection()));
+	if (mSequenceElements != nullptr) {
+		SpinCtrl_Layer->SetRange(1, DuplicateEffect::GetLayersForModel(*mSequenceElements, Choice_Model->GetStringSelection()));
+	}
     ValidateWindow();
 }
 

@@ -575,9 +575,6 @@
     <ClCompile Include="..\xLights\utils\string_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\utils\Curl.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="..\xLights\utils\CurlManager.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -1150,9 +1147,6 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\utils\string_utils.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xLights\utils\Curl.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\utils\CurlManager.h">

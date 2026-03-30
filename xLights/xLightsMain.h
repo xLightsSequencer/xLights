@@ -1613,7 +1613,7 @@ public:
                              bool bgThread = false, RenderEvent *event = nullptr);
     void RenderMainThreadEffects() override;
     void RenderEffectOnMainThread(RenderEvent *evt);
-    void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
+    void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
     void RenderDirtyModels();
     void RenderTimeSlice(int startms, int endms, bool clear);
     void Render(SequenceElements& seqElements,
@@ -1631,7 +1631,7 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() override { return _sequenceElements; }
-    TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "");
+    TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "") override;
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
