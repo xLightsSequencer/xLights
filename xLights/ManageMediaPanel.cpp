@@ -50,7 +50,7 @@ static wxString WildcardForMediaType(std::optional<MediaType> type) {
     if (!type.has_value()) return "All files (*.*)|*.*";
     switch (*type) {
         case MediaType::Image: return wxImage::GetImageExtWildcard();
-        case MediaType::Video: return "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv";
+        case MediaType::Video: return "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif";
         case MediaType::Shader: return "Shader Files (*.fs)|*.fs";
         case MediaType::SVG: return "SVG Files (*.svg)|*.svg";
         case MediaType::TextFile: return "Text Files (*.txt)|*.txt";
