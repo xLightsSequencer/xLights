@@ -20,6 +20,7 @@
 #include "WarpEffect.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
+#include "../models/Model.h"
 #include "../UtilClasses.h"
 #include "../render/DissolveTransitionPattern.h"
 #include "UtilFunctions.h"

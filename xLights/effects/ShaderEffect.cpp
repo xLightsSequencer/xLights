@@ -85,6 +85,7 @@
 #include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
+#include "../models/Model.h"
 #include "../UtilClasses.h"
 #include "../render/RenderContext.h"
 #include "../xLightsApp.h"
