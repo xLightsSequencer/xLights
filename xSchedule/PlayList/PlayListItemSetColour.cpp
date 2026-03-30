@@ -122,7 +122,7 @@ void PlayListItemSetColour::Frame(uint8_t* buffer, size_t size, size_t ms, size_
         {
             long sc = GetStartChannelAsNumber();
 
-            if (sc > size) return;
+            if ((size_t)sc > size) return;
 
             size_t toset = _nodes * 3 + sc - 1 < size ? _nodes : (size - sc + 1) / 3;
             if (_nodes == 0)
@@ -154,7 +154,7 @@ void PlayListItemSetColour::Frame(uint8_t* buffer, size_t size, size_t ms, size_
                 uint8_t* values = (uint8_t*)malloc(toset * 3);
                 if (values != nullptr)
                 {
-                    for (int i = 0; i < toset; i++)
+                    for (int i = 0; i < (int)toset; i++)
                     {
                         memcpy(values + i * 3, data, sizeof(data));
                     }

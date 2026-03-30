@@ -458,7 +458,7 @@ static bool HasEffects(ModelElement *el) {
     if (el->HasEffects()) {
         return true;
     }
-    for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); sm++) {
+    for (int sm = 0; sm < (int)el->GetSubModelAndStrandCount(); sm++) {
         SubModelElement *sme = el->GetSubModel(sm);
 
         if (sme->HasEffects()) {
@@ -466,7 +466,7 @@ static bool HasEffects(ModelElement *el) {
         }
         StrandElement *ste = dynamic_cast<StrandElement *>(sme);
         if (ste != nullptr) {
-            for (size_t n = 0; n < ste->GetNodeLayerCount(); n++) {
+            for (int n = 0; n < ste->GetNodeLayerCount(); n++) {
                 NodeLayer *nl = ste->GetNodeLayer(n, true);
                 if (nl->GetEffectCount() > 0) {
                     return true;
@@ -742,7 +742,7 @@ void xLightsFrame::CheckForValidModels()
                         bool hasNodeEffects = false;
                         for (int l = 0; l < el->GetStrandCount(); l++) {
                             StrandElement* sl = el->GetStrand(l);
-                            for (int l2 = 0; l2 < sl->GetEffectLayerCount(); l2++) {
+                            for (int l2 = 0; l2 < (int)sl->GetEffectLayerCount(); l2++) {
                                 if (sl->GetEffectLayer(l2)->GetEffectCount() > 0) {
                                     hasStrandEffects = true;
                                 }
@@ -2263,7 +2263,7 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     std::string palette = colorPanel->GetColorString(true);
 
     _sequenceElements.get_undo_mgr().CreateUndoStep();
-    for (size_t i = 0; i < _sequenceElements.GetRowInformationSize(); i++) {
+    for (int i = 0; i < (int)_sequenceElements.GetRowInformationSize(); i++) {
         Element* element = _sequenceElements.GetRowInformation(i)->element;
         EffectLayer* el = _sequenceElements.GetEffectLayer(i);
 
@@ -2695,7 +2695,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         _outputManager.StartFrame(msec);
     }
     std::vector<bool> didRender(8);
-    if (frame < _seqData.NumFrames()) {
+    if (frame < (int)_seqData.NumFrames()) {
         //spdlog::debug("Outputting Frame {}", frame);
         // have the frame, copy from SeqData
         TimerOutput(frame);
@@ -2703,7 +2703,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             int nn = playModel->GetNodeCount();
             for (int node = 0; node < nn; node++) {
                 int start = playModel->NodeStartChannel(node);
-                wxASSERT(start < _seqData.NumChannels());
+                wxASSERT(start < (int)_seqData.NumChannels());
                 playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
             }
             _modelPreviewPanel->setCurrentFrameTime(curt);
@@ -3473,7 +3473,7 @@ void xLightsFrame::RenameTimingElement(const std::string& old_name, const std::s
         }
     }
     evt.SetString(timingtracks);
-    for (int i = 0; i < effectManager.size(); i++) {
+    for (int i = 0; i < (int)effectManager.size(); i++) {
         auto panel = effectPanelManager.GetPanel(i, nullptr);
         if (panel) wxPostEvent(panel, evt);
     }
@@ -3526,7 +3526,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(Audi
 
         int frames = audio->LengthMS() / intervalMS;
 
-        for (size_t i = 0; i < frames; i++) {
+        for (int i = 0; i < frames; i++) {
             auto pdata = audio->GetFrameData(i, "", true);
             if (pdata != nullptr) {
                 res[i*intervalMS] = pdata->notes;
@@ -3850,7 +3850,7 @@ void xLightsFrame::CreateNotes(EffectLayer* el, std::map<int, std::vector<float>
 {
     size_t last = 0;
     std::string lastLabel = "";
-    for (size_t i = 0; i <= frames; ++i) {
+    for (int i = 0; i <= frames; ++i) {
         std::string label = "";
         if (notes.find((float)(i * interval)) != notes.end()) {
             label = CreateNotesLabel(notes[i * interval]);
@@ -3935,13 +3935,13 @@ bool isOnLineColor(const xlColor& v1, const xlColor& v2, const xlColor& v3,
 int RampLenColor(int start, std::vector<xlColor>& colors)
 {
     int s = start + 2;
-    for (; s < colors.size(); s++) {
+    for (; s < (int)colors.size(); s++) {
         if (!isOnLineColor(colors[start], colors[s - 1], colors[s],
                            start, s - 1, s)) {
             return s - start;
         }
     }
-    if (s == colors.size()) {
+    if (s == (int)colors.size()) {
         return s - start;
     }
     return 0;
@@ -4225,7 +4225,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
 
             for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
                 StrandElement* se = element->GetStrand(n);
-                for (int l = 0; l < se->GetEffectLayerCount(); l++) {
+                for (int l = 0; l < (int)se->GetEffectLayerCount(); l++) {
                     EffectLayer* node = se->GetEffectLayer(l);
                     if (node == base) {
                         continue;
@@ -4245,7 +4245,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
                 target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
                 for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
                     StrandElement* se = element->GetStrand(n);
-                    for (int l = 0; l < se->GetEffectLayerCount(); l++) {
+                    for (int l = 0; l < (int)se->GetEffectLayerCount(); l++) {
                         EffectLayer* node = se->GetEffectLayer(l);
                         int nodeIndex = 0;
                         if (node->HitTestEffectByTime(mp, nodeIndex)) {

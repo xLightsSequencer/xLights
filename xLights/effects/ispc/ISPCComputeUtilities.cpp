@@ -144,7 +144,7 @@ bool ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
     if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() == 0) {
         return false;
     }
-    if (pixelBuffer->blendDataBuffer.size() < pixelBuffer->layers[saveLayer]->buffer.GetNodeCount()) {
+    if (pixelBuffer->blendDataBuffer.size() < (size_t)pixelBuffer->layers[saveLayer]->buffer.GetNodeCount()) {
         pixelBuffer->blendDataBuffer.resize(pixelBuffer->layers[saveLayer]->buffer.GetNodeCount());
     }
     uint32_t * tmpBufferBlend = (uint32_t *)&pixelBuffer->blendDataBuffer[0];

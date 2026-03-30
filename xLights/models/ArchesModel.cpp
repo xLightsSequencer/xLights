@@ -137,7 +137,7 @@ void ArchesModel::InitModel()
         bool dir = IsLtoR;
         bool in_out = isBotToTop;
         float y = 0;
-        for (int layer = 0; layer < GetLayerSizeCount(); layer++) {
+        for (int layer = 0; layer < (int)GetLayerSizeCount(); layer++) {
             int yy = layer;
             if (in_out) yy = GetLayerSizeCount() - layer - 1;
             int it = GetLayerSizes()[yy];

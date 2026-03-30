@@ -47,7 +47,7 @@ std::string VixenEffect::GetPalette() const
 {
     std::string res;
 
-    for (int i = 0; i < palette.size(); i++) {
+    for (int i = 0; i < (int)palette.size(); i++) {
         wxString n = wxString::Format("%d", i + 1);
 
         if (res != "")
@@ -59,7 +59,7 @@ std::string VixenEffect::GetPalette() const
             res += ",C_CHECKBOX_Palette" + n + "=1";
         // Break buttefly gradient into individual colors
         } else if (type == "ButterflyData") {
-            for (int ii = 0; ii < palette[i].size(); ii++) {
+            for (int ii = 0; ii < (int)palette[i].size(); ii++) {
                 wxString nn = wxString::Format("%d", ii + 1);
                 if (res != "")
                     res += ",";
@@ -68,10 +68,10 @@ std::string VixenEffect::GetPalette() const
             }
         } else {
             res += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=";
-            for (int ii = 0; ii < palette[i].size(); ii++) {
+            for (int ii = 0; ii < (int)palette[i].size(); ii++) {
                 res += wxString::Format("x=%.3f^c=#%02x%02x%02x",
                        palette[i][ii].position, palette[i][ii].color.Red(), palette[i][ii].color.Green(), palette[i][ii].color.Blue());
-                if (ii != palette[i].size() - 1)
+                if (ii != (int)palette[i].size() - 1)
                     res += ";";
             }
             res += "|,C_CHECKBOX_Palette" + n + "=1";
@@ -82,9 +82,9 @@ std::string VixenEffect::GetPalette() const
     // More than two points for the Vixen level curve, generate a custom brightness value curve
     if (type == "PulseData" && levelCurve.size() > 2) {
         res += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Custom|Min=0.00|Max=400.00|RV=TRUE|Values=";
-        for (int i = 0; i < levelCurve.size(); i++) {
+        for (int i = 0; i < (int)levelCurve.size(); i++) {
             res += wxString::Format("%.2f:", levelCurve[i].x / 100) + wxString::Format("%.2f", levelCurve[i].y / 100 / 4);
-            if (i != levelCurve.size() - 1)
+            if (i != (int)levelCurve.size() - 1)
                 res += ";";
         }
     }

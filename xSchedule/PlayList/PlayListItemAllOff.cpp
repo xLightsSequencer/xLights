@@ -124,7 +124,7 @@ void PlayListItemAllOff::Frame(uint8_t* buffer, size_t size, size_t ms, size_t f
         {
             long sc = GetStartChannelAsNumber();
 
-            if (sc > size) return;
+            if ((size_t)sc > size) return;
 
             size_t toset = _channels + sc - 1 < size ? _channels : size - sc + 1;
             if (_channels == 0)

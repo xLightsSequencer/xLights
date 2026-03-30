@@ -526,7 +526,7 @@ float PathGenerationDialog::PointDistanceFromLineThrough(const std::pair<float, 
 
 std::list<std::pair<float,float>>::iterator PathGenerationDialog::GetPoint(int index)
 {
-    wxASSERT(index < _points.size());
+    wxASSERT(index < (int)_points.size());
     std::list<std::pair<float, float>>::iterator it = _points.begin();
     advance(it, index);
     return it;

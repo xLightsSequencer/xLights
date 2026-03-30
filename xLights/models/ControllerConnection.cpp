@@ -385,7 +385,7 @@ std::string ControllerConnection::GetSmartRemoteTypeName(int idx) const
     auto caps = _model->GetControllerCaps();
     if (caps != nullptr) {
         const auto srList = caps->GetSmartRemoteTypes();
-        if (idx < srList.size() && idx >= 0) {
+        if (idx < (int)srList.size() && idx >= 0) {
             auto it = srList.begin();
             std::advance(it, idx);
             return *it;

@@ -308,7 +308,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
     ChoicePreviews->Append("Unassigned");
 
     Choice_DefaultCamera->Append("2D");
-    for (size_t i = 0; i < Models.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+    for (int i = 0; i < (int)Models.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
         Choice_DefaultCamera->Append(Models.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
     }
 
@@ -419,7 +419,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
     Choice_DefaultCamera->Clear();
     Choice_DefaultCamera->Append("2D");
-    for (size_t i = 0; i < mModels.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+    for (int i = 0; i < (int)mModels.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
         Choice_DefaultCamera->Append(mModels.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
     }
 
@@ -682,7 +682,7 @@ int ModelGroupPanel::GetModelsVisibleInList(wxListCtrl* list)
 
 int ModelGroupPanel::GetFirstSelectedModel(wxListCtrl* list)
 {
-    for (size_t i = 0; i < list->GetItemCount(); ++i)
+    for (int i = 0; i < (int)list->GetItemCount(); ++i)
     {
         if (IsItemSelected(list, i))
         {
@@ -720,7 +720,7 @@ void ModelGroupPanel::OnButtonUpClick(wxCommandEvent& event)
 
     int selected = -1;
 
-    for (size_t i = 0; i < ListBoxModelsInGroup->GetItemCount(); ++i)
+    for (int i = 0; i < (int)ListBoxModelsInGroup->GetItemCount(); ++i)
     {
         if (selected == -1 && IsItemSelected(ListBoxModelsInGroup, i))
         {
@@ -746,7 +746,7 @@ void ModelGroupPanel::OnButtonDownClick(wxCommandEvent& event)
     int unselected = -1;
 
     // find the first unselected index after the first selected index
-    for (size_t i = 0; i < ListBoxModelsInGroup->GetItemCount(); ++i)
+    for (int i = 0; i < (int)ListBoxModelsInGroup->GetItemCount(); ++i)
     {
         if (selected == -1 && IsItemSelected(ListBoxModelsInGroup, i))
         {
@@ -999,7 +999,7 @@ void ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag(wxListEvent& event)
     _dragRowNonModel = true;
 
     wxString drag = "NonModelGroup";
-    for (size_t i = 0; i < ListBoxAddToModelGroup->GetItemCount(); ++i)
+    for (int i = 0; i < (int)ListBoxAddToModelGroup->GetItemCount(); ++i)
     {
         if (IsItemSelected(ListBoxAddToModelGroup, i))
         {
@@ -1029,7 +1029,7 @@ void ModelGroupPanel::OnListBoxModelsInGroupBeginDrag(wxListEvent& event)
     _dragRowNonModel = false;
 
     wxString drag = "ModelGroup";
-    for (size_t i = 0; i < ListBoxModelsInGroup->GetItemCount(); ++i)
+    for (int i = 0; i < (int)ListBoxModelsInGroup->GetItemCount(); ++i)
     {
         if (IsItemSelected(ListBoxModelsInGroup, i))
         {
@@ -1143,7 +1143,7 @@ void ModelGroupPanel::AddSelectedModels(int index)
     ClearSelections(ListBoxModelsInGroup, wxLIST_STATE_SELECTED | wxLIST_STATE_DROPHILITED);
     if (index == -1) index = ListBoxModelsInGroup->GetItemCount();
     int added = 0;
-    for (size_t i = 0; i < ListBoxAddToModelGroup->GetItemCount(); ++i)
+    for (int i = 0; i < (int)ListBoxAddToModelGroup->GetItemCount(); ++i)
     {
         if (IsItemSelected(ListBoxAddToModelGroup, i))
         {
@@ -1179,7 +1179,7 @@ void ModelGroupPanel::RemoveSelectedModels()
     ListBoxAddToModelGroup->Freeze();
 
     ClearSelections(ListBoxAddToModelGroup, wxLIST_STATE_SELECTED | wxLIST_STATE_DROPHILITED);
-    for (size_t i = 0; i < ListBoxModelsInGroup->GetItemCount(); ++i)
+    for (int i = 0; i < (int)ListBoxModelsInGroup->GetItemCount(); ++i)
     {
         if (IsItemSelected(ListBoxModelsInGroup, i))
         {
@@ -1395,7 +1395,7 @@ void ModelGroupPanel::SortModelsByName()
         ListBoxModelsInGroup->DeleteItem(i);
     }
     models.Sort(wxStringNumberAwareStringCompare);
-    for (int i = 0; i < models.size(); ++i) {
+    for (int i = 0; i < (int)models.size(); ++i) {
         ListBoxModelsInGroup->InsertItem(i, models[i]);
     }
     SaveGroupChanges();
@@ -1433,7 +1433,7 @@ void ModelGroupPanel::SortModelsByLocation()
     std::sort(modelPos.begin(), modelPos.end(), [](const auto& lhs, const auto& rhs) {
         return lhs.second < rhs.second;
     });
-    for (int i = 0; i < modelPos.size(); ++i) {
+    for (int i = 0; i < (int)modelPos.size(); ++i) {
         ListBoxModelsInGroup->InsertItem(i, modelPos[i].first);
     }
     SaveGroupChanges();

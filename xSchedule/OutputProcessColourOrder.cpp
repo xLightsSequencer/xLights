@@ -56,7 +56,7 @@ void OutputProcessColourOrder::Frame(uint8_t* buffer, size_t size, std::list<Out
 
     size_t nodes = std::min(_nodes, (size - (sc - 1)) / 3);
 
-    for (int i = 0; i < nodes; i++)
+    for (int i = 0; i < (int)nodes; i++)
     {
         uint8_t* p = buffer + (sc - 1) + (i * 3);
 		uint8_t r = *p;

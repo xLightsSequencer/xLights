@@ -30,7 +30,7 @@ CandyCaneModel::~CandyCaneModel()
 
 bool CandyCaneModel::IsNodeFirst(int n) const
 {
-    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - _nodesPerCane);
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - _nodesPerCane);
 }
 
 // Canes are 3 high per width of each indivudual cane, then multiply by 2 because standard ThreePointLocation applies a / 2 for heights

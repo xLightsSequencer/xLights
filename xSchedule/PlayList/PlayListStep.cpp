@@ -199,7 +199,7 @@ wxXmlNode* PlayListStep::Save()
     if (_everyStepExcludeLast) {
         res->AddAttribute("EveryStepExcludeLast", "TRUE");
     }
-    if (_baseTimeCodeTime != 0xFFFFFFFF)
+    if (_baseTimeCodeTime != -1)
     {
         res->AddAttribute("BaseTimeCodeTime", std::to_string(_baseTimeCodeTime));
     }
@@ -875,7 +875,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                     // stops a jump back then big jump forward as often
                     if (posDiff < 0) acceptableJitter *= 2;
 
-                    if (std::abs(posDiff) > acceptableJitter) {
+                    if (std::abs(posDiff) > (long)acceptableJitter) {
                         int frame = ms / pli->GetFrameMS();
                         if (force) {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
@@ -884,7 +884,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                             {
                                 spdlog::debug("Sync: Position was {}:{} - should be {}:{}: {}:{}. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
 
-                                if (posDiff > (acceptableJitter * 2)) {
+                                if (posDiff > (long)(acceptableJitter * 2)) {
                                     pli->SetPosition(frame, ms);
                                     spdlog::debug("Way OFF!! Need to SKIP ({}).", timeDiff); // Add time to current position
                                 }
@@ -916,10 +916,10 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                             // only adjust position if we are more that one frame out of sync
                             if (timeDiff != 0) {
                                 int adjustment = 0;
-                                if (abs(timeDiff) > pli->GetFrameMS() * 2) {
+                                if (abs(timeDiff) > (long)pli->GetFrameMS() * 2) {
                                     adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
                                 }
-                                else if (abs(timeDiff) > pli->GetFrameMS()) {
+                                else if (abs(timeDiff) > (long)pli->GetFrameMS()) {
                                     adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                                 }
 
@@ -944,7 +944,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                     // stops a jump back then big jump forward as often
                     if (posDiff < 0) acceptableJitter *= 2;
 
-                    if (std::abs(posDiff) > acceptableJitter) {
+                    if (std::abs(posDiff) > (long)acceptableJitter) {
                         int frame = ms / pli->GetFrameMS();
                         if (force) {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
@@ -960,10 +960,10 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                             int adjustment = 0;
                             if (timeDiff == 0) {
                             }
-                            else if (abs(timeDiff) > pli->GetFrameMS() * 2) {
+                            else if (abs(timeDiff) > (long)pli->GetFrameMS() * 2) {
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
                             }
-                            else if (abs(timeDiff) > pli->GetFrameMS()) {
+                            else if (abs(timeDiff) > (long)pli->GetFrameMS()) {
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                             }
 
@@ -988,7 +988,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
             // stops a jump back then big jump forward as often
             if (posDiff < 0) acceptableJitter *= 2;
 
-            if (std::abs(posDiff) > acceptableJitter) {
+            if (std::abs(posDiff) > (long)acceptableJitter) {
                 int frame = ms / GetFrameMS();
                 if (force) {
                     long timeDiff = (long)frame * (long)GetFrameMS() - (long)GetPosition();
@@ -1004,10 +1004,10 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                     int adjustment = 0;
                     if (timeDiff == 0) {
                     }
-                    else if (abs(timeDiff) > GetFrameMS() * 2) {
+                    else if (abs(timeDiff) > (long)GetFrameMS() * 2) {
                         adjustment = timeDiff / abs(timeDiff) * (int)((float)GetFrameMS() * 0.1);
                     }
-                    else if (abs(timeDiff) > GetFrameMS()) {
+                    else if (abs(timeDiff) > (long)GetFrameMS()) {
                         adjustment = timeDiff / abs(timeDiff) * (int)((float)GetFrameMS() * 0.06);
                     }
 

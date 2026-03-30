@@ -259,13 +259,13 @@ public:
             uint32_t x = j % GetWidth();
             uint8_t a = x == 0 || y == 0 ? 255 : getData(orig, x - 1, y - 1);
             uint8_t b = y == 0 ? 255 : getData(orig, x, y - 1);
-            uint8_t c = x == GetWidth() - 1 || y == 0 ? 255 : getData(orig, x + 1, y - 1);
+            uint8_t c = x == (uint32_t)GetWidth() - 1 || y == 0 ? 255 : getData(orig, x + 1, y - 1);
             uint8_t d = x == 0 ? 255 : getData(orig, x - 1, y);
             uint8_t e = getData(orig, x, y);
-            uint8_t f = x == GetWidth() - 1 ? 255 : getData(orig, x + 1, y);
-            uint8_t g = x == 0 || y == GetHeight() - 1 ? 255 : getData(orig, x - 1, y + 1);
-            uint8_t h = y == GetHeight() - 1 ? 255 : getData(orig, x, y + 1);
-            uint8_t i = x == GetWidth() - 1 || y == GetHeight() - 1 ? 255 : getData(orig, x + 1, y + 1);
+            uint8_t f = x == (uint32_t)GetWidth() - 1 ? 255 : getData(orig, x + 1, y);
+            uint8_t g = x == 0 || y == (uint32_t)GetHeight() - 1 ? 255 : getData(orig, x - 1, y + 1);
+            uint8_t h = y == (uint32_t)GetHeight() - 1 ? 255 : getData(orig, x, y + 1);
+            uint8_t i = x == (uint32_t)GetWidth() - 1 || y == (uint32_t)GetHeight() - 1 ? 255 : getData(orig, x + 1, y + 1);
             uint8_t* data = GetData() + j * incr;
             if (a == 0 || b == 0 || c == 0 || d == 0 || e == 0 || f == 0 || g == 0 || h == 0 || i == 0) {
                 *(data) = 0;
@@ -322,18 +322,18 @@ public:
                     SetRGB(x - 1, y - 1, 255, 255, 255);
                 if (y != 0)
                     SetRGB(x, y - 1, 255, 255, 255);
-                if (x != GetWidth() - 1 && y != GetHeight() - 1)
+                if (x != (uint32_t)GetWidth() - 1 && y != (uint32_t)GetHeight() - 1)
                     SetRGB(x + 1, y + 1, 255, 255, 255);
                 if (x != 0)
                     SetRGB(x - 1, y, 255, 255, 255);
                 SetRGB(x, y, 255, 255, 255);
-                if (x != GetWidth() - 1)
+                if (x != (uint32_t)GetWidth() - 1)
                     SetRGB(x + 1, y, 255, 255, 255);
-                if (x != 0 && y != GetHeight() - 1)
+                if (x != 0 && y != (uint32_t)GetHeight() - 1)
                     SetRGB(x - 1, y + 1, 255, 255, 255);
-                if (y != GetHeight() - 1)
+                if (y != (uint32_t)GetHeight() - 1)
                     SetRGB(x, y + 1, 255, 255, 255);
-                if (x != GetWidth() - 1 && y != GetHeight() - 1)
+                if (x != (uint32_t)GetWidth() - 1 && y != (uint32_t)GetHeight() - 1)
                     SetRGB(x + 1, y + 1, 255, 255, 255);
             }
         }
@@ -461,7 +461,7 @@ public:
                 int32_t x = i % width;
 
                 // we only do this for pixels not on the outside
-                if (x > 0 && x < width - 1 && y > 0 && y < GetHeight() - 1) {
+                if (x > 0 && x < (int32_t)width - 1 && y > 0 && y < GetHeight() - 1) {
                     // look at the surrounding pixels
                     uint8_t r = 0;
                     uint8_t g = 0;
@@ -944,7 +944,7 @@ public:
         long height = (long)top - (long)bottom;
         long adjY = GetHeight() - top;
 
-        if (width < 0 || height < 0 || (left == 0 && right == GetWidth() && top == GetHeight() && bottom == 0))
+        if (width < 0 || height < 0 || (left == 0 && right == (uint32_t)GetWidth() && top == (uint32_t)GetHeight() && bottom == 0))
             return new ProcessedImage(this);
 
         ProcessedImage* clipped = new ProcessedImage(width, height, _imageType);
@@ -1067,25 +1067,25 @@ public:
                 if (it->x > 0 && it->y > 0 && GetPixel(it->x - 1, it->y - 1, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x - 1, it->y - 1));
                 }
-                if (it->x > 0 && it->y < height - 1 && GetPixel(it->x - 1, it->y + 1, width, incr, data) > 0) {
+                if (it->x > 0 && it->y < (int)height - 1 && GetPixel(it->x - 1, it->y + 1, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x - 1, it->y + 1));
                 }
-                if (it->x < width - 1 && it->y > 0 && GetPixel(it->x + 1, it->y - 1, width, incr, data) > 0) {
+                if (it->x < (int)width - 1 && it->y > 0 && GetPixel(it->x + 1, it->y - 1, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x + 1, it->y - 1));
                 }
-                if (it->x < width - 1 && it->y < height - 1 && GetPixel(it->x + 1, it->y + 1, width, incr, data) > 0) {
+                if (it->x < (int)width - 1 && it->y < (int)height - 1 && GetPixel(it->x + 1, it->y + 1, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x + 1, it->y + 1));
                 }
                 if (it->y > 0 && GetPixel(it->x, it->y - 1, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x, it->y - 1));
                 }
-                if (it->y < height - 1 && GetPixel(it->x, it->y + 1, width, incr, data) > 0) {
+                if (it->y < (int)height - 1 && GetPixel(it->x, it->y + 1, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x, it->y + 1));
                 }
                 if (it->x > 0 && GetPixel(it->x - 1, it->y, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x - 1, it->y));
                 }
-                if (it->x < width - 1 && GetPixel(it->x + 1, it->y, width, incr, data) > 0) {
+                if (it->x < (int)width - 1 && GetPixel(it->x + 1, it->y, width, incr, data) > 0) {
                     pixels.push_back(wxPoint(it->x + 1, it->y));
                 }
             }
@@ -1629,7 +1629,7 @@ public:
 
         if (node != -1) {
             if (nodes) {
-                for (uint32_t j = 0; j < count; ++j) {
+                for (int j = 0; j < count; ++j) {
                     if (node == j) {
                         for (uint32_t i = 0; i < 3; ++i) {
                             outputManager->SetOneChannel(startch + j * 3 + i - 1, intensity);
@@ -1641,7 +1641,7 @@ public:
                     }
                 }
             } else {
-                for (uint32_t j = 0; j < count; ++j) {
+                for (int j = 0; j < count; ++j) {
                     if (j == node) {
                         outputManager->SetOneChannel(startch + j - 1, intensity);
                     } else {
@@ -1651,13 +1651,13 @@ public:
             }
         } else {
             if (nodes) {
-                for (uint32_t j = 0; j < count; ++j) {
+                for (int j = 0; j < count; ++j) {
                     for (uint32_t i = 0; i < 3; ++i) {
                         outputManager->SetOneChannel(startch + j * 3 + i - 1, intensity);
                     }
                 }
             } else {
-                for (uint32_t j = 0; j < count; ++j) {
+                for (int j = 0; j < count; ++j) {
                     outputManager->SetOneChannel(startch + j - 1, intensity);
                 }
             }
@@ -1708,7 +1708,7 @@ public:
         outputManager->StartFrame(curtime);
 
         if (nodes) {
-            for (uint32_t j = 0; j < count; ++j) {
+            for (int j = 0; j < count; ++j) {
                 auto value = convertToBase3(j + 1, bits)[digit];
                 switch (value) {
                 case '0':
@@ -1882,7 +1882,7 @@ public:
 
         // read the first STARTSCANSECS seconds of video looking for 2 frames a frame apart with large changes
         std::list<VideoFrame*> startScan;
-        for (uint32_t ms = 0; ms < STARTSCANSECS * 1000 && !abort && ms < _vr->GetLengthMS(); ms += FRAMEMS) {
+        for (uint32_t ms = 0; ms < STARTSCANSECS * 1000 && !abort && ms < (uint32_t)_vr->GetLengthMS(); ms += FRAMEMS) {
             auto img = ReadFrame(_vr->GetNextFrame(ms), ms, false);
             img->PrepareImages(false, 1.0, 0); // prepare as greyscale
             startScan.push_back(img);
@@ -3006,7 +3006,7 @@ void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool dra
     {
         dc.DrawRectangle(wxRect(0, 0, _clip.GetLeft(), _generator->GetStartFrame()->GetHeight()));
     }
-    if (_clip.GetRight() < _generator->GetStartFrame()->GetWidth())
+    if (_clip.GetRight() < (int)_generator->GetStartFrame()->GetWidth())
     {
         dc.DrawRectangle(wxRect(_clip.GetRight(), 0, _generator->GetStartFrame()->GetWidth() - _clip.GetRight(), _generator->GetStartFrame()->GetHeight()));
     }
@@ -3014,7 +3014,7 @@ void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool dra
     {
         dc.DrawRectangle(wxRect(0, 0, _generator->GetStartFrame()->GetWidth(), _clip.GetTop()));
     }
-    if (_clip.GetBottom() < _generator->GetStartFrame()->GetHeight())
+    if (_clip.GetBottom() < (int)_generator->GetStartFrame()->GetHeight())
     {
         dc.DrawRectangle(wxRect(0, _clip.GetBottom(), _generator->GetStartFrame()->GetWidth(), _generator->GetStartFrame()->GetHeight() - _clip.GetBottom()));
     }
@@ -3886,9 +3886,9 @@ wxSize GenerateCustomModelDialog::CalcSize(wxPoint* offset, float* multiplier)
     uint32_t minX = 9999999;
     uint32_t minY = 9999999;
     for (const auto& it : _lights) {
-        if (it.first.x < minX)
+        if (it.first.x < (int)minX)
             minX = it.first.x;
-        if (it.first.y < minY)
+        if (it.first.y < (int)minY)
             minY = it.first.y;
     }
 

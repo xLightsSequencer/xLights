@@ -4126,7 +4126,7 @@ void SubModelsDialog::ShiftSingleSubmodel()
         auto scaleFactor = dlg.GetValue();
         if (scaleFactor != 0) {
             if (sm->isRanges) {
-                for (int x = 0; x < sm->strands.size(); x++) {
+                for (int x = 0; x < (int)sm->strands.size(); x++) {
                     wxString oldnodes = ExpandNodes(sm->strands[x]);
                     auto oldNodeArray = wxSplit(oldnodes, ',');
                     wxArrayString newNodeArray;
@@ -4216,7 +4216,7 @@ void SubModelsDialog::Reverse()
 
     for (auto sm : _subModels) {
         if (sm->isRanges) {
-            for (int x = 0; x < sm->strands.size(); x++) {
+            for (int x = 0; x < (int)sm->strands.size(); x++) {
                 wxString oldnodes = ExpandNodes(sm->strands[x]);
                 auto oldNodeArray = wxSplit(oldnodes, ',');
                 wxArrayString newNodeArray;

@@ -128,7 +128,7 @@ std::string WebSocketClient::Receive()
             uint8_t N0 = (buffer[1] & 0x7f);
             int header_size = 2 + (N0 == 126 ? 2 : 0) + (N0 == 127 ? 8 : 0) + (mask ? 4 : 0);
 
-            if (read >= header_size) {
+            if (read >= (unsigned int)header_size) {
                 char masking_key[4];
                 int i = 0;
                 unsigned long N = 0;

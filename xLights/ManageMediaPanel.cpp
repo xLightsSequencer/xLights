@@ -776,7 +776,7 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type
 
         // Generate animated preview frames
         entry->GeneratePreview(maxPx, maxPx);
-        for (size_t i = 0; i < entry->GetPreviewFrameCount(); i++) {
+        for (int i = 0; i < (int)entry->GetPreviewFrameCount(); i++) {
             _previewFrames.push_back(entry->GetPreviewFrame(i));
             _previewFrameTimes.push_back(entry->GetPreviewFrameTime(i));
         }
@@ -820,7 +820,7 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type
             holder->GeneratePreview(maxPx, maxPx);
         }
         if (holder) {
-            for (size_t i = 0; i < holder->GetPreviewFrameCount(); i++) {
+            for (int i = 0; i < (int)holder->GetPreviewFrameCount(); i++) {
                 _previewFrames.push_back(holder->GetPreviewFrame(i));
                 _previewFrameTimes.push_back(holder->GetPreviewFrameTime(i));
             }
@@ -944,7 +944,7 @@ std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
 
     // Update every effect in the sequence that references fullPath -> newPath
     if (_sequenceElements != nullptr) {
-        for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
             Element* e = _sequenceElements->GetElement(i);
             if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
             ModelElement* model = dynamic_cast<ModelElement*>(e);
@@ -952,7 +952,7 @@ std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
 
             // Helper lambda to scan one EffectLayer
             auto scanLayer = [&](EffectLayer* layer) {
-                for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                for (int k = 0; k < layer->GetEffectCount(); ++k) {
                     Effect* eff = layer->GetEffect(k);
                     const SettingsMap& settings = eff->GetSettings();
                     // Collect keys first to avoid modifying map during iteration
@@ -968,12 +968,12 @@ std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
                 }
             };
 
-            for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
                 scanLayer(model->GetEffectLayer(j));
 
-            for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
                 SubModelElement* sub = model->GetSubModel(j);
-                for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
                     scanLayer(sub->GetEffectLayer(l));
                 if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                     StrandElement* strand = dynamic_cast<StrandElement*>(sub);
@@ -1092,7 +1092,7 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
     // Update every effect in the sequence that referenced fullPath -> finalPath
     if (_sequenceElements != nullptr && finalPath != fullPath) {
         auto scanLayer = [&](EffectLayer* layer) {
-            for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+            for (int k = 0; k < layer->GetEffectCount(); ++k) {
                 Effect* eff = layer->GetEffect(k);
                 const SettingsMap& settings = eff->GetSettings();
                 std::vector<std::string> keysToUpdate;
@@ -1105,18 +1105,18 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
             }
         };
 
-        for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
             Element* e = _sequenceElements->GetElement(i);
             if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
             ModelElement* model = dynamic_cast<ModelElement*>(e);
             if (!model) continue;
 
-            for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
                 scanLayer(model->GetEffectLayer(j));
 
-            for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
                 SubModelElement* sub = model->GetSubModel(j);
-                for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
                     scanLayer(sub->GetEffectLayer(l));
                 if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                     StrandElement* strand = dynamic_cast<StrandElement*>(sub);
@@ -1293,7 +1293,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
     // Update every effect that referenced oldPath to point to finalPath
     if (_sequenceElements != nullptr && finalPath != oldPath) {
         auto scanLayer = [&](EffectLayer* layer) {
-            for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+            for (int k = 0; k < layer->GetEffectCount(); ++k) {
                 Effect* eff = layer->GetEffect(k);
                 const SettingsMap& settings = eff->GetSettings();
                 std::vector<std::string> keysToUpdate;
@@ -1306,18 +1306,18 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
             }
         };
 
-        for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
             Element* e = _sequenceElements->GetElement(i);
             if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
             ModelElement* model = dynamic_cast<ModelElement*>(e);
             if (!model) continue;
 
-            for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
                 scanLayer(model->GetEffectLayer(j));
 
-            for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
                 SubModelElement* sub = model->GetSubModel(j);
-                for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
                     scanLayer(sub->GetEffectLayer(l));
                 if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                     StrandElement* strand = dynamic_cast<StrandElement*>(sub);
@@ -1479,7 +1479,7 @@ void ManageMediaPanel::OnBulkFindImages()
 
         if (_sequenceElements != nullptr && finalPath != oldPath) {
             auto scanLayer = [&](EffectLayer* layer) {
-                for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                for (int k = 0; k < layer->GetEffectCount(); ++k) {
                     Effect* eff = layer->GetEffect(k);
                     const SettingsMap& settings = eff->GetSettings();
                     std::vector<std::string> keysToUpdate;
@@ -1492,18 +1492,18 @@ void ManageMediaPanel::OnBulkFindImages()
                 }
             };
 
-            for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+            for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
                 Element* e = _sequenceElements->GetElement(i);
                 if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
                 ModelElement* model = dynamic_cast<ModelElement*>(e);
                 if (!model) continue;
 
-                for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+                for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
                     scanLayer(model->GetEffectLayer(j));
 
-                for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+                for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
                     SubModelElement* sub = model->GetSubModel(j);
-                    for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                    for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
                         scanLayer(sub->GetEffectLayer(l));
                     if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                         StrandElement* strand = dynamic_cast<StrandElement*>(sub);
@@ -1708,7 +1708,7 @@ void ManageMediaPanel::OnRenameButtonClick(wxCommandEvent& event)
     // Update all effect references oldPath -> newPathStr
     if (_sequenceElements != nullptr) {
         auto scanLayer = [&](EffectLayer* layer) {
-            for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+            for (int k = 0; k < layer->GetEffectCount(); ++k) {
                 Effect* eff = layer->GetEffect(k);
                 const SettingsMap& settings = eff->GetSettings();
                 std::vector<std::string> keysToUpdate;
@@ -1721,18 +1721,18 @@ void ManageMediaPanel::OnRenameButtonClick(wxCommandEvent& event)
             }
         };
 
-        for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
             Element* e = _sequenceElements->GetElement(i);
             if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
             ModelElement* model = dynamic_cast<ModelElement*>(e);
             if (!model) continue;
 
-            for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
                 scanLayer(model->GetEffectLayer(j));
 
-            for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
                 SubModelElement* sub = model->GetSubModel(j);
-                for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
                     scanLayer(sub->GetEffectLayer(l));
                 if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                     StrandElement* strand = dynamic_cast<StrandElement*>(sub);
@@ -1913,7 +1913,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
         // Update effect references oldPath -> finalPath
         if (_sequenceElements != nullptr && finalPath != oldPath) {
             auto scanLayer = [&](EffectLayer* layer) {
-                for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                for (int k = 0; k < layer->GetEffectCount(); ++k) {
                     Effect* eff = layer->GetEffect(k);
                     const SettingsMap& settings = eff->GetSettings();
                     std::vector<std::string> keysToUpdate;
@@ -1926,18 +1926,18 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
                 }
             };
 
-            for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+            for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
                 Element* e = _sequenceElements->GetElement(i);
                 if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
                 ModelElement* model = dynamic_cast<ModelElement*>(e);
                 if (!model) continue;
 
-                for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+                for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
                     scanLayer(model->GetEffectLayer(j));
 
-                for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+                for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
                     SubModelElement* sub = model->GetSubModel(j);
-                    for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                    for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
                         scanLayer(sub->GetEffectLayer(l));
                     if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                         StrandElement* strand = dynamic_cast<StrandElement*>(sub);
@@ -1993,7 +1993,7 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
     int usageCount = 0;
     if (_sequenceElements != nullptr) {
         auto scanLayer = [&](EffectLayer* layer) {
-            for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+            for (int k = 0; k < layer->GetEffectCount(); ++k) {
                 Effect* eff = layer->GetEffect(k);
                 const SettingsMap& settings = eff->GetSettings();
                 for (auto it = settings.begin(); it != settings.end(); ++it) {
@@ -2007,18 +2007,18 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
             }
         };
 
-        for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
             Element* e = _sequenceElements->GetElement(i);
             if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
             ModelElement* model = dynamic_cast<ModelElement*>(e);
             if (!model) continue;
 
-            for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
                 scanLayer(model->GetEffectLayer(j));
 
-            for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
                 SubModelElement* sub = model->GetSubModel(j);
-                for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
                     scanLayer(sub->GetEffectLayer(l));
                 if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                     StrandElement* strand = dynamic_cast<StrandElement*>(sub);

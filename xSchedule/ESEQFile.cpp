@@ -175,7 +175,7 @@ void ESEQFile::ReadData(uint8_t* buffer, size_t buffersize, size_t frame, APPLYM
         FSEQFile::FrameData* fd = _fseq->getFrame(frame);
         memcpy(_frameBuffer, fd->GetData(), std::min(_channelsPerFrame, fd->GetSize()));
     } else {
-        if (_fh->Tell() != _frame0Offset + _channelsPerFrame * frame) {
+        if (_fh->Tell() != (wxFileOffset)(_frame0Offset + _channelsPerFrame * frame)) {
             // we need to seek to our frame
             _fh->Seek(_frame0Offset + _channelsPerFrame * frame, wxFromStart);
         }

@@ -129,7 +129,7 @@ void PlayListItemFSEQVideo::LoadAudio() {
             // already open
 
             // If audio file is shorter than fseq override the duration
-            if (_audioManager->LengthMS() < _durationMS) {
+            if ((size_t)_audioManager->LengthMS() < _durationMS) {
                 spdlog::debug("FSEQ length {} overridden by audio length {}.", (long)_audioManager->LengthMS(), (long)_durationMS);
                 _durationMS = _audioManager->LengthMS();
             }
@@ -471,7 +471,7 @@ bool PlayListItemFSEQVideo::Advance(int seconds) {
     _currentFrame += adjustFrames;
     if (_currentFrame < 0)
         _currentFrame = 0;
-    if (_currentFrame > _stepLengthMS / GetFrameMS())
+    if ((size_t)_currentFrame > _stepLengthMS / GetFrameMS())
         _currentFrame = _stepLengthMS / GetFrameMS();
 
     if (ControlsTiming() && _audioManager != nullptr) {
@@ -545,7 +545,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
         long adjustedMS = ms - _delay;
 
         if (_useMediaPlayer) {
-            bool videoOver = (!_loopVideo && adjustedMS > _videoLength);
+            bool videoOver = (!_loopVideo && (size_t)adjustedMS > _videoLength);
 
             if (!videoOver && _frame->GetState() != wxMEDIASTATE_PLAYING) {
                 _frame->Play();
@@ -555,7 +555,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
             if (_loopVideo && _videoLength != 0) {
                 mediapos = mediapos % _videoLength;
                 // loop early to try and prevent black screen when video ends but before we can tell it to loop
-                if (mediapos > _videoLength - framems) {
+                if ((size_t)mediapos > _videoLength - framems) {
                     // logger_base.debug("Looping early");
                     mediapos = 0;
                 }
@@ -566,23 +566,23 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
             } else {
                 long videopos = _frame->Tell();
                 long jitter = std::abs(videopos - mediapos);
-                if (jitter > MAXMEDIAJITTER) {
+                if ((size_t)jitter > MAXMEDIAJITTER) {
                     _frame->Seek(mediapos);
                     // logger_base.debug("Sequence pos %ld, Desired video pos %ld, Video pos %ld, Jitter %ld, Length %ld, %s", adjustedMS, mediapos, videopos, jitter, (long)_durationMS, (const char*)_videoFile.c_str());
                 }
             }
         } else {
             int brightness = 100;
-            if (_fadeInMS != 0 && _fadeInMS < framems) {
+            if (_fadeInMS != 0 && (size_t)_fadeInMS < framems) {
                 brightness = (float)framems * 100.0 / (float)_fadeInMS;
-            } else if (_fadeOutMS != 0 && _stepLengthMS - framems < _fadeOutMS) {
+            } else if (_fadeOutMS != 0 && (long)(_stepLengthMS - (long)framems) < _fadeOutMS) {
                 brightness = (float)(_stepLengthMS - framems) * 100.0 / (float)_fadeOutMS;
             }
 
             if (_cacheVideo) {
                 if (_cachedVideoReader != nullptr) {
                     auto videoLength = _cachedVideoReader->GetLengthMS();
-                    while (_loopVideo && adjustedMS > videoLength && videoLength > 0) {
+                    while (_loopVideo && adjustedMS > (long)videoLength && videoLength > 0) {
                         adjustedMS -= videoLength;
                     }
 
@@ -591,7 +591,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
             } else {
                 if (_videoReader != nullptr) {
                     auto videoLength = _videoReader->GetLengthMS();
-                    while (_loopVideo && videoLength > 0 && adjustedMS > videoLength) {
+                    while (_loopVideo && videoLength > 0 && adjustedMS > (long)videoLength) {
                         adjustedMS -= videoLength;
                     }
 
@@ -602,7 +602,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
         }
     }
 
-    if (sw.Time() > framems / 2) {
+    if ((size_t)sw.Time() > framems / 2) {
         spdlog::warn("   Getting frame {} from FSEQvideo {} took more than half a frame: {}.", (long)adjustedMS, (const char*)GetNameNoTime().c_str(), (long)sw.Time());
     }
 }

@@ -438,7 +438,7 @@ void PlayListSimpleDialog::OnTreeCtrl_PlayListEndDrag(wxTreeEvent& event)
 
 int PlayListSimpleDialog::GetPos(const wxTreeItemId& item)
 {
-    wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(item);
+    [[maybe_unused]] wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(item);
 
     int i = 0;
     wxTreeItemIdValue tid;
@@ -461,7 +461,7 @@ void PlayListSimpleDialog::DeleteSelectedItem()
             "Are you sure?", wxYES_NO) == wxYES)
         {
             SwapPage(nullptr);
-            wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(treeitem);
+            [[maybe_unused]] wxTreeItemId parent = TreeCtrl_PlayList->GetItemParent(treeitem);
             if (IsPlayListStep(treeitem))
             {
                 PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();

@@ -356,14 +356,14 @@ static const int FSEQ_VARIABLE_HEADER_SIZE = 4;
 
 FSEQFile::FSEQFile(const std::string& fn) :
     m_filename(fn),
+    m_uniqueId(0),
     m_seqNumFrames(0),
     m_seqChannelCount(0),
     m_seqStepTime(FSEQ_DEFAULT_STEP_TIME),
     m_variableHeaders(),
-    m_uniqueId(0),
     m_seqFileSize(0),
-    m_memoryBuffer(),
     m_seqChanDataOffset(0),
+    m_memoryBuffer(),
     m_memoryBufferPos(0) {
     if (fn == "-memory-") {
         m_seqFile = nullptr;
@@ -406,8 +406,8 @@ void FSEQFile::initializeFromFSEQ(const FSEQFile& fseq) {
 
 FSEQFile::FSEQFile(const std::string& fn, FILE* file, const std::vector<uint8_t>& header) :
     m_filename(fn),
-    m_seqFile(file),
     m_uniqueId(0),
+    m_seqFile(file),
     m_memoryBuffer(),
     m_memoryBufferPos(0) {
     fseeko(m_seqFile, 0L, SEEK_END);
@@ -922,10 +922,10 @@ class V2CompressedHandler : public V2Handler {
 public:
     V2CompressedHandler(V2FSEQFile* f) :
         V2Handler(f),
-        m_maxBlocks(0),
-        m_curBlock(99999),
         m_framesPerBlock(0),
-        m_curFrameInBlock(0) {
+        m_curFrameInBlock(0),
+        m_curBlock(99999),
+        m_maxBlocks(0) {
         if (!m_file->m_frameOffsets.empty()) {
             m_maxBlocks = m_file->m_frameOffsets.size() - 1;
         }
@@ -1485,8 +1485,8 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, CompressionType ct, int cl) :
     FSEQFile(fn),
     m_compressionType(ct),
     m_compressionLevel(cl),
-    m_handler(nullptr),
-    m_allowExtendedBlocks(false) {
+    m_allowExtendedBlocks(false),
+    m_handler(nullptr) {
     m_seqVersionMajor = V2FSEQ_MAJOR_VERSION;
     m_seqVersionMinor = V2FSEQ_MINOR_VERSION;
 
@@ -1669,6 +1669,7 @@ void V2FSEQFile::writeHeader() {
 V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint8_t>& header) :
     FSEQFile(fn, file, header),
     m_compressionType(none),
+    m_allowExtendedBlocks(false),
     m_handler(nullptr) {
     if (m_seqVersionMajor == 2 && m_seqVersionMinor > 2) {
         LogErr(VB_SEQUENCE, "Unknown minor version: %d.  FSEQ may not load properly.\n", m_seqVersionMinor);

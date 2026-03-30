@@ -1232,7 +1232,7 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
             timing_list = xml_file->GetTimingList();
         }
 
-        if (timing_list.size() > row)
+        if ((int)timing_list.size() > row)
         {
             xml_file->DeleteTimingSection(timing_list[row].ToStdString());
             Grid_Timing->DeleteRows(row);

@@ -2065,7 +2065,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
                 }
                 startframe++;
 
-                for (unsigned int f = startframe; f <= i; f++) {
+                for (unsigned int f = startframe; f <= (unsigned int)i; f++) {
                     wxSize fsize = decoder.GetFrameSize(f);
                     wxImage wxFrame(fsize);
                     decoder.ConvertToImage(f, &wxFrame);

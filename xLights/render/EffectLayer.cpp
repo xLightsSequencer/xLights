@@ -41,7 +41,7 @@ EffectLayer::EffectLayer(Element* parent)
 EffectLayer::~EffectLayer()
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for (int x = 0; x < mEffects.size(); x++) {
+    for (int x = 0; x < (int)mEffects.size(); x++) {
         delete mEffects[x];
     }
     while (!mEffectsToDelete.empty()) {
@@ -98,7 +98,7 @@ int EffectLayer::GetIndex() const
 
 Effect* EffectLayer::GetEffect(int index) const
 {
-    if(index < mEffects.size()) {
+    if(index < (int)mEffects.size()) {
         return mEffects[index];
     } else {
         return nullptr;
@@ -120,7 +120,7 @@ Effect* EffectLayer::GetEffectByTime(int timeMS) {
 Effect* EffectLayer::GetEffectFromID(int id)
 {
     Effect* eff = nullptr;
-    for (int x = 0; x < mEffects.size(); x++) {
+    for (int x = 0; x < (int)mEffects.size(); x++) {
         if( mEffects[x]->GetID() == id ) {
             eff = mEffects[x];
             break;
@@ -131,7 +131,7 @@ Effect* EffectLayer::GetEffectFromID(int id)
 
 int EffectLayer::GetFirstSelectedEffectStartMS() const
 {
-    for (int x = 0; x < mEffects.size(); x++) {
+    for (int x = 0; x < (int)mEffects.size(); x++) {
         if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED) {
             return mEffects[x]->GetStartTimeMS();
         }
@@ -141,7 +141,7 @@ int EffectLayer::GetFirstSelectedEffectStartMS() const
 
 int EffectLayer::GetLastSelectedEffectEndMS() const
 {
-    for (int x = mEffects.size() - 1; x >= 0; x--) {
+    for (int x = (int)mEffects.size() - 1; x >= 0; x--) {
         if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED) {
             return mEffects[x]->GetEndTimeMS();
         }
@@ -152,7 +152,7 @@ int EffectLayer::GetLastSelectedEffectEndMS() const
 void EffectLayer::RemoveEffect(int index)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    if(index<mEffects.size()) {
+    if(index<(int)mEffects.size()) {
         Effect *e = mEffects[index];
         if (!e->IsLocked()) {
             mEffects.erase(mEffects.begin() + index);
@@ -168,7 +168,7 @@ void EffectLayer::RemoveEffect(int index)
 void EffectLayer::DeleteEffect(int id)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for (int i = 0; i<mEffects.size(); i++) {
+    for (int i = 0; i<(int)mEffects.size(); i++) {
         if (mEffects[i]->GetID() == id) {
             IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
             mEffects[i]->SetTimeToDelete();
@@ -186,7 +186,7 @@ void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     std::vector<Effect*> newEffects;
-    for (int x = 0; x < mEffects.size(); x++) {
+    for (int x = 0; x < (int)mEffects.size(); x++) {
         if (!mEffects[x]->IsLocked()) {
             IncrementChangeCount(mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS());
             if (undo_mgr) {
@@ -260,7 +260,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
 
 void EffectLayer::NumberEffects()
 {
-    for (int x = 0; x < mEffects.size(); x++) {
+    for (int x = 0; x < (int)mEffects.size(); x++) {
         mEffects[x]->SetID(x);
     }
 }
@@ -273,7 +273,7 @@ void EffectLayer::SortEffects()
 
 bool EffectLayer::IsStartTimeLinked(int index) const
 {
-    if (index < mEffects.size() && index > 0) {
+    if (index < (int)mEffects.size() && index > 0) {
         return mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
     } else {
         return false;
@@ -282,7 +282,7 @@ bool EffectLayer::IsStartTimeLinked(int index) const
 
 bool EffectLayer::IsEndTimeLinked(int index) const
 {
-    if (index < mEffects.size() - 1) {
+    if (index < (int)mEffects.size() - 1) {
         return mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS();
     } else {
         return false;
@@ -291,7 +291,7 @@ bool EffectLayer::IsEndTimeLinked(int index) const
 
 int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if (index + 1 >= mEffects.size()) {
+    if (index + 1 >= (int)mEffects.size()) {
         return NO_MIN_MAX_TIME;
     } else {
         if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse) {
@@ -334,7 +334,7 @@ bool EffectLayer::IsFixedTimingLayer() const
 
 bool EffectLayer::HitTestEffectByTime(int timeMS, int& index) const
 {
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
             timeMS <= mEffects[i]->GetEndTimeMS()) {
             index = i;
@@ -345,7 +345,7 @@ bool EffectLayer::HitTestEffectByTime(int timeMS, int& index) const
 }
 
 bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS) const {
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         if ((mEffects[i]->GetStartTimeMS() > t1MS && mEffects[i]->GetStartTimeMS() < t2MS) ||
             (mEffects[i]->GetEndTimeMS() > t1MS && mEffects[i]->GetEndTimeMS() < t2MS) ||
             (mEffects[i]->GetStartTimeMS() == t1MS && mEffects[i]->GetEndTimeMS() == t2MS)) {
@@ -358,7 +358,7 @@ bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS) const {
 Effect* EffectLayer::GetEffectBeforeTime(int ms, const std::string& filterText, bool isFilterTextRegex) const
 {
     int i;
-    for (i = 0; i < mEffects.size(); ++i) {
+    for (i = 0; i < (int)mEffects.size(); ++i) {
         if (mEffects[i]->GetStartTimeMS() >= ms && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
             break;
         }
@@ -374,12 +374,12 @@ Effect* EffectLayer::GetEffectBeforeTime(int ms, const std::string& filterText, 
 
 Effect* EffectLayer::GetEffectAfterTime(int ms, const std::string& filterText, bool isFilterTextRegex) const {
     int i;
-    for (i = 0; i < mEffects.size(); ++i) {
+    for (i = 0; i < (int)mEffects.size(); ++i) {
         if (mEffects[i]->GetStartTimeMS() > ms && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
             break;
         }
     }
-    while (i < mEffects.size()) {
+    while (i < (int)mEffects.size()) {
         if (mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
             return mEffects[i];
         }
@@ -389,7 +389,7 @@ Effect* EffectLayer::GetEffectAfterTime(int ms, const std::string& filterText, b
 }
 
 Effect* EffectLayer::GetEffectAtTime(int timeMS, const std::string& filterText, bool isFilterTextRegex) const {
-    for (int i = 0; i < mEffects.size(); ++i) {
+    for (int i = 0; i < (int)mEffects.size(); ++i) {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
             timeMS <= mEffects[i]->GetEndTimeMS() && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
             return mEffects[i];
@@ -399,7 +399,7 @@ Effect* EffectLayer::GetEffectAtTime(int timeMS, const std::string& filterText, 
 }
 
 Effect* EffectLayer::GetEffectStartingAtTime(int timeMS, const std::string& filterText, bool isFilterTextRegex) const {
-    for (int i = 0; i < mEffects.size(); ++i) {
+    for (int i = 0; i < (int)mEffects.size(); ++i) {
         if (timeMS == mEffects[i]->GetStartTimeMS() && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
             return mEffects[i];
         }
@@ -409,7 +409,7 @@ Effect* EffectLayer::GetEffectStartingAtTime(int timeMS, const std::string& filt
 
 Effect* EffectLayer::GetEffectBeforeEmptyTime(int ms) const {
     int i;
-    for (i = mEffects.size() - 1; i >= 0; --i) {
+    for (i = (int)mEffects.size() - 1; i >= 0; --i) {
         if (mEffects[i]->GetEndTimeMS() < ms) {
             break;
         }
@@ -423,12 +423,12 @@ Effect* EffectLayer::GetEffectBeforeEmptyTime(int ms) const {
 
 Effect* EffectLayer::GetEffectAfterEmptyTime(int ms) const {
     int i;
-    for (i = 0; i < mEffects.size(); ++i) {
+    for (i = 0; i < (int)mEffects.size(); ++i) {
         if (mEffects[i]->GetStartTimeMS() > ms) {
             break;
         }
     }
-    if (i == mEffects.size()) {
+    if (i == (int)mEffects.size()) {
         return nullptr;
     } else {
         return mEffects[i];
@@ -439,7 +439,7 @@ std::list<Effect*> EffectLayer::GetAllEffects() const
 {
     std::list<Effect*> res;
 
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         res.push_back(mEffects[i]);
     }
@@ -449,7 +449,7 @@ std::list<Effect*> EffectLayer::GetAllEffects() const
 
 bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected)
 {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if (ignore_selected)
         {
@@ -478,7 +478,7 @@ bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_
 }
 
 bool EffectLayer::HasEffectsInTimeRange(int startTimeMS, int endTimeMS) {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if (mEffects[i]->OverlapsWith(startTimeMS, endTimeMS)) return true;
     }
@@ -492,7 +492,7 @@ bool EffectLayer::HasEffects()
 
 bool EffectLayer::HasEffectsByType(const std::string& type) const
 {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if (mEffects[i]->GetEffectName() == type)
         {
@@ -505,7 +505,7 @@ bool EffectLayer::HasEffectsByType(const std::string& type) const
 int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
 {
     int num_selected = 0;
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
         if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
@@ -544,7 +544,7 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
 std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS)
 {
     std::vector<Effect*> effs = std::vector<Effect*>();
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if (mEffects[i]->GetEffectName() == type)
         {
@@ -568,7 +568,7 @@ std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &typ
 std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTimeMS)
 {
     std::vector<Effect*> effs = std::vector<Effect*>();
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
         {
@@ -588,7 +588,7 @@ std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTi
 
 Effect* EffectLayer::SelectEffectUsingDescription(std::string description)
 {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if (mEffects[i]->GetDescription() == description)
         {
@@ -602,7 +602,7 @@ Effect* EffectLayer::SelectEffectUsingDescription(std::string description)
 
 bool EffectLayer::IsEffectValid(Effect* e) const
 {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if ((void*)mEffects[i] == (void*)e)
         {
@@ -615,7 +615,7 @@ bool EffectLayer::IsEffectValid(Effect* e) const
 
 Effect* EffectLayer::SelectEffectUsingTime(int time)
 {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         if (time >= mEffects[i]->GetStartTimeMS() && time < mEffects[i]->GetEndTimeMS())
         {
@@ -633,7 +633,7 @@ int EffectLayer::GetLayerNumber() const {
 
 void EffectLayer::UnSelectAllEffects()
 {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
     }
@@ -641,7 +641,7 @@ void EffectLayer::UnSelectAllEffects()
 
 void EffectLayer::SelectAllEffects()
 {
-    for (int i = 0; i < mEffects.size(); i++)
+    for (int i = 0; i < (int)mEffects.size(); i++)
     {
         mEffects[i]->SetSelected(EFFECT_SELECTED);
     }
@@ -676,7 +676,7 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(int &toLeft, int &
 {
     toLeft = NO_MAX;
     toRight = NO_MAX;
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         if (mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED) {
             int l = 0, r = 0;
             GetMaximumRangeOfMovementForEffect(i, l, r);
@@ -758,14 +758,14 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &
     }
     // Last effect, nothing to right to stop movement other then edge of screen.
     // Let grid take care of screen boundary so set to huge number
-    if (index == mEffects.size() - 1)
+    if (index == (int)mEffects.size() - 1)
     {
         toRight = NO_MAX;
     }
     else
     {
         if (mEffects[index + 1]->GetSelected() == EFFECT_NOT_SELECTED ||
-            ((index < mEffects.size() - 1) && mEffects[index + 1]->GetSelected() == EFFECT_RT_SELECTED))
+            ((index < (int)mEffects.size() - 1) && mEffects[index + 1]->GetSelected() == EFFECT_RT_SELECTED))
         {
             toRight = mEffects[index + 1]->GetStartTimeMS() - mEffects[index]->GetEndTimeMS();
         }
@@ -784,7 +784,7 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &
 int EffectLayer::GetSelectedEffectCount()
 {
     int count=0;
-    for(int i=0; i<mEffects.size();i++)
+    for(int i=0; i<(int)mEffects.size();i++)
     {
         if(mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
         {
@@ -797,7 +797,7 @@ int EffectLayer::GetSelectedEffectCount()
 int EffectLayer::GetTaggedEffectCount()
 {
     int count=0;
-    for(int i=0; i<mEffects.size();i++)
+    for(int i=0; i<(int)mEffects.size();i++)
     {
         if(mEffects[i]->GetTagged())
         {
@@ -809,7 +809,7 @@ int EffectLayer::GetTaggedEffectCount()
 
 void EffectLayer::UpdateAllSelectedEffects(const std::string& palette)
 {
-    for(int i=0; i<mEffects.size();i++)
+    for(int i=0; i<(int)mEffects.size();i++)
     {
         if(mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED )
         {
@@ -821,7 +821,7 @@ void EffectLayer::UpdateAllSelectedEffects(const std::string& palette)
 void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for(int i=0; i<mEffects.size();i++)
+    for(int i=0; i<(int)mEffects.size();i++)
     {
         if (!mEffects[i]->IsLocked())
         {
@@ -858,7 +858,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 void EffectLayer::ButtUpMoveAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for (int i = 0; i<mEffects.size(); i++)
+    for (int i = 0; i<(int)mEffects.size(); i++)
     {
         if (!mEffects[i]->IsLocked())
         {
@@ -963,7 +963,7 @@ void EffectLayer::ButtUpMoveAllSelectedEffects(bool right, int lengthMS, UndoMan
 void EffectLayer::StretchAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for (int i = 0; i<mEffects.size(); i++)
+    for (int i = 0; i<(int)mEffects.size(); i++)
     {
         if (!mEffects[i]->IsLocked())
         {
@@ -1012,7 +1012,7 @@ void EffectLayer::StretchAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 void EffectLayer::ButtUpStretchAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for (int i = 0; i<mEffects.size(); i++)
+    for (int i = 0; i<(int)mEffects.size(); i++)
     {
         if (!mEffects[i]->IsLocked())
         {
@@ -1111,7 +1111,7 @@ void EffectLayer::ButtUpStretchAllSelectedEffects(bool right, int lengthMS, Undo
 void EffectLayer::TagAllSelectedEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for(int i=0; i<mEffects.size();i++) {
+    for(int i=0; i<(int)mEffects.size();i++) {
         if( (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_SELECTED) ) {
@@ -1125,7 +1125,7 @@ std::vector<std::string> EffectLayer::GetUsedColours(bool selectedOnly)
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     std::vector<std::string> res;
 
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         if (!selectedOnly ||
             (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
@@ -1147,7 +1147,7 @@ int EffectLayer::ReplaceColours(xLightsFrame* frame, const std::string& from, co
 
     int replaced = 0;
 
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         if (!selectedOnly ||
             (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
@@ -1166,7 +1166,7 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     int count = 0;
-    for (int i = 0; i<mEffects.size(); i++) {
+    for (int i = 0; i<(int)mEffects.size(); i++) {
         if ((effectName == "" || effectName == mEffects[i]->GetEffectName(-1)) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
@@ -1182,7 +1182,7 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
 {
     
 
-    for (int i = 0; i<mEffects.size(); i++)
+    for (int i = 0; i<(int)mEffects.size(); i++)
     {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         if (eff1 == nullptr && effectName != "")
@@ -1215,7 +1215,7 @@ void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& und
 {
     
 
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         if (eff1 == nullptr && effectName != "") {
             spdlog::error("Effect not found: '{}'", (const char*)effectName.c_str());
@@ -1243,7 +1243,7 @@ void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& und
 void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator) {
     DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
 
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         if (mEffects[i]->GetEffectName() == "DMX" &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
                 (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
@@ -1258,7 +1258,7 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
 
 void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         if ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_SELECTED)
@@ -1274,7 +1274,7 @@ void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_
 void EffectLayer::UnTagAllEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
-    for (int i = 0; i < mEffects.size(); i++) {
+    for (int i = 0; i < (int)mEffects.size(); i++) {
         mEffects[i]->SetTagged(false);
     }
 }

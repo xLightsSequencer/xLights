@@ -786,7 +786,7 @@ void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool sw
         std::map<int32_t, std::list<Model*>> sortedModels;
         for (auto m : models) {
             int NodeCnt = m->GetNodeCount();
-            for (size_t n = 0; n < NodeCnt; ++n) {
+            for (int n = 0; n < NodeCnt; ++n) {
                 int start = m->NodeStartChannel(n);
                 m->SetNodeChannelValues(n, &data[start]);
             }
@@ -833,7 +833,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                 if (is3d) {
                     if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
                         wxMenu* mnuViewPoint = new wxMenu();
-                        for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
+                        for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
                             PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
                             mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
                         }
@@ -843,7 +843,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                 } else {
                     if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
                         wxMenu* mnuViewPoint = new wxMenu();
-                        for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
+                        for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
                             PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
                             mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
                         }
@@ -866,7 +866,7 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
             currentLayoutGroup = "Default";
             SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness(), xlights->GetDefaultPreviewBackgroundAlpha());
             SetbackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
-        } else if (id > 0 && id <= xlights->LayoutGroups.size()) {
+        } else if (id > 0 && id <= (int)xlights->LayoutGroups.size()) {
             currentLayoutGroup = xlights->LayoutGroups[id - 1]->GetName();
             SetBackgroundBrightness(xlights->LayoutGroups[id - 1]->GetBackgroundBrightness(), xlights->LayoutGroups[id - 1]->GetBackgroundAlpha());
             SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
@@ -884,7 +884,7 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         is3d = !is3d;
     } else if (is3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
+            for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId()) {
                     SetCamera3D(i);
                     break;
@@ -893,7 +893,7 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         }
     } else {
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
+            for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId()) {
                     SetCamera2D(i);
                     break;
@@ -1223,7 +1223,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         currentContext->PushMatrix();
         currentPixelScaleFactor = 1.0;
         if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
-            && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
+            && ((size_t)virtualWidth != mWindowWidth || (size_t)virtualHeight != mWindowHeight)) {
             currentPixelScaleFactor = scale2d;
         }
         

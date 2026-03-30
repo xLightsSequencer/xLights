@@ -251,7 +251,7 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
         long adjustedMS = ms - _delay;
 
         if (_useMediaPlayer && _frame != nullptr) {
-            bool videoOver = (!_loopVideo && adjustedMS > _durationMS);
+            bool videoOver = (!_loopVideo && (size_t)adjustedMS > _durationMS);
 
             if (!videoOver && _frame->GetState() != wxMEDIASTATE_PLAYING) {
                 _frame->Play();
@@ -261,7 +261,7 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
             if (_loopVideo && _durationMS != 0) {
                 mediapos = mediapos % _durationMS;
                 // loop early to try and prevent black screen
-                if (mediapos > _durationMS - framems) {
+                if ((size_t)mediapos > _durationMS - framems) {
                     //logger_base.debug("Looping early");
                     mediapos = 0;
                 }
@@ -273,7 +273,7 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
             else {
                 long videopos = _frame->Tell();
                 long jitter = std::abs(videopos - mediapos);
-                if (jitter > MAXMEDIAJITTER) {
+                if ((size_t)jitter > MAXMEDIAJITTER) {
                     _frame->Seek(mediapos);
                     //logger_base.debug("Sequence pos %ld, Desired video pos %ld, Video pos %ld, Jitter %ld, Length %ld, %s", adjustedMS, mediapos, videopos, jitter, (long)_durationMS, (const char*)_videoFile.c_str());
                 }
@@ -310,7 +310,7 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
                 }
             }
         }
-        if (sw.Time() > framems / 2) {
+        if ((size_t)sw.Time() > framems / 2) {
             spdlog::warn("   Getting frame {} from video {} took more than half a frame: {}.", (long)ms - _delay, GetNameNoTime(), (long)sw.Time());
         }
         //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms - _delay, (const char *)GetNameNoTime().c_str());

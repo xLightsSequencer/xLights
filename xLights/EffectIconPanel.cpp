@@ -30,7 +30,7 @@ END_EVENT_TABLE()
 void AddEffectPanelButtons(const EffectManager& manager, EffectIconPanel* panel, wxGridSizer* sizer)
 {
     int size = panel->FromDIP(16);
-    for (int x = 0; x < manager.size(); x++) {
+    for (int x = 0; x < (int)manager.size(); x++) {
         DragEffectBitmapButton* BitmapButton = new DragEffectBitmapButton(panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size),
                                                                           wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
         BitmapButton->SetMinSize(wxSize(size, size));

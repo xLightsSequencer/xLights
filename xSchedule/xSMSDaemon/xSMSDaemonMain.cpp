@@ -460,7 +460,7 @@ void xSMSDaemonFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 
 void xSMSDaemonFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    wxString dir;
+    [[maybe_unused]] wxString dir;
     wxString fileName = "xSMSDaemon_spdlog.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
@@ -722,7 +722,7 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
             int i = 0;
             for (auto it : texts)
             {
-                if (msgs.size() > i)
+                if ((int)msgs.size() > i)
                 {
                     auto msg = msgs[i];
                     if (_options.GetMaxTimesToDisplay() == 0 || msg._displayCount < _options.GetMaxTimesToDisplay())
@@ -891,7 +891,7 @@ void xSMSDaemonFrame::OnGrid1CellSelect(wxGridEvent& event)
 void xSMSDaemonFrame::UpdateModeration()
 {
     bool changed = false;
-    for (size_t i = 0; i < Grid1->GetNumberRows(); ++i)
+    for (int i = 0; i < (int)Grid1->GetNumberRows(); ++i)
     {
         int id = _rowIds[i];
         bool c = _smsService->Moderate(id, Grid1->GetCellValue(i, 3) == "1");

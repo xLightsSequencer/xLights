@@ -81,7 +81,7 @@ void TreeModel::SetTreeCoord(long _degrees)
 
         std::vector<float> yPos(BufferHt);
         std::vector<float> xInc(BufferHt);
-        for (size_t x = 0; x < BufferHt; ++x) {
+        for (int x = 0; x < BufferHt; ++x) {
             yPos[x] = x;
             xInc[x] = 0;
         }

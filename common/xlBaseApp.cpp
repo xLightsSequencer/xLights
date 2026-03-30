@@ -258,7 +258,7 @@ void xlCrashHandler::SendReport(std::string const& appName, std::string const& l
 
     wxString ver = xlights_version_string + xlights_qualifier;
     ver.Trim();
-    for (int x = 0; x < ver.length(); x++) {
+    for (int x = 0; x < (int)ver.length(); x++) {
         if (ver[x] == ' ') ver[x] = '-';
     }
 

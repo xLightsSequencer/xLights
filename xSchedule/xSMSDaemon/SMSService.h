@@ -282,14 +282,14 @@ class SMSService
                                     if (msg._message != "")
                                     {
                                         int maxMessageLen = _options->GetMaxMessageLength();
-                                        if (maxMessageLen != 0 && msg._message.size() > maxMessageLen &&
+                                        if (maxMessageLen != 0 && msg._message.size() > (size_t)maxMessageLen &&
                                             !_options->GetIgnoreOversizedMessages())
                                         {
                                             msg._message = msg._message.substr(0, maxMessageLen);
                                         }
 
                                         // messages have to be under the max
-                                        if (maxMessageLen == 0 || msg._message.size() <= maxMessageLen)
+                                        if (maxMessageLen == 0 || msg._message.size() <= (size_t)maxMessageLen)
                                         {
                                             if (!_options->GetAcceptOneWordOnly() || msg._message.find(" ") == std::string::npos)
                                             {

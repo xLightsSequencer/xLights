@@ -50,7 +50,7 @@ public:
     size_t GetStartChannelAsNumber();
     void SetStartChannel(std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0;  _changeCount++; } }
     long GetChannels() const { return _channels; }
-    void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
+    void SetChannels(long channels) { if (_channels != (size_t)channels) { _channels = channels; _changeCount++; } }
     uint8_t GetValue() const { return _value; }
     void SetValue(uint8_t value) { if (_value != value) { _value = value; _changeCount++; } }
     int GetBlendMode() const { return _applyMethod; }

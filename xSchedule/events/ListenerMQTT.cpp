@@ -92,7 +92,7 @@ void ListenerMQTT::StartProcess(const std::string& localIP)
         PlayListItemMQTT::EncodeInt(&buffer[1], index - 2); // set the packet length
 
         _client.Write(buffer, index);
-        wxASSERT(_client.LastWriteCount() == index);
+        wxASSERT((int)_client.LastWriteCount() == index);
         memset(buffer, 0x00, sizeof(buffer));
         _client.WaitForRead(0, 500);
 
@@ -158,7 +158,7 @@ bool ListenerMQTT::Subscribe(const std::string& topic)
 
     spdlog::info("MQTT subscribing to topic %s.", topic);
     _client.Write(buffer, index);
-    wxASSERT(_client.LastWriteCount() == index);
+    wxASSERT((int)_client.LastWriteCount() == index);
 
     return true;
 }
@@ -208,7 +208,7 @@ void ListenerMQTT::Poll()
                         spdlog::debug("MQTT Topic: {}.", (const char*)topic.c_str());
 
                         std::string data = "";
-                        for (int i = 0; i < pktsize - topic.length() - 2; i++) {
+                        for (int i = 0; i < pktsize - (int)topic.length() - 2; i++) {
                             data += buffer[index++];
                         }
                         _listenerManager->ProcessPacket(GetType(), topic, data);
@@ -224,7 +224,7 @@ void ListenerMQTT::Poll()
                 std::unique_lock<std::mutex> lock(_topicLock);
 
                 int lastSize = 0;
-                while (_toSubscribe.size() != 0 && _toSubscribe.size() != lastSize) {
+                while (_toSubscribe.size() != 0 && (int)_toSubscribe.size() != lastSize) {
                     lastSize = _toSubscribe.size();
                     if (Subscribe(_toSubscribe.front())) {
                         _toSubscribe.pop_front();

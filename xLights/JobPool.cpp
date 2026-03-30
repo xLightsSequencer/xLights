@@ -314,10 +314,10 @@ void JobPoolWorker::ProcessJob(Job *job)
 	}
 }
 
-JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8), minNumThreads(2), idleThreads(0), inFlight(0), threadNameBase(n)
+JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), queue(), numThreads(0), idleThreads(0), threadNameBase(n), inFlight(0), maxNumThreads(8), minNumThreads(2)
 {
 }
-JobPool::JobPool(const std::string &n, int min, int max) : threadLock(), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(max), minNumThreads(min), idleThreads(0), inFlight(0), threadNameBase(n)
+JobPool::JobPool(const std::string &n, int min, int max) : threadLock(), queueLock(), signal(), queue(), numThreads(0), idleThreads(0), threadNameBase(n), inFlight(0), maxNumThreads(max), minNumThreads(min)
 {
 }
 
@@ -444,8 +444,8 @@ void JobPool::Start(size_t poolSize, size_t minPoolSize)
         poolSize = 250;
     }
 
-    maxNumThreads = poolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : poolSize;
-    minNumThreads = minPoolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : minPoolSize;
+    maxNumThreads = (int)poolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : (int)poolSize;
+    minNumThreads = (int)minPoolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : (int)minPoolSize;
     idleThreads = 0;
     numThreads = 0;
     //logger_jobpool.info("Background thread pool started with %d threads", poolSize);

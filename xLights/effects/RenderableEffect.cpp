@@ -211,7 +211,7 @@ std::string RenderableEffect::GetTimingTracks(const int max, const int equals) c
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && (max < 1 || e->GetEffectLayerCount() <= max) && (equals == 0 || e->GetEffectLayerCount() == equals))
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && (max < 1 || (int)e->GetEffectLayerCount() <= max) && (equals == 0 || (int)e->GetEffectLayerCount() == equals))
         {
             if (timingtracks != "")
             {

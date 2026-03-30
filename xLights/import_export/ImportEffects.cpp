@@ -184,7 +184,7 @@ public:
                 needToClose = true;
             } else if (x > 15 &&
                        buf[x - 15] == '<' && buf[x - 14] == '/' && buf[x - 13] == 'c' && buf[x - 12] == 'o' && buf[x - 11] == 'n' && buf[x - 10] == 'f' && buf[x - 9] == 'i' && buf[x - 8] == 'g' && buf[x - 7] == 'u' && buf[x - 6] == 'r' && buf[x - 5] == 'a' && buf[x - 4] == 't' && buf[x - 3] == 'i' && buf[x - 2] == 'o' && buf[x - 1] == 'n' && buf[x] == '>') {
-                for (int y = x - 15; y <= x; ++y) {
+                for (size_t y = x - 15; y <= x; ++y) {
                     buf[y] = ' ';
                 }
             } else if (buf[x - 1] == '>' && needToClose) {
@@ -211,7 +211,7 @@ public:
         if (bufLen) {
             size_t ret = std::min(bufsize, bufLen);
             memcpy(b, buf, ret);
-            for (int x = ret; x < bufLen; ++x) {
+            for (size_t x = ret; x < bufLen; ++x) {
                 buf[x - ret] = buf[x];
             }
             bufLen -= ret;
@@ -275,7 +275,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 
     if (file.ShowModal() == wxID_OK) {
-        if (config != nullptr && file.GetFilterIndex() >= 0 && file.GetFilterIndex() < filters.size()) {
+        if (config != nullptr && file.GetFilterIndex() >= 0 && file.GetFilterIndex() < (int)filters.size()) {
             config->Write("xLightsLastImportType", filters[file.GetFilterIndex()]);
         } else {
             spdlog::warn("XLightsLastImportType not saved due to invalid filter index {}.", file.GetFilterIndex());
@@ -590,7 +590,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             }
             elementMap[el->GetName()] = el;
             int s = 0;
-            for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); ++sm) {
+            for (int sm = 0; sm < el->GetSubModelAndStrandCount(); ++sm) {
                 SubModelElement* sme = el->GetSubModel(sm);
 
                 StrandElement* ste = dynamic_cast<StrandElement*>(sme);
@@ -606,7 +606,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     dlg.AddChannel(el->GetName() + "/" + smName, sme->GetEffectCount());
                 }
                 if (ste != nullptr) {
-                    for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
+                    for (int n = 0; n < ste->GetNodeLayerCount(); ++n) {
                         NodeLayer* nl = ste->GetNodeLayer(n, true);
                         if (nl->GetEffectCount() > 0) {
                             std::string nodeName = nl->GetNodeName();
@@ -622,7 +622,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         } else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             TimingElement* tel = dynamic_cast<TimingElement*>(e);
             bool hasEffects{ false };
-            for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
+            for (int n = 0; n < (int)tel->GetEffectLayerCount(); ++n) {
                 hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
             }
             if (hasEffects) {
@@ -692,9 +692,9 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
             }
 
-            for (int l = 0; l < tel->GetEffectLayerCount(); ++l) {
+            for (int l = 0; l < (int)tel->GetEffectLayerCount(); ++l) {
                 EffectLayer* src = tel->GetEffectLayer(l);
-                while (l >= target->GetEffectLayerCount()) {
+                while (l >= (int)target->GetEffectLayerCount()) {
                     target->AddEffectLayer();
                 }
                 EffectLayer* dst = target->GetEffectLayer(l);
@@ -800,7 +800,7 @@ void MapToStrandName(const std::string& name, std::vector<std::string>& strands)
 
         int ppos = -1;
         int spos = -1;
-        for (int x = idx; x < name.size(); x++) {
+        for (int x = idx; x < (int)name.size(); x++) {
             if (name[x] == 'P') {
                 ppos = x;
             } else if (name[x] == 'S') {
@@ -1160,7 +1160,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
 
                         std::vector<xlColor> colors;
                         FileConverter::LoadVixenProfile(params, NodeValue, VixChannels, VixChannelNames, colors);
-                        for (int x = 0; x < VixChannelNames.size(); x++) {
+                        for (int x = 0; x < (int)VixChannelNames.size(); x++) {
                             std::string name = VixChannelNames[x].ToStdString();
                             xlColor c = colors[x];
                             dlg.AddChannel(name);
@@ -1700,14 +1700,14 @@ void Split(int x, std::vector<RGBData>& v, int endms)
 #define MAXMS 99999999
 int GetStartMS(int x, std::vector<RGBData>& v)
 {
-    if (x < v.size()) {
+    if (x < (int)v.size()) {
         return v[x].startms;
     }
     return MAXMS;
 }
 int GetEndMS(int x, std::vector<RGBData>& v)
 {
-    if (x < v.size()) {
+    if (x < (int)v.size()) {
         return v[x].endms;
     }
     return MAXMS;
@@ -1715,7 +1715,7 @@ int GetEndMS(int x, std::vector<RGBData>& v)
 void Resize(int x,
             std::vector<RGBData>& v, int startms)
 {
-    while (x >= v.size()) {
+    while (x >= (int)v.size()) {
         int i = v.size();
         v.push_back(RGBData());
         v[i].endms = MAXMS;
@@ -2405,7 +2405,7 @@ std::string ExtractLPEPallette(const wxArrayString& ps)
 
     int cnum = 0;
     wxArrayString c = wxSplit(ps[1], ';');
-    for (int i = 0; i < c.size(); i++) {
+    for (int i = 0; i < (int)c.size(); i++) {
         wxString n = wxString::Format("%d", cnum + 1);
 
         wxArrayString cc = wxSplit(c[i], ',');
@@ -3163,7 +3163,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const pug
     }
     if (LPEHasEffects(input_xml, mapping, 0, false)) {
         layer++;
-        if (model->GetEffectLayerCount() < layer + 1) {
+        if ((int)model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
         spdlog::debug("Creating effects on model {} layer {} from {} layer 0 right hand side",
@@ -3172,7 +3172,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const pug
     }
     if (LPEHasEffects(input_xml, mapping, 1, true)) {
         layer++;
-        if (model->GetEffectLayerCount() < layer + 1) {
+        if ((int)model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
         spdlog::debug("Creating effects on model {} layer {} from {} layer 1 left hand side",
@@ -3181,7 +3181,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const pug
     }
     if (LPEHasEffects(input_xml, mapping, 1, false)) {
         layer++;
-        if (model->GetEffectLayerCount() < layer + 1) {
+        if ((int)model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
         spdlog::debug("Creating effects on model {} layer {} from {} layer 1 right hand side",
@@ -3390,7 +3390,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
         }
     } else if (st == loreditType::TRACKS) {
         for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if (model->GetEffectLayerCount() < i + 1) {
+            if ((int)model->GetEffectLayerCount() < i + 1) {
                 model->AddEffectLayer();
             }
             MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
@@ -3426,7 +3426,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
         }
     } else if (st == loreditType::TRACKS) {
         for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if (se->GetEffectLayerCount() < i + 1) {
+            if ((int)se->GetEffectLayerCount() < i + 1) {
                 se->AddEffectLayer();
             }
             MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
@@ -3465,7 +3465,7 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
         }
     } else if (st == loreditType::TRACKS) {
         for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if (se->GetEffectLayerCount() < i + 1) {
+            if ((int)se->GetEffectLayerCount() < i + 1) {
                 se->AddEffectLayer();
             }
             MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
@@ -4314,7 +4314,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
                 settings += blend_string;
-                while (model->GetEffectLayerCount() < layer_index) {
+                while ((int)model->GetEffectLayerCount() < layer_index) {
                     model->AddEffectLayer();
                 }
                 layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
@@ -4490,7 +4490,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                     xlColor endc = GetColor(element.attribute("red2").as_string(),
                                             element.attribute("green2").as_string(),
                                             element.attribute("blue2").as_string());
-                    while (model->GetEffectLayerCount() < layer_index) {
+                    while ((int)model->GetEffectLayerCount() < layer_index) {
                         model->AddEffectLayer();
                     }
 
@@ -4676,7 +4676,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                                              element.attribute("blue").as_string());
 
                     int layer_index = element.attribute("layer").as_int();
-                    while (model->GetEffectLayerCount() < layer_index) {
+                    while ((int)model->GetEffectLayerCount() < layer_index) {
                         model->AddEffectLayer();
                     }
                     int start_time = wxAtoi(startms);
@@ -4786,7 +4786,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                     int layer_index = element.attribute("layer").as_int();
                     int rampDownTime = element.attribute("rampTime").as_int() * 10;
                     int rampUpTime = element.attribute("preRampTime").as_int() * 10;
-                    while (model->GetEffectLayerCount() <= layer_index) {
+                    while ((int)model->GetEffectLayerCount() <= layer_index) {
                         model->AddEffectLayer();
                     }
                     std::string rampUpTimeString = "0";
@@ -5125,7 +5125,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
     int last_time = 0;
     bool warn = true;
 
-    for (int i = 0; i < events.size(); ++i) {
+    for (int i = 0; i < (int)events.size(); ++i) {
         std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
         std::string settings;
         if (is_16bit) {
@@ -5186,7 +5186,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         last_time = events[i].end_time * timing;
 
         // check for filling to end of sequence
-        if (i == events.size() - 1) {
+        if (i == (int)events.size() - 1) {
             if (last_time < sequence_end_time) {
                 std::string settings3;
                 if (is_16bit) {
@@ -5222,7 +5222,7 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
     const std::vector<std::vector<VSAFile::vsaEventRecord>>& events = vsa.GetEventInfo();
     const uint32_t vsa_timing = vsa.GetTiming();
 
-    for (int m = 0; m < dlg.selectedModels.size(); ++m) {
+    for (int m = 0; m < (int)dlg.selectedModels.size(); ++m) {
         std::string modelName = dlg.selectedModels[m];
         if (modelName != "") {
             ModelElement* model = nullptr;
@@ -5236,16 +5236,16 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
             if (model != nullptr) {
                 EffectLayer* layer;
                 int layer_number = dlg.selectedLayers[m];
-                while (model->GetEffectLayerCount() < layer_number + 1) {
+                while ((int)model->GetEffectLayerCount() < layer_number + 1) {
                     model->AddEffectLayer();
                 }
 
                 layer = model->GetEffectLayer(layer_number);
                 if (layer != nullptr && dlg.selectedChannels[m] != "") {
-                    if (m < dlg.trackIndex.size()) {
+                    if (m < (int)dlg.trackIndex.size()) {
                         bool is_16bit = true;
                         int idx = dlg.trackIndex[m];
-                        if (idx < events.size()) {
+                        if (idx < (int)events.size()) {
                             switch ((VSAFile::vsaControllers)(tracks[idx].controller)) {
                             case VSAFile::MINISSC_SERVO:
                             case VSAFile::DMX_DIMMER:

@@ -156,7 +156,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
             continue;
         }
 
-        for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
+        for (int i = 0; i < (int)el->GetEffectLayerCount(); ++i) {
             EffectLayer* elay = el->GetEffectLayer(i);
 			if ((effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType)) {
                 models.push_back(el->GetFullName());

@@ -274,7 +274,7 @@ int PlayListItemRDS::SendWithDTRCTS(SerialPort* serial, char* buf, size_t len)
     serial->SetRTS(false);
     wxMicroSleep(I2CUNIT);
 
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < (int)len; i++)
     {
         uint8_t mask = 0x80;
 

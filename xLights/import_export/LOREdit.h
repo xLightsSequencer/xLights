@@ -54,19 +54,19 @@ struct LOREditEffect
     std::string GetBlend() const;
     static std::string SafeGetStringParm(const wxArrayString& arr, int param)
     {
-        if (param < arr.size())
+        if (param < (int)arr.size())
             return arr[param];
         return "";
     }
     static int SafeGetIntParm(const wxArrayString& arr, int param)
     {
-        if (param < arr.size())
+        if (param < (int)arr.size())
             return wxAtoi(arr[param]);
         return 0;
     }
     static bool SafeGetBoolParm(const wxArrayString& arr, int param)
     {
-        if (param < arr.size())
+        if (param < (int)arr.size())
             return arr[param] == "True";
         return false;
     }

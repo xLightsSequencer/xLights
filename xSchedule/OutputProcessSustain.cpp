@@ -63,7 +63,7 @@ void OutputProcessSustain::Frame(uint8_t* buffer, size_t size, std::list<OutputP
     }
 
     // copy from save wherever the value is zero
-    for (long i = 0; i < chs; i++)
+    for (long i = 0; i < (long)chs; i++)
     {
         if (*(buffer + sc - 1 + i) == 0)
         {

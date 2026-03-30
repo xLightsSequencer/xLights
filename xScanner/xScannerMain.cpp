@@ -237,7 +237,7 @@ wxTreeListItem xScannerFrame::GetIPItem(const std::string& ip, bool create)
             for (const auto& it : tips) {
                 tipsi.push_back(atoi(it.c_str()));
             }
-            bool greater = false;
+            [[maybe_unused]] bool greater = false;
             for (int ii = 0; ii < 4; ii++) {
                 if (tipsi[ii] == ipsi[ii]) {
                 }

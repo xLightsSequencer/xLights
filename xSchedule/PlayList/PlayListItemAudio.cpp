@@ -213,7 +213,7 @@ bool PlayListItemAudio::Advance(int seconds) {
     _currentFrame += adjustFrames;
     if (_currentFrame < 0)
         _currentFrame = 0;
-    if (_currentFrame > _stepLengthMS / GetFrameMS())
+    if ((size_t)_currentFrame > _stepLengthMS / GetFrameMS())
         _currentFrame = _stepLengthMS / GetFrameMS();
 
     if (ControlsTiming() && _audioManager != nullptr) {

@@ -73,7 +73,7 @@ void NewTimingDialog::RemoveChoice(const wxString selection)
         if (Choice_New_Fixed_Timing->GetString(i) == selection)
         {
             bool removed = false;
-            if (Choice_New_Fixed_Timing->GetSelection() == i) removed = true;
+            if ((size_t)Choice_New_Fixed_Timing->GetSelection() == i) removed = true;
             Choice_New_Fixed_Timing->Delete(i);
             if (removed) Choice_New_Fixed_Timing->SetSelection(0);
             return;

@@ -103,7 +103,7 @@ void ColorCurve::Deserialise(const std::string& s)
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
         for (auto vs = v.begin(); vs != v.end(); vs++)
         {
-            if (vs->Find('=') != std::string::npos)
+            if (vs->Find('=') != wxNOT_FOUND)
             {
                 wxArrayString v1;
                 v1.Add(vs->SubString(0, vs->Find('=')-1));

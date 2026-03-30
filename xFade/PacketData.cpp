@@ -332,7 +332,7 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
     {
         memcpy(_data, source->_data, sizeof(_data));
         _length = source->_length;
-        wxASSERT(_length >= 0 && _length <= sizeof(_data));
+        wxASSERT(_length >= 0 && _length <= (int)sizeof(_data));
 
         if (_type == E131PORT)
         {

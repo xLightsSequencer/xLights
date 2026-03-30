@@ -152,10 +152,10 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
         std::vector<int> hsizes;
         for (auto &n : Nodes) {
             for (auto &c : n->Coords) {
-                while (c.bufX >= hsizes.size()) {
+                while (c.bufX >= (int)hsizes.size()) {
                     hsizes.push_back(-1);
                 }
-                while (c.bufY >= vsizes.size()) {
+                while (c.bufY >= (int)vsizes.size()) {
                     vsizes.push_back(-1);
                 }
                 hsizes[c.bufX] = std::max(hsizes[c.bufX], c.bufY);
@@ -216,10 +216,10 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         std::vector<int> hsizes;
         for (auto &n : Nodes) {
             for (auto &c : n->Coords) {
-                while (c.bufX >= hsizes.size()) {
+                while (c.bufX >= (int)hsizes.size()) {
                     hsizes.push_back(-1);
                 }
-                while (c.bufY >= vsizes.size()) {
+                while (c.bufY >= (int)vsizes.size()) {
                     vsizes.push_back(-1);
                 }
                 hsizes[c.bufX] = std::max(hsizes[c.bufX], c.bufY);
@@ -239,7 +239,7 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         BufferHi = 1;
         BufferWi = total;
         
-        for (int n = firstNode; n < newNodes.size(); n++) {
+        for (int n = firstNode; n < (int)newNodes.size(); n++) {
             for (auto &c : newNodes[n]->Coords) {
                 int curX = c.bufX;
                 int curY = c.bufY;
@@ -325,7 +325,7 @@ void SubModel::CalcRangeXYBufferSize()
     float maxy = -1;
     for (auto const& idx : _nodeIdx) {
         // ignore nodes indexes if they are out of range
-        if (idx < parent->Nodes.size()) {
+        if (idx < (int)parent->Nodes.size()) {
             NodeBaseClass* node = parent->Nodes[idx]->clone();
             for (const auto& c : node->Coords) {
                 if (c.bufX < minx)
@@ -342,7 +342,7 @@ void SubModel::CalcRangeXYBufferSize()
     }
     for (auto const& idx : _nodeIdx) {
         // ignore nodes indexes if they are out of range
-        if (idx < parent->Nodes.size()) {
+        if (idx < (int)parent->Nodes.size()) {
             NodeBaseClass* node = parent->Nodes[idx]->clone();
             _startChannel = (std::min)(_startChannel, node->ActChan);
             Nodes.push_back(NodeBaseClassPtr(node));

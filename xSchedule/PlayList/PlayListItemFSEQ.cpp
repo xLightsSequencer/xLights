@@ -91,7 +91,7 @@ void PlayListItemFSEQ::LoadAudio() {
             // already open
 
             // If audio file is shorter than fseq override the duration
-            if (_audioManager->LengthMS() < _durationMS) {
+            if ((size_t)_audioManager->LengthMS() < _durationMS) {
                 spdlog::debug("FSEQ length {} overridden by audio length {}.", (long)_audioManager->LengthMS(), (long)_durationMS);
                 _durationMS = _audioManager->LengthMS();
             }
@@ -370,7 +370,7 @@ bool PlayListItemFSEQ::Advance(int seconds) {
     _currentFrame += adjustFrames;
     if (_currentFrame < 0)
         _currentFrame = 0;
-    if (_currentFrame > _stepLengthMS / GetFrameMS())
+    if ((size_t)_currentFrame > _stepLengthMS / GetFrameMS())
         _currentFrame = _stepLengthMS / GetFrameMS();
 
     if (ControlsTiming() && _audioManager != nullptr) {
@@ -388,7 +388,7 @@ bool PlayListItemFSEQ::Advance(int seconds) {
 size_t PlayListItemFSEQ::GetPositionMS() const {
     if (ControlsTiming() && _audioManager != nullptr) {
         if (_delay != 0) {
-            if (_currentFrame * _msPerFrame < _delay) {
+            if ((size_t)(_currentFrame * _msPerFrame) < _delay) {
                 return _currentFrame * _msPerFrame;
             }
         }

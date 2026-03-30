@@ -1019,7 +1019,7 @@ PlayListStep* PlayList::GetStep(const std::string& step) {
         int id = PlayListStep::GetStepIdFromName(step);
         if (id >= 0) {
             for (const auto& it : _steps) {
-                if (it->GetId() == id)
+                if (it->GetId() == (wxUint32)id)
                     return it;
             }
         } else {
@@ -1202,7 +1202,7 @@ PlayListStep* PlayList::GetStepAtTime(long ms, long& newMS) {
         ReentrancyCounter rec(_reentrancyCounter);
         for (const auto& it : _steps) {
             if (!it->GetEveryStep()) {
-                if (at + it->GetLengthMS() > ms) {
+                if (at + (long)it->GetLengthMS() > ms) {
                     newMS = ms - at;
                     return it;
                 }
@@ -1316,7 +1316,7 @@ Schedule* PlayList::GetSchedule(int id) {
     {
         ReentrancyCounter rec(_reentrancyCounter);
         for (const auto& it : _schedules) {
-            if (it->GetId() == id)
+            if (it->GetId() == (wxUint32)id)
                 return it;
         }
     }

@@ -1971,7 +1971,7 @@ wxString xScheduleFrame::ProcessPluginRequest(const wxString& plugin, const wxSt
 
 void xScheduleFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    wxString dir;
+    [[maybe_unused]] wxString dir;
     wxString fileName = "xschedule_spdlog.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
@@ -2150,10 +2150,10 @@ void xScheduleFrame::UpdateStatus(bool force)
     }
     else {
         if (force ||
-            p->GetId() != lastid ||
+            (int)p->GetId() != lastid ||
             p->GetChangeCount() != lastcc ||
             (int)p->IsRunning() != lastrunning ||
-            p->GetSteps().size() != laststeps) {
+            (int)p->GetSteps().size() != laststeps) {
             lastcc = p->GetChangeCount();
             lastid = p->GetId();
             lastrunning = (int)p->IsRunning();
@@ -2441,7 +2441,7 @@ void xScheduleFrame::UpdateStatus(bool force)
         UserButton* b = __schedule->GetOptions()->GetButton((*it)->GetLabel().ToStdString());
 
         if (b != nullptr) {
-            wxString command = b->GetCommand();
+            [[maybe_unused]] wxString command = b->GetCommand();
             wxString parameters = b->GetParameters();
             Command* c = b->GetCommandObj();
             wxString msg;
@@ -2837,7 +2837,7 @@ void xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommand
     {
         if (dlg.GetMIDI() != __schedule->GetOptions()->GetMIDITimecodeDevice() ||
             dlg.GetFormat() != __schedule->GetOptions()->GetMIDITimecodeFormat() ||
-            dlg.GetOffset() != __schedule->GetOptions()->GetMIDITimecodeOffset()
+            dlg.GetOffset() != (int)__schedule->GetOptions()->GetMIDITimecodeOffset()
             )
         {
             __schedule->GetOptions()->SetMIDITimecodeDevice(dlg.GetMIDI());

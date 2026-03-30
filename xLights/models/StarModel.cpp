@@ -100,7 +100,7 @@ void StarModel::InitRenderBufferNodes(const std::string& tp,
         }
 
         int start = 0;
-        for (int cur = 0; cur < GetLayerSizeCount(); cur++) {
+        for (int cur = 0; cur < (int)GetLayerSizeCount(); cur++) {
 
             int layer = cur;
             if (!Contains(_starStartLocation, "Inside")) {
@@ -112,14 +112,14 @@ void StarModel::InitRenderBufferNodes(const std::string& tp,
                 continue;
             }
 
-            for (size_t cnt = 0; cnt < numlights; cnt++) {
+            for (size_t cnt = 0; cnt < (size_t)numlights; cnt++) {
                 int n;
                 if (!SingleNode) {
                     n = cnt + start;
                 } else {
                     n = cur;
                 }
-                if (n >= Nodes.size()) {
+                if (n >= (int)Nodes.size()) {
                     n = Nodes.size() - 1;
                 }
                 for (auto& it : newNodes[n]->Coords) {
@@ -197,7 +197,7 @@ bool StarModel::AllNodesAllocated() const
         allocated += it;
     }
 
-    return (allocated == GetNodeCount());
+    return (allocated == (int)GetNodeCount());
 }
 
 // _starPoints is number of points
@@ -263,7 +263,7 @@ void StarModel::InitModel()
     }
 
     int maxLightsOnLayer = 0;
-    for (int l = 0; l < GetLayerSizeCount(); l++) {
+    for (int l = 0; l < (int)GetLayerSizeCount(); l++) {
         // we inflate a layer for every layer outside it by 1 / number of layers ... so 5th layer of 10 should be inflated by 50%
         int layersoutside = GetLayerSizeCount() - l - 1;
         maxLightsOnLayer = std::max(maxLightsOnLayer, 1 + (int)((float)GetLayerSize(l) * (1.0 + ((float)layersoutside / (float)GetLayerSizeCount()))));
@@ -324,7 +324,7 @@ void StarModel::InitModel()
     if (!SingleNode) {
         for (int l = startLayer; l != endLayer; l+= layerIncr) {
 
-            if (currentNode >= Nodes.size()) break;
+            if (currentNode >= (int)Nodes.size()) break;
 
             int layerNodes = GetLayerSize(l);
             int endNodeForLayer = currentNode + layerNodes;
@@ -346,7 +346,7 @@ void StarModel::InitModel()
             double segEndLen = 0;
             for (int s = 0; s < starSegments; s++) {
 
-                if (currentNode >= Nodes.size()) break;
+                if (currentNode >= (int)Nodes.size()) break;
 
                 start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, curAngle);
                 end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
@@ -382,7 +382,7 @@ void StarModel::InitModel()
 
 
                     currentNode++;
-                    if (currentNode >= Nodes.size()) break;
+                    if (currentNode >= (int)Nodes.size()) break;
                 }
 
                 // move to the next arm
@@ -396,7 +396,7 @@ void StarModel::InitModel()
         }
 
         // handle any left over nodes
-        for (int n = currentNode; n < Nodes.size(); n++) {
+        for (int n = currentNode; n < (int)Nodes.size(); n++) {
             int currentString = n / _nodesPerString;
             int nodeInString = n % _nodesPerString;
             if (nodeInString == 0) {
@@ -418,7 +418,7 @@ void StarModel::InitModel()
 
             xlPoint lastCoord; // we remember this so any excess coords are placed with the last coord
 
-            if (currentNode >= Nodes.size()) break;
+            if (currentNode >= (int)Nodes.size()) break;
 
             int layerNodes = 1;
 

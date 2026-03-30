@@ -265,7 +265,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
     }
 
     int row = GetRow(event.GetY());
-    if (row >= mSequenceElements->GetVisibleRowInformationSize() || row < 0) {
+    if (row >= (int)mSequenceElements->GetVisibleRowInformationSize() || row < 0) {
         if (update_time > -1) {
             UpdateTimePosition(update_time);
         }
@@ -343,7 +343,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
     }
     SetFocus();
     mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSelectedRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         return;
     }
 
@@ -541,7 +541,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         wxMenuItem* menu_find_next = mnuLayer.Append(ID_GRID_MNU_FIND_NEXT, "Find Next");
         wxMenuItem* menu_find_prior = mnuLayer.Append(ID_GRID_MNU_FIND_PREVIOUS, "Find Previous");
         wxMenuItem* menu_replace = mnuLayer.Append(ID_GRID_MNU_REPLACE, "Replace All...");
-        if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+        if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
             menu_find_next->Enable(false);
             menu_find_prior->Enable(false);
             menu_replace->Enable(false);
@@ -579,7 +579,7 @@ uint32_t EffectsGrid::FindChannel(Element* element, int strandIndex, int nodeInd
 }
 
 void EffectsGrid::AddShimmer() {
-    if (mSelectedRow >= 0 && mSelectedRow < mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSelectedRow >= 0 && mSelectedRow < (int)mSequenceElements->GetVisibleRowInformationSize()) {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING && ri->layerIndex == 2) {
             EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(mSelectedRow);
@@ -623,7 +623,7 @@ void EffectsGrid::AddShimmer() {
 }
 
 void EffectsGrid::RemoveShimmer() {
-    if (mSelectedRow >= 0 && mSelectedRow < mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSelectedRow >= 0 && mSelectedRow < (int)mSequenceElements->GetVisibleRowInformationSize()) {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING && ri->layerIndex == 2) {
             EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(mSelectedRow);
@@ -677,7 +677,7 @@ void EffectsGrid::Find() {
 }
 
 void EffectsGrid::FindNext() {
-    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         wxMessageBox("No search text or invalid row selected.", "Find", wxOK | wxICON_INFORMATION);
         return;
     }
@@ -714,7 +714,7 @@ void EffectsGrid::FindNext() {
 }
 
 void EffectsGrid::FindPrevious() {
-    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         wxMessageBox("No search text or invalid row selected.", "Find", wxOK | wxICON_INFORMATION);
         return;
     }
@@ -751,7 +751,7 @@ void EffectsGrid::FindPrevious() {
 }
 
 void EffectsGrid::Replace() {
-    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         wxMessageBox("No search text or invalid row selected. Please use 'Find' first.", "Replace All", wxOK | wxICON_INFORMATION);
         return;
     }
@@ -819,14 +819,14 @@ void EffectsGrid::FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _
                 }
             }
 
-            for (size_t j = 0; j < me->GetStrandCount(); ++j) {
+            for (int j = 0; j < me->GetStrandCount(); ++j) {
                 StrandElement* se = me->GetStrand(j);
                 for (auto it : se->GetEffectLayers()) {
                     if (it->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
                         possible.push_back({ se, it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr });
                     }
                 }
-                for (size_t j = 0; j < se->GetNodeLayerCount(); ++j) {
+                for (int j = 0; j < se->GetNodeLayerCount(); ++j) {
                     NodeLayer* nl = se->GetNodeEffectLayer(j);
                     if (nl->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
                         possible.push_back({ se, nullptr, nl, nl->GetEffectAtTime(_findDataMS), nullptr });
@@ -834,7 +834,7 @@ void EffectsGrid::FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _
                 }
             }
 
-            for (size_t j = 0; j < me->GetSubModelCount(); ++j) {
+            for (int j = 0; j < (int)me->GetSubModelCount(); ++j) {
                 SubModelElement* sm = me->GetSubModel(j);
                 for (auto it : sm->GetEffectLayers()) {
                     if (it->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
@@ -880,12 +880,12 @@ void EffectsGrid::FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _
     }
 
     auto& dls = xlights->CurrentSeqXmlFile->GetDataLayers();
-    for (size_t i = 0; i < dls.GetNumLayers(); i++) {
+    for (int i = 0; i < dls.GetNumLayers(); i++) {
         auto dl = dls.GetDataLayer(i);
         if (dl != nullptr && dl->GetSource() != "<auto-generated>") {
             auto start = dl->GetChannelOffset();
             auto end = start + dl->GetNumChannels() - 1;
-            if (!(end < channel || start > channel + chans)) {
+            if (!((uint32_t)end < channel || (uint32_t)start > channel + chans)) {
                 actual.push_back({ nullptr, nullptr, nullptr, nullptr, dl });
             }
         }
@@ -1498,7 +1498,7 @@ bool EffectsGrid::DragOver(int x, int y) {
 
     mDragDropping = false;
     int row = GetRow(y);
-    if (row < mSequenceElements->GetVisibleRowInformationSize()) {
+    if (row < (int)mSequenceElements->GetVisibleRowInformationSize()) {
         int effectIndex;
         HitLocation selectionType;
         int time = mTimeline->GetRawTimeMSfromPosition(x);
@@ -1590,7 +1590,7 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files) {
         long tlEnd = mTimeline->GetSequenceEnd();
 
         int row = GetRow(y);
-        if (row >= mSequenceElements->GetVisibleRowInformationSize()) {
+        if (row >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
             return; // we are not one a row
         }
         EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
@@ -1657,7 +1657,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
     }
 
     int rowIndex = GetRow(event.GetY());
-    bool out_of_bounds = rowIndex < 0 || (rowIndex >= mSequenceElements->GetVisibleRowInformationSize());
+    bool out_of_bounds = rowIndex < 0 || (rowIndex >= (int)mSequenceElements->GetVisibleRowInformationSize());
 
     if (mResizing) {
         // Resize() will check threshold for MOVE operations internally
@@ -1765,7 +1765,7 @@ int EffectsGrid::GetClippedPositionFromTimeMS(int ms) const {
 void EffectsGrid::CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename) {
     int row = GetRow(y);
 
-    if (row >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (row >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         return;
     }
 
@@ -1901,7 +1901,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
     mStartResizeTimeMS = selectedTimeMS;
     int row = GetRow(event.GetY());
     mSelectedRow = GetRow(event.GetY()) + mSequenceElements->GetFirstVisibleModelRow();
-    if (row >= mSequenceElements->GetVisibleRowInformationSize() || row < 0)
+    if (row >= (int)mSequenceElements->GetVisibleRowInformationSize() || row < 0)
         return;
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     mSequenceElements->get_undo_mgr().SetCaptureUndo(true);
@@ -3692,7 +3692,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
 
         if (checkForEmptyCell) {
             int row = GetRow(event.GetY());
-            if (mSequenceElements->GetSelectedTimingRow() >= 0 && row < mSequenceElements->GetVisibleRowInformationSize()) {
+            if (mSequenceElements->GetSelectedTimingRow() >= 0 && row < (int)mSequenceElements->GetVisibleRowInformationSize()) {
                 CheckForPartialCell(event.GetX());
                 if (mPartialCellSelected) {
                     mSelectedRow = -1;
@@ -3712,7 +3712,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                         UnselectEffect(true);
                     }
                 }
-            } else if (row >= 0 && row < mSequenceElements->GetVisibleRowInformationSize()) {
+            } else if (row >= 0 && row < (int)mSequenceElements->GetVisibleRowInformationSize()) {
                 EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
                 int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
                 int effectIndex = 0;
@@ -4926,7 +4926,7 @@ void EffectsGrid::CloseGap() {
             continue;
         }
 
-        int nextEffectStart = (i == selectedIndex - 1) ? sel_eff_start : std::get<0>(selectedEffects[i + 1])->GetStartTimeMS();
+        int nextEffectStart = (i == (int)(selectedIndex - 1)) ? sel_eff_start : std::get<0>(selectedEffects[i + 1])->GetStartTimeMS();
         int gap = nextEffectStart - originalEnd;
 
         if (gap > 0) {
@@ -5039,7 +5039,7 @@ void EffectsGrid::AlignSelectedEffectsToTimingMark() {
 }
 
 bool EffectsGrid::PapagayoEffectsSelected() const {
-    for (int i = 0; i < mSequenceElements->GetVisibleRowInformationSize(); i++) {
+    for (int i = 0; i < (int)mSequenceElements->GetVisibleRowInformationSize(); i++) {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(i);
         if (el && el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             if (el->GetParentElement()->GetEffectLayerCount() > 1) {
@@ -6162,7 +6162,7 @@ void EffectsGrid::InsertEffectLayerBelow() {
     if (element == nullptr)
         return;
 
-    if (el->GetLayerNumber() - 1 < element->GetEffectLayerCount() - 1) {
+    if (el->GetLayerNumber() - 1 < (int)element->GetEffectLayerCount() - 1) {
         element->InsertEffectLayer(el->GetLayerNumber());
     } else {
         element->AddEffectLayer();
@@ -6431,7 +6431,7 @@ void EffectsGrid::DrawLines(xlGraphicsContext* ctx) const {
     backgrounds->PreAlloc(mSequenceElements->GetVisibleRowInformationSize() * 6);
 
     xlColor color(33, 33, 33);
-    for (size_t row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
+    for (int row = 0; row < (int)mSequenceElements->GetVisibleRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
         Element* e = ri->element;
         y = row * DEFAULT_ROW_HEADING_HEIGHT;
@@ -6452,7 +6452,7 @@ void EffectsGrid::DrawLines(xlGraphicsContext* ctx) const {
     }
     float gridSize = 0.5f / translateToBacking(1.0);
     color = xlights->color_mgr.GetColor(ColorManager::COLOR_GRIDLINES);
-    for (size_t row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
+    for (int row = 0; row < (int)mSequenceElements->GetVisibleRowInformationSize(); row++) {
         y = (row + 1) * DEFAULT_ROW_HEADING_HEIGHT;
         backgrounds->AddRectAsTriangles(x1, y - gridSize, x2, y + gridSize, color);
     }
@@ -6529,7 +6529,7 @@ float ComputeFontSize(int& toffset, const float factor) {
 
 void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
     int width = getWidth();
-    for (int row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
+    for (int row = 0; row < (int)mSequenceElements->GetVisibleRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
         if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             DrawTimingEffects(row);
@@ -7121,7 +7121,7 @@ void EffectsGrid::CreateEffectIconTextures(xlGraphicsContext* ctx) {
     images[0].InitAlpha();
     images[1].InitAlpha();
     images[2].InitAlpha();
-    for (int x = 0; x < xlights->GetEffectManager().size(); x++) {
+    for (int x = 0; x < (int)xlights->GetEffectManager().size(); x++) {
         RenderableEffect* eff = xlights->GetEffectManager()[x];
         int xLoc = (x % 8) * 64;
         int yLoc = x / 8 * 64;
@@ -7227,7 +7227,7 @@ void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect, bool re
 void EffectsGrid::RaiseEffectDropped(int x, int y) const {
     // Store Effect Layer to add effect to
     int row = GetRow(y);
-    if (row >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (row >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         return;
     }
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
@@ -7247,7 +7247,7 @@ void EffectsGrid::RaiseEffectDropped(int x, int y) const {
 Element* EffectsGrid::GetActiveTimingElement() const {
     Element* returnValue = nullptr;
 
-    for (int row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
+    for (int row = 0; row < (int)mSequenceElements->GetVisibleRowInformationSize(); row++) {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
         if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive()) {
             returnValue = e;
@@ -7264,7 +7264,7 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int& toLeft, int& toRight
     toLeft = NO_MAX;
     toRight = NO_MAX;
 
-    for (int row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
+    for (int row = 0; row < (int)mSequenceElements->GetVisibleRowInformationSize(); row++) {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
         el->GetMaximumRangeOfMovementForSelectedEffects(left, right);
         toLeft = toLeft < left ? toLeft : left;
@@ -7367,7 +7367,7 @@ void EffectsGrid::CutModelEffects(int row_number, bool allLayers) {
         effectLayer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
     } else {
         Element* element = mSequenceElements->GetVisibleRowInformation(row_number)->element;
-        for (int i = 0; i < element->GetEffectLayerCount(); i++) {
+        for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             EffectLayer* effectLayer = element->GetEffectLayer(i);
             effectLayer->SelectAllEffects();
             effectLayer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
@@ -7400,7 +7400,7 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
     } else {
         Element* e = mSequenceElements->GetVisibleRowInformation(row_number)->element;
         mSequenceElements->UnSelectAllEffects();
-        for (int i = 0; i < e->GetEffectLayerCount(); i++) {
+        for (int i = 0; i < (int)e->GetEffectLayerCount(); i++) {
             e->GetEffectLayer(i)->SelectAllEffects();
         }
         if (incSubModels) {
@@ -7410,10 +7410,10 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                 me = se->GetModelElement();
             }
             if (me != nullptr) {
-                for (size_t s = 0; s < me->GetSubModelCount(); ++s) {
+                for (int s = 0; s < (int)me->GetSubModelCount(); ++s) {
                     auto se = me->GetSubModel(s);
                     if (se != nullptr) {
-                        for (int i = 0; i < se->GetEffectLayerCount(); ++i) {
+                        for (int i = 0; i < (int)se->GetEffectLayerCount(); ++i) {
                             if (se->GetEffectLayer(i)->GetEffectCount() > 0) {
                                 se->GetEffectLayer(i)->SelectAllEffects();
                             }

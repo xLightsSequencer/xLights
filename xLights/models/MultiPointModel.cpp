@@ -25,7 +25,7 @@ MultiPointModel::~MultiPointModel()
 
 bool MultiPointModel::IsNodeFirst(int n) const
 {
-    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - 1);
 }
 
 int MultiPointModel::MapToNodeIndex(int strand, int node) const {
@@ -123,7 +123,7 @@ void MultiPointModel::InitLine() {
 
     int idx = 0;
     for(size_t n=0; n<NodeCount; n++) {
-        if (Nodes[n]->StringNum != LastStringNum) {
+        if ((int)Nodes[n]->StringNum != LastStringNum) {
             LastStringNum=Nodes[n]->StringNum;
             chan=stringStartChan[LastStringNum];
             if (!IsLtoR) {

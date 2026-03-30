@@ -78,7 +78,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     model_header_cols.push_back("Aliases");
 
     std::map<int, double> _model_col_widths;
-    for (int i = 0; i < model_header_cols.size(); i++) {
+    for (int i = 0; i < (int)model_header_cols.size(); i++) {
         worksheet_write_string(modelsheet, 0, i, model_header_cols[i].c_str(), header_format);
         _model_col_widths[i] = model_header_cols[i].size() + FACTOR; // estimate column width
     }
@@ -190,7 +190,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
 
     std::map<int, double> _group_col_widths;
     const std::vector<std::string> groupHeader{ "Group Name", "Models", "Models Count", "Default Buffer W x H", "Preview", "Aliases" };
-    for (int i = 0; i < groupHeader.size(); i++) {
+    for (int i = 0; i < (int)groupHeader.size(); i++) {
         worksheet_write_string(groupsheet, 0, i, groupHeader[i].c_str(), header_format);
         _group_col_widths[i] = groupHeader[i].size() + FACTOR; // estimate column width
     }
@@ -239,7 +239,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
 
     auto control_cols = OutputManager::GetExportHeaders();
 
-    for (int i = 0; i < control_cols.size(); i++) {
+    for (int i = 0; i < (int)control_cols.size(); i++) {
         worksheet_write_string(controllersheet, 0, i, control_cols[i].c_str(), header_format);
         _controller_col_widths[i] = control_cols[i].size() + FACTOR; // estimate column width
     }
@@ -248,7 +248,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     for (const auto& it : _outputManager.GetControllers()) {
         auto scolumns = it->GetExport();
         auto columns = wxSplit(scolumns, ',');
-        for (int j = 0; j < columns.size(); j++) {
+        for (int j = 0; j < (int)columns.size(); j++) {
             write_worksheet_string(controllersheet, row, j, columns[j], format, _controller_col_widths);
         }
         ++row;
@@ -257,7 +257,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
             if (!s.empty()) {
                 auto scolumns2 = it2->GetExport();
                 auto columns2 = wxSplit(scolumns2, ',');
-                for (int k = 0; k < columns2.size(); k++) {
+                for (int k = 0; k < (int)columns2.size(); k++) {
                     write_worksheet_string(controllersheet, row, k, columns2[k], format, _controller_col_widths);
                 }
                 row++;
@@ -366,14 +366,14 @@ void xLightsFrame::ExportEffects(wxString const& filename)
         effects += ExportElement(f, e, effectfrequency, effecttotaltime, files);
 
         if (dynamic_cast<ModelElement*>(e) != nullptr) {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 effects += ExportElement(f, se, effectfrequency, effecttotaltime, files);
             }
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
                 int node = 0;
-                for (size_t n = 0; n < se->GetNodeLayerCount(); n++) {
+                for (int n = 0; n < se->GetNodeLayerCount(); n++) {
                     NodeLayer* nl = se->GetNodeLayer(n);
                     effects += ExportNodes(f, se, nl, node++, effectfrequency, effecttotaltime, files);
                 }

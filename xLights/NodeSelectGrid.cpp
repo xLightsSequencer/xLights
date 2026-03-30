@@ -917,11 +917,11 @@ void NodeSelectGrid::ImportModelXML(pugi::xml_node xmlData)
     size_t width = data[0][0].size();
 	const int gridwidth = GridNodes->GetNumberCols();
 
-    if (gridheight < height) {
+    if ((size_t)gridheight < height) {
         DisplayError("xModel file dimensions are too big.");
         return;
     }
-    if (gridwidth < width) {
+    if ((size_t)gridwidth < width) {
 		DisplayError("xModel file dimensions are too big.");
 		return;
 	}
@@ -1121,7 +1121,7 @@ void NodeSelectGrid::Paste()
         wxString cur_line = copy_data.BeforeFirst('\n');
         copy_data = copy_data.AfterFirst('\n');
         wxArrayString fields = wxSplit(cur_line, (cur_line.Find(',') != wxNOT_FOUND) ? ',' : '\t'); // allow comma or tab delim -DJ
-        for (int fieldnum = 0; fieldnum < fields.Count(); ++fieldnum) {
+        for (int fieldnum = 0; fieldnum < (int)fields.Count(); ++fieldnum) {
             if (i < numrows && k + fieldnum < numcols) {
                 wxString field = fields[fieldnum].Trim(true).Trim(false);
                 if (!field.IsEmpty()) {
@@ -1268,7 +1268,7 @@ void NodeSelectGrid::AddNode(int col, int row)
     auto s = TextCtrl_Nodes->GetValue();
     int ip = TextCtrl_Nodes->GetInsertionPoint();
     auto cv = GridNodes->GetCellValue(row, col);
-    if (ip >= s.size()) {
+    if (ip >= (int)s.size()) {
         if (s != "" && !s.EndsWith(","))
             s += ",";
         s += cv;
@@ -1283,11 +1283,11 @@ void NodeSelectGrid::AddNode(int col, int row)
             ip--;
         } else if (s[ip] == ',') {
         } else {
-            while (ip < s.size() && s[ip] != ',')
+            while (ip < (int)s.size() && s[ip] != ',')
                 ip++;
         }
 
-        if (ip >= s.size()) {
+        if (ip >= (int)s.size()) {
             if (!s.EndsWith(","))
                 s += ",";
             s += cv;

@@ -4782,9 +4782,9 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec) 
             buffer[i + 2] = c;
         }
 
-        if (tc == end - 1) {
+        if (tc == (size_t)(end - 1)) {
             buffer[tc] = a;
-        } else if (tc == end - 2) {
+        } else if (tc == (size_t)(end - 2)) {
             buffer[tc + 1] = b;
         }
     }

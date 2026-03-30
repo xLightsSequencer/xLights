@@ -249,7 +249,7 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
     // skip over the "G2" header or whatever
 
     try {
-        for (int x = 0; x < json.size(); x++) {
+        for (int x = 0; x < (int)json.size(); x++) {
             if (json[x] == '{' || json[x] == '[') {
                 std::string const config = json.substr(x);
                 nlohmann::json origJson = nlohmann::json::parse(config);

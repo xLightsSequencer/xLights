@@ -148,7 +148,7 @@ OSCPacket::OSCPacket(uint8_t* buffer, int buffsize, OSCOptions* options, int fra
     _buffer = (uint8_t*)malloc(_buffsize);
     memcpy(_buffer, buffer, buffsize);
     _progress = -2;
-    if (strlen((char*)buffer) > buffsize)
+    if (strlen((char*)buffer) > (size_t)buffsize)
         return;
     std::string path((char*)buffer);
     _path = path;

@@ -64,7 +64,7 @@ public:
 			reader.Parse(json, &val);
 
 			if (!val.IsNull()) {
-				for (int i = 0; i < val["playlists"].AsArray()->Count(); i++) {
+				for (int i = 0; i < (int)val["playlists"].AsArray()->Count(); i++) {
 					auto pl = val["playlists"][i];
 					res.push_back({ pl["name"].AsString(), wxAtoi(pl["id"].AsString()) });
 				}
@@ -114,7 +114,7 @@ public:
             reader.Parse(json, &val);
 
             if (!val.IsNull()) {
-                for (int i = 0; i < val["playingeffects"].AsArray()->Count(); i++) {
+                for (int i = 0; i < (int)val["playingeffects"].AsArray()->Count(); i++) {
                     auto pl = val["playingeffects"][i];
                     res.push_back(pl["name"].AsString());
                 }

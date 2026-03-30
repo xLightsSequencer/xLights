@@ -46,7 +46,7 @@ void IciclesModel::InitModel()
     int width = -1;
     size_t curNode = 0;
     size_t curCoord = 0;
-    for (size_t x = 0; x < numStrings; x++) {
+    for (int x = 0; x < numStrings; x++) {
         int lights = lightsPerString;
         size_t y = 0;
         size_t curDrop = 0;

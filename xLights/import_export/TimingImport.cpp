@@ -188,7 +188,7 @@ void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filename
         if (dlg.ShowModal() == wxID_OK) {
             wxArrayInt selections = dlg.GetSelections();
 
-            for (int i1 = 0; i1 < selections.size(); i1++) {
+            for (int i1 = 0; i1 < (int)selections.size(); i1++) {
                 TimingElement *ti = elements[selections[i1]];
                 if (sequence_loaded) {
                     element = xLightsParent->AddTimingElement(ti->GetName());
@@ -196,7 +196,7 @@ void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filename
                     // Pre-load: store as pending timing with starts/ends/labels
                     PendingTiming pt;
                     pt.name = ti->GetName();
-                    for (int x = 0; x < ti->GetEffectLayerCount(); x++) {
+                    for (int x = 0; x < (int)ti->GetEffectLayerCount(); x++) {
                         EffectLayer *src = ti->GetEffectLayer(x);
                         for (int ef = 0; ef < src->GetEffectCount(); ef++) {
                             Effect *effect = src->GetEffect(ef);
@@ -209,7 +209,7 @@ void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filename
                     timing_list.push_back(ti->GetName());
                     continue;
                 }
-                for (int x = 0; x < ti->GetEffectLayerCount(); x++) {
+                for (int x = 0; x < (int)ti->GetEffectLayerCount(); x++) {
                     EffectLayer *src = ti->GetEffectLayer(x);
                     effectLayer = element->GetEffectLayer(x);
                     if (effectLayer == nullptr) {
@@ -270,7 +270,7 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
         if (dlg.ShowModal() == wxID_OK) {
             wxArrayInt selections = dlg.GetSelections();
 
-            for (int i1 = 0; i1 < selections.size(); i1++) {
+            for (int i1 = 0; i1 < (int)selections.size(); i1++) {
                 
                 std::string sel = markNames[selections[i1]].ToStdString();
 

@@ -150,7 +150,7 @@ void FPPRemotesDialog::EditItem(int item)
         else
         {
             bool duplicate = false;
-            for (size_t i = 0; i < ListBox_Remotes->GetCount(); ++i)
+            for (int i = 0; i < (int)ListBox_Remotes->GetCount(); ++i)
             {
                 if (ListBox_Remotes->GetString(i) == dlg.GetValue() && item != i)
                 {

@@ -202,7 +202,7 @@ void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
         return;
     }
 
-    for (auto x = 0; x < indexs.size(); x++) {
+    for (auto x = 0; x < (int)indexs.size(); x++) {
         auto i = indexs[x];
         wxString name = GridUserLyricDict->GetCellValue(i, 0);
 

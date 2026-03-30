@@ -1025,7 +1025,7 @@ void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
 
         wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
         auto sel = GetSelection();
-        if (sel >= 0 && sel < choices.size()) {
+        if (sel >= 0 && sel < (int)choices.size()) {
             dlg.SetSelection(sel);
         }
         OptimiseDialogPosition(&dlg);

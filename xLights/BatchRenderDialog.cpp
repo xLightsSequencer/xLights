@@ -520,7 +520,7 @@ void BatchRenderDialog::SelectFromFPPPlayList()
     if (dlg.ShowModal() == wxID_OK) {
         int const index = dlg.GetSelection();
 
-        if (index >= 0 && index < instances.size()) {
+        if (index >= 0 && index < (int)instances.size()) {
             FPP* fpp { nullptr };
             auto it = instances.begin();
             std::advance(it, index);

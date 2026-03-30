@@ -57,7 +57,7 @@ void OutputProcessThreeToFour::Frame(uint8_t* buffer, size_t size, std::list<Out
 	uint8_t* target = buffer + sc - 1 + (nodes - 1) * 4;
 	uint8_t* source = buffer + sc - 1 + (nodes - 1) * 3;
 	
-    for (int i = 0; i < nodes; i++)
+    for (int i = 0; i < (int)nodes; i++)
     {
 		uint8_t white = 0;
 		if (*source == *(source + 1) && *source == *(source + 2))

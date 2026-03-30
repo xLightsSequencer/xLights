@@ -598,7 +598,7 @@ bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
             _outputData.push_back(group);
         }
     }
-    if (_outputData.size() == GetMaxStringOutputs()) {
+    if ((int)_outputData.size() == GetMaxStringOutputs()) {
         return true;
     }
     wxASSERT(false);

@@ -70,7 +70,7 @@ void ListenerSerial::StartProcess(const std::string& localIP)
             p += *it;
         }
 
-        wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
+        [[maybe_unused]] wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
             _("Things to check:\n") +
             _("1. Are all required cables plugged in?\n") +
             _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +

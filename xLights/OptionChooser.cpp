@@ -70,7 +70,7 @@ void OptionChooser::GetSelectedOptions(wxArrayString& options)
 {
     wxArrayInt selections;
     ListBox_Options->GetSelections(selections);
-    for( int i = 0; i < selections.GetCount(); i++ )
+    for( int i = 0; i < (int)selections.GetCount(); i++ )
     {
         options.push_back(ListBox_Options->GetString(selections[i]));
     }

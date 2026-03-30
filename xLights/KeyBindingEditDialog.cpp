@@ -474,7 +474,7 @@ void KeyBindingEditDialog::SelectKey(int id)
 	for (int i = 0; i < ListCtrl_Bindings->GetItemCount(); i++) {
 		auto iid = ListCtrl_Bindings->GetItemData(i);
 
-		if (iid == id) {
+		if (iid == (wxUIntPtr)id) {
 			ListCtrl_Bindings->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
 			ListCtrl_Bindings->EnsureVisible(i);
 			break;

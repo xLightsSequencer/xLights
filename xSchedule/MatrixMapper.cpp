@@ -284,9 +284,9 @@ bool MatrixMapper::LoadModel() {
 size_t MatrixMapper::MapCustom(int x, int y) const {
     size_t res = GetStartChannelAsNumber();
 
-    if (_customModelData[0].size() < y)
+    if ((int)_customModelData[0].size() < y)
         return res;
-    if (_customModelData[0][y].size() < x)
+    if ((int)_customModelData[0][y].size() < x)
         return res;
 
     if (_customModelData[0][y][x] < 0)
@@ -444,7 +444,7 @@ size_t MatrixMapper::Map(int x, int y) const {
     }
 
     // make sure the value is within the range expected ... until i know my code is right
-    if (loc < startChannel || loc >= startChannel + GetChannels()) {
+    if ((long)loc < startChannel || (long)loc >= startChannel + (long)GetChannels()) {
         // location out of range ... this can happen if the user tampers with the matrix while it is in use
         // force it to a valid value
         loc = startChannel;

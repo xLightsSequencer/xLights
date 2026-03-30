@@ -30,7 +30,7 @@ class impTreeItemData : public wxClientData
     bool _modelGroup;
     const wxString _name;
 public:
-    impTreeItemData(wxString name, pugi::xml_node n, bool mg) : _name(name), _modelNode(n), _modelGroup(mg)
+    impTreeItemData(wxString name, pugi::xml_node n, bool mg) : _modelNode(n), _modelGroup(mg), _name(name)
     {}
     wxString GetName() const { return _name; };
     pugi::xml_node GetModelNode() const { return _modelNode; }

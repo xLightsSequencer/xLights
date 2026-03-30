@@ -256,7 +256,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         int totalLayers = 0;
         wxString layers;
         //skip first parm, its cener hollowness
-        for( int i = 1; i < model.parms.size(); i++ ) {
+        for( int i = 1; i < (int)model.parms.size(); i++ ) {
             if( model.parms[ i ] != 0 ) {
                 totalCount += model.parms[ i ];
                 totalLayers++;
@@ -358,7 +358,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         int drops = 0;
         std::vector<int> dropcounts;
         //skip first parm, its drop count
-        for( int i = 1; i < model.parms.size(); i++ ) {
+        for( int i = 1; i < (int)model.parms.size(); i++ ) {
             if( model.parms[ i ] != 0 ) {
                 maxdrop = std::max( maxdrop, model.parms[ i ] );
                 drops++;
@@ -398,7 +398,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             wxString point_data;
 
             S5Point world_pt;
-            for( int i = 0; i < model.points.size(); ++i ) {
+            for( int i = 0; i < (int)model.points.size(); ++i ) {
                 if( i == 0 ) {
                     world_pt = ScalePointToXLights( model.points.at( i ), previewW, previewH );
                     point_data += "0.0,0.0,0.0,";
@@ -422,7 +422,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             wxString point_data;
             int points = 0;
             S5Point world_pt;
-            for( int i = 0; i < model.points.size()-1; i+=2 ) {//skip every other point
+            for( int i = 0; i < (int)model.points.size()-1; i+=2 ) {//skip every other point
                 if( i == 0 ) {
                     world_pt = ScalePointToXLights( model.points.at( i ), previewW, previewH );
                     point_data += "0.0,0.0,0.0,";
@@ -448,7 +448,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             wxString point_data;
 
             S5Point world_pt;
-            for( int i = 0; i < model.points.size(); ++i ) {
+            for( int i = 0; i < (int)model.points.size(); ++i ) {
                 if( i == 0 ) {
                     world_pt = ScalePointToXLights( model.points.at( i ), previewW, previewH );
                     point_data += "0.0,0.0,0.0,";
@@ -1121,8 +1121,8 @@ bool LORPreview::FindBulbModelScale(int scale, std::vector<S5Point> const& bulbs
     if (bulbs.size() <= 1) {
         return true;
     }
-    for (int i = 0; i < bulbs.size(); i++) {
-        for (int j = i + 1; j < bulbs.size(); j++) {
+    for (int i = 0; i < (int)bulbs.size(); i++) {
+        for (int j = i + 1; j < (int)bulbs.size(); j++) {
             int x1 = (bulbs[i].x * scale);
             int y1 = (bulbs[i].y * scale);
             int x2 = (bulbs[j].x * scale);

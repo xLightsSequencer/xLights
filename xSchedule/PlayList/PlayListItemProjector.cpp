@@ -35,11 +35,11 @@ unsigned char* PlayListItemProjector::PrepareData(const std::string s, int& used
     unsigned char* buffer = (unsigned char*)malloc(working.size());
     used = 0;
 
-    for (int i = 0; i < working.size(); i++)
+    for (int i = 0; i < (int)working.size(); i++)
     {
         if (working[i] == '\\')
         {
-            if (i + 1 < working.size())
+            if (i + 1 < (int)working.size())
             {
                 if (working[i + 1] == '\\')
                 {
@@ -51,12 +51,12 @@ unsigned char* PlayListItemProjector::PrepareData(const std::string s, int& used
                     // up to next 2 characters if 0-F will be treated as a hex code
                     ++i;
                     ++i;
-                    if (i + 1 < working.size() && isHexChar(working[i]) && isHexChar(working[i + 1]))
+                    if (i + 1 < (int)working.size() && isHexChar(working[i]) && isHexChar(working[i + 1]))
                     {
                         buffer[used++] = (char)HexToChar(working[i], working[i + 1]);
                         ++i;
                     }
-                    else if (i < working.size() && isHexChar(working[i]))
+                    else if (i < (int)working.size() && isHexChar(working[i]))
                     {
                         buffer[used++] = (char)HexToChar(working[i]);
                     }
@@ -124,7 +124,7 @@ void PlayListItemProjector::ExecuteSerialCommand()
                     p += *it;
                 }
 
-                wxString msg = wxString::Format(_("Error occurred while connecting to %s (Available Ports %s) \n\n") +
+                [[maybe_unused]] wxString msg = wxString::Format(_("Error occurred while connecting to %s (Available Ports %s) \n\n") +
                     _("Things to check:\n") +
                     _("1. Are all required cables plugged in?\n") +
                     _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +

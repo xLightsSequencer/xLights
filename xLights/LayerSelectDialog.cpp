@@ -34,7 +34,7 @@ END_EVENT_TABLE()
 
 LayerSelectDialog::LayerSelectDialog(wxWindow* parent, int startLayer, int endLayer, bool blendLayer, const std::string &layersSelected, 
                                      const std::vector<int> &layerWithEffect, wxWindowID id, const wxPoint& pos, const wxSize& size) :
-    _layerWithEffect(layerWithEffect), _blending(blendLayer) {
+    _blending(blendLayer), _layerWithEffect(layerWithEffect) {
     //(*Initialize(LayerSelectDialog)
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
@@ -108,7 +108,7 @@ std::string LayerSelectDialog::GetSelectedLayers() const {
         if (res != "")
             res += "|";
         std::string s = std::to_string(*it);
-        if (_blending && (*it == CheckListBox_Layers->GetCount() - 1)) {
+        if (_blending && (*it == (int)CheckListBox_Layers->GetCount() - 1)) {
             s = "Blend";
         }
         res += s;

@@ -33,7 +33,7 @@ class MQTTThread : public wxThread
 
 public:
     MQTTThread(const std::string& brokerIP, int port, const std::string& clientId, const std::string& username, const std::string& password, const std::string& topic, const std::string& data) :
-        _brokerIP(brokerIP), _port(port), _clientId(clientId), _username(username), _password(password), _topic(topic), _data(data) { }
+        _brokerIP(brokerIP), _port(port), _username(username), _password(password), _clientId(clientId), _topic(topic), _data(data) { }
 
     virtual void* Entry() override
     {
@@ -76,7 +76,7 @@ public:
 
             spdlog::debug("    PlayListMQTT Sending connect packet.");
             client.Write(buffer, index);
-            wxASSERT(client.LastWriteCount() == index);
+            wxASSERT(client.LastWriteCount() == (wxUint32)index);
             memset(buffer, 0x00, sizeof(buffer));
             client.WaitForRead(0, 500);
             client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
@@ -102,7 +102,7 @@ public:
                     memcpy(&buffer[index], pdata, used);
                     index += used;
                     client.Write(buffer, index);
-                    wxASSERT(client.LastWriteCount() == index);
+                    wxASSERT(client.LastWriteCount() == (wxUint32)index);
                     spdlog::info("PlayListMQTT MQTT Sent.");
                     client.WaitForRead(0, 500);
                     client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
@@ -216,11 +216,11 @@ unsigned char* PlayListItemMQTT::PrepareData(const std::string& s, int& used)
     unsigned char* buffer = (unsigned char*)malloc(working.size());
     used = 0;
 
-    for (int i = 0; i < working.size(); i++)
+    for (int i = 0; i < (int)working.size(); i++)
     {
         if (working[i] == '\\')
         {
-            if (i + 1 < working.size())
+            if (i + 1 < (int)working.size())
             {
                 if (working[i + 1] == '\\')
                 {
@@ -232,12 +232,12 @@ unsigned char* PlayListItemMQTT::PrepareData(const std::string& s, int& used)
                     // up to next 2 characters if 0-F will be treated as a hex code
                     ++i;
                     ++i;
-                    if (i + 1 < working.size() && isHexChar(working[i]) && isHexChar(working[i + 1]))
+                    if (i + 1 < (int)working.size() && isHexChar(working[i]) && isHexChar(working[i + 1]))
                     {
                         buffer[used++] = (char)HexToChar(working[i], working[i + 1]);
                         ++i;
                     }
-                    else if (i < working.size() && isHexChar(working[i]))
+                    else if (i < (int)working.size() && isHexChar(working[i]))
                     {
                         buffer[used++] = (char)HexToChar(working[i]);
                     }
@@ -272,7 +272,7 @@ int PlayListItemMQTT::DecodeInt(uint8_t* pb, int& oldindex)
     int index = 0;
     int multiplier = 1;
     int value = 0;
-    uint8_t enc = 0;
+    [[maybe_unused]] uint8_t enc = 0;
 
     do
     {
@@ -293,7 +293,7 @@ int PlayListItemMQTT::DecodeInt(uint8_t* pb, int& oldindex)
 std::string PlayListItemMQTT::DecodeString(uint8_t* pb, int& oldindex)
 {
     std::string value = "";
-    uint8_t enc = 0;
+    [[maybe_unused]] uint8_t enc = 0;
 
     int stringlen = ((int)pb[0] << 8) + pb[1];
     int index = 2;

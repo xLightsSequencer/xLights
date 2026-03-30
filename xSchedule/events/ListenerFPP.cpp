@@ -246,7 +246,7 @@ void ListenerFPP::Poll() {
                         std::string str(buffer, buffer + sizeof(buffer));
                         std::vector<std::string> parms;
                         std::string parm;
-                        for (int i = 5; i < sizeof(buffer); ++i) {
+                        for (int i = 5; i < (int)sizeof(buffer); ++i) {
                             if (0x20 > buffer[i] || 0x7E < buffer[i]) {
                                 if (!parm.empty()) {
                                     parms.push_back(parm);

@@ -61,7 +61,7 @@ std::string LOREditEffect::GetPalette() const
 
     int cnum = 0;
     wxArrayString c = wxSplit(effectSettings[0], ';');
-    for (int i = 0; i < c.size(); i++)
+    for (int i = 0; i < (int)c.size(); i++)
     {
         wxString n = wxString::Format("%d", cnum + 1);
 
@@ -666,7 +666,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         while (file.Contains("%")) {
             int pos = file.Find("%");
-            if (pos < file.Length() - 2) {
+            if (pos < (int)file.Length() - 2) {
                 char c = HexToChar(file[pos + 1], file[pos + 2]);
                 file.Replace(file.substr(pos, 3), wxString(c));
             }
@@ -708,7 +708,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         while (file.Contains("%")) {
             int pos = file.Find("%");
-            if (pos < file.Length() - 2) {
+            if (pos < (int)file.Length() - 2) {
                 char c = HexToChar(file[pos + 1], file[pos + 2]);
                 file.Replace(file.substr(pos, 3), wxString(c));
             }

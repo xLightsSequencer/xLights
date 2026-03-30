@@ -248,7 +248,7 @@ RowHeading::~RowHeading()
 void RowHeading::ProcessTooltip(wxMouseEvent& event)
 {
     int mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow < mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSelectedRow < (int)mSequenceElements->GetVisibleRowInformationSize()) {
         Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
         if (e != nullptr) {
             wxString layers;
@@ -342,7 +342,7 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
         return;
     }
     mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow < mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSelectedRow < (int)mSequenceElements->GetVisibleRowInformationSize()) {
         bool result;
         Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
         if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -431,7 +431,7 @@ void RowHeading::ToggleExpand(Element* element)
 void RowHeading::leftDoubleClick(wxMouseEvent& event)
 {
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSelectedRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         return;
     }
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
@@ -444,7 +444,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
 {
     wxMenu mnuLayer;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+    if (mSelectedRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
         if (mSequenceElements->GetXLightsFrame()->GetMainSequencer() != nullptr &&
             xLightsFrame::CurrentSeqXmlFile != nullptr) {
             wxMenu mnuEmpty;
@@ -531,7 +531,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 }
 
                 bool modelDisabled = false;
-                for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+                for (int i = 0; i < (int)mSequenceElements->GetElementCount(); ++i) {
                     auto e = mSequenceElements->GetElement(i);
                     if (e->IsRenderDisabled()) {
                         modelDisabled = true;
@@ -743,7 +743,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_INSERT_LAYER_BELOW) {
-        if (layer_index < element->GetEffectLayerCount() - 1) {
+        if (layer_index < (int)element->GetEffectLayerCount() - 1) {
             element->InsertEffectLayer(layer_index + 1);
         } else {
             element->AddEffectLayer();
@@ -754,7 +754,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 100, this, wxGetMousePosition());
 
         if (numtoinsert > 0) {
-            if (layer_index < element->GetEffectLayerCount() - 1) {
+            if (layer_index < (int)element->GetEffectLayerCount() - 1) {
                 for (int i = 0; i < numtoinsert; i++) {
                     element->InsertEffectLayer(layer_index + 1);
                 }
@@ -837,7 +837,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_DELETE_UNUSEDLAYERS) {
         spdlog::debug("RowHeading::OnLayerPopup Deleting unused layers.");
         bool deleted = false;
-        for (int i = 0; i < element->GetEffectLayerCount(); ++i) {
+        for (int i = 0; i < (int)element->GetEffectLayerCount(); ++i) {
             if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
                 // dont delete this layer
             } else {
@@ -1346,7 +1346,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
     } else if (id == ID_ROW_MNU_RENDERENABLE_ALL) {
-        for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+        for (int i = 0; i < (int)mSequenceElements->GetElementCount(); ++i) {
             auto e = mSequenceElements->GetElement(i);
             if (e->IsRenderDisabled()) {
                 e->SetRenderDisabled(false);
@@ -1415,7 +1415,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->GetXLightsFrame()->AbortRender();
         mSequenceElements->get_undo_mgr().CreateUndoStep();
-        if (layer_index < element->GetEffectLayerCount()) {
+        if (layer_index < (int)element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
                 element->GetEffectLayer(layer_index)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
             } else {
@@ -1427,7 +1427,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
         }
     } else if (id == ID_ROW_MNU_SELECT_ROW_EFFECTS) {
-        if (layer_index < element->GetEffectLayerCount()) {
+        if (layer_index < (int)element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
                 element->GetEffectLayer(layer_index)->SelectAllEffects();
             } else {
@@ -1441,7 +1441,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_ROW_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         mSequenceElements->GetXLightsFrame()->AbortRender();
-        if (layer_index < element->GetEffectLayerCount()) {
+        if (layer_index < (int)element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
                 element->GetEffectLayer(layer_index)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
             } else {
@@ -1458,7 +1458,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_MODEL_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         mSequenceElements->GetXLightsFrame()->AbortRender();
-        for (int i = 0; i < element->GetEffectLayerCount(); i++) {
+        for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
         }
 
@@ -1466,17 +1466,17 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), eventForceRefresh);
         mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
-        for (int i = 0; i < element->GetEffectLayerCount(); i++) {
+        for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
         }
     } else if (id == ID_ROW_MNU_SELECT_TIMING_EFFECTS) {
-        for (int i = 0; i < element->GetEffectLayerCount(); i++) {
+        for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
         }
     } else if (id == ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         mSequenceElements->GetXLightsFrame()->AbortRender();
-        for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+        for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
             Element* e = mSequenceElements->GetElement(i);
             if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                 if (e->GetVisible()) {
@@ -1489,7 +1489,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         mSequenceElements->GetXLightsFrame()->AbortRender();
-        for (int i = 0; i < element->GetEffectLayerCount(); ++i) {
+        for (int i = 0; i < (int)element->GetEffectLayerCount(); ++i) {
             if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
                 element->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
             }
@@ -1505,10 +1505,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             me = se->GetModelElement();
         }
         if (me != nullptr) {
-            for (size_t s = 0; s < me->GetSubModelCount(); ++s) {
+            for (int s = 0; s < (int)me->GetSubModelCount(); ++s) {
                 auto se = me->GetSubModel(s);
                 if (se != nullptr) {
-                    for (int i = 0; i < se->GetEffectLayerCount(); ++i) {
+                    for (int i = 0; i < (int)se->GetEffectLayerCount(); ++i) {
                         if (se->GetEffectLayer(i)->GetEffectCount() > 0) {
                             se->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
                         }
@@ -1523,10 +1523,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->GetXLightsFrame()->AbortRender();
         auto me = dynamic_cast<ModelElement*>(element);
         if (me != nullptr) {
-            for (size_t s = 0; s < me->GetStrandCount(); ++s) {
+            for (int s = 0; s < (int)me->GetStrandCount(); ++s) {
                 auto se = me->GetStrand(s);
                 if (se != nullptr) {
-                    for (int i = 0; i < se->GetEffectLayerCount(); ++i) {
+                    for (int i = 0; i < (int)se->GetEffectLayerCount(); ++i) {
                         if (se->GetEffectLayer(i)->GetEffectCount() > 0) {
                             se->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
                         }
@@ -1540,10 +1540,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         auto me = dynamic_cast<ModelElement*>(element);
         if (me != nullptr) {
-            for (size_t s = 0; s < me->GetStrandCount(); ++s) {
+            for (int s = 0; s < (int)me->GetStrandCount(); ++s) {
                 auto se = me->GetStrand(s);
                 if (se != nullptr) {
-                    for (size_t n = 0; n < se->GetNodeLayerCount(); ++n) {
+                    for (int n = 0; n < (int)se->GetNodeLayerCount(); ++n) {
                         if (se->GetNodeLayer(n)->GetEffectCount() > 0) {
                             se->GetNodeLayer(n)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
                         }
@@ -1580,7 +1580,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_SHOW_EFFECTS) {
         spdlog::debug("RowHeading::OnLayerPopup Show effects.");
         int view = mSequenceElements->GetCurrentView();
-        for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i) {
+        for (int i = 0; i < (int)mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
             if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (ExpandElementIfEffects(e)) {
@@ -1594,7 +1594,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         spdlog::debug("RowHeading::OnLayerPopup Collapse all models.");
         int view = mSequenceElements->GetCurrentView();
 
-        for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i) {
+        for (int i = 0; i < (int)mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
             if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 ModelElement* me = dynamic_cast<ModelElement*>(e);
@@ -1609,7 +1609,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         spdlog::debug("RowHeading::OnLayerPopup Collapse all layers.");
 
         int view = mSequenceElements->GetCurrentView();
-        for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i) {
+        for (int i = 0; i < (int)mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
             e->SetCollapsed(true);
         }
@@ -1645,7 +1645,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
             if (tl != nullptr) {
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
-                if (layer_index < element->GetEffectLayerCount()) {
+                if (layer_index < (int)element->GetEffectLayerCount()) {
                     EffectLayer* el = nullptr;
                     if (ri->nodeIndex == -1) {
                         el = element->GetEffectLayer(layer_index);
@@ -1692,7 +1692,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
     bool hasEffects = false;
 
     if (e->GetCollapsed()) {
-        for (int layer = 0; layer < e->GetEffectLayerCount(); layer++) {
+        for (int layer = 0; layer < (int)e->GetEffectLayerCount(); layer++) {
             EffectLayer* el = e->GetEffectLayer(layer);
             if (el->GetEffectCount() > 0) {
                 e->SetCollapsed(false);
@@ -1721,7 +1721,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
                 }
             }
         } else {
-            for (int i = 0; i < me->GetStrandCount(); ++i) {
+            for (int i = 0; i < (int)me->GetStrandCount(); ++i) {
                 hasEffects |= ExpandElementIfEffects(me->GetStrand(i));
             }
             for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
@@ -1734,7 +1734,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
     } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         StrandElement* se = dynamic_cast<StrandElement*>(e);
         hasEffects = se->HasEffects();
-        for (int k = 0; k < se->GetNodeLayerCount(); ++k) {
+        for (int k = 0; k < (int)se->GetNodeLayerCount(); ++k) {
             NodeLayer* nl = se->GetNodeLayer(k, false);
             if (nl != nullptr && nl->HasEffectsInTimeRange(0, 9999999)) {
                 se->ShowNodes(true);
@@ -1752,7 +1752,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
 
 bool RowHeading::ModelInView(const std::string& model, int view) const
 {
-    for (size_t j = 0; j < mSequenceElements->GetElementCount(view); ++j) {
+    for (int j = 0; j < (int)mSequenceElements->GetElementCount(view); ++j) {
         auto m = mSequenceElements->GetElement(j, view);
         if (model == m->GetName() && m->GetVisible()) {
             return true;
@@ -1767,7 +1767,7 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
     element->SetFixedTiming(0);
     EffectLayer* layer = element->GetEffectLayer(0);
     if (element->GetEffectLayerCount() > 1) {
-        for (int k = element->GetEffectLayerCount() - 1; k > 0; --k) {
+        for (int k = (int)element->GetEffectLayerCount() - 1; k > 0; --k) {
             EffectLayer* check_layer = element->GetEffectLayer(k);
             bool found_locked = false;
             for (auto&& e : check_layer->GetAllEffects()) {
@@ -1785,13 +1785,13 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
 
     // No locked elements in the way now
     if (element->GetEffectLayerCount() > 1) {
-        for (int k = element->GetEffectLayerCount() - 1; k > 0; --k) {
+        for (int k = (int)element->GetEffectLayerCount() - 1; k > 0; --k) {
             element->RemoveEffectLayer(k);
         }
     }
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     EffectLayer* word_layer = element->AddEffectLayer();
-    for (size_t i = 0; i < layer->GetEffectCount(); ++i) {
+    for (int i = 0; i < layer->GetEffectCount(); ++i) {
         Effect* effect = layer->GetEffect(i);
         std::string phrase = effect->GetEffectName();
         BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase, mSequenceElements->GetFrequency(), mSequenceElements->get_undo_mgr());
@@ -1944,7 +1944,7 @@ void RowHeading::render( wxPaintEvent& event )
     wxPen effectNoticePen(effectNoticeColor);
     wxBrush effectNoticeBrush(effectNoticeColor);
     
-    for (int i = 0; i < mSequenceElements->GetVisibleRowInformationSize(); i++) {
+    for (int i = 0; i < (int)mSequenceElements->GetVisibleRowInformationSize(); i++) {
         Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
         wxString prefix;
         wxString layers;

@@ -132,7 +132,7 @@ WLEDOutput* WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, Con
 
     if (!fullControl && jsonVal.contains("hw") && jsonVal.at("hw").contains("led") &&
         jsonVal.at("hw").at("led").contains("ins") &&
-        jsonVal.at("hw").at("led").at("ins").size() > (port - 1)) {
+        (int)jsonVal.at("hw").at("led").at("ins").size() > (port - 1)) {
         auto const& json = jsonVal.at("hw").at("led").at("ins").at(port - 1);
 
         if (!json.is_null()) {

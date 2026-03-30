@@ -148,7 +148,7 @@ MatrixDialog::MatrixDialog(wxWindow* parent, OutputManager* outputManager, std::
         wxXmlNode* node = effects.GetModel(Choice_FromModel->GetStringSelection().ToStdString());
         TextCtrl_StartChannel->SetValue(node->GetAttribute("StartChannel", ""));
         long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-        if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
+        if (sc == 0 || (size_t)sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
             StaticText8->SetLabel("Invalid");
         } else {
             StaticText8->SetLabel(wxString::Format("%ld", (long)sc));
@@ -212,7 +212,7 @@ void MatrixDialog::OnButton_CancelClick(wxCommandEvent& event) {
 
 void MatrixDialog::OnTextCtrl_StartChannelText(wxCommandEvent& event) {
     long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-    if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
+    if (sc == 0 || (size_t)sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
         StaticText8->SetLabel("Invalid");
     } else {
         StaticText8->SetLabel(wxString::Format("%ld", (long)sc));
@@ -260,7 +260,7 @@ void MatrixDialog::OnChoice_FromModelSelect(wxCommandEvent& event) {
         wxXmlNode* node = effects.GetModel(Choice_FromModel->GetStringSelection().ToStdString());
         TextCtrl_StartChannel->SetValue(node->GetAttribute("StartChannel", ""));
         long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-        if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
+        if (sc == 0 || (size_t)sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
             StaticText8->SetLabel("Invalid");
         } else {
             StaticText8->SetLabel(wxString::Format("%ld", (long)sc));

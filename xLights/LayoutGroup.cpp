@@ -20,7 +20,7 @@
 
 LayoutGroup::LayoutGroup(const std::string& name, xLightsFrame* xl)
     : mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mBackgroundAlpha(100), mPreviewHidden(true), mPreviewCreated(false),
-    mModelPreview(nullptr), xlights(xl), id_menu_item(wxNewId()), mPreviewPane(nullptr),
+    mModelPreview(nullptr), xlights(xl), mMenuItemPreview(nullptr), mPreviewPane(nullptr), id_menu_item(wxNewId()),
     mPosX(-1), mPosY(-1), mPaneWidth(-1), mPaneHeight(-1), ignore_size_and_pos(false)
 {
 }

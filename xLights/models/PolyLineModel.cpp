@@ -434,7 +434,7 @@ void PolyLineModel::InitModel()
             }
             sortedIdx++;
             nextStringStartNode = (sortedIdx < (int)_strings) ? stringStartNodes[sortedIdx].first : numLights;
-        } else if (Nodes[curNode]->StringNum != LastStringNum) {
+        } else if ((int)Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum = Nodes[curNode]->StringNum;
             if (_strings > 1 && !stringStartNodes.empty()) {
                 // First node: use the first sorted string's start channel

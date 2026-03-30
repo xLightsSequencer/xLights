@@ -293,7 +293,7 @@ bool HttpConnection::ParseFrame(wxMemoryBuffer &buffer)
 
         pos += start + length;
 
-        if (pos >= buffer.GetDataLen())
+        if (pos >= (int)buffer.GetDataLen())
         {
             done = true;
         }

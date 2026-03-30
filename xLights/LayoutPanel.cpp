@@ -277,7 +277,7 @@ const long LayoutPanel::ID_TEXTCTRL_MODEL_FILTER = wxNewId();
 
 class ModelTreeData : public wxTreeItemData {
 public:
-    ModelTreeData(Model *m, int NativeOrder, bool fullname) :wxTreeItemData(), model(m), fullname(fullname) {
+    ModelTreeData(Model *m, int NativeOrder, bool fullname) :wxTreeItemData(), fullname(fullname), model(m) {
         wxASSERT(m != nullptr);
         //a SetFromXML call on the parent (example: recalc start channels) will cause
         //submodel pointers to be deleted.  Need to not save them, but instead, use the parent
@@ -315,7 +315,7 @@ class NewModelBitmapButton : public wxBitmapButton
 public:
 
     NewModelBitmapButton(wxWindow *parent, const wxBitmapBundle &bmp, const wxBitmapBundle& bmpDis, const wxBitmapBundle& pBmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp), modelType(type) {
+        : wxBitmapButton(parent, wxID_ANY, bmp), modelType(type), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
@@ -661,7 +661,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
     if (colOrder != "") {
         cols = wxSplit(colOrder, ',');
         int cc = 1;
-        for (int i = 0; i < cols.size(); i++) {
+        for (int i = 0; i < (int)cols.size(); i++) {
             if (cols[i] != "") {
                 if (cols[i][0] == 'U') {
                     sortcol = cc++;
@@ -804,10 +804,10 @@ void LayoutPanel::SaveModelsListColumns()
 {
     wxString colOrder;
     for (size_t i = 0; i < TreeListViewModels->GetColumnCount(); i++) {
-        for (size_t j = 0; j < TreeListViewModels->GetColumnCount(); j++) {
+        for (int j = 0; j < (int)TreeListViewModels->GetColumnCount(); j++) {
             auto col = TreeListViewModels->GetDataView()->GetColumn(j);
             auto p = TreeListViewModels->GetDataView()->GetColumnPosition(col);
-            if (p == i && col->GetTitle() != MODELCOLNAME) {
+            if (p == (int)i && col->GetTitle() != MODELCOLNAME) {
                 if (col->IsSortKey()) {
                     if (col->IsSortOrderAscending()) {
                         colOrder += "U";
@@ -1541,7 +1541,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
     wxArrayString selectedGroupNames;
 
     if (selectedTreeGroups.size() > 0 && filtering) {
-        for (int i = 0; i < selectedTreeGroups.size(); i++) {
+        for (int i = 0; i < (int)selectedTreeGroups.size(); i++) {
             wxString selectedName = TreeListViewModels->GetItemText(selectedTreeGroups[i]);
             selectedGroupNames.Add(selectedName);
         }
@@ -4778,7 +4778,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
             wxMenu* mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
@@ -4786,7 +4786,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
             mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
@@ -4797,7 +4797,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     else {
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
             wxMenu* mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
             }
@@ -4805,7 +4805,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
             mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
             }
@@ -5144,7 +5144,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         }
     } else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId()) {
                     modelPreview->SetCamera3D(i);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::3dCamera");
@@ -5160,7 +5160,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         }
     } else {
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
+            for (int i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
                 if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId()) {
                     modelPreview->SetCamera2D(i);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::2dCamera");
@@ -8207,7 +8207,7 @@ void LayoutPanel::PreviewPrintImage()
 	class Printout : public wxPrintout
 	{
 	public:
-		Printout(ModelPreview *canvas, bool invert) : _invert(invert), m_canvas(canvas) {}
+		Printout(ModelPreview *canvas, bool invert) : m_canvas(canvas), _invert(invert) {}
 		virtual ~Printout() {
 			clearImage();
 		}

@@ -106,7 +106,7 @@ void VSAFile::Load(const std::string& filename)
             _fh->Read(&evt.track, 2);
 
             // see if we have enough tracks
-            if (evt.track + 1 > num_evt_tracks) {
+            if ((uint32_t)(evt.track + 1) > num_evt_tracks) {
                 _events.resize(evt.track + 1);
                 num_evt_tracks = evt.track + 1;
             }

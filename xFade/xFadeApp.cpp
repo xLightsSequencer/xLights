@@ -271,8 +271,8 @@ bool xFadeApp::OnInit()
     };
 
     bool parmfound = false;
-    wxString showDir;
-    wxString playlist;
+    [[maybe_unused]] wxString showDir;
+    [[maybe_unused]] wxString playlist;
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
     switch (parser.Parse()) {
     case -1:

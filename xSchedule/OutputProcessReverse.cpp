@@ -55,7 +55,7 @@ void OutputProcessReverse::Frame(uint8_t* buffer, size_t size, std::list<OutputP
 	uint8_t* from = p;
 	uint8_t* to = p + (nodes - 1) * 3;
 		
-	for (int i = 0; i < nodes; i++)
+	for (int i = 0; i < (int)nodes; i++)
 	{
 		memcpy(rgb, from, 3);
 		memcpy(from, to, 3);

@@ -112,7 +112,7 @@ public:
         return _currentFrame;
     }
     void SetDelay(long delay) {
-        if (_delay != delay) {
+        if (_delay != (size_t)delay) {
             _delay = delay;
             _changeCount++;
         }

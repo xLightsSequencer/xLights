@@ -470,7 +470,7 @@ wxImage* xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
         unsigned char* dst = buf;
         for (int y = dstSize.GetHeight() - 1; y >= 0; --y) {
             const unsigned char* src = tmpBuf + 4 * width * y;
-            for (size_t x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3) {
+            for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3) {
                 dst[0] = src[0];
                 dst[1] = src[1];
                 dst[2] = src[2];
@@ -683,7 +683,7 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
     }
     for (int y = h - 1; y >= 0; --y) {
         const unsigned char *src = tmpBuf + 4 * w * y;
-        for (size_t x = 0; x < w; ++x, src += 4, dst += 3) {
+        for (int x = 0; x < w; ++x, src += 4, dst += 3) {
             dst[0] = src[0];
             dst[1] = src[1];
             dst[2] = src[2];

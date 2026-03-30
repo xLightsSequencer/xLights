@@ -212,7 +212,7 @@ void EventMIDIPanel::OnMIDIEvent(wxCommandEvent& event)
     uint8_t status = (event.GetInt() >> 24) & 0xFF;
     uint8_t channel = (event.GetInt() >> 16) & 0xFF;
     uint8_t data1 = (event.GetInt() >> 8) & 0xFF;
-    uint8_t data2 = event.GetInt() & 0xFF;
+    [[maybe_unused]] uint8_t data2 = event.GetInt() & 0xFF;
 
     Choice_Status->SetSelection(((status & 0xF0) >> 4) - 8);
     Choice_Channel->SetSelection(channel);

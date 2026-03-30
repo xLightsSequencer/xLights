@@ -66,7 +66,7 @@ BackgroundPlaylistDialog::BackgroundPlaylistDialog(wxWindow* parent, int& plid, 
         idd = ListView_Playlists->InsertItem(i, (*it)->GetNameNoTime());
         ListView_Playlists->SetItemData(idd, (*it)->GetId());
 
-        if (_plid == (*it)->GetId())
+        if ((wxUint32)_plid == (*it)->GetId())
         {
             ListView_Playlists->Select(idd);
         }

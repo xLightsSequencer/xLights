@@ -196,7 +196,7 @@ void TwinklyOutput::EndFrame(int suppressFrames)
         return;
     }
 
-    if (_channels > m_channelData.size()) {
+    if (_channels > (int32_t)m_channelData.size()) {
         m_channelData.resize(_channels);
     }
 

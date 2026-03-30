@@ -221,7 +221,7 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
 
 void EffectManager::add(RenderableEffect *eff) {
     int id = eff->GetId();
-    if (id >= size()) {
+    if (id >= (int)size()) {
         effects.resize(id + 1);
     }
     effects[id] = eff;

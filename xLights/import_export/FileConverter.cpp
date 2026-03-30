@@ -120,8 +120,8 @@ ConvertParameters::ConvertParameters( wxString inp_filename_,
   sequence_interval(sequence_interval_),
   seq_data(seq_data_),
   _outputManager(outputManager_),
-  media_filename(media_filename_),
   data_layer(data_layer_),
+  media_filename(media_filename_),
   channels_off_at_end(channels_off_at_end_),
   map_empty_channels(map_empty_channels_),
   map_no_network_channels(map_no_network_channels_),
@@ -194,18 +194,18 @@ public:
     bool empty;
 
     LORInfo(const wxString & nm, const wxString &dt, int n, int u, int c, int s) :
-        name(nm), deviceType(dt), network(n), unit(u), circuit(c), savedIndex(s), empty(true)
+        name(nm), savedIndex(s), deviceType(dt), unit(u), circuit(c), network(n), empty(true)
     {
     }
     LORInfo(const LORInfo &li) :
-        name(li.name),
-        deviceType(li.deviceType), network(li.network), unit(li.unit),
-        circuit(li.circuit), savedIndex(li.savedIndex), empty(li.empty)
+        name(li.name), savedIndex(li.savedIndex),
+        deviceType(li.deviceType), unit(li.unit),
+        circuit(li.circuit), network(li.network), empty(li.empty)
     {
 
     }
     LORInfo() :
-        name(""), deviceType(""), network(0), unit(0), circuit(0), savedIndex(0), empty(true)
+        name(""), savedIndex(0), deviceType(""), unit(0), circuit(0), network(0), empty(true)
     {
 
     }
@@ -226,11 +226,11 @@ void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *unitSizes)
         unit = 1;
     }
 
-    if (info.network >= unitSizes->size())
+    if ((size_t)info.network >= unitSizes->size())
     {
         unitSizes->resize(info.network + 1);
     }
-    if (unit > (*unitSizes)[info.network].size())
+    if (unit > (int)(*unitSizes)[info.network].size())
     {
         (*unitSizes)[info.network].resize(unit);
     }
@@ -429,19 +429,19 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         return;
     }
 
-    for (network = 0; network < lorUnitSizes.size(); network++)
+    for (network = 0; network < (int)lorUnitSizes.size(); network++)
     {
         cnt = 0;
-        for (int u = 0; u < lorUnitSizes[network].size(); u++)
+        for (int u = 0; u < (int)lorUnitSizes[network].size(); u++)
         {
             cnt += lorUnitSizes[network][u];
         }
         params.AppendConvertStatus(string_format(wxString("LOR Network %d:  %d channels"), network, cnt), false);
     }
-    for (network = 1; network < dmxUnitSizes.size(); network++)
+    for (network = 1; network < (int)dmxUnitSizes.size(); network++)
     {
         cnt = 0;
-        for (int u = 0; u < dmxUnitSizes[network].size(); u++)
+        for (int u = 0; u < (int)dmxUnitSizes[network].size(); u++)
         {
             if (cnt < dmxUnitSizes[network][u]) {
                 cnt = dmxUnitSizes[network][u];
@@ -568,7 +568,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         chindex = 0;
                         for (int z = 0; z < (unit - 1); z++)
                         {
-                            if (lorUnitSizes.size() > network && lorUnitSizes[network].size() > z)
+                            if ((int)lorUnitSizes.size() > network && (int)lorUnitSizes[network].size() > z)
                             {
                                 chindex += lorUnitSizes[network][z];
                             }
@@ -891,7 +891,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
 
     channels = 0;
 
-    for (tmp = 0; tmp < map.size(); tmp += 2)
+    for (tmp = 0; tmp < (long)map.size(); tmp += 2)
     {
         int i = map[tmp + 1];
         int orig = params._outputManager->GetControllerIndex(tmp / 2)->GetChannels();
@@ -992,7 +992,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                     {
                         tmp = atol(NodeValue.c_str());
                         universe = tmp;
-                        for (tmp = 0; tmp < map.size(); tmp += 2)
+                        for (tmp = 0; tmp < (long)map.size(); tmp += 2)
                         {
                             if (universe == map[tmp])
                             {
@@ -1554,7 +1554,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         params.xLightsFrm->SetMediaFilename(mf);
         
-        if (numChannels < params.xLightsFrm->GetMaxNumChannels()) {
+        if ((uint32_t)numChannels < params.xLightsFrm->GetMaxNumChannels()) {
             // if loading the main data AND the number of channels is less than what
             // xLights needs, it's likely due to the fseq being sparse which is fine
             // so set the number of channels to what is needed
@@ -1791,7 +1791,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
             TimingElement *te = params.elements->GetTimingElement(x);
             if (te->GetSubType() == "FPP Commands" || te->GetSubType() == "FPP Effects") {
                 std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> commands;
-                for (int l = 0; l < te->GetEffectLayerCount(); l++) {
+                for (int l = 0; l < (int)te->GetEffectLayerCount(); l++) {
                     EffectLayer *layer = te->GetEffectLayer(l);
                     for (auto & eff : layer->GetAllEffects()) {
                         commands[eff->GetEffectName()].push_back(std::make_pair(eff->GetStartTimeMS(), eff->GetEndTimeMS()));
@@ -1938,7 +1938,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 
     file->writeHeader();
     size_t size = params.seq_data.NumFrames();
-    for (int x = 0; x < size; x++) {
+    for (int x = 0; x < (int)size; x++) {
         file->addFrame(x, &params.seq_data[x][0]);
     }
     file->finalize();

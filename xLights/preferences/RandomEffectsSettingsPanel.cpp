@@ -46,7 +46,7 @@ RandomEffectsSettingsPanel::RandomEffectsSettingsPanel(wxWindow* parent, xLights
 	//*)
 
     const wxArrayString &selected = frame->RandomEffectsToUse();
-    for (int i = 0; i < frame->GetEffectManager().size(); i++) {
+    for (int i = 0; i < (int)frame->GetEffectManager().size(); i++) {
         wxString n = frame->GetEffectManager()[i]->Name();
         bool checked = selected.Index(n) >= 0;
         wxWindowID id = wxNewId();
@@ -72,7 +72,7 @@ bool RandomEffectsSettingsPanel::TransferDataToWindow() {
 }
 bool RandomEffectsSettingsPanel::TransferDataFromWindow() {
     wxArrayString selected;
-    for (int x = 0; x <  EffectsGridSizer->GetItemCount(); x++) {
+    for (int x = 0; x < (int)EffectsGridSizer->GetItemCount(); x++) {
         wxCheckBox *CheckBox1 = dynamic_cast<wxCheckBox*>(EffectsGridSizer->GetItem(x)->GetWindow());
         if (CheckBox1) {
             wxString n = CheckBox1->GetLabel();

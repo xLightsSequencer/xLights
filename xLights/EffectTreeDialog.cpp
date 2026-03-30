@@ -497,7 +497,6 @@ wxString EffectTreeDialog::ParseDuration(wxString name, wxString settings)
     {
         wxArrayString all_efdata = wxSplit(settings, '\n');
 
-        bool cf1 = false;
         for (size_t i = 0; i < all_efdata.size(); i++)
         {
             //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
@@ -508,7 +507,7 @@ wxString EffectTreeDialog::ParseDuration(wxString name, wxString settings)
             {
                 if (efdata[0] == "CopyFormat1")
                 {
-                    cf1 = true;
+                    // nothing to do
                 }
                 else if (efdata.size() > 10 && efdata[0] == "CopyFormatAC")
                 {

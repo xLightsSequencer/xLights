@@ -186,7 +186,7 @@ public:
         return _channels;
     }
     void SetChannels(long channels) {
-        if (_channels != channels) {
+        if (_channels != (size_t)channels) {
             _channels = channels;
             _changeCount++;
         }

@@ -865,7 +865,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                     lastSerialPort = m->GetControllerPort();
                 }
                 else {
-                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                    for (int s = 0; s < m->GetNumPhysicalStrings(); s++) {
                         size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
                         if (chs > 0) {
                             universes += ((chs - 1) / channels_per_universe) + 1;
@@ -905,13 +905,13 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
          }
 
         //if required universes is less than num of outputs, remove unneeded universes
-        while (universes < _outputs.size()) {
+        while (universes < (int)_outputs.size()) {
             delete _outputs.back();
             _outputs.pop_back();
         }
 
         //if required universes is greater than  num of outputs, add needed universes
-        int diff = universes - _outputs.size();
+        int diff = universes - (int)_outputs.size();
         for (int i = 0; i < diff; i++) {
             auto lastUsedUniverse = 0;
 
@@ -975,7 +975,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                     }
                     lastSerialPort = m->GetControllerPort();
                 } else {
-                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                    for (int s = 0; s < m->GetNumPhysicalStrings(); s++) {
                         size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
 
                         if (m->GetNumPhysicalStrings() == 1) {
@@ -1206,7 +1206,7 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         if (event.GetValue().GetLong() == 0) {
             SetForceLocalIP("");
         } else {
-            if (event.GetValue().GetLong() >= ips.size() + 1) { // need to add one as dropdown has blank first entry
+            if (event.GetValue().GetLong() >= (long)ips.size() + 1) { // need to add one as dropdown has blank first entry
                 // likely the number of IPs changed after the list was loaded so ignore
             } else {
                 auto it = begin(ips);
@@ -1236,12 +1236,12 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         return true;
     } else if (name == "Universes") {
         // add universes
-        while (_outputs.size() < event.GetValue().GetLong()) {
+        while ((long)_outputs.size() < event.GetValue().GetLong()) {
             AddOutput();
         }
 
         // drop universes
-        while (_outputs.size() > event.GetValue().GetLong()) {
+        while ((long)_outputs.size() > event.GetValue().GetLong()) {
             delete _outputs.back();
             _outputs.pop_back();
         }
@@ -1389,7 +1389,7 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
 
     p = propGrid->GetPropertyByName("Universes");
     if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_KINET)) {
-        if (_outputs.size() > caps->GetMaxInputE131Universes()) {
+        if ((int)_outputs.size() > caps->GetMaxInputE131Universes()) {
             p->SetBackgroundColour(*wxRED);
         }
         else {

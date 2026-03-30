@@ -139,7 +139,7 @@ std::vector<wxString> SearchPanel::GetModelList() const
             continue;
         }
 
-        for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
+        for (int i = 0; i < (int)el->GetEffectLayerCount(); ++i) {
             auto* elay = el->GetEffectLayer(i);
             if (elay->HasEffects()) {
                 models.emplace_back(el->GetFullName());

@@ -153,7 +153,7 @@ void PlayListItemColourOrgan::Frame(uint8_t* buffer, size_t size, size_t ms, siz
             auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
             if (sdl != nullptr) {
                 auto res = sdl->GetSpectrum(framems);
-                if (res.size() >= _endNote) {
+                if ((int)res.size() >= _endNote) {
                     for (int i = _startNote; i <= _endNote; i++) {
                         value = std::max(res[i - 1], value);
                     }

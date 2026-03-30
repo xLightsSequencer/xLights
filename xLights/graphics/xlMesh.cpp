@@ -77,7 +77,7 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : filename(f), grap
     yMax = -9999999;
     zMax = -9999999;
     auto &vertices = objects.GetAttrib().vertices;
-    for (int x = 0; x < vertices.size(); x += 3) {
+    for (int x = 0; x < (int)vertices.size(); x += 3) {
         xMin = std::min(vertices[x], xMin);
         xMax = std::max(vertices[x], xMax);
         yMin = std::min(vertices[x + 1], yMin);
@@ -175,7 +175,7 @@ void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
         if (line.rfind("mtllib ", 0) == 0) {
             output << "mtllib ";
             line = line.substr(7);
-            int idx = line.find(' ');
+            size_t idx = line.find(' ');
             if (idx != std::string::npos) {
                 std::filesystem::path mtlpath(path);
                 mtlpath.replace_filename(line);

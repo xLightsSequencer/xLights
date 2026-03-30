@@ -170,7 +170,7 @@ CursorType TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int
     float zoom = preview->GetCameraZoomForHandles();
     int scale = preview->GetHandleScale();
     float hw = GetRectHandleWidth(zoom, scale);
-    for (size_t h = 0; h < num_handles; h++) {
+    for (int h = 0; h < num_handles; h++) {
         handle_aabb_min[h].x = mHandlePosition[h + 1].x - hw;
         handle_aabb_min[h].y = mHandlePosition[h + 1].y - hw;
         handle_aabb_min[h].z = mHandlePosition[h + 1].z - hw;
@@ -181,7 +181,7 @@ CursorType TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int
 
     // Test each each Oriented Bounding Box (OBB).
     int handles_found = 0;
-    for (size_t i = 0; i < num_handles; i++)
+    for (int i = 0; i < num_handles; i++)
     {
         if (VectorMath::TestRayOBBIntersection2D(
             ray_origin,

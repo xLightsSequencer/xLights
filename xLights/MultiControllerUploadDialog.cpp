@@ -123,7 +123,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
     CheckListBox_Controllers->GetCheckedItems(ch);
     std::list<int> fake;
 
-    for (int i = 0; i < ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
+    for (int i = 0; i < (int)ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
         auto c = _controllers[ch[i]];
         wxString message;
         TextCtrl_Log->AppendText("Uploading to controller '" + c->GetName() + "' [" + c->GetIP() + "] " + c->GetVMV() + "\n");
@@ -251,7 +251,7 @@ void MultiControllerUploadDialog::SaveChecked()
     CheckListBox_Controllers->GetCheckedItems(ch);
     std::list<int> fake;
     std::vector<std::string> selected_controllers;
-    for (int i = 0; i < ch.Count() ; i++) {
+    for (int i = 0; i < (int)ch.Count() ; i++) {
         auto c = _controllers[ch[i]];
         selected_controllers.push_back(c->GetIP());
     }

@@ -361,7 +361,7 @@ public:
         if (_nonContiguousChannels.size() > 0)
         {
             _lastChannel++;
-            if (_lastChannel >= _nonContiguousChannels.size()) {
+            if (_lastChannel >= (long)_nonContiguousChannels.size()) {
                 _lastChannel = -1;
                 return -1;
             }
@@ -2373,7 +2373,7 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
         wxTreeListItems selections;
         tree->GetSelections(selections);
         if (selections.size() > 1) {
-            for (int i = 0; i < selections.size(); i++) {
+            for (int i = 0; i < (int)selections.size(); i++) {
                 TestItemBase* tc = (TestItemBase*)tree->GetItemData(selections[i]);
                 if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED && tc->IsClickable()) {
                     // check the items
@@ -2396,7 +2396,7 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
         wxTreeListItems selections;
         tree->GetSelections(selections);
         if (selections.size() > 1) {
-            for (int i = 0; i < selections.size(); i++) {
+            for (int i = 0; i < (int)selections.size(); i++) {
                 TestItemBase* tc = (TestItemBase*)tree->GetItemData(selections[i]);
                 if (tree->GetCheckedState(selections[i]) == wxCHK_CHECKED) {
                     // uncheck the items
@@ -2674,7 +2674,7 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
     wxTreeListItems selections;
     tree->GetSelections(selections);
     if (selections.size() > 1) {
-        for (int i = 0; i < selections.size(); i++) {
+        for (int i = 0; i < (int)selections.size(); i++) {
             // dont double process the item that was passed into the event
             if (selections[i] != item) {
                 tc = (TestItemBase*)tree->GetItemData(selections[i]);

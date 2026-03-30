@@ -847,7 +847,7 @@ bool ControllerCaps::HandlePropertyEvent(Controller *controller, wxPropertyGridE
                     if (type == "Enum") {
                         std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
                         int idx = event.GetPropertyValue().GetLong();
-                        if (idx < values.size()) {
+                        if (idx < (int)values.size()) {
                             controller->SetExtraProperty(name, values[idx]);
                         }
                         return true;

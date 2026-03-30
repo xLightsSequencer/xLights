@@ -54,7 +54,7 @@ std::list<std::string> DuplicateEffect::CheckEffectSettings(const SettingsMap& s
     {
         auto layers = settings.GetInt("E_SPINCTRL_Duplicate_Layer", 0);
         auto ec = element->GetEffectLayer(layers - 1);
-        if (layers == 0 || ec == nullptr || layers > element->GetEffectLayerCount())
+        if (layers == 0 || ec == nullptr || layers > (int)element->GetEffectLayerCount())
         {
             res.push_back(std::format("    ERR: Duplicate effect refers to layer {} on model/submodel/strand '{}' which does not exist. Effect: Duplicate, Model: {}, Start {}", layers, settings.Get("E_CHOICE_Duplicate_Model", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }

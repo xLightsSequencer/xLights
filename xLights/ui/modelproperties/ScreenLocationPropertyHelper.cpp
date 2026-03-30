@@ -522,7 +522,7 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
 
             loc.selected_handle = wxAtoi(name.substr(12, o - 12)) - 1;
 
-            wxASSERT(loc.selected_handle + 1 < loc.mPos.size());
+            wxASSERT(loc.selected_handle + 1 < (int)loc.mPos.size());
 
             float oldLen = 0.0f;
             oldLen = RulerObject::UnMeasure(RulerObject::Measure(loc.mPos[loc.selected_handle].AsVector(), loc.mPos[loc.selected_handle + 1].AsVector()));

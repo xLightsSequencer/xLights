@@ -153,7 +153,7 @@ void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phone
 
     wxArrayString pronunciation = phoneme_dict.at(word.Upper());
     if (pronunciation.size() > 1) {
-        for (int i = 1; i < pronunciation.size(); i++) {
+        for (int i = 1; i < (int)pronunciation.size(); i++) {
 
             wxString p = pronunciation[i];
             if (p.length() == 0) continue;

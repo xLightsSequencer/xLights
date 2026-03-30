@@ -95,7 +95,7 @@ bool xlFontInfo::load(const FontInfoStruct &fi) {
 }
 float xlFontInfo::widthOf(const std::string &text, float factor) const {
     float w = 0;
-    for (int idx = 0; idx < text.size(); idx++) {
+    for (int idx = 0; idx < (int)text.size(); idx++) {
         char ch = text[idx];
         if (ch < ' ' || ch > '~') {
             ch = '?';
@@ -114,7 +114,7 @@ void xlFontInfo::populate(xlVertexTextureAccumulator &va, float x, float yBase, 
     va.PreAlloc(6 * text.size());
     float textureHeight = image.GetHeight();
     float textureWidth = image.GetWidth();
-    for (int idx = 0; idx < text.size(); idx++) {
+    for (int idx = 0; idx < (int)text.size(); idx++) {
         char ch = text[idx];
         if (ch < ' ' || ch > '~') {
             ch = '?';

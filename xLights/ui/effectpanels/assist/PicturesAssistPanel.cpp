@@ -437,7 +437,7 @@ void PicturesAssistPanel::OnColourChoiceSelect(wxCommandEvent& event)
             xlColor c;
             c.SetFromString(as[i].ToStdString());
             mColorPicker->SetButtonColor(i+1, c);
-            if (activeButton == i+1) {
+            if (activeButton == (int)(i+1)) {
                 mColorPicker->SetColor(c);
             }            
         }

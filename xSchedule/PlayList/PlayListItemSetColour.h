@@ -50,7 +50,7 @@ public:
     size_t GetStartChannelAsNumber();
     void SetStartChannel(std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0;  _changeCount++; } }
     long GetNodes() const { return _nodes; }
-    void SetNodes(long nodes) { if (_nodes != nodes) { _nodes = nodes; _changeCount++; } }
+    void SetNodes(long nodes) { if (_nodes != (size_t)nodes) { _nodes = nodes; _changeCount++; } }
     wxColor GetValue() const { return _value; }
     void SetValue(wxColor value) { if (_value != value) { _value = value; _changeCount++; } }
     int GetBlendMode() const { return _applyMethod; }

@@ -110,7 +110,7 @@ void PlayListItemFade::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
         {
             long sc = GetStartChannelAsNumber();
 
-            if (sc > size) return;
+            if ((size_t)sc > size) return;
 
             size_t toset = _channels + sc - 1 < size ? _channels : (size - sc + 1);
             if (_channels == 0)
@@ -127,7 +127,7 @@ void PlayListItemFade::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
 
             if (toset > 0)
             {
-				for (long i = 0; i < toset; i++)
+				for (long i = 0; i < (long)toset; i++)
 				{
 					buffer[i] = ((int)buffer[i] * adjust) / 255;
 				}
