@@ -109,6 +109,8 @@
 		<Unit filename="../../xLights/UtilFunctions.h" />
 		<Unit filename="../../xLights/ui/wxUtilities.cpp" />
 		<Unit filename="../../xLights/ui/wxUtilities.h" />
+		<Unit filename="../../xLights/utils/CurlManager.cpp" />
+		<Unit filename="../../xLights/utils/CurlManager.h" />
 		<Unit filename="../../xLights/xLightsTimer.cpp" />
 		<Unit filename="../../xLights/xLightsTimer.h" />
 		<Unit filename="../../xLights/xLightsVersion.cpp" />
@@ -119,7 +121,6 @@
 		<Unit filename="../wxJSON/jsonval.cpp" />
 		<Unit filename="../wxJSON/jsonval.h" />
 		<Unit filename="Bandwidth.h" />
-		<Unit filename="Curl.h" />
 		<Unit filename="SMSDaemonOptions.cpp" />
 		<Unit filename="SMSDaemonoptions.h" />
 		<Unit filename="SMSMessage.cpp" />

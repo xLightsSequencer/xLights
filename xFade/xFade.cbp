@@ -104,6 +104,8 @@
 		<Unit filename="../xLights/ui/wxUtilities.h" />
 		<Unit filename="../xLights/utils/xlImage.cpp" />
 		<Unit filename="../xLights/utils/xlImage.h" />
+		<Unit filename="../xLights/utils/CurlManager.cpp" />
+		<Unit filename="../xLights/utils/CurlManager.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />
 		<Unit filename="../xLights/utils/ip_utils.h" />
 		<Unit filename="../xLights/utils/string_utils.cpp" />

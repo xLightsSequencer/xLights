@@ -307,9 +307,6 @@
     <ClInclude Include="..\xLights\outputs\TwinklyOutput.h">
       <Filter>xLights</Filter>
     </ClInclude>
-    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h">
-      <Filter>xLights</Filter>
-    </ClInclude>
     <ClInclude Include="..\xLights\utils\ip_utils.h">
       <Filter>xLights\utils</Filter>
     </ClInclude>

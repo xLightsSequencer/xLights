@@ -24,6 +24,9 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\common\xlBaseApp.cpp" />
+    <ClCompile Include="..\xLights\utils\CurlManager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
     <ClCompile Include="..\xLights\utils\ip_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -60,6 +63,9 @@
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
     <ClInclude Include="..\xLights\ExternalHooks.h" />
+    <ClInclude Include="..\xLights\utils\CurlManager.h">
+      <Filter>utils</Filter>
+    </ClInclude>
     <ClInclude Include="..\xLights\utils\ip_utils.h">
       <Filter>utils</Filter>
     </ClInclude>

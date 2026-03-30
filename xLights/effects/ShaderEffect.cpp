@@ -89,6 +89,7 @@
 #include "../UtilClasses.h"
 #include "../render/RenderContext.h"
 #include "../xLightsApp.h"
+#include "../xLightsMain.h"
 #include "../TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"

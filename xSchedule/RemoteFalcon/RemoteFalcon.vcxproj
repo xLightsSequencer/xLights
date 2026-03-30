@@ -193,6 +193,7 @@
     <ClCompile Include="..\..\xLights\SpecialOptions.cpp" />
     <ClCompile Include="..\..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\..\xLights\ui\wxUtilities.cpp" />
+    <ClCompile Include="..\..\xLights\utils\CurlManager.cpp" />
     <ClCompile Include="..\..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="..\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\wxJSON\jsonval.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="..\..\xLights\ExternalHooks.h" />
     <ClInclude Include="..\..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\..\xLights\ui\wxUtilities.h" />
+    <ClInclude Include="..\..\xLights\utils\CurlManager.h" />
     <ClInclude Include="..\..\xLights\xLightsVersion.h" />
     <ClInclude Include="..\wxJSON\jsonreader.h" />
     <ClInclude Include="..\wxJSON\jsonval.h" />
