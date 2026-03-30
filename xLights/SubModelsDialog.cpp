@@ -31,6 +31,7 @@
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h>
 #include <wx/tokenzr.h>
+#include <wx/textfile.h>
 
 #include <algorithm>
 

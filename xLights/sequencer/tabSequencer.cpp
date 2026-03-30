@@ -17,6 +17,7 @@
 #include <wx/filepicker.h>
 #include <wx/fontpicker.h>
 #include <wx/config.h>
+#include <wx/textfile.h>
 
 #include "../xLightsMain.h"
 #include "../ui/wxUtilities.h"
