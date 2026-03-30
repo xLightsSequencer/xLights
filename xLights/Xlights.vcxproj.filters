@@ -12,7 +12,7 @@
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="utils\AnimatedImage.cpp" />
-    <ClCompile Include="FontManager.cpp" />
+    <ClCompile Include="render\FontManager.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
@@ -1423,7 +1423,7 @@
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="EffectTimingDialog.h" />
-    <ClInclude Include="FontManager.h" />
+    <ClInclude Include="render\FontManager.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />

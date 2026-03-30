@@ -11,7 +11,7 @@
 #include "TextPanel.h"
 #include "EffectPanelUtils.h"
 #include "../../ExternalHooks.h"
-#include "../../FontManager.h"
+#include "../../render/FontManager.h"
 #include "../../render/SequenceElements.h"
 #include "../MediaPickerCtrl.h"
 #include <wx/settings.h>
@@ -345,11 +345,10 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel()
 
    	Choice_Text_Font->SetSelection( Choice_Text_Font->Append(_("Use OS Fonts")) );
    	FontManager& font_mgr(FontManager::instance());
-    wxArrayString xl_font_names = font_mgr.get_font_names();
+    const auto& xl_font_names = font_mgr.get_font_names();
    	font_mgr.init();
-    for( int i = 0; i < xl_font_names.size(); i++ )
-    {
-        Choice_Text_Font->Append( xl_font_names[i] );
+    for (const auto& name : xl_font_names) {
+        Choice_Text_Font->Append(name);
     }
 
     ValidateWindow();

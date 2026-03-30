@@ -265,8 +265,8 @@
 		<Unit filename="FindDataPanel.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
 		<Unit filename="FlickerFreeBitmapButton.h" />
-		<Unit filename="FontManager.cpp" />
-		<Unit filename="FontManager.h" />
+		<Unit filename="render/FontManager.cpp" />
+		<Unit filename="render/FontManager.h" />
 		<Unit filename="render/GPURenderUtils.cpp" />
 		<Unit filename="render/GPURenderUtils.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />

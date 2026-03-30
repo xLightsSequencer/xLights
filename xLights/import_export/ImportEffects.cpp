@@ -46,7 +46,7 @@
 #include "../effects/PinwheelEffect.h"
 #include "../effects/SnowflakesEffect.h"
 #include "../effects/SpiralsEffect.h"
-#include "../FontManager.h"
+#include "../render/FontManager.h"
 #include "../models/DMX/DmxModel.h"
 #include "../models/ModelGroup.h"
 #include "../sequencer/MainSequencer.h"
@@ -4645,7 +4645,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                     bool use_xl_font = true;
                     wxString xl_font_name = wxString::Format("%d-%dx%d %s", fontSize, fontCellWidth, fontCellHeight, fontName);
                     xl_font_name.Replace('_', ' ');
-                    xlFont* xl_font = FontManager::get_font(xl_font_name);
+                    xlFont* xl_font = FontManager::get_font(xl_font_name.ToStdString());
                     if (xl_font == nullptr) {
                         xl_font_name = "Use OS Fonts";
                         use_xl_font = false;
@@ -4686,8 +4686,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml
                     int lorHeight = fontSize;
 
                     if (use_xl_font) {
-                        wxString xl_text(text);
-                        lorWidth = FontManager::get_length(xl_font, xl_text) - 2;
+                        lorWidth = FontManager::get_length(xl_font, text) - 2;
                     }
 
                     std::string font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize).ToStdString();

@@ -608,7 +608,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="EmailDialog.cpp" />
     <ClCompile Include="ExportSettings.cpp" />
     <ClCompile Include="FindDataPanel.cpp" />
-    <ClCompile Include="FontManager.cpp" />
+    <ClCompile Include="render\FontManager.cpp" />
     <ClCompile Include="render\FSEQFile.cpp" />
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="render\GPURenderUtils.cpp" />
@@ -1208,7 +1208,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="EmailDialog.h" />
     <ClInclude Include="ExportSettings.h" />
     <ClInclude Include="FindDataPanel.h" />
-    <ClInclude Include="FontManager.h" />
+    <ClInclude Include="render\FontManager.h" />
     <ClInclude Include="render\FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="graphics\opengl\DrawGLUtils.h" />

@@ -23,7 +23,7 @@
 #include "EffectAssist.h"
 #include "ExternalHooks.h"
 #include "import_export/FileConverter.h"
-#include "FontManager.h"
+#include "render/FontManager.h"
 #include "HousePreviewPanel.h"
 #include "LMSImportChannelMapDialog.h"
 #include "import_export/LOREdit.h"

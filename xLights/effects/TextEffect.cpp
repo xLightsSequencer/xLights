@@ -30,7 +30,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
-#include "../FontManager.h"
+#include "../render/FontManager.h"
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"
 #include "../render/SequenceFile.h"
@@ -1367,8 +1367,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     font_mgr.init();
     std::string xl_font = settings["CHOICE_Text_Font"];
     xlFont* font = font_mgr.get_font(xl_font);
-    wxBitmap* bmp = font->get_bitmap();
-    wxImage image = bmp->ConvertToImage();
+    const xlImage* image = font->get_image();
     int char_width = font->GetWidth();
     int char_height = font->GetHeight();
 
@@ -1539,10 +1538,10 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                 for (int w = 0; w < actual_width; w++) {
                     int x_pos = x_start_corner + w;
                     for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++) {
-                        if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight()) {
-                            int red = image.GetRed(x_pos, y_pos);
-                            int green = image.GetGreen(x_pos, y_pos);
-                            int blue = image.GetBlue(x_pos, y_pos);
+                        if (x_pos >= 0 && x_pos < image->GetWidth() && y_pos >= 0 && y_pos < image->GetHeight()) {
+                            int red = image->GetRed(x_pos, y_pos);
+                            int green = image->GetGreen(x_pos, y_pos);
+                            int blue = image->GetBlue(x_pos, y_pos);
                             if (red == 255 && green == 255 && blue == 255) {
                                 if (rotate_90) {
                                     if (up) {
