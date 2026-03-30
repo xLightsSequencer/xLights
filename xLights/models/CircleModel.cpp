@@ -47,7 +47,7 @@ bool CircleModel::AllNodesAllocated() const
         allocated += it;
     }
 
-    return (allocated == GetNodeCount());
+    return (allocated == (int)GetNodeCount());
 }
 
 // _centerPercent controls inner circle size
@@ -99,7 +99,7 @@ void CircleModel::InitCircle()
         SetLayerSize(0, numLights);
     }
 
-    for (int x = 0; x < GetLayerSizeCount(); x++) {
+    for (int x = 0; x < (int)GetLayerSizeCount(); x++) {
         if ((cnt + GetLayerSize(x)) > numLights) {
             if (cnt > numLights) {
                 SetLayerSize(x, 0);
@@ -123,15 +123,15 @@ void CircleModel::InitCircle()
 
     size_t node = 0;
     int nodesToMap = NodeCount;
-    for (int circle = 0; circle < GetLayerSizeCount(); circle++) {
+    for (int circle = 0; circle < (int)GetLayerSizeCount(); circle++) {
         int idx = 0;
         auto strandLen = GetStrandLength(circle);
         int loop_count = std::min(nodesToMap, strandLen);
         // if the number of nodes in this layer is exactly divisible into the maximum loops then we dont fudge ... but if it isnt then we want to fudge things slightly 
         // so that the largest layer goes to the end but any layer not divisible does not use the last x value
         double fudge = -1 * maxLights / strandLen + 1;
-        for (size_t n = 0; n < loop_count; n++) {
-            if (Nodes[node]->StringNum != LastStringNum) {
+        for (int n = 0; n < loop_count; n++) {
+            if ((int)Nodes[node]->StringNum != LastStringNum) {
                 LastStringNum = Nodes[node]->StringNum;
                 chan = stringStartChan[LastStringNum];
             }
@@ -167,11 +167,11 @@ void CircleModel::SetCircleCoord()
     int node = 0;
     double maxRadius = maxLights / 2.0;
     double minRadius = (double)_centerPercent / 100.0 * maxRadius;
-    for (int c2 = 0; c2 < GetLayerSizeCount(); c2++) {
+    for (int c2 = 0; c2 < (int)GetLayerSizeCount(); c2++) {
         int circle = c2;
         int loop_count = std::min(nodesToMap, GetStrandLength(circle));
         double radius = (GetLayerSizeCount() == 1) ? maxRadius : _insideOut ? (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)(GetLayerSizeCount() - circle - 1) / (double)(GetLayerSizeCount() - 1)) : (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)circle / (double)(GetLayerSizeCount() - 1));
-        for (size_t n = 0; n < loop_count; n++) {
+        for (int n = 0; n < loop_count; n++) {
             size_t CoordCount = GetCoordCount(node);
             for (size_t c = 0; c < CoordCount; c++) {
                 double angle = (isBotToTop ? -M_PI : 0) + M_PI * ((loop_count == 1) ? (double)c / (double)CoordCount : (double)n / (double)loop_count) * 2.0;

@@ -780,7 +780,7 @@ public:
                     selection = choices.Index(GetUDPort()->GetModels().front()->GetSmartRemoteType());
                 }
                 wxSingleChoiceDialog dlg(parent, "Port Smart Remote Type", "Smart Remote Type", choices);
-                if (selection >= 0 && selection < choices.size()) {
+                if (selection >= 0 && selection < (int)choices.size()) {
                     dlg.SetSelection(selection);
                 }
                 if (dlg.ShowModal() == wxID_OK) {
@@ -825,7 +825,7 @@ public:
                 selection = GetUDPort()->GetModels().front()->GetSmartRemote() - 1;//0=none, 1=A,Falcon/FPP, 1=0,HinksPix
             }
             wxSingleChoiceDialog dlg(parent, "Port Smart Remote ID", "Smart Remote ID", choices);
-            if (selection >= 0 && selection < choices.size()) {
+            if (selection >= 0 && selection < (int)choices.size()) {
                 dlg.SetSelection(selection);
             }
             if (dlg.ShowModal() == wxID_OK) {

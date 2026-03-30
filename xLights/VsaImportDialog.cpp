@@ -232,7 +232,7 @@ void VsaImportDialog::LoadMapping(wxCommandEvent& event)
         wxFileInputStream input(dlg.GetPath());
         wxTextInputStream text(input, "\t");
         int count = wxAtoi(text.ReadLine());
-        if( count != _num_tracks ) {
+        if( (size_t)count != _num_tracks ) {
             if (wxMessageBox("Number of tracks in mapping file does not match number of tracks imported. Do you want to continue with this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO) {
                 return;
             }
@@ -252,7 +252,7 @@ void VsaImportDialog::LoadMapping(wxCommandEvent& event)
             wxString layer = FindTab(line);
 
             int row = -1;
-            for( int x = 0; x < trackNames.size(); ++x ) {
+            for( int x = 0; x < (int)trackNames.size(); ++x ) {
                 if( trackNames[x] == track ) {
                     row = x;
                     break;
@@ -335,7 +335,7 @@ void VsaImportDialog::OnChoiceSetModelsSelect(wxCommandEvent& event)
 {
     ChannelMapGrid->BeginBatch();
     wxString selection = event.GetString();
-    for( size_t i = 0; i < ChannelMapGrid->GetNumberRows(); ++i ) {
+    for( size_t i = 0; i < (size_t)ChannelMapGrid->GetNumberRows(); ++i ) {
         ChannelMapGrid->SetCellValue(i, 1, selection);
         selectedModels[i] = selection;
         UpdateChannels(i);

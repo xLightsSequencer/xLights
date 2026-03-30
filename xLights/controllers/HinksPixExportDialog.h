@@ -100,7 +100,7 @@ struct PlayList
         Name = json.at("n").get<std::string>();
         auto jArry = json.at("pl");
         if (jArry.is_array()) {
-            for (int x = 0; x < jArry.size(); x++) {
+            for (int x = 0; x < (int)jArry.size(); x++) {
                 Items.emplace_back(jArry.at(x));
             }
         }
@@ -234,7 +234,7 @@ struct Schedule {
         Day = json.at("d").get<std::string>();
         auto jArry = json.at("sc");
         if (jArry.is_array()) {
-            for (int x = 0; x < jArry.size(); x++) {
+            for (int x = 0; x < (int)jArry.size(); x++) {
                 Items.emplace_back(jArry.at(x));
             }
         }

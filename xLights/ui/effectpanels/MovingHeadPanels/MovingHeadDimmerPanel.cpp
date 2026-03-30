@@ -264,7 +264,7 @@ void MovingHeadDimmerPanel::OnMovingHeadLeftDown(wxMouseEvent& event)
             m_MovingHeadDimmerParent->NotifyDimmerUpdated();
         }
         if (active_handle != 0 &&
-            active_handle != m_handles.size()-1) {
+            active_handle != (int)m_handles.size()-1) {
             selected_handle = active_handle;
         } else {
             selected_handle = -1;
@@ -296,7 +296,7 @@ void MovingHeadDimmerPanel::OnMovingHeadMouseMove(wxMouseEvent& event)
                 m_mousePos.m_y <= 1.0f) {
                 // check if inside surrounding handles
                 if (active_handle != 0 &&
-                    active_handle != m_handles.size()-1) {
+                    active_handle != (int)m_handles.size()-1) {
                     if (m_mousePos.m_x < m_handles[active_handle-1].m_x + pt_tol) {
                         m_handles[active_handle].m_x = m_handles[active_handle-1].m_x + pt_tol;
                     }
@@ -327,7 +327,7 @@ void MovingHeadDimmerPanel::OnMovingHeadEntered(wxMouseEvent& /*event*/)
 
 int MovingHeadDimmerPanel::HitTest(wxPoint2DDouble& ptUI)
 {
-    for (int i = 0; i < m_handles.size(); ++i ) {
+    for (int i = 0; i < (int)m_handles.size(); ++i ) {
         wxPoint2DDouble pt{NormalizedToUI(m_handles[i])};
         if( (ptUI.m_x > pt.m_x - HalfHandleWidth) &&
         (ptUI.m_x < pt.m_x + HalfHandleWidth) &&

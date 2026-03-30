@@ -177,7 +177,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
         max /= 2;
     }
 
-    size_t colorcnt = buffer.GetColorCount();
+    int colorcnt = (int)buffer.GetColorCount();
     double position = buffer.GetEffectTimeIntervalPosition() * (advances + 1.0) * 0.99;
 
     x += int(position) * Skips_BandSize;
@@ -380,7 +380,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
     if (!eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         rects = 0;
     }
-    if (buffer.needToInit || rects >= eff->GetBackgroundDisplayList().size()) {
+    if (buffer.needToInit || rects >= (int)eff->GetBackgroundDisplayList().size()) {
         buffer.needToInit = false;
         if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
             std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
@@ -529,7 +529,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                                     const std::string& Fade_Type,
                                     int ChaseDirection,
                                     bool mirror) {
-    size_t colorcnt = buffer.GetColorCount();
+    int colorcnt = (int)buffer.GetColorCount();
 
     int max_chase_width = width * Chase_Width / 100.0;
     int middle_chase_index = 0; 

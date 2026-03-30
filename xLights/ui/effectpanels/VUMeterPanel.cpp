@@ -732,7 +732,7 @@ void VUMeterPanel::SetPanelStatus(Model* cls)
     }
 
     // Load the names of the timing tracks
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++)
     {
         Element* e = mSequenceElements->GetElement(i);
         if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING)

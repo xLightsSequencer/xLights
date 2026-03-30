@@ -156,12 +156,12 @@ void SpinnerModel::InitModel() {
     else {
         int chanPerNode = GetNodeChannelCount(StringType);
         SetBufferSize(nodesperarm, armcount);
-        for (size_t x = 0; x < armcount; x++) {
+        for (int x = 0; x < armcount; x++) {
             int stringnum = x / armsperstring;
             int segmentnum = x % armsperstring;
-            for (size_t y = 0; y < nodesperarm; y++)
+            for (int y = 0; y < nodesperarm; y++)
             {
-                size_t idx = x * nodesperarm + y;
+                int idx = x * nodesperarm + y;
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * nodesperarm * chanPerNode + y * chanPerNode;
                 Nodes[idx]->Coords[0].bufX = IsLtoR ? x : armcount - x - 1;
                 if (_alternate)
@@ -227,7 +227,7 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &tp, const std::strin
         }
         else
         {
-            for (size_t y = 0; y < stringcount*armsperstring; y++) {
+            for (int y = 0; y < stringcount*armsperstring; y++) {
                 for (int x = 0; x < nodesperarm; x++) {
                     int idx = y * nodesperarm + x;
                     newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
@@ -267,14 +267,14 @@ void SpinnerModel::SetSpinnerCoord() {
     // left = ccw
     // right = cw
 
-    for (size_t a = 0; a < armcount; a++)
+    for (int a = 0; a < armcount; a++)
     {
         if (SingleNode)
         {
             int a1 = a / armsperstring;
             int start = a * nodesperarm - a1 * armsperstring * nodesperarm;
             int end = start + nodesperarm;
-            for (size_t c = start; c < end; c++) {
+            for (int c = start; c < end; c++) {
                 int c2 = c - start;
                 int c1 = 0;
                 if (!fromcentre) {
@@ -299,7 +299,7 @@ void SpinnerModel::SetSpinnerCoord() {
         }
         else
         {
-            for (size_t n = 0; n < nodesperarm; n++)
+            for (int n = 0; n < nodesperarm; n++)
             {
                 int n1 = 0;
                 if (_alternate)

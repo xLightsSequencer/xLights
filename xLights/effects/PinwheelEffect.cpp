@@ -152,7 +152,7 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
     
     std::vector<ispc::float3> colorsAsHSV(rdata.numColors);
     std::vector<uint8_t> colorIsSpacial(rdata.numColors);
-    for (int x = 0; x < rdata.numColors; x++) {
+    for (int x = 0; x < (int)rdata.numColors; x++) {
         colorsAsHSV[x] = {(float)data.colorsAsHSV[x].hue, (float)data.colorsAsHSV[x].saturation, (float)data.colorsAsHSV[x].value};
         colorIsSpacial[x] = data.colorIsSpacial[x] ? 1 : 0;
     }

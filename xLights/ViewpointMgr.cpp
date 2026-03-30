@@ -137,7 +137,7 @@ ViewpointMgr::~ViewpointMgr()
 
 void ViewpointMgr::DeleteCamera3D(int i)
 {
-    if (previewCameras3d.size() <= i) return;
+    if (previewCameras3d.size() <= (size_t)i) return;
     auto todelete = GetCamera3D(i);
     auto it = previewCameras3d.begin();
     std::advance(it, i);
@@ -147,7 +147,7 @@ void ViewpointMgr::DeleteCamera3D(int i)
 
 void ViewpointMgr::DeleteCamera2D(int i)
 {
-    if (previewCameras2d.size() <= i) return;
+    if (previewCameras2d.size() <= (size_t)i) return;
     auto todelete = GetCamera2D(i);
     auto it = previewCameras2d.begin();
     std::advance(it, i);

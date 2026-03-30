@@ -288,7 +288,7 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string& fn) {
     fseeko(seqFile, 0L, SEEK_SET);
     bytesRead = fread(&header[0], 1, seqChanDataOffset, seqFile);
 
-    if (bytesRead != seqChanDataOffset) {
+    if ((uint64_t)bytesRead != seqChanDataOffset) {
         LogErr(VB_SEQUENCE, "Error reading FSEQ file (%s) header, length is %d bytes but read %d\n", fn.c_str(), seqChanDataOffset, bytesRead);
         DumpHeader("File header:", &header[0], bytesRead);
         fclose(seqFile);
@@ -499,7 +499,7 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t>& header, int read
 
     // when encoding, the header size is rounded to the nearest multiple of 4
     // this comparison ensures that there is enough bytes left to at least constitute a 2 byte length + 2 byte code
-    while (readIndex + FSEQ_VARIABLE_HEADER_SIZE < header.size()) {
+    while (readIndex + FSEQ_VARIABLE_HEADER_SIZE < (int)header.size()) {
         int dataLength = read2ByteUInt(&header[readIndex]);
         readIndex += VariableLengthSize;
 
@@ -533,7 +533,7 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t>& header, int read
             read(&vheader.data[0], len);
             seek(t, SEEK_SET);
             readIndex += 12;
-        } else if (readIndex + (dataLength - FSEQ_VARIABLE_HEADER_SIZE) > header.size()) {
+        } else if (readIndex + (dataLength - FSEQ_VARIABLE_HEADER_SIZE) > (int)header.size()) {
             // ensure the data length is contained within the header
             // this is primarily protection against hand modified, or corrupted, sequence files
             LogErr(VB_SEQUENCE, "VariableHeader '%c%c' has out of bounds data length: %d bytes, max length: %d bytes\n",
@@ -553,7 +553,7 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t>& header, int read
                 // print a warning if the data is not null terminated
                 // this is to assist debugging potential string related issues
                 // the data is not forcibly null terminated to avoid mutating unknown data
-                if (header.size() < readIndex + dataLength) {
+                if ((int)header.size() < readIndex + dataLength) {
                     LogErr(VB_SEQUENCE, "VariableHeader %c%c data exceeds header buffer size!  %d > %d\n",
                            code0, code1, (readIndex + dataLength), header.size());
                 } else if (header[readIndex + dataLength - 1] != '\0') {
@@ -659,7 +659,7 @@ void V1FSEQFile::writeHeader() {
     }
 
     // Validate final write position matches expected channel data offset
-    if (roundTo4Internal(writePos) != m_seqChanDataOffset) {
+    if ((uint64_t)roundTo4Internal(writePos) != m_seqChanDataOffset) {
         LogErr(VB_SEQUENCE, "Final write position (%d, roundTo4 = %d) does not match channel data offset (%d)! This means the header size failed to compute an accurate buffer size.\n", writePos, roundTo4Internal(writePos), m_seqChanDataOffset);
     }
 
@@ -773,7 +773,7 @@ FrameData* V1FSEQFile::getFrame(uint32_t frame) {
             doffset += rng.first;
             seek(doffset, SEEK_SET);
             size_t bread = read(&data->m_data[sz], toRead);
-            if (bread != toRead) {
+            if ((int)bread != toRead) {
                 LogErr(VB_SEQUENCE, "Failed to read channel data for frame %d!   Needed to read %d but read %d\n",
                        frame, toRead, (int)bread);
             }
@@ -840,7 +840,7 @@ public:
 
     virtual void finalize() {
         if (!m_file->getVariableHeaders().empty()) {
-            for (int x = 0; x < m_variableHeaderOffsets.size(); x++) {
+            for (int x = 0; x < (int)m_variableHeaderOffsets.size(); x++) {
                 if (m_variableHeaderOffsets[x] != 0) {
                     uint64_t curEnd = tell();
                     auto &h = m_file->getVariableHeaders()[x];
@@ -894,7 +894,7 @@ public:
                     doffset += rng.first;
                     seek(doffset, SEEK_SET);
                     size_t bread = read(&data->m_data[sz], toRead);
-                    if (bread != toRead) {
+                    if ((int)bread != toRead) {
                         LogErr(VB_SEQUENCE, "Failed to read channel data!   Needed to read %d but read %d\n", toRead, (int)bread);
                     }
                     sz += toRead;
@@ -941,7 +941,7 @@ public:
         uint64_t numFrames = m_file->getNumFrames();
         datasize *= numFrames;
         uint64_t numBlocks = datasize / V2FSEQ_OUT_COMPRESSION_BLOCK_SIZE;
-        if (numBlocks > maxNumBlocks) {
+        if (numBlocks > (uint64_t)maxNumBlocks) {
             //need a lot of blocks, use as many as we can
             numBlocks = maxNumBlocks;
         } else if (numBlocks < 1) {
@@ -954,14 +954,14 @@ public:
         m_curBlock = 0;
 
         numBlocks = m_file->getNumFrames() / m_framesPerBlock + 1;
-        while (numBlocks > maxNumBlocks) {
+        while (numBlocks > (uint64_t)maxNumBlocks) {
             m_framesPerBlock++;
             numBlocks = m_file->getNumFrames() / m_framesPerBlock + 1;
         }
         // first block is going to be smaller, so add some blocks
-        if (numBlocks < (maxNumBlocks - 1)) {
+        if (numBlocks < (uint64_t)(maxNumBlocks - 1)) {
             numBlocks += 2;
-        } else if (numBlocks < maxNumBlocks) {
+        } else if (numBlocks < (uint64_t)maxNumBlocks) {
             numBlocks++;
         }
         m_maxBlocks = numBlocks;
@@ -1082,11 +1082,11 @@ public:
             m_inBuffer.pos = 0;
             m_inBuffer.size = len;
             int bread = read((void*)m_inBuffer.src, len);
-            if (bread != len) {
+            if ((uint64_t)bread != len) {
                 LogErr(VB_SEQUENCE, "Failed to read channel data for frame %d!   Needed to read %" PRIu64 " but read %d\n", frame, len, (int)bread);
             }
 
-            if (m_curBlock < m_file->m_frameOffsets.size() - 2) {
+            if (m_curBlock + 2 < m_file->m_frameOffsets.size()) {
                 //let the kernel know that we'll likely need the next block in the near future
                 uint64_t len2 = m_file->m_frameOffsets[m_curBlock + 2].second;
                 len2 -= m_file->m_frameOffsets[m_curBlock + 1].second;
@@ -1314,11 +1314,11 @@ public:
             m_inBuffer = (uint8_t*)malloc(len);
 
             int bread = read((void*)m_inBuffer, len);
-            if (bread != len) {
+            if ((uint64_t)bread != len) {
                 LogErr(VB_SEQUENCE, "Failed to read channel data for frame %d!   Needed to read %" PRIu64 " but read %d\n", frame, len, (int)bread);
             }
 
-            if (m_curBlock < m_file->m_frameOffsets.size() - 2) {
+            if (m_curBlock + 2 < m_file->m_frameOffsets.size()) {
                 //let the kernel know that we'll likely need the next block in the near future
                 uint64_t len = m_file->m_frameOffsets[m_curBlock + 2].second;
                 len -= m_file->m_frameOffsets[m_curBlock+1].second;
@@ -1651,7 +1651,7 @@ void V2FSEQFile::writeHeader() {
     }
 
     // Validate final write position matches expected channel data offset
-    if (roundTo4Internal(writePos) != m_seqChanDataOffset) {
+    if ((uint64_t)roundTo4Internal(writePos) != m_seqChanDataOffset) {
         LogErr(VB_SEQUENCE, "Final write position (%d, roundTo4 = %d) does not match channel data offset (%d)! This means the header size failed to compute an accurate buffer size.\n", writePos, roundTo4Internal(writePos), m_seqChanDataOffset);
     }
 

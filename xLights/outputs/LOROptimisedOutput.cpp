@@ -260,7 +260,7 @@ void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data) {
         _changed = true;
     }
 
-    wxASSERT(channel < sizeof(_curData));
+    wxASSERT((size_t)channel < sizeof(_curData));
     _curData[channel] = data;
 }
 
@@ -311,15 +311,15 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             while (channels_to_process > 0) {
                 bool processed = false;
 
-                wxASSERT(cur_channel < sizeof(_curData));
+                wxASSERT((size_t)cur_channel < sizeof(_curData));
                 if ((data[cur_channel] > 0) && (data[cur_channel] < 0xFF)) {
-                    if (shift_offset < MAX_BANKS) {
+                    if ((unsigned int)shift_offset < MAX_BANKS) {
                         color_mode[shift_offset] = true;
                     }
                 }
 
-                wxASSERT(shift_offset < sizeof(lorBankData));
-                for (int i = 0; i < lorBankData[shift_offset].size(); ++i) {
+                wxASSERT((size_t)shift_offset < sizeof(lorBankData));
+                for (int i = 0; i < (int)lorBankData[shift_offset].size(); ++i) {
                     if (lorBankData[shift_offset][i].first == data[cur_channel]) {
                         lorBankData[shift_offset][i].second |= (1 << chan_offset);
                         processed = true;
@@ -344,7 +344,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                     banks_changed[shift_offset] = bank_changed;
                     bank_changed = false;
                     ++shift_offset;
-                    if (shift_offset < MAX_BANKS) {
+                    if ((unsigned int)shift_offset < MAX_BANKS) {
                         color_mode[shift_offset] = false;
                     }
                 }
@@ -353,8 +353,8 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             }
 
             // now build the commands to send out the serial port
-            for (int bank = lorBankData.size() - 1; bank >= 0; --bank) {
-                wxASSERT(bank < sizeof(banks_changed));
+            for (int bank = (int)lorBankData.size() - 1; bank >= 0; --bank) {
+                wxASSERT((size_t)bank < sizeof(banks_changed));
                 if (banks_changed[bank]) {
                     int num_bank_records = lorBankData[bank].size();
 
@@ -434,7 +434,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                 total_bytes_sent += idx;
             }
 
-            for (int bank = 0; bank < lorBankData.size(); bank++) {
+            for (int bank = 0; bank < (int)lorBankData.size(); bank++) {
                 lorBankData[bank].clear();
             }
             lorBankData.clear();
@@ -579,11 +579,11 @@ bool LOROptimisedOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         return true;
     }
     else if (name == "Devices") {
-        while (event.GetValue().GetLong() < GetControllers().GetControllers().size()) {
+        while (event.GetValue().GetLong() < (long)GetControllers().GetControllers().size()) {
             delete GetControllers().GetControllers().back();
             GetControllers().GetControllers().pop_back();
         }
-        while (event.GetValue().GetLong() > GetControllers().GetControllers().size()) {
+        while (event.GetValue().GetLong() > (long)GetControllers().GetControllers().size()) {
             GetControllers().GetControllers().push_back(new LorController());
         }
         CalcTotalChannels();

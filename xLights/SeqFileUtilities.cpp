@@ -646,7 +646,7 @@ bool xLightsFrame::CloseSequence()
         LogPerspective(machinePerspective);
     }
 
-    if (mSavedChangeCount != _sequenceElements.GetChangeCount() && !_renderMode && !_checkSequenceMode) {
+    if (mSavedChangeCount != (unsigned int)_sequenceElements.GetChangeCount() && !_renderMode && !_checkSequenceMode) {
         SaveChangesDialog* dlg = new SaveChangesDialog(this);
         if (dlg->ShowModal() == wxID_CANCEL) {
             return false;

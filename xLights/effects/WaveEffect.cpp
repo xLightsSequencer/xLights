@@ -145,7 +145,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         //        if (r < 100./ThicknessWave) r = 100./ThicknessWave; //turn into straight line; don't completely disappear
         if (r < 0) r = 0; //turn into straight line; don't completely disappear
     } else if (WaveType == WAVETYPE_IVYFRACTAL) { //generate branches at start of effect
-        if (buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
+        if (buffer.needToInit || ((int)WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
             r = 0;
             int delay = 0;
             int delta = 0; //next branch length, angle

@@ -189,7 +189,6 @@ void WorkManager::AddClassDSubnet(const std::string& ip, const std::string& prox
         int ip1 = std::stoi(ipElements[0]);
         int ip2 = std::stoi(ipElements[1]);
         int ip3 = std::stoi(ipElements[2]);
-        int ip4 = std::stoi(ipElements[3]);
 
 		for (uint8_t i = 1; i < 255; i++) {
 			auto ipa = wxString::Format("%d.%d.%d.%d", ip1, ip2, ip3, i);

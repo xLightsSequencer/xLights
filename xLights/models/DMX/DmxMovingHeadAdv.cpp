@@ -234,7 +234,7 @@ void DmxMovingHeadAdv::CorrectDefaultColorChannels()
     if (nullptr != color_ability) {
         if (color_ability->GetColorType() == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
             DmxColorAbilityRGB* crgb = dynamic_cast<DmxColorAbilityRGB*>(color_ability.get());
-            if (pan_motor->GetChannelCoarse() == crgb->GetRedChannel() && crgb->GetRedChannel() == 1) {
+            if (pan_motor->GetChannelCoarse() == (int)crgb->GetRedChannel() && crgb->GetRedChannel() == 1) {
                 crgb->SetRedChannel(5);
                 crgb->SetGreenChannel(6);
                 crgb->SetBlueChannel(7);
@@ -402,31 +402,31 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 {
     // crash protection
     int min_channels = GetMinChannels();
-    if (min_channels > Nodes.size()) {
+    if (min_channels > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (pan_motor->GetChannelCoarse() > Nodes.size()) {
+    if (pan_motor->GetChannelCoarse() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (pan_motor->GetChannelFine() > Nodes.size()) {
+    if (pan_motor->GetChannelFine() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (tilt_motor->GetChannelCoarse() > Nodes.size()) {
+    if (tilt_motor->GetChannelCoarse() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (tilt_motor->GetChannelFine() > Nodes.size()) {
+    if (tilt_motor->GetChannelFine() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     size_t NodeCount = Nodes.size();
     if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
         !preset_ability->IsValidModelSettings(this) ||
-        shutter_ability->GetShutterChannel() > NodeCount ||
-        dimmer_ability->GetDimmerChannel() > NodeCount)
+        shutter_ability->GetShutterChannel() > (int)NodeCount ||
+        dimmer_ability->GetDimmerChannel() > (int)NodeCount)
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
@@ -532,7 +532,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
-    if (shutter_ability->GetShutterChannel() > 0 && shutter_ability->GetShutterChannel() <= NodeCount && active) {
+    if (shutter_ability->GetShutterChannel() > 0 && shutter_ability->GetShutterChannel() <= (int)NodeCount && active) {
         xlColor proxy;
         Nodes[shutter_ability->GetShutterChannel() - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
@@ -640,19 +640,19 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
 std::vector<std::string> DmxMovingHeadAdv::GenerateNodeNames() const {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < names.size()) {
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < (int)names.size()) {
         names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
-    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < names.size()) {
+    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < (int)names.size()) {
         names[pan_motor->GetChannelCoarse() - 1] = "Pan";
     }
-    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < names.size()) {
+    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < (int)names.size()) {
         names[tilt_motor->GetChannelCoarse() - 1] = "Tilt";
     }
-    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < names.size()) {
+    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < (int)names.size()) {
         names[pan_motor->GetChannelFine() - 1] = "Pan Fine";
     }
-    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < names.size()) {
+    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < (int)names.size()) {
         names[tilt_motor->GetChannelFine() - 1] = "Tilt Fine";
     }
 

@@ -1113,8 +1113,8 @@ public:
     long DragRowIdx;
     //wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
-    int mSavedChangeCount = 0;
-    int mLastAutosaveCount = 0;
+    unsigned int mSavedChangeCount = 0;
+    unsigned int mLastAutosaveCount = 0;
     wxDateTime starttime;
     ModelPreview* modelPreview = nullptr;
     EffectManager effectManager;

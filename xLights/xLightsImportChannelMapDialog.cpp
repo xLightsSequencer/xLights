@@ -1608,7 +1608,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
     //selected timmings
     auto timingtracks = data["timingtracks"].array();
     if (timingtracks != nullptr) {
-        for (int i = 0; i < timingtracks.size(); ++i) {
+        for (size_t i = 0; i < timingtracks.size(); ++i) {
             wxString const ttname = timingtracks.at(i).at("name").get<std::string>();
             bool const ttenabled = timingtracks.at(i).at("enabled").get<bool>();
             if (auto const& idx{ std::find(timingTracks.begin(), timingTracks.end(), ttname) }; idx != timingTracks.end()) {
@@ -1627,7 +1627,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
 
     //mappings
     auto mappings = data["mappings"].array();
-    for (int i = 0; i < mappings.size(); ++i) {
+    for (size_t i = 0; i < mappings.size(); ++i) {
         wxString const model = mappings.at(i).at("model").get<std::string>();
         wxString const strand = mappings.at(i).at("strand").get<std::string>();
         wxString const node = mappings.at(i).at("node").get<std::string>();
@@ -2398,7 +2398,7 @@ std::string xLightsImportChannelMapDialog::findModelType(std::string modelName)
         return "Strand";
     }
 
-    for (size_t j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+    for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
         if (ListCtrl_Available->GetItemText(j, 0).Lower().ToStdString() == ::Lower(modelName)) {
             wxListItem item;
             item.SetId(j);
@@ -2435,7 +2435,7 @@ void xLightsImportChannelMapDialog::BulkMapNodes(const std::string& fromModel, w
             auto nn = mm->GetNode(it2);
             bool fromExist = false;
             auto fromname = fromModel + "/" + sn + "/" + nn;
-            for (size_t j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+            for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
                 if (ListCtrl_Available->GetItemText(j, 0) == fromname) {
                     fromExist = true;
                 }
@@ -2457,7 +2457,7 @@ void xLightsImportChannelMapDialog::BulkMapSubmodelsStrands(const std::string& f
         auto sn = mm->GetStrand(it);
         bool fromExist = false;
         auto fromname = fromModel + "/" + sn;
-        for (size_t j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+        for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
             if (ListCtrl_Available->GetItemText(j, 0) == fromname) {
                 fromExist = true;
             }
@@ -3752,7 +3752,7 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& even
     }
     else
     {
-        for (size_t i = 0; i < ListCtrl_Available->GetItemCount(); ++i)
+        for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i)
         {
             if (ListCtrl_Available->GetItemText(i).Lower().StartsWith(from))
             {
@@ -3765,7 +3765,7 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& even
     // if nothing found then find the first line containing the text
     if (index == -1)
     {
-        for (size_t i = 0; i < ListCtrl_Available->GetItemCount(); ++i) {
+        for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i) {
             if (ListCtrl_Available->GetItemText(i).Lower().Contains(from)) {
                 index = i;
                 break;

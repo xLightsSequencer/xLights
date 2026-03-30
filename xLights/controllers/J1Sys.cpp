@@ -136,7 +136,7 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
     std::string config = GetURL("/protect/stringConfig.htm");
 
     if (!config.empty()) {
-        for (auto i = 0; i < j.size(); i++) {
+        for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
             wxString activeRegex = wxString::Format("sA%c[^>]*checked", i + 65);
             wxRegEx ar(activeRegex);
@@ -228,7 +228,7 @@ void J1Sys::ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j) {
     std::string config = GetURL("/protect/portConfig.htm");
 
     if (!config.empty()) {
-        for (auto i = 0; i < j.size(); i++) {
+        for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
             wxString activeRegex = wxString::Format("pA%d[^>]*checked", i + 1);
             wxRegEx ar(activeRegex);
@@ -331,7 +331,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
         {
             maxUniverses = 26;
         }
-        if (outputs.size() > maxUniverses)
+        if ((int)outputs.size() > maxUniverses)
         {
             DisplayError(wxString::Format("Attempt to upload %d universes to j1Sys P12 controller but only %d are supported.", (int)outputs.size(), maxUniverses).ToStdString());
             return false;

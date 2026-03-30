@@ -347,7 +347,7 @@ void NodeClassSuperString::SetFromChannels(const unsigned char* buf)
     c[0] = 0;
     c[1] = 0;
     c[2] = 0;
-    for (int i = 0; i < _superStringColours.size(); i++) {
+    for (int i = 0; i < (int)_superStringColours.size(); i++) {
         xlColor cc = xlColor(_superStringColours[i].red * buf[i] / 255, _superStringColours[i].green * buf[i] / 255, _superStringColours[i].blue * buf[i] / 255);
         if (c[0] < cc.red)
             c[0] = cc.red;
@@ -372,7 +372,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
     bool primary = r || g || b || y || w || cy || m;
     int singleColour = -1;
     if (primary) {
-        for (int i = 0; singleColour == -1 && i < _superStringColours.size(); i++) {
+        for (int i = 0; singleColour == -1 && i < (int)_superStringColours.size(); i++) {
             xlColor cc = _superStringColours[i];
             if ((r && cc.red > 0 && cc.green == 0 && cc.blue == 0) ||
                 (g && cc.red == 0 && cc.green > 0 && cc.blue == 0) ||
@@ -389,7 +389,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
     switch (rgbwHandling) {
     case RGB_HANDLING_RGB:
         // only update rgb
-        for (int i = 0; i < _superStringColours.size(); i++) {
+        for (int i = 0; i < (int)_superStringColours.size(); i++) {
             // if this is a white super string
             if (_superStringColours[i].red != _superStringColours[i].green || _superStringColours[i].red != _superStringColours[i].blue) {
                     // this needs work
@@ -406,7 +406,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
     case RGB_HANDLING_WHITE:
         // only populate the white channel
 
-        for (int i = 0; i < _superStringColours.size(); i++) {
+        for (int i = 0; i < (int)_superStringColours.size(); i++) {
             if (_superStringColours[i].red == _superStringColours[i].green && _superStringColours[i].red == _superStringColours[i].blue) {
                 buf[i] = common;
             }
@@ -416,7 +416,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
     case RGB_HANDLING_ALL:
         // this is how it used to work
         if (singleColour == -1) {
-            for (int i = 0; i < _superStringColours.size(); i++) {
+            for (int i = 0; i < (int)_superStringColours.size(); i++) {
                 // this needs work
                 xlColor cc = _superStringColours[i];
                 float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
@@ -426,7 +426,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
                 buf[i] = in * 255;
             }
         } else {
-            for (int i = 0; i < _superStringColours.size(); i++) {
+            for (int i = 0; i < (int)_superStringColours.size(); i++) {
                 if (i == singleColour) {
                     buf[i] = std::max(c[0], std::max(c[1], c[2]));
                 } else {
@@ -438,7 +438,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
     case RGB_HANDLING_ADVANCED: 
         // set white the common amount
 
-        for (int i = 0; i < _superStringColours.size(); i++) {
+        for (int i = 0; i < (int)_superStringColours.size(); i++) {
             // if this is a white super string
             if (_superStringColours[i].red != _superStringColours[i].green || _superStringColours[i].red != _superStringColours[i].blue) {
                 if (singleColour == -1) {
@@ -470,7 +470,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
         // when r==g==b only light up white
         if (w)
         {
-            for (int i = 0; i < _superStringColours.size(); i++) {
+            for (int i = 0; i < (int)_superStringColours.size(); i++) {
                 // if this is a white super string
                 if (_superStringColours[i].red == _superStringColours[i].green && _superStringColours[i].red == _superStringColours[i].blue)
                 {
@@ -483,7 +483,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
                 }
             }
         } else {
-            for (int i = 0; i < _superStringColours.size(); i++) {
+            for (int i = 0; i < (int)_superStringColours.size(); i++) {
                 // if this is a white super string
                 if (_superStringColours[i].red != _superStringColours[i].green || _superStringColours[i].red != _superStringColours[i].blue) {
                     if (singleColour == -1) {

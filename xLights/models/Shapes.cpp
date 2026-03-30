@@ -38,7 +38,7 @@ BezierCurveCubic::~BezierCurveCubic()
 
 void BezierCurve::clear_points()
 {
-	for( int j = 0; j < points.size(); ++j ) {
+	for( int j = 0; j < (int)points.size(); ++j ) {
         if( points[j].matrix != nullptr ) {
             delete points[j].matrix;
             points[j].matrix = nullptr;
@@ -320,7 +320,7 @@ BezierCurveCubic3D::~BezierCurveCubic3D()
 
 void BezierCurve3D::clear_points()
 {
-    for (int j = 0; j < points.size(); ++j) {
+    for (int j = 0; j < (int)points.size(); ++j) {
         if (points[j].matrix != nullptr) {
             delete points[j].matrix;
             points[j].matrix = nullptr;

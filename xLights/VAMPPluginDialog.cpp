@@ -143,7 +143,7 @@ enum class VAMPCONVERT {
 
 void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels, VAMPCONVERT convert) {
     bool hadDuration = true;
-    for (int x = 0; x < feature.size(); x++) {
+    for (size_t x = 0; x < feature.size(); x++) {
         int start = feature[x].timestamp.msec() + feature[x].timestamp.sec * 1000;
         starts.push_back(start);
         if (!hadDuration) {
@@ -176,7 +176,7 @@ wxString VAMPPluginDialog::ProcessPlugin(SequenceFile* xml_file, xLightsFrame *x
     int output = 0;
     Plugin::OutputList outputs = p->getOutputDescriptors();
     if (outputs.size() > 1) {
-        for (int x = 0; x < outputs.size(); x++) {
+        for (size_t x = 0; x < outputs.size(); x++) {
             wxString pname = wxString::FromUTF8(p->getName().c_str());
             wxString outputName = wxString::FromUTF8(outputs[x].name.c_str());
             if (outputName != pname) {
@@ -194,7 +194,7 @@ wxString VAMPPluginDialog::ProcessPlugin(SequenceFile* xml_file, xLightsFrame *x
 
     PluginBase::ParameterList params = p->getParameterDescriptors();
     std::vector<void *> controls;
-    for (int x = 0; x < params.size(); x++) {
+    for (size_t x = 0; x < params.size(); x++) {
         wxString tip = wxString::FromUTF8(params[x].description.c_str());
         wxString unit = wxString::FromUTF8(params[x].unit.c_str());
 
@@ -290,7 +290,7 @@ wxString VAMPPluginDialog::ProcessPlugin(SequenceFile* xml_file, xLightsFrame *x
         std::string error;
 		media->SetStepBlock(step, block);
 
-        for (int x = 0; x < params.size(); x++) {
+        for (size_t x = 0; x < params.size(); x++) {
 
             if (params[x].isQuantized &&
                 params[x].quantizeStep == 1.0 &&
@@ -314,7 +314,7 @@ wxString VAMPPluginDialog::ProcessPlugin(SequenceFile* xml_file, xLightsFrame *x
             }
         }
         int channels = media->GetChannels();
-        if (channels > p->getMaxChannelCount()) {
+        if ((size_t)channels > p->getMaxChannelCount()) {
             channels = 1;
         }
         p->initialise(channels, step, block);

@@ -532,11 +532,11 @@ void ScheduleManager::RemovePlayList(PlayList* playlist) {
 }
 
 PlayList* ScheduleManager::GetRunningPlayList(int id) const {
-    if (_immediatePlay != nullptr && _immediatePlay->IsRunning() && _immediatePlay->GetId() == id) {
+    if (_immediatePlay != nullptr && _immediatePlay->IsRunning() && _immediatePlay->GetId() == (wxUint32)id) {
         return _immediatePlay;
     }
     for (auto it : _activeSchedules) {
-        if (it->GetPlayList()->GetId() == id) {
+        if (it->GetPlayList()->GetId() == (wxUint32)id) {
             return it->GetPlayList();
         }
     }
@@ -677,7 +677,7 @@ void ScheduleManager::ApplyBrightness() {
     } else {
         auto exclude = ed.begin();
         uint8_t* pb = _buffer;
-        for (size_t i = 0; i < totalChannels; ++i) {
+        for (size_t i = 0; i < (size_t)totalChannels; ++i) {
             while (exclude != ed.end() && i > (*exclude)->GetLastExcludeChannel() - 1)
                 ++exclude;
             bool ex = (exclude != ed.end() && i >= (*exclude)->GetFirstExcludeChannel() - 1);
@@ -2181,7 +2181,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             long ms = wxAtoi(parameters);
                             if (ms < 0)
                                 ms = 0;
-                            if (ms > s->GetLengthMS())
+                            if ((size_t)ms > s->GetLengthMS())
                                 ms = s->GetLengthMS();
                             s->SetSyncPosition((size_t)ms, GetOptions()->GetRemoteAcceptableJitter(), true);
                         } else {
@@ -2256,7 +2256,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             auto models = root["models"].AsArray();
                             if (models != nullptr) {
                                 auto size = models->size();
-                                for (int i = 0; i < size && start == -1; ++i) {
+                                for (size_t i = 0; i < size && start == -1; ++i) {
                                     auto m = (*models)[i];
                                     if (m["name"].AsString() == pp[1]) {
                                         start = wxAtoi(m["startchannel"].AsString()) - 1;
@@ -3455,7 +3455,7 @@ void ScheduleManager::SetMode(int mode, REMOTEMODE remote) {
 
 PlayList* ScheduleManager::GetPlayList(int id) const {
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it) {
-        if ((*it)->GetId() == id)
+        if ((*it)->GetId() == (wxUint32)id)
             return *it;
     }
 
@@ -3997,7 +3997,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display) {
 
     m = GetOptions()->GetMatrices();
     for (auto n = m->begin(); n != m->end(); ++n) {
-        if ((*n)->GetStartChannelAsNumber() + (*n)->GetChannels() >= _outputManager->GetTotalChannels()) {
+        if ((*n)->GetStartChannelAsNumber() + (*n)->GetChannels() >= (size_t)_outputManager->GetTotalChannels()) {
             wxString msg = wxString::Format("    ERR: Matrix '{}' is meant to finish at channel {} but last available channel is {}.", (*n)->GetName(), (long)((*n)->GetStartChannelAsNumber() + (*n)->GetChannels()), (long)_outputManager->GetTotalChannels());
             LogAndWrite(f, msg.ToStdString());
             errcount++;
@@ -4016,7 +4016,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display) {
 
     auto vm = GetOptions()->GetVirtualMatrices();
     for (auto n = vm->begin(); n != vm->end(); ++n) {
-        if ((*n)->GetStartChannelAsNumber() + (*n)->GetChannels() - 1 > _outputManager->GetTotalChannels()) {
+        if ((*n)->GetStartChannelAsNumber() + (*n)->GetChannels() - 1 > (size_t)_outputManager->GetTotalChannels()) {
             wxString msg = wxString::Format("    ERR: Virtual Matrix '{}' is meant to finish at channel {} but last available channel is {}.", (*n)->GetName(), (long)((*n)->GetStartChannelAsNumber() + (*n)->GetChannels() - 1), (long)_outputManager->GetTotalChannels());
             LogAndWrite(f, msg.ToStdString());
             errcount++;
@@ -4206,7 +4206,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display) {
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
 
-                    for (int j = 0; j < ff->length(); ++j) {
+                    for (size_t j = 0; j < ff->length(); ++j) {
                         if (ff->at(j) < 32) {
                             msg = wxString::Format("    ERR: Playlist '{}' step '{}' item '{}' references file '{}' which contains illegal character 0x%x.", (*n)->GetNameNoTime(), (*s)->GetNameNoTime(), (*i)->GetNameNoTime(), (ff->c_str()), (int)ff->at(j));
                             LogAndWrite(f, msg.ToStdString());
@@ -4370,9 +4370,9 @@ PixelData::PixelData(size_t startChannel, size_t channels, const wxColor& c, APP
 
 void PixelData::SetColor(const wxColor& c, APPLYMETHOD blendMode) {
     _blendMode = blendMode;
-    long size3 = (_size / 3) * 3;
+    size_t size3 = (_size / 3) * 3;
 
-    for (long i = 0; i < size3; i += 3) {
+    for (size_t i = 0; i < size3; i += 3) {
         _data[i] = c.Red();
         _data[i + 1] = c.Green();
         _data[i + 2] = c.Blue();
@@ -4441,7 +4441,6 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const wxString& text, co
                 wxColour c(pv[1]);
                 pliText->SetColour(c);
             } else if (pvl == "blendmode") {
-                wxString vl = pv[1].Lower();
                 pliText->SetBlendMode(pv[1]);
             } else if (pvl == "speed") {
                 pliText->SetSpeed(wxAtoi(pv[1]));
@@ -4721,7 +4720,7 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec) 
             v1 = level2;
             v2 = level1;
         }
-        for (size_t i = start; i <= end; ++i) {
+        for (size_t i = (size_t)start; i <= (size_t)end; ++i) {
             if (i % 2 == 0) {
                 buffer[i] = v1;
             } else {
@@ -4776,8 +4775,8 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec) 
         } else if (mode == TESTMODE::TEST_C) {
             c = level1;
         }
-        long tc = (end / 3) * 3;
-        for (size_t i = start; i <= tc; i += 3) {
+        size_t tc = ((size_t)end / 3) * 3;
+        for (size_t i = (size_t)start; i <= tc; i += 3) {
             buffer[i] = a;
             buffer[i + 1] = b;
             buffer[i + 2] = c;

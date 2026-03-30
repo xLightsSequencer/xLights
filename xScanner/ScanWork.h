@@ -109,7 +109,7 @@ class ScanThread : public wxThread
     std::mutex _mutex;
 public:
     ScanThread(WorkManager& workManager, ThreadType tt, wxSocketClient* client = nullptr)
-        : wxThread(wxTHREAD_DETACHED), _workManager(workManager), _threadType(tt), _client(client) {}
+        : wxThread(wxTHREAD_DETACHED), _threadType(tt), _workManager(workManager), _client(client) {}
     ~ScanThread() {}
     void Terminate() { _terminate = true; }
     void TerminateWork();

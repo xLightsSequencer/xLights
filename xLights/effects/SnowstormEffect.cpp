@@ -185,7 +185,7 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     // render Snowstorm Items
     for (auto& it : SnowstormItems) {
         
-        if (it.points.size() > TailLength) {
+        if ((int)it.points.size() > TailLength) {
             if (it.ssDecay > TailLength) {
                 it.points.clear();  // start over
                 it.ssDecay = 0;

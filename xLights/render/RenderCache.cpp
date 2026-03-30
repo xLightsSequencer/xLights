@@ -380,9 +380,9 @@ void RenderCache::Close()
 }
 
 static bool doOnEffectsInternal(Element *em, std::function<bool(Effect*)>& func) {
-    for (int l = 0; l < em->GetEffectLayerCount(); l++) {
+    for (int l = 0; l < (int)em->GetEffectLayerCount(); l++) {
         EffectLayer* el = em->GetEffectLayer(l);
-        for (int e = 0; e < el->GetEffectCount(); e++) {
+        for (int e = 0; e < (int)el->GetEffectCount(); e++) {
             Effect *eff = el->GetEffect(e);
             if (func(eff)) {
                 return true;
@@ -447,7 +447,7 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
             while (it != l.second->cache.end()) {
                 bool found = false;
 
-                for (int i = 0; i < sequenceElements->GetElementCount() && !found; i++) {
+                for (int i = 0; i < (int)sequenceElements->GetElementCount() && !found; i++) {
                     Element* em = sequenceElements->GetElement(i);
                     found = findMatch(em, *it);
                 }
@@ -467,7 +467,7 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
     }
     spdlog::debug("    Cleaned up {} items in the cache.", deleted);
 
-    for (int i = 0; i < sequenceElements->GetElementCount(); ++i) {
+    for (int i = 0; i < (int)sequenceElements->GetElementCount(); ++i) {
         Element* em = sequenceElements->GetElement(i);
         purgeCache(em, false);
     }
@@ -511,7 +511,7 @@ void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
     }
 
     if (sequenceElements) {
-        for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+        for (int i = 0; i < (int)sequenceElements->GetElementCount(); i++) {
             Element* em = sequenceElements->GetElement(i);
             purgeCache(em, dodelete);
         }
@@ -641,7 +641,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     if (buffer != nullptr)
     {
         std::string mname = GetModelName(buffer);
-        if (_frameSize.at(mname) != sizeof(xlColor) * buffer->GetPixelCount()) return false;
+        if ((size_t)_frameSize.at(mname) != sizeof(xlColor) * buffer->GetPixelCount()) return false;
     }
 
     if (std::atoi(_properties.at("EndMS").c_str()) != effect->GetEndTimeMS()) return false;
@@ -740,7 +740,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     if (_frameSize.find(mname) == _frameSize.end()) {
         _frameSize[mname] = sizeof(xlColor) * buffer->GetPixelCount();
     } else {
-        if (_frameSize[mname] != sizeof(xlColor) * buffer->GetPixelCount()) {
+        if ((size_t)_frameSize[mname] != sizeof(xlColor) * buffer->GetPixelCount()) {
             // the buffer size has changed ... we dont support this.
             spdlog::warn("RenderCacheItem::AddFrame buffer size changed ... we dont support this.");
             PurgeFrames();
@@ -762,7 +762,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         _frames[mname] = n;
     }
 
-    if (frame >= _frames.at(mname).size()) {
+    if ((size_t)frame >= _frames.at(mname).size()) {
         int maxframe = std::max(frame+1,buffer->curEffEndPer - buffer->curEffStartPer + 1);
         _frames.at(mname).resize(maxframe);
     }
@@ -805,13 +805,13 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
     }
 
     auto modelFrames = _frames[mname];
-    if (_frameSize.at(mname) != (sizeof(xlColor) * buffer->GetPixelCount())) {
+    if ((size_t)_frameSize.at(mname) != (sizeof(xlColor) * buffer->GetPixelCount())) {
         spdlog::info("RenderCache::GetFrame on model " + mname + " failed due to frame size difference.");
         return false;
     }
 
     int frame = buffer->curPeriod - buffer->curEffStartPer;
-    if (frame < modelFrames.size() && modelFrames[frame]) {
+    if ((size_t)frame < modelFrames.size() && modelFrames[frame]) {
         // its in memory ... read it from there
         unsigned char* pc = modelFrames[frame];
         memcpy(static_cast<void*>(buffer->GetPixels()), pc, _frameSize.at(mname));
@@ -977,7 +977,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
             } else {
                 size_t cur = _firstFrameOffset;
                 for (auto& itm : _frames) {
-                    for (int i = 0; i < itm.second.size(); i++) {
+                    for (int i = 0; i < (int)itm.second.size(); i++) {
                         itm.second[i] = &_mmap[cur];
                         cur += _frameSize.at(itm.first);
                     }
@@ -989,7 +989,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
 #endif
         std::fseek(fp, _firstFrameOffset, SEEK_SET);
         for (auto& itm : _frames) {
-            for (int i = 0; i < itm.second.size(); i++) {
+            for (int i = 0; i < (int)itm.second.size(); i++) {
                 uint8_t* frameBuffer = (uint8_t *)malloc(_frameSize.at(itm.first));
 
                 if (frameBuffer == nullptr) {
@@ -1044,7 +1044,7 @@ void RenderCacheItem::remmap() {
         }
         size_t cur = _firstFrameOffset;
         for (auto& itm : _frames) {
-            for (int i = 0; i < itm.second.size(); i++) {
+            for (int i = 0; i < (int)itm.second.size(); i++) {
                 if (itm.second[i]) {
                     free(itm.second[i]);
                     itm.second[i] = nullptr;

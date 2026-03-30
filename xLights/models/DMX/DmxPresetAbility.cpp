@@ -25,7 +25,7 @@ void DmxPresetAbility::SetPresetValues(xlColorVector& pixelVector) const
 {
     for (auto const& pre : _presets) {
         if (pre.DMXChannel != 0 && pre.DMXValue != 0) {
-            if (pixelVector.size() > pre.DMXChannel - 1) {
+            if ((int)pixelVector.size() > pre.DMXChannel - 1) {
                 xlColor c(pre.DMXValue, pre.DMXValue, pre.DMXValue);
                 pixelVector[pre.DMXChannel - 1] = c;
             }

@@ -300,8 +300,8 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
 
     if (despeckle > 0)
     {
-        for (size_t y = 0; y < buffer.BufferHt; ++y) {
-            for (size_t x = 0; x < buffer.BufferWi; ++x) {
+        for (int y = 0; y < buffer.BufferHt; ++y) {
+            for (int x = 0; x < buffer.BufferWi; ++x) {
                 if (buffer.GetPixel(x, y) == xlBLACK) {
                     buffer.SetPixel(x, y, GetDespeckleColor(buffer, x, y, despeckle));
                 }
@@ -335,7 +335,7 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     {
         for (int xx = startx; xx <= endx; ++xx)
         {
-            if (yy != y || xx != x) // dont evaluate the pixel itself
+            if (yy != (int)y || xx != (int)x) // dont evaluate the pixel itself
             {
                 xlColor c = buffer.GetPixel(xx, yy);
 

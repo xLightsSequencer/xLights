@@ -282,7 +282,7 @@ bool MHRgbPickerPanel::HitTestV( wxPoint2DDouble& ptUI )
 
 int MHRgbPickerPanel::HitTest( wxPoint2DDouble& ptUI )
 {
-    for (int i = 0; i < m_handles.size(); ++i ) {
+    for (int i = 0; i < (int)m_handles.size(); ++i ) {
         wxPoint2DDouble pt{NormalizedToUI(m_handles[i].pt)};
         if( (ptUI.m_x > pt.m_x - handleRadius) &&
         (ptUI.m_x < pt.m_x + handleRadius) &&
@@ -428,7 +428,7 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
     active_handle = -1;
     wxArrayString colors = wxSplit(_colors, ',');
     unsigned long num_colors = colors.size() / 3;
-    for( int i = 0; i < num_colors; ++i ) {
+    for( int i = 0; i < (int)num_colors; ++i ) {
         double hue { wxAtof(colors[i*3]) };
         double sat { wxAtof(colors[i*3+1]) };
         double val { wxAtof(colors[i*3+2]) };

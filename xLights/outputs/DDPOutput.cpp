@@ -375,7 +375,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
                     if (val.contains("config") && val["config"].contains("ports")) {
                         int channels = 0;
                         auto ports = val["config"]["ports"].array();
-                        for (int i = 0; i < ports.size(); i++) {
+                        for (size_t i = 0; i < ports.size(); i++) {
                             auto ts =
                                 wxAtoi(
                                     val["config"]["ports"][i]["ts"].get<std::string>()) +

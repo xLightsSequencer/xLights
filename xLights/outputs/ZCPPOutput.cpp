@@ -891,7 +891,7 @@ void ZCPPOutput::EndFrame(int suppressFrames) {
             _packet.Data.sequenceNumber = _sequenceNum;
             uint32_t startAddress = i;
             _packet.Data.frameAddress = ntohl(startAddress);
-            uint16_t packetlen = _usedChannels - i > sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE ? sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE : _usedChannels - i;
+            uint16_t packetlen = (size_t)(_usedChannels - i) > sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE ? sizeof(ZCPP_packet_t) - ZCPP_DATA_HEADER_SIZE : _usedChannels - i;
             _packet.Data.flags = (OutputManager::IsSyncEnabled_() ? ZCPP_DATA_FLAG_SYNC_WILL_BE_SENT : 0x00) +
                           (i + packetlen == _usedChannels ? ZCPP_DATA_FLAG_LAST : 0x00) +
                           (i == 0 ? ZCPP_DATA_FLAG_FIRST : 0x00);

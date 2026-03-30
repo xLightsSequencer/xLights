@@ -554,7 +554,7 @@ void SubModelsDialog::Setup(Model *m)
 #pragma region helpers
 
 SubModelsDialog::SubModelInfo *SubModelsDialog::GetSubModelInfo(const wxString &name) {
-    for (int a = 0; a < _subModels.size(); a++) {
+    for (int a = 0; a < (int)_subModels.size(); a++) {
         if (_subModels[a]->name == name) {
             return _subModels[a];
         }
@@ -615,7 +615,7 @@ wxString SubModelsDialog::GetSelectedNames()
 }
 
 int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
-    for (int a=0; a < _subModels.size(); a++) {
+    for (int a=0; a < (int)_subModels.size(); a++) {
         if (_subModels[a]->name == name) {
             return a;
         }
@@ -656,12 +656,12 @@ void SubModelsDialog::SaveSubModelInfoIntoThisModel(Model *m)
 
         if ((*a)->isRanges) {
             if ((*a)->bufferStyle == KEEP_XY) {
-                for (int x = 0; x < (*a)->strands.size(); x++) {
+                for (int x = 0; x < (int)(*a)->strands.size(); x++) {
                     sm->AddRangeXY( (*a)->strands[x] );
                 }
                 sm->CalcRangeXYBufferSize();
             } else { //default and stacked buffer styles
-                for (int x = 0; x < (*a)->strands.size(); x++) {
+                for (int x = 0; x < (int)(*a)->strands.size(); x++) {
                     sm->AddDefaultBuffer( (*a)->strands[x] );
                 }
             }
@@ -1377,7 +1377,7 @@ void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
     }
     if (key == WXK_DOWN || key == WXK_NUMPAD_DOWN) {
         int idx = GetSubModelInfoIndex(GetSelectedName());
-        if (idx + 1 < _subModels.size()){
+        if (idx + 1 < (int)_subModels.size()){
             UnSelectAll();
             Select(_subModels[idx+1]->name);
         }
@@ -1447,7 +1447,7 @@ void SubModelsDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
     int idx = GetSubModelInfoIndex(GetSelectedName());
 
-    if (idx == _subModels.size()) {
+    if (idx == (int)_subModels.size()) {
         idx = -1;
     }
     auto const serachTxt = SearchCtrl1->GetValue().Lower();
@@ -1741,7 +1741,7 @@ void SubModelsDialog::Symmetrize()
                         continue; // Already matched this pass
                     matches.push_back(std::make_pair(fturns[pt], pt));
                 }
-                if (matches.size() < dos)
+                if ((int)matches.size() < dos)
                     continue;
                 std::sort(matches.begin(), matches.end()); // Sort CCW
 
@@ -2231,7 +2231,7 @@ void SubModelsDialog::PopulateList()
     ListCtrl_SubModels->Freeze();
     ListCtrl_SubModels->DeleteAllItems();
 
-    for (int x = 0; x < _subModels.size(); x++) {
+    for (int x = 0; x < (int)_subModels.size(); x++) {
         ListCtrl_SubModels->InsertItem(x, _subModels[x]->name);
         ListCtrl_SubModels->SetItemPtrData(x, (wxUIntPtr)_subModels[x]);
     }
@@ -2385,7 +2385,7 @@ void SubModelsDialog::applySubmodelRowLabels(const wxString &name) {
         if (sm->vertical) {
             if (x == 0) {
                 NodesGrid->SetRowLabelValue(cellrow, "Left");
-            } else if (x == sm->strands.size() - 1) {
+            } else if (x == (int)sm->strands.size() - 1) {
                 NodesGrid->SetRowLabelValue(cellrow, "Right");
             } else {
                 NodesGrid->SetRowLabelValue(cellrow, wxString::Format("Col %d", (x + 1)));
@@ -2393,7 +2393,7 @@ void SubModelsDialog::applySubmodelRowLabels(const wxString &name) {
         } else {
             if (x == 0) {
                 NodesGrid->SetRowLabelValue(cellrow, "Bottom");
-            } else if (x == sm->strands.size() - 1) {
+            } else if (x == (int)sm->strands.size() - 1) {
                 NodesGrid->SetRowLabelValue(cellrow, "Top");
             } else {
                 NodesGrid->SetRowLabelValue(cellrow, wxString::Format("Line %d", (x + 1)));
@@ -2641,7 +2641,7 @@ void SubModelsDialog::MoveSelectedModelsTo(int indexTo)
         SubModelInfo* sm = _subModels.at(index);
         _subModels.erase(_subModels.begin() + GetSubModelInfoIndex(sm->name));
         ListCtrl_SubModels->DeleteItem(index);
-        if (indexTo >= _subModels.size()) {
+        if (indexTo >= (int)_subModels.size()) {
             _subModels.push_back(sm);
             long idx = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
             ListCtrl_SubModels->SetItemPtrData(idx, (wxUIntPtr)sm);
@@ -2760,7 +2760,7 @@ void SubModelsDialog::OnListCtrl_SubModelsBeginDrag(wxListEvent& event)
     if (ListCtrl_SubModels->GetSelectedItemCount() == 0) return;
 
     wxString drag = "SubModel";
-    for (size_t i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
+    for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
     {
         if (IsItemSelected(ListCtrl_SubModels, i))
         {
@@ -2984,7 +2984,7 @@ void SubModelsDialog::OnButton_MoveDownClick(wxCommandEvent& event)
 
     int row = NodesGrid->GetGridCursorRow();
 
-    if (NodesGrid->GetNumberRows() == 1 || row == sm->strands.size() - 1 || row < 0)
+    if (NodesGrid->GetNumberRows() == 1 || row == (int)sm->strands.size() - 1 || row < 0)
     {
         // nothing to do
     }
@@ -3952,7 +3952,7 @@ void SubModelsDialog::ExportSubModels(wxString const& filename)
                 f.Write(",,,");
                 if (x == 0) {
                     f.Write("Bottom,");
-                } else if (x == sm->strands.size() - 1) {
+                } else if (x == (int)sm->strands.size() - 1) {
                     f.Write("Top,");
                 } else {
                     f.Write(wxString::Format("Line %d,", (x + 1)));
@@ -4080,7 +4080,7 @@ void SubModelsDialog::Shift()
         if (scaleFactor != 0) {
             for (auto sm : _subModels) {
                 if (sm->isRanges) {
-                    for (int x = 0; x < sm->strands.size(); x++) {
+                    for (int x = 0; x < (int)sm->strands.size(); x++) {
                         wxString oldnodes = ExpandNodes(sm->strands[x]);
                         auto oldNodeArray = wxSplit(oldnodes, ',');
                         wxArrayString newNodeArray;
@@ -4441,8 +4441,8 @@ void SubModelsDialog::MakeRowsUniformFront() {
     // Write back
     for (unsigned i = 0; i < sm->strands.size(); ++i) {
         auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
-        int const dlt = mlen - row_data.size();        
-        for (unsigned s = 0; s < dlt; ++s) {
+        int const dlt = (int)(mlen - row_data.size());
+        for (int s = 0; s < dlt; ++s) {
             row_data.insert(row_data.begin(), "");
         }
         sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ',').ToStdString());

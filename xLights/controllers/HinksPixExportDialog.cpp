@@ -1277,7 +1277,7 @@ void HinksPixExportDialog::GetFolderList(wxString const& folder) {
 
 void HinksPixExportDialog::OnAddRefreshButtonClick(wxCommandEvent& /*event*/) {
     CreateDriveList();
-    for (int i = 0; i < m_hixControllers.size(); i++) {
+    for (int i = 0; i < (int)m_hixControllers.size(); i++) {
         std::string rowStr = std::to_string(i);
         SetDropDownItems(DISK_COL + rowStr, m_drives);
     }

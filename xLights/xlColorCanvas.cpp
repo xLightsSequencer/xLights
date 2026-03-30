@@ -118,8 +118,8 @@ void xlColorCanvas::ProcessSliderClick(int row) {
     int iYrange = mWindowHeight - 1;
     if (row < 0)
         row = 0;
-    else if (row > mWindowHeight)
-        row = mWindowHeight;
+    else if (row > (int)mWindowHeight)
+        row = (int)mWindowHeight;
     switch (mDisplayMode) {
     case MODE_HUE:
         mHSV.hue = 1.0 - (double)row / dYrange;

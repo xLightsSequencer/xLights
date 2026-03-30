@@ -393,7 +393,7 @@ void xlGridCanvasPictures::UpdateRenderedImage()
 {
     wxString settings = mEffect->GetSettingsAsString();
     wxArrayString all_settings = wxSplit(settings, ',');
-    for (int s = 0; s < all_settings.size(); s++) {
+    for (int s = 0; s < (int)all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
         if (parts[0] == "E_TEXTCTRL_Pictures_Filename") {
             parts[1] = PictureName;
@@ -492,7 +492,7 @@ wxString xlGridCanvasPictures::GetImageFilename()
 {
     wxString settings = mEffect->GetSettingsAsString();
     wxArrayString all_settings = wxSplit(settings, ',');
-    for (int s = 0; s < all_settings.size(); s++) {
+    for (int s = 0; s < (int)all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
         if (parts[0] == "E_TEXTCTRL_Pictures_Filename") {
             return parts[1];

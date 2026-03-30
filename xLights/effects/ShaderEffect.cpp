@@ -1264,7 +1264,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             {
                 xlColor c = buffer.palette.GetColor(colourIndex);
                 colourIndex++;
-                if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
+                if (colourIndex > (int)buffer.GetColorCount()) colourIndex = 0;
                 si->SetUniform4f(it._name, (double)c.red / 255.0, (double)c.green / 255.0, (double)c.blue / 255.0, 1.0);
                 break;
             }
@@ -1638,7 +1638,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                     // Add timing tracks
                     if (sequenceElements != nullptr) {
                         int tt = 0;
-                        for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+                        for (int i = 0; i < (int)sequenceElements->GetElementCount(); i++) {
                             Element* e = sequenceElements->GetElement(i);
                             if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                                 _parms.back()._valueOptions[tt++] = e->GetName();
@@ -1792,7 +1792,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             // Add timing tracks
             if (sequenceElements != nullptr) {
                 int tt = 0;
-                for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+                for (int i = 0; i < (int)sequenceElements->GetElementCount(); i++) {
                     Element* e = sequenceElements->GetElement(i);
                     if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                         _parms.back()._valueOptions[tt++] = e->GetName();

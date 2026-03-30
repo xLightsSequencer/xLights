@@ -49,7 +49,7 @@ public:
     void Set(uint8_t* buffer, size_t size);
     void SetColor(const wxColor& c, APPLYMETHOD blendMode);
     void SetData(const wxString& data, APPLYMETHOD blendMode);
-    long GetSize() const {
+    size_t GetSize() const {
         return _size;
     }
     size_t GetStartChannel() const {

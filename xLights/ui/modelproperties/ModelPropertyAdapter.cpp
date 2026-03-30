@@ -376,7 +376,7 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     grid->Append(new wxEnumProperty("Shadow Model For", "ShadowModelFor", OTHERMODELLIST, wxArrayInt(), shadowModelFor));
 
     int layout_group_number = 0;
-    for (int grp = 0; grp < LAYOUT_GROUPS.Count(); ++grp) {
+    for (int grp = 0; grp < (int)LAYOUT_GROUPS.Count(); ++grp) {
         if (LAYOUT_GROUPS[grp] == _model.GetLayoutGroup()) {
             layout_group_number = grp;
             break;
@@ -1016,12 +1016,12 @@ void ModelPropertyAdapter::AddLayerSizeProperty(wxPropertyGridInterface* grid) {
     psn->SetEditor("SpinCtrl");
 
     if (_model.GetLayerSizeCount() > 1) {
-        for (int i = 0; i < _model.GetLayerSizeCount(); ++i) {
+        for (int i = 0; i < (int)_model.GetLayerSizeCount(); ++i) {
             wxString id = wxString::Format("Layer%d", i);
             wxString nm = wxString::Format("Layer %d", i + 1);
             if (i == 0)
                 nm = "Inside";
-            else if (i == _model.GetLayerSizeCount() - 1)
+            else if (i == (int)_model.GetLayerSizeCount() - 1)
                 nm = "Outside";
 
             wxPGProperty* pls = grid->AppendIn(psn, new wxUIntProperty(nm, id, _model.GetLayerSize(i)));

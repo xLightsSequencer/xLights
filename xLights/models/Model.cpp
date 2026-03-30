@@ -341,7 +341,7 @@ uint32_t Model::ApplyLowDefinition(uint32_t val) const
 
 std::string Model::GetPixelStyleDescription(PIXEL_STYLE pixelStyle)
 {
-    if ((int)pixelStyle < PIXEL_STYLES.size()) {
+    if ((int)pixelStyle < (int)PIXEL_STYLES.size()) {
         return PIXEL_STYLES[(int)pixelStyle];
     }
     return "";
@@ -1263,7 +1263,7 @@ int Model::ComputeStringStartNode(int x) const
 
 int Model::FindNodeAtXY(int bufx, int bufy)
 {
-    for (int i = 0; i < Nodes.size(); ++i) {
+    for (int i = 0; i < (int)Nodes.size(); ++i) {
         if ((bufx == -1 || Nodes[i]->Coords[0].bufX == bufx) && (bufy == -1 || Nodes[i]->Coords[0].bufY == bufy)) {
             return i;
         }
@@ -1740,14 +1740,14 @@ void Model::ApplyTransform(const std::string& type,
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90") {
-        for (int x = startNode; x < newNodes.size(); ++x) {
+        for (int x = startNode; x < (int)newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90 Flip Horizontal") {
-        for (int x = startNode; x < newNodes.size(); ++x) {
+        for (int x = startNode; x < (int)newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
@@ -1818,7 +1818,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         bufferHt = 1;
         bufferWi = newNodes.size();
         int cnt = 0;
-        for (int x = firstNode; x < newNodes.size(); ++x) {
+        for (int x = firstNode; x < (int)newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
                 spdlog::critical("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 assert(false);
@@ -1831,7 +1831,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     } else if (type == AS_PIXEL) {
         bufferHt = 1;
         bufferWi = 1;
-        for (int x = firstNode; x < newNodes.size(); ++x) {
+        for (int x = firstNode; x < (int)newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
                 spdlog::critical("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 assert(false);
@@ -1849,7 +1849,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         int cnt = 0;
         int strand = 0;
         int strandLen = GetStrandLength(GetMappedStrand(0));
-        for (int x = firstNode; x < newNodes.size();) {
+        for (int x = firstNode; x < (int)newNodes.size();) {
             if (cnt >= strandLen) {
                 strand++;
                 if (strand < GetNumStrands()) {
@@ -1881,7 +1881,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         int cnt = 0;
         int strand = 0;
         int strandLen = GetStrandLength(GetMappedStrand(0));
-        for (int x = firstNode; x < newNodes.size();) {
+        for (int x = firstNode; x < (int)newNodes.size();) {
             if (cnt >= strandLen) {
                 strand++;
                 if (strand < GetNumStrands()) {
@@ -1944,7 +1944,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         std::vector<float> outy;
         outx.reserve(newNodes.size() - firstNode); // common case is one coord per node so size for that
         outy.reserve(newNodes.size() - firstNode);
-        for (int x = firstNode; x < newNodes.size(); ++x) {
+        for (int x = firstNode; x < (int)newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
                 spdlog::critical("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 assert(false);
@@ -2067,7 +2067,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         if (!(pcamera != nullptr && camera != "2D" && GetDisplayAs() != DisplayAsType::ModelGroup && noOff)) {
             auto itx = outx.begin();
             auto ity = outy.begin();
-            for (int x = firstNode; x < newNodes.size(); ++x) {
+            for (int x = firstNode; x < (int)newNodes.size(); ++x) {
                 if (newNodes[x] == nullptr) {
                     spdlog::critical("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     assert(false);
@@ -2332,7 +2332,7 @@ uint32_t Model::GetChannelForNode(int strandIndex, int node) const
         return -1;
 
     size_t nodesOnPriorStrands = 0;
-    for (size_t s = 0; s < strandIndex; ++s) {
+    for (int s = 0; s < strandIndex; ++s) {
         nodesOnPriorStrands += GetStrandLength(s);
     }
 
@@ -2398,7 +2398,7 @@ uint32_t Model::GetChanCount() const
     int min = 999999999;
     int max = 0;
 
-    for (int x = 0; x < NodeCnt; ++x) {
+    for (int x = 0; x < (int)NodeCnt; ++x) {
         int i = Nodes[x]->ActChan;
         if (i < min) {
             min = i;
@@ -2447,7 +2447,7 @@ void Model::GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, flo
 
 void Model::GetNodeCoords(int nodeidx, std::vector<xlPoint>& pts)
 {
-    if (nodeidx >= Nodes.size())
+    if (nodeidx >= (int)Nodes.size())
         return;
     for (size_t x = 0; x < Nodes[nodeidx]->Coords.size(); ++x) {
         pts.push_back(xlPoint(Nodes[nodeidx]->Coords[x].bufX, Nodes[nodeidx]->Coords[x].bufY));
@@ -2500,7 +2500,7 @@ std::string Model::GetNodeXY(const std::string& nodenumstr)
         for (size_t inx = 0; inx < NodeCount; ++inx) {
             if (Nodes[inx]->Coords.empty())
                 continue;
-            if (GetNodeNumber(inx) == nodenum)
+            if ((int32_t)GetNodeNumber(inx) == nodenum)
                 return GetNodeXY(inx);
         }
     } catch (...) {
@@ -2797,8 +2797,8 @@ bool Model::FindCustomModelScale(int scale) const
     if (nodeCount <= 1) {
         return true;
     }
-    for (int i = 0; i < nodeCount; ++i) {
-        for (int j = i + 1; j < nodeCount; ++j) {
+    for (int i = 0; i < (int)nodeCount; ++i) {
+        for (int j = i + 1; j < (int)nodeCount; ++j) {
             int x1 = (Nodes[i]->Coords[0].screenX * scale);
             int y1 = (Nodes[i]->Coords[0].screenY * scale);
             int x2 = (Nodes[j]->Coords[0].screenX * scale);
@@ -3039,7 +3039,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
                     if (buffFirst == -1) {
                         buffFirst = Nodes[n]->Coords[0].bufX;
                     }
-                    if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                    if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                         left = false;
                     }
                 }
@@ -3099,7 +3099,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
             }
         });
     }
-    for (int n = 0; n < NodeCount; ++n) {
+    for (int n = 0; n < (int)NodeCount; ++n) {
         if (n + 1 == highlightpixel) {
             color = xlMAGENTA;
         } else if (highlightFirst && Nodes.size() > 1) {
@@ -3146,7 +3146,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
         cache->va = ctx->createVertexAccumulator();
         cache->va->SetName(GetName() + (is_3d ? " - 3DPWiring" : " - 2DWiring"));
         cache->va->PreAlloc(NodeCount);
-        for (int x = 0; x < NodeCount; ++x) {
+        for (int x = 0; x < (int)NodeCount; ++x) {
             float sx = Nodes[x]->Coords[0].screenX;
             float sy = Nodes[x]->Coords[0].screenY;
             float sz = Nodes[x]->Coords[0].screenZ;
@@ -3356,7 +3356,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         // size indepentent and thus can be re-used unless the models rendeWi/Hi
         // changes (which should trigger the uiObjectsInvalid and clear
         // the cache anyway)
-        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != this->changeCount) {
+        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != (int)this->changeCount) {
             if (cache != nullptr) {
                 delete cache;
             }
@@ -3419,7 +3419,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
                         }
-                        if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                        if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                             left = false;
                         }
                     }
@@ -3486,8 +3486,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                 });
             }
         }
-        int maxFlush = NodeCount;
-        for (int n = 0; n < NodeCount; ++n) {
+        int maxFlush = (int)NodeCount;
+        for (int n = 0; n < (int)NodeCount; ++n) {
             xlColor color;
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
@@ -4207,13 +4207,13 @@ int32_t Model::GetStringStartChan(int x) const
 {
     int ts = GetSmartTs();
     if (ts <= 1) {
-        if (x < stringStartChan.size()) {
+        if (x < (int)stringStartChan.size()) {
             return stringStartChan[x];
         }
         return 1;
     } else {
         int str = x * ts;
-        if (str < stringStartChan.size()) {
+        if (str < (int)stringStartChan.size()) {
             return stringStartChan[str];
         }
         return 1;
@@ -4254,7 +4254,7 @@ std::string Model::GetModelChain() const
 
 void Model::SetSuperStringColours(int count)
 {
-    while (superStringColours.size() < count) {
+    while ((int)superStringColours.size() < count) {
         bool r = false;
         bool g = false;
         bool b = false;
@@ -4288,7 +4288,7 @@ void Model::SetSuperStringColours(int count)
             superStringColours.push_back(xlRED);
     }
 
-    while (superStringColours.size() > count) {
+    while ((int)superStringColours.size() > count) {
         superStringColours.pop_back();
     }
 
@@ -4332,7 +4332,7 @@ std::string Model::GetRGBWHandling() const {
 
 void Model::SetRGBWHandling(std::string const& handling)
 {
-    for (int x = 0; x < RGBW_HANDLING.size(); ++x) {
+    for (int x = 0; x < (int)RGBW_HANDLING.size(); ++x) {
         if (RGBW_HANDLING[x] == handling) {
             if (rgbwHandlingType != x) {
                 rgbwHandlingType = x;
@@ -4509,7 +4509,7 @@ std::vector<PWMOutput> Model::GetPWMOutputs() const {
     if (IsPWMProtocol()) {
         int cur = 1;
         for (auto &n : Nodes) {
-            for (int x = 0; x < n->GetChanCount(); x++) {
+            for (int x = 0; x < (int)n->GetChanCount(); x++) {
                 std::string label = n->GetName();
                 if (label.empty()) {
                     label = "LED-" + std::to_string(cur) + "-" + n->GetNodeType()[x];

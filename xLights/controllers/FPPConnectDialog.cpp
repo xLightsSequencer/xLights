@@ -1113,7 +1113,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     std::vector<bool> doUpload(instances.size());
     int row = 0;
     int uploadCount = 0;
-    for (row = 0; row < doUpload.size(); ++row) {
+    for (row = 0; row < (int)doUpload.size(); ++row) {
         std::string rowStr = std::to_string(row);
         doUpload[row] = GetCheckValue(CHECK_COL + rowStr);
         ++uploadCount;
@@ -1725,7 +1725,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
             delete fpp;
         }
     }
-    if (curSize < instances.size()) {
+    if ((size_t)curSize < instances.size()) {
         instances.sort(sortByIP);
         // it worked, we found some new instances, record this
         wxConfigBase* config = wxConfigBase::Get();
@@ -1769,7 +1769,7 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
         discovery.Discover();
         FPP::MapToFPPInstances(discovery, instances, _outputManager);
 
-        if (curSize < instances.size()) {
+        if ((size_t)curSize < instances.size()) {
             int cur = 0;
             for (const auto &fpp : instances) {
                 if (cur >= curSize) {

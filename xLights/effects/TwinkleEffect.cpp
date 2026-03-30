@@ -165,7 +165,7 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
 
 static void place_twinkles(int lights_to_place, int &curIndex, std::vector<StrobeClass>& strobe, RenderBuffer& buffer,
                            int max_modulo, size_t colorcnt) {
-    while (lights_to_place > 0 && (curIndex < strobe.size())) {
+    while (lights_to_place > 0 && (curIndex < (int)strobe.size())) {
         int idx = dist(eng) % (strobe.size() - curIndex) + curIndex;
         if (idx != curIndex) {
             std::swap(strobe[idx], strobe[curIndex]);
@@ -272,7 +272,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 }
             }
             //randomize the locations
-            for (int s = 0; s < strobe.size(); ++s) {
+            for (int s = 0; s < (int)strobe.size(); ++s) {
                 int r = dist(eng) % strobe.size();
                 if (r != s) {
                     std::swap(strobe[r], strobe[s]);

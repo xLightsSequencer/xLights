@@ -430,7 +430,7 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
         str.sprintf("Move Path %d Up", 1 + m_pathIndexToDelete);
         mnu.Append(ID_MENU_MoveUp, str);
     }
-    if (m_pathIndexToDelete != m_pathsListBox->GetCount() - 1) {
+    if (m_pathIndexToDelete != (int)m_pathsListBox->GetCount() - 1) {
         str.sprintf("Move Path %d Down", 1 + m_pathIndexToDelete);
         mnu.Append(ID_MENU_MoveDown, str);
 
@@ -441,7 +441,7 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
 
 void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
 {
-    if (m_pathIndexToDelete >= m_sketch.pathCount())
+    if (m_pathIndexToDelete >= (int)m_sketch.pathCount())
         return;
     bool update = false;
 
@@ -487,7 +487,7 @@ void SketchAssistPanel::populatePathListBoxFromSketch()
 {
     m_pathsListBox->Clear();
 
-    for (int i = 0; i < m_sketch.paths().size(); ++i) {
+    for (int i = 0; i < (int)m_sketch.paths().size(); ++i) {
         wxString text;
         text.sprintf("Path %d", i + 1);
         m_pathsListBox->Insert(text, i);
@@ -500,7 +500,7 @@ bool SketchAssistPanel::canContinuePath() const
     if (index < 0)
         return false;
 
-    if (index >= m_sketch.pathCount())
+    if (index >= (int)m_sketch.pathCount())
         return false;
     auto paths(m_sketch.paths());
     return !paths[index]->isClosed();

@@ -41,13 +41,13 @@ DmxServo::~DmxServo()
 void DmxServo::SetNumServos(int val)
 {
     num_servos = val;
-    if (servos.size() < num_servos) {
+    if ((int)servos.size() < num_servos) {
         servos.resize(num_servos);
     }
-    if (static_images.size() < num_servos) {
+    if ((int)static_images.size() < num_servos) {
         static_images.resize(num_servos);
     }
-    if (motion_images.size() < num_servos) {
+    if ((int)motion_images.size() < num_servos) {
         motion_images.resize(num_servos);
     }
 }
@@ -85,13 +85,13 @@ void DmxServo::InitModel()
     screenLocation.SetRenderSize(1, 1, 1);
 
     // resize vector arrays
-    if (static_images.size() != num_servos) {
+    if ((int)static_images.size() != num_servos) {
         static_images.resize(num_servos);
     }
-    if (motion_images.size() != num_servos) {
+    if ((int)motion_images.size() != num_servos) {
         motion_images.resize(num_servos);
     }
-    if (servos.size() != num_servos) {
+    if ((int)servos.size() != num_servos) {
         servos.resize(num_servos);
     }
 
@@ -245,7 +245,7 @@ std::list<std::string> DmxServo::CheckModelSettings()
     if (min_channels > nodeCount) {
         res.push_back(std::format("    ERR: Model {} requires more channels {} than have been allocated to it {}.", GetName(), min_channels, nodeCount));
     }
-    if (motion_images.size() < num_servos) {
+    if ((int)motion_images.size() < num_servos) {
         res.push_back(std::format("    ERR: Model {} Insufficient images defined {} when {} required.", GetName(), motion_images.size(), num_servos));
     }
     int i = 1;
@@ -264,16 +264,16 @@ void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
 {
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
-    if (min_channels > Nodes.size()) {
+    if (min_channels > (int)Nodes.size()) {
         DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (motion_images.size() < num_servos) {
+    if ((int)motion_images.size() < num_servos) {
         DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
         return;
     }
     for (const auto& it : servos) {
-        if (it->GetChannel() > Nodes.size()) {
+        if (it->GetChannel() > (int)Nodes.size()) {
             DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
             return;
         }
@@ -281,7 +281,7 @@ void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
 
     float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
 
-    for (int i = 0; i < servos.size(); ++i) {
+    for (int i = 0; i < (int)servos.size(); ++i) {
         //need to layer the images via slight Z offsets or they blend together and don't appear.
         glm::mat4 motionMatrix = glm::mat4(1.0f);
         motionMatrix = glm::translate(motionMatrix, glm::vec3(0, 0, 0.2 * float(i)));

@@ -428,7 +428,7 @@ void Controller::SearchForNewVendor( std::string const& vendor, std::string cons
 #pragma region Getters and Setters
 Output* Controller::GetOutput(int outputNumber) const {
 
-    if (outputNumber < 0 || outputNumber > _outputs.size()) return nullptr;
+    if (outputNumber < 0 || (size_t)outputNumber > _outputs.size()) return nullptr;
 
     auto it = _outputs.begin();
     std::advance(it, outputNumber);
@@ -476,7 +476,7 @@ int32_t Controller::GetChannels() const {
 }
 
 bool Controller::ContainsChannels(uint32_t start, uint32_t end) const {
-    return end >= GetStartChannel() && start < GetEndChannel();
+    return end >= (uint32_t)GetStartChannel() && start < (uint32_t)GetEndChannel();
 }
 
 bool Controller::IsDirty() const {

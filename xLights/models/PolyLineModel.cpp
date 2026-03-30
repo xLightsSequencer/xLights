@@ -56,7 +56,7 @@ const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
 
 bool PolyLineModel::IsNodeFirst(int n) const
 {
-    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - 1);
 }
 
 void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera,
@@ -79,11 +79,11 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::stri
         }
 
         int idx = 0;
-        for (size_t m = 0; m < _numSegments; m++) {
+        for (int m = 0; m < _numSegments; m++) {
             int seg_idx = 0;
             int end_node = idx + _polyLineSizes[m];
             float scale = (float)BufferWi / (float)_polyLineSizes[m];
-            for (size_t n = idx; n < end_node; n++) {
+            for (int n = idx; n < end_node; n++) {
                 newNodes[idx]->Coords.resize(SingleNode ? _totalLightCount : _lightsPerNode);
                 size_t CoordCount = GetCoordCount(idx);
                 int location = seg_idx * scale + scale / 2.0;
@@ -103,7 +103,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::stri
 }
 
 int PolyLineModel::GetPolyLineSize(int polyLineLayer) const {
-    if (polyLineLayer >= _polyLineSizes.size()) return 0;
+    if (polyLineLayer >= (int)_polyLineSizes.size()) return 0;
     if (_polyLineSegDropSizes[polyLineLayer]) {
         return _polyLineSegDropSizes[polyLineLayer];
     }
@@ -154,7 +154,7 @@ void PolyLineModel::AddHandle() {
 }
 
 void PolyLineModel::InsertHandle(int after_handle, float zoom, int scale) {
-    if( _polyLineSizes.size() > after_handle ) {
+    if( (int)_polyLineSizes.size() > after_handle ) {
         int segment1_size = _polyLineSizes[after_handle] / 2;
         int segment2_size = _polyLineSizes[after_handle] - segment1_size;
         _polyLineSizes[after_handle] = segment1_size;
@@ -170,7 +170,7 @@ void PolyLineModel::InsertHandle(int after_handle, float zoom, int scale) {
 void PolyLineModel::DeleteHandle(int handle_) {
     // handle is offset by 1 due to the center handle at 0
     int handle = handle_ - 1;
-    if( _polyLineSizes.size() > handle ) {
+    if( (int)_polyLineSizes.size() > handle ) {
         _polyLineSizes.erase(_polyLineSizes.begin() + handle);
         _polyLeadOffset.erase(_polyLeadOffset.begin() + handle);
         _polyTrailOffset.erase(_polyTrailOffset.begin() + handle);
@@ -192,13 +192,13 @@ void PolyLineModel::InitModel()
     // Ensure per-segment vectors match the current segment count.
     // During polyline creation, screenLocation may have more points than
     // the per-segment vectors which are grown via AddHandle().
-    if (_polyLineSizes.size() < _numSegments) {
+    if ((int)_polyLineSizes.size() < _numSegments) {
         _polyLineSizes.resize(_numSegments, 50);
         _polyLineSegDropSizes.resize(_numSegments, 1);
         _polyLeadOffset.resize(_numSegments, 0.5);
         _polyTrailOffset.resize(_numSegments, 0.5);
     }
-    if (_polyCorner.size() < _numSegments + 1) {
+    if ((int)_polyCorner.size() < _numSegments + 1) {
         _polyCorner.resize(_numSegments + 1, "Neither");
     }
 
@@ -212,7 +212,7 @@ void PolyLineModel::InitModel()
     if (!_autoDistributeLights) {
         for (int x = 0; x < _numSegments; x++) {
             unsigned int drop_lights_this_segment = 0;
-            for (size_t z = 0; z < _polyLineSizes[x]; z++) {
+            for (int z = 0; z < _polyLineSizes[x]; z++) {
                 drop_lights_this_segment += std::abs(_dropSizes[drop_index++]);
                 drop_index %= _dropSizes.size();
             }
@@ -404,7 +404,7 @@ void PolyLineModel::InitModel()
     }
 
     while (lights) {
-        if (curCoord >= Nodes[curNode]->Coords.size()) {
+        if (curCoord >= (int)Nodes[curNode]->Coords.size()) {
             curNode++;
             curCoord = 0;
             if (!SingleNode) {
@@ -433,7 +433,7 @@ void PolyLineModel::InitModel()
                 chan += (NodesPerString(curString) - nodesInDrop) * GetNodeChannelCount(StringType);
             }
             sortedIdx++;
-            nextStringStartNode = (sortedIdx < _strings) ? stringStartNodes[sortedIdx].first : numLights;
+            nextStringStartNode = (sortedIdx < (int)_strings) ? stringStartNodes[sortedIdx].first : numLights;
         } else if (Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum = Nodes[curNode]->StringNum;
             if (_strings > 1 && !stringStartNodes.empty()) {
@@ -554,11 +554,11 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
     float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
     float seg_end = seg_start + segment_length;
     int xpos = 0;  // the horizontal position in the buffer
-    for (int x = 0; x < _polyLineSizes.size(); x++) {
+    for (int x = 0; x < (int)_polyLineSizes.size(); x++) {
         _polyLineSizes[x] = 0;
         _polyLineSegDropSizes[x] = 0;
     }
-    for (size_t m = 0; m < lights_to_distribute;) {
+    for (int m = 0; m < lights_to_distribute;) {
         while (current_pos > seg_end) {
             sub_segment++;
             if (pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments())) {
@@ -567,7 +567,7 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
                 seg_end = seg_start + segment_length;
             }
             else {
-                if (segment == _polyLineSizes.size() - 1) {
+                if (segment == (int)_polyLineSizes.size() - 1) {
                     // cant increase segment ... so just fudge the segment end
                     seg_end += 0.0001f;
                 }
@@ -618,7 +618,7 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
                 }
                 else {
                     size_t current_coord = c;
-                    for ( using_icicles ? c = 0 : c; using_icicles ? c < coords_per_node : c == current_coord; ++c) {
+                    for ( using_icicles ? c = 0 : c; using_icicles ? c < (size_t)coords_per_node : c == current_coord; ++c) {
                         Nodes[node]->Coords[c].screenX = v.x;
                         if (up) {
                             Nodes[node]->Coords[c].screenY = v.y + (z + ((float)c * coord_offset)) * mheight;
@@ -631,11 +631,11 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
                     }
                 }
             }
-            
+
             if (SingleNode) {
                 seg_count++;
             } else {
-                if (c == coords_per_node ) {
+                if (c == (size_t)coords_per_node ) {
                     c = 0;
                     idx++;
                     seg_count++;
@@ -660,7 +660,7 @@ void PolyLineModel::DistributeLightsAcrossIndivSegments(       std::vector<xlPol
     unsigned int drop_index = 0;
     size_t idx = 0;
     int xpos = 0;  // the horizontal position in the buffer
-    for (size_t m = 0; m < _numSegments; m++) {
+    for (int m = 0; m < _numSegments; m++) {
         DistributeLightsAcrossSegment(m, idx, pPos, dropSizes, drop_index, mheight, xpos, maxH, pPos[m].has_curve);
     }
 }
@@ -685,7 +685,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
 
     // get the total number of nodes including icicle drops for this segment
     unsigned int idrop = drop_index;
-    for (size_t i = 0; i < _polyLineSizes[segment]; ++i) {
+    for (int i = 0; i < _polyLineSizes[segment]; ++i) {
         unsigned int drops_this_node = std::abs(dropSizes[idrop]);
         lights += drops_this_node;
         idrop++;
@@ -708,7 +708,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
     float seg_start = 0;
     float segment_length = isCurve ? pPos[segment].curve->GetSegLength(sub_segment) : _polyLineSizes[segment];
     float seg_end = seg_start + segment_length;
-    for (size_t m = 0; m < lights_to_distribute;) {
+    for (int m = 0; m < lights_to_distribute;) {
         bool up = dropSizes[drop_index] < 0;
         unsigned int drops_this_node = std::abs(dropSizes[drop_index]);
         while (current_pos > seg_end) {
@@ -747,7 +747,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
                 }
                 else {
                     size_t current_coord = c;
-                    for ( using_icicles ? c = 0 : c; using_icicles ? c < coords_per_node : c == current_coord; ++c) {
+                    for ( using_icicles ? c = 0 : c; using_icicles ? c < (size_t)coords_per_node : c == current_coord; ++c) {
                         Nodes[node]->Coords[c].screenX = v.x;
                         if (up) {
                             Nodes[node]->Coords[c].screenY = v.y + (z + ((float)c * coord_offset)) * mheight;
@@ -759,7 +759,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
                         m++;
                     }
                 }
-                if (c == coords_per_node ) {
+                if (c == (size_t)coords_per_node ) {
                     c = 0;
                 }
             }
@@ -817,7 +817,7 @@ int PolyLineModel::NodesPerString(int string) const
         return NodesPerString();
     }
 
-    if (_hasIndivNodes && string < _indivStartNodes.size()) {
+    if (_hasIndivNodes && string < (int)_indivStartNodes.size()) {
         // Calculate nodes for this specific string based on start nodes
         int startNode = _indivStartNodes[string];
         int endNode;

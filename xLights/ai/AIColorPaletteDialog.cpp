@@ -140,7 +140,7 @@ void AIColorPaletteDialog::OnGenerateButtonClick(wxCommandEvent& event)
     if (cp.error.empty()) {
         html += "<b>Description:</b> " + cp.description + "<br>\n";
         html += "<br><ul>\n";
-        for (int x  = 0; x < cp.colors.size(); x++) {
+        for (size_t x  = 0; x < cp.colors.size(); x++) {
             html += "<li>";
             html += "<span style='background-color: black; color: " + cp.colors[x].hexValue + "'><b>" + cp.colors[x].name + "</b></span> (" + cp.colors[x].hexValue + ")- " + cp.colors[x].description;
             html += "</li>\n";

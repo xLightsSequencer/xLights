@@ -703,7 +703,7 @@ bool VideoReader::readFrame(int timestampMS) {
     
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
-        if (_srcFrame->pts == 0x8000000000000000)
+        if (_srcFrame->pts == (int64_t)0x8000000000000000LL)
         {
             _curPos = (_srcFrame->pkt_dts * _lengthMS) / _frames;
         }

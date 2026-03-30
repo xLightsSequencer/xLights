@@ -392,7 +392,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
 
         int which = tmpstates.size() * progressthroughtimeinterval;
 
-        if (which < tmpstates.size()) {
+        if (which < (int)tmpstates.size()) {
             sstates.push_back(tmpstates[which]);
         }
     }

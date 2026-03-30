@@ -142,7 +142,7 @@ void WS2812FX::copyPixels(uint16_t dest, uint16_t src, uint16_t count)
     }
     for (size_t i = 0; i < count; i++) {
         xlColor c = cols[i];
-        for (size_t y = 0; y < _buffer->BufferHt; y++) {
+        for (int y = 0; y < _buffer->BufferHt; y++) {
             _buffer->SetPixel(dest + i, y, c);
         }
         _buffer->SetTempPixel(dest + i, 0, c);
@@ -427,6 +427,7 @@ void WS2812FX::service()
                 }
                 //if (!cctFromRgb || correctWB)
                 //    busses.setSegmentCCT(_cct_t, correctWB);
+                (void)_cct_t;
                 //for (uint8_t c = 0; c < NUM_COLORS; c++)
                 //    _colors_t[c] = gamma32(_colors_t[c]);
                 handle_palette();
@@ -1171,7 +1172,6 @@ CRGB ColorFromPalette(const CRGBPalette16& pal,
     const CRGB* entry = &pal[hi4];
 
     //const CRGB* e1 = entry;
-    const CRGB* e2 = nullptr;
 
     uint8_t blend = lo4 && (blendType != NOBLEND);
 
@@ -1185,7 +1185,6 @@ CRGB ColorFromPalette(const CRGBPalette16& pal,
         } else {
             ++entry;
         }
-        e2 = entry;
 
         uint8_t f2 = lo4 << 4;
         uint8_t f1 = 255 - f2;
@@ -1238,8 +1237,6 @@ CRGB ColorFromPalette(const CRGBPalette16& pal,
             blue1 = 0;
         }
     }
-
-    auto x = CRGB(red1, green1, blue1);
 
     return CRGB(red1, green1, blue1);
 }
@@ -1402,7 +1399,8 @@ void WS2812FX::resetSegments()
         if (_segments[i].name)
             delete[] _segments[i].name;
     mainSegment = 0;
-    memset(_segments, 0, sizeof(_segments));
+    for (uint8_t i = 0; i < MAX_NUM_SEGMENTS; i++)
+        _segments[i] = segment{};
     //memset(_segment_runtimes, 0, sizeof(_segment_runtimes));
     _segment_index = 0;
     _segments[0]._fx = this;
@@ -1595,7 +1593,7 @@ void WS2812FX::SetBuffer(RenderBuffer* buffer)
 void WS2812FX::setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b, uint8_t w)
 {
     xlColor c(r, g, b);
-    for (size_t y = 0; y < _buffer->BufferHt; y++) {
+    for (int y = 0; y < _buffer->BufferHt; y++) {
         _buffer->SetPixel(n, y, c);
     }
     _buffer->SetTempPixel(n, 0, c);

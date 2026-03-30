@@ -172,7 +172,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     int cnt = 0;
     for (int x = 0; x < MRUF_LENGTH; x++) {
         wxString k = "file" + std::to_string(x);
-        if (x < mruFiles.size()) {
+        if (x < (int)mruFiles.size()) {
             if (!reload) {
                 config->Write(k, mruFiles[x]);
             }
@@ -652,7 +652,7 @@ void xLightsFrame::UpdateChannelNames() {
 
                 size_t NodeNum = n + 1;
                 if (ChanPerNode == 1) {
-                    if (ChannelNum < ChNames.Count()) {
+                    if (ChannelNum < (int)ChNames.Count()) {
                         if (ChNames[ChannelNum] == "") {
                             ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, (int)NodeNum);
                         }
@@ -660,7 +660,7 @@ void xLightsFrame::UpdateChannelNames() {
                 }
                 else {
                     for (auto c = 0; c < ChanPerNode; c++) {
-                        if (ChannelNum < ChNames.Count()) {
+                        if (ChannelNum < (int)ChNames.Count()) {
                             if (ChNames[ChannelNum] == "") {
                                 ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, (int)NodeNum) + model->GetChannelColorLetter(c);
                             }
@@ -1480,7 +1480,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     std::map<std::string, std::string> renames;
     bool found = false;
 
-    for (int x = 0; x < discovery.GetResults().size(); x++) {
+    for (int x = 0; x < (int)discovery.GetResults().size(); x++) {
         auto discovered = discovery.GetResults()[x];
         spdlog::debug("[Discovery] Processing: {}  IP: {}", discovered->hostname.c_str(), discovered->ip.c_str());
         SetStatusText("Processing controller " + discovered->hostname + " IP:" + discovered->ip + " ...");
@@ -2136,7 +2136,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
                 _outputManager.SetGlobalForceLocalIP("");
             }
             else {
-                if (event.GetValue().GetLong() >= ips.size() + 1) {//need to add one as dropdown has blank first entry
+                if ((size_t)event.GetValue().GetLong() >= ips.size() + 1) {//need to add one as dropdown has blank first entry
                     // likely the number of IPs changed after the list was loaded so ignore
                 }
                 else {

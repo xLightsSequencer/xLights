@@ -488,7 +488,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     _numNonModels = 0;
     if (_sequenceElements != nullptr) {
         int current_view = _sequenceElements->GetCurrentView();
-        for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); i++) {
             Element* elem = _sequenceElements->GetElement(i);
             if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                 TimingElement* te = dynamic_cast<TimingElement*>(elem);
@@ -512,7 +512,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
                 }
 
                 // add everything that isnt in the view
-                for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
+                for (int i = 0; i < (int)_sequenceElements->GetElementCount(); i++) {
                     Element* elem = _sequenceElements->GetElement(i);
                     if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end()) {
                         AddModelToNotList(elem);
@@ -521,7 +521,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             }
         }
         else {
-            for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
+            for (int i = 0; i < (int)_sequenceElements->GetElementCount(); i++) {
                 Element* elem = _sequenceElements->GetElement(i);
                 if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                     AddModelToList(elem);
@@ -697,7 +697,7 @@ void ViewsModelsPanel::OnListView_ViewItemsBeginDrag(wxListEvent& event)
     _dragRowNonModel = false;
 
     wxString drag = "Model";
-    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         if (IsItemSelected(ListCtrlModels, i)) {
             drag += "," + ListCtrlModels->GetItemText(i, 1);
         }
@@ -737,7 +737,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
 
     if (_sequenceElements->GetCurrentView() == MASTER_VIEW) {
         bool hasEffects = false;
-        for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+        for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
             if (IsItemSelected(ListCtrlModels, i)) {
                 Element* e = (Element*)ListCtrlModels->GetItemData(i);
 
@@ -759,7 +759,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
             wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
             wxPostEvent(GetParent(), eventUnSelected);
 
-            for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+            for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
                     Element* e = (Element*)ListCtrlModels->GetItemData(i);
@@ -769,7 +769,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
             }
         }
     } else {
-        for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+        for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
             if (IsItemSelected(ListCtrlModels, i)) {
                 // Got a selected item so handle it
                 Element* e = (Element*)ListCtrlModels->GetItemData(i);
@@ -814,7 +814,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     }
 
     wxArrayString addedModels;
-    for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
         if (IsItemSelected(ListCtrlNonModels, i)) {
             addedModels.push_back(ListCtrlNonModels->GetItemText(i, 1));
         }
@@ -823,7 +823,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     if (currentView == MASTER_VIEW) {
         int selcnt = 0;
 
-        for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
+        for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
             if (IsItemSelected(ListCtrlNonModels, i)) {
                 Element* ee = (Element*)ListCtrlNonModels->GetItemData(i);
                 if (ee != nullptr && ee->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
@@ -846,7 +846,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     else {
         int selcnt = 0;
         auto view = _sequenceViewManager->GetSelectedView();
-        for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
+        for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
             if (IsItemSelected(ListCtrlNonModels, i)) {
                 Element* ee = (Element*)ListCtrlNonModels->GetItemData(i);
                 if (ee != nullptr && ee->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
@@ -857,7 +857,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
         }
 
         _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
-        for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
+        for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
             if (IsItemSelected(ListCtrlNonModels, i)) {
                 Element* e = _sequenceElements->GetElement(ListCtrlNonModels->GetItemText(i, 1).ToStdString());
                 if (e != nullptr && e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
@@ -870,7 +870,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
         _sequenceElements->PopulateView(modelsString, currentView);
 
         std::vector<std::string> timings;
-        for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
+        for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
             if (IsItemSelected(ListCtrlNonModels, i)) {
                 Element* ee = (Element*)ListCtrlNonModels->GetItemData(i);
                 if (ee != nullptr && ee->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
@@ -1068,7 +1068,7 @@ void ViewsModelsPanel::UpdateModelsForSelectedView()
     if (currentView != MASTER_VIEW) {
         wxString viewName = ListCtrlViews->GetItemText(currentView, 1);
         wxString models = "";
-        for (int i = 0; i < _sequenceElements->GetElementCount(currentView); i++) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(currentView); i++) {
             Element* elem = _sequenceElements->GetElement(i, currentView);
             if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 if (models != "") {
@@ -1282,7 +1282,7 @@ void ViewsModelsPanel::OnButton_AddViewClick(wxCommandEvent& event)
 wxString ViewsModelsPanel::GetMasterViewModels() const
 {
     wxArrayString models;
-    for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
+    for (int i = 0; i < (int)_sequenceElements->GetElementCount(); i++) {
         Element* elem = _sequenceElements->GetElement(i);
         if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             models.push_back(elem->GetName());
@@ -1313,7 +1313,7 @@ void ViewsModelsPanel::OnButtonCloneClick(wxCommandEvent& event)
     SequenceView* view = _sequenceViewManager->AddView(newName);
     if (itemIndex == MASTER_VIEW) {
         wxArrayString models;
-        for (int i = 0; i < _sequenceElements->GetElementCount(); i++) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); i++) {
             Element* elem = _sequenceElements->GetElement(i);
             if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 models.push_back(elem->GetName());
@@ -1329,7 +1329,7 @@ void ViewsModelsPanel::OnButtonCloneClick(wxCommandEvent& event)
     _sequenceElements->AddView(newName);
 
     std::vector<std::string> timings;
-    for (int i = 0; i < _sequenceElements->GetElementCount(itemIndex); i++) {
+    for (int i = 0; i < (int)_sequenceElements->GetElementCount(itemIndex); i++) {
         Element* elem = _sequenceElements->GetElement(i);
         if (elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             timings.push_back(elem->GetName());
@@ -1482,7 +1482,7 @@ void ViewsModelsPanel::OnListCtrlNonModelsBeginDrag(wxListEvent& event)
     _dragRowNonModel = true;
 
     wxString drag = "NonModel";
-    for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
         if (IsItemSelected(ListCtrlNonModels, i)) {
             drag += "," + ListCtrlNonModels->GetItemText(i, 1);
         }
@@ -2114,7 +2114,7 @@ int ViewsModelsPanel::GetTimingCount()
 {
     int timings = 0;
 
-    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         Element* t = (Element*)ListCtrlModels->GetItemData(i);
         if (t != nullptr && t->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             timings++;
@@ -2372,7 +2372,7 @@ bool ViewsModelsPanel::GetSelectionIsMixed() const
     size_t model_count = 0;
     size_t timing_count = 0;
 
-    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         if (IsItemSelected(ListCtrlModels, i)) {
             if (((Element*)ListCtrlModels->GetItemData(i))->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                 timing_count++;
@@ -2389,7 +2389,7 @@ bool ViewsModelsPanel::GetSelectionIsMixed() const
 size_t ViewsModelsPanel::GetSelectedItemCount() const
 {
     size_t count = 0;
-    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         if (IsItemSelected(ListCtrlModels, i)) {
             count++;
         }
@@ -2400,7 +2400,7 @@ size_t ViewsModelsPanel::GetSelectedItemCount() const
 size_t ViewsModelsPanel::GetSelectedModelCount() const
 {
     size_t count = 0;
-    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
             count++;
         }
@@ -2489,7 +2489,7 @@ void ViewsModelsPanel::OnButtonView_DownClick(wxCommandEvent& event) {
     if (_seqData == nullptr || _seqData->NumFrames() == 0)
         return;
 
-    size_t idx = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    long idx = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
     if (idx != -1 && idx < ListCtrlViews->GetItemCount() - 1) {
         _sequenceViewManager->MoveViewDown(idx);
@@ -2661,13 +2661,13 @@ void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
 
 void ViewsModelsPanel::RemoveModelFromLists(const std::string& modelName)
 {
-    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         if (ListCtrlModels->GetItemText(i, 1) == modelName) {
             ListCtrlModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
             break;
         }
     }
-    for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
         if (ListCtrlNonModels->GetItemText(i, 1) == modelName) {
             ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
             break;
@@ -2690,7 +2690,7 @@ void ViewsModelsPanel::DoMakeMaster()
 
         //        bool hadEffects = false;
         std::vector<std::string> hadEffects;
-        for (int i = 0; i < _sequenceElements->GetElementCount(MASTER_VIEW); ++i) {
+        for (int i = 0; i < (int)_sequenceElements->GetElementCount(MASTER_VIEW); ++i) {
             std::string name = _sequenceElements->GetElement(i)->GetFullName();
             if (std::find(models.begin(), models.end(), name) == models.end()) {
                 Element* element = _sequenceElements->GetElement(name);
@@ -3036,8 +3036,8 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
                 }
             }
 
-            if (to < 0) to = _sequenceElements->GetElementCount(currentView);
-            if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
+            if (to < 0) to = (int)_sequenceElements->GetElementCount(currentView);
+            if (to < 0 || to > (int)_sequenceElements->GetElementCount(currentView)) return;
 
 #ifdef TRACEMOVES
             
@@ -3106,8 +3106,8 @@ void ViewsModelsPanel::OnButton_BottomClick(wxCommandEvent& event)
                 }
             }
 
-            if (to < 0) to = _sequenceElements->GetElementCount(currentView);
-            if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
+            if (to < 0) to = (int)_sequenceElements->GetElementCount(currentView);
+            if (to < 0 || to > (int)_sequenceElements->GetElementCount(currentView)) return;
 
 #ifdef TRACEMOVES
             

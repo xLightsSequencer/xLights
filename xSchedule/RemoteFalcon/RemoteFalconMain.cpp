@@ -378,9 +378,9 @@ void RemoteFalconFrame::OnButton_PauseClick(wxCommandEvent& event)
 
 void RemoteFalconFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    wxString dir;
     wxString fileName = "RemoteFalcon_spdlog.log";
 #ifdef __WXMSW__
+    wxString dir;
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + wxFileName::GetPathSeparator() + fileName;
 #endif

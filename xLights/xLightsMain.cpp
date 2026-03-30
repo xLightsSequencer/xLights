@@ -1616,7 +1616,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     wxString randomEffects = "";
     config->Read("xLightsRandomEffects", &randomEffects);
     if (randomEffects.IsEmpty()) {
-        for (int i = 0; i < effectManager.size(); i++) {
+        for (int i = 0; i < (int)effectManager.size(); i++) {
             if (effectManager[i]->CanBeRandom()) {
                 _randomEffectsToUse.Add(effectManager[i]->Name());
             }
@@ -2005,7 +2005,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         int frameCount = decoder.GetFrameCount();
         // Compute overall GIF size from frame sizes + offsets
         int gifW = 0, gifH = 0;
-        for (unsigned int i = 0; i < frameCount; i++) {
+        for (int i = 0; i < frameCount; i++) {
             wxSize fs = decoder.GetFrameSize(i);
             wxPoint fo = decoder.GetFramePosition(i);
             gifW = std::max(gifW, fs.GetWidth() + fo.x);
@@ -2017,14 +2017,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         // Read frame times
         long totalTime = 0;
         std::vector<long> frameTimes;
-        for (unsigned int i = 0; i < frameCount; i++) {
+        for (int i = 0; i < frameCount; i++) {
             long ft = decoder.GetDelay(i);
             frameTimes.push_back(ft);
             totalTime += ft;
         }
         if (totalTime == 0) {
             frameTimes.clear();
-            for (unsigned int i = 0; i < frameCount; i++) frameTimes.push_back(100);
+            for (int i = 0; i < frameCount; i++) frameTimes.push_back(100);
         }
         result.frameTimes = frameTimes;
 
@@ -2052,7 +2052,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             std::vector<wxAnimationDisposal> disposals(frameCount);
             wxAnimationDisposal lastDispose = wxANIM_TOBACKGROUND;
 
-            for (unsigned int i = 0; i < frameCount; i++) {
+            for (int i = 0; i < frameCount; i++) {
                 int startframe = i;
                 while (startframe >= 0 && !composited[startframe].IsOk()) --startframe;
 
@@ -2409,7 +2409,7 @@ xLightsFrame::~xLightsFrame()
     m_mgr->UnInit();
     MainAuiManager->UnInit();
 
-    for (int x = 0; x < Notebook1->GetPageCount(); x++) {
+    for (int x = 0; x < (int)Notebook1->GetPageCount(); x++) {
         wxWindow* w = Notebook1->GetPage(x);
         if (w->GetEventHandler() == m_mgr) {
             w->RemoveEventHandler(m_mgr);
@@ -4326,14 +4326,14 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
         wxFileName fn2(GetSeqXmlFileName());
         if (FileExists(fn2) && !fn2.IsDir()) {
             report.AddFile(GetSeqXmlFileName(), fn2.GetName());
-            if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+            if (mSavedChangeCount != (unsigned int)_sequenceElements.GetChangeCount()) {
                 wxFileName fnb(fn2.GetPath() + "/" + fn2.GetName() + ".xbkp");
                 if (FileExists(fnb)) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
                 }
             }
         } else {
-            if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+            if (mSavedChangeCount != (unsigned int)_sequenceElements.GetChangeCount()) {
                 wxFileName fnb(CurrentDir + "/" + "__.xbkp");
                 if (FileExists(fnb)) {
                     report.AddFile(fnb.GetFullPath(), fnb.GetName());
@@ -4378,7 +4378,7 @@ bool xLightsFrame::SaveWorking()
     wxFileName fnp(fn);
     if (fn == "") {
         tmp = p + "/" + "__.xbkp";
-    } else if (CountChar(fnp.GetName(), '_') == fnp.GetName().size()) {
+    } else if ((size_t)CountChar(fnp.GetName(), '_') == fnp.GetName().size()) {
         tmp = p + "/" + fnp.GetName() + "_.xbkp";
     } else {
         tmp = p + "/" + fnp.GetName() + ".xbkp";
@@ -5551,7 +5551,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                 size_t colon = start.find(':', 1);
                 if (colon != std::string::npos) {
                     size_t colon2 = start.find(':', colon + 1);
-                    if (colon2 == -1) {
+                    if (colon2 == std::string::npos) {
                         colon2 = colon;
                         colon = 0;
                     }
@@ -5967,7 +5967,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                 if (numchannels == -1) {
                     numchannels = m->GetChanCount();
                 } else {
-                    if (numchannels != m->GetChanCount()) {
+                    if ((uint32_t)numchannels != m->GetChanCount()) {
                         wxString msg = wxString::Format("    WARN: Model group '%s' contains DMX models with varying numbers of channels. This is not likely to work as expected.", (const char*)it->Name().c_str());
                         LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "groupdmx", errcount, warncount);
                         break;
@@ -6375,13 +6375,13 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     ModelElement* me = dynamic_cast<ModelElement*>(e);
                     Model* model = AllModels[me->GetModelName()];
 
-                    for (size_t j = 0; j < me->GetStrandCount(); ++j) {
+                    for (int j = 0; j < me->GetStrandCount(); ++j) {
                         StrandElement* se = me->GetStrand(j);
                         CheckElement(se, f, report, false, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
 
-                        for (size_t k = 0; k < se->GetNodeLayerCount(); ++k) {
+                        for (int k = 0; k < se->GetNodeLayerCount(); ++k) {
                             NodeLayer* nl = se->GetNodeLayer(k);
-                            for (size_t l = 0; l < nl->GetEffectCount(); l++) {
+                            for (int l = 0; l < nl->GetEffectCount(); l++) {
                                 Effect* ef = nl->GetEffect(l);
                                 CheckEffect(ef, f, report, false, errcount, warncount, wxString::Format("%s Strand %zu/Node %zu", se->GetFullName(), j + 1, l + 1).ToStdString(), e->GetName(), true, videoCacheWarning, disabledEffects, faces, states, viewPoints);
                                 RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
@@ -6389,7 +6389,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                             }
                         }
                     }
-                    for (size_t j = 0; j < me->GetSubModelAndStrandCount(); ++j) {
+                    for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j) {
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
                             CheckElement(sme, f, report, false, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
@@ -7004,7 +7004,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
             break;
         }
 
-        for (int j = 0; j < e->GetEffectLayerCount(); j++) {
+        for (int j = 0; j < (int)e->GetEffectLayerCount(); j++) {
             EffectLayer* el = e->GetEffectLayer(j);
 
             for (int k = 0; k < el->GetEffectCount(); k++) {
@@ -7091,9 +7091,9 @@ void xLightsFrame::OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for (int elem = 0; elem < _sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
+        for (int elem = 0; elem < (int)_sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
             Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
-            for (int layer = 0; layer < ele->GetEffectLayerCount(); layer++) {
+            for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); layer++) {
                 EffectLayer* el = ele->GetEffectLayer(layer);
                 ShiftEffectsOnLayer(el, milliseconds);
             }
@@ -7111,7 +7111,7 @@ void xLightsFrame::OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event
                 }
                 for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
                     Element* se = me->GetSubModel(i);
-                    for (int layer = 0; layer < se->GetEffectLayerCount(); layer++) {
+                    for (int layer = 0; layer < (int)se->GetEffectLayerCount(); layer++) {
                         EffectLayer* sel = se->GetEffectLayer(layer);
                         ShiftEffectsOnLayer(sel, milliseconds);
                     }
@@ -7138,9 +7138,9 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for (int elem = 0; elem < _sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
+        for (int elem = 0; elem < (int)_sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
             Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
-            for (int layer = 0; layer < ele->GetEffectLayerCount(); layer++) {
+            for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); layer++) {
                 EffectLayer* el = ele->GetEffectLayer(layer);
                 ShiftSelectedEffectsOnLayer(el, milliseconds);
             }
@@ -7158,7 +7158,7 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
                 }
                 for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
                     Element* se = me->GetSubModel(i);
-                    for (int layer = 0; layer < se->GetEffectLayerCount(); layer++) {
+                    for (int layer = 0; layer < (int)se->GetEffectLayerCount(); layer++) {
                         EffectLayer* sel = se->GetEffectLayer(layer);
                         ShiftSelectedEffectsOnLayer(sel, milliseconds);
                     }
@@ -7186,10 +7186,10 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for (int elem = 0; elem < _sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
+        for (int elem = 0; elem < (int)_sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
             Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
             if (ele->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-                for (int layer = 0; layer < ele->GetEffectLayerCount(); layer++) {
+                for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); layer++) {
                     EffectLayer* el = ele->GetEffectLayer(layer);
                     ShiftEffectsOnLayer(el, milliseconds);
                 }
@@ -7208,7 +7208,7 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
                 }
                 for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
                     Element* se = me->GetSubModel(i);
-                    for (int layer = 0; layer < se->GetEffectLayerCount(); layer++) {
+                    for (int layer = 0; layer < (int)se->GetEffectLayerCount(); layer++) {
                         EffectLayer* sel = se->GetEffectLayer(layer);
                         ShiftEffectsOnLayer(sel, milliseconds);
                     }
@@ -7546,11 +7546,11 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         facesUsed.splice(end(facesUsed), e->GetFacesUsed(effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr) {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
             }
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
                 facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
             }
@@ -7643,11 +7643,11 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         effectfiles.splice(end(effectfiles), e->GetFileReferences(m, effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr) {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 effectfiles.splice(end(effectfiles), se->GetFileReferences(m, effectManager));
             }
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
                 effectfiles.splice(end(effectfiles), se->GetFileReferences(m, effectManager));
             }
@@ -7874,11 +7874,11 @@ bool xLightsFrame::CleanupSequenceFileLocations()
         changed = e->CleanupFileLocations(this, effectManager) || changed;
 
         if (dynamic_cast<ModelElement*>(e) != nullptr) {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 changed = se->CleanupFileLocations(this, effectManager) || changed;
             }
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+            for (int s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
                 changed = se->CleanupFileLocations(this, effectManager) || changed;
             }
@@ -8932,12 +8932,12 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
 
     std::string downloadURL;
     std::string urlVersion;
-    for (int x = 0; x < val.size() && downloadURL.empty(); x++) {
+    for (int x = 0; x < (int)val.size() && downloadURL.empty(); x++) {
         if (val[x].contains("name")) {
             std::string verName = val[x]["name"].get<std::string>();
             if (verName != "nightly" && val[x].contains("assets")) {
                 // not a nightly, so check if it has the needed asses
-                for (int a = 0 ; a < val[x]["assets"].size(); a++) {
+                for (int a = 0 ; a < (int)val[x]["assets"].size(); a++) {
                     std::string url = val[x]["assets"][a]["browser_download_url"].get<std::string>();
                     if (url.ends_with(ASSET_EXT)) {
                         downloadURL = url;

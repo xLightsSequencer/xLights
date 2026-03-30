@@ -490,7 +490,7 @@ void ScreenLocationPropertyHelper::AddSizeLocationProperties(const PolyPointScre
 void ScreenLocationPropertyHelper::AddDimensionProperties(const PolyPointScreenLocation& loc, wxPropertyGridInterface* grid, float factor) {
     float len = 0;
     auto last = loc.mPos[0].AsVector();
-    for (int i = 1; i < loc.mPos.size(); i++) {
+    for (int i = 1; i < (int)loc.mPos.size(); i++) {
         len += RulerObject::Measure(last, loc.mPos[i].AsVector());
         last = loc.mPos[i].AsVector();
     }
@@ -500,7 +500,7 @@ void ScreenLocationPropertyHelper::AddDimensionProperties(const PolyPointScreenL
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     last = loc.mPos[0].AsVector();
-    for (int i = 1; i < loc.mPos.size(); i++) {
+    for (int i = 1; i < (int)loc.mPos.size(); i++) {
         len = RulerObject::Measure(last, loc.mPos[i].AsVector());
         last = loc.mPos[i].AsVector();
 
@@ -539,7 +539,7 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
             if (isnan(dz))
                 dz = 1.0f;
 
-            for (auto i = loc.selected_handle + 1; i < loc.mPos.size(); i++) {
+            for (auto i = loc.selected_handle + 1; i < (int)loc.mPos.size(); i++) {
                 loc.mPos[i].x += dx;
                 loc.mPos[i].y += dy;
                 loc.mPos[i].z += dz;

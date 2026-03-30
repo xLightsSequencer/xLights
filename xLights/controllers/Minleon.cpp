@@ -126,7 +126,7 @@ void Minleon::ParseStringPorts(std::vector<MinleonString*>& stringPorts, nlohman
     }
     stringPorts.clear();
 
-    for (int i = 0; i < val.size(); i++)
+    for (int i = 0; i < (int)val.size(); i++)
     {
         stringPorts.push_back(new MinleonString(val[i]));
     }
@@ -886,10 +886,10 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
         if (success) {
 
             // get the string ports to the right size
-            while (_stringPorts.size() < maxPorts) {
+            while ((int)_stringPorts.size() < maxPorts) {
                 _stringPorts.push_back(new MinleonString(_stringPorts.size(), 0, false, 0, 1));
             }
-            while (_stringPorts.size() > maxPorts) {
+            while ((int)_stringPorts.size() > maxPorts) {
                 delete _stringPorts.back();
                 _stringPorts.pop_back();
             }

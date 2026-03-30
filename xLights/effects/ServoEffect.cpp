@@ -173,7 +173,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxServo* servo = (DmxServo*)model_info;
                         for (int k = 0; k < servo->GetNumServos(); ++k) {
                             int axis_channel = servo->GetAxis(k)->GetChannel();
-                            if (axis_channel == (i + 1)) {
+                            if (axis_channel == (int)(i + 1)) {
                                 min_limit = servo->GetAxis(k)->GetMinLimit();
                                 max_limit = servo->GetAxis(k)->GetMaxLimit();
                                 break;
@@ -183,7 +183,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxServo3d* servo = (DmxServo3d*)model_info;
                         for (int k = 0; k < servo->GetNumServos(); ++k) {
                             int axis_channel = servo->GetAxis(k)->GetChannel();
-                            if (axis_channel == (i + 1)) {
+                            if (axis_channel == (int)(i + 1)) {
                                 min_limit = servo->GetAxis(k)->GetMinLimit();
                                 max_limit = servo->GetAxis(k)->GetMaxLimit();
                                 break;
@@ -193,7 +193,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
                         for (int k = 0; k < mhead->GetNumMotors(); ++k) {
                             int axis_channel = mhead->GetAxis(k)->GetChannelCoarse();
-                            if (axis_channel == (i + 1)) {
+                            if (axis_channel == (int)(i + 1)) {
                                 min_limit = mhead->GetAxis(k)->GetMinValue();
                                 max_limit = mhead->GetAxis(k)->GetMaxValue();
                                 channel_coarse = mhead->GetAxis(k)->GetChannelCoarse() - 1;
@@ -206,42 +206,42 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxSkull* skull = (DmxSkull*)model_info;
                         if (skull->HasPan()) {
                             int pan_channel = skull->GetPanChannel();
-                            if (pan_channel == (i + 1)) {
+                            if (pan_channel == (int)(i + 1)) {
                                 min_limit = skull->GetPanMinLimit();
                                 max_limit = skull->GetPanMaxLimit();
                             }
                         }
                         if (skull->HasTilt()) {
                             int tilt_channel = skull->GetTiltChannel();
-                            if (tilt_channel == (i + 1)) {
+                            if (tilt_channel == (int)(i + 1)) {
                                 min_limit = skull->GetTiltMinLimit();
                                 max_limit = skull->GetTiltMaxLimit();
                             }
                         }
                         if (skull->HasNod()) {
                             int nod_channel = skull->GetNodChannel();
-                            if (nod_channel == (i + 1)) {
+                            if (nod_channel == (int)(i + 1)) {
                                 min_limit = skull->GetNodMinLimit();
                                 max_limit = skull->GetNodMaxLimit();
                             }
                         }
                         if (skull->HasJaw()) {
                             int jaw_channel = skull->GetJawChannel();
-                            if (jaw_channel == (i + 1)) {
+                            if (jaw_channel == (int)(i + 1)) {
                                 min_limit = skull->GetJawMinLimit();
                                 max_limit = skull->GetJawMaxLimit();
                             }
                         }
                         if (skull->HasEyeUD()) {
                             int eye_ud_channel = skull->GetEyeUDChannel();
-                            if (eye_ud_channel == (i + 1)) {
+                            if (eye_ud_channel == (int)(i + 1)) {
                                 min_limit = skull->GetEyeUDMinLimit();
                                 max_limit = skull->GetEyeUDMaxLimit();
                             }
                         }
                         if (skull->HasEyeLR()) {
                             int eye_lr_channel = skull->GetEyeLRChannel();
-                            if (eye_lr_channel == (i + 1)) {
+                            if (eye_lr_channel == (int)(i + 1)) {
                                 min_limit = skull->GetEyeLRMinLimit();
                                 max_limit = skull->GetEyeLRMaxLimit();
                             }
@@ -251,7 +251,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     if (dmx->HasColorAbility()) {
                         DmxColorAbility* dmx_color = dmx->GetColorAbility();
                         if (dmx_color != nullptr) {
-                            if (dmx_color->IsColorChannel(i + 1) || brt_channel == (i + 1)) {
+                            if (dmx_color->IsColorChannel(i + 1) || brt_channel == (int)(i + 1)) {
                                 min_limit = 0;
                                 max_limit = 255;
                             }
@@ -319,9 +319,6 @@ int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* element
     if (track == nullptr || track->GetEffectLayerCount() < 3) {
         phoneme = "rest";
     } else {
-        int startms = -1;
-        int endms = -1;
-
         EffectLayer* layer = track->GetEffectLayer(2);
         std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
         int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
@@ -329,8 +326,6 @@ int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* element
         if (ef == nullptr) {
             phoneme = "rest";
         } else {
-            startms = ef->GetStartTimeMS();
-            endms = ef->GetEndTimeMS();
             phoneme = ef->GetEffectName();
         }
     }

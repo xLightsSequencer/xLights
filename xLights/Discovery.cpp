@@ -306,7 +306,7 @@ void BonjourData::invokeCallbacks(const std::string &ip) {
 
 
 
-Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(frame), _outputManager(outputManager) {
+Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _outputManager(outputManager), _frame(frame) {
 }
 
 Discovery::~Discovery() {

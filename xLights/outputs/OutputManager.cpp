@@ -556,7 +556,7 @@ void OutputManager::AddController(Controller* controller, int pos)
     // Make sure global FPP proxy has been set
     controller->SetGlobalFPPProxy(_globalFPPProxy);
 
-    if (pos < 0 || pos > _controllers.size()) {
+    if (pos < 0 || (size_t)pos > _controllers.size()) {
         _controllers.push_back(controller);
     }
     else {

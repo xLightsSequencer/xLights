@@ -109,8 +109,8 @@ public:
                 _cvr->PurgeCachePriorTo(currentStart);
 
                 lastStart = currentStart;
-                long end = std::min((long)currentStart + _maxFrames * _frameMS, (long)_videoReader->GetLengthMS());
 #ifdef VIDEO_EXTRALOGGING
+                long end = std::min((long)currentStart + _maxFrames * _frameMS, (long)_videoReader->GetLengthMS());
                 spdlog::debug("Video reading thread {} ({}x{}) filling cache {}-{}", _videoFile, _size.GetWidth(), _size.GetHeight(), currentStart, end);
 #endif
 

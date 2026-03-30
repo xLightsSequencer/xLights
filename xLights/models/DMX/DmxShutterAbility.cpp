@@ -22,7 +22,7 @@ DmxShutterAbility::~DmxShutterAbility()
 bool DmxShutterAbility::IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const {
     // determine if shutter is open for floods that support it
     bool shutter_open = true;
-    if (shutter_channel > 0 && shutter_channel <= Nodes.size()) {
+    if (shutter_channel > 0 && shutter_channel <= (int)Nodes.size()) {
         xlColor proxy;
         Nodes[shutter_channel - 1]->GetColor(proxy);
         int shutter_value = proxy.red;

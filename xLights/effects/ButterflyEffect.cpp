@@ -77,7 +77,7 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     data.width = buffer.BufferWi;
     data.height = buffer.BufferHt;
     data.numColors = colorcnt;
-    for (int x = 0; x < colorcnt; x++) {
+    for (int x = 0; x < (int)colorcnt; x++) {
         const xlColor &c = buffer.palette.GetColor(x);
         data.colors[x].v[0] = c.red;
         data.colors[x].v[1] = c.green;

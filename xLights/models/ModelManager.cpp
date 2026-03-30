@@ -726,7 +726,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
     int checks = 0;
     std::string current = startModel;
     std::string next = chain;
-    while (checks <= sameOutput.size()) {
+    while (checks <= (int)sameOutput.size()) {
         bool found = false;
         for (const auto& it : sameOutput) {
             if (it->GetName() == next) {

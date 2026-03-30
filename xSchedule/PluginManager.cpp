@@ -28,7 +28,7 @@ void* GetFunction(wxDynamicLibrary* dl, const std::string& filename, const std::
     return fn;
 }
 
-PluginManager::PluginState::PluginState(wxDynamicLibrary* dl, const std::string& filename) : _dl(dl), _filename(filename), _started(false), _id(__nextId++)
+PluginManager::PluginState::PluginState(wxDynamicLibrary* dl, const std::string& filename) : _filename(filename), _dl(dl), _started(false), _id(__nextId++)
 {
     if (_dl) {
         _loadFn = (p_xSchedule_Load)GetFunction(_dl, _filename, "xSchedule_Load");

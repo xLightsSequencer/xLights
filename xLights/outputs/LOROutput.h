@@ -46,7 +46,7 @@ public:
 
     virtual int32_t GetMaxChannels() const override { return LOR_MAX_CHANNELS; }
     static int GetMaxLORChannels() { return LOR_MAX_CHANNELS; }
-    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= LOR_MAX_CHANNELS; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= (int32_t)LOR_MAX_CHANNELS; }
     #pragma endregion 
 
     #pragma region Start and Stop

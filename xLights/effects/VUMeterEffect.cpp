@@ -724,7 +724,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
     int trueyoffset = yoffset * buffer.BufferHt / 100;
 	auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
-    while (lineHistory.size() > sensitivity / 10)
+    while ((int)lineHistory.size() > sensitivity / 10)
     {
         lineHistory.pop_front();
     }
@@ -1590,7 +1590,7 @@ void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadefr
         if (lasttimingmark != buffer.curPeriod - 1)
         {
             colourindex++;
-            if (colourindex >= buffer.GetColorCount())
+            if (colourindex >= (int)buffer.GetColorCount())
             {
                 colourindex = 0;
             }
@@ -1639,7 +1639,7 @@ void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourinde
         if (lasttimingmark != buffer.curPeriod - 1)
         {
             colourindex++;
-            if (colourindex >= buffer.GetColorCount())
+            if (colourindex >= (int)buffer.GetColorCount())
             {
                 colourindex = 0;
             }
@@ -2366,7 +2366,7 @@ Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t m
         return nullptr;
 
     Element* t = nullptr;
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
         Element* e = mSequenceElements->GetElement(i);
         if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingTrack) {
             t = e;
@@ -2380,11 +2380,11 @@ Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t m
     EffectLayer* el = t->GetEffectLayer(0);
     for (int j = 0; j < el->GetEffectCount(); j++) {
         Effect* e = el->GetEffect(j);
-        if (e->GetStartTimeMS() <= ms && e->GetEndTimeMS() > ms && e->FilteredIn(filter, regex)) {
+        if ((uint32_t)e->GetStartTimeMS() <= ms && (uint32_t)e->GetEndTimeMS() > ms && e->FilteredIn(filter, regex)) {
 			return e;
 		}
 
-        if (e->GetStartTimeMS() > ms)
+        if ((uint32_t)e->GetStartTimeMS() > ms)
             return nullptr;
     }
     
@@ -2471,7 +2471,7 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer& buffer, int 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             lastsize = fadeframes;
             colourindex++;
-            if (colourindex >= buffer.GetColorCount()) {
+            if (colourindex >= (int)buffer.GetColorCount()) {
                 colourindex = 0;
             }
         }
@@ -2502,7 +2502,7 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer& buffer, int& colo
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             colourindex++;
-            if (colourindex >= buffer.GetColorCount()) {
+            if (colourindex >= (int)buffer.GetColorCount()) {
                 colourindex = 0;
             }
         }
@@ -2685,7 +2685,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
         if (level > (float)sensitivity / 100.0)
         {
             colourindex++;
-            if (colourindex >= buffer.GetColorCount())
+            if (colourindex >= (int)buffer.GetColorCount())
             {
                 colourindex = 0;
             }
@@ -2728,7 +2728,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             colourindex++;
-            if (colourindex >= buffer.GetColorCount()) {
+            if (colourindex >= (int)buffer.GetColorCount()) {
                 colourindex = 0;
             }
 
@@ -2775,7 +2775,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                 }
 
                 ci++;
-                if (ci == buffer.GetColorCount())
+                if (ci == (int)buffer.GetColorCount())
                     ci = 0;
                 buffer.palette.GetColor(ci, color);
             }
@@ -2818,7 +2818,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
         xlColor color1;
         if (level > (float)sensitivity / 100.0) {
             colourindex++;
-            if (colourindex >= buffer.GetColorCount()) {
+            if (colourindex >= (int)buffer.GetColorCount()) {
                 colourindex = 0;
             }
 

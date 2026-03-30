@@ -178,7 +178,7 @@ void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
 void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (shutter_ability->GetShutterChannel() != 0 && shutter_ability->GetShutterOnValue() != 0) {
-        if (Nodes.size() > shutter_ability->GetShutterChannel() - 1) {
+        if ((int)Nodes.size() > shutter_ability->GetShutterChannel() - 1) {
             xlColor c(shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue());
             pixelVector[shutter_ability->GetShutterChannel() - 1] = c;
         }
@@ -190,7 +190,7 @@ std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < names.size()) {
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < (int)names.size()) {
         names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
     return names;

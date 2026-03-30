@@ -33,7 +33,7 @@ RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data32,
                                    const char **data48,
                                    const char **data64)
-    : id(i), name(n), tooltip(n), mSequenceElements(nullptr),
+    : name(n), tooltip(n), id(i), mSequenceElements(nullptr),
       iconData{data16, data24, data32, data48, data64}
 {
 }
@@ -196,7 +196,7 @@ EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
 {
     if (timingtrack == "") return nullptr;
 
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+    for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
         Element* e = mSequenceElements->GetElement(i);
         if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack) {
             return e->GetEffectLayer(0);

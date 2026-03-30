@@ -43,7 +43,7 @@ void CurlManager::addCURL(const std::string& furl, CURL* curl, std::function<voi
     i->cleanCurl = autoCleanCurl;
     curl_multi_add_handle(curlMulti, curl);
     numCurls++;
-    for (int x = 0; x < curls.size(); x++) {
+    for (size_t x = 0; x < curls.size(); x++) {
         if (curls[x] == nullptr) {
             curls[x] = i;
             return;
@@ -62,7 +62,7 @@ static size_t urlWriteData(void* buffer, size_t size, size_t nmemb, void* userp)
 static size_t urlReadData(void* ptr, size_t size, size_t nmemb, void* userp) {
     size_t buffer_size = size * nmemb;
     CurlManager::CurlPrivateData* dt = (CurlManager::CurlPrivateData*)userp;
-    int numb = dt->req->size() - dt->curPos;
+    size_t numb = dt->req->size() - dt->curPos;
     if (numb > buffer_size) {
         numb = buffer_size;
     }
@@ -372,7 +372,7 @@ bool CurlManager::doProcessCurls() {
                 CURL* e = m->easy_handle;
                 curl_multi_remove_handle(curlMulti, e);
                 CurlInfo* ci = nullptr;
-                for (int x = 0; x < curls.size(); x++) {
+                for (size_t x = 0; x < curls.size(); x++) {
                     if (curls[x] && curls[x]->curl == e) {
                         ci = curls[x];
                         curls[x] = nullptr;

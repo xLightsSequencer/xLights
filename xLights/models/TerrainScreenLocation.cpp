@@ -226,7 +226,7 @@ CursorType TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
         handle = -1;
 
         // Test each each Oriented Bounding Box (OBB).
-        for (size_t i = edit_active ? 1 : 0; edit_active ? i < mSelectableHandles : i < 1; i++) {
+        for (int i = edit_active ? 1 : 0; edit_active ? i < mSelectableHandles : i < 1; i++) {
             float intersection_distance; // Output of TestRayOBBIntersection()
 
             if (VectorMath::TestRayOBBIntersection(
@@ -267,7 +267,7 @@ int TerrainScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
 
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
                 if (active_axis == MSLAXIS::Y_AXIS) {
                     mPos[point] = newy;
                     if (tool_size > 1) {
@@ -302,7 +302,7 @@ int TerrainScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot,
     if (handle != CENTER_HANDLE) {
         if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
 
                 float newz = (mPos[point] - mov.z*scale);
                 mPos[point] = newz;

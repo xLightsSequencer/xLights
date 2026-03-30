@@ -366,7 +366,7 @@ void SequenceViewManager::Reset()
 
 void SequenceViewManager::SetSelectedView(int view)
 {
-	if (view >= _views.size())
+	if ((size_t)view >= _views.size())
 	{
 		_selectedView = 0;
 	}

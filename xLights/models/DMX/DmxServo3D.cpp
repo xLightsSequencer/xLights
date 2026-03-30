@@ -67,7 +67,7 @@ DmxServo3d::~DmxServo3d()
 void DmxServo3d::SetNumServos(int val)
 {
     num_servos = val;
-    if (servos.size() < num_servos) {
+    if ((int)servos.size() < num_servos) {
         servos.resize(num_servos);
     }
 }
@@ -75,7 +75,7 @@ void DmxServo3d::SetNumServos(int val)
 void DmxServo3d::SetNumStatic(int val)
 {
     num_static = val;
-    if (static_meshs.size() < num_static) {
+    if ((int)static_meshs.size() < num_static) {
         static_meshs.resize(num_static);
     }
 }
@@ -83,7 +83,7 @@ void DmxServo3d::SetNumStatic(int val)
 void DmxServo3d::SetNumMotion(int val)
 {
     num_motion = val;
-    if (motion_meshs.size() < num_motion) {
+    if ((int)motion_meshs.size() < num_motion) {
         motion_meshs.resize(num_motion);
     }
 }
@@ -119,13 +119,13 @@ void DmxServo3d::InitModel()
     DmxModel::InitModel();
 
     // resize vector arrays
-    if (servos.size() != num_servos) {
+    if ((int)servos.size() != num_servos) {
         servos.resize(num_servos);
     }
-    if (static_meshs.size() != num_static) {
+    if ((int)static_meshs.size() != num_static) {
         static_meshs.resize(num_static);
     }
-    if (motion_meshs.size() != num_motion) {
+    if ((int)motion_meshs.size() != num_motion) {
         motion_meshs.resize(num_motion);
     }
 
@@ -336,12 +336,12 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
 {
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
-    if (min_channels > Nodes.size()) {
+    if (min_channels > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     for (const auto& it : servos) {
-        if (it->GetChannel() > Nodes.size()) {
+        if (it->GetChannel() > (int)Nodes.size()) {
             DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
             return;
         }
@@ -358,7 +358,7 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     }
 
     // Get servo positions and fill motion matrices
-    for (int i = 0; i < servos.size(); ++i) {
+    for (int i = 0; i < (int)servos.size(); ++i) {
         if (servos[i]->GetChannel() > 0 && active) {
             servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
             if (servos[i]->IsTranslate()) {
@@ -394,13 +394,13 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     }
 
     // add motion based on servo mapping
-    for (int i = 0; i < servos.size(); ++i) {
+    for (int i = 0; i < (int)servos.size(); ++i) {
         // see if servo links to his own mesh
         if (servo_links[i] == -1) {
             motion_matrix[i] = motion_matrix[i] * servo_matrix[i];
         }
         // check if any other servos map to this mesh
-        for (int j = 0; j < servos.size(); ++j) {
+        for (int j = 0; j < (int)servos.size(); ++j) {
             if (j != i) {
                 if (servo_links[j] == i) {
                     motion_matrix[i] = motion_matrix[i] * servo_matrix[j];

@@ -597,7 +597,7 @@ void xlGridCanvasMorph::UpdateMorphPositionsFromEffect()
 {
     wxString settings = mEffect->GetSettingsAsString();
     wxArrayString all_settings = wxSplit(settings, ',');
-    for (int s = 0; s < all_settings.size(); s++) {
+    for (int s = 0; s < (int)all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
         if (parts.size() > 1) {
             if (parts[0] == "E_SLIDER_Morph_Start_X1") {

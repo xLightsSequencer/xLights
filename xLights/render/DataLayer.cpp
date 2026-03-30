@@ -36,7 +36,7 @@ DataLayerSet::DataLayerSet()
 
 DataLayerSet::~DataLayerSet()
 {
-    for (int i = 0; i < mDataLayers.size(); ++i)
+    for (int i = 0; i < (int)mDataLayers.size(); ++i)
     {
         delete mDataLayers[i];
     }
@@ -54,7 +54,7 @@ DataLayer* DataLayerSet::GetDataLayer(size_t index)
 
 void DataLayerSet::RemoveDataLayer(int index)
 {
-    if (index < mDataLayers.size()) {
+    if (index < (int)mDataLayers.size()) {
         DataLayer* layer = mDataLayers[index];
         mDataLayers.erase(mDataLayers.begin() + index);
         delete layer;
@@ -79,7 +79,7 @@ void DataLayerSet::MoveLayerUp(int index)
 
 void DataLayerSet::MoveLayerDown(int index)
 {
-    if (index < mDataLayers.size() - 1) {
+    if (index < (int)mDataLayers.size() - 1) {
         DataLayer* tmp = mDataLayers[index + 1];
         mDataLayers[index + 1] = mDataLayers[index];
         mDataLayers[index] = tmp;

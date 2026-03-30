@@ -196,8 +196,8 @@ bool SphereModel::Find3DCustomModelScale(int scale, float minx, float miny, floa
     if (nodeCount <= 1) {
         return true;
     }
-    for (int i = 0; i < nodeCount; ++i) {
-        for (int j = i + 1; j < nodeCount; ++j) {
+    for (int i = 0; i < (int)nodeCount; ++i) {
+        for (int j = i + 1; j < (int)nodeCount; ++j) {
             int x1 = (scale * (float)BufferWi) * (Nodes[i]->Coords[0].screenX - minx) / w;
             int y1 = (scale * (float)BufferHt) - (scale * (float)BufferHt * (Nodes[i]->Coords[0].screenY - miny) / h);
             int z1 = (scale * (float)BufferWi) * (Nodes[i]->Coords[0].screenZ - minz) / d;

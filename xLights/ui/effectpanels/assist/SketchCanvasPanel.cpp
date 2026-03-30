@@ -362,7 +362,7 @@ void SketchCanvasPanel::OnSketchLeftDown(wxMouseEvent& event)
 
 void SketchCanvasPanel::OnSketchLeftUp(wxMouseEvent& /*event*/)
 {
-    if (m_grabbedHandleIndex != -1) {
+    if (m_grabbedHandleIndex != (size_t)-1) {
         UpdatePathFromHandles(m_grabbedHandleIndex);
         // temp for debugging handles-path synchronization
         // UpdateHandlesForPath(m_pathsListView->GetFirstSelected());
@@ -402,7 +402,7 @@ void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
     }
 
     // dragging a handle
-    if (m_grabbedHandleIndex != -1 && event.ButtonIsDown(wxMOUSE_BTN_LEFT)) {
+    if (m_grabbedHandleIndex != (size_t)-1 && event.ButtonIsDown(wxMOUSE_BTN_LEFT)) {
         m.Invert();
         m_handles[m_grabbedHandleIndex].pt = UItoNormalized(m.TransformPoint(m_mousePos));
         Refresh();
@@ -578,7 +578,7 @@ void SketchCanvasPanel::UpdatePathState(SketchCanvasPathState pathState)
             SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
             auto& paths(sketch.paths());
             int index = m_sketchCanvasParent->GetSelectedPathIndex();
-            if (index <= paths.size()) {
+            if (index <= (int)paths.size()) {
                 paths[index] = path;
                 m_sketchCanvasParent->NotifySketchUpdated();
             }
@@ -604,7 +604,7 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
 {
     const SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
 
-    if (pathIndex < 0 || pathIndex >= sketch.paths().size())
+    if (pathIndex < 0 || pathIndex >= (int)sketch.paths().size())
         return;
 
     ResetHandlesState();
@@ -667,7 +667,7 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
     auto paths(sketch.paths());
 
     auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
-    if (pathIndex < 0 || pathIndex >= paths.size())
+    if (pathIndex < 0 || pathIndex >= (int)paths.size())
         return;
 
     auto iter = paths.cbegin();
@@ -692,7 +692,7 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
         return;
     }
 
-    for (int segmentIndex = 0; segmentIndex < segments.size(); ++segmentIndex) {
+    for (int segmentIndex = 0; segmentIndex < (int)segments.size(); ++segmentIndex) {
         std::shared_ptr<SketchPathSegment> segment = segments[segmentIndex];
         std::shared_ptr<SketchQuadraticBezier> quadratic;
         std::shared_ptr<SketchCubicBezier> cubic;
@@ -700,7 +700,7 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
         if (std::dynamic_pointer_cast<SketchLine>(segment) != nullptr) {
             if (handleIndex == index++) {
                 segment->SetEndPoint(normalizedHandlePt);
-                if (segmentIndex < segments.size() - 1)
+                if (segmentIndex < (int)segments.size() - 1)
                     segments[segmentIndex + 1]->SetStartPoint(normalizedHandlePt);
                 break;
             }
@@ -711,7 +711,7 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
             }
             if (handleIndex == index++) {
                 segment->SetEndPoint(normalizedHandlePt);
-                if (segmentIndex < segments.size() - 1)
+                if (segmentIndex < (int)segments.size() - 1)
                     segments[segmentIndex + 1]->SetStartPoint(normalizedHandlePt);
                 break;
             }
@@ -726,7 +726,7 @@ void SketchCanvasPanel::UpdatePathFromHandles(long handleIndex)
             }
             if (handleIndex == index++) {
                 segment->SetEndPoint(normalizedHandlePt);
-                if (segmentIndex < segments.size() - 1)
+                if (segmentIndex < (int)segments.size() - 1)
                     segments[segmentIndex + 1]->SetStartPoint(normalizedHandlePt);
                 break;
             }
@@ -742,7 +742,7 @@ void SketchCanvasPanel::UpdatePathFromHandles()
 
     SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
     auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
-    if (pathIndex < 0 || pathIndex >= sketch.pathCount())
+    if (pathIndex < 0 || pathIndex >= (int)sketch.pathCount())
         return;
 
     auto path = std::make_shared<SketchEffectPath>();
@@ -877,7 +877,7 @@ void SketchCanvasPanel::ClosePath()
         if (segment != nullptr) {
             SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
             auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
-            if (pathIndex < 0 || pathIndex >= sketch.pathCount())
+            if (pathIndex < 0 || pathIndex >= (int)sketch.pathCount())
                 return;
             auto paths(sketch.paths());
             paths[pathIndex]->appendSegment(segment);

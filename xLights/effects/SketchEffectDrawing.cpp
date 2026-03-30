@@ -648,14 +648,14 @@ std::string SketchEffectSketch::toString() const
 
 void SketchEffectSketch::updatePath(int index, std::shared_ptr<SketchEffectPath> path)
 {
-    if (index < 0 || index >= m_paths.size())
+    if (index < 0 || index >= (int)m_paths.size())
         return;
     m_paths[index] = path;
 }
 
 void SketchEffectSketch::reversePath(int pathIndex)
 {
-    if (pathIndex < 0 || pathIndex >= m_paths.size())
+    if (pathIndex < 0 || pathIndex >= (int)m_paths.size())
         return;
 
     m_paths[pathIndex]->reversePath();
@@ -663,7 +663,7 @@ void SketchEffectSketch::reversePath(int pathIndex)
 
 void SketchEffectSketch::deletePath(int pathIndex)
 {
-    if (pathIndex < 0 || pathIndex >= m_paths.size())
+    if (pathIndex < 0 || pathIndex >= (int)m_paths.size())
         return;
 
     auto iter = m_paths.begin();
@@ -674,7 +674,7 @@ void SketchEffectSketch::deletePath(int pathIndex)
 
 void SketchEffectSketch::swapPaths(int pathIndex0, int pathIndex1)
 {
-    if (pathIndex0 < 0 || pathIndex1 < 0 || pathIndex0 >= m_paths.size() || pathIndex1 >= m_paths.size())
+    if (pathIndex0 < 0 || pathIndex1 < 0 || pathIndex0 >= (int)m_paths.size() || pathIndex1 >= (int)m_paths.size())
         return;
 
     std::swap(m_paths[pathIndex0], m_paths[pathIndex1]);

@@ -429,7 +429,7 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, unsigne
 void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType* dataBuf, int ver, int cpn)
 {
     int interval = _seqData.FrameTime() / 10; // in centiseconds
-    if (interval * 10 != _seqData.FrameTime()) {
+    if ((unsigned int)(interval * 10) != _seqData.FrameTime()) {
         DisplayError("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
         return;
     }
@@ -1274,7 +1274,7 @@ void xLightsFrame::LoadPresetEffects(const CopyFormat1& pd)
 
     for (const auto& it : pd.Effects()) {
         int row = it->Row() - startRow;
-        while (row >= elem->GetEffectLayerCount()) {
+        while (row >= (int)elem->GetEffectLayerCount()) {
             elem->AddEffectLayer();
         }
         EffectLayer* el = elem->GetEffectLayer(row);
@@ -1502,9 +1502,9 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName, wxString* mediaFile
         } else {
             SetMediaFilename(filename);
         }
-        for (size_t x = 0; x < numch; x++) {
+        for (int x = 0; x < numch; x++) {
             size_t readcnt = f.Read(buf, numper);
-            if (readcnt < numper) {
+            if (readcnt < (size_t)numper) {
                 PlayerError(wxString("Unable to read all event data from:\n") + FileName);
             }
             for (int p = 0; p < numper; p++) {

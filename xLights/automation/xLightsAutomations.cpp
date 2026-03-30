@@ -849,7 +849,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         _sequenceElements.get_undo_mgr().CreateUndoStep();
-        while (to->GetEffectLayerCount() < layer + 1) {
+        while ((int)to->GetEffectLayerCount() < layer + 1) {
             to->AddEffectLayer();
         }
         auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect, settings, palette,
@@ -984,7 +984,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         std::string layers = "[";
-        for (int i = 0; i < ele->GetEffectLayerCount(); ++i) {
+        for (size_t i = 0; i < ele->GetEffectLayerCount(); ++i) {
             std::string ids;
             auto effects = ele->GetEffectLayer(i)->GetAllEffects();
             for (auto* eff : effects) {
@@ -1200,7 +1200,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                     } else if (v.is_boolean()) {
                         paramMap[mn] = v.get<bool>() ? "true" : "false";
                     } else if (v.is_array()) {
-                        for (int x = 0; x < v.size(); x++) {
+                        for (size_t x = 0; x < v.size(); x++) {
                             std::string k = mn + "_" + std::to_string(x);
                             paramMap[k] = v[x].get<std::string>();
                         }
@@ -1317,7 +1317,7 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
                 } else if (v.is_boolean()) {
                     paramMap[mn] = v.get<bool>() ? "true" : "false";
                 } else if (v.is_array()) {
-                    for (int x = 0; x < v.size(); x++) {
+                    for (size_t x = 0; x < v.size(); x++) {
                         std::string k = mn + "_" + std::to_string(x);
                         paramMap[k] = v[x].get<std::string>();
                     }

@@ -739,7 +739,7 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
     bool res = true;
     wxString fn;
 
-    for (int a = 0; a < filename.length(); a++) {
+    for (size_t a = 0; a < filename.length(); a++) {
         wxChar ch = filename[a];
         if (ch == '"') {
             fn.Append("\\\"");

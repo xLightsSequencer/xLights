@@ -1329,7 +1329,7 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
                 element_effects_node.append_attribute("fixed") = tm->GetFixedTiming();
                 element_effects_node.append_child("EffectLayer");
             } else {
-                for (int j = 0; j < tm->GetEffectLayerCount(); ++j) {
+                for (int j = 0; j < (int)tm->GetEffectLayerCount(); ++j) {
                     EffectLayer* layer = tm->GetEffectLayer(j);
                     auto effect_layer_node = element_effects_node.append_child("EffectLayer");
                     for (int k = 0; k < layer->GetEffectCount(); ++k) {
@@ -1349,7 +1349,7 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
             }
         } else if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement* me = dynamic_cast<ModelElement*>(element);
-            for (int j = 0; j < me->GetEffectLayerCount(); ++j) {
+            for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) {
                 EffectLayer* layer = me->GetEffectLayer(j);
                 auto effect_layer_node = element_effects_node.append_child("EffectLayer");
                 if (!layer->GetLayerName().empty()) {
@@ -1834,7 +1834,7 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xL
     std::string ver = GetVersion();
     std::vector<RenderableEffect*> effects(xLightsParent->GetEffectManager().size());
     int count = 0;
-    for (int x = 0; x < xLightsParent->GetEffectManager().size(); x++) {
+    for (int x = 0; x < (int)xLightsParent->GetEffectManager().size(); x++) {
         RenderableEffect* eff = xLightsParent->GetEffectManager()[x];
         if (eff->needToAdjustSettings(ver)) {
             effects[x] = eff;
@@ -1846,9 +1846,9 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xL
             Element* elem = elements.GetElement(i);
             if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement* me = dynamic_cast<ModelElement*>(elem);
-                for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
+                for (int j = 0; j < (int)elem->GetEffectLayerCount(); j++) {
                     EffectLayer* layer = elem->GetEffectLayer(j);
-                    for (int k = 0; k < layer->GetEffectCount(); k++) {
+                    for (int k = 0; k < (int)layer->GetEffectCount(); k++) {
                         Effect* eff = layer->GetEffect(k);
                         if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                             effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
@@ -1857,9 +1857,9 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xL
                 }
                 for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
                     SubModelElement* se = me->GetSubModel(s);
-                    for (int j = 0; j < se->GetEffectLayerCount(); j++) {
+                    for (int j = 0; j < (int)se->GetEffectLayerCount(); j++) {
                         EffectLayer* layer = se->GetEffectLayer(j);
-                        for (int k = 0; k < layer->GetEffectCount(); k++) {
+                        for (int k = 0; k < (int)layer->GetEffectCount(); k++) {
                             Effect* eff = layer->GetEffect(k);
                             if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                                 effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);

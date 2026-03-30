@@ -204,7 +204,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
                     if (color_root.contains("description")) {
                         ret.description = color_root["description"].get<std::string>();
                     }
-                    for (int x = 0; x < color_root["colors"].size(); x++) {
+                    for (size_t x = 0; x < color_root["colors"].size(); x++) {
                         auto& color = color_root["colors"][x];
                         ret.colors.push_back(aiBase::AIColor());
                         ret.colors.back().hexValue = color["hex_code"].get<std::string>();

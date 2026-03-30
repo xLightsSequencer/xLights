@@ -151,7 +151,6 @@ public:
                     PlayList* pl = _scheduleManager->GetRunningPlayList();
                     if (pl != nullptr) {
                         // sent a sync
-                        auto ms = pl->GetPosition();
                         _syncMidi->SendClock();
                     }
 

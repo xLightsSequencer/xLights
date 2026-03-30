@@ -52,9 +52,9 @@ CustomModel::~CustomModel()
 
 std::tuple<int, int, int> FindNode(int node, const std::vector<std::vector<std::vector<int>>>& locations)
 {
-    for (int l = 0; l < locations.size(); l++) {
-        for (int r = 0; r < locations[l].size(); r++) {
-            for (int c = 0; c < locations[l][r].size(); c++) {
+    for (int l = 0; l < (int)locations.size(); l++) {
+        for (int r = 0; r < (int)locations[l].size(); r++) {
+            for (int c = 0; c < (int)locations[l][r].size(); c++) {
                 if (locations[l][r][c] == node + 1) {
                     return { l, r, c };
                 }
@@ -330,10 +330,10 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
         // While the custom model may have a height and width if it is single channel then the render buffer really should be Nodes x 1
         // and all nodes should point to one cell.
         // Without this change effects like twinkle do really strange things
-        BufferWi = Nodes.size() - startNodeSize;
+        BufferWi = (int)Nodes.size() - startNodeSize;
         BufferHi = 1;
         int x = 0;
-        while (startNodeSize < Nodes.size()) {
+        while (startNodeSize < (int)Nodes.size()) {
             for (auto& it2 : Nodes[startNodeSize]->Coords) {
                 it2.bufX = x;
                 it2.bufY = 0;
@@ -354,7 +354,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
 
     GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     if (type == "Stacked X Horizontally") {
-        for (auto n = 0; n < Nodes.size(); n++) {
+        for (auto n = 0; n < (int)Nodes.size(); n++) {
             auto loc = FindNode(n, _locations);
             Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1 + std::get<2>(loc) * depth;
             Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
@@ -489,9 +489,9 @@ std::string CustomModel::ToCompressed(const std::vector<std::vector<std::vector<
 
     int layers = model.size();
     std::string compressed = "";
-    for (int l = 0; l < model.size(); l++) {
-		for (int r = 0; r < model[l].size(); r++) {
-			for (int c = 0; c < model[l][r].size(); c++) {
+    for (int l = 0; l < (int)model.size(); l++) {
+		for (int r = 0; r < (int)model[l].size(); r++) {
+			for (int c = 0; c < (int)model[l][r].size(); c++) {
 				if (model[l][r][c] >= 0) {
 					if (!compressed.empty()) {
 						compressed += ";";
@@ -510,15 +510,15 @@ std::string CustomModel::ToCompressed(const std::vector<std::vector<std::vector<
 
 std::string CustomModel::ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model) {
     std::string customModel = "";
-	for (int l = 0; l < model.size(); l++) {
+	for (int l = 0; l < (int)model.size(); l++) {
 		if (!customModel.empty()) {
 			customModel += "|";
 		}
-		for (int r = 0; r < model[l].size(); r++) {
+		for (int r = 0; r < (int)model[l].size(); r++) {
 			if (r > 0) {
 				customModel += ";";
 			}
-			for (int c = 0; c < model[l][r].size(); c++) {
+			for (int c = 0; c < (int)model[l][r].size(); c++) {
 				if (c > 0) {
 					customModel += ",";
 				}
@@ -578,7 +578,7 @@ void CustomModel::InitCustomMatrix() {
                             cpn = GetChanCountPerNode();
                         }
                         Nodes.back()->ActChan = firstStartChan + idx * cpn;
-                        if (idx < nodeNames.size() && !nodeNames[idx].empty()) {
+                        if (idx < (int)nodeNames.size() && !nodeNames[idx].empty()) {
                             Nodes.back()->SetName(nodeNames[idx]);
                         } else {
                             Nodes.back()->SetName("Node " + std::to_string(idx + 1));

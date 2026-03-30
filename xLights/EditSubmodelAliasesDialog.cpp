@@ -116,7 +116,7 @@ void EditSubmodelAliasesDialog::ValidateWindow()
     } else {
         ButtonDelete->Disable();
     }
-    if (ListBoxAliases->GetSelection() >= 0 && ListBoxAliases->GetSelection() < ListBoxAliases->GetCount()) {
+    if (ListBoxAliases->GetSelection() >= 0 && ListBoxAliases->GetSelection() < (int)ListBoxAliases->GetCount()) {
         ButtonMoveUp->Enable(true);
         ButtonMoveDown->Enable(true);
     } else {
@@ -195,7 +195,7 @@ void EditSubmodelAliasesDialog::OnButtonMoveDownClick(wxCommandEvent& event) {
 
     int selectedIndex = ListBoxAliases->GetSelection();
 
-    if (selectedIndex != wxNOT_FOUND && selectedIndex < (ListBoxAliases->GetCount() - 1)) {
+    if (selectedIndex != wxNOT_FOUND && selectedIndex < (int)(ListBoxAliases->GetCount() - 1)) {
         wxString selectedItem = ListBoxAliases->GetString(selectedIndex);
         ListBoxAliases->Delete(selectedIndex);
         ListBoxAliases->Insert(selectedItem, selectedIndex + 1);

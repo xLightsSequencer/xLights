@@ -1061,7 +1061,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
     }
-    if (buffer.palette.Size() > colorOffset) {
+    if ((int)buffer.palette.Size() > colorOffset) {
         buffer.palette.GetColor(colorOffset, color); //use second color for eyes; user must make sure it matches model node type
     }
     if (eyes == "Open" || eyes == "Auto") {
@@ -1091,7 +1091,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 3) {
+            if ((int)buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
@@ -1109,7 +1109,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 4) {
+            if ((int)buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
@@ -1142,7 +1142,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 3) {
+            if ((int)buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
@@ -1160,7 +1160,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 4) {
+            if ((int)buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
@@ -1169,7 +1169,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     } else if (eyes == "(off)") {
         //no eyes
     }
-    if (buffer.palette.Size() > (1 + colorOffset)) {
+    if ((int)buffer.palette.Size() > (1 + colorOffset)) {
         buffer.palette.GetColor((1 + colorOffset), color); //use third color for outline; user must make sure it matches model node type
     }
     if (face_outline) {
@@ -1188,7 +1188,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
 
-        if (buffer.palette.Size() > (2 + colorOffset)) {
+        if ((int)buffer.palette.Size() > (2 + colorOffset)) {
             buffer.palette.GetColor((2 + colorOffset), color); //use forth color for outline 2; user must make sure it matches model node type
         }
 

@@ -98,7 +98,7 @@ void ChannelBlockModel::InitModel() {
 
 void ChannelBlockModel::InitChannelBlock() {
     size_t NodeCount = GetNodeCount();
-    if (NodeCount != _numChannels) {
+    if ((int)NodeCount != _numChannels) {
         SetNodeCount(_numChannels, 1, rgbOrder);
         NodeCount = _numChannels;
     }
@@ -116,7 +116,7 @@ void ChannelBlockModel::InitChannelBlock() {
 
     int idx = 0;
     for (size_t n = 0; n<NodeCount; ++n) {
-        if (Nodes[n]->StringNum != LastStringNum) {
+        if ((int)Nodes[n]->StringNum != LastStringNum) {
             LastStringNum = Nodes[n]->StringNum;
             chan = stringStartChan[LastStringNum];
         }

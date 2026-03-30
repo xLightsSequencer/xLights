@@ -139,7 +139,7 @@ uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
     auto deviceChannels = wxSplit(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
         int ch = wxAtoi(it);
-        if (channel < ch) {
+        if (channel < (uint32_t)ch) {
             break;
         }
         channel -= ch;
@@ -152,7 +152,7 @@ uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
     auto deviceChannels = wxSplit(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
         int ch = wxAtoi(it);
-        if (channel < ch) {
+        if (channel < (uint32_t)ch) {
             break;
         }
         channel -= ch;

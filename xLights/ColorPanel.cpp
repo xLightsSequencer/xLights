@@ -1029,7 +1029,7 @@ wxString ColorPanel::GetColorString(bool colourOnly)
 
 wxColour ColorPanel::GetPaletteColor(int idx) const
 {
-    if (idx < buttons.size()) {
+    if (idx < (int)buttons.size()) {
         return buttons[idx]->GetBackgroundColour();
     }
     return *wxBLACK;
@@ -1037,7 +1037,7 @@ wxColour ColorPanel::GetPaletteColor(int idx) const
 
 wxCheckBox* ColorPanel::GetPaletteCheckbox(int idx)
 {
-    if (idx < checkBoxes.size()) {
+    if (idx < (int)checkBoxes.size()) {
         return checkBoxes[idx];
     }
     return checkBoxes[0]; //0;
@@ -1045,7 +1045,7 @@ wxCheckBox* ColorPanel::GetPaletteCheckbox(int idx)
 
 wxButton* ColorPanel::GetPaletteButton(int idx)
 {
-    if (idx < buttons.size()) {
+    if (idx < (int)buttons.size()) {
         return buttons[idx];
     }
     return buttons[0]; //0;

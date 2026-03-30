@@ -530,7 +530,7 @@ public:
 
         std::vector<bool> partOfCanvas;
         partOfCanvas.resize(info.validLayers.size());
-        for (int x = 0; x < info.validLayers.size(); x++) {
+        for (int x = 0; x < (int)info.validLayers.size(); x++) {
             info.validLayers[x] = false;
             partOfCanvas[x] = false;
         }
@@ -646,7 +646,7 @@ public:
                             doBlendLayer = true;
                             ls.pop_back();
                         }
-                        for (int i = layer + 1; i < vl.size(); i++) {
+                        for (int i = layer + 1; i < (int)vl.size(); i++) {
                             if (vl[i]) {
                                 bool found = false;
                                 for (auto it = ls.begin(); !found && it != ls.end(); ++it) {
@@ -669,7 +669,7 @@ public:
                     } else {
                         // default if not specified is all valid layers below it except the blend layer
                         // mark them as being part of the
-                        for (int i = layer + 1; i < vl.size(); i++) {
+                        for (int i = layer + 1; i < (int)vl.size(); i++) {
                             if (vl[i]) {
                                 partOfCanvas[i] = true;
                             }
@@ -686,7 +686,7 @@ public:
                         for (auto &a : rb.GetNodes()[n]->Coords) {
                             int x = a.bufX;
                             int y = a.bufY;
-                            if (x >= 0 && x < rb.BufferWi && y >= 0 && y < rb.BufferHt && y*rb.BufferWi + x < rb.GetPixelCount()) {
+                            if (x >= 0 && x < rb.BufferWi && y >= 0 && y < rb.BufferHt && y*rb.BufferWi + x < (int)rb.GetPixelCount()) {
                                 done[y*rb.BufferWi+x] = true;
                             }
                         }
@@ -724,7 +724,7 @@ public:
         if (effectsToUpdate) {
             maybeWaitForFrame(frame);
             SetCalOutputStatus(frame, info.submodel, strand, -1);
-            for (int x = 0; x < partOfCanvas.size(); x++) {
+            for (int x = 0; x < (int)partOfCanvas.size(); x++) {
                 // if the layer was used for a canvas effect, we don't want it
                 // reblended in
                 if (partOfCanvas[x]) {
@@ -1219,7 +1219,7 @@ void xLightsFrame::UpdateRenderStatus() {
 
         int frames = rpi->endFrame - rpi->startFrame + 1;
         if( frames <= 0 ) frames = 1;
-        for (size_t row = 0; row < rpi->numRows; ++row) {
+        for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
 
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
@@ -1267,7 +1267,7 @@ void xLightsFrame::UpdateRenderStatus() {
             if (IsRenderBell() && !_renderMode && mRendering) {
                 wxBell();
             }
-            for (size_t row = 0; row < rpi->numRows; ++row) {
+            for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
                 if (rpi->jobs[row]) {
                     delete rpi->jobs[row];
                 }
@@ -1417,7 +1417,7 @@ void xLightsFrame::BuildRenderTree() {
             //nothing to do....
             return;
         }
-        for (size_t row = 0; row < numEls; ++row) {
+        for (size_t row = 0; row < (size_t)numEls; ++row) {
             Element *rowEl = _sequenceElements.GetElement(row, MASTER_VIEW);
             if (rowEl != nullptr && rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 Model *model = GetModel(rowEl->GetModelName());
@@ -1511,7 +1511,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                             if (cnum < seqData.NumChannels()) {
                                 for (const auto i : channelMaps[cnum]) {
                                     int idx = i;
-                                    if (idx != row) {
+                                    if ((size_t)idx != row) {
                                         if (jobs[idx]->addNext(aggregators[row])) {
                                             aggregators[row]->incNumAggregated();
                                         }
@@ -1544,7 +1544,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
 
     logger_render->debug("Data cleared.");
 
-    for (row = 0; row < numRows; ++row) {
+    for (row = 0; row < (size_t)numRows; ++row) {
         if (jobs[row]) {
             if (aggregators[row]->getNumAggregated() == 0) {
                 //start all the jobs that don't depend on anything above them
@@ -1573,7 +1573,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
     }
 
     logger_render->debug("Job pool start size {}.", (int)jobPool.size());
-    for (row = 0; row < numRows; ++row) {
+    for (row = 0; row < (size_t)numRows; ++row) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
             //now start the rest
             jobPool.PushJob(jobs[row]);
@@ -1724,7 +1724,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
     int abortCount = 0;
     for (auto rpi : renderProgressInfo) {
         //abort whatever is rendering
-        for (size_t row = 0; row < rpi->numRows; ++row) {
+        for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
             if (rpi->jobs[row]) {
                 rpi->jobs[row]->AbortRender();
                 ++abortCount;
@@ -1786,7 +1786,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
     }
     for (auto it : renderProgressInfo) {
         //we're going to render EVERYTHING, abort whatever is rendering
-        for (size_t row = 0; row < it->numRows; ++row) {
+        for (size_t row = 0; row < (size_t)it->numRows; ++row) {
             if (it->jobs[row]) {
                it->jobs[row]->AbortRender();
             }
@@ -1868,7 +1868,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
                     if (endframe < rpi->endFrame) {
                         endframe = rpi->endFrame;
                     }
-                    for (size_t row = 0; row < rpi->numRows; ++row) {
+                    for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
                         if (rpi->jobs[row]) {
                             rpi->jobs[row]->AbortRender();
                         }

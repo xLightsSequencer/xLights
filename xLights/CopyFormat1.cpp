@@ -74,9 +74,9 @@ CopyFormat1::CopyFormat1(const std::string& data)
 
     int firstRow = 999999;
     int lastRow = -1;
-    for (int i = 1; i < lines.size(); ++i) {
+    for (size_t i = 1; i < lines.size(); ++i) {
         if (lines[i] != "") {
-            if (i <= numTimings) {
+            if (i <= (size_t)numTimings) {
                 CopyFormat1Timing* timing = new CopyFormat1Timing(lines[i].ToStdString());
                 _timings.push_back(timing);
                 if (!timing->IsOk()) {
@@ -184,7 +184,7 @@ size_t CopyFormat1::Frames(int frameMS)
 
 long CopyFormat1::StartTime() const
 {
-    size_t startMS = 9999999;
+    long startMS = 9999999;
 
     for (const auto& it : _effects) {
         if (it->StartTime() < startMS) startMS = it->StartTime();
@@ -196,7 +196,7 @@ long CopyFormat1::StartTime() const
 
 long CopyFormat1::EndTime() const
 {
-    size_t endMS = 0;
+    long endMS = 0;
 
     for (const auto& it : _effects) {
         if (it->EndTime() > endMS) endMS = it->EndTime();

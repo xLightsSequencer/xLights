@@ -106,17 +106,17 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     float lineSize = 1.7f / ((float)nodeCount);
     float barSize = lineSize * 0.8f;
     float lineStart = 0.825f;
-    for (int i = 1; i <= nodeCount; ++i) {
+    for (int i = 1; i <= (int)nodeCount; ++i) {
         Nodes[i - 1]->GetColor(proxy);
         float val = (float)proxy.red;
         float offsetx = val / 255.0f * 1.8f;
-        if (i == rgbColor->GetRedChannel()) {
+        if (i == (int)rgbColor->GetRedChannel()) {
             proxy = red;
-        } else if (i == rgbColor->GetGreenChannel()) {
+        } else if (i == (int)rgbColor->GetGreenChannel()) {
             proxy = green;
-        } else if (i == rgbColor->GetBlueChannel()) {
+        } else if (i == (int)rgbColor->GetBlueChannel()) {
             proxy = blue;
-        } else if (i == rgbColor->GetWhiteChannel()) {
+        } else if (i == (int)rgbColor->GetWhiteChannel()) {
             proxy = white;
         } else {
             proxy = ccolor;

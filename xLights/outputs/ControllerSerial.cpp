@@ -315,7 +315,7 @@ void ControllerSerial::VMVChanged(wxPropertyGrid *grid) {
             }
             out->SetKeepChannelNumber(true);
             std::string ip = "";
-            if (_port.find(":") != -1) {
+            if (_port.find(":") != std::string::npos) {
                 ip = _port.substr(0, _port.find(":"));
             }
             out->SetIP(ip, IsActive());
@@ -337,7 +337,7 @@ void ControllerSerial::SetPort(const std::string& port) {
                 _serialOutput->SetCommPort(port);
             } else {
                 std::string ip = "";
-                if (port.find(":") != -1) {
+                if (port.find(":") != std::string::npos) {
                     ip = port.substr(0, port.find(":"));
                     if (_serialOutput) {
                         _serialOutput->SetCommPort(port.substr(port.find(":") + 1));
@@ -593,7 +593,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
         //FPP based serial devices
         std::string port = _port;
         std::string ip;
-        if (_port.find(":") != -1) {
+        if (_port.find(":") != std::string::npos) {
             ip = _port.substr(0, _port.find(":"));
             port = _port.substr(_port.find(":") + 1);
         }
@@ -715,7 +715,7 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         std::string ip = event.GetValue().GetString();
         if (_model == "FPP") {
             std::string port = _port;
-            if (port.find(":") != -1) {
+            if (port.find(":") != std::string::npos) {
                 port = port.substr(port.find(":") + 1);
             }
             ip = ip + ":" + port;
@@ -731,7 +731,7 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
     } else if (name == "Port") {
         std::string port = Controller::DecodeChoices(event.GetProperty()->GetChoices(), event.GetValue().GetLong());
         if (_model == "FPP") {
-            if (_port.find(":") != -1) {
+            if (_port.find(":") != std::string::npos) {
                 port = _port.substr(0, _port.find(":") + 1) + port;
             }
         }

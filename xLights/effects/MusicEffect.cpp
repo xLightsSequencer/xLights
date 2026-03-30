@@ -135,7 +135,7 @@ public:
 	void ClearEvents()
 	{
 		// delete all our music events
-		for(int i = 0; i < _events.size(); ++i)
+		for(int i = 0; i < (int)_events.size(); ++i)
 		{
 			for (const auto& it : *_events[i])
 			{
@@ -272,7 +272,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
 
     try
     {
-        for (int x = 0; x < _events.size(); ++x)
+        for (int x = 0; x < (int)_events.size(); ++x)
         {
             for (int xx = ((float)x * per) + offsetx; xx < ((float)(x + 1) * per) + offsetx; ++xx)
             {
@@ -422,7 +422,7 @@ void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNo
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); ++i)
+                    for (int i = 0; i < (int)buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {
@@ -499,7 +499,7 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); ++i)
+                    for (int i = 0; i < (int)buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {
@@ -549,7 +549,7 @@ void MusicEffect::RenderOn(RenderBuffer &buffer, int x, int bars, int startNote,
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); ++i)
+                    for (int i = 0; i < (int)buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {

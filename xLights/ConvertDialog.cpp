@@ -491,7 +491,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
 
     int interval = SeqData.FrameTime() / 10;  // in centiseconds
     long centiseconds = SeqData.NumFrames() * interval;
-    if( interval * 10 != SeqData.FrameTime() ) {
+    if( (unsigned int)(interval * 10) != SeqData.FrameTime() ) {
         _parent->ConversionError(wxString("Cannot convert to LOR unless the sequence timing is evenly divisible by 10ms"));
         free(savedIndexes);
         return;
@@ -585,7 +585,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
         f.Write("\t\t</channel>\n");
         // KW I had to replace this because test tab has been removed
         //if (ch < CheckListBoxTestChannels->GetCount() &&
-        if (ch < _outputManager->GetTotalChannels() &&
+        if (ch < (size_t)_outputManager->GetTotalChannels() &&
             (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
         {
             rgbChanIndexes[curRgbChanCount++] = index;
@@ -786,7 +786,7 @@ void ConvertDialog::ReadGlediatorFile(const wxString& FileName)
     int period = 0;
     while ((readcnt = f.Read(frameBuffer, SeqData.NumChannels())))   // Read one period of channels
     {
-        for (int j = 0; j<readcnt; j++)   // Loop thru all channel.s
+        for (size_t j = 0; j<readcnt; j++)   // Loop thru all channel.s
         {
             SeqData[period][j] = frameBuffer[j];
         }
@@ -982,7 +982,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
 
     int min = 999999;
     int max = 0;
-    for (int x = 0; x < VixChannels.size(); x++)
+    for (int x = 0; x < (int)VixChannels.size(); x++)
     {
         int i = VixChannels[x];
         if (i > max)
@@ -1175,7 +1175,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
 
     channels = 0;
 
-    for (tmp = 0; tmp < map.size(); tmp += 2)
+    for (tmp = 0; tmp < (long)map.size(); tmp += 2)
     {
         int i = map[tmp + 1];
         int orig = _outputManager->GetControllerIndex(tmp / 2)->GetChannels();
@@ -1279,7 +1279,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                     {
                         tmp = atol(stagEvent->getText());
                         universe = tmp;
-                        for (tmp = 0; tmp < map.size(); tmp += 2)
+                        for (tmp = 0; tmp < (long)map.size(); tmp += 2)
                         {
                             if (universe == map[tmp])
                             {
@@ -1415,11 +1415,11 @@ static void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *uni
         unit = 1;
     }
 
-    if (info.network >= unitSizes->size())
+    if (info.network >= (int)unitSizes->size())
     {
         unitSizes->resize(info.network + 1);
     }
-    if (unit > (*unitSizes)[info.network].size())
+    if (unit > (int)(*unitSizes)[info.network].size())
     {
         (*unitSizes)[info.network].resize(unit);
     }
@@ -1605,7 +1605,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
         return;
     }
 
-    for (int network = 0; network < lorUnitSizes.size(); network++)
+    for (int network = 0; network < (int)lorUnitSizes.size(); network++)
     {
         cnt = 0;
         for (size_t u = 0; u < lorUnitSizes[network].size(); u++)
@@ -1614,7 +1614,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
         }
         AppendConvertStatus(string_format(wxString("LOR Network %d:  %d channels\n"), network, cnt), false);
     }
-    for (int network = 1; network < dmxUnitSizes.size(); network++)
+    for (int network = 1; network < (int)dmxUnitSizes.size(); network++)
     {
         cnt = 0;
         for (size_t u = 0; u < dmxUnitSizes[network].size(); u++)

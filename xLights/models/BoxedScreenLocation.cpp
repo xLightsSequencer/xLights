@@ -210,7 +210,7 @@ CursorType BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &h
     glm::vec3 aabb_min[5];
     glm::vec3 aabb_max[5];
 
-    for (size_t h = 0; h < num_handles; h++) {
+    for (int h = 0; h < num_handles; h++) {
         aabb_min[h].x = mHandlePosition[h+1].x - hw;
         aabb_min[h].y = mHandlePosition[h+1].y - hw;
         aabb_min[h].z = mHandlePosition[h+1].z - hw;
@@ -220,7 +220,7 @@ CursorType BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &h
     }
 
     // Test each each Oriented Bounding Box (OBB).
-    for (size_t i = 0; i < num_handles; i++)
+    for (int i = 0; i < num_handles; i++)
     {
         if (VectorMath::TestRayOBBIntersection2D(
             ray_origin,

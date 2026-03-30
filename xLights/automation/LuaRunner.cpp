@@ -299,7 +299,7 @@ sol::object LuaRunner::getObjectType( nlohmann::json const& val, sol::state_view
     }
     if (val.is_array()) {
         sol::table arry = lua.create_table();
-        for (int x = 0; x < val.size(); x++) {
+        for (size_t x = 0; x < val.size(); x++) {
             arry[x] = getObjectType(val.at(x), lua);
         }
         return arry;

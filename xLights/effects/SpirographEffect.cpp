@@ -94,7 +94,7 @@ void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
         double hyp = (sqrt(x2 + y2) / buffer.BufferWi) * 100.0;
         int ColorIdx = (int)(hyp / d_mod); // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
 
-        if (ColorIdx >= colorcnt) ColorIdx = colorcnt - 1;
+        if (ColorIdx >= (int)colorcnt) ColorIdx = (int)colorcnt - 1;
 
         buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
 

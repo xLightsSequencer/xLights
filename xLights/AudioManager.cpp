@@ -1347,7 +1347,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 spdlog::warn("DoPolyphonicTranscription: Polyphonic transcription data process oddly retrieved data.");
                 first = false;
             }
-            if (len > pref_step) {
+            if ((size_t)len > pref_step) {
                 len -= pref_step;
             } else {
                 len = 0;
@@ -1494,12 +1494,12 @@ void AudioManager::DoPrepareFrameData() {
         // clear the data if we are about to get new data ... dont clear it if we wont
         // this happens because the spectrogram function has a fixed window based on the parameters we set and it
         // does not match our time slices exactly so we have to select which one to use
-        if (pos < i * samplesperframe + samplesperframe && pos + step < totalsamples) {
+        if (pos < i * samplesperframe + samplesperframe && pos + (int)step < totalsamples) {
             spectrogram.clear();
         }
 
         // only get the data if we are not ahead of the music
-        while (pos < i * samplesperframe + samplesperframe && pos + step < totalsamples) {
+        while (pos < i * samplesperframe + samplesperframe && pos + (int)step < totalsamples) {
             pdata[0] = GetRawLeftDataPtr(pos);
             wxASSERT(pdata[0] != nullptr);
             pdata[1] = GetRawRightDataPtr(pos);
@@ -1894,7 +1894,7 @@ AudioManager::~AudioManager() {
 
 // Split the MP# data into left and right and normalise the values
 void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData) const {
-    for (size_t i = 0; i < trackSize; i++) {
+    for (long i = 0; i < trackSize; i++) {
         float lSample = trackData[i * 2];
         leftData[i] = lSample / 32768.0f;
         float rSample = trackData[(i * 2) + 1];
@@ -1904,7 +1904,7 @@ void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, long trac
 
 // NOrmalise mono track data
 void AudioManager::NormalizeMonoTrackData(signed short* trackData, long trackSize, float* leftData) {
-    for (size_t i = 0; i < trackSize; i++) {
+    for (long i = 0; i < trackSize; i++) {
         signed short lSample = trackData[i];
         leftData[i] = (float)lSample / (float)32768;
     }
@@ -2296,7 +2296,7 @@ void AudioManager::LoadResampledAudio(int sampleCount, int out_channels, uint8_t
     }
 
     // copy the PCM data into the PCM buffer for playing
-    wxASSERT(_pcmdatasize + PCMFUDGE > read * out_channels * sizeof(uint16_t) + sampleCount * out_channels * sizeof(uint16_t));
+    wxASSERT(_pcmdatasize + PCMFUDGE > (long)(read * out_channels * sizeof(uint16_t) + sampleCount * out_channels * sizeof(uint16_t)));
     memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, sampleCount * out_channels * sizeof(uint16_t));
 
     // possible optimization here... we ask resampler for S16 data and then convert that to floating-point?
@@ -2444,7 +2444,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
     int16_t* pcm = fad->pcmdata;
     int min = 32000;
     int max = -32000;
-    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++) {
+    for (long i = 0; i < _pcmdatasize / (long)sizeof(int16_t); i++) {
         if (*pcm > max)
             max = *pcm;
         if (*pcm < min)
@@ -2468,7 +2468,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
         scale = 10.0;
 
     pcm = fad->pcmdata;
-    for (int i = 0; i < (_pcmdatasize) / sizeof(int16_t); i++) {
+    for (long i = 0; i < _pcmdatasize / (long)sizeof(int16_t); i++) {
         int newv = ((double)(*pcm) * scale);
 
         // clip if necessary
@@ -3166,7 +3166,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         bool rateOK = false;
         while (*p != 0) {
             spdlog::debug("    Encoder supports sample rate {}", *p);
-            if (*p == sampleRate) {
+            if ((size_t)*p == sampleRate) {
                 rateOK = true;
                 break;
             }
@@ -3224,7 +3224,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         if (!fmtOK && hasS16) {
             //audiotoolbox aac encoder on Mac only supports S16 fmt
             s16Data.resize(left_channel.size() * 2);
-            for (int x = 0; x < left_channel.size(); x++) {
+            for (int x = 0; x < (int)left_channel.size(); x++) {
                 float lsample = std::clamp(left_channel[x], -1.0f, 1.0f);
                 float rsample = std::clamp(right_channel[x], -1.0f, 1.0f);
                 s16Data[x * 2] = (int16_t)round(lsample * 32767.0f);
@@ -3453,12 +3453,13 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Encode the samples
     int sample_index = 0;
-    while (sample_index < left_channel.size()) {
+    int total_samples = (int)left_channel.size();
+    while (sample_index < total_samples) {
         // Set up the frame data pointers
         frame->pts = sample_index;
         int mx = codec_context->frame_size;
-        if ((sample_index + mx) > left_channel.size()) {
-            mx = left_channel.size() - sample_index;
+        if ((sample_index + mx) > total_samples) {
+            mx = total_samples - sample_index;
         }
 #if LIBAVFORMAT_VERSION_MAJOR >= 60
         frame->duration = mx;
@@ -3467,7 +3468,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
             float* left_ptr = (float*)(frame->data[0]);
             float* right_ptr = (float*)(frame->data[1]);
             for (int i = 0; i < codec_context->frame_size; ++i) {
-                if (sample_index >= left_channel.size()) {
+                if (sample_index >= total_samples) {
                     left_ptr[i] = 0;
                     right_ptr[i] = 0;
                 } else {
@@ -3509,7 +3510,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 #endif
             return false;
         }
-        if (sample_index >= left_channel.size()) {
+        if (sample_index >= total_samples) {
             // at the end, flush everything
             avcodec_send_frame(codec_context, nullptr);
         }

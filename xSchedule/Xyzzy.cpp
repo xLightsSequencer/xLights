@@ -864,7 +864,7 @@ void Xyzzy2::Initialise(const wxString& parameters, wxString& result, const wxSt
 
 wxPoint Xyzzy2::RandomPill() const
 {
-    if (_body.size() >= _bw * _bh)
+    if (_body.size() >= (size_t)(_bw * _bh))
     {
         // full grid
         return wxPoint(-1, -1);

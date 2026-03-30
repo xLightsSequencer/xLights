@@ -419,34 +419,34 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     size_t NodeCount = Nodes.size();
 
     // crash protection
-    if (has_color && (eye_brightness_channel > NodeCount ||
+    if (has_color && (eye_brightness_channel > (int)NodeCount ||
         !color_ability->IsValidModelSettings(this)))
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 
-    if (has_jaw && jaw_servo->GetChannel() > Nodes.size()) {
+    if (has_jaw && jaw_servo->GetChannel() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (has_pan && pan_servo->GetChannel() > Nodes.size()) {
+    if (has_pan && pan_servo->GetChannel() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (has_tilt && tilt_servo->GetChannel() > Nodes.size()) {
+    if (has_tilt && tilt_servo->GetChannel() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (has_nod && nod_servo->GetChannel() > Nodes.size()) {
+    if (has_nod && nod_servo->GetChannel() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (has_eye_ud && eye_ud_servo->GetChannel() > Nodes.size()) {
+    if (has_eye_ud && eye_ud_servo->GetChannel() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (has_eye_lr && eye_lr_servo->GetChannel() > Nodes.size()) {
+    if (has_eye_lr && eye_lr_servo->GetChannel() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -598,37 +598,37 @@ void DmxSkull::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
 std::vector<std::string> DmxSkull::GenerateNodeNames() const {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != pan_servo->GetChannel() && pan_servo->GetChannel() < names.size()) {
+    if (0 != pan_servo->GetChannel() && pan_servo->GetChannel() < (int)names.size()) {
         names[pan_servo->GetChannel() - 1] = "Pan";
         if (pan_servo->Is16Bit()) {
             names[pan_servo->GetChannel()] = "Pan Fine";
         }
     }
-    if (0 != tilt_servo->GetChannel() && tilt_servo->GetChannel() < names.size()) {
+    if (0 != tilt_servo->GetChannel() && tilt_servo->GetChannel() < (int)names.size()) {
         names[tilt_servo->GetChannel() - 1] = "Tilt";
         if (tilt_servo->Is16Bit()) {
             names[tilt_servo->GetChannel()] = "Tilt Fine";
         }
     }
-    if (0 != nod_servo->GetChannel() && nod_servo->GetChannel() < names.size()) {
+    if (0 != nod_servo->GetChannel() && nod_servo->GetChannel() < (int)names.size()) {
         names[nod_servo->GetChannel() - 1] = "Nod";
         if (nod_servo->Is16Bit()) {
             names[nod_servo->GetChannel()] = "Nod Fine";
         }
     }
-    if (0 != jaw_servo->GetChannel() && jaw_servo->GetChannel() < names.size()) {
+    if (0 != jaw_servo->GetChannel() && jaw_servo->GetChannel() < (int)names.size()) {
         names[jaw_servo->GetChannel() - 1] = "Jaw";
         if (jaw_servo->Is16Bit()) {
             names[jaw_servo->GetChannel()] = "Jaw Fine";
         }
     }
-    if (0 != eye_ud_servo->GetChannel() && eye_ud_servo->GetChannel() < names.size()) {
+    if (0 != eye_ud_servo->GetChannel() && eye_ud_servo->GetChannel() < (int)names.size()) {
         names[eye_ud_servo->GetChannel() - 1] = "Eye U-D";
         if (eye_ud_servo->Is16Bit()) {
             names[eye_ud_servo->GetChannel()] = "Eye U-D Fine";
         }
     }
-    if (0 != eye_lr_servo->GetChannel() && eye_lr_servo->GetChannel() < names.size()) {
+    if (0 != eye_lr_servo->GetChannel() && eye_lr_servo->GetChannel() < (int)names.size()) {
         names[eye_lr_servo->GetChannel() - 1] = "Eye L-R";
         if (eye_lr_servo->Is16Bit()) {
             names[eye_lr_servo->GetChannel()] = "Eye L-R Fine";

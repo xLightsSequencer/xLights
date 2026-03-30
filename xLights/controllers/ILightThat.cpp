@@ -64,9 +64,9 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         try {
             nlohmann::json jsonVal = nlohmann::json::parse(json);
             if (jsonVal["ports"].is_array()) {
-                for (int i = 0; i < jsonVal["ports"].size(); i++) {
+                for (int i = 0; i < (int)jsonVal["ports"].size(); i++) {
                     if (jsonVal["ports"][i].contains("models")) {
-                        for (int j = 0; j < jsonVal["ports"][i]["models"].size(); j++) {
+                        for (int j = 0; j < (int)jsonVal["ports"][i]["models"].size(); j++) {
                             auto model = jsonVal["ports"][i]["models"][j];
                             if (model.contains("test_colour")) {
                                 model_test_cols[model["name"].get<std::string>()] = model["test_colour"].get<int>();

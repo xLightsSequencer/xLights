@@ -98,14 +98,14 @@ public:
         if (_points.size() != 0) return;
 
         std::list<LinePoint> pts;
-        while (pts.size() < points) {
+        while ((int)pts.size() < points) {
             pts.push_back(CreatePoint(width, height));
         }
         _points.push_back(std::move(pts));
     }
     void Advance(const RenderBuffer& buffer, int speed, int trails)
     {
-        while (_points.size() > trails + 1) {
+        while ((int)_points.size() > trails + 1) {
             _points.pop_back();
         }
 
@@ -139,7 +139,7 @@ public:
                 pt._y = y;
             }
         }
-        if (_points.size() < trails + 1) {
+        if ((int)_points.size() < trails + 1) {
             _points.push_back(last);
         }
     }
@@ -149,7 +149,7 @@ public:
         int i = 1;
         for (auto t = _points.rbegin(); t != _points.rend(); ++t) {
             if (fadeTrails && trails > 0) {
-                c.SetAlpha(255 * i++ / _points.size());
+                c.SetAlpha(255 * i++ / (int)_points.size());
                 DrawTrail(*t, buffer, c, thickness);
             } else {
                 DrawTrail(*t, buffer, c, thickness);
@@ -173,10 +173,10 @@ public:
         }
     }
     void CreateDestroy(int objects, int points, int width, int height) {
-        while (_lineObjects.size() > objects) {
+        while ((int)_lineObjects.size() > objects) {
             _lineObjects.pop_back();
         }
-        while (_lineObjects.size() < objects) {
+        while ((int)_lineObjects.size() < objects) {
             LineObject line;
             line.CreateFirst(points, width, height);
             _lineObjects.push_back(std::move(line));

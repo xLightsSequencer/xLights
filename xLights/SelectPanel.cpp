@@ -150,7 +150,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
 //    if (effectType.empty()) return; //original behavior (require a type)
     std::vector<wxString> models;
 
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+    for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
         Element* el = mSequenceElements->GetElement(i);
         if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
@@ -218,7 +218,7 @@ void SelectPanel::populateEffectsList()
                 tmpname = modelname;
             }
 
-            for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
+            for (int i = 0; i < (int)el->GetEffectLayerCount(); ++i) {
                 EffectLayer* elay = el->GetEffectLayer(i);
                 std::vector<Effect*> effs = type.empty()?
 					elay->GetAllEffectsByTime(starttime, endtime):
@@ -265,7 +265,7 @@ void SelectPanel::populateEffectsList()
 void SelectPanel::SelectEffects()
 {
     wxArrayInt effectsSelected;
-    for (uint32_t i = 0; i < ListCtrl_Select_Effects->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrl_Select_Effects->GetItemCount(); ++i) {
         if (ListCtrl_Select_Effects->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED) {
             effectsSelected.Add(i);
         }
@@ -318,7 +318,7 @@ void SelectPanel::OnButton_Select_Model_AllClick(wxCommandEvent& event)
 
 void SelectPanel::OnButton_Select_Effect_AllClick(wxCommandEvent& event)
 {
-    for (size_t i = 0; i < ListCtrl_Select_Effects->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrl_Select_Effects->GetItemCount(); ++i) {
         ListCtrl_Select_Effects->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
     }
     SelectEffects();

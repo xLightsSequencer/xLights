@@ -117,7 +117,7 @@ public:
         return "";
     }
     virtual std::string GetIP() const override {
-        if (_model == "FPP" && _port.find(":") != -1) {
+        if (_model == "FPP" && _port.find(":") != std::string::npos) {
             return _port.substr(0, _port.find(":"));
         }
         return "";

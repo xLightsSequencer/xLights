@@ -634,12 +634,12 @@ void CustomModelDialog::Setup(CustomModel* m)
         for (auto layer = 0; layer < m->GetCustomDepth(); ++layer) {
             AddPage();
 
-            if (layer < data.size()) {
+            if (layer < (int)data.size()) {
 
                 auto grid = GetLayerGrid(layer);
 
-                for (auto row = 0; row < data[0].size(); ++row) {
-                    for (auto col = 0; col < data[0][0].size(); col++) {
+                for (auto row = 0; row < (int)data[0].size(); ++row) {
+                    for (auto col = 0; col < (int)data[0][0].size(); col++) {
                         if (data[layer][row][col] > 0) {
                             grid->SetCellValue(row, col, std::to_string(data[layer][row][col]));
                         }
@@ -709,11 +709,11 @@ void CustomModelDialog::ResizeCustomGrid()
     int numLayers = SpinCtrl_Depth->GetValue();
 
     // remove/add layers first
-    while (Notebook1->GetPageCount() < numLayers) {
+    while ((int)Notebook1->GetPageCount() < numLayers) {
         AddPage();
     }
 
-    while (Notebook1->GetPageCount() > numLayers) {
+    while ((int)Notebook1->GetPageCount() > numLayers) {
         RemovePage();
     }
 
@@ -746,7 +746,7 @@ wxString StripIllegalChars(const wxString& s)
 std::vector<std::vector<std::vector<int>>> CustomModelDialog::GetModelData() {
     std::vector<std::vector<std::vector<int>>> modelData;
 
-    for (int layer = 0; layer < Notebook1->GetPageCount(); layer++) {
+    for (int layer = 0; layer < (int)Notebook1->GetPageCount(); layer++) {
 		auto grid = GetLayerGrid(layer);
 		int numCols = grid->GetNumberCols();
 		int numRows = grid->GetNumberRows();
@@ -907,7 +907,7 @@ void CustomModelDialog::CopyLayer(bool forward, int layers)
 
     if (forward)
     {
-        for (int l  = fromLayer + 1; l <= fromLayer + layers && l < Notebook1->GetPageCount(); l++)
+        for (int l  = fromLayer + 1; l <= fromLayer + layers && l < (int)Notebook1->GetPageCount(); l++)
         {
             auto toGrid = GetLayerGrid(l);
             for (auto r = 0; r < fromGrid->GetNumberRows(); r++)
@@ -1040,7 +1040,7 @@ void CustomModelDialog::Paste()
         wxString cur_line = copy_data.BeforeFirst('\n');
         copy_data = copy_data.AfterFirst('\n');
         wxArrayString fields = wxSplit(cur_line, (cur_line.Find(',') != wxNOT_FOUND) ? ',' : '\t'); //allow comma or tab delim -DJ
-        for (int fieldnum = 0; fieldnum < fields.Count(); fieldnum++)
+        for (int fieldnum = 0; fieldnum < (int)fields.Count(); fieldnum++)
         {
             if (i < numrows && k + fieldnum < numcols)
             {
@@ -2142,7 +2142,7 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
         }
         break;
     case WXK_PAGEDOWN: // CTRL+SHIFT
-        if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1)
+        if (Notebook1->GetSelection() != (int)Notebook1->GetPageCount() - 1)
         {
             auto old = GetActiveGrid();
             int newLayer = Notebook1->GetSelection() + 1;
@@ -2246,13 +2246,13 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     } else if (id == CUSTOMMODELDLGMNU_COPYLAYERBKWDALL) {
         CopyLayer(false, -1);
     } else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMALLLAYERS) {
-        for (int i = 0; i < Notebook1->GetPageCount(); i++) {
+        for (int i = 0; i < (int)Notebook1->GetPageCount(); i++) {
             CreateSubmodelFromLayer(i + 1);
         }
     } else if (id == CUSTOMMODELDLGMNU_CREATESUBMODELFROMLAYER) {
         CreateSubmodelFromLayer(Notebook1->GetSelection() + 1);
     } else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMALLLAYERS) {
-        for (int i = 0; i < Notebook1->GetPageCount(); i++) {
+        for (int i = 0; i < (int)Notebook1->GetPageCount(); i++) {
             CreateMinimalSubmodelFromLayer(i + 1);
         }
     } else if (id == CUSTOMMODELDLGMNU_CREATEMINIMALSUBMODELFROMLAYER) {
@@ -2817,9 +2817,9 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 
     mnu.AppendSeparator();
     auto m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERFWD1, "Copy Layer Forward 1");
-    m->Enable(Notebook1->GetSelection() != Notebook1->GetPageCount() - 1);
+    m->Enable(Notebook1->GetSelection() != (int)Notebook1->GetPageCount() - 1);
     m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERFWDALL, "Copy Layer Forward All");
-    m->Enable(Notebook1->GetSelection() != Notebook1->GetPageCount() - 1);
+    m->Enable(Notebook1->GetSelection() != (int)Notebook1->GetPageCount() - 1);
     m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERBKWD1, "Copy Layer Backward 1");
     m->Enable(Notebook1->GetSelection() != 0);
     m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERBKWDALL, "Copy Layer Backward All");
@@ -2931,7 +2931,7 @@ void CustomModelDialog::PushPull(bool forward, bool stayOnLayer)
         targetLayer = layer - 1;
     }
     else         {
-        if (layer == Notebook1->GetPageCount() - 1) return;
+        if (layer == (int)Notebook1->GetPageCount() - 1) return;
         targetLayer = layer + 1;
     }
 
@@ -2995,7 +2995,7 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
     CheckBox_Show_Duplicates->SetValue(false);
     ClearDupNodes();
     bool first = (Notebook1->GetSelection() == 0);
-    bool last = (Notebook1->GetSelection() == Notebook1->GetPageCount() - 1);
+    bool last = (Notebook1->GetSelection() == (int)Notebook1->GetPageCount() - 1);
 
     CopyPasteGrid* prior = nullptr;
     if (!first) prior = _grids[Notebook1->GetSelection() - 1];
@@ -3242,7 +3242,7 @@ void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
         }
     }
     else {
-        if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1) {
+        if (Notebook1->GetSelection() != (int)Notebook1->GetPageCount() - 1) {
             int newLayer = Notebook1->GetSelection() + 1;
             Notebook1->SetSelection(newLayer);
             GetLayerGrid(newLayer)->SetGridCursor(row, col);
@@ -3268,7 +3268,7 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
 
     discovery.Discover();
 
-    for (int x = 0; x < discovery.GetResults().size(); x++) {
+    for (int x = 0; x < (int)discovery.GetResults().size(); x++) {
         auto discovered = discovery.GetResults()[x];
         if (!discovered->controller) {
             continue;
@@ -3309,7 +3309,7 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
 
     if (dlg.ShowModal() == wxID_OK) {
         ControllerEthernet* downloadFrom = nullptr;
-        for (int x = 0; x < discovery.GetResults().size(); x++) {
+        for (int x = 0; x < (int)discovery.GetResults().size(); x++) {
             auto discovered = discovery.GetResults()[x];
             if (!discovered->controller) {
                 continue;
@@ -3494,7 +3494,7 @@ void CustomModelDialog::OnTimer1Trigger(wxTimerEvent& event)
     }
     for (uint32_t ch = _model->GetFirstChannel(); ch <= _model->GetLastChannel(); ++ch) {
         auto n = (ch - _model->GetFirstChannel()) / _model->GetChanCountPerNode();
-        if (v != -1 && v == n) {
+        if (v != -1 && (uint32_t)v == n) {
             _outputManager->SetOneChannel(ch, 30);
         } else {
             _outputManager->SetOneChannel(ch, 0);

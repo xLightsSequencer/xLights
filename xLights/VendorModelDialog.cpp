@@ -1261,12 +1261,12 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                         };
 
                         wxString parent = dir;
-                        for (int i = 0; i < aa.size() - 1; i++) {
+                        for (size_t i = 0; i < aa.size() - 1; i++) {
                             parent = createdirs(parent, aa[i]);
                         }
 
                         parent = dir;
-                        for (int i = 0; i < bb.size() - 1; i++) {
+                        for (size_t i = 0; i < bb.size() - 1; i++) {
                             parent = createdirs(parent, bb[i]);
                         }
                     }

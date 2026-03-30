@@ -565,7 +565,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
     }
     else
     {
-        assert(Nodes.size() - oldNodes == width * height * depth);
+        assert((int)Nodes.size() - oldNodes == width * height * depth);
     }
 
     if (SingleChannel || SingleNode)
@@ -605,7 +605,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
     else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand")
     {
         int sl = BufferHi;
-        for (auto n = oldNodes; n < Nodes.size(); n++)
+        for (auto n = oldNodes; n < (int)Nodes.size(); n++)
         {
             Nodes[n]->Coords[0].bufX = (n - oldNodes) / sl;
             Nodes[n]->Coords[0].bufY = (n - oldNodes) % sl;
@@ -614,7 +614,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
     else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand")
     {
         int sl = BufferWi;
-        for (auto n = oldNodes; n < Nodes.size(); n++)
+        for (auto n = oldNodes; n < (int)Nodes.size(); n++)
         {
             Nodes[n]->Coords[0].bufX = (n - oldNodes) % sl;
             Nodes[n]->Coords[0].bufY = (n - oldNodes) / sl;
@@ -622,7 +622,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
     }
     else if (type == "Stacked X Vertically")
     {
-        for (auto n = 0; n < Nodes.size(); n++)
+        for (auto n = 0; n < (int)Nodes.size(); n++)
         {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + height * std::get<0>(locations[n]);

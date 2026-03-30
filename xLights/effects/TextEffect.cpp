@@ -290,7 +290,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             if (!lyricTrack.empty())
             {
                 Element* t = nullptr;
-                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++)
                 {
                     auto lt = BeforeLast(lyricTrack, '-');
                     lt = lt.substr(0, lt.size() - 1);
@@ -605,13 +605,13 @@ void DrawLabel(TextDrawingContext *dc,
                 if (colors.size() != 1) {
                     std::vector<double> d;
                     dc->GetTextExtents(curLine, d);
-                    for (int x1 = 0; x1 < curLine.size(); x1++) {
+                    for (int x1 = 0; x1 < (int)curLine.size(); x1++) {
                         std::string c(1, curLine[x1]);
                         if (c != " ") {
                             SetFont(dc, fontString, colors[curPos % colors.size()]);
                             double loc = xRealStart;
                             if (x1 != 0) {
-                                if (x1 - 1 < d.size()) {
+                                if (x1 - 1 < (int)d.size()) {
                                     loc += d[x1 - 1];
                                 }
                                 else {
@@ -620,7 +620,7 @@ void DrawLabel(TextDrawingContext *dc,
                             }
                             dc->DrawText(c, loc, y);
                         }
-                        if ((perWord && c == " " && x1 + 1 < curLine.size() && curLine[x1 + 1] != ' ') ||
+                        if ((perWord && c == " " && x1 + 1 < (int)curLine.size() && curLine[x1 + 1] != ' ') ||
                             (!perWord && c != " ")) {
                             curPos++;
                         }
@@ -720,7 +720,7 @@ const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             // vertical text up
             tempmsg=msg;
             msg.clear();
-            for(i=0; i<tempmsg.length(); i++)
+            for(i=0; i<(int)tempmsg.length(); i++)
             {
                 msg = msg + tempmsg[tempmsg.length()-i-1] + "\n";
             }
@@ -729,7 +729,7 @@ const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             // vertical text down
             tempmsg=msg;
             msg.clear();
-            for(i=0; i<tempmsg.length(); i++)
+            for(i=0; i<(int)tempmsg.length(); i++)
             {
                 msg = msg + tempmsg[i] + "\n";
             }
@@ -1409,7 +1409,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         }
         else if (lyricTrack != "") {
             Element* t = nullptr;
-            for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+            for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
                 auto lt = BeforeLast(lyricTrack, '-');
                 lt = lt.substr(0, lt.size() - 1);
                 Element* e = mSequenceElements->GetElement(i);
@@ -1520,9 +1520,9 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                 line_offset_left = OffsetLeft;
             }
 
-            for (int i = 0; i < line.length(); i++) {
+            for (int i = 0; i < (int)line.length(); i++) {
                 buffer.palette.GetColor(curPos % num_colors, c);
-                if ((perWord && line[i] == ' ' && i + 1 < line.size() && line[i + 1] != ' ') || 
+                if ((perWord && line[i] == ' ' && i + 1 < (int)line.size() && line[i + 1] != ' ') ||
                     (!perWord && line[i] != ' ')) {
                     curPos++;
                 }

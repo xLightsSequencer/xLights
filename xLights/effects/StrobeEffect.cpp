@@ -118,7 +118,7 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     }
 
     // create new strobe, randomly place a strobe
-    while (strobe.size() < Number_Strobes * StrobeDuration) {
+    while ((int)strobe.size() < Number_Strobes * StrobeDuration) {
         HSVValue hsv;
         xlColor color;
         ColorIdx = rand() % colorcnt;

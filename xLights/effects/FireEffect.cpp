@@ -187,7 +187,6 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
 
     FireRenderCache* cache = GetCache(buffer, id);
 
-    float mod_state = 4.0;
     if (buffer.needToInit) {
         buffer.needToInit = false;
 
@@ -199,8 +198,6 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         for (size_t i = 0; i < cache->FireBuffer.size(); ++i) {
             cache->FireBuffer[i] = 0;
         }
-    } else {
-        mod_state = 4 / (buffer.curPeriod % 4 + 1);
     }
     int maxMWi = cache->maxBuffer.width == -1 ? buffer.BufferWi : cache->maxBuffer.width;
     int maxMHt = cache->maxBuffer.height == -1 ? buffer.BufferHt : cache->maxBuffer.height;
@@ -211,7 +208,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         maxMHt = 1;
     }
 
-    if ((maxMHt * maxMWi) > cache->FireBuffer.size()) {
+    if ((maxMHt * maxMWi) > (int)cache->FireBuffer.size()) {
         // this shouldn't happen, but just in case we'll do this as a safety measure
         cache->FireBuffer.resize(maxMHt * maxMWi);
     }

@@ -504,7 +504,7 @@ void Waveform::DrawWaveView(xlGraphicsContext* ctx, const WaveView& wv)
             for (size_t x = 0; x < mWindowWidth && x < wv.MinMaxs.size(); x++) {
                 int index = x;
                 index += pixelOffset;
-                if (index >= 0 && index < wv.MinMaxs.size()) {
+                if (index >= 0 && index < (int)wv.MinMaxs.size()) {
 
                     double y1 = DoubleHeight(wv.MinMaxs[index].min, _doubleHeight, max_wave_ht) + (mWindowHeight / 2);
                     double y2 = DoubleHeight(wv.MinMaxs[index].max, _doubleHeight, max_wave_ht) + (mWindowHeight / 2);
@@ -519,7 +519,7 @@ void Waveform::DrawWaveView(xlGraphicsContext* ctx, const WaveView& wv)
             for (int x = std::min(mWindowWidth, wv.MinMaxs.size()) - 1; x >= 0; x--) {
                 int index = x;
                 index += pixelOffset;
-                if (index >= 0 && index < wv.MinMaxs.size()) {
+                if (index >= 0 && index < (int)wv.MinMaxs.size()) {
                     wv.outline->AddVertex(x, vertexes[x]);
                 }
             }

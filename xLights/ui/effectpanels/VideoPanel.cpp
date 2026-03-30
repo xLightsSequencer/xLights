@@ -350,7 +350,7 @@ void VideoPanel::AddVideoTime(std::string fn, unsigned long ms) {
     videoTimeCache[fn] = ms;
 
 	// If it is not correct then set it
-	if (Slider_Video_Starttime->GetMax() != ms)
+	if ((unsigned long)Slider_Video_Starttime->GetMax() != ms)
 	{
 		Slider_Video_Starttime->SetMax(ms / 10);
 	}

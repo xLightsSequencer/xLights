@@ -1537,7 +1537,7 @@ void UDController::TagSmartRemotePorts()
 {
     for (const auto& it : _pixelPorts) {
         if (it.second->AtLeastOneModelIsUsingSmartRemote()) {
-            for (uint32_t i = ((it.first-1) / 4) * 4 + 1; i < ((it.first-1) / 4) * 4 + 5; ++i) {
+            for (uint32_t i = ((it.first-1) / 4) * 4 + 1; i < (uint32_t)(((it.first-1) / 4) * 4 + 5); ++i) {
                 GetControllerPixelPort(i)->TagSmartRemotePort();
             }
         }
@@ -2008,7 +2008,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     }
 
     if (rules->GetNumberOfBanks() > 1) {
-        if (_pixelPorts.size() <= rules->GetMaxPixelPort()) {//dont do bank checking if pixel port count is over the max of the controller, it isnt going to work anyways
+        if ((int)_pixelPorts.size() <= rules->GetMaxPixelPort()) {//dont do bank checking if pixel port count is over the max of the controller, it isnt going to work anyways
             int const banksize = rules->GetBankSize();
             std::vector<int> bankSizes(rules->GetNumberOfBanks(), 0);
             std::vector<int> bankLargestPort(rules->GetNumberOfBanks(), 0);
@@ -2127,25 +2127,25 @@ std::vector<std::vector<std::string>> UDController::ExportAsCSV(ExportSettings::
     columnSize = 0;
 
     for (int i = 1; i <= GetMaxPixelPort(); i++) {
-        if (columnSize < GetControllerPixelPort(i)->GetModels().size())
+        if ((size_t)columnSize < GetControllerPixelPort(i)->GetModels().size())
             columnSize = GetControllerPixelPort(i)->GetModels().size();
         lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings, brightness));
 	}
 	for (int i = 1; i <= GetMaxSerialPort(); i++) {
-        if (columnSize < GetControllerSerialPort(i)->GetModels().size())
+        if ((size_t)columnSize < GetControllerSerialPort(i)->GetModels().size())
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
         lines.push_back(GetControllerSerialPort(i)->ExportAsCSV(settings, brightness));
     }
 
     for (auto &vm : _virtualMatrixPorts) {
-        if (columnSize < vm.second->GetModels().size())
+        if ((size_t)columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
         lines.push_back(vm.second->ExportAsCSV(settings, brightness));
     }
 
     for (auto &vm : _ledPanelMatrixPorts) {
-        if (columnSize < vm.second->GetModels().size())
+        if ((size_t)columnSize < vm.second->GetModels().size())
             columnSize = vm.second->GetModels().size();
         lines.push_back(vm.second->ExportAsCSV(settings, brightness));
     }

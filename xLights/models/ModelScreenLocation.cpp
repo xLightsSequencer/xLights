@@ -165,7 +165,7 @@ CursorType GetResizeCursor(int cornerIndex, int PreviewRotation) {
 
 glm::vec3 ModelScreenLocation::GetHandlePosition(int handle) const
 {
-    if (handle < 0 || handle >= mHandlePosition.size()) return glm::vec3(0, 0, 0);
+    if (handle < 0 || handle >= (int)mHandlePosition.size()) return glm::vec3(0, 0, 0);
     return glm::vec3(mHandlePosition[handle].x, mHandlePosition[handle].y, mHandlePosition[handle].z);
 }
 
@@ -416,7 +416,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS + 1) ? xlYELLOW : xlGREEN;
         xlColor ax3c = (highlighted_handle == HANDLE_AXIS + 2) ? xlYELLOW : xlBLUE;
         float tip = pos.x + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(tip, pos.y, pos.z, ax1c);
@@ -424,7 +424,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI * u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI * u2), ax1c);
         }
         tip = pos.y + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, ax2c);
@@ -432,7 +432,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI * u2), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI * u2), ax2c);
         }
         tip = pos.z + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, pos.y, tip, ax3c);
@@ -505,7 +505,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         int triangeVertex = vac->getCount();
         
         float tip = pos.x + arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(tip, pos.y, pos.z, a1c);
@@ -513,7 +513,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a1c);
         }
         tip = pos.x - arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(tip, pos.y, pos.z, a1c);
@@ -521,7 +521,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(tip + GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a1c);
         }
         tip = pos.y + arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, a2c);
@@ -529,7 +529,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a2c);
         }
         tip = pos.y - arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, a2c);
@@ -545,7 +545,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
     } else if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
         float tip = pos.y + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, ax2c);
@@ -766,7 +766,7 @@ CursorType ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm:
 
         // Test each each Oriented Bounding Box (OBB).
         int handles_found = 0;
-        for (size_t i = 0; i < mSelectableHandles; i++) {
+        for (int i = 0; i < mSelectableHandles; i++) {
             float intersection_distance; // Output of TestRayOBBIntersection()
 
             if (VectorMath::TestRayOBBIntersection(
@@ -852,7 +852,7 @@ CursorType ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, 
     }
 
     // see if an axis handle is selected
-    for (size_t i = 0; i < num_axis_handles; i++) {
+    for (int i = 0; i < num_axis_handles; i++) {
         float intersection_distance; // Output of TestRayOBBIntersection()
 
         if (VectorMath::TestRayOBBIntersection(

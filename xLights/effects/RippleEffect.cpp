@@ -693,7 +693,7 @@ static void drawRippleNew(
                 const dpointvec& points = shapes.shapes[sn].points;
                 bool closedShape = shapes.shapes[sn].closedShape;
                 xlColor fadeColor(fhsv);
-                if (cidxFill >= buffer.palette.ExplicitSize()) {
+                if (cidxFill >= (int)buffer.palette.ExplicitSize()) {
                     fadeColor = shapes.shapes[sn].defColor;
                 } else {
                     if (buffer.palette.IsSpatial(cidxFill)) {
@@ -702,7 +702,7 @@ static void drawRippleNew(
                 }
 
                 xlColor lineColor(lhsv);
-                if (cidxLines >= buffer.palette.ExplicitSize())
+                if (cidxLines >= (int)buffer.palette.ExplicitSize())
                 {
                     lineColor = shapes.shapes[sn].defColor;
                 } else {
@@ -760,7 +760,7 @@ static void drawRippleNew(
             if (oldptsinner[sn].size() > 0 && oldptsouter[sn].size() > 0) {
                 bool closedShape = shapes.shapes[sn].closedShape;
                 xlColor fadeColor(fhsv);
-                if (cidxFill >= buffer.palette.ExplicitSize()) {
+                if (cidxFill >= (int)buffer.palette.ExplicitSize()) {
                     fadeColor = shapes.shapes[sn].defColor;
                 } else {
                     if (buffer.palette.IsSpatial(cidxFill)) {
@@ -783,7 +783,7 @@ static void drawRippleNew(
                 delta *= spacing;
 
                 xlColor lineColor(lhsv);
-                if (cidxLines >= buffer.palette.ExplicitSize()) {
+                if (cidxLines >= (int)buffer.palette.ExplicitSize()) {
                     lineColor = shapes.shapes[sn].defColor;
                 } else {
                     if (buffer.palette.IsSpatial(cidxLines)) {
@@ -823,7 +823,7 @@ static void drawRippleNew(
 
         int cidxShp = 0;
         xlColor hsvs;
-        if (cidxShp < colorcnt) {
+        if (cidxShp < (int)colorcnt) {
             if (buffer.palette.IsSpatial(cidxShp)) {
                 buffer.palette.GetSpatialColor(cidxShp, 0, 0, 0, 0, 0, thickness, hsvs);
             } else {
@@ -1069,7 +1069,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     }
 
     ColorIdx = static_cast<int>(rx * colorcnt);
-    if (ColorIdx == colorcnt)
+    if (ColorIdx == (int)colorcnt)
         ColorIdx--; // ColorIdx goes from 0-3 when colorcnt goes from 1-4. Make sure that is true
 
     double radius;

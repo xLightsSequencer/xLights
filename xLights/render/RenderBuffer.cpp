@@ -147,7 +147,7 @@ TextDrawingContext* RenderBuffer::GetTextDrawingContext()
     if (_textDrawingContext == nullptr) {
         _textDrawingContext = TextDrawingContext::GetContext();
         _textDrawingContext->ResetSize(BufferWi, BufferHt);
-    } else if (_textDrawingContext->GetWidth() != BufferWi || _textDrawingContext->GetHeight() != BufferHt) {
+    } else if (_textDrawingContext->GetWidth() != (size_t)BufferWi || _textDrawingContext->GetHeight() != (size_t)BufferHt) {
         // varying subbuffers the size may have changed
         _textDrawingContext->ResetSize(BufferWi, BufferHt);
     }
@@ -192,7 +192,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
             indexCount += n->Coords.size() + 1;
         }
     }
-    if (indexVector.size() < indexCount) {
+    if (indexVector.size() < (size_t)indexCount) {
         indexVector.resize(indexCount);
     }
     allSimpleIndex = true;
@@ -357,7 +357,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
     }
 
     // I dont like this ... it should actually never happen
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size())
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && (size_t)(y*BufferWi + x) < pixelVector.size())
     {
         // if you do this sparkles dont work when 100% transparent on effect ... so dont do it
         //if (color.alpha == 0)
@@ -432,14 +432,14 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
             y -= BufferHt;
         }
     }
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size())
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && (size_t)(y*BufferWi + x) < pixelVector.size())
     {
         pixels[y*BufferWi+x] = hsv;
     }
 }
 
 void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore) {
-    if (nodeNum < Nodes.size()) {
+    if (nodeNum < (int)Nodes.size()) {
         for (auto &a : Nodes[nodeNum]->Coords) {
             SetPixel(a.bufX, a.bufY, color, false, false, dmx_ignore);
         }
@@ -449,8 +449,8 @@ void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_igno
 //copy src to dest: -DJ
 void RenderBuffer::CopyPixel(int srcx, int srcy, int destx, int desty)
 {
-    if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt) && srcy*BufferWi + srcx < pixelVector.size())
-        if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt) && desty*BufferWi + destx < pixelVector.size())
+    if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt) && (size_t)(srcy*BufferWi + srcx) < pixelVector.size())
+        if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt) && (size_t)(desty*BufferWi + destx) < pixelVector.size())
         {
             pixels[desty * BufferWi + destx] = pixels[srcy * BufferWi + srcx];
         }
@@ -915,7 +915,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
     // I also dont like this ... I shouldnt need to check against pixel size
     int pidx = y * BufferWi + x;
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < (int)pixelVector.size()) {
         color = pixels[pidx];
     } else {
         color = this->allowAlpha ? xlCLEAR : xlBLACK;
@@ -925,7 +925,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 
 const xlColor& RenderBuffer::GetPixel(int x, int y) const {
     int pidx = y * BufferWi + x;
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < (int)pixelVector.size()) {
         return pixels[pidx];
     }
     return this->allowAlpha ? xlCLEAR : xlBLACK;
@@ -934,7 +934,7 @@ const xlColor& RenderBuffer::GetPixel(int x, int y) const {
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor& color) {
     int pidx = y * BufferWi + x;
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < tempbufVector.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < (int)tempbufVector.size()) {
         tempbuf[pidx] = color;
     }
 }
@@ -948,13 +948,13 @@ void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha) 
 // 0,0 is lower left
 void RenderBuffer::GetTempPixel(int x, int y, xlColor& color)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         color = tempbuf[y * BufferWi + x];
     }
 }
 
 const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
     return this->allowAlpha ? xlCLEAR : xlBLACK;
@@ -962,7 +962,7 @@ const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
     return this->allowAlpha ? xlCLEAR : xlBLACK;

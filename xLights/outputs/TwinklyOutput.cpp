@@ -265,7 +265,7 @@ void TwinklyOutput::SetOneChannel(int32_t channel, unsigned char data)
     if (_fppProxyOutput) {
         _fppProxyOutput->SetOneChannel(channel, data);
     } else {
-        if (_channels > m_channelData.size()) {
+        if ((size_t)_channels > m_channelData.size()) {
             m_channelData.resize(_channels);
         }
         m_channelData[channel] = data;
@@ -279,7 +279,7 @@ void TwinklyOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
     } else {
-        if (_channels > m_channelData.size()) {
+        if ((size_t)_channels > m_channelData.size()) {
             m_channelData.resize(_channels);
         }
         std::copy(data, data + size, m_channelData.data());

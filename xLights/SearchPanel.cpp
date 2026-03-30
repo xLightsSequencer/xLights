@@ -123,7 +123,7 @@ void SearchPanel::OnComboBox_Search_ModelDropdown(wxCommandEvent& event)
 
 void SearchPanel::OnButtonSelectAllClick(wxCommandEvent& event)
 {
-    for (uint32_t i = 0; i < ListCtrl_Results->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrl_Results->GetItemCount(); ++i) {
         ListCtrl_Results->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
     }
     SelectEffects();
@@ -133,7 +133,7 @@ std::vector<wxString> SearchPanel::GetModelList() const
 {
     std::vector<wxString> models;
 
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+    for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
         auto* el = mSequenceElements->GetElement(i);
         if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
@@ -207,7 +207,7 @@ void SearchPanel::FindSettings()
             tmpname = model;
         }
         std::string value;
-        for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
+        for (int i = 0; i < (int)el->GetEffectLayerCount(); ++i) {
             auto* elay = el->GetEffectLayer(i);
             auto effs = elay->GetEffects();
             for (auto* eff : effs) {
@@ -291,7 +291,7 @@ bool SearchPanel::ContainsSetting(Effect* eff, std::string const& search, bool r
 void SearchPanel::SelectEffects()
 {
     wxArrayInt effectsSelected;
-    for (uint32_t i = 0; i < ListCtrl_Results->GetItemCount(); ++i) {
+    for (int i = 0; i < ListCtrl_Results->GetItemCount(); ++i) {
         if (ListCtrl_Results->GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED) {
             effectsSelected.Add(i);
         }

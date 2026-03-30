@@ -443,7 +443,7 @@ void SettingsDialog::OnButton_ForceInputClick(wxCommandEvent& event)
         if (it == _localInputIPCopy) break;
         sel++;
     }
-    if (sel >= choices.size()) sel = 0;
+    if (sel >= (int)choices.size()) sel = 0;
 
     wxSingleChoiceDialog dlg(this, "Choose interface to listen on", "", choices);
 
@@ -478,7 +478,7 @@ void SettingsDialog::OnButton_ForceOutputClick(wxCommandEvent& event)
         if (it == _localInputIPCopy) break;
         sel++;
     }
-    if (sel >= choices.size()) sel = 0;
+    if (sel >= (int)choices.size()) sel = 0;
 
     wxSingleChoiceDialog dlg(this, "Choose interface to output to", "", choices);
 

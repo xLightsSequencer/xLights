@@ -1173,9 +1173,9 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, 
     pugi::xml_node n = node.first_child();
     while (n) {
         std::string name = n.name();
-        int servo_idx = name.find("Servo");
-        int static_idx = name.find("StaticMesh");
-        int motion_idx = name.find("MotionMesh");
+        std::string::size_type servo_idx = name.find("Servo");
+        std::string::size_type static_idx = name.find("StaticMesh");
+        std::string::size_type motion_idx = name.find("MotionMesh");
 
         if ("StaticMesh" == name) { // convert original name that had no number
             Mesh* msh = model->CreateStaticMesh("StaticMesh1", 0);
@@ -1262,9 +1262,9 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo(pugi::xml_node node, xL
     pugi::xml_node n = node.first_child();
     while (n) {
         std::string name = n.name();
-        int servo_idx = name.find("Servo");
-        int static_idx = name.find("StaticImage");
-        int motion_idx = name.find("MotionImage");
+        std::string::size_type servo_idx = name.find("Servo");
+        std::string::size_type static_idx = name.find("StaticImage");
+        std::string::size_type motion_idx = name.find("MotionImage");
 
         if ("StaticImage" == name) { // convert original name that had no number
             DmxImage* img = model->CreateStaticImage("StaticImage1", 0);

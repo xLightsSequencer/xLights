@@ -52,7 +52,7 @@ BEGIN_EVENT_TABLE(VirtualMatrixDialog, wxDialog)
 END_EVENT_TABLE()
 
 VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& pixelChannels, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, std::string& fromModel, wxWindowID id, const wxPoint& pos, const wxSize& size) :
-    _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _size(vmsize), _location(vmlocation), _rotation(rotation), _pixelChannels(pixelChannels), _quality(quality), _fromModel(fromModel) {
+    _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _fromModel(fromModel), _size(vmsize), _location(vmlocation), _rotation(rotation), _pixelChannels(pixelChannels), _quality(quality) {
     _outputManager = outputManager;
     _tempSize = _size;
     _tempLocation = _location;
@@ -184,7 +184,7 @@ VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* output
         wxXmlNode* node = effects.GetModel(Choice_FromModel->GetStringSelection().ToStdString());
         TextCtrl_StartChannel->SetValue(node->GetAttribute("StartChannel", ""));
         long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-        if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
+        if (sc == 0 || sc > (long)xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
             StaticText6->SetLabel("Invalid");
         } else {
             StaticText6->SetLabel(wxString::Format("%ld", (long)sc));
@@ -264,7 +264,7 @@ void VirtualMatrixDialog::OnButton_PositionClick(wxCommandEvent& event) {
 
 void VirtualMatrixDialog::OnTextCtrl_StartChannelText(wxCommandEvent& event) {
     long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-    if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
+    if (sc == 0 || sc > (long)xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
         StaticText6->SetLabel("Invalid");
     } else {
         StaticText6->SetLabel(wxString::Format("%ld", (long)sc));
@@ -310,7 +310,7 @@ void VirtualMatrixDialog::OnChoice_FromModelSelect(wxCommandEvent& event) {
         wxXmlNode* node = effects.GetModel(Choice_FromModel->GetStringSelection().ToStdString());
         TextCtrl_StartChannel->SetValue(node->GetAttribute("StartChannel", ""));
         long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-        if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
+        if (sc == 0 || sc > (long)xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
             StaticText6->SetLabel("Invalid");
         } else {
             StaticText6->SetLabel(wxString::Format("%ld", (long)sc));
@@ -322,7 +322,6 @@ void VirtualMatrixDialog::OnChoice_FromModelSelect(wxCommandEvent& event) {
             SpinCtrl_Height->SetValue(node->GetAttribute("parm2", "0"));
         } else {
             long strings = wxAtol(node->GetAttribute("parm1", "0"));
-            long nodesPerString = wxAtol(node->GetAttribute("parm2", "0"));
             long strandsPerString = wxAtol(node->GetAttribute("parm3", "1"));
             // Legacy: "Horiz Matrix". New format: DisplayAs="Matrix" with Vertical="false".
             if (node->GetAttribute("DisplayAs") == "Horiz Matrix" ||

@@ -481,7 +481,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                     pt = xlPoint(xc, yc);
                 }
 
-                size_t colorcnt = buffer.GetColorCount();
+                int colorcnt = (int)buffer.GetColorCount();
                 _lastColorIdx++;
                 if (_lastColorIdx >= colorcnt) {
                     _lastColorIdx = 0;
@@ -542,7 +542,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                             pt = xlPoint(xc, yc);
                         }
 
-                        size_t colorcnt = buffer.GetColorCount();
+                        int colorcnt = (int)buffer.GetColorCount();
                         _lastColorIdx++;
                         if (_lastColorIdx >= colorcnt)
                         {
@@ -574,7 +574,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                     pt = xlPoint(xc, yc);
                 }
 
-                size_t colorcnt = buffer.GetColorCount();
+                int colorcnt = (int)buffer.GetColorCount();
                 _lastColorIdx++;
                 if (_lastColorIdx >= colorcnt)
                 {
@@ -611,7 +611,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 pt = xlPoint(xc, yc);
             }
 
-            size_t colorcnt = buffer.GetColorCount();
+            int colorcnt = (int)buffer.GetColorCount();
             _lastColorIdx++;
             if (_lastColorIdx >= colorcnt)
             {

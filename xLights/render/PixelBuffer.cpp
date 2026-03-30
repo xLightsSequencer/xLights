@@ -2208,7 +2208,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
         inf->BufferOffsetX = 0;
         inf->BufferOffsetY = 0;
         model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger, go_deep);
-        if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
+        if (origNodeCount != 0 && (size_t)origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
             model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger, go_deep);
         }
@@ -2288,7 +2288,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                     for (const auto& it : inf->shallowModelBuffers) {
                         int bw = 0, bh = 0;
                         it->Nodes.clear();
-                        if (cnt < gp->ActiveModels().size()) {
+                        if ((size_t)cnt < gp->ActiveModels().size()) {
                             Model *m = gp->ActiveModels()[cnt];
                             if (m) {
                                 m->InitRenderBufferNodes(type, camera, transform, it->Nodes, bw, bh, 0);
@@ -2326,7 +2326,7 @@ int PixelBufferClass::GetSuppressUntil(int layer) {
 }
 
 RenderBuffer& PixelBufferClass::BufferForLayer(int layer, int idx) {
-    if (idx >= 0 && layers[layer]->modelBuffers && idx < layers[layer]->modelBuffers->size()) {
+    if (idx >= 0 && layers[layer]->modelBuffers && (size_t)idx < layers[layer]->modelBuffers->size()) {
         return *(*layers[layer]->modelBuffers)[idx];
     }
     return layers[layer]->buffer;
@@ -2350,7 +2350,7 @@ void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
 
         for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& mbnode : modelBuffer->Nodes) {
-                if (nc < layers[layer]->buffer.Nodes.size()) {
+                if ((size_t)nc < layers[layer]->buffer.Nodes.size()) {
                     auto& node = layers[layer]->buffer.Nodes[nc];
                     layers[layer]->buffer.GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
                     for (const auto& coord : mbnode->Coords) {
@@ -2391,7 +2391,7 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
         }
         for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& node : modelBuffer->Nodes) {
-                if (nc < layers[layer]->buffer.Nodes.size()) {
+                if ((size_t)nc < layers[layer]->buffer.Nodes.size()) {
                     modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
                     for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
                         layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
@@ -2509,7 +2509,7 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
 }
 
 void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
-    if (layer >= layers.size())
+    if ((size_t)layer >= layers.size())
         return;
 
     if (layers[layer]->buffer.Nodes.size() < 1000) {
@@ -3657,7 +3657,7 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
 
 bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
     int idx = x * BufferHt + y;
-    if (idx < maskSize) {
+    if ((size_t)idx < maskSize) {
         return mask[idx] > 0;
     }
     return false;

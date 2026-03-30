@@ -101,7 +101,7 @@ class RemoteFalcon
             reader.Parse(steps, &val);
             bool first = true;
             if (!val.IsNull()) {
-                for (int i = 0; i < val["steps"].AsArray()->Count(); i++) {
+                for (size_t i = 0; i < val["steps"].AsArray()->Count(); i++) {
                     // filter out any everystep
                     if (val["steps"][i]["everystep"].AsString() == "false") {
                         if (first) {

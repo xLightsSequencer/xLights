@@ -178,7 +178,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 
             int y = 0;
             int yincr = 1;
-            for (size_t c = 0; c < PixelsPerString; c++) {
+            for (int c = 0; c < PixelsPerString; c++) {
                 Nodes[n]->Coords[c].bufX = IsLtoR ? x : NumStrands - x - 1;
                 Nodes[n]->Coords[c].bufY = y;
                 y += yincr;
@@ -336,7 +336,7 @@ void MatrixModel::InitHMatrix() {
 
             int x = 0;
             xincr = 1;
-            for (size_t c = 0; c < PixelsPerString; c++) {
+            for (int c = 0; c < PixelsPerString; c++) {
                 Nodes[n]->Coords[c].bufX = x;
                 Nodes[n]->Coords[c].bufY = isBotToTop ? y : NumStrands - y - 1;
                 x += xincr;

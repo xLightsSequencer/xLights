@@ -30,7 +30,7 @@ SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenL
 
 bool SingleLineModel::IsNodeFirst(int n) const 
 {
-    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - 1);
 }
 
 void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, bool forceDirection)
@@ -170,7 +170,7 @@ void SingleLineModel::InitLine() {
 
     int idx = 0;
     for(size_t n=0; n<NodeCount; n++) {
-        if (Nodes[n]->StringNum != LastStringNum) {
+        if (Nodes[n]->StringNum != (uint32_t)LastStringNum) {
             LastStringNum=Nodes[n]->StringNum;
             chan=stringStartChan[LastStringNum];
             if (!IsLtoR) {

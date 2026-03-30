@@ -119,7 +119,7 @@ void EventDataPanel::OnTextCtrl_ChannelText(wxCommandEvent& event)
 {
     OutputManager* outputManager = xScheduleFrame::GetScheduleManager()->GetOutputManager();
     long sc = outputManager->DecodeStartChannel(TextCtrl_Channel->GetValue().ToStdString());
-    if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels())
+    if (sc == 0 || sc > (long)xScheduleFrame::GetScheduleManager()->GetTotalChannels())
     {
         StaticText4->SetLabel("Invalid");
     }

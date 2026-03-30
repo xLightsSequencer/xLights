@@ -14,8 +14,8 @@
 #include "FileSerializingVisitor.h"
 
 FileSerializingVisitor::FileSerializingVisitor(const std::string& path, bool exporting, bool prettyPrint)
-    : _ofs(path, std::ios::out | std::ios::trunc),
-      StreamSerializingVisitor(_ofs, exporting, prettyPrint) {
+    : StreamSerializingVisitor(_ofs, exporting, prettyPrint),
+      _ofs(path, std::ios::out | std::ios::trunc) {
     WriteXmlDeclaration();
 }
 

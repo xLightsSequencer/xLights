@@ -345,7 +345,7 @@ void xLightsFrame::LoadEffectsFile()
                     std::string layout_group = "Unassigned";
                     if (selected == "1") {
                         wxArrayString mn = wxSplit(wxString(group.attribute("models").as_string()), ',');
-                        for (int x = 0; x < mn.size(); x++) {
+                        for (int x = 0; x < (int)mn.size(); x++) {
                             std::string name = mn[x].Trim(true).Trim(false).ToStdString();
                             if (modelsAdded.find(name) == modelsAdded.end()) {
                                 modelsAdded.insert(mn[x].Trim(true).Trim(false).ToStdString());
@@ -848,7 +848,7 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
     if (elementToCheck != nullptr) {
         // Check if they are already right and in the right order
         bool identical = true;
-        if (elementToCheck->GetSubModelCount() == submodelOrder.size()) {
+        if ((size_t)elementToCheck->GetSubModelCount() == submodelOrder.size()) {
             for (int i = 0; i < elementToCheck->GetSubModelCount(); i++) {
                 if (elementToCheck->GetSubModel(i)->GetName() != submodelOrder[i]) {
                     identical = false;
@@ -1570,7 +1570,7 @@ void xLightsFrame::SaveSequence()
 
         // If number of channels is wrong then lets just dump and reallocate before render
         if ((_seqData.NumChannels() != roundTo4(GetMaxNumChannels())) ||
-            (_seqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
+            (_seqData.FrameTime() != (unsigned int)CurrentSeqXmlFile->GetFrameMS()) )
         {
             spdlog::info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
 
@@ -1641,7 +1641,7 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
     if (CurrentSeqXmlFile == nullptr)
         return;
 
-    if (_seqData.FrameTime() != timingMS) {
+    if (_seqData.FrameTime() != (unsigned int)timingMS) {
         AbortRender();
         _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
     }
@@ -1774,7 +1774,7 @@ static void enableAllChildControls(wxWindow* parent, bool enable)
 static void enableAllToolbarControls(wxAuiToolBar* parent, bool enable)
 {
     enableAllChildControls((wxWindow*)parent, enable);
-    for (int x = 0; x < parent->GetToolCount(); x++) {
+    for (int x = 0; x < (int)parent->GetToolCount(); x++) {
         wxAuiToolBarItem* item = parent->FindToolByIndex(x);
         parent->EnableTool(item->GetId(), enable);
     }
@@ -1783,9 +1783,9 @@ static void enableAllToolbarControls(wxAuiToolBar* parent, bool enable)
 
 static void enableAllMenubarControls(wxMenuBar* parent, bool enable)
 {
-    for (int x = 0; x < parent->GetMenuCount(); x++) {
+    for (int x = 0; x < (int)parent->GetMenuCount(); x++) {
         wxMenu* menu = parent->GetMenu(x);
-        for (int y = 0; y < menu->GetMenuItemCount(); y++) {
+        for (int y = 0; y < (int)menu->GetMenuItemCount(); y++) {
             wxMenuItem* item = menu->FindItemByPosition(y);
             menu->Enable(item->GetId(), enable);
         }

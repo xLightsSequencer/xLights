@@ -169,7 +169,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
             cache->maxWid = maxMWi;
             numStates = maxMWi * maxMHt;
         }
-        if (numStates > states.size()) {
+        if (numStates > (int)states.size()) {
             states.resize(numStates);
         }
         for (int x = 0; x < numStates; x++) {
@@ -180,7 +180,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     if (perNode) {
         int maxW = cache->maxWid;
         parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, usePalette, c1, c2, this](int y) {
-            for (size_t x = 0; x < buffer.BufferWi; x++) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
                 size_t index = y * maxW + x;
                 if (index >= states.size()) {
                     // this should never happen
@@ -230,8 +230,8 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         } else {
             c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
         }
-        for (size_t y = 0; y < buffer.BufferHt; y++) {
-            for (size_t x = 0; x < buffer.BufferWi; x++) {
+        for (int y = 0; y < buffer.BufferHt; y++) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
                 buffer.SetPixel(x, y, c);
             }
         }

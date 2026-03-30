@@ -221,7 +221,7 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot) {
 
         nlohmann::json p;
 
-        for (size_t i = batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); ++i) {
+        for (size_t i = (size_t)batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (size_t)(batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); ++i) {
             p["A"].push_back(res[i].asJson());
             --left;
         }
@@ -431,7 +431,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
         p["AD"] = addressingMode;
         p["B"] = 255;
         p["ps"] = -10;
-        for (size_t i = batch * FALCON_V4_SEND_STRING_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_STRING_BATCH_SIZE && i < res.size(); i++) {
+        for (size_t i = (size_t)batch * FALCON_V4_SEND_STRING_BATCH_SIZE; i < (size_t)(batch + 1) * FALCON_V4_SEND_STRING_BATCH_SIZE && i < res.size(); i++) {
             try {
                 p["A"].push_back(res[i].asJson());
                 --left;
@@ -834,7 +834,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
         DDPOutput* ddp = dynamic_cast<DDPOutput*>(controller->GetOutput(0));
 
         size_t ddpStart = ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1;
-        if (_v4status["O"].get<int>() != V4_CONTROLLERMODE_DDP || _v4status["ps"].get<int>() + 1 != ddpStart) {
+        if (_v4status["O"].get<int>() != V4_CONTROLLERMODE_DDP || (size_t)(_v4status["ps"].get<int>() + 1) != ddpStart) {
             spdlog::debug("Setting controller to DDP. Start channel: {}", ddpStart);
             bool reboot = false;
             if (Falcon::V4_SendBoardMode(_v4status["B"].get<int>(), V4_CONTROLLERMODE_DDP, ddpStart, reboot)) {
@@ -1184,7 +1184,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             for (int sr = smartRemotes[p] == 0 ? 0 : 1; sr < smartRemotes[p] + 1; sr++) {
                 if (V4_GetStringFirstIndex(falconStrings, p, sr) != -1) {
                     int i = V4_GetStringFirstIndex(falconStrings, p, sr);
-                    while (i < falconStrings.size() && falconStrings[i].port == p && falconStrings[i].smartRemote == sr) {
+                    while (i < (int)falconStrings.size() && falconStrings[i].port == p && falconStrings[i].smartRemote == sr) {
                         uploadStrings.push_back(falconStrings[i]);
                         ++i;
                     }
@@ -1886,7 +1886,7 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
     for (int p = 0; p < packets; p++) {
         std::string message = base + "&q=" + std::to_string(p);
 
-        for (int i = p * PACKETSIZE; i < stringData.size() && i < (p + 1) * PACKETSIZE; ++i) {
+        for (int i = p * PACKETSIZE; i < (int)stringData.size() && i < (p + 1) * PACKETSIZE; ++i) {
             message += BuildStringPort(stringData[i]);
         }
 

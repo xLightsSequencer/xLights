@@ -55,7 +55,7 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
 }
 
 PolyPointScreenLocation::~PolyPointScreenLocation() {
-    for( int i = 0; i < mPos.size(); ++i ) {
+    for( int i = 0; i < (int)mPos.size(); ++i ) {
         if (mPos[i].matrix != nullptr) {
             delete mPos[i].matrix;
         }
@@ -357,7 +357,7 @@ CursorType PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, 
         if (selected_segment != -1) {
             // add control point handles for selected segments
             int s = selected_segment;
-            if (mPos.size() > s && mPos[s].has_curve && mPos[s].curve != nullptr) {
+            if ((int)mPos.size() > s && mPos[s].has_curve && mPos[s].curve != nullptr) {
                 glm::vec3 cp_handle_aabb_min[2];
                 glm::vec3 cp_handle_aabb_max[2];
                 cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX) * scalex - hw;
@@ -402,7 +402,7 @@ CursorType PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, 
         handle = -1;
 
         // Test each each Oriented Bounding Box (OBB).
-        for (size_t i = 0; i < mSelectableHandles; i++) {
+        for (int i = 0; i < mSelectableHandles; i++) {
             float intersection_distance; // Output of TestRayOBBIntersection()
 
             if (VectorMath::TestRayOBBIntersection(
@@ -530,7 +530,7 @@ CursorType PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, in
     // test the normal handles
     if (handle == NO_HANDLE) {
         // Test each each Oriented Bounding Box (OBB).
-        for (size_t i = 1; i < mSelectableHandles; i++) {
+        for (int i = 1; i < mSelectableHandles; i++) {
             if (VectorMath::TestRayOBBIntersection2D(
                 ray_origin,
                 handle_aabb_min[i],
@@ -578,7 +578,7 @@ CursorType PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, in
     // test for clicking a boundary handle
     if (handle == NO_HANDLE) {
         float hw = GetRectHandleWidth(zoom, scale);
-        for (size_t h = num_points + 1; h < num_points + 5; h++) {
+        for (int h = num_points + 1; h < num_points + 5; h++) {
             handle_aabb_min[h].x = mHandlePosition[h].x - hw;
             handle_aabb_min[h].y = mHandlePosition[h].y - hw;
             handle_aabb_min[h].z = mHandlePosition[h].z - hw;
@@ -910,7 +910,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     vac->AddRectAsTriangles(x1, y2, x1 + hw, y2 + hw, handleColor);
     vac->AddRectAsTriangles(x2, y1, x2 + hw, y1 + hw, handleColor);
     vac->AddRectAsTriangles(x2, y2, x2 + hw, y2 + hw, handleColor);
-    while (mHandlePosition.size() < num_points + 5) { // not sure this is the best way to do this but it stops a crash
+    while ((int)mHandlePosition.size() < num_points + 5) { // not sure this is the best way to do this but it stops a crash
         xlPoint pt;
         mHandlePosition.push_back(pt);
     }
@@ -1084,7 +1084,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             // check for control point handles
             if (handle & HANDLE_CP0) {
                 int seg = handle & HANDLE_MASK;
-                if (seg < mPos.size()) {
+                if (seg < (int)mPos.size()) {
                     switch (active_axis) {
                     case MSLAXIS::X_AXIS:
                         mPos[seg].cp0.x = newx;
@@ -1103,7 +1103,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             }
             else if (handle & HANDLE_CP1) {
                 int seg = handle & HANDLE_MASK;
-                if (seg < mPos.size()) {
+                if (seg < (int)mPos.size()) {
                     switch (active_axis) {
                     case MSLAXIS::X_AXIS:
                         mPos[seg].cp1.x = newx;
@@ -1123,7 +1123,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             }
             else {
                 int point = handle - 1;
-                if (point < mPos.size()) {
+                if (point < (int)mPos.size()) {
                     switch (active_axis) {
                     case MSLAXIS::X_AXIS:
                         mPos[point].x = newx;
@@ -1157,7 +1157,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
                 mPos[point].x = newx;
                 mPos[point].y = newy;
             }
@@ -1331,7 +1331,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
     } else {
         if (handle & HANDLE_CP0) {
             int seg = handle & HANDLE_MASK;
-            if (seg < mPos.size()) {
+            if (seg < (int)mPos.size()) {
                 mPos[seg].cp0.x += mov.x * scale;
                 mPos[seg].cp0.y -= mov.z * scale;
                 mPos[seg].cp0.z += mov.y * scale;
@@ -1340,7 +1340,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
             }
         } else if (handle & HANDLE_CP1) {
             int seg = handle & HANDLE_MASK;
-            if (seg < mPos.size()) {
+            if (seg < (int)mPos.size()) {
                 mPos[seg].cp1.x += mov.x * scale;
                 mPos[seg].cp1.y -= mov.z * scale;
                 mPos[seg].cp1.z += mov.y * scale;
@@ -1349,7 +1349,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
             }
         } else {
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
                 mPos[point].x += mov.x * scale;
                 mPos[point].y -= mov.z * scale;
                 mPos[point].z += mov.y * scale;
@@ -1600,7 +1600,7 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int sca
 void PolyPointScreenLocation::DeleteHandle(int handle) {
     
     // this can happen if you click one one of the box handles
-    if (handle >= mPos.size()) return;
+    if (handle >= (int)mPos.size()) return;
 
     // delete any curves associated with this handle
     if( mPos[handle].has_curve ) {
@@ -1686,7 +1686,7 @@ std::string PolyPointScreenLocation::GetDimension(float factor) const
     if (RulerObject::GetRuler() == nullptr) return "";
     float len = 0;
     auto last = mPos[0].AsVector();
-    for (int i = 1; i < mPos.size(); i++) {
+    for (int i = 1; i < (int)mPos.size(); i++) {
         len += RulerObject::Measure(last, mPos[i].AsVector());
         last = mPos[i].AsVector();
     }

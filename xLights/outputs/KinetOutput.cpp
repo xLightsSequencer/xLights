@@ -268,7 +268,7 @@ void KinetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 void KinetOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
     if (!_enabled) return;
-    wxASSERT(channel + size <= _channels);
+    wxASSERT((size_t)channel + size <= (size_t)_channels);
 
     size_t chs = (std::min)((int32_t)size, _channels - channel);
 

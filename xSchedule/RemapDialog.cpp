@@ -46,9 +46,9 @@ void RemapDialog::ValidateWindow()
     StaticText_From->SetLabel(wxString::Format("%ld", scFrom));
     StaticText_To->SetLabel(wxString::Format("%ld", scTo));
     if (scFrom == 0 ||
-        scTo == 0 || 
-        scFrom > xScheduleFrame::GetScheduleManager()->GetTotalChannels() || 
-        scTo > xScheduleFrame::GetScheduleManager()->GetTotalChannels())
+        scTo == 0 ||
+        scFrom > (long)xScheduleFrame::GetScheduleManager()->GetTotalChannels() ||
+        scTo > (long)xScheduleFrame::GetScheduleManager()->GetTotalChannels())
     {
         Button_Ok->Enable(false);
     }

@@ -123,7 +123,7 @@ void StrandNodeNamesDialog::Setup(const Model* md, const std::string& nodeNames,
         }
         strands.push_back(t2);
     }
-    if (strands.size() < md->GetNumStrands()) {
+    if ((int)strands.size() < md->GetNumStrands()) {
         strands.resize(md->GetNumStrands());
     }
     StrandsGrid->BeginBatch();
@@ -133,7 +133,7 @@ void StrandNodeNamesDialog::Setup(const Model* md, const std::string& nodeNames,
     StrandsGrid->AppendRows(strands.size());
     StrandsGrid->SetRowLabelSize(40);
 
-    for (int x = 0; x < strands.size(); x++) {
+    for (int x = 0; x < (int)strands.size(); x++) {
         StrandsGrid->SetCellValue(x, 0, strands[x]);
     }
     StrandsGrid->EndBatch();
@@ -163,7 +163,7 @@ void StrandNodeNamesDialog::Setup(const Model* md, const std::string& nodeNames,
     NodesGrid->SetRowLabelSize(40);
 
     NodesGrid->AppendRows(nodes.size());
-    for (int x = 0; x < nodes.size(); x++) {
+    for (int x = 0; x < (int)nodes.size(); x++) {
         NodesGrid->SetCellValue(x, 0, nodes[x]);
     }
     NodesGrid->EndBatch();
@@ -283,7 +283,7 @@ void StrandNodeNamesDialog::OnButtonGenNamesClick(wxCommandEvent& event)
     if (m->IsDMXModel()) {
         DmxModel* dmx = (DmxModel*)m;
         auto names = dmx->GenerateNodeNames();
-        for (int x = 0; x < names.size(); x++) {
+        for (int x = 0; x < (int)names.size(); x++) {
             NodesGrid->SetCellValue(x, 0, names[x]);
         }
     }

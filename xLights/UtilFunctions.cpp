@@ -179,7 +179,7 @@ bool IsXmlSafe(const std::string& s) {
 std::string RemoveUnsafeXmlChars(const std::string& s) {
     std::string res;
 
-    for (int i = 0; i < s.size(); i++) {
+    for (size_t i = 0; i < s.size(); i++) {
         if ((int)s[i] < 32 || s[i] > 127) {
             // strip it
         } else if (s[i] == '=' || s[i] == '<' || s[i] == '>' || s[i] == '&' || s[i] == '"' || s[i] == '\'') {

@@ -297,13 +297,13 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
     }
     auto ports = data.at("LIST");
 
-    if (ports.size() != length) {
+    if ((int)ports.size() != length) {
         spdlog::error("Data from controller size and Expansion Size don't match");
         spdlog::error((const char*)data.at("LIST").dump().c_str());
         return;
     }
 
-    for (int i = 0; i < ports.size(); i++) {
+    for (int i = 0; i < (int)ports.size(); i++) {
         auto stringValue = ports.at(i)["V"].get<std::string>();
         _pixelOutputs[(startport - 1) + i].SetConfig(stringValue);
     }
@@ -465,7 +465,7 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
     int TotalEntries;
     std::list<UnPack *> LL;
 
-    for(i = 0; i < UPA.size(); i++)
+    for(i = 0; i < (int)UPA.size(); i++)
     {
         if(UPA[i]->InActive == false)
             LL.push_back(UPA[i]);
@@ -818,11 +818,11 @@ void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData
 }
 
 void HinksPix::UploadSmartReceivers(bool& worked) const {
-    for (int exp = 0; exp < std::size(_smartOutputs); ++exp) {
+    for (int exp = 0; exp < (int)std::size(_smartOutputs); ++exp) {
         if (_EXP_Outputs[exp] != EXPType::Long_Range) {
             continue;
         }
-        for (int bnk = 0; bnk < std::size(_smartOutputs[exp]); ++bnk) {
+        for (int bnk = 0; bnk < (int)std::size(_smartOutputs[exp]); ++bnk) {
             UploadSmartReceiverData(exp, bnk, _smartOutputs[exp][bnk], worked);
         }
     }
@@ -1376,7 +1376,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             // removed serial port unpack
 
             spdlog::debug("Total Map\n");
-            for(int i = 0; i < UPA.size(); i++)
+            for(int i = 0; i < (int)UPA.size(); i++)
             {
                 spdlog::debug("{} {}  Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
@@ -1386,7 +1386,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             std::sort(UPA.begin(), UPA.end(), less_than_key());
 
             spdlog::debug("Total Map after sort before compress\n");
-            for(int i = 0; i < UPA.size(); i++)
+            for(int i = 0; i < (int)UPA.size(); i++)
             {
                 spdlog::debug("{} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
@@ -1394,7 +1394,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
             // combine/compress
             spdlog::debug("Total Map compress\n");
-            for(int i = 0; i < UPA.size(); i++)
+            for(int i = 0; i < (int)UPA.size(); i++)
             {
                 if((UPA[i]->MyStart == UPA[i]->NewStart) && (UPA[i]->MyEnd == UPA[i]->NewEnd)) // we have continuous memory
                 {
@@ -1406,13 +1406,13 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             spdlog::debug("\n\n\n");
 
             spdlog::debug("Total Map after compress and sort\n");
-            for(int i = 0; i < UPA.size(); i++)
+            for(int i = 0; i < (int)UPA.size(); i++)
             {
                 spdlog::debug("{} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
             spdlog::debug("\n\n\n");
             spdlog::debug("Active only after compress and sort\n");
-            for(int i = 0; i < UPA.size(); i++)
+            for(int i = 0; i < (int)UPA.size(); i++)
             {
                 if (!UPA[i]->InActive)
                 {
@@ -1970,7 +1970,7 @@ std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const
     std::map<wxString, wxString> map;
     const wxArrayString items = Split(text, std::vector<char>({ ',' }));
     if (items.size() % 2 == 0) {
-        for (int i = 0; i < items.size() - 1; i += 2) {
+        for (int i = 0; i < (int)items.size() - 1; i += 2) {
             map[items[i]] = items[i + 1];
         }
     }
@@ -1998,7 +1998,7 @@ bool HinksPix::CheckSmartReceivers(std::string& message)
 
     for (int exp = 0; exp < EXP_PORTS; ++exp) {
         if (_EXP_Outputs[exp] != EXPType::Long_Range) {
-            for (int bnk = 0; bnk < std::size(_smartOutputs[exp]); ++bnk) {
+            for (int bnk = 0; bnk < (int)std::size(_smartOutputs[exp]); ++bnk) {
                 if (_smartOutputs[exp][bnk].size() != 0) {
                     message = "Expansion Port " + std::to_string(exp + 1) + " has Smart Receivers but it is not a Long Range Differential Board!";
                     return false;

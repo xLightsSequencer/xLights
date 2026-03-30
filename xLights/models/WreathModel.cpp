@@ -53,7 +53,7 @@ void WreathModel::InitWreath() {
     int ChanIncr = GetNodeChannelCount(StringType);
     size_t NodeCount=GetNodeCount();
     for(size_t n=0; n<NodeCount; n++) {
-        if (Nodes[n]->StringNum != LastStringNum) {
+        if (Nodes[n]->StringNum != (uint32_t)LastStringNum) {
             LastStringNum=Nodes[n]->StringNum;
             chan=stringStartChan[LastStringNum];
         }

@@ -342,7 +342,7 @@ void xlEffectPanel::AddListeners(wxWindow *ParentWin)
         } else if (ChildName.StartsWith("ID_NOTEBOOK")) {
             Connect(ChildWin->GetId(),wxEVT_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleNotebookChange);
             wxBookCtrlBase *nb = (wxBookCtrlBase*)ChildWin;
-            for (int x = 0; x < nb->GetPageCount(); x++) {
+            for (int x = 0; x < (int)nb->GetPageCount(); x++) {
                 AddListeners(nb->GetPage(x));
             }
         } else if (ChildName.StartsWith("ID_PANEL")
@@ -515,7 +515,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
                 s += ctrl->GetPageText(ctrl->GetSelection());
                 s += ",";
             }
-            for(int i = 0; i<ctrl->GetPageCount(); i++) {
+            for(int i = 0; i<(int)ctrl->GetPageCount(); i++) {
                 wxString pageString = GetEffectStringFromWindow(ctrl->GetPage(i));
                 if (pageString.size() > 0) {
                     s += pageString;

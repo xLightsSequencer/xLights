@@ -198,7 +198,7 @@ public:
                 }
                 lastBitmap = wxBitmap(image);
             } else {
-                for (int x = 0; x < data.size(); x++) {
+                for (int x = 0; x < (int)data.size(); x++) {
                     wxImage image(data[x]);
                     if (image.GetHeight() == size) {
                         if (image.HasMask() && !image.HasAlpha()) {
@@ -206,7 +206,7 @@ public:
                         }
                         lastBitmap = wxBitmap(image);
                         break;
-                    } else if (image.GetHeight() > size || x == (data.size()-1)) {
+                    } else if (image.GetHeight() > size || x == (int)(data.size()-1)) {
                         if (image.HasMask() && !image.HasAlpha()) {
                             image.InitAlpha();
                         }
@@ -249,7 +249,7 @@ wxBitmap xlNamedBitmapBundleImpl::GetBitmap(const wxSize& size) {
         return lastBitmap;
     }
     int idx = 0;
-    for (int x = 0; x < bitmaps.size(); x++) {
+    for (int x = 0; x < (int)bitmaps.size(); x++) {
         if (newSize == bitmaps[x].GetSize()) {
             lastSize = newSize;
             lastBitmap = bitmaps[x];
@@ -259,7 +259,7 @@ wxBitmap xlNamedBitmapBundleImpl::GetBitmap(const wxSize& size) {
             idx = x;
         }
     }
-    if (idx < (bitmaps.size() - 1)) {
+    if (idx < (int)(bitmaps.size() - 1)) {
         idx++;
     }
     // don't have an exact match size, but idx is pointing to the next largest so we'll
@@ -267,7 +267,7 @@ wxBitmap xlNamedBitmapBundleImpl::GetBitmap(const wxSize& size) {
     wxImage i = bitmaps[idx].ConvertToImage();
     i.Rescale(newSize.GetX(), newSize.GetY());
     lastBitmap = wxBitmap(i);
-    if (idx == (bitmaps.size() - 1) && newSize.GetY() > bitmaps[idx].GetHeight()) {
+    if (idx == (int)(bitmaps.size() - 1) && newSize.GetY() > bitmaps[idx].GetHeight()) {
         // this is bigger than the last one in the list, we'll keep it
         bitmaps.push_back(lastBitmap);
     }

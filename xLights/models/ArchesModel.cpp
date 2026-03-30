@@ -51,7 +51,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string& tp, const std::string
 
         int cur = 0;
 
-        for (int x = 0; x < Nodes.size(); x++) {
+        for (int x = 0; x < (int)Nodes.size(); x++) {
             newNodes.push_back(NodeBaseClassPtr(Nodes[x]->clone()));
             for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
                 newNodes[cur]->Coords[c].bufX = cur;
@@ -68,7 +68,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string& tp, const std::string
 bool ArchesModel::IsNodeFirst(int n) const 
 {
     if (GetLayerSizeCount() == 0) {
-        return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+        return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - 1);
     } else {
         return n == 0;
     }
@@ -141,7 +141,7 @@ void ArchesModel::InitModel()
             int yy = layer;
             if (in_out) yy = GetLayerSizeCount() - layer - 1;
             int it = GetLayerSizes()[yy];
-            if (idx < Nodes.size()) {
+            if (idx < (int)Nodes.size()) {
                 if (it == 1) {
                     int startChan = stringStartChan[0] + idx * GetNodeChannelCount(StringType);
                     Nodes[idx]->ActChan = startChan;
@@ -154,7 +154,7 @@ void ArchesModel::InitModel()
                 } else {
                     float gap = (float)(maxLen - 1) / (float)(it - 1);
                     for (int x = 0; x < it; x++) {
-                        if (idx < Nodes.size()) {
+                        if (idx < (int)Nodes.size()) {
                             int xx = std::round((float)x * gap);
                             if (!dir) {
                                 xx = maxLen - 1 - xx;

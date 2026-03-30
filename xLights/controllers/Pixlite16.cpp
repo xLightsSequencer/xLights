@@ -213,7 +213,7 @@ bool Pixlite16::ParseV4Config(uint8_t* data, Pixlite16::Config& config)
     config._currentDriver = data[pos++];
 
     config._gamma.resize(3);
-    for (int i = 0; i < config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
+    for (int i = 0; i < (int)config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
 
     config._numBanks = 2;
     config._bankVoltage.resize(config._numBanks);
@@ -384,7 +384,7 @@ bool Pixlite16::ParseV5Config(uint8_t* data, Pixlite16::Config& config)
     config._currentDriverSpeed = data[pos++];
     config._currentDriverExpanded = data[pos++];
     config._gamma.resize(3);
-    for (int i = 0; i < config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
+    for (int i = 0; i < (int)config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
 
     config._nicknameLen = 40;
     memset(buffer, 0x00, sizeof(buffer));
@@ -498,7 +498,7 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config)
     config._currentDriverSpeed = data[pos++];
     config._currentDriverExpanded = data[pos++];
     config._gamma.resize(4);
-    for (int i = 0; i < config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
+    for (int i = 0; i < (int)config._gamma.size(); i++) { config._gamma[i] = data[pos++]; }
 
     config._nicknameLen = 40;
     memset(buffer, 0x00, sizeof(buffer));
@@ -516,7 +516,7 @@ bool Pixlite16::ParseV6Config(uint8_t* data, Pixlite16::Config& config)
     config._testMode = data[pos++];
 
     config._testParameters.resize(4);
-    for (int i = 0; i < config._testParameters.size(); i++) { config._testParameters[i] = data[pos++]; }
+    for (int i = 0; i < (int)config._testParameters.size(); i++) { config._testParameters[i] = data[pos++]; }
 
     return true;
 }
@@ -642,7 +642,7 @@ bool Pixlite16::ParseV8Config(uint8_t* data, Pixlite16::Config& config)
     config._currentDriverSpeed = data[pos++];
     config._currentDriverExpanded = data[pos++];
     config._gamma.resize(4);
-    for (int i = 0; i < config._gamma.size(); i++) {
+    for (int i = 0; i < (int)config._gamma.size(); i++) {
         config._gamma[i] = data[pos++];
     }
 
@@ -664,7 +664,7 @@ bool Pixlite16::ParseV8Config(uint8_t* data, Pixlite16::Config& config)
     config._testMode = data[pos++];
 
     config._testParameters.resize(4);
-    for (int i = 0; i < config._testParameters.size(); i++) {
+    for (int i = 0; i < (int)config._testParameters.size(); i++) {
         config._testParameters[i] = data[pos++];
     }
     config._testOutputNum = data[pos++];

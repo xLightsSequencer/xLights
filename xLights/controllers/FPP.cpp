@@ -199,7 +199,7 @@ struct FPPWriteData {
         }
         if (file != nullptr) {
             size_t t = file->Read(ptr, buffer_size);
-            if (t == wxInvalidOffset) {
+            if ((wxFileOffset)t == wxInvalidOffset) {
                 return 0;
             }
             totalWritten += t;
@@ -529,12 +529,12 @@ void FPP::probePixelControllerType() {
     }
 }
 void FPP::parseProxies(nlohmann::json& val) {
-    for (int x = 0; x < val.size(); x++) {
+    for (int x = 0; x < (int)val.size(); x++) {
         proxies.emplace(val[x].get<std::string>());
     }
 }
 void FPP::parseControllerType(nlohmann::json& val) {
-    for (int x = 0; x < val["channelOutputs"].size(); x++) {
+    for (int x = 0; x < (int)val["channelOutputs"].size(); x++) {
         if (GetJSONIntValue(val["channelOutputs"][x], "enabled")) {
             std::string outputType = GetJSONStringValue(val["channelOutputs"][x], "type");
             if (outputType == "RPIWS281X"||
@@ -548,7 +548,7 @@ void FPP::parseControllerType(nlohmann::json& val) {
                 int ph = GetJSONIntValue(val["channelOutputs"][x], "panelHeight");
                 int nw = 0; int nh = 0;
                 bool tall = false;
-                for (int p = 0; p < val["channelOutputs"][x]["panels"].size(); ++p) {
+                for (int p = 0; p < (int)val["channelOutputs"][x]["panels"].size(); ++p) {
                     int r = GetJSONIntValue(val["channelOutputs"][x]["panels"][p], "row");
                     int c = GetJSONIntValue(val["channelOutputs"][x]["panels"][p], "col");
                     nw = std::max(c, nw);
@@ -574,7 +574,7 @@ void FPP::parseControllerType(nlohmann::json& val) {
 
 static std::string trimfront(const std::string &s) {
     int x = 0;
-    while (x < s.length() && std::isspace(s[x])) {
+    while (x < (int)s.length() && std::isspace(s[x])) {
         x++;
     }
     return s.substr(x);
@@ -730,7 +730,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     wxString fn;
     wxString ext;
 
-    for (int a = 0; a < utfFilename.length(); a++) {
+    for (int a = 0; a < (int)utfFilename.length(); a++) {
         wxChar ch = utfFilename[a];
         if (ch == '"') {
             fn.Append("\\\"");
@@ -872,7 +872,7 @@ int progress_callback(void *clientp,
         start += ulnow;
         start *= 1000;
         start /= p->length;
-        if (p->lastPct != start) {
+        if (p->lastPct != (int)start) {
             p->instance->updateProgress(p->lastPct, false);
             p->lastPct = start;
         }
@@ -1196,7 +1196,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             currentMaxChannel = GetJSONIntValue(currentMeta, "MaxChannel", currentMaxChannel);
             currentChannelCount = GetJSONIntValue(currentMeta, "ChannelCount", currentChannelCount);
             if (currentMeta.contains("Ranges")) {
-                for (int x = 0; x < currentMeta["Ranges"].size(); x++) {
+                for (int x = 0; x < (int)currentMeta["Ranges"].size(); x++) {
                     uint32_t s = GetJSONUInt32Value(currentMeta["Ranges"][x], "Start");
                     uint32_t l = GetJSONUInt32Value(currentMeta["Ranges"][x], "Length");
                     currentRanges.push_back(std::pair<uint32_t, uint32_t>(s, l));
@@ -1390,7 +1390,7 @@ bool FPP::FinalizeUploadSequence() {
 }
 
 static bool PlaylistContainsEntry(nlohmann::json &pl, const std::string &media, const std::string &seq) {
-    for (int x = 0; x < pl.size(); x++) {
+    for (int x = 0; x < (int)pl.size(); x++) {
         nlohmann::json entry = pl[x];
         if (seq == GetJSONStringValue(entry, "sequenceName")) {
             if (media.empty()) {
@@ -1464,7 +1464,7 @@ std::vector<std::string> FPP::GetPlaylistItems(const std::string& name) {
     if (!origJson.is_object()) {
         return items;
     }
-    for (int x = 0; x < origJson["mainPlaylist"].size(); x++) {
+    for (int x = 0; x < (int)origJson["mainPlaylist"].size(); x++) {
         nlohmann::json entry = origJson["mainPlaylist"][x];
         auto seq = GetJSONStringValue(entry, "sequenceName");
         items.push_back(seq);
@@ -1502,7 +1502,7 @@ bool FPP::UploadUDPOut(const nlohmann::json &udp) {
 
     if (GetURLAsJSON("/api/channel/output/universeOutputs", orig)) {
         if (orig.contains("channelOutputs")) {
-            for (int x = 0; x < orig["channelOutputs"].size(); x++) {
+            for (int x = 0; x < (int)orig["channelOutputs"].size(); x++) {
                 if (GetJSONStringValue(orig["channelOutputs"][x], "type") == "universes" && orig["channelOutputs"][x].contains("interface")) {
                     newudp["channelOutputs"][0]["interface"] = GetJSONStringValue(orig["channelOutputs"][x], "interface");
                 }
@@ -1891,7 +1891,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
 
     std::map<int, int> rng;
     FillRanges(rng);
-    for (int x = 0; x < f["channelOutputs"][0]["universes"].size(); x++) {
+    for (int x = 0; x < (int)f["channelOutputs"][0]["universes"].size(); x++) {
         nlohmann::json u = f["channelOutputs"][0]["universes"][x];
         int const start = u["startChannel"].get<int>() - 1;
         int const len = u["channelCount"].get<int>();
@@ -2256,11 +2256,11 @@ static bool UpdateJSONValue(nlohmann::json& v, const std::string& key, const std
 
 static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults) {
     bool changed = false;
-    for (int x = 0; x < otherDmxData["channelOutputs"].size(); x++) {
+    for (int x = 0; x < (int)otherDmxData["channelOutputs"].size(); x++) {
         std::string device = GetJSONStringValue(otherDmxData["channelOutputs"][x], "device");
         std::string type = GetJSONStringValue(otherDmxData["channelOutputs"][x], "type");
         bool found = false;
-        for (int y = 0; y < otherOrigRoot["channelOutputs"].size(); y++) {
+        for (int y = 0; y < (int)otherOrigRoot["channelOutputs"].size(); y++) {
             std::string origDevice = GetJSONStringValue(otherOrigRoot["channelOutputs"][y], "device");
             if (!device.empty() && !origDevice.empty() && origDevice == device) {
                 //same device, see if type matches and update or disable
@@ -2326,7 +2326,7 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
         nlohmann::json val;
         std::string id = rules->GetID();
         if (GetURLAsJSON("/api/cape/strings", val)) {
-            for (int x = 0; x < val.size(); x++) {
+            for (int x = 0; x < (int)val.size(); x++) {
                 if (val[x].get<std::string>() == id) {
                     found = true;
                 }
@@ -2335,7 +2335,7 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
             //we'll need to check them
             if (!found) {
                 id = rules->GetID() + "_v2";
-                for (int x = 0; x < val.size(); x++) {
+                for (int x = 0; x < (int)val.size(); x++) {
                     if (val[x].get<std::string>() == id) {
                         found = true;
                     }
@@ -2343,7 +2343,7 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
             }
             if (!found) {
                 id = rules->GetID() + "_v3";
-                for (int x = 0; x < val.size(); x++) {
+                for (int x = 0; x < (int)val.size(); x++) {
                     if (val[x].get<std::string>() == id) {
                         found = true;
                     }
@@ -2351,7 +2351,7 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
             }
             if (!found) {
                 id = rules->GetID() + "-v2";
-                for (int x = 0; x < val.size(); x++) {
+                for (int x = 0; x < (int)val.size(); x++) {
                     if (val[x].get<std::string>() == id) {
                         found = true;
                     }
@@ -2359,7 +2359,7 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
             }
             if (!found) {
                 id = rules->GetID() + "-v3";
-                for (int x = 0; x < val.size(); x++) {
+                for (int x = 0; x < (int)val.size(); x++) {
                     if (val[x].get<std::string>() == id) {
                         found = true;
                     }
@@ -2427,7 +2427,7 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         std::map<int, int> rngs;
         FillRanges(rngs);
         for (int panel = 0; panel < cud.GetMaxLEDPanelMatrixPort(); ++panel) {
-            if (panel < origJson["channelOutputs"].size()) {
+            if (panel < (int)origJson["channelOutputs"].size()) {
                 int startChannel = cud.GetControllerLEDPanelMatrixPort(1 + panel)->GetStartChannel();
                 if (startChannel > 0) {
                     if (UpdateJSONValue(origJson["channelOutputs"][panel], "startChannel", startChannel)) {
@@ -2444,7 +2444,7 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         SetNewRanges(rngs);
     } else if (fullcontrol) {
         //disable
-        for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+        for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
             if (origJson["channelOutputs"][x]["type"].get<std::string>() == "LEDPanelMatrix") {
                 changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
             }
@@ -2473,7 +2473,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
     if (fullcontrol || (rules->SupportsVirtualMatrix() && cud.GetMaxVirtualMatrixPort())) {
         GetURLAsJSON("/api/channel/output/co-other", origJson, false);
         if (fullcontrol) {
-            for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+            for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
                 if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
                     origJson["channelOutputs"].erase(x);
                     x--;
@@ -2511,7 +2511,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
 
                 models[port].insert(name);
                 bool found = false;
-                for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+                for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
                     if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix"
                         && origJson["channelOutputs"][x]["description"].get<std::string>() == name) {
                         found = true;
@@ -2569,7 +2569,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
     if (!fullcontrol && changed) {
         //we need to disable the virtual matrices that are on the ports of the
         //models we uploaded or they will conflict and produce errors
-        for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+        for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
             if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
                 wxString dev = origJson["channelOutputs"][x]["device"].get<std::string>();
                 int port = (char)dev[2] - '0';
@@ -2709,7 +2709,7 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
     if (!capeInfo.contains("id")) {
         GetURLAsJSON("/api/cape", capeInfo);
     }
-    for (int x = 0; x < capeInfo["provides"].size(); x++) {
+    for (int x = 0; x < (int)capeInfo["provides"].size(); x++) {
         if (capeInfo["provides"][x].get<std::string>() == "pwm") {
             hasPWM = true;
         }
@@ -2732,7 +2732,7 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
     int pca9685Index = -1;
     if (!fullcontrol && GetURLAsJSON("/api/configfile/co-pwm.json", root, false)) {
         if (root.contains("channelOutputs")) {
-            for (int x = 0; x < root["channelOutputs"].size(); x++) {
+            for (int x = 0; x < (int)root["channelOutputs"].size(); x++) {
                 if (root["channelOutputs"][x]["type"].get<std::string>() == "PCA9685") {
                     pca9685Index = x;
                     break;
@@ -2753,7 +2753,7 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
         root["channelOutputs"][pca9685Index]["outputs"] = nlohmann::json::array();
     }
     // make sure we have enough ports....
-    while (maxPort > root["channelOutputs"][pca9685Index]["outputs"].size()) {
+    while ((size_t)maxPort > root["channelOutputs"][pca9685Index]["outputs"].size()) {
         changed = true;
         nlohmann::json v;
         v["description"] = "";
@@ -2857,7 +2857,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     std::map<std::string, nlohmann::json> origStrings;
     std::string origSubType;
     if (origJson["channelOutputs"].is_array()) {
-        for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+        for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
             nlohmann::json &f = origJson["channelOutputs"][x];
             if (f.contains("pinoutVersion")) {
                 pinout = f["pinoutVersion"].get<std::string>();
@@ -2869,9 +2869,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 origSubType = (f["subType"].get<std::string>());
             }
             if (!fullcontrol) {
-                for (int o = 0; o < f["outputs"].size(); o++) {
+                for (int o = 0; o < (int)f["outputs"].size(); o++) {
                     if (f["outputs"][o].contains("virtualStrings")) {
-                        for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].size(); vs++) {
+                        for (int vs = 0; vs < (int)f["outputs"][o]["virtualStrings"].size(); vs++) {
                             nlohmann::json val = f["outputs"][o]["virtualStrings"][vs];
                             if (val["description"].get<std::string>() != "") {
                                 origStrings[val["description"].get<std::string>()] = val;
@@ -3421,7 +3421,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
     }
     nlohmann::json systems = origJson.contains("systems") ? origJson["systems"] : origJson;
 
-    for (int x = 0; x < systems.size(); x++) {
+    for (int x = 0; x < (int)systems.size(); x++) {
         nlohmann::json &system = systems[x];
         std::string address = GetJSONStringValue(system, IPKey);
         std::string hostName = system[HostNameKey].is_null() ? "" : GetJSONStringValue(system, HostNameKey);
@@ -3574,7 +3574,7 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
     }
     DiscoveredData *ipinst = discovery.FindByIp(ip, "", true);
     ipinst->extraData["httpConnected"] = true;
-    for (int x = 0; x < origJson.size(); x++) {
+    for (int x = 0; x < (int)origJson.size(); x++) {
         std::string proxy;
         if (origJson[x].is_string()) {
             proxy = (origJson[x].get<std::string>());
@@ -3623,7 +3623,7 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
     }
     DiscoveredData *inst = discovery.FindByIp(ip, "", true);
     inst->extraData["httpConnected"] = true;
-    for (int x = 0; x < val["channelOutputs"].size(); x++) {
+    for (int x = 0; x < (int)val["channelOutputs"].size(); x++) {
         if (val["channelOutputs"][x]["enabled"].get<int>()) {
             std::string outputType = GetJSONStringValue(val["channelOutputs"][x], "type");
             if (outputType == "RPIWS281X"|| outputType == "BBB48String" ||
@@ -3637,7 +3637,7 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
                 int ph = GetJSONIntValue(val["channelOutputs"][x], "panelHeight");
                 int nw = 0; int nh = 0;
                 bool tall = false;
-                for (int p = 0; p < val["channelOutputs"][x]["panels"].size(); ++p) {
+                for (int p = 0; p < (int)val["channelOutputs"][x]["panels"].size(); ++p) {
                     int r = GetJSONIntValue(val["channelOutputs"][x]["panels"][p], "row");
                     int c = GetJSONIntValue(val["channelOutputs"][x]["panels"][p], "col");
                     nw = std::max(c, nw);
@@ -4141,7 +4141,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 fpp->controllerVariant = res->variant;
                 TypeIDtoControllerType(res->typeId, fpp);
                 if (res->extraData.contains("playlists")) {
-                    for (int x = 0; x < res->extraData["playlists"].size(); x++) {
+                    for (int x = 0; x < (int)res->extraData["playlists"].size(); x++) {
                         fpp->playlists.push_back(res->extraData["playlists"][x].get<std::string>());
                     }
                 }
@@ -4184,7 +4184,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 TypeIDtoControllerType(res->typeId, fpp);
                 if (fpp->playlists.empty() && res->extraData.contains("playlists")) {
-                    for (int x = 0; x < res->extraData["playlists"].size(); x++) {
+                    for (int x = 0; x < (int)res->extraData["playlists"].size(); x++) {
                         fpp->playlists.push_back(res->extraData["playlists"][x].get<std::string>());
                     }
                 }
@@ -4232,7 +4232,7 @@ std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
     if (IsConnected()) {
         nlohmann::json val;
         if (GetURLAsJSON("/api/proxies", val)) {
-            for (int x = 0; x < val.size(); x++) {
+            for (int x = 0; x < (int)val.size(); x++) {
                 if (val[x].is_string()) {
                     spdlog::debug("FPP {} proxies {}.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
                     res.push_back({ (val[x].get<std::string>()), std::string() });

@@ -565,7 +565,7 @@ std::map<int, std::list<wxRealPoint>> WiringDialog::ExtractPoints(wxGrid* grid, 
 {
     std::map<int, std::list<wxRealPoint>> res;
 
-    for (size_t r = 0; r < grid->GetNumberRows(); r++)
+    for (size_t r = 0; r < (size_t)grid->GetNumberRows(); r++)
     {
         if (reverse)
         {
