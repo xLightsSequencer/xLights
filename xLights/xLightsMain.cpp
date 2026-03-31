@@ -2343,6 +2343,7 @@ xLightsFrame::~xLightsFrame()
     selectedEffect = nullptr;
     _outputManager.AllOff();
     _outputManager.StopOutput();
+    SetConfigBool("OutputActive", false);
 
     wxConfigBase* config = wxConfigBase::Get();
     if (mResetToolbars) {
@@ -2944,6 +2945,7 @@ void xLightsFrame::CycleOutputsIfOn()
 {
     if (_outputManager.IsOutputting()) {
         _outputManager.StopOutput();
+        SetConfigBool("OutputActive", false);
         EnableSleepModes();
         ForceEnableOutputs();
     }
@@ -2955,6 +2957,7 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer)
     if (!_outputManager.IsOutputting()) {
         DisableSleepModes();
         outputting = _outputManager.StartOutput();
+        if (outputting) SetConfigBool("OutputActive", true);
         if (startTimer) {
             StartOutputTimer();
         }
@@ -2988,7 +2991,7 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer)
 
 bool xLightsFrame::EnableOutputs(bool ignoreCheck)
 {
-    if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess()) {
+    if (!ignoreCheck && GetConfigBool("OutputActive", false)) {
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
     bool ok = ForceEnableOutputs();
@@ -3002,6 +3005,7 @@ bool xLightsFrame::DisableOutputs()
     if (_outputManager.IsOutputting()) {
         _outputManager.AllOff();
         _outputManager.StopOutput();
+        SetConfigBool("OutputActive", false);
         EnableSleepModes();
 
         // for (auto &controller : _outputManager.GetControllers()) {

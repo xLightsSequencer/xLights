@@ -28,6 +28,7 @@
 #include "UserButton.h"
 #include "Xyzzy.h"
 #include "xScheduleApp.h"
+#include "../xLights/ui/wxUtilities.h"
 #include "xScheduleMain.h"
 #include "../xLights/utils/AudioManager.h"
 #include "../xLights/utils/Parallel.h"
@@ -158,11 +159,11 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 
     if (_scheduleOptions->IsSendOffWhenNotRunning()) {
         if (!_outputManager->IsOutputting()) {
-            if (_outputManager->IsOutputOpenInAnotherProcess()) {
+            if (GetConfigBool("OutputActive", false)) {
                 spdlog::warn("Warning: Lights output is already open in another process. This will cause issues.");
             }
             DisableRemoteOutputs();
-            _outputManager->StartOutput();
+            if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
 #ifdef __WXMSW__
             ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 #endif
@@ -343,6 +344,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
 ScheduleManager::~ScheduleManager() {
     AllOff();
     _outputManager->StopOutput();
+    SetConfigBool("OutputActive", false);
 #ifdef __WXMSW__
     ::SetPriorityClass(::GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
 #endif
@@ -3317,11 +3319,12 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
     if (_outputManager != nullptr) {
         if (otl) {
             if (!IsOutputToLights()) {
-                if (_outputManager->IsOutputOpenInAnotherProcess() && interactive) {
+                if (GetConfigBool("OutputActive", false) && interactive) {
                     wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
                 }
                 DisableRemoteOutputs();
                 bool success = _outputManager->StartOutput();
+                if (success) SetConfigBool("OutputActive", true);
 #ifdef __WXMSW__
                 ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 #endif
@@ -3336,6 +3339,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
         } else {
             if (IsOutputToLights()) {
                 _outputManager->StopOutput();
+                SetConfigBool("OutputActive", false);
 #ifdef __WXMSW__
                 ::SetPriorityClass(::GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
 #endif
@@ -3355,11 +3359,11 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame) {
     if (_manualOTL > 1)
         _manualOTL = -1;
     if (_manualOTL == 1) {
-        if (_outputManager->IsOutputOpenInAnotherProcess()) {
+        if (GetConfigBool("OutputActive", false)) {
             wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
         }
         DisableRemoteOutputs();
-        _outputManager->StartOutput();
+        if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
 #ifdef __WXMSW__
         ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 #endif
@@ -3368,6 +3372,7 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame) {
         GetListenerManager()->ProcessPacket("State", "Lights On");
     } else if (_manualOTL == 0) {
         _outputManager->StopOutput();
+        SetConfigBool("OutputActive", false);
 #ifdef __WXMSW__
         ::SetPriorityClass(::GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
 #endif
@@ -4815,10 +4820,11 @@ void ScheduleManager::SetForceLocalIP(const std::string& forceLocalIP) {
         bool outputting = false;
         if (_outputManager->IsOutputting()) {
             _outputManager->StopOutput();
+            SetConfigBool("OutputActive", false);
         }
         _outputManager->Load(_showDir);
         if (outputting) {
-            _outputManager->StartOutput();
+            if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
         }
     }
 }

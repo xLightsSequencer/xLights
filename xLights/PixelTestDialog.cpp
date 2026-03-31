@@ -1614,7 +1614,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     }
     EnsureWindowHeaderIsOnScreen(this);
 
-    if (_outputManager->IsOutputOpenInAnotherProcess()) {
+    if (GetConfigBool("OutputActive", false)) {
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
 
@@ -3484,7 +3484,7 @@ char PixelTestDialog::GetChannelColour(long ch)
 void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 {
     if (CheckBox_OutputToLights->IsChecked()) {
-        if (_outputManager->IsOutputOpenInAnotherProcess()) {
+        if (GetConfigBool("OutputActive", false)) {
             DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
         }
 
@@ -3499,6 +3499,7 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
         wxTimerEvent ev(Timer1);
         OnTimer1Trigger(ev);
         _outputManager->StopOutput();
+        SetConfigBool("OutputActive", false);
     }
 }
 
@@ -3768,6 +3769,7 @@ void PixelTestDialog::OnClose(wxCloseEvent& event)
         Timer1.Stop();
         _outputManager->AllOff();
         _outputManager->StopOutput();
+        SetConfigBool("OutputActive", false);
     }
 
     wxConfigBase* config = wxConfigBase::Get();

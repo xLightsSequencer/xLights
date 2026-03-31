@@ -10,7 +10,6 @@
  **************************************************************/
 
 #include <pugixml.hpp>
-#include <wx/config.h>
 
 #include "IPOutput.h"
 #include "OutputManager.h"
@@ -46,18 +45,6 @@ std::function<bool(const std::string&, const std::string&)> OutputManager::_conf
 #pragma endregion
 
 #pragma region Private Functions
-bool OutputManager::SetGlobalOutputtingFlag(bool state, bool force) {
-
-    if (state != _outputting && !force) return false;
-
-    wxConfig* xlconfig = new wxConfig(_("xLights"));
-    if (xlconfig != nullptr) {
-        xlconfig->Write(_("OutputActive"), state);
-        delete xlconfig;
-        return true;
-    }
-    return false;
-}
 
 bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc) const {
 
@@ -1133,27 +1120,8 @@ std::string OutputManager::GetChannelName(int32_t channel) {
     }
 }
 
-bool OutputManager::IsOutputOpenInAnotherProcess() {
-
-    
-
-    wxConfig* xlconfig = new wxConfig(_("xLights"));
-    if (xlconfig != nullptr) {
-        if (xlconfig->HasEntry(_("OutputActive"))) {
-            bool state;
-            xlconfig->Read(_("OutputActive"), &state);
-            delete xlconfig;
-
-            if (state) {
-                spdlog::warn("Output already seems to be happening. This may generate odd results.");
-            }
-
-            return state;
-        }
-    }
-    return false;
-}
 #pragma endregion
+
 
 #pragma region Start and Stop
 bool OutputManager::StartOutput() {
@@ -1161,7 +1129,7 @@ bool OutputManager::StartOutput() {
     
 
     if (_outputting) return false;
-    if (!_outputCriticalSection.TryEnter()) return false;
+    if (!_outputCriticalSection.try_lock()) return false;
 
     spdlog::debug("Starting light output.");
 
@@ -1203,11 +1171,7 @@ bool OutputManager::StartOutput() {
         _outputting = true;
     }
 
-    _outputCriticalSection.Leave();
-
-    if (_outputting) {
-        SetGlobalOutputtingFlag(true);
-    }
+    _outputCriticalSection.unlock();
 
     return _outputting; // even partially started is ok
 }
@@ -1217,7 +1181,7 @@ void OutputManager::StopOutput() {
     
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
     spdlog::debug("Stopping light output.");
 
@@ -1227,8 +1191,7 @@ void OutputManager::StopOutput() {
         it->Close();
     }
 
-    SetGlobalOutputtingFlag(false);
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 size_t OutputManager::TxNonEmptyCount() {
@@ -1253,29 +1216,29 @@ bool OutputManager::TxEmpty() {
 void OutputManager::StartFrame(long msec) {
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
     
     for (const auto& it : GetAllOutputs()) {
         it->StartFrame(msec);
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 void OutputManager::ResetFrame() {
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
     for (const auto& it : GetAllOutputs()) {
         it->ResetFrame();
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 void OutputManager::EndFrame() {
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
     auto outputs = GetAllOutputs();
     if (_parallelTransmission) {
@@ -1313,7 +1276,7 @@ void OutputManager::EndFrame() {
                 ZCPPOutput::SendSync(it);
         }
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 void OutputManager::SendHeartbeat() {
@@ -1377,7 +1340,7 @@ void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t
 
 void OutputManager::AllOff(bool send) {
 
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
     for (const auto& it : GetAllOutputs()) {
         it->AllOff();
@@ -1385,7 +1348,7 @@ void OutputManager::AllOff(bool send) {
             it->EndFrame(_suppressFrames);
         }
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 #pragma endregion 
 

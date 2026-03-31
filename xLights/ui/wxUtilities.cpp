@@ -559,3 +559,18 @@ AnimatedImageData LoadGIFAnimationDataWx(const std::string& filename)
 
     return result;
 }
+
+void SetConfigBool(const std::string& key, bool value) {
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr) {
+        config->Write(key, value);
+    }
+}
+
+bool GetConfigBool(const std::string& key, bool defaultValue) {
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr) {
+        return config->ReadBool(key, defaultValue);
+    }
+    return defaultValue;
+}

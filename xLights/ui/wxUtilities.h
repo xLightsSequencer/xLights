@@ -159,6 +159,10 @@ void ViewTempFile(const wxString& content, const wxString& name = "temp", const 
 
 void DownloadVamp();
 
+// wxConfig wrapper for cross-process communication
+void SetConfigBool(const std::string& key, bool value);
+bool GetConfigBool(const std::string& key, bool defaultValue = false);
+
 wxColor CyanOrBlue();
 wxColor LightOrMediumGrey();
 wxColor BlueOrLightBlue();

@@ -21,7 +21,6 @@
 #pragma region Constructors and Destructors
 ControllerNull::ControllerNull(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
     _dirty = false;
-    wxASSERT(_outputs.size() == 1);
 }
 
 ControllerNull::ControllerNull(OutputManager* om) : Controller(om) {

@@ -10,12 +10,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/thread.h>
 #include <pugixml.hpp>
 
 #include <functional>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -45,7 +45,7 @@ class OutputManager
     bool _didConvert = false;
     std::string _globalFPPProxy;
     std::string _globalForceLocalIP;
-    wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
+    std::mutex _outputCriticalSection; // used to protect areas that must be single threaded
     std::string _baseShowDir = "";
     bool _autoUpdateFromBaseShowDir = false;
     #pragma endregion 
@@ -59,12 +59,10 @@ class OutputManager
     static bool _isRetryOpen;
     static bool _isInteractive;
     // Callback for user confirmation prompts (replaces wxMessageBox in non-UI code)
-    // Returns true if user confirms (Yes), false otherwise
     static std::function<bool(const std::string& message, const std::string& title)> _confirmCallback;
-    #pragma endregion 
+    #pragma endregion
 
     #pragma region Private Functions
-    bool SetGlobalOutputtingFlag(bool state, bool force = false);
     bool ConvertStartChannel(const std::string sc, std::string& newsc) const;
     void AsyncPingAll();
     #pragma endregion 

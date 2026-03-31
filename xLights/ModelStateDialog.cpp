@@ -302,6 +302,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
     _oldOutputToLights = _outputManager->IsOutputting();
     if (_oldOutputToLights) {
         _outputManager->StopOutput();
+        SetConfigBool("OutputActive", false);
     }
 }
 
@@ -317,7 +318,7 @@ ModelStateDialog::~ModelStateDialog()
     config->Flush();
     StopOutputToLights();
     if (_oldOutputToLights) {
-        _outputManager->StartOutput();
+        if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
     }
 }
 
@@ -1829,7 +1830,7 @@ void ModelStateDialog::OnTimer1Trigger(wxTimerEvent& event)
 void ModelStateDialog::StartOutputToLights()
 {
     if (!timer1.IsRunning()) {
-        _outputManager->StartOutput();
+        if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
         timer1.SetOwner(this, ID_TIMER1);
         Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&ModelStateDialog::OnTimer1Trigger);
         timer1.Start(50, false);
@@ -1844,6 +1845,7 @@ bool ModelStateDialog::StopOutputToLights()
         _outputManager->AllOff();
         _outputManager->EndFrame();
         _outputManager->StopOutput();
+        SetConfigBool("OutputActive", false);
         return true;
     }
     return false;

@@ -319,6 +319,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     CheckBoxLightOutput->SetValue(false);
     EnableSleepModes();
     _outputManager.StopOutput();
+    SetConfigBool("OutputActive", false);
     waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
     CurrentDir = nd;

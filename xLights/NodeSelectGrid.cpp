@@ -1371,7 +1371,7 @@ void NodeSelectGrid::OnTimer1Trigger(wxTimerEvent& event)
 void NodeSelectGrid::StartOutputToLights()
 {
     if (!timer1.IsRunning()) {
-        _outputManager->StartOutput();
+        if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
         timer1.SetOwner(this, ID_TIMER1);
         Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&NodeSelectGrid::OnTimer1Trigger);
         timer1.Start(50, false);
@@ -1386,6 +1386,7 @@ bool NodeSelectGrid::StopOutputToLights()
         _outputManager->AllOff();
         _outputManager->EndFrame();
         _outputManager->StopOutput();
+        SetConfigBool("OutputActive", false);
         return true;
     }
     return false;
