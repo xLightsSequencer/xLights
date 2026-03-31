@@ -19,6 +19,10 @@
 class Output;
 class SerialOutput;
 
+#ifdef SetPort
+#undef SetPort  // Windows winspool.h defines SetPort as SetPortW
+#endif
+
 // An serial controller sends data to a unique com port
 class ControllerSerial : public Controller
 {

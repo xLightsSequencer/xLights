@@ -35,6 +35,10 @@
 
 #include <log.h>
 
+#ifdef SetPort
+#undef SetPort  // Windows winspool.h defines SetPort as SetPortW
+#endif
+
 // Property choices moved to ui/controllerproperties/ControllerSerialPropertyAdapter
 
 #pragma region Constructors and Destructors

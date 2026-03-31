@@ -65,6 +65,10 @@
 #include "outputs/Output.h"
 #include <log.h>
 
+#ifdef GetObject
+#undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
+#endif
+
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     layoutGroups(nullptr),
     _outputManager(outputManager),

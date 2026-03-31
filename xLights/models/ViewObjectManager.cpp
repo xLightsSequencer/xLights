@@ -26,6 +26,10 @@
 
 #include <log.h>
 
+#ifdef GetObject
+#undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
+#endif
+
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {
     //ctor

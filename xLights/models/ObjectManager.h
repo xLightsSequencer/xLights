@@ -16,6 +16,10 @@ class BaseObject;
 class OutputModelManager;
 class UICallbacks;
 
+#ifdef GetObject
+#undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
+#endif
+
 class ObjectManager
 {
 public:
