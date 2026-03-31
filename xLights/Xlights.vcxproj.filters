@@ -4,24 +4,24 @@
     <ClCompile Include="import_export\ExportEffects.cpp" />
     <ClCompile Include="import_export\ImportEffects.cpp" />
     <ClCompile Include="import_export\TimingImport.cpp" />
-    <ClCompile Include="ui\import-export\BatchRenderDialog.cpp" />
+    <ClCompile Include="ui\sequencer\BatchRenderDialog.cpp" />
     <ClCompile Include="ui/shared/controls/BulkEditControls.cpp" />
-    <ClCompile Include="ui\import-export\BulkEditSliderDialog.cpp" />
+    <ClCompile Include="ui\sequencer\BulkEditSliderDialog.cpp" />
     <ClCompile Include="utils\CachedFileDownloader.cpp" />
     <ClCompile Include="ui/color/ColorManager.cpp" />
     <ClCompile Include="ui/sequencer/CustomTimingDialog.cpp" />
     <ClCompile Include="ui/sequencer/EffectTimingDialog.cpp" />
     <ClCompile Include="utils\AnimatedImage.cpp" />
     <ClCompile Include="render\FontManager.cpp" />
-    <ClCompile Include="ui\import-export\GenerateLyricsDialog.cpp" />
+    <ClCompile Include="ui\sequencer\GenerateLyricsDialog.cpp" />
     <ClCompile Include="ui/layout/HousePreviewPanel.cpp" />
     <ClCompile Include="ui/setup/IPEntryDialog.cpp" />
-    <ClCompile Include="ui\import-export\MatrixFaceDownloadDialog.cpp" />
+    <ClCompile Include="ui\model\MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="utils\AudioManager.cpp" />
     <ClCompile Include="ui/shared/utils/BitmapCache.cpp" />
     <ClCompile Include="ui/sequencer/BufferPanel.cpp" />
-    <ClCompile Include="ui\import-export\BufferSizeDialog.cpp" />
-    <ClCompile Include="ui\import-export\ChannelLayoutDialog.cpp" />
+    <ClCompile Include="ui\sequencer\BufferSizeDialog.cpp" />
+    <ClCompile Include="ui\model\ChannelLayoutDialog.cpp" />
     <ClCompile Include="utils\Color.cpp" />
     <ClCompile Include="render\ColorCurve.cpp" />
     <ClCompile Include="ui/color/ColorCurveDialog.cpp" />
@@ -48,13 +48,13 @@
     <ClCompile Include="ui/layout/LayoutPanel.cpp" />
     <ClCompile Include="ui\import-export\LMSImportChannelMapDialog.cpp" />
     <ClCompile Include="ui\import-export\LorConvertDialog.cpp" />
-    <ClCompile Include="ui\import-export\LyricsDialog.cpp" />
+    <ClCompile Include="ui\sequencer\LyricsDialog.cpp" />
     <ClCompile Include="ui/layout/ModelPreview.cpp" />
     <ClCompile Include="models\Shapes.cpp" />
     <ClCompile Include="MusicXML.cpp" />
     <ClCompile Include="ui/sequencer/NewTimingDialog.cpp" />
     <ClCompile Include="ui/shared/utils/NodesGridCellEditor.cpp" />
-    <ClCompile Include="ui\import-export\NoteImportDialog.cpp" />
+    <ClCompile Include="ui\sequencer\NoteImportDialog.cpp" />
     <ClCompile Include="ui/shared/dialogs/OptionChooser.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="ui/sequencer/PerspectivesPanel.cpp" />
@@ -75,10 +75,10 @@
     </ClCompile>
     <ClCompile Include="ui/sequencer/RenderCommandEvent.cpp" />
     <ClCompile Include="ui/diagnostics/RenderProgressDialog.cpp" />
-    <ClCompile Include="ui\import-export\ResizeImageDialog.cpp" />
+    <ClCompile Include="ui\media\ResizeImageDialog.cpp" />
     <ClCompile Include="ui/app-shell/SaveChangesDialog.cpp" />
     <ClCompile Include="ui/sequencer/SelectPanel.cpp" />
-    <ClCompile Include="ui\import-export\SelectTimingsDialog.cpp" />
+    <ClCompile Include="ui\sequencer\SelectTimingsDialog.cpp" />
     <ClCompile Include="ui/diagnostics/SeqElementMismatchDialog.cpp" />
     <ClCompile Include="ui\import-export\SeqExportDialog.cpp" />
     <ClCompile Include="ui/import-export/SeqFileUtilities.cpp" />
@@ -102,7 +102,7 @@
     <ClCompile Include="render\ValueCurve.cpp" />
     <ClCompile Include="ui\ValueCurveButton.cpp" />
     <ClCompile Include="ui\ValueCurveDialog.cpp" />
-    <ClCompile Include="ui\import-export\VAMPPluginDialog.cpp" />
+    <ClCompile Include="ui\sequencer\VAMPPluginDialog.cpp" />
     <ClCompile Include="ui/media/VideoExporter.cpp" />
     <ClCompile Include="ui\import-export\VendorModelDialog.cpp" />
     <ClCompile Include="render/VideoReader.cpp" />
@@ -154,9 +154,9 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="ui/model/PathGenerationDialog.cpp" />
-    <ClCompile Include="ui\import-export\RemapDMXChannelsDialog.cpp" />
+    <ClCompile Include="ui\setup\RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="import_export\LOREdit.cpp" />
-    <ClCompile Include="ui\import-export\AlignmentDialog.cpp" />
+    <ClCompile Include="ui\model\AlignmentDialog.cpp" />
     <ClCompile Include="ui/effects/CharMapDialog.cpp" />
     <ClCompile Include="models\ArchesModel.cpp">
       <Filter>Models</Filter>
@@ -264,7 +264,7 @@
     <ClCompile Include="models\MeshObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="ui\import-export\ImportPreviewsModelsDialog.cpp" />
+    <ClCompile Include="ui\model\ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="ui/effects/ShaderDownloadDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp">
       <Filter>Outputs</Filter>
@@ -478,7 +478,7 @@
     <ClCompile Include="controllers\SanDevices.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="ui\import-export\BulkEditFontPickerDialog.cpp" />
+    <ClCompile Include="ui\sequencer\BulkEditFontPickerDialog.cpp" />
     <ClCompile Include="outputs\NullOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -621,7 +621,7 @@
     <ClCompile Include="ui/model/SubModelGenerateDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="ui\import-export\BulkEditColourPickerDialog.cpp" />
+    <ClCompile Include="ui\sequencer\BulkEditColourPickerDialog.cpp" />
     <ClCompile Include="outputs\RenardOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -645,7 +645,7 @@
     <ClCompile Include="models\DMX\DmxGeneral.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="ui\import-export\AboutDialog.cpp" />
+    <ClCompile Include="ui\app-shell\AboutDialog.cpp" />
     <ClCompile Include="outputs\KinetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -704,7 +704,7 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="CopyFormat1.cpp" />
-    <ClCompile Include="ui\import-export\MediaImportOptionsDialog.cpp" />
+    <ClCompile Include="ui\media\MediaImportOptionsDialog.cpp" />
     <ClCompile Include="render/SequencePackage.cpp" />
     <ClCompile Include="cad\CADModel.cpp">
       <Filter>cad</Filter>
@@ -815,7 +815,7 @@
     <ClCompile Include="controllers\Experience.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="ui\import-export\BulkEditComboDialog.cpp" />
+    <ClCompile Include="ui\sequencer\BulkEditComboDialog.cpp" />
     <ClCompile Include="utils\string_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -995,7 +995,7 @@
     <ClCompile Include="ui\controllers\FPPUploadProgressDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="ui\import-export\AutoLabelDialog.cpp" />
+    <ClCompile Include="ui\sequencer\AutoLabelDialog.cpp" />
     <ClCompile Include="effects\DuplicateEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -1438,24 +1438,24 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ui\import-export\BatchRenderDialog.h" />
+    <ClInclude Include="ui\sequencer\BatchRenderDialog.h" />
     <ClInclude Include="ui/shared/controls/BulkEditControls.h" />
-    <ClInclude Include="ui\import-export\BulkEditSliderDialog.h" />
+    <ClInclude Include="ui\sequencer\BulkEditSliderDialog.h" />
     <ClInclude Include="utils\CachedFileDownloader.h" />
     <ClInclude Include="ui/color/ColorManager.h" />
     <ClInclude Include="ui/sequencer/EffectTimingDialog.h" />
     <ClInclude Include="render\FontManager.h" />
-    <ClInclude Include="ui\import-export\GenerateLyricsDialog.h" />
+    <ClInclude Include="ui\sequencer\GenerateLyricsDialog.h" />
     <ClInclude Include="ui/layout/HousePreviewPanel.h" />
-    <ClInclude Include="ui\import-export\MatrixFaceDownloadDialog.h" />
+    <ClInclude Include="ui\model\MatrixFaceDownloadDialog.h" />
     <ClInclude Include="ui/sequencer/CustomTimingDialog.h" />
     <ClInclude Include="utils\AnimatedImage.h" />
     <ClInclude Include="ui/setup/IPEntryDialog.h" />
     <ClInclude Include="utils\AudioManager.h" />
     <ClInclude Include="ui/shared/utils/BitmapCache.h" />
     <ClInclude Include="ui/sequencer/BufferPanel.h" />
-    <ClInclude Include="ui\import-export\BufferSizeDialog.h" />
-    <ClInclude Include="ui\import-export\ChannelLayoutDialog.h" />
+    <ClInclude Include="ui\sequencer\BufferSizeDialog.h" />
+    <ClInclude Include="ui\model\ChannelLayoutDialog.h" />
     <ClInclude Include="utils\Color.h" />
     <ClInclude Include="render\ColorCurve.h" />
     <ClInclude Include="colorcurvedialog.h" />
@@ -1483,13 +1483,13 @@
     <ClInclude Include="ui/layout/LayoutPanel.h" />
     <ClInclude Include="ui\import-export\LMSImportChannelMapDialog.h" />
     <ClInclude Include="ui\import-export\LorConvertDialog.h" />
-    <ClInclude Include="ui\import-export\LyricsDialog.h" />
+    <ClInclude Include="ui\sequencer\LyricsDialog.h" />
     <ClInclude Include="ui/layout/ModelPreview.h" />
     <ClInclude Include="models\Shapes.h" />
     <ClInclude Include="MusicXML.h" />
     <ClInclude Include="ui/sequencer/NewTimingDialog.h" />
     <ClInclude Include="ui/shared/utils/NodesGridCellEditor.h" />
-    <ClInclude Include="ui\import-export\NoteImportDialog.h" />
+    <ClInclude Include="ui\sequencer\NoteImportDialog.h" />
     <ClInclude Include="ui/shared/dialogs/OptionChooser.h" />
     <ClInclude Include="utils/ExternalHooks.h" />
     <ClInclude Include="outputs\TestPreset.h" />
@@ -1505,10 +1505,10 @@
     </ClInclude>
     <ClInclude Include="ui/sequencer/RenderCommandEvent.h" />
     <ClInclude Include="ui/diagnostics/RenderProgressDialog.h" />
-    <ClInclude Include="ui\import-export\ResizeImageDialog.h" />
+    <ClInclude Include="ui\media\ResizeImageDialog.h" />
     <ClInclude Include="ui/app-shell/SaveChangesDialog.h" />
     <ClInclude Include="ui/sequencer/SelectPanel.h" />
-    <ClInclude Include="ui\import-export\SelectTimingsDialog.h" />
+    <ClInclude Include="ui\sequencer\SelectTimingsDialog.h" />
     <ClInclude Include="ui/diagnostics/SeqElementMismatchDialog.h" />
     <ClInclude Include="ui\import-export\SeqExportDialog.h" />
     <ClInclude Include="ui/sequencer/SeqSettingsDialog.h" />
@@ -1528,7 +1528,7 @@
     <ClInclude Include="render\ValueCurve.h" />
     <ClInclude Include="ui\ValueCurveButton.h" />
     <ClInclude Include="ui\ValueCurveDialog.h" />
-    <ClInclude Include="ui\import-export\VAMPPluginDialog.h" />
+    <ClInclude Include="ui\sequencer\VAMPPluginDialog.h" />
     <ClInclude Include="ui/media/VideoExporter.h" />
     <ClInclude Include="ui\import-export\VendorModelDialog.h" />
     <ClInclude Include="render/VideoReader.h" />
@@ -1585,10 +1585,10 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="ui/model/PathGenerationDialog.h" />
-    <ClInclude Include="ui\import-export\RemapDMXChannelsDialog.h" />
+    <ClInclude Include="ui\setup\RemapDMXChannelsDialog.h" />
     <ClInclude Include="import_export\LOREdit.h" />
     <ClInclude Include="..\include\globals.h" />
-    <ClInclude Include="ui\import-export\AlignmentDialog.h" />
+    <ClInclude Include="ui\model\AlignmentDialog.h" />
     <ClInclude Include="ui/effects/CharMapDialog.h" />
     <ClInclude Include="models\ArchesModel.h">
       <Filter>Models</Filter>
@@ -1696,7 +1696,7 @@
     <ClInclude Include="models\MeshObject.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="ui\import-export\ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="ui\model\ImportPreviewsModelsDialog.h" />
     <ClInclude Include="ui/effects/ShaderDownloadDialog.h" />
     <ClInclude Include="outputs\ZCPP.h">
       <Filter>Outputs</Filter>
@@ -1919,7 +1919,7 @@
     <ClInclude Include="controllers\SanDevices.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="ui\import-export\BulkEditFontPickerDialog.h" />
+    <ClInclude Include="ui\sequencer\BulkEditFontPickerDialog.h" />
     <ClInclude Include="outputs\NullOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -2057,7 +2057,7 @@
     <ClInclude Include="ui/model/SubModelGenerateDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="ui\import-export\BulkEditColourPickerDialog.h" />
+    <ClInclude Include="ui\sequencer\BulkEditColourPickerDialog.h" />
     <ClInclude Include="outputs\RenardOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -2081,7 +2081,7 @@
     <ClInclude Include="models\DMX\DmxGeneral.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="ui\import-export\AboutDialog.h" />
+    <ClInclude Include="ui\app-shell\AboutDialog.h" />
     <ClInclude Include="outputs\KinetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -2140,7 +2140,7 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="CopyFormat1.h" />
-    <ClInclude Include="ui\import-export\MediaImportOptionsDialog.h" />
+    <ClInclude Include="ui\media\MediaImportOptionsDialog.h" />
     <ClInclude Include="render/SequencePackage.h" />
     <ClInclude Include="cad\CADModel.h">
       <Filter>cad</Filter>
@@ -2262,7 +2262,7 @@
     <ClInclude Include="controllers\Experience.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="ui\import-export\BulkEditComboDialog.h" />
+    <ClInclude Include="ui\sequencer\BulkEditComboDialog.h" />
     <ClInclude Include="utils\string_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
@@ -2451,7 +2451,7 @@
     <ClInclude Include="ui\controllers\FPPUploadProgressDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="ui\import-export\AutoLabelDialog.h" />
+    <ClInclude Include="ui\sequencer\AutoLabelDialog.h" />
     <ClInclude Include="effects\DuplicateEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
