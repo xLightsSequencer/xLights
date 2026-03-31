@@ -34,7 +34,7 @@
 #include "../xLights/utils/Parallel.h"
 #include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
-#include "../xLights/VideoReader.h"
+#include "../xLights/render/VideoReader.h"
 #include "../xLights/outputs/Controller.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/outputs/IPOutput.h"

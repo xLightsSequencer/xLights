@@ -35,7 +35,7 @@
 #include "ui/color/ColorManager.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "MediaImportOptionsDialog.h"
+#include "ui/media/MediaImportOptionsDialog.h"
 #include "ui/layout/LayoutUtils.h"
 #include "ui/color/xlColourData.h"
 #include "utils/string_utils.h"

@@ -20,7 +20,7 @@
 #include "../../xLights/render/FSEQFile.h"
 #include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
-#include "../../xLights/VideoReader.h"
+#include "../../xLights/render/VideoReader.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"

@@ -15,7 +15,7 @@
 #include "PlayListItemVideo.h"
 #include "PlayListItemVideoPanel.h"
 #include "../VideoCache.h"
-#include "../../xLights/VideoReader.h"
+#include "../../xLights/render/VideoReader.h"
 #include "../xScheduleApp.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"

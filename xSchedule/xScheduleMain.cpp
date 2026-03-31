@@ -63,7 +63,7 @@
 #include "events/ListenerManager.h"
 #include "ExtraIPsDialog.h"
 #include "SyncFPP.h"
-#include "../xLights/VideoReader.h"
+#include "../xLights/render/VideoReader.h"
 #include "../xLights/SpecialOptions.h"
 #include "../xLights/outputs/Output.h"
 #include "../xLights/utils/AudioManager.h"
