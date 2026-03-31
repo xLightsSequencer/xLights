@@ -10,7 +10,7 @@
 
 #include <format>
 #include "RulerObject.h"
-#include "ModelPreview.h"
+#include "ui/layout/ModelPreview.h"
 #include "Model.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 

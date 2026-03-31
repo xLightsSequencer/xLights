@@ -10,9 +10,9 @@
 
 #include "LuaRunner.h"
 #include "xLightsMain.h"
-#include "BatchRenderDialog.h"
+#include "ui/sequencer/BatchRenderDialog.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../ui/wxUtilities.h"
 
 #include <log.h>

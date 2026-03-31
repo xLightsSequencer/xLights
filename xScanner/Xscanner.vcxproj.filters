@@ -89,7 +89,7 @@
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\Discovery.cpp">
+    <ClCompile Include="..\xLights\ui/setup/Discovery.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp">
@@ -107,7 +107,7 @@
     <ClCompile Include="..\xLights\utils\JobPool.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\TraceLog.cpp">
+    <ClCompile Include="..\xLights\utils\TraceLog.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\utils\Parallel.cpp">
@@ -252,7 +252,7 @@
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h">
       <Filter>xLights</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\Discovery.h">
+    <ClInclude Include="..\xLights\ui/setup/Discovery.h">
       <Filter>xLights</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h">
@@ -270,7 +270,7 @@
     <ClInclude Include="..\xLights\utils\JobPool.h">
       <Filter>xLights</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\TraceLog.h">
+    <ClInclude Include="..\xLights\utils\TraceLog.h">
       <Filter>xLights</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\utils\Parallel.h">
@@ -299,7 +299,7 @@
     <ClInclude Include="..\xLights\automation\automation.h">
       <Filter>xLights</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\ExternalHooks.h">
+    <ClInclude Include="..\xLights\utils/ExternalHooks.h">
       <Filter>xLights</Filter>
     </ClInclude>
     <ClInclude Include="..\common\xlBaseApp.h" />

@@ -57,14 +57,14 @@
 #include "../xLightsVersion.h"
 #include "Parallel.h"
 #include "ControllerCaps.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "TempFileManager.h"
 
 #include <log.h>
 #include "ControllerUploadData.h"
 #include "ui/controllers/FPPUploadProgressDialog.h"
 #include "../render/FSEQFile.h"
-#include "../Discovery.h"
+#include "ui/setup/Discovery.h"
 #include "../utils/CurlManager.h"
 #include "../utils/ip_utils.h"
 
@@ -80,7 +80,7 @@
 #include "SanDevices.h"
 #include "J1Sys.h"
 
-#include "../TraceLog.h"
+#include "../utils/TraceLog.h"
 using namespace TraceLog;
 
 static const std::string LEDPANELS("LED Panels");

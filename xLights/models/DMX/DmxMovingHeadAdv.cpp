@@ -27,7 +27,7 @@
 #include "DmxShutterAbility.h"
 #include "Mesh.h"
 #include "MovingHeads/MhFeature.h"
-#include "../../ModelPreview.h"
+#include "../../ui/layout/ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../render/RenderBuffer.h"
 #include "UtilFunctions.h"

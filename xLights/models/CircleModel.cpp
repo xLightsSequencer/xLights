@@ -11,7 +11,7 @@
 
 #include "CircleModel.h"
 #include "ModelScreenLocation.h"
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 CircleModel::CircleModel(const ModelManager& manager) : ModelWithScreenLocation(manager)

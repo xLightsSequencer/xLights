@@ -24,7 +24,7 @@ class wxTextCtrl;
 class StateEffect;
 class Model;
 
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class StatePanel: public xlEffectPanel

@@ -12,8 +12,8 @@
 // render orchestration in Render.cpp.
 
 #include "xLightsMain.h"
-#include "SeqExportDialog.h"
-#include "ExternalHooks.h"
+#include "ui/import-export/SeqExportDialog.h"
+#include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "models/ModelGroup.h"
 

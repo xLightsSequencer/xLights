@@ -20,7 +20,7 @@
 #include "Mesh.h"
 #include "Servo.h"
 #include "DmxColorAbilityRGB.h"
-#include "../../ModelPreview.h"
+#include "../../ui/layout/ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"

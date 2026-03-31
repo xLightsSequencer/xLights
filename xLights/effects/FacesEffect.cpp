@@ -25,7 +25,7 @@
 #include "UtilFunctions.h"
 #include "../render/RenderContext.h"
 #include "PicturesEffect.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include "../utils/string_utils.h"
 

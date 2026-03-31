@@ -15,9 +15,9 @@
 #include "CustomPropertyAdapter.h"
 #include "../../../models/CustomModel.h"
 #include "../../../models/ModelManager.h"
-#include "../../../OutputModelManager.h"
-#include "../../../CustomModelDialog.h"
-#include "../../../ExternalHooks.h"
+#include "../../../models/OutputModelManager.h"
+#include "../../../ui/model/CustomModelDialog.h"
+#include "utils/ExternalHooks.h"
 #include "../../../xLightsMain.h"
 
 #include <log.h>

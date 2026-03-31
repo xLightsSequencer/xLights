@@ -14,7 +14,7 @@
 #include "DmxPropertyAdapter.h"
 #include "../helpers/DmxAbilityPropertyHelpers.h"
 #include "../../../models/DMX/DmxModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 DmxPropertyAdapter::DmxPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _dmx(static_cast<DmxModel&>(model)) {}

@@ -15,11 +15,11 @@
 #include "ImageModel.h"
 #include "../utils/xlImage.h"
 #include "ModelScreenLocation.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../render/RenderBuffer.h"
 #include "../render/RenderContext.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log.h>

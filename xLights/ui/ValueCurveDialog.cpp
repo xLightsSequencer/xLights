@@ -22,7 +22,7 @@
 #include <wx/textdlg.h>
 #include <wx/valnum.h>
 
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "render/ValueCurve.h"
@@ -31,7 +31,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
-#include "sequencer/MainSequencer.h"
+#include "ui/sequencer/MainSequencer.h"
 #include "render/SequenceElements.h"
 
 #include <log.h>

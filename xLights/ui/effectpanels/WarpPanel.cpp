@@ -14,7 +14,7 @@
 #include "../../graphics/opengl/xlGLCanvas.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
-#include "../../TimingPanel.h"
+#include "ui/sequencer/TimingPanel.h"
 
 //(*InternalHeaders(WarpPanel)
 #include <wx/intl.h>

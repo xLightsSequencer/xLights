@@ -13,7 +13,7 @@
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
-#include "../../ModelPreview.h"
+#include "../../ui/layout/ModelPreview.h"
 #include "UtilFunctions.h"
 #include "../../xLightsVersion.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"

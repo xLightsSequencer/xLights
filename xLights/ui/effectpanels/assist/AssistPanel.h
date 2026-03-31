@@ -16,7 +16,7 @@
  #include <wx/sizer.h>
  //*)
 
-#include "../../../xlGridCanvas.h"
+#include "../../../ui/shared/utils/xlGridCanvas.h"
 
 #include <optional>
 

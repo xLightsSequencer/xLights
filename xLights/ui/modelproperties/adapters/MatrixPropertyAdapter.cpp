@@ -14,7 +14,7 @@
 
 #include "MatrixPropertyAdapter.h"
 #include "../../../models/MatrixModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
     "Top Left",

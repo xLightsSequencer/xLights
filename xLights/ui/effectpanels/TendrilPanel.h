@@ -20,7 +20,7 @@ class wxStaticText;
 class wxTextCtrl;
 //*)
 
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class TendrilPanel: public xlEffectPanel

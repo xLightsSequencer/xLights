@@ -21,8 +21,8 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
-#include "../ExternalHooks.h"
-#include "../sequencer/TimeLine.h"
+#include "utils/ExternalHooks.h"
+#include "../ui/sequencer/TimeLine.h"
 #include "Vixen3.h"
 
 #include <log.h>

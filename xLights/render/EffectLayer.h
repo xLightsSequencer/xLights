@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "Effect.h"
-#include "../sequencer/UndoManager.h"
+#include "UndoManager.h"
 #include "../effects/EffectManager.h"
 #include <atomic>
 #include <tuple>

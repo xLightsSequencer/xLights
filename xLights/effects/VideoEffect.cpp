@@ -21,7 +21,7 @@
 #include "UtilFunctions.h"
 #include "AudioManager.h"
 #include "../ui/effectpanels/VideoPanel.h"
-#include "../VideoReader.h"
+#include "../render/VideoReader.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
@@ -33,7 +33,7 @@
 #include "../render/SequenceElements.h"
 #include "../models/Model.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include "Parallel.h"
 #include "ispc/VideoFunctions.ispc.h"

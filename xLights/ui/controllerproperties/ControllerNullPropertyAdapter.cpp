@@ -17,7 +17,7 @@
 
 #include "outputs/Controller.h"
 #include "outputs/ControllerNull.h"
-#include "OutputModelManager.h"
+#include "models/OutputModelManager.h"
 #include "models/ModelManager.h"
 
 ControllerNullPropertyAdapter::ControllerNullPropertyAdapter(Controller& controller)

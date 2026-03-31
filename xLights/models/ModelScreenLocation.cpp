@@ -17,10 +17,10 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Shapes.h"
-#include "../ViewpointMgr.h"
+#include "ui/layout/ViewpointMgr.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
 #include "RulerObject.h"

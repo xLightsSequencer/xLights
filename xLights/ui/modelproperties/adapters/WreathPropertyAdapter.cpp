@@ -13,7 +13,7 @@
 
 #include "WreathPropertyAdapter.h"
 #include "../../../models/WreathModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { "Top Ctr-CCW", "Top Ctr-CW", "Bottom Ctr-CW", "Bottom Ctr-CCW" };
 static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));

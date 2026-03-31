@@ -12,7 +12,7 @@
 
 #include <filesystem>
 
-#include "../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "../render/RenderBuffer.h"
 #include "SketchEffectDrawing.h"
 #include "../ui/effectpanels/SketchPanel.h"
@@ -24,7 +24,7 @@
 #include "../models/Model.h"
 #include "UtilFunctions.h"
 #include "../render/RenderContext.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include "../../include/sketch-16.xpm"
 #include "../../include/sketch-24.xpm"

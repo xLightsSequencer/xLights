@@ -33,17 +33,17 @@ set(XLIGHTS_FILES
     ../xLights/controllers/FPP.h
     ../xLights/controllers/Pixlite16.cpp
     ../xLights/controllers/Pixlite16.h
-    ../xLights/Discovery.cpp
-    ../xLights/Discovery.h
+    ../xLights/ui/setup/Discovery.cpp
+    ../xLights/ui/setup/Discovery.h
     ../xLights/ExportSettings.cpp
     ../xLights/ExportSettings.h
-    ../xLights/ExternalHooks.h
+    ../xLights/utils/ExternalHooks.h
     ../xLights/JobPool.cpp
     ../xLights/JobPool.h
     ../xLights/Parallel.cpp
     ../xLights/Parallel.h
-    ../xLights/TraceLog.cpp
-    ../xLights/TraceLog.h
+    ../xLights/utils/TraceLog.cpp
+    ../xLights/utils/TraceLog.h
     ../xLights/UtilFunctions.cpp
     ../xLights/UtilFunctions.h
     ../xLights/xLightsVersion.cpp

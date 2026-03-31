@@ -10,7 +10,7 @@
 
 #include "CurlManager.h"
 #include "CachedFileDownloader.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../ui/wxUtilities.h"
 
 #include <wx/wx.h>

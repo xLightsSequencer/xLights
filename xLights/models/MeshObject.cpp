@@ -14,8 +14,8 @@
 
 #include "MeshObject.h"
 #include "UtilFunctions.h"
-#include "ModelPreview.h"
-#include "../ExternalHooks.h"
+#include "ui/layout/ModelPreview.h"
+#include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 
 #include "../render/UICallbacks.h"

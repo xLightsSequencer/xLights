@@ -15,7 +15,7 @@
 #include "../ScreenLocationPropertyHelper.h"
 #include "../../../models/CandyCaneModel.h"
 #include "../../../models/ThreePointScreenLocation.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* LEFT_RIGHT_VALUES[] = {
     "Green Square",

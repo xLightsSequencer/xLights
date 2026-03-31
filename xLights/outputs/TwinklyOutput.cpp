@@ -24,7 +24,7 @@
 #include <wx/sstream.h>
 
 #ifndef EXCLUDEDISCOVERY
-#include "../Discovery.h"
+#include "ui/setup/Discovery.h"
 #endif
 
 // this is how often we re-call the web service on the controller to put it in real time mode

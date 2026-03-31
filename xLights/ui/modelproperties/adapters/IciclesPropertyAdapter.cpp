@@ -16,7 +16,7 @@
 #include "../../../models/IciclesModel.h"
 #include "../../../models/ModelScreenLocation.h"
 #include "../../../models/TwoPointScreenLocation.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 #include "../PropertyGridHelpers.h"
 
 static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };

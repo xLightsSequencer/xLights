@@ -14,6 +14,8 @@
 #include "serial.h"
 
 #include "string_utils.h"
+#include "ControllerSerial.h"
+#include "models/OutputModelManager.h"
 
 
 #pragma region Private Functions

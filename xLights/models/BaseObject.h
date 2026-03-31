@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include <string>
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "BaseObjectVisitor.h"
 #include "DisplayAsType.h"
 #include "ModelScreenLocation.h"

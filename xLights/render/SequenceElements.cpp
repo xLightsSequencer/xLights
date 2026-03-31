@@ -15,7 +15,7 @@
 
 #include "SequenceElements.h"
 #include "pugixml.hpp"
-#include "../sequencer/TimeLine.h"
+#include "../ui/sequencer/TimeLine.h"
 #include "../xLightsMain.h"
 #include "SequenceFile.h"
 #include "../effects/RenderableEffect.h"
@@ -23,9 +23,9 @@
 #include "../models/ModelGroup.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
-#include "../SequenceViewManager.h"
-#include "../JukeboxPanel.h"
-#include "../TraceLog.h"
+#include "ui/sequencer/SequenceViewManager.h"
+#include "ui/media/JukeboxPanel.h"
+#include "../utils/TraceLog.h"
 
 #include <log.h>
 

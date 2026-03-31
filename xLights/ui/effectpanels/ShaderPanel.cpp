@@ -10,19 +10,19 @@
 
 #include "ShaderPanel.h"
 #include "../../effects/ShaderEffect.h"
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
-#include "../../ShaderDownloadDialog.h"
-#include "../../ExternalHooks.h"
+#include "../../ui/effects/ShaderDownloadDialog.h"
+#include "utils/ExternalHooks.h"
 #include "../wxUtilities.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
-#include "../../ManageMediaPanel.h"
+#include "ui/media/ManageMediaPanel.h"
 #include "../../utils/xlImage.h"
 
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
-#include "../../TimingPanel.h"
+#include "ui/sequencer/TimingPanel.h"
 #include "UtilFunctions.h"
 
 #include <wx/settings.h>

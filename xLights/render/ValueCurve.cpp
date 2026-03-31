@@ -15,7 +15,7 @@
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "AudioManager.h"
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "SequenceElements.h"
 
 #include <log.h>

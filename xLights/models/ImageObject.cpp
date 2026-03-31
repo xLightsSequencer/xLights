@@ -13,8 +13,8 @@
 #include "ImageObject.h"
 #include "../utils/xlImage.h"
 #include "UtilFunctions.h"
-#include "ModelPreview.h"
-#include "../ExternalHooks.h"
+#include "ui/layout/ModelPreview.h"
+#include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 
 #include <log.h>

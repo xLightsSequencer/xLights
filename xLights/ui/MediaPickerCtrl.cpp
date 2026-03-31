@@ -10,7 +10,7 @@
 
 #include "MediaPickerCtrl.h"
 #include "../xLightsMain.h"
-#include "../ManageMediaPanel.h"
+#include "ui/media/ManageMediaPanel.h"
 #include "../render/SequenceElements.h"
 #include "wxUtilities.h"
 

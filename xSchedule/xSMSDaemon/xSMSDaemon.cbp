@@ -113,8 +113,8 @@
 		<Unit filename="../../xLights/ui/wxUtilities.h" />
 		<Unit filename="../../xLights/utils/CurlManager.cpp" />
 		<Unit filename="../../xLights/utils/CurlManager.h" />
-		<Unit filename="../../xLights/xLightsTimer.cpp" />
-		<Unit filename="../../xLights/xLightsTimer.h" />
+		<Unit filename="../../xLights/ui/shared/utils/xLightsTimer.cpp" />
+		<Unit filename="../../xLights/ui/shared/utils/xLightsTimer.h" />
 		<Unit filename="../../xLights/xLightsVersion.cpp" />
 		<Unit filename="../../xLights/xLightsVersion.h" />
 		<Unit filename="../wxJSON/json_defs.h" />

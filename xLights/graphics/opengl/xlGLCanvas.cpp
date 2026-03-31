@@ -66,7 +66,7 @@ static bool hasOpenGL3FramebufferObjects()
 #include "xlGLCanvas.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
-#include "../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "xlOGL3GraphicsContext.h"
 
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)

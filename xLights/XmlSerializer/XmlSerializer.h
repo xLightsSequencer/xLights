@@ -18,8 +18,8 @@
 #include <vector>
 #include <pugixml.hpp>
 
-#include "../LayoutGroup.h"
-#include "../ExternalHooks.h"
+#include "ui/layout/LayoutGroup.h"
+#include "utils/ExternalHooks.h"
 
 struct XmlSerializer {
     XmlSerializer() {}

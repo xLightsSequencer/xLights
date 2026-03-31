@@ -97,8 +97,8 @@
 		<Unit filename="../xLights/utils/JobPool.h" />
 		<Unit filename="../xLights/utils/Parallel.cpp" />
 		<Unit filename="../xLights/utils/Parallel.h" />
-		<Unit filename="../xLights/TraceLog.cpp" />
-		<Unit filename="../xLights/TraceLog.h" />
+		<Unit filename="../xLights/utils/TraceLog.cpp" />
+		<Unit filename="../xLights/utils/TraceLog.h" />
 		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../xLights/utils/UtilFunctions.cpp" />
 		<Unit filename="../xLights/utils/UtilFunctions.h" />
@@ -112,8 +112,8 @@
 		<Unit filename="../xLights/utils/ip_utils.h" />
 		<Unit filename="../xLights/utils/string_utils.cpp" />
 		<Unit filename="../xLights/utils/string_utils.h" />
-		<Unit filename="../xLights/xLightsTimer.cpp" />
-		<Unit filename="../xLights/xLightsTimer.h" />
+		<Unit filename="../xLights/ui/shared/utils/xLightsTimer.cpp" />
+		<Unit filename="../xLights/ui/shared/utils/xLightsTimer.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />

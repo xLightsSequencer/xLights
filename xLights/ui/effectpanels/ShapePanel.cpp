@@ -17,7 +17,7 @@
 #include "../../render/RenderBuffer.h"
 #include "../../render/SequenceElements.h"
 #include "../../render/Element.h"
-#include "../../CharMapDialog.h"
+#include "../../ui/effects/CharMapDialog.h"
 #include "../../xLightsMain.h"
 
 //(*InternalHeaders(ShapePanel)

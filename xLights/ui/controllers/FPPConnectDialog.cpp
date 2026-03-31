@@ -19,13 +19,13 @@
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "outputs/ControllerEthernet.h"
 #include "utils/CurlManager.h"
 #include "controllers/ControllerCaps.h"
 #include "utils/ip_utils.h"
 #include "FPPUploadProgressDialog.h"
-#include "ModelPreview.h"
+#include "ui/layout/ModelPreview.h"
 
 #include "nlohmann/json.hpp"
 
@@ -35,7 +35,7 @@
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "render/FSEQFile.h"
 #include "Parallel.h"
-#include "Discovery.h"
+#include "ui/setup/Discovery.h"
 #include "controllers/Falcon.h"
 #include "controllers/Experience.h"
 #include <algorithm>

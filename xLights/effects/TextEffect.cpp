@@ -33,7 +33,7 @@
 #include "../render/FontManager.h"
 #include "../render/RenderContext.h"
 #include "../render/SequenceElements.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../render/SequenceFile.h"
 #include "../render/SequenceMedia.h"
 #include "../utils/string_utils.h"

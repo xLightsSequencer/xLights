@@ -18,13 +18,13 @@
 #include "DmxImage.h"
 #include "Servo.h"
 
-#include "../../ModelPreview.h"
+#include "../../ui/layout/ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../render/UICallbacks.h"
 #include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 #include <log.h>
-#include "../../ModelPreview.h"
+#include "../../ui/layout/ModelPreview.h"
 
 static const int SUPPORTED_SERVOS = 24;
 

@@ -217,7 +217,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
-    <ClCompile Include="..\xLights\Discovery.cpp" />
+    <ClCompile Include="..\xLights\ui/setup/Discovery.cpp" />
     <ClCompile Include="..\xLights\utils\AnimatedImage.cpp" />
     <ClCompile Include="..\xLights\utils\xlImage.cpp" />
     <ClCompile Include="..\xLights\render\FSEQFile.cpp" />
@@ -255,9 +255,9 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\xLights\utils\Parallel.cpp" />
-    <ClCompile Include="..\xLights\SequenceData.cpp" />
+    <ClCompile Include="..\xLights\render\SequenceData.cpp" />
     <ClCompile Include="..\xLights\SpecialOptions.cpp" />
-    <ClCompile Include="..\xLights\TraceLog.cpp" />
+    <ClCompile Include="..\xLights\utils\TraceLog.cpp" />
     <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\ui\wxUtilities.cpp" />
     <ClCompile Include="..\xLights\utils\CurlManager.cpp" />
@@ -273,7 +273,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="..\xLights\VideoReader.cpp" />
     <ClCompile Include="..\xLights\WindowsHardwareVideoReader.cpp" />
-    <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="..\xLights\ui\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="AddReverseDialog.cpp" />
     <ClCompile Include="BackgroundPlaylistDialog.cpp" />
@@ -472,10 +472,10 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
-    <ClInclude Include="..\xLights\Discovery.h" />
+    <ClInclude Include="..\xLights\ui/setup/Discovery.h" />
     <ClInclude Include="..\xLights\utils\AnimatedImage.h" />
     <ClInclude Include="..\xLights\utils\xlImage.h" />
-    <ClInclude Include="..\xLights\ExternalHooks.h" />
+    <ClInclude Include="..\xLights\utils/ExternalHooks.h" />
     <ClInclude Include="..\xLights\render\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
@@ -510,7 +510,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\xLights\SpecialOptions.h" />
-    <ClInclude Include="..\xLights\TraceLog.h" />
+    <ClInclude Include="..\xLights\utils\TraceLog.h" />
     <ClInclude Include="..\xLights\utils\UtilFunctions.h" />
     <ClInclude Include="..\xLights\ui\wxUtilities.h" />
     <ClInclude Include="..\xLights\utils\CurlManager.h" />
@@ -518,7 +518,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClInclude Include="..\xLights\utils\string_utils.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\WindowsHardwareVideoReader.h" />
-    <ClInclude Include="..\xLights\xLightsTimer.h" />
+    <ClInclude Include="..\xLights\ui\shared\utils\xLightsTimer.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="AddReverseDialog.h" />
     <ClInclude Include="BackgroundPlaylistDialog.h" />

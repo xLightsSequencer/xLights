@@ -18,7 +18,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"

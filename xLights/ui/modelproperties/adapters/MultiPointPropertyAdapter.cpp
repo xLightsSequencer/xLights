@@ -13,7 +13,7 @@
 
 #include "MultiPointPropertyAdapter.h"
 #include "../../../models/MultiPointModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 MultiPointPropertyAdapter::MultiPointPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _multiPoint(static_cast<MultiPointModel&>(model)) {}

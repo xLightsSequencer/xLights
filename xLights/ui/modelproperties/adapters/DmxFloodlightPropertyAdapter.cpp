@@ -15,7 +15,7 @@
 #include "../helpers/DmxAbilityPropertyHelpers.h"
 #include "../../../models/DMX/DmxFloodlight.h"
 #include "../../../controllers/ControllerCaps.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 DmxFloodlightPropertyAdapter::DmxFloodlightPropertyAdapter(Model& model)
     : DmxPropertyAdapter(model), _flood(static_cast<DmxFloodlight&>(model)) {}

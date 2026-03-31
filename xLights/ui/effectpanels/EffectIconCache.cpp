@@ -10,7 +10,7 @@
 
 #include "EffectIconCache.h"
 #include "../../effects/RenderableEffect.h"
-#include "../../BitmapCache.h"
+#include "../../ui/shared/utils/BitmapCache.h"
 
 #include <wx/image.h>
 

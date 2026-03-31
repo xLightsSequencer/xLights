@@ -21,7 +21,7 @@ class wxTextCtrl;
 //*)
 
 #include <wx/progdlg.h>
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class MidiFile;

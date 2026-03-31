@@ -18,7 +18,7 @@
 
 #include "outputs/Controller.h"
 #include "outputs/OutputManager.h"
-#include "OutputModelManager.h"
+#include "models/OutputModelManager.h"
 #include "controllers/ControllerCaps.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"

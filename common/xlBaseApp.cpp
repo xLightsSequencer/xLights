@@ -26,7 +26,7 @@
 
 #include <log.h>
 
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "xLightsVersion.h"
 #include "xlBaseApp.h"
 #include "xlStackWalker.h"

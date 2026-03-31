@@ -12,8 +12,8 @@
 #include "ModelScreenLocation.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "../ModelPreview.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 ArchesModel::ArchesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)

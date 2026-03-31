@@ -24,12 +24,12 @@
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "ControllerEthernet.h"
-#include "../OutputModelManager.h"
-#include "../ExternalHooks.h"
+#include "../models/OutputModelManager.h"
+#include "utils/ExternalHooks.h"
 #include "../utils/ip_utils.h"
 
 #ifndef EXCLUDEDISCOVERY
-#include "../Discovery.h"
+#include "ui/setup/Discovery.h"
 #endif
 
 #include <log.h>

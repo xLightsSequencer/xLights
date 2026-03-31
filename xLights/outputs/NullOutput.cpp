@@ -10,7 +10,7 @@
  **************************************************************/
 
 #include "NullOutput.h"
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 
 #include <format>
 

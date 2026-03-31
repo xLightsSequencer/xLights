@@ -15,14 +15,14 @@
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "ControllerEthernet.h"
-#include "../OutputModelManager.h"
-#include "../SpecialOptions.h"
+#include "../models/OutputModelManager.h"
+#include "../utils/SpecialOptions.h"
 #include "../utils/ip_utils.h"
 #include <format>
 
 #include <log.h>
 
-#include "../Discovery.h"
+#include "ui/setup/Discovery.h"
 
 #pragma region Static Variables
 int ArtNetOutput::__ip1 = -1;

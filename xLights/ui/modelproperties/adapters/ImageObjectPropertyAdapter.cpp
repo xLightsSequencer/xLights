@@ -13,7 +13,7 @@
 
 #include "ImageObjectPropertyAdapter.h"
 #include "../../../models/ImageObject.h"
-#include "../../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 ImageObjectPropertyAdapter::ImageObjectPropertyAdapter(ImageObject& obj)
     : ViewObjectPropertyAdapter(obj), _image(obj) {}

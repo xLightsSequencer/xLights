@@ -20,7 +20,7 @@
 #include "../../../models/DMX/DmxColorAbilityRGB.h"
 #include "../../../models/DMX/DmxColorAbilityCMY.h"
 #include "../../../models/DMX/DmxColorAbilityWheel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 #include "../../wxUtilities.h"
 
 namespace DmxAbilityPropertyHelpers {

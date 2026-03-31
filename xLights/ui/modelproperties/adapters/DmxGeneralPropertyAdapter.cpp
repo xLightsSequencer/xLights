@@ -15,7 +15,7 @@
 #include "../helpers/DmxAbilityPropertyHelpers.h"
 #include "../../../models/DMX/DmxGeneral.h"
 #include "../../../controllers/ControllerCaps.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 DmxGeneralPropertyAdapter::DmxGeneralPropertyAdapter(Model& model)
     : DmxPropertyAdapter(model), _general(static_cast<DmxGeneral&>(model)) {}

@@ -13,7 +13,7 @@
 #include "../../effects/KaleidoscopeEffect.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
-#include "../../TimingPanel.h"
+#include "ui/sequencer/TimingPanel.h"
 
 //(*InternalHeaders(KaleidoscopePanel)
 #include <wx/bmpbuttn.h>

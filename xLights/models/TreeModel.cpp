@@ -16,7 +16,7 @@
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "CustomModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 

@@ -19,7 +19,7 @@
 #include <log.h>
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 void PhonemeDictionary::LoadDictionaries(const wxString& showDir, wxWindow* parent)
 {

@@ -24,7 +24,7 @@
 #include "UtilFunctions.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
-#include "../../TimingPanel.h"
+#include "ui/sequencer/TimingPanel.h"
 
 //(*IdInit(AdjustPanel)
 const long AdjustPanel::ID_STATICTEXT1 = wxNewId();

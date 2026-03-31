@@ -21,7 +21,7 @@
 #include <format>
 #include "../../xLightsMain.h"
 #include "../../xLightsVersion.h"
-#include "../../sequencer/MainSequencer.h"
+#include "../../ui/sequencer/MainSequencer.h"
 #include "../../render/Effect.h"
 #include "../../render/Element.h"
 #include "../../models/ModelGroup.h"
@@ -30,7 +30,7 @@
 #include <wx/settings.h>
 #include <wx/stdpaths.h>
 
-#include "../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include <log.h>
 

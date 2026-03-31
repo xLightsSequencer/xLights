@@ -19,7 +19,7 @@ class wxStaticText;
 class wxTextCtrl;
 //*)
 
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class SpirographPanel: public xlEffectPanel

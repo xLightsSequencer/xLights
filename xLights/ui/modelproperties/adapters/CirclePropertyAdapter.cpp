@@ -13,7 +13,7 @@
 
 #include "CirclePropertyAdapter.h"
 #include "../../../models/CircleModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* CIRCLE_START_LOCATION_VALUES[] = {
     "Top Outer-CCW",

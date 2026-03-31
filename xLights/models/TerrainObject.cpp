@@ -10,9 +10,9 @@
 
 #include <vector>
 #include "TerrainObject.h"
-#include "ModelPreview.h"
+#include "ui/layout/ModelPreview.h"
 #include "Model.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "../utils/xlImage.h"
 #include <log.h>

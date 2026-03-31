@@ -13,7 +13,7 @@
 
 #include "ChannelBlockPropertyAdapter.h"
 #include "../../../models/ChannelBlockModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 #include "../../wxUtilities.h"
 #include "UtilFunctions.h"
 

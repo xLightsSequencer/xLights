@@ -18,7 +18,7 @@ namespace pugi { class xml_node; class xml_document; }
 #include <set>
 #include <string>
 #include <mutex>
-#include "../sequencer/UndoManager.h"
+#include "UndoManager.h"
 
 class SequenceFile;
 class SequenceViewManager;

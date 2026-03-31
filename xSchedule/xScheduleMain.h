@@ -32,7 +32,7 @@ class BrightnessControl;
 
 #include "PluginManager.h"
 #include "../common/xlBaseApp.h"
-#include "../xLights/xLightsTimer.h"
+#include "../xLights/ui/shared/utils/xLightsTimer.h"
 #include <list>
 
 class wxDebugReportCompress;

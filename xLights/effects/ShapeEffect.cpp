@@ -25,7 +25,7 @@
 #include "../render/SequenceMedia.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 
 #include "../utils/nanosvg_xl.h"

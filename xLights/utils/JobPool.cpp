@@ -31,11 +31,11 @@
     #include <cxxabi.h>
 #endif
 
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include <log.h>
 #include "string_utils.h"
 
-#include "../TraceLog.h"
+#include "../utils/TraceLog.h"
 using namespace TraceLog;
 
 

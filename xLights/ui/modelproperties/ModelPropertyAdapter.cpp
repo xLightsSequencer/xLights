@@ -21,13 +21,13 @@
 #include "../../models/ModelManager.h"
 #include "../../models/SubModel.h"
 #include "../../models/RulerObject.h"
-#include "../../OutputModelManager.h"
+#include "../../models/OutputModelManager.h"
 #include "../../xLightsMain.h"
 #include "../../outputs/OutputManager.h"
 #include "../../outputs/Controller.h"
 #include "../../outputs/ControllerSerial.h"
 #include "../../controllers/ControllerCaps.h"
-#include "../../LayoutGroup.h"
+#include "ui/layout/LayoutGroup.h"
 #include "Color.h"
 #include "../../utils/string_utils.h"
 #include "../../models/ControllerConnection.h"
@@ -36,14 +36,14 @@
 #include "../../ui/wxUtilities.h"
 
 // Dialog adapters - these need to stay accessible for PopupDialogProperty etc.
-#include "../../StrandNodeNamesDialog.h"
-#include "../../ModelFaceDialog.h"
-#include "../../ModelDimmingCurveDialog.h"
-#include "../../ModelStateDialog.h"
-#include "../../SubModelsDialog.h"
-#include "../../EditAliasesDialog.h"
-#include "../../ModelChainDialog.h"
-#include "../../StartChannelDialog.h"
+#include "../../ui/model/StrandNodeNamesDialog.h"
+#include "../../ui/model/ModelFaceDialog.h"
+#include "../../ui/model/ModelDimmingCurveDialog.h"
+#include "../../ui/model/ModelStateDialog.h"
+#include "../../ui/model/SubModelsDialog.h"
+#include "../../ui/model/EditAliasesDialog.h"
+#include "../../ui/model/ModelChainDialog.h"
+#include "../../ui/model/StartChannelDialog.h"
 
 #include <log.h>
 

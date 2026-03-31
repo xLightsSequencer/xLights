@@ -156,41 +156,41 @@
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
-		<Unit filename="AboutDialog.cpp" />
-		<Unit filename="AboutDialog.h" />
-		<Unit filename="AlignmentDialog.cpp" />
-		<Unit filename="AlignmentDialog.h" />
+		<Unit filename="ui/app-shell/AboutDialog.cpp" />
+		<Unit filename="ui/app-shell/AboutDialog.h" />
+		<Unit filename="ui/model/AlignmentDialog.cpp" />
+		<Unit filename="ui/model/AlignmentDialog.h" />
 		<Unit filename="utils/AudioManager.cpp" />
 		<Unit filename="utils/AudioManager.h" />
-		<Unit filename="AutoLabelDialog.cpp" />
-		<Unit filename="AutoLabelDialog.h" />
-		<Unit filename="BatchRenderDialog.cpp" />
-		<Unit filename="BatchRenderDialog.h" />
-		<Unit filename="BitmapCache.cpp" />
-		<Unit filename="BufferPanel.cpp" />
-		<Unit filename="BufferPanel.h" />
-		<Unit filename="BufferSizeDialog.cpp" />
-		<Unit filename="BufferSizeDialog.h" />
-		<Unit filename="BulkEditColourPickerDialog.cpp" />
-		<Unit filename="BulkEditColourPickerDialog.h" />
-		<Unit filename="BulkEditComboDialog.cpp" />
-		<Unit filename="BulkEditComboDialog.h" />
-		<Unit filename="BulkEditControls.cpp" />
-		<Unit filename="BulkEditControls.h" />
-		<Unit filename="BulkEditFontPickerDialog.cpp" />
-		<Unit filename="BulkEditFontPickerDialog.h" />
-		<Unit filename="BulkEditSliderDialog.cpp" />
-		<Unit filename="BulkEditSliderDialog.h" />
+		<Unit filename="ui/sequencer/AutoLabelDialog.cpp" />
+		<Unit filename="ui/sequencer/AutoLabelDialog.h" />
+		<Unit filename="ui/sequencer/BatchRenderDialog.cpp" />
+		<Unit filename="ui/sequencer/BatchRenderDialog.h" />
+		<Unit filename="ui/shared/utils/BitmapCache.cpp" />
+		<Unit filename="ui/sequencer/BufferPanel.cpp" />
+		<Unit filename="ui/sequencer/BufferPanel.h" />
+		<Unit filename="ui/sequencer/BufferSizeDialog.cpp" />
+		<Unit filename="ui/sequencer/BufferSizeDialog.h" />
+		<Unit filename="ui/sequencer/BulkEditColourPickerDialog.cpp" />
+		<Unit filename="ui/sequencer/BulkEditColourPickerDialog.h" />
+		<Unit filename="ui/sequencer/BulkEditComboDialog.cpp" />
+		<Unit filename="ui/sequencer/BulkEditComboDialog.h" />
+		<Unit filename="ui/shared/controls/BulkEditControls.cpp" />
+		<Unit filename="ui/shared/controls/BulkEditControls.h" />
+		<Unit filename="ui/sequencer/BulkEditFontPickerDialog.cpp" />
+		<Unit filename="ui/sequencer/BulkEditFontPickerDialog.h" />
+		<Unit filename="ui/sequencer/BulkEditSliderDialog.cpp" />
+		<Unit filename="ui/sequencer/BulkEditSliderDialog.h" />
 		<Unit filename="utils/CachedFileDownloader.cpp" />
 		<Unit filename="utils/CachedFileDownloader.h" />
-		<Unit filename="ChannelLayoutDialog.cpp" />
-		<Unit filename="ChannelLayoutDialog.h" />
-		<Unit filename="CharMapDialog.cpp" />
-		<Unit filename="CharMapDialog.h" />
-		<Unit filename="CheckSequenceReport.cpp" />
-		<Unit filename="CheckSequenceReport.h" />
-		<Unit filename="CheckboxSelectDialog.cpp" />
-		<Unit filename="CheckboxSelectDialog.h" />
+		<Unit filename="ui/model/ChannelLayoutDialog.cpp" />
+		<Unit filename="ui/model/ChannelLayoutDialog.h" />
+		<Unit filename="ui/effects/CharMapDialog.cpp" />
+		<Unit filename="ui/effects/CharMapDialog.h" />
+		<Unit filename="ui/diagnostics/CheckSequenceReport.cpp" />
+		<Unit filename="ui/diagnostics/CheckSequenceReport.h" />
+		<Unit filename="ui/shared/dialogs/CheckboxSelectDialog.cpp" />
+		<Unit filename="ui/shared/dialogs/CheckboxSelectDialog.h" />
 		<Unit filename="utils/Color.cpp" />
 		<Unit filename="render/ColorCurve.cpp" />
 		<Unit filename="render/ColorCurve.h" />
@@ -198,279 +198,279 @@
 		<Unit filename="ui/wxColorCurveButton.h" />
 		<Unit filename="ui/wxColorCurveRenderer.cpp" />
 		<Unit filename="ui/wxColorCurveRenderer.h" />
-		<Unit filename="ColorCurveDialog.cpp" />
-		<Unit filename="ColorCurveDialog.h" />
-		<Unit filename="ColorManager.cpp" />
-		<Unit filename="ColorManager.h" />
-		<Unit filename="ColorPanel.cpp" />
-		<Unit filename="ColorPanel.h" />
-		<Unit filename="ColourReplaceDialog.cpp" />
-		<Unit filename="ColourReplaceDialog.h" />
-		<Unit filename="ColoursPanel.cpp" />
-		<Unit filename="ColoursPanel.h" />
+		<Unit filename="ui/color/ColorCurveDialog.cpp" />
+		<Unit filename="ui/color/ColorCurveDialog.h" />
+		<Unit filename="ui/color/ColorManager.cpp" />
+		<Unit filename="ui/color/ColorManager.h" />
+		<Unit filename="ui/color/ColorPanel.cpp" />
+		<Unit filename="ui/color/ColorPanel.h" />
+		<Unit filename="ui/color/ColourReplaceDialog.cpp" />
+		<Unit filename="ui/color/ColourReplaceDialog.h" />
+		<Unit filename="ui/color/ColoursPanel.cpp" />
+		<Unit filename="ui/color/ColoursPanel.h" />
 		<Unit filename="models/ControllerConnection.cpp" />
 		<Unit filename="models/ControllerConnection.h" />
-		<Unit filename="ControllerConnectionDialog.cpp" />
-		<Unit filename="ControllerConnectionDialog.h" />
-		<Unit filename="ControllerModelDialog.cpp" />
-		<Unit filename="ControllerModelDialog.h" />
-		<Unit filename="ConvertDialog.cpp" />
-		<Unit filename="ConvertDialog.h" />
-		<Unit filename="ConvertLogDialog.cpp" />
-		<Unit filename="ConvertLogDialog.h" />
+		<Unit filename="ui/setup/ControllerConnectionDialog.cpp" />
+		<Unit filename="ui/setup/ControllerConnectionDialog.h" />
+		<Unit filename="ui/setup/ControllerModelDialog.cpp" />
+		<Unit filename="ui/setup/ControllerModelDialog.h" />
+		<Unit filename="ui/import-export/ConvertDialog.cpp" />
+		<Unit filename="ui/import-export/ConvertDialog.h" />
+		<Unit filename="ui/import-export/ConvertLogDialog.cpp" />
+		<Unit filename="ui/import-export/ConvertLogDialog.h" />
 		<Unit filename="CopyFormat1.cpp" />
 		<Unit filename="CopyFormat1.h" />
-		<Unit filename="CustomModelDialog.cpp" />
-		<Unit filename="CustomModelDialog.h" />
-		<Unit filename="CustomTimingDialog.cpp" />
-		<Unit filename="CustomTimingDialog.h" />
+		<Unit filename="ui/model/CustomModelDialog.cpp" />
+		<Unit filename="ui/model/CustomModelDialog.h" />
+		<Unit filename="ui/sequencer/CustomTimingDialog.cpp" />
+		<Unit filename="ui/sequencer/CustomTimingDialog.h" />
 		<Unit filename="render/DataLayer.cpp" />
 		<Unit filename="render/DataLayer.h" />
 		<Unit filename="render/DimmingCurve.cpp" />
 		<Unit filename="render/DimmingCurve.h" />
-		<Unit filename="DimmingCurvePanel.cpp" />
-		<Unit filename="DimmingCurvePanel.h" />
-		<Unit filename="Discovery.cpp" />
-		<Unit filename="Discovery.h" />
+		<Unit filename="ui/color/DimmingCurvePanel.cpp" />
+		<Unit filename="ui/color/DimmingCurvePanel.h" />
+		<Unit filename="ui/setup/Discovery.cpp" />
+		<Unit filename="ui/setup/Discovery.h" />
 		<Unit filename="render/DissolveTransitionPattern.cpp" />
-		<Unit filename="DragColoursBitmapButton.cpp" />
-		<Unit filename="DragColoursBitmapButton.h" />
+		<Unit filename="ui/shared/utils/DragColoursBitmapButton.cpp" />
+		<Unit filename="ui/shared/utils/DragColoursBitmapButton.h" />
 		<Unit filename="ui/DragValueCurveBitmapButton.cpp" />
 		<Unit filename="ui/DragValueCurveBitmapButton.h" />
-		<Unit filename="DuplicateDialog.cpp" />
-		<Unit filename="DuplicateDialog.h" />
-		<Unit filename="EditAliasesDialog.cpp" />
-		<Unit filename="EditAliasesDialog.h" />
-		<Unit filename="EditSubmodelAliasesDialog.cpp" />
-		<Unit filename="EditSubmodelAliasesDialog.h" />
-		<Unit filename="EffectAssist.cpp" />
-		<Unit filename="EffectAssist.h" />
-		<Unit filename="EffectIconPanel.cpp" />
-		<Unit filename="EffectIconPanel.h" />
-		<Unit filename="EffectListDialog.cpp" />
-		<Unit filename="EffectListDialog.h" />
-		<Unit filename="EffectTimingDialog.cpp" />
-		<Unit filename="EffectTimingDialog.h" />
-		<Unit filename="EffectPresetManager.cpp" />
-		<Unit filename="EffectPresetManager.h" />
-		<Unit filename="EffectTreeDialog.cpp" />
-		<Unit filename="EffectTreeDialog.h" />
-		<Unit filename="EffectsPanel.cpp" />
-		<Unit filename="EffectsPanel.h" />
-		<Unit filename="EmailDialog.cpp" />
-		<Unit filename="EmailDialog.h" />
-		<Unit filename="ExportModelSelect.cpp" />
-		<Unit filename="ExportModelSelect.h" />
-		<Unit filename="ExportSettings.cpp" />
-		<Unit filename="ExportSettings.h" />
+		<Unit filename="ui/sequencer/DuplicateDialog.cpp" />
+		<Unit filename="ui/sequencer/DuplicateDialog.h" />
+		<Unit filename="ui/model/EditAliasesDialog.cpp" />
+		<Unit filename="ui/model/EditAliasesDialog.h" />
+		<Unit filename="ui/model/EditSubmodelAliasesDialog.cpp" />
+		<Unit filename="ui/model/EditSubmodelAliasesDialog.h" />
+		<Unit filename="ui/effects/EffectAssist.cpp" />
+		<Unit filename="ui/effects/EffectAssist.h" />
+		<Unit filename="ui/sequencer/EffectIconPanel.cpp" />
+		<Unit filename="ui/sequencer/EffectIconPanel.h" />
+		<Unit filename="ui/sequencer/EffectListDialog.cpp" />
+		<Unit filename="ui/sequencer/EffectListDialog.h" />
+		<Unit filename="ui/sequencer/EffectTimingDialog.cpp" />
+		<Unit filename="ui/sequencer/EffectTimingDialog.h" />
+		<Unit filename="ui/effects/EffectPresetManager.cpp" />
+		<Unit filename="ui/effects/EffectPresetManager.h" />
+		<Unit filename="ui/sequencer/EffectTreeDialog.cpp" />
+		<Unit filename="ui/sequencer/EffectTreeDialog.h" />
+		<Unit filename="ui/sequencer/EffectsPanel.cpp" />
+		<Unit filename="ui/sequencer/EffectsPanel.h" />
+		<Unit filename="ui/app-shell/EmailDialog.cpp" />
+		<Unit filename="ui/app-shell/EmailDialog.h" />
+		<Unit filename="ui/import-export/ExportModelSelect.cpp" />
+		<Unit filename="ui/import-export/ExportModelSelect.h" />
+		<Unit filename="ui/import-export/ExportSettings.cpp" />
+		<Unit filename="ui/import-export/ExportSettings.h" />
 		<Unit filename="render/FSEQFile.cpp" />
 		<Unit filename="render/FSEQFile.h" />
 		<Unit filename="import_export/FileConverter.cpp" />
 		<Unit filename="import_export/FileConverter.h" />
-		<Unit filename="FindDataPanel.cpp" />
-		<Unit filename="FindDataPanel.h" />
-		<Unit filename="FlickerFreeBitmapButton.cpp" />
-		<Unit filename="FlickerFreeBitmapButton.h" />
+		<Unit filename="ui/diagnostics/FindDataPanel.cpp" />
+		<Unit filename="ui/diagnostics/FindDataPanel.h" />
+		<Unit filename="ui/shared/utils/FlickerFreeBitmapButton.cpp" />
+		<Unit filename="ui/shared/utils/FlickerFreeBitmapButton.h" />
 		<Unit filename="render/FontManager.cpp" />
 		<Unit filename="render/FontManager.h" />
 		<Unit filename="render/GPURenderUtils.cpp" />
 		<Unit filename="render/GPURenderUtils.h" />
-		<Unit filename="GenerateCustomModelDialog.cpp" />
-		<Unit filename="GenerateCustomModelDialog.h" />
-		<Unit filename="GenerateLyricsDialog.cpp" />
-		<Unit filename="GenerateLyricsDialog.h" />
-		<Unit filename="HousePreviewPanel.cpp" />
-		<Unit filename="HousePreviewPanel.h" />
-		<Unit filename="IPEntryDialog.cpp" />
-		<Unit filename="IPEntryDialog.h" />
+		<Unit filename="ui/model/GenerateCustomModelDialog.cpp" />
+		<Unit filename="ui/model/GenerateCustomModelDialog.h" />
+		<Unit filename="ui/sequencer/GenerateLyricsDialog.cpp" />
+		<Unit filename="ui/sequencer/GenerateLyricsDialog.h" />
+		<Unit filename="ui/layout/HousePreviewPanel.cpp" />
+		<Unit filename="ui/layout/HousePreviewPanel.h" />
+		<Unit filename="ui/setup/IPEntryDialog.cpp" />
+		<Unit filename="ui/setup/IPEntryDialog.h" />
 		<Unit filename="Images_png.h" />
-		<Unit filename="ImportPreviewsModelsDialog.cpp" />
-		<Unit filename="ImportPreviewsModelsDialog.h" />
+		<Unit filename="ui/model/ImportPreviewsModelsDialog.cpp" />
+		<Unit filename="ui/model/ImportPreviewsModelsDialog.h" />
 		<Unit filename="utils/JobPool.cpp" />
 		<Unit filename="utils/JobPool.h" />
-		<Unit filename="JukeboxPanel.cpp" />
-		<Unit filename="JukeboxPanel.h" />
-		<Unit filename="KeyBindingEditDialog.cpp" />
-		<Unit filename="KeyBindingEditDialog.h" />
-		<Unit filename="KeyBindings.cpp" />
-		<Unit filename="KeyBindings.h" />
-		<Unit filename="LMSImportChannelMapDialog.cpp" />
-		<Unit filename="LMSImportChannelMapDialog.h" />
+		<Unit filename="ui/media/JukeboxPanel.cpp" />
+		<Unit filename="ui/media/JukeboxPanel.h" />
+		<Unit filename="ui/app-shell/KeyBindingEditDialog.cpp" />
+		<Unit filename="ui/app-shell/KeyBindingEditDialog.h" />
+		<Unit filename="ui/app-shell/KeyBindings.cpp" />
+		<Unit filename="ui/app-shell/KeyBindings.h" />
+		<Unit filename="ui/import-export/LMSImportChannelMapDialog.cpp" />
+		<Unit filename="ui/import-export/LMSImportChannelMapDialog.h" />
 		<Unit filename="import_export/LOREdit.cpp" />
 		<Unit filename="import_export/LOREdit.h" />
-		<Unit filename="LORPreview.cpp" />
-		<Unit filename="LORPreview.h" />
-		<Unit filename="LayerSelectDialog.cpp" />
-		<Unit filename="LayerSelectDialog.h" />
-		<Unit filename="LayoutGroup.cpp" />
-		<Unit filename="LayoutGroup.h" />
-		<Unit filename="LayoutPanel.cpp" />
-		<Unit filename="LayoutPanel.h" />
-		<Unit filename="LayoutUtils.cpp" />
-		<Unit filename="LayoutUtils.h" />
-		<Unit filename="LinkJukeboxButtonDialog.cpp" />
-		<Unit filename="LinkJukeboxButtonDialog.h" />
-		<Unit filename="LorConvertDialog.cpp" />
-		<Unit filename="LorConvertDialog.h" />
-		<Unit filename="LyricUserDictDialog.cpp" />
-		<Unit filename="LyricUserDictDialog.h" />
-		<Unit filename="LyricsDialog.cpp" />
-		<Unit filename="LyricsDialog.h" />
+		<Unit filename="ui/layout/LORPreview.cpp" />
+		<Unit filename="ui/layout/LORPreview.h" />
+		<Unit filename="ui/sequencer/LayerSelectDialog.cpp" />
+		<Unit filename="ui/sequencer/LayerSelectDialog.h" />
+		<Unit filename="ui/layout/LayoutGroup.cpp" />
+		<Unit filename="ui/layout/LayoutGroup.h" />
+		<Unit filename="ui/layout/LayoutPanel.cpp" />
+		<Unit filename="ui/layout/LayoutPanel.h" />
+		<Unit filename="ui/layout/LayoutUtils.cpp" />
+		<Unit filename="ui/layout/LayoutUtils.h" />
+		<Unit filename="ui/sequencer/LinkJukeboxButtonDialog.cpp" />
+		<Unit filename="ui/sequencer/LinkJukeboxButtonDialog.h" />
+		<Unit filename="ui/import-export/LorConvertDialog.cpp" />
+		<Unit filename="ui/import-export/LorConvertDialog.h" />
+		<Unit filename="ui/sequencer/LyricUserDictDialog.cpp" />
+		<Unit filename="ui/sequencer/LyricUserDictDialog.h" />
+		<Unit filename="ui/sequencer/LyricsDialog.cpp" />
+		<Unit filename="ui/sequencer/LyricsDialog.h" />
 		<Unit filename="MIDI/Binasc.cpp" />
 		<Unit filename="MIDI/MidiEvent.cpp" />
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
-		<Unit filename="ManageMediaPanel.cpp" />
-		<Unit filename="ManageMediaPanel.h" />
-		<Unit filename="MatrixFaceDownloadDialog.cpp" />
-		<Unit filename="MatrixFaceDownloadDialog.h" />
-		<Unit filename="MediaImportOptionsDialog.cpp" />
-		<Unit filename="MediaImportOptionsDialog.h" />
-		<Unit filename="MetronomeLabelDialog.cpp" />
-		<Unit filename="MetronomeLabelDialog.h" />
-		<Unit filename="ModelChainDialog.cpp" />
-		<Unit filename="ModelChainDialog.h" />
-		<Unit filename="ModelDimmingCurveDialog.cpp" />
-		<Unit filename="ModelDimmingCurveDialog.h" />
-		<Unit filename="ModelFaceDialog.cpp" />
-		<Unit filename="ModelFaceDialog.h" />
-		<Unit filename="ModelGroupPanel.cpp" />
-		<Unit filename="ModelGroupPanel.h" />
-		<Unit filename="ModelPreview.cpp" />
-		<Unit filename="ModelPreview.h" />
-		<Unit filename="ModelRemap.cpp" />
-		<Unit filename="ModelRemap.h" />
-		<Unit filename="ModelStateDialog.cpp" />
-		<Unit filename="ModelStateDialog.h" />
-		<Unit filename="Mouse3DManager.cpp" />
-		<Unit filename="Mouse3DManager.h" />
-		<Unit filename="MultiControllerUploadDialog.cpp" />
-		<Unit filename="MultiControllerUploadDialog.h" />
+		<Unit filename="ui/media/ManageMediaPanel.cpp" />
+		<Unit filename="ui/media/ManageMediaPanel.h" />
+		<Unit filename="ui/model/MatrixFaceDownloadDialog.cpp" />
+		<Unit filename="ui/model/MatrixFaceDownloadDialog.h" />
+		<Unit filename="ui/media/MediaImportOptionsDialog.cpp" />
+		<Unit filename="ui/media/MediaImportOptionsDialog.h" />
+		<Unit filename="ui/sequencer/MetronomeLabelDialog.cpp" />
+		<Unit filename="ui/sequencer/MetronomeLabelDialog.h" />
+		<Unit filename="ui/model/ModelChainDialog.cpp" />
+		<Unit filename="ui/model/ModelChainDialog.h" />
+		<Unit filename="ui/model/ModelDimmingCurveDialog.cpp" />
+		<Unit filename="ui/model/ModelDimmingCurveDialog.h" />
+		<Unit filename="ui/model/ModelFaceDialog.cpp" />
+		<Unit filename="ui/model/ModelFaceDialog.h" />
+		<Unit filename="ui/layout/ModelGroupPanel.cpp" />
+		<Unit filename="ui/layout/ModelGroupPanel.h" />
+		<Unit filename="ui/layout/ModelPreview.cpp" />
+		<Unit filename="ui/layout/ModelPreview.h" />
+		<Unit filename="ui/import-export/ModelRemap.cpp" />
+		<Unit filename="ui/import-export/ModelRemap.h" />
+		<Unit filename="ui/model/ModelStateDialog.cpp" />
+		<Unit filename="ui/model/ModelStateDialog.h" />
+		<Unit filename="ui/layout/Mouse3DManager.cpp" />
+		<Unit filename="ui/layout/Mouse3DManager.h" />
+		<Unit filename="ui/setup/MultiControllerUploadDialog.cpp" />
+		<Unit filename="ui/setup/MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
-		<Unit filename="NewTimingDialog.cpp" />
-		<Unit filename="NewTimingDialog.h" />
-		<Unit filename="NodeSelectGrid.cpp" />
-		<Unit filename="NodeSelectGrid.h" />
-		<Unit filename="NodesGridCellEditor.cpp" />
-		<Unit filename="NodesGridCellEditor.h" />
-		<Unit filename="NoteImportDialog.cpp" />
-		<Unit filename="NoteImportDialog.h" />
-		<Unit filename="NoteRangeDialog.cpp" />
-		<Unit filename="NoteRangeDialog.h" />
-		<Unit filename="OpenGLShaders.cpp" />
-		<Unit filename="OptionChooser.cpp" />
-		<Unit filename="OptionChooser.h" />
-		<Unit filename="OutputModelManager.cpp" />
-		<Unit filename="OutputModelManager.h" />
+		<Unit filename="ui/sequencer/NewTimingDialog.cpp" />
+		<Unit filename="ui/sequencer/NewTimingDialog.h" />
+		<Unit filename="ui/model/NodeSelectGrid.cpp" />
+		<Unit filename="ui/model/NodeSelectGrid.h" />
+		<Unit filename="ui/shared/utils/NodesGridCellEditor.cpp" />
+		<Unit filename="ui/shared/utils/NodesGridCellEditor.h" />
+		<Unit filename="ui/sequencer/NoteImportDialog.cpp" />
+		<Unit filename="ui/sequencer/NoteImportDialog.h" />
+		<Unit filename="ui/sequencer/NoteRangeDialog.cpp" />
+		<Unit filename="ui/sequencer/NoteRangeDialog.h" />
+		<Unit filename="effects/OpenGLShaders.cpp" />
+		<Unit filename="ui/shared/dialogs/OptionChooser.cpp" />
+		<Unit filename="ui/shared/dialogs/OptionChooser.h" />
+		<Unit filename="models/OutputModelManager.cpp" />
+		<Unit filename="models/OutputModelManager.h" />
 		<Unit filename="utils/Parallel.cpp" />
 		<Unit filename="utils/Parallel.h" />
-		<Unit filename="PathGenerationDialog.cpp" />
-		<Unit filename="PathGenerationDialog.h" />
-		<Unit filename="PerspectivesPanel.cpp" />
-		<Unit filename="PerspectivesPanel.h" />
+		<Unit filename="ui/model/PathGenerationDialog.cpp" />
+		<Unit filename="ui/model/PathGenerationDialog.h" />
+		<Unit filename="ui/sequencer/PerspectivesPanel.cpp" />
+		<Unit filename="ui/sequencer/PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />
 		<Unit filename="PhonemeDictionary.h" />
 		<Unit filename="render/PixelBuffer.cpp" />
 		<Unit filename="render/PixelBuffer.h" />
-		<Unit filename="PixelTestDialog.cpp" />
-		<Unit filename="PixelTestDialog.h" />
+		<Unit filename="ui/setup/PixelTestDialog.cpp" />
+		<Unit filename="ui/setup/PixelTestDialog.h" />
 		<Unit filename="models/Pixels.cpp" />
 		<Unit filename="models/Pixels.h" />
-		<Unit filename="PreviewPane.cpp" />
-		<Unit filename="PreviewPane.h" />
-		<Unit filename="RemapDMXChannelsDialog.cpp" />
-		<Unit filename="RemapDMXChannelsDialog.h" />
-		<Unit filename="RenameTextDialog.cpp" />
-		<Unit filename="RenameTextDialog.h" />
+		<Unit filename="ui/layout/PreviewPane.cpp" />
+		<Unit filename="ui/layout/PreviewPane.h" />
+		<Unit filename="ui/setup/RemapDMXChannelsDialog.cpp" />
+		<Unit filename="ui/setup/RemapDMXChannelsDialog.h" />
+		<Unit filename="ui/sequencer/RenameTextDialog.cpp" />
+		<Unit filename="ui/sequencer/RenameTextDialog.h" />
 		<Unit filename="render/Render.cpp" />
 		<Unit filename="render/RenderUI.cpp" />
 		<Unit filename="render/RenderBuffer.cpp" />
 		<Unit filename="render/RenderBuffer.h" />
 		<Unit filename="render/RenderCache.cpp" />
 		<Unit filename="render/RenderCache.h" />
-		<Unit filename="RenderCommandEvent.cpp" />
-		<Unit filename="RenderCommandEvent.h" />
-		<Unit filename="RenderProgressDialog.cpp" />
-		<Unit filename="RenderProgressDialog.h" />
-		<Unit filename="ResizeImageDialog.cpp" />
-		<Unit filename="ResizeImageDialog.h" />
-		<Unit filename="RestoreBackupDialog.cpp" />
-		<Unit filename="RestoreBackupDialog.h" />
+		<Unit filename="ui/sequencer/RenderCommandEvent.cpp" />
+		<Unit filename="ui/sequencer/RenderCommandEvent.h" />
+		<Unit filename="ui/diagnostics/RenderProgressDialog.cpp" />
+		<Unit filename="ui/diagnostics/RenderProgressDialog.h" />
+		<Unit filename="ui/media/ResizeImageDialog.cpp" />
+		<Unit filename="ui/media/ResizeImageDialog.h" />
+		<Unit filename="ui/app-shell/RestoreBackupDialog.cpp" />
+		<Unit filename="ui/app-shell/RestoreBackupDialog.h" />
 		<Unit filename="SOIL.h" />
-		<Unit filename="SaveChangesDialog.cpp" />
-		<Unit filename="SaveChangesDialog.h" />
-		<Unit filename="ScriptsDialog.cpp" />
-		<Unit filename="ScriptsDialog.h" />
-		<Unit filename="SearchPanel.cpp" />
-		<Unit filename="SearchPanel.h" />
-		<Unit filename="SelectPanel.cpp" />
-		<Unit filename="SelectPanel.h" />
-		<Unit filename="SelectTimingsDialog.cpp" />
-		<Unit filename="SelectTimingsDialog.h" />
-		<Unit filename="SeqElementMismatchDialog.cpp" />
-		<Unit filename="SeqElementMismatchDialog.h" />
-		<Unit filename="SeqExportDialog.cpp" />
-		<Unit filename="SeqExportDialog.h" />
-		<Unit filename="SeqFileUtilities.cpp" />
-		<Unit filename="SeqSettingsDialog.cpp" />
-		<Unit filename="SeqSettingsDialog.h" />
+		<Unit filename="ui/app-shell/SaveChangesDialog.cpp" />
+		<Unit filename="ui/app-shell/SaveChangesDialog.h" />
+		<Unit filename="ui/automation/ScriptsDialog.cpp" />
+		<Unit filename="ui/automation/ScriptsDialog.h" />
+		<Unit filename="ui/diagnostics/SearchPanel.cpp" />
+		<Unit filename="ui/diagnostics/SearchPanel.h" />
+		<Unit filename="ui/sequencer/SelectPanel.cpp" />
+		<Unit filename="ui/sequencer/SelectPanel.h" />
+		<Unit filename="ui/sequencer/SelectTimingsDialog.cpp" />
+		<Unit filename="ui/sequencer/SelectTimingsDialog.h" />
+		<Unit filename="ui/diagnostics/SeqElementMismatchDialog.cpp" />
+		<Unit filename="ui/diagnostics/SeqElementMismatchDialog.h" />
+		<Unit filename="ui/import-export/SeqExportDialog.cpp" />
+		<Unit filename="ui/import-export/SeqExportDialog.h" />
+		<Unit filename="ui/import-export/SeqFileUtilities.cpp" />
+		<Unit filename="ui/sequencer/SeqSettingsDialog.cpp" />
+		<Unit filename="ui/sequencer/SeqSettingsDialog.h" />
 		<Unit filename="SequenceCheck.h" />
-		<Unit filename="SequenceData.cpp" />
-		<Unit filename="SequenceData.h" />
-		<Unit filename="SequencePackage.cpp" />
-		<Unit filename="SequencePackage.h" />
-		<Unit filename="SequenceVideoPanel.cpp" />
-		<Unit filename="SequenceVideoPanel.h" />
-		<Unit filename="SequenceVideoPreview.cpp" />
-		<Unit filename="SequenceVideoPreview.h" />
-		<Unit filename="SequenceViewManager.cpp" />
-		<Unit filename="SequenceViewManager.h" />
-		<Unit filename="SevenSegmentDialog.cpp" />
-		<Unit filename="SevenSegmentDialog.h" />
-		<Unit filename="ShaderDownloadDialog.cpp" />
-		<Unit filename="ShaderDownloadDialog.h" />
-		<Unit filename="ShowFolderSearchDialog.cpp" />
-		<Unit filename="ShowFolderSearchDialog.h" />
-		<Unit filename="SpecialOptions.cpp" />
-		<Unit filename="SpecialOptions.h" />
-		<Unit filename="SplashDialog.cpp" />
-		<Unit filename="SplashDialog.h" />
-		<Unit filename="StartChannelDialog.cpp" />
-		<Unit filename="StartChannelDialog.h" />
-		<Unit filename="StrandNodeNamesDialog.cpp" />
-		<Unit filename="StrandNodeNamesDialog.h" />
-		<Unit filename="SubBufferPanel.cpp" />
-		<Unit filename="SubBufferPanel.h" />
-		<Unit filename="SubModelGenerateDialog.cpp" />
-		<Unit filename="SubModelGenerateDialog.h" />
-		<Unit filename="SubModelsDialog.cpp" />
-		<Unit filename="SubModelsDialog.h" />
-		<Unit filename="SuperStarImportDialog.cpp" />
-		<Unit filename="SuperStarImportDialog.h" />
-		<Unit filename="TabConvert.cpp" />
-		<Unit filename="TabPreview.cpp" />
-		<Unit filename="TabSequence.cpp" />
-		<Unit filename="TabSetup.cpp" />
+		<Unit filename="render/SequenceData.cpp" />
+		<Unit filename="render/SequenceData.h" />
+		<Unit filename="render/SequencePackage.cpp" />
+		<Unit filename="render/SequencePackage.h" />
+		<Unit filename="ui/media/SequenceVideoPanel.cpp" />
+		<Unit filename="ui/media/SequenceVideoPanel.h" />
+		<Unit filename="ui/media/SequenceVideoPreview.cpp" />
+		<Unit filename="ui/media/SequenceVideoPreview.h" />
+		<Unit filename="ui/sequencer/SequenceViewManager.cpp" />
+		<Unit filename="ui/sequencer/SequenceViewManager.h" />
+		<Unit filename="ui/model/SevenSegmentDialog.cpp" />
+		<Unit filename="ui/model/SevenSegmentDialog.h" />
+		<Unit filename="ui/effects/ShaderDownloadDialog.cpp" />
+		<Unit filename="ui/effects/ShaderDownloadDialog.h" />
+		<Unit filename="ui/diagnostics/ShowFolderSearchDialog.cpp" />
+		<Unit filename="ui/diagnostics/ShowFolderSearchDialog.h" />
+		<Unit filename="utils/SpecialOptions.cpp" />
+		<Unit filename="utils/SpecialOptions.h" />
+		<Unit filename="ui/app-shell/SplashDialog.cpp" />
+		<Unit filename="ui/app-shell/SplashDialog.h" />
+		<Unit filename="ui/model/StartChannelDialog.cpp" />
+		<Unit filename="ui/model/StartChannelDialog.h" />
+		<Unit filename="ui/model/StrandNodeNamesDialog.cpp" />
+		<Unit filename="ui/model/StrandNodeNamesDialog.h" />
+		<Unit filename="ui/sequencer/SubBufferPanel.cpp" />
+		<Unit filename="ui/sequencer/SubBufferPanel.h" />
+		<Unit filename="ui/model/SubModelGenerateDialog.cpp" />
+		<Unit filename="ui/model/SubModelGenerateDialog.h" />
+		<Unit filename="ui/model/SubModelsDialog.cpp" />
+		<Unit filename="ui/model/SubModelsDialog.h" />
+		<Unit filename="ui/import-export/SuperStarImportDialog.cpp" />
+		<Unit filename="ui/import-export/SuperStarImportDialog.h" />
+		<Unit filename="ui/app-shell/TabConvert.cpp" />
+		<Unit filename="ui/app-shell/TabPreview.cpp" />
+		<Unit filename="ui/app-shell/TabSequence.cpp" />
+		<Unit filename="ui/app-shell/TabSetup.cpp" />
 		<Unit filename="utils/TempFileManager.cpp" />
 		<Unit filename="utils/TempFileManager.h" />
-		<Unit filename="TimingPanel.cpp" />
-		<Unit filename="TimingPanel.h" />
-		<Unit filename="TipOfTheDayDialog.cpp" />
-		<Unit filename="TipOfTheDayDialog.h" />
-		<Unit filename="TopEffectsPanel.cpp" />
-		<Unit filename="TopEffectsPanel.h" />
-		<Unit filename="TraceLog.cpp" />
-		<Unit filename="TraceLog.h" />
-		<Unit filename="UpdaterDialog.cpp" />
-		<Unit filename="UpdaterDialog.h" />
+		<Unit filename="ui/sequencer/TimingPanel.cpp" />
+		<Unit filename="ui/sequencer/TimingPanel.h" />
+		<Unit filename="ui/app-shell/TipOfTheDayDialog.cpp" />
+		<Unit filename="ui/app-shell/TipOfTheDayDialog.h" />
+		<Unit filename="ui/sequencer/TopEffectsPanel.cpp" />
+		<Unit filename="ui/sequencer/TopEffectsPanel.h" />
+		<Unit filename="utils/TraceLog.cpp" />
+		<Unit filename="utils/TraceLog.h" />
+		<Unit filename="ui/app-shell/UpdaterDialog.cpp" />
+		<Unit filename="ui/app-shell/UpdaterDialog.h" />
 		<Unit filename="utils/UtilClasses.cpp" />
 		<Unit filename="utils/UtilClasses.h" />
 		<Unit filename="utils/UtilFunctions.cpp" />
 		<Unit filename="utils/UtilFunctions.h" />
-		<Unit filename="VAMPPluginDialog.cpp" />
-		<Unit filename="VAMPPluginDialog.h" />
+		<Unit filename="ui/sequencer/VAMPPluginDialog.cpp" />
+		<Unit filename="ui/sequencer/VAMPPluginDialog.h" />
 		<Unit filename="import_export/VSAFile.cpp" />
 		<Unit filename="import_export/VSAFile.h" />
 		<Unit filename="render/ValueCurve.cpp" />
@@ -483,30 +483,30 @@
 		<Unit filename="ui/ValueCurveRendering.h" />
 		<Unit filename="ui/ValueCurvesPanel.cpp" />
 		<Unit filename="ui/ValueCurvesPanel.h" />
-		<Unit filename="VendorModelDialog.cpp" />
-		<Unit filename="VendorModelDialog.h" />
-		<Unit filename="VendorMusicDialog.cpp" />
-		<Unit filename="VendorMusicDialog.h" />
+		<Unit filename="ui/import-export/VendorModelDialog.cpp" />
+		<Unit filename="ui/import-export/VendorModelDialog.h" />
+		<Unit filename="ui/import-export/VendorMusicDialog.cpp" />
+		<Unit filename="ui/import-export/VendorMusicDialog.h" />
 		<Unit filename="VendorMusicHelpers.cpp" />
 		<Unit filename="VendorMusicHelpers.h" />
-		<Unit filename="VideoExporter.cpp" />
-		<Unit filename="VideoExporter.h" />
-		<Unit filename="VideoReader.cpp" />
-		<Unit filename="VideoReader.h" />
-		<Unit filename="ViewObjectPanel.cpp" />
-		<Unit filename="ViewObjectPanel.h" />
-		<Unit filename="ViewpointDialog.cpp" />
-		<Unit filename="ViewpointDialog.h" />
-		<Unit filename="ViewpointMgr.cpp" />
-		<Unit filename="ViewpointMgr.h" />
-		<Unit filename="ViewsModelsPanel.cpp" />
-		<Unit filename="ViewsModelsPanel.h" />
+		<Unit filename="ui/media/VideoExporter.cpp" />
+		<Unit filename="ui/media/VideoExporter.h" />
+		<Unit filename="render/VideoReader.cpp" />
+		<Unit filename="render/VideoReader.h" />
+		<Unit filename="ui/layout/ViewObjectPanel.cpp" />
+		<Unit filename="ui/layout/ViewObjectPanel.h" />
+		<Unit filename="ui/model/ViewpointDialog.cpp" />
+		<Unit filename="ui/model/ViewpointDialog.h" />
+		<Unit filename="ui/layout/ViewpointMgr.cpp" />
+		<Unit filename="ui/layout/ViewpointMgr.h" />
+		<Unit filename="ui/layout/ViewsModelsPanel.cpp" />
+		<Unit filename="ui/layout/ViewsModelsPanel.h" />
 		<Unit filename="import_export/Vixen3.cpp" />
 		<Unit filename="import_export/Vixen3.h" />
-		<Unit filename="VsaImportDialog.cpp" />
-		<Unit filename="VsaImportDialog.h" />
-		<Unit filename="WiringDialog.cpp" />
-		<Unit filename="WiringDialog.h" />
+		<Unit filename="ui/import-export/VsaImportDialog.cpp" />
+		<Unit filename="ui/import-export/VsaImportDialog.h" />
+		<Unit filename="ui/model/WiringDialog.cpp" />
+		<Unit filename="ui/model/WiringDialog.h" />
 		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="XmlSerializer/BaseSerializingVisitor.cpp" />
@@ -1116,27 +1116,27 @@
 		<Unit filename="outputs/xxxEthernetOutput.h" />
 		<Unit filename="outputs/xxxSerialOutput.cpp" />
 		<Unit filename="outputs/xxxSerialOutput.h" />
-		<Unit filename="preferences/BackupSettingsPanel.cpp" />
-		<Unit filename="preferences/BackupSettingsPanel.h" />
-		<Unit filename="preferences/CheckSequenceSettingsPanel.cpp" />
-		<Unit filename="preferences/CheckSequenceSettingsPanel.h" />
-		<Unit filename="preferences/ColorManagerSettingsPanel.cpp" />
-		<Unit filename="preferences/ColorManagerSettingsPanel.h" />
-		<Unit filename="preferences/EffectsGridSettingsPanel.cpp" />
-		<Unit filename="preferences/EffectsGridSettingsPanel.h" />
-		<Unit filename="preferences/OtherSettingsPanel.cpp" />
-		<Unit filename="preferences/OtherSettingsPanel.h" />
-		<Unit filename="preferences/OutputSettingsPanel.cpp" />
-		<Unit filename="preferences/OutputSettingsPanel.h" />
-		<Unit filename="preferences/RandomEffectsSettingsPanel.cpp" />
-		<Unit filename="preferences/RandomEffectsSettingsPanel.h" />
-		<Unit filename="preferences/SequenceFileSettingsPanel.cpp" />
-		<Unit filename="preferences/SequenceFileSettingsPanel.h" />
-		<Unit filename="preferences/ServicesPanel.cpp" />
-		<Unit filename="preferences/ServicesPanel.h" />
-		<Unit filename="preferences/ViewSettingsPanel.cpp" />
-		<Unit filename="preferences/ViewSettingsPanel.h" />
-		<Unit filename="preferences/xLightsPreferences.cpp" />
+		<Unit filename="ui/preferences/BackupSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/BackupSettingsPanel.h" />
+		<Unit filename="ui/preferences/CheckSequenceSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/CheckSequenceSettingsPanel.h" />
+		<Unit filename="ui/preferences/ColorManagerSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/ColorManagerSettingsPanel.h" />
+		<Unit filename="ui/preferences/EffectsGridSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/EffectsGridSettingsPanel.h" />
+		<Unit filename="ui/preferences/OtherSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/OtherSettingsPanel.h" />
+		<Unit filename="ui/preferences/OutputSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/OutputSettingsPanel.h" />
+		<Unit filename="ui/preferences/RandomEffectsSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/RandomEffectsSettingsPanel.h" />
+		<Unit filename="ui/preferences/SequenceFileSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/SequenceFileSettingsPanel.h" />
+		<Unit filename="ui/preferences/ServicesPanel.cpp" />
+		<Unit filename="ui/preferences/ServicesPanel.h" />
+		<Unit filename="ui/preferences/ViewSettingsPanel.cpp" />
+		<Unit filename="ui/preferences/ViewSettingsPanel.h" />
+		<Unit filename="ui/preferences/xLightsPreferences.cpp" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />
@@ -1144,37 +1144,37 @@
 			<Option target="64bit MinGW_Release" />
 			<Option target="64bit MinGW_Debug" />
 		</Unit>
-		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
-		<Unit filename="sequencer/DragEffectBitmapButton.h" />
+		<Unit filename="ui/sequencer/DragEffectBitmapButton.cpp" />
+		<Unit filename="ui/sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="render/Effect.cpp" />
 		<Unit filename="render/Effect.h" />
-		<Unit filename="sequencer/EffectDropTarget.cpp" />
-		<Unit filename="sequencer/EffectDropTarget.h" />
+		<Unit filename="ui/sequencer/EffectDropTarget.cpp" />
+		<Unit filename="ui/sequencer/EffectDropTarget.h" />
 		<Unit filename="render/EffectLayer.cpp" />
 		<Unit filename="render/EffectLayer.h" />
-		<Unit filename="sequencer/EffectsGrid.cpp" />
-		<Unit filename="sequencer/EffectsGrid.h" />
+		<Unit filename="ui/sequencer/EffectsGrid.cpp" />
+		<Unit filename="ui/sequencer/EffectsGrid.h" />
 		<Unit filename="render/Element.cpp" />
 		<Unit filename="render/Element.h" />
-		<Unit filename="sequencer/MainSequencer.cpp" />
-		<Unit filename="sequencer/MainSequencer.h" />
-		<Unit filename="sequencer/LyricBreakdown.cpp" />
-		<Unit filename="sequencer/LyricBreakdown.h" />
-		<Unit filename="sequencer/RowHeading.cpp" />
-		<Unit filename="sequencer/RowHeading.h" />
+		<Unit filename="ui/sequencer/MainSequencer.cpp" />
+		<Unit filename="ui/sequencer/MainSequencer.h" />
+		<Unit filename="ui/sequencer/LyricBreakdown.cpp" />
+		<Unit filename="ui/sequencer/LyricBreakdown.h" />
+		<Unit filename="ui/sequencer/RowHeading.cpp" />
+		<Unit filename="ui/sequencer/RowHeading.h" />
 		<Unit filename="render/SequenceElements.cpp" />
 		<Unit filename="render/SequenceElements.h" />
 		<Unit filename="render/SequenceMedia.cpp" />
 		<Unit filename="render/SequenceMedia.h" />
 		<Unit filename="render/TextDrawingContext.cpp" />
 		<Unit filename="render/TextDrawingContext.h" />
-		<Unit filename="sequencer/TimeLine.cpp" />
-		<Unit filename="sequencer/TimeLine.h" />
-		<Unit filename="sequencer/UndoManager.cpp" />
-		<Unit filename="sequencer/UndoManager.h" />
-		<Unit filename="sequencer/Waveform.cpp" />
-		<Unit filename="sequencer/Waveform.h" />
-		<Unit filename="sequencer/tabSequencer.cpp" />
+		<Unit filename="ui/sequencer/TimeLine.cpp" />
+		<Unit filename="ui/sequencer/TimeLine.h" />
+		<Unit filename="render/UndoManager.cpp" />
+		<Unit filename="render/UndoManager.h" />
+		<Unit filename="ui/sequencer/Waveform.cpp" />
+		<Unit filename="ui/sequencer/Waveform.h" />
+		<Unit filename="ui/sequencer/tabSequencer.cpp" />
 		<Unit filename="serial.h" />
 		<Unit filename="support/EzGrid.cpp" />
 		<Unit filename="support/EzGrid.h" />
@@ -1184,8 +1184,8 @@
 		<Unit filename="support/GridCellChoiceRenderer.h" />
 		<Unit filename="support/VectorMath.cpp" />
 		<Unit filename="support/VectorMath.h" />
-		<Unit filename="tmGridCell.cpp" />
-		<Unit filename="tmGridCell.h" />
+		<Unit filename="ui/shared/utils/tmGridCell.cpp" />
+		<Unit filename="ui/shared/utils/tmGridCell.h" />
 		<Unit filename="ui/modelproperties/PropertyGridHelpers.cpp" />
 		<Unit filename="ui/modelproperties/PropertyGridHelpers.h" />
 		<Unit filename="ui/modelproperties/ScreenLocationPropertyHelper.cpp" />
@@ -1325,10 +1325,10 @@
 		<Unit filename="vamp-hostsdk/plugguard.h" />
 		<Unit filename="vamp-hostsdk/vamp-hostsdk.h" />
 		<Unit filename="vamp-hostsdk/vamp.h" />
-		<Unit filename="wxCheckedListCtrl.cpp" />
-		<Unit filename="wxCheckedListCtrl.h" />
-		<Unit filename="wxModelGridCellRenderer.cpp" />
-		<Unit filename="wxModelGridCellRenderer.h" />
+		<Unit filename="ui/shared/utils/wxCheckedListCtrl.cpp" />
+		<Unit filename="ui/shared/utils/wxCheckedListCtrl.h" />
+		<Unit filename="ui/shared/utils/wxModelGridCellRenderer.cpp" />
+		<Unit filename="ui/shared/utils/wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AIColorPaletteDialog.wxs" />
 		<Unit filename="wxsmith/AIImageDialog.wxs" />
@@ -1515,32 +1515,32 @@
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />
 		<Unit filename="xLightsApp.cpp" />
 		<Unit filename="xLightsApp.h" />
-		<Unit filename="xLightsImportChannelMapDialog.cpp" />
-		<Unit filename="xLightsImportChannelMapDialog.h" />
+		<Unit filename="ui/import-export/xLightsImportChannelMapDialog.cpp" />
+		<Unit filename="ui/import-export/xLightsImportChannelMapDialog.h" />
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
-		<Unit filename="xLightsTimer.cpp" />
+		<Unit filename="ui/shared/utils/xLightsTimer.cpp" />
 		<Unit filename="xLightsVersion.cpp" />
 		<Unit filename="xLightsVersion.h" />
 		<Unit filename="render/SequenceFile.cpp" />
 		<Unit filename="render/SequenceFile.h" />
-		<Unit filename="xlColorCanvas.cpp" />
-		<Unit filename="xlColorCanvas.h" />
-		<Unit filename="xlColorPicker.cpp" />
-		<Unit filename="xlColorPicker.h" />
-		<Unit filename="xlColorPickerFields.cpp" />
-		<Unit filename="xlColorPickerFields.h" />
-		<Unit filename="xlColourData.cpp" />
-		<Unit filename="xlColourData.h" />
+		<Unit filename="ui/color/xlColorCanvas.cpp" />
+		<Unit filename="ui/color/xlColorCanvas.h" />
+		<Unit filename="ui/color/xlColorPicker.cpp" />
+		<Unit filename="ui/color/xlColorPicker.h" />
+		<Unit filename="ui/color/xlColorPickerFields.cpp" />
+		<Unit filename="ui/color/xlColorPickerFields.h" />
+		<Unit filename="ui/color/xlColourData.cpp" />
+		<Unit filename="ui/color/xlColourData.h" />
 		<Unit filename="utils/xlImage.cpp" />
 		<Unit filename="utils/xlImage.h" />
 		<Unit filename="utils/Base64.h" />
-		<Unit filename="xlGridCanvas.cpp" />
-		<Unit filename="xlGridCanvas.h" />
-		<Unit filename="xlLockButton.cpp" />
-		<Unit filename="xlLockButton.h" />
-		<Unit filename="xlSlider.cpp" />
-		<Unit filename="xlSlider.h" />
+		<Unit filename="ui/shared/utils/xlGridCanvas.cpp" />
+		<Unit filename="ui/shared/utils/xlGridCanvas.h" />
+		<Unit filename="ui/shared/utils/xlLockButton.cpp" />
+		<Unit filename="ui/shared/utils/xlLockButton.h" />
+		<Unit filename="ui/shared/utils/xlSlider.cpp" />
+		<Unit filename="ui/shared/utils/xlSlider.h" />
 		<Unit filename="xlights_out.h" />
 		<Extensions>
 			<DoxyBlocks>
@@ -1556,94 +1556,94 @@
 				<gui name="wxWidgets" src="xLightsApp.cpp" main="xLightsFrame" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
-					<wxDialog wxs="wxsmith/AlignmentDialog.wxs" src="AlignmentDialog.cpp" hdr="AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="BatchRenderDialog.cpp" hdr="BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/BulkEditFontPickerDialog.wxs" src="BulkEditFontPickerDialog.cpp" hdr="BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/CharMapDialog.wxs" src="CharMapDialog.cpp" hdr="CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/CheckboxSelectDialog.wxs" src="CheckboxSelectDialog.cpp" hdr="CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ColorCurveDialog.wxs" src="ColorCurveDialog.cpp" hdr="ColorCurveDialog.h" fwddecl="0" i18n="1" name="ColorCurveDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ControllerModelDialog.wxs" src="ControllerModelDialog.cpp" hdr="ControllerModelDialog.h" fwddecl="0" i18n="1" name="ControllerModelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ConvertDialog.wxs" src="ConvertDialog.cpp" hdr="ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ConvertLogDialog.wxs" src="ConvertLogDialog.cpp" hdr="ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AlignmentDialog.wxs" src="ui/model/AlignmentDialog.cpp" hdr="ui/model/AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="ui/sequencer/BatchRenderDialog.cpp" hdr="ui/sequencer/BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="ui/sequencer/BufferSizeDialog.cpp" hdr="ui/sequencer/BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditFontPickerDialog.wxs" src="ui/sequencer/BulkEditFontPickerDialog.cpp" hdr="ui/sequencer/BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="ui/sequencer/BulkEditSliderDialog.cpp" hdr="ui/sequencer/BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ui/model/ChannelLayoutDialog.cpp" hdr="ui/model/ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CharMapDialog.wxs" src="ui/effects/CharMapDialog.cpp" hdr="ui/effects/CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CheckboxSelectDialog.wxs" src="ui/shared/dialogs/CheckboxSelectDialog.cpp" hdr="ui/shared/dialogs/CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ColorCurveDialog.wxs" src="ui/color/ColorCurveDialog.cpp" hdr="ui/color/ColorCurveDialog.h" fwddecl="0" i18n="1" name="ColorCurveDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ui/setup/ControllerConnectionDialog.cpp" hdr="ui/setup/ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ControllerModelDialog.wxs" src="ui/setup/ControllerModelDialog.cpp" hdr="ui/setup/ControllerModelDialog.h" fwddecl="0" i18n="1" name="ControllerModelDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/ConvertDialog.wxs" src="ui/import-export/ConvertDialog.cpp" hdr="ui/import-export/ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/ConvertLogDialog.wxs" src="ui/import-export/ConvertLogDialog.cpp" hdr="ui/import-export/ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CurrentPreviewModels.wxs" src="CurrentPreviewModels.cpp" hdr="CurrentPreviewModels.h" fwddecl="0" i18n="1" name="CurrentPreviewModels" language="CPP" />
-					<wxDialog wxs="wxsmith/CustomModelDialog.wxs" src="CustomModelDialog.cpp" hdr="CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/CustomTimingDialog.wxs" src="CustomTimingDialog.cpp" hdr="CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="EffectTimingDialog.cpp" hdr="EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="EffectTreeDialog.cpp" hdr="EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/EmailDialog.wxs" src="EmailDialog.cpp" hdr="EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CustomModelDialog.wxs" src="ui/model/CustomModelDialog.cpp" hdr="ui/model/CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CustomTimingDialog.wxs" src="ui/sequencer/CustomTimingDialog.cpp" hdr="ui/sequencer/CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="ui/sequencer/EffectListDialog.cpp" hdr="ui/sequencer/EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="ui/sequencer/EffectTimingDialog.cpp" hdr="ui/sequencer/EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="ui/sequencer/EffectTreeDialog.cpp" hdr="ui/sequencer/EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EmailDialog.wxs" src="ui/app-shell/EmailDialog.cpp" hdr="ui/app-shell/EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="ui/controllers/FPPConnectDialog.cpp" hdr="ui/controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="ui/model/GenerateCustomModelDialog.cpp" hdr="ui/model/GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="ui/sequencer/GenerateLyricsDialog.cpp" hdr="ui/sequencer/GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/HinksPixExportDialog.wxs" src="ui/controllers/HinksPixExportDialog.cpp" hdr="ui/controllers/HinksPixExportDialog.h" fwddecl="0" i18n="1" name="HinksPixExportDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="LMSImportChannelMapDialog.cpp" hdr="LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LyricsDialog.wxs" src="LyricsDialog.cpp" hdr="LyricsDialog.h" fwddecl="0" i18n="1" name="LyricsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/MatrixFaceDownloadDialog.wxs" src="MatrixFaceDownloadDialog.cpp" hdr="MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelChainDialog.wxs" src="ModelChainDialog.cpp" hdr="ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelDimmingCurveDialog.wxs" src="ModelDimmingCurveDialog.cpp" hdr="ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ModelFaceDialog.cpp" hdr="ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ui/model/ImportPreviewsModelsDialog.cpp" hdr="ui/model/ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="ui/setup/IPEntryDialog.cpp" hdr="ui/setup/IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="ui/sequencer/LayerSelectDialog.cpp" hdr="ui/sequencer/LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="ui/sequencer/LinkJukeboxButtonDialog.cpp" hdr="ui/sequencer/LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="ui/import-export/LMSImportChannelMapDialog.cpp" hdr="ui/import-export/LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="ui/import-export/LorConvertDialog.cpp" hdr="ui/import-export/LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/LyricsDialog.wxs" src="ui/sequencer/LyricsDialog.cpp" hdr="ui/sequencer/LyricsDialog.h" fwddecl="0" i18n="1" name="LyricsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="ui/sequencer/LyricUserDictDialog.cpp" hdr="ui/sequencer/LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/MatrixFaceDownloadDialog.wxs" src="ui/model/MatrixFaceDownloadDialog.cpp" hdr="ui/model/MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelChainDialog.wxs" src="ui/model/ModelChainDialog.cpp" hdr="ui/model/ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelDimmingCurveDialog.wxs" src="ui/model/ModelDimmingCurveDialog.cpp" hdr="ui/model/ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ui/model/ModelFaceDialog.cpp" hdr="ui/model/ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelPreview3DDialog.wxs" src="ModelPreview3DDialog.cpp" hdr="ModelPreview3DDialog.h" fwddecl="0" i18n="1" name="ModelPreview3DDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelStateDialog.wxs" src="ModelStateDialog.cpp" hdr="ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/NewTimingDialog.wxs" src="NewTimingDialog.cpp" hdr="NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
-					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="NoteRangeDialog.cpp" hdr="NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/OptionChooser.wxs" src="OptionChooser.cpp" hdr="OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
-					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/PixelTestDialog.wxs" src="PixelTestDialog.cpp" hdr="PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelStateDialog.wxs" src="ui/model/ModelStateDialog.cpp" hdr="ui/model/ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="ui/setup/MultiControllerUploadDialog.cpp" hdr="ui/setup/MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/NewTimingDialog.wxs" src="ui/sequencer/NewTimingDialog.cpp" hdr="ui/sequencer/NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="ui/model/NodeSelectGrid.cpp" hdr="ui/model/NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
+							<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="ui/sequencer/NoteImportDialog.cpp" hdr="ui/sequencer/NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="ui/sequencer/NoteRangeDialog.cpp" hdr="ui/sequencer/NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/OptionChooser.wxs" src="ui/shared/dialogs/OptionChooser.cpp" hdr="ui/shared/dialogs/OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
+					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="ui/model/PathGenerationDialog.cpp" hdr="ui/model/PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PixelTestDialog.wxs" src="ui/setup/PixelTestDialog.cpp" hdr="ui/setup/PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PreviewModels.wxs" src="PreviewModels.cpp" hdr="PreviewModels.h" fwddecl="0" i18n="1" name="PreviewModels" language="CPP" />
-					<wxDialog wxs="wxsmith/PreviewPane.wxs" src="PreviewPane.cpp" hdr="PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
-					<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="RemapDMXChannelsDialog.cpp" hdr="RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/RenameTextDialog.wxs" src="RenameTextDialog.cpp" hdr="RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="RenderProgressDialog.cpp" hdr="RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ResizeImageDialog.cpp" hdr="ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="SelectTimingsDialog.cpp" hdr="SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PreviewPane.wxs" src="ui/layout/PreviewPane.cpp" hdr="ui/layout/PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
+							<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="ui/setup/RemapDMXChannelsDialog.cpp" hdr="ui/setup/RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/RenameTextDialog.wxs" src="ui/sequencer/RenameTextDialog.cpp" hdr="ui/sequencer/RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/RenderProgressDialog.wxs" src="ui/diagnostics/RenderProgressDialog.cpp" hdr="ui/diagnostics/RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ui/media/ResizeImageDialog.cpp" hdr="ui/media/ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="ui/app-shell/SaveChangesDialog.cpp" hdr="ui/app-shell/SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="ui/sequencer/SelectTimingsDialog.cpp" hdr="ui/sequencer/SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="ui/diagnostics/SeqElementMismatchDialog.cpp" hdr="ui/diagnostics/SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="ui/import-export/SeqExportDialog.cpp" hdr="ui/import-export/SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="ui/sequencer/SeqSettingsDialog.cpp" hdr="ui/sequencer/SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ServoConfigDialog.wxs" src="ui/modelproperties/adapters/ServoConfigDialog.cpp" hdr="ui/modelproperties/adapters/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SkullConfigDialog.wxs" src="ui/modelproperties/adapters/SkullConfigDialog.cpp" hdr="ui/modelproperties/adapters/SkullConfigDialog.h" fwddecl="0" i18n="1" name="SkullConfigDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ShaderDownloadDialog.wxs" src="ShaderDownloadDialog.cpp" hdr="ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/StartChannelDialog.wxs" src="StartChannelDialog.cpp" hdr="StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/StrandNodeNamesDialog.wxs" src="StrandNodeNamesDialog.cpp" hdr="StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="ui/model/SevenSegmentDialog.cpp" hdr="ui/model/SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ShaderDownloadDialog.wxs" src="ui/effects/ShaderDownloadDialog.cpp" hdr="ui/effects/ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="ui/app-shell/SplashDialog.cpp" hdr="ui/app-shell/SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/StartChannelDialog.wxs" src="ui/model/StartChannelDialog.cpp" hdr="ui/model/StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/StrandNodeNamesDialog.wxs" src="ui/model/StrandNodeNamesDialog.cpp" hdr="ui/model/StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
-					<wxDialog wxs="wxsmith/SubModelGenerateDialog.wxs" src="SubModelGenerateDialog.cpp" hdr="SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="SubModelsDialog.cpp" hdr="SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SuperStarImportDialog.wxs" src="SuperStarImportDialog.cpp" hdr="SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SubModelGenerateDialog.wxs" src="ui/model/SubModelGenerateDialog.cpp" hdr="ui/model/SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="ui/model/SubModelsDialog.cpp" hdr="ui/model/SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/SuperStarImportDialog.wxs" src="ui/import-export/SuperStarImportDialog.cpp" hdr="ui/import-export/SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="ui/app-shell/UpdaterDialog.cpp" hdr="ui/app-shell/UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ui/ValueCurveDialog.cpp" hdr="ui/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/VendorMusicDialog.wxs" src="VendorMusicDialog.cpp" hdr="VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="ui/sequencer/VAMPPluginDialog.cpp" hdr="ui/sequencer/VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="ui/import-export/VendorModelDialog.cpp" hdr="ui/import-export/VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/VendorMusicDialog.wxs" src="ui/import-export/VendorMusicDialog.cpp" hdr="ui/import-export/VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ViewsDialog.wxs" src="ViewsDialog.cpp" hdr="ViewsDialog.h" fwddecl="0" i18n="1" name="ViewsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/VsaImportDialog.wxs" src="VsaImportDialog.cpp" hdr="VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/xLightsImportChannelMapDialog.wxs" src="xLightsImportChannelMapDialog.cpp" hdr="xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
-					<wxPanel wxs="wxsmith/EffectsPanel.wxs" src="EffectsPanel.cpp" hdr="EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/MainSequencer.wxs" src="sequencer/MainSequencer.cpp" hdr="sequencer/MainSequencer.h" fwddecl="0" i18n="1" name="MainSequencer" language="CPP" />
-					<wxPanel wxs="wxsmith/ColorPanel.wxs" src="ColorPanel.cpp" hdr="ColorPanel.h" fwddecl="0" i18n="1" name="ColorPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="TimingPanel.cpp" hdr="TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
+							<wxDialog wxs="wxsmith/VsaImportDialog.wxs" src="ui/import-export/VsaImportDialog.cpp" hdr="ui/import-export/VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="ui/model/WiringDialog.cpp" hdr="ui/model/WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/xLightsImportChannelMapDialog.wxs" src="ui/import-export/xLightsImportChannelMapDialog.cpp" hdr="ui/import-export/xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/EffectsPanel.wxs" src="ui/sequencer/EffectsPanel.cpp" hdr="ui/sequencer/EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MainSequencer.wxs" src="ui/sequencer/MainSequencer.cpp" hdr="ui/sequencer/MainSequencer.h" fwddecl="0" i18n="1" name="MainSequencer" language="CPP" />
+					<wxPanel wxs="wxsmith/ColorPanel.wxs" src="ui/color/ColorPanel.cpp" hdr="ui/color/ColorPanel.h" fwddecl="0" i18n="1" name="ColorPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="ui/sequencer/TimingPanel.cpp" hdr="ui/sequencer/TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="ui/sequencer/TopEffectsPanel.cpp" hdr="ui/sequencer/TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="ui/sequencer/EffectIconPanel.cpp" hdr="ui/sequencer/EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ValueCurvesPanel.wxs" src="ui/ValueCurvesPanel.cpp" hdr="ui/ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ColoursPanel.wxs" src="ColoursPanel.cpp" hdr="ColoursPanel.h" fwddecl="0" i18n="1" name="ColoursPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
-					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
+					<wxPanel wxs="wxsmith/ColoursPanel.wxs" src="ui/color/ColoursPanel.cpp" hdr="ui/color/ColoursPanel.h" fwddecl="0" i18n="1" name="ColoursPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="ui/sequencer/PerspectivesPanel.cpp" hdr="ui/sequencer/PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="ui/color/xlColorPickerFields.cpp" hdr="ui/color/xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
+					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="ui/effects/EffectAssist.cpp" hdr="ui/effects/EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
 					<wxPanel wxs="wxsmith/OnPanel.wxs" src="ui/effectpanels/OnPanel.cpp" hdr="ui/effectpanels/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/AdjustPanel.wxs" src="ui/effectpanels/AdjustPanel.cpp" hdr="ui/effectpanels/AdjustPanel.h" fwddecl="1" i18n="1" name="AdjustPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BarsPanel.wxs" src="ui/effectpanels/BarsPanel.cpp" hdr="ui/effectpanels/BarsPanel.h" fwddecl="1" i18n="1" name="BarsPanel" language="CPP" />
@@ -1658,7 +1658,7 @@
 					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="ui/effectpanels/FacesPanel.cpp" hdr="ui/effectpanels/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FanPanel.wxs" src="ui/effectpanels/FanPanel.cpp" hdr="ui/effectpanels/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FillPanel.wxs" src="ui/effectpanels/FillPanel.cpp" hdr="ui/effectpanels/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/FindDataPanel.wxs" src="FindDataPanel.cpp" hdr="FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FindDataPanel.wxs" src="ui/diagnostics/FindDataPanel.cpp" hdr="ui/diagnostics/FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FirePanel.wxs" src="ui/effectpanels/FirePanel.cpp" hdr="ui/effectpanels/FirePanel.h" fwddecl="1" i18n="1" name="FirePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FireworksPanel.wxs" src="ui/effectpanels/FireworksPanel.cpp" hdr="ui/effectpanels/FireworksPanel.h" fwddecl="1" i18n="1" name="FireworksPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="ui/effectpanels/GalaxyPanel.cpp" hdr="ui/effectpanels/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
@@ -1698,47 +1698,47 @@
 					<wxPanel wxs="wxsmith/WavePanel.wxs" src="ui/effectpanels/WavePanel.cpp" hdr="ui/effectpanels/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="ui/effectpanels/assist/PicturesAssistPanel.cpp" hdr="ui/effectpanels/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="ui/effectpanels/assist/AssistPanel.cpp" hdr="ui/effectpanels/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="BufferPanel.cpp" hdr="BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="LayoutPanel.cpp" hdr="LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="ui/sequencer/BufferPanel.cpp" hdr="ui/sequencer/BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="ui/layout/LayoutPanel.cpp" hdr="ui/layout/LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ui/layout/ModelGroupPanel.cpp" hdr="ui/layout/ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="ui/effectpanels/ServoPanel.cpp" hdr="ui/effectpanels/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ViewsModelsPanel.wxs" src="ViewsModelsPanel.cpp" hdr="ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/HousePreviewPanel.wxs" src="HousePreviewPanel.cpp" hdr="HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewsModelsPanel.wxs" src="ui/layout/ViewsModelsPanel.cpp" hdr="ui/layout/ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/HousePreviewPanel.wxs" src="ui/layout/HousePreviewPanel.cpp" hdr="ui/layout/HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="ui/sequencer/SelectPanel.cpp" hdr="ui/sequencer/SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="ui/media/SequenceVideoPanel.cpp" hdr="ui/media/SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="ui/media/JukeboxPanel.cpp" hdr="ui/media/JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="ui/effectpanels/WarpPanel.cpp" hdr="ui/effectpanels/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ui/layout/ViewObjectPanel.cpp" hdr="ui/layout/ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="ui/effectpanels/ShaderPanel.cpp" hdr="ui/effectpanels/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/BackupSettingsPanel.wxs" src="preferences/BackupSettingsPanel.cpp" hdr="preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/CheckSequenceSettingsPanel.wxs" src="preferences/CheckSequenceSettingsPanel.cpp" hdr="preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ViewSettingsPanel.wxs" src="preferences/ViewSettingsPanel.cpp" hdr="preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SequenceFileSettingsPanel.wxs" src="preferences/SequenceFileSettingsPanel.cpp" hdr="preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/OutputSettingsPanel.wxs" src="preferences/OutputSettingsPanel.cpp" hdr="preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/OtherSettingsPanel.wxs" src="preferences/OtherSettingsPanel.cpp" hdr="preferences/OtherSettingsPanel.h" fwddecl="1" i18n="1" name="OtherSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/EffectsGridSettingsPanel.wxs" src="preferences/EffectsGridSettingsPanel.cpp" hdr="preferences/EffectsGridSettingsPanel.h" fwddecl="1" i18n="1" name="EffectsGridSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SearchPanel.wxs" src="SearchPanel.cpp" hdr="SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/BackupSettingsPanel.wxs" src="ui/preferences/BackupSettingsPanel.cpp" hdr="ui/preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CheckSequenceSettingsPanel.wxs" src="ui/preferences/CheckSequenceSettingsPanel.cpp" hdr="ui/preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewSettingsPanel.wxs" src="ui/preferences/ViewSettingsPanel.cpp" hdr="ui/preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SequenceFileSettingsPanel.wxs" src="ui/preferences/SequenceFileSettingsPanel.cpp" hdr="ui/preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/OutputSettingsPanel.wxs" src="ui/preferences/OutputSettingsPanel.cpp" hdr="ui/preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/OtherSettingsPanel.wxs" src="ui/preferences/OtherSettingsPanel.cpp" hdr="ui/preferences/OtherSettingsPanel.h" fwddecl="1" i18n="1" name="OtherSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EffectsGridSettingsPanel.wxs" src="ui/preferences/EffectsGridSettingsPanel.cpp" hdr="ui/preferences/EffectsGridSettingsPanel.h" fwddecl="1" i18n="1" name="EffectsGridSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="ui/preferences/RandomEffectsSettingsPanel.cpp" hdr="ui/preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="ui/preferences/ColorManagerSettingsPanel.cpp" hdr="ui/preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SearchPanel.wxs" src="ui/diagnostics/SearchPanel.cpp" hdr="ui/diagnostics/SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="ui/effectpanels/MovingHeadPanel.cpp" hdr="ui/effectpanels/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="MediaImportOptionsDialog.cpp" hdr="MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ScriptsDialog.cpp" hdr="ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ColourReplaceDialog.cpp" hdr="ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="TipOfTheDayDialog.cpp" hdr="TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ModelRemap.cpp" hdr="ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
-					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="ui/sequencer/BulkEditColourPickerDialog.cpp" hdr="ui/sequencer/BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="ui/app-shell/KeyBindingEditDialog.cpp" hdr="ui/app-shell/KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="ui/app-shell/AboutDialog.cpp" hdr="ui/app-shell/AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
+							<wxDialog wxs="wxsmith/MediaImportOptionsDialog.wxs" src="ui/media/MediaImportOptionsDialog.cpp" hdr="ui/media/MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ScriptsDialog.wxs" src="ui/automation/ScriptsDialog.cpp" hdr="ui/automation/ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ColourReplaceDialog.wxs" src="ui/color/ColourReplaceDialog.cpp" hdr="ui/color/ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/TipOfTheDayDialog.wxs" src="ui/app-shell/TipOfTheDayDialog.cpp" hdr="ui/app-shell/TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelRemap.wxs" src="ui/import-export/ModelRemap.cpp" hdr="ui/import-export/ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
+					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="ui/app-shell/RestoreBackupDialog.cpp" hdr="ui/app-shell/RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="ui/sequencer/BulkEditComboDialog.cpp" hdr="ui/sequencer/BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="ui/sequencer/DuplicateDialog.cpp" hdr="ui/sequencer/DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="ui/sequencer/MetronomeLabelDialog.cpp" hdr="ui/sequencer/MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="ui/controllers/FPPUploadProgressDialog.cpp" hdr="ui/controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="AutoLabelDialog.cpp" hdr="AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
-					<wxPanel wxs="wxsmith/ServicesPanel.wxs" src="preferences/ServicesPanel.cpp" hdr="preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="ui/sequencer/AutoLabelDialog.cpp" hdr="ui/sequencer/AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="ui/model/EditAliasesDialog.cpp" hdr="ui/model/EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="ui/model/EditSubmodelAliasesDialog.cpp" hdr="ui/model/EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ui/diagnostics/ShowFolderSearchDialog.cpp" hdr="ui/diagnostics/ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ServicesPanel.wxs" src="ui/preferences/ServicesPanel.cpp" hdr="ui/preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/AIColorPaletteDialog.wxs" src="ai/AIColorPaletteDialog.cpp" hdr="ai/AIColorPaletteDialog.h" fwddecl="0" i18n="0" name="AIColorPaletteDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AIImageDialog.wxs" src="ai/AIImageDialog.cpp" hdr="ai/AIImageDialog.h" fwddecl="0" i18n="0" name="AIImageDialog" language="CPP" />
 				</resources>

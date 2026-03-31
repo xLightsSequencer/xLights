@@ -11,7 +11,7 @@
 
 #include "ChannelBlockModel.h"
 #include "ModelScreenLocation.h"
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 

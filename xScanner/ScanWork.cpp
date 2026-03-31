@@ -18,7 +18,7 @@
 #include "../xLights/controllers/Falcon.h"
 #include "../xLights/controllers/Pixlite16.h"
 #include "../xLights/outputs/ControllerEthernet.h"
-#include "../xLights/Discovery.h"
+#include "../xLights/ui/setup/Discovery.h"
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/outputs/ZCPPOutput.h"
 #include "../xLights/outputs/DDPOutput.h"

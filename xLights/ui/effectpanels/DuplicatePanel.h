@@ -20,7 +20,7 @@ class wxSpinEvent;
 class wxStaticText;
 //*)
 
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class DuplicatePanel: public xlEffectPanel

@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
 #include "../XmlSerializer/XmlNodeKeys.h"

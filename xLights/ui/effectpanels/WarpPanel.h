@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "../../graphics/opengl/xlGLCanvas.h"
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 

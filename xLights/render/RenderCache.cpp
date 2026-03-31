@@ -23,8 +23,8 @@
 #include <thread>
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "TraceLog.h"
-#include "ExternalHooks.h"
+#include "utils/TraceLog.h"
+#include "utils/ExternalHooks.h"
 
 #ifdef __APPLE__
 #include <sys/mman.h>

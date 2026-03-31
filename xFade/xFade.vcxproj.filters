@@ -8,7 +8,7 @@
     <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
     <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="Emitter.cpp" />
-    <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="..\xLights\ui\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="MIDIListener.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SettingsDialog.cpp" />
@@ -34,7 +34,7 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\utils\JobPool.cpp" />
-    <ClCompile Include="..\xLights\TraceLog.cpp" />
+    <ClCompile Include="..\xLights\utils\TraceLog.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -62,7 +62,7 @@
     <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
-    <ClInclude Include="..\xLights\ExternalHooks.h" />
+    <ClInclude Include="..\xLights\utils/ExternalHooks.h" />
     <ClInclude Include="..\xLights\utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>
@@ -73,7 +73,7 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\utils\JobPool.h" />
-    <ClInclude Include="..\xLights\TraceLog.h" />
+    <ClInclude Include="..\xLights\utils\TraceLog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

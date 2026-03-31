@@ -2,7 +2,7 @@
 #include "assist/AssistPanel.h"
 #include "assist/SketchAssistPanel.h"
 #include "../../effects/SketchEffectDrawing.h"
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "../../xLightsMain.h"
 #include "../MediaPickerCtrl.h"
 

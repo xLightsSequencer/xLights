@@ -12,13 +12,13 @@
 #include "../../effects/VideoEffect.h"
 #include "EffectPanelUtils.h"
 #include "UtilFunctions.h"
-#include "../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
 #include "../wxUtilities.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
-#include "../../ManageMediaPanel.h"
+#include "ui/media/ManageMediaPanel.h"
 #include "../../utils/xlImage.h"
 
 #include <wx/statbmp.h>

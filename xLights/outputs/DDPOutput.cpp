@@ -16,7 +16,7 @@
 #include "OutputManager.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"
 
@@ -24,7 +24,7 @@
 #include <wx/stopwatch.h>
 
 #ifndef EXCLUDEDISCOVERY
-#include "../Discovery.h"
+#include "ui/setup/Discovery.h"
 #endif
 
 #pragma region Static Variables

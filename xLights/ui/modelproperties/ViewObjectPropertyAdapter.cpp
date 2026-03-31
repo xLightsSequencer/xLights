@@ -15,7 +15,7 @@
 #include "ScreenLocationPropertyHelper.h"
 #include "../../models/ViewObject.h"
 #include "../../models/DisplayAsType.h"
-#include "../../OutputModelManager.h"
+#include "../../models/OutputModelManager.h"
 
 ViewObjectPropertyAdapter::ViewObjectPropertyAdapter(ViewObject& obj) : _viewObject(obj) {}
 

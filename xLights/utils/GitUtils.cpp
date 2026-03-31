@@ -2,7 +2,7 @@
 
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
-#include "../ConvertLogDialog.h"
+#include "../ui/import-export/ConvertLogDialog.h"
 #include "../ui/wxUtilities.h"
 
 #include <log.h>

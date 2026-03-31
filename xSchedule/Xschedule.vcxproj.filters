@@ -15,7 +15,7 @@
     <ClCompile Include="..\xLights\vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="..\xLights\VideoReader.cpp" />
-    <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="..\xLights\ui\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="BackgroundPlaylistDialog.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
@@ -53,7 +53,7 @@
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="Blend.cpp" />
     <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
-    <ClCompile Include="..\xLights\SequenceData.cpp" />
+    <ClCompile Include="..\xLights\render\SequenceData.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
     <ClCompile Include="VideoCache.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
@@ -505,7 +505,7 @@
     <ClCompile Include="events\ListenerCSVFPP.cpp">
       <Filter>Events</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\TraceLog.cpp" />
+    <ClCompile Include="..\xLights\utils\TraceLog.cpp" />
     <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\Controller.cpp">
@@ -546,7 +546,7 @@
     <ClCompile Include="..\xLights\outputs\KinetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\Discovery.cpp" />
+    <ClCompile Include="..\xLights\ui/setup/Discovery.cpp" />
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
     <ClCompile Include="ExcludeDimDialog.cpp">
@@ -1077,7 +1077,7 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\SpecialOptions.h" />
-    <ClInclude Include="..\xLights\TraceLog.h" />
+    <ClInclude Include="..\xLights\utils\TraceLog.h" />
     <ClInclude Include="..\xLights\outputs\xxxEthernetOutput.h" />
     <ClInclude Include="..\xLights\outputs\xxxSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\Controller.h">
@@ -1118,7 +1118,7 @@
     <ClInclude Include="..\xLights\outputs\KinetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\Discovery.h" />
+    <ClInclude Include="..\xLights\ui/setup/Discovery.h" />
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
     <ClInclude Include="ExcludeDimDialog.h">
@@ -1127,7 +1127,7 @@
     <ClInclude Include="OutputProcessExcludeDim.h">
       <Filter>OutputProcessing</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\ExternalHooks.h" />
+    <ClInclude Include="..\xLights\utils/ExternalHooks.h" />
     <ClInclude Include="..\xLights\WindowsHardwareVideoReader.h" />
     <ClInclude Include="events\EventFPPCommandPreset.h">
       <Filter>Events</Filter>

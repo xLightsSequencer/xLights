@@ -13,8 +13,8 @@
 #include "OutputManager.h"
 #include "Output.h"
 #include "UtilFunctions.h"
-#include "../SpecialOptions.h"
-#include "../OutputModelManager.h"
+#include "../utils/SpecialOptions.h"
+#include "../models/OutputModelManager.h"
 #include "NullOutput.h"
 #include "../models/ModelManager.h"
 

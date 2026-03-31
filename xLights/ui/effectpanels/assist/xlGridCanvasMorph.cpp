@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "xlGridCanvasMorph.h"
-#include "../../../BitmapCache.h"
+#include "../../../ui/shared/utils/BitmapCache.h"
 #include "../../../xLightsApp.h"
 #include "../../../xLightsMain.h"
 #include "ui/ValueCurveButton.h"

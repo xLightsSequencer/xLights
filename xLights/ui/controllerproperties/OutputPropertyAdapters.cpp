@@ -32,7 +32,7 @@
 #include "outputs/xxxSerialOutput.h"
 #include "outputs/LOROptimisedOutput.h"
 #include "outputs/LorControllers.h"
-#include "OutputModelManager.h"
+#include "models/OutputModelManager.h"
 #include "models/ModelManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"

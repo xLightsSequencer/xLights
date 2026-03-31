@@ -13,7 +13,7 @@
 
 #include "TreePropertyAdapter.h"
 #include "../../../models/TreeModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* TREE_STYLES_VALUES[] = {
     "Round",

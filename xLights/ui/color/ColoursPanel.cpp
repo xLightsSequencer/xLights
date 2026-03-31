@@ -1,0 +1,412 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include "ui/color/ColoursPanel.h"
+#include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
+#include "render/ColorCurve.h"
+#include "xLightsMain.h"
+#include "ui/shared/utils/DragColoursBitmapButton.h"
+#include "ui/color/ColorPanel.h"
+#include "utils/ExternalHooks.h"
+
+//(*InternalHeaders(ColoursPanel)
+#include <wx/intl.h>
+#include <wx/string.h>
+//*)
+
+#include <wx/artprov.h>
+#include <wx/stdpaths.h>
+#include <wx/filename.h>
+
+#include <log.h>
+
+//(*IdInit(ColoursPanel)
+const long ColoursPanel::ID_SCROLLEDWINDOW1 = wxNewId();
+const long ColoursPanel::ID_PANEL1 = wxNewId();
+//*)
+
+BEGIN_EVENT_TABLE(ColoursPanel,wxPanel)
+	//(*EventTable(ColoursPanel)
+	//*)
+END_EVENT_TABLE()
+
+#define ITEMSIZE 33
+#define MAX_COLOURS 1024
+
+int ColoursPanel::UpdateButtons()
+{
+    int added = 0;
+    auto existing = ScrolledWindow1->GetChildren();
+    for (const auto& c : _colours)
+    {
+        // dont add more than MAX_COLOURS colours
+        if (added < MAX_COLOURS)
+        {
+            bool found = false;
+            for (const auto& it : existing)
+            {
+                //ScrolledWindow1 may have scroll bar children as well as buttons
+                DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
+                if (button && button->GetColour() == c)
+                {
+                    // already there
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
+                DragColoursBitmapButton* bmb = new DragColoursBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),
+                    wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+                bmb->SetColour(c);
+                GridSizer1->Add(bmb);
+                added++;
+            }
+        }
+    }
+
+    SendSizeEvent();
+
+    return added;
+}
+
+void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
+{
+    
+    spdlog::info("ColoursPanel Scanning directory for *.xcc files: {}.", directory.GetNameWithSep().ToStdString());
+
+    int count = 0;
+
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xcc");
+    for (auto &filename : files) {
+        count++;
+        wxFileName fn(filename);
+        if (FileExists(filename)) {
+            ColorCurve cc;
+            cc.LoadXCC(fn.GetFullPath());
+            cc.SetId("ID_BUTTON_PaletteX");
+            AddColour(cc.Serialise());
+        } else {
+            spdlog::warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath().ToStdString());
+        }
+    }
+    spdlog::info("    Found {}.", count);
+
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
+            wxDir dir(directory.GetNameWithSep() + filename);
+            ProcessColourCurveDir(dir, subdirs);
+            cont = directory.GetNext(&filename);
+        }
+    }
+}
+
+void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
+{
+    
+    spdlog::info("ColoursPanel Scanning directory for *.xpalette files: {}.", directory.GetNameWithSep().ToStdString());
+
+    int count = 0;
+
+    wxArrayString files;
+    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xpalette");
+    for (auto &filename : files) {
+        count++;
+        wxFileName fn(filename);
+        if (FileExists(fn.GetFullPath())) {
+            wxFile f;
+            if (f.Open(fn.GetFullPath())) {
+                wxString p;
+                f.ReadAll(&p);
+                for (const auto& it : wxSplit(p, ',')) {
+                    if (it != "") AddColour(it);
+                }
+            } else {
+                spdlog::warn("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath().ToStdString());
+            }
+        }
+    }
+    spdlog::info("    Found {}.", count);
+
+    if (subdirs) {
+        wxString filename;
+        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        while (cont) {
+            wxDir dir(directory.GetNameWithSep() + filename);
+            ProcessColourCurveDir(dir, subdirs);
+            cont = directory.GetNext(&filename);
+        }
+    }
+}
+
+std::string ColoursPanel::GetPaletteFolder(const std::string& showFolder)
+{
+    if (showFolder == "") return "";
+
+    std::string pf = showFolder + "/palettes";
+    if (!wxDir::Exists(pf))
+    {
+        wxMkdir(pf);
+        if (!wxDir::Exists(pf))
+        {
+            return "";
+        }
+    }
+    return pf;
+}
+
+void ColoursPanel::ParsePalette(const std::string& pal)
+{
+    wxArrayString cs = wxSplit(pal, ',');
+    for (const auto& it : cs)
+    {
+        if (it.StartsWith("C_BUTTON_Palette"))
+        {
+            auto v = it.AfterFirst('=');
+            if (v != "") AddColour(v);
+        }
+    }
+}
+
+void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
+
+    
+
+    if (xlights == nullptr || xLightsFrame::CurrentDir.IsEmpty()) {
+        spdlog::warn("UpdateColourButtons called with null xlights or empty CurrentDir. Skipping.");
+        return;
+    }
+
+    if (reload) {
+        _colours.clear();
+        _colourscmp.clear();
+
+        auto existing = ScrolledWindow1->GetChildren();
+        for (const auto& it : existing) {
+            DragColoursBitmapButton* button = dynamic_cast<DragColoursBitmapButton*>(it);
+            if (button) {
+                GridSizer1->Detach(button);
+                ScrolledWindow1->RemoveChild(button);
+                delete button;
+            }
+        }
+    }
+
+    AddBaseColours();
+
+    wxDir dir;
+    if (wxDir::Exists(xLightsFrame::CurrentDir))
+    {
+        dir.Open(xLightsFrame::CurrentDir);
+        ProcessColourCurveDir(dir, false);
+        ProcessPaletteDir(dir, false);
+    }
+
+    wxString d = ColorCurve::GetColorCurveFolder(xLightsFrame::CurrentDir.ToStdString());
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessColourCurveDir(dir, true);
+    }
+    else
+    {
+        spdlog::info("Directory for *.xcc files not found: {}.", d.ToStdString());
+    }
+
+    d = GetPaletteFolder(xLightsFrame::CurrentDir.ToStdString());
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessPaletteDir(dir, true);
+    }
+    else
+    {
+        spdlog::info("Directory for *.xpalette files not found: {}.", d.ToStdString());
+    }
+
+    wxStandardPaths stdp = wxStandardPaths::Get();
+
+#ifndef __WXMSW__
+    d = wxStandardPaths::Get().GetResourcesDir() + "/colorcurves";
+#else
+    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/colorcurves";
+#endif
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessColourCurveDir(dir, true);
+    }
+    else
+    {
+        spdlog::info("Directory for *.xcc files not found: {}.", d.ToStdString());
+    }
+
+#ifndef __WXMSW__
+    d = wxStandardPaths::Get().GetResourcesDir() + "/palettes";
+#else
+    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/palettes";
+#endif
+    if (wxDir::Exists(d))
+    {
+        dir.Open(d);
+        ProcessPaletteDir(dir, true);
+    }
+    else
+    {
+        spdlog::info("Directory for *.xpalette files not found: {}.", d.ToStdString());
+    }
+
+    if (xlights != nullptr)
+    {
+        if (xlights->GetColorPanel() != nullptr)
+        {
+            ParsePalette(xlights->GetColorPanel()->GetColorString(true));
+        }
+
+        if (xlights->CurrentSeqXmlFile != nullptr)
+        {
+            // we can bail early if we already have enough colours ... this helps in sequences with a crazy large number of colours
+            for (const auto& palette : xlights->GetSequenceElements().GetColorPalettes()) {
+                if (_colours.size() >= MAX_COLOURS) break;
+                ParsePalette(palette);
+            }
+        }
+    }
+
+    int added = UpdateButtons();
+
+    if (added != 0 && xlights != nullptr)
+    {
+        wxCommandEvent e(EVT_COLOUR_CHANGED);
+        e.SetInt(added);
+        wxPostEvent(xlights, e);
+    }
+}
+
+int ColoursPanel::AddColour(const std::string& colour)
+{
+    if (colour == "") return 0;
+
+    std::string c(colour);
+
+    if (Contains(c, "ID_BUTTON_Palette")) {
+        int loc = c.find("ID_BUTTON_Palette");
+        c = c.substr(0, loc) + c.substr(loc + 18);
+    }
+
+    std::string lc = ::Lower(c);
+
+    if (std::find(_colourscmp.begin(), _colourscmp.end(), lc) != _colourscmp.end()) {
+        // already there
+        return 0;
+    }
+    _colours.push_back(c);
+    _colourscmp.push_back(lc);
+    return 1;
+}
+
+int ColoursPanel::AddBaseColours()
+{
+    int added = 0;
+
+    added += AddColour(wxBLACK->GetAsString(wxC2S_HTML_SYNTAX));
+    for (int i = 31; i < 256; i += 32)
+    {
+        AddColour(wxColor(i, i, i).GetAsString(wxC2S_HTML_SYNTAX));
+    }
+    added += AddColour(wxRED->GetAsString(wxC2S_HTML_SYNTAX));
+    added += AddColour(wxGREEN->GetAsString(wxC2S_HTML_SYNTAX));
+    added += AddColour(wxBLUE->GetAsString(wxC2S_HTML_SYNTAX));
+    added += AddColour(wxYELLOW->GetAsString(wxC2S_HTML_SYNTAX));
+    added += AddColour(wxCYAN->GetAsString(wxC2S_HTML_SYNTAX));
+    added += AddColour(wxColour(255, 0, 255).GetAsString(wxC2S_HTML_SYNTAX));
+    return added;
+}
+
+ColoursPanel::ColoursPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+{
+	//(*Initialize(ColoursPanel)
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
+	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer1->AddGrowableRow(0);
+	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
+	FlexGridSizer2->AddGrowableRow(0);
+	ScrolledWindow1 = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
+	GridSizer1 = new wxGridSizer(0, 3, 0, 0);
+	ScrolledWindow1->SetSizer(GridSizer1);
+	GridSizer1->Fit(ScrolledWindow1);
+	GridSizer1->SetSizeHints(ScrolledWindow1);
+	FlexGridSizer2->Add(ScrolledWindow1, 1, wxALL|wxEXPAND, 5);
+	Panel_Sizer->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(Panel_Sizer);
+	FlexGridSizer2->SetSizeHints(Panel_Sizer);
+	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 5);
+	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColoursPanel::OnResize);
+	//*)
+
+    SetMinSize(wxSize(100, 100));
+
+    ScrolledWindow1->SetScrollRate(0, 5);
+    GridSizer1->SetCols(10);
+    
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
+
+    UpdateColourButtons(false, nullptr);
+}
+
+ColoursPanel::~ColoursPanel()
+{
+	//(*Destroy(ColoursPanel)
+	//*)
+}
+
+void ColoursPanel::OnResize(wxSizeEvent& event) {
+
+    int cnt = GridSizer1->GetItemCount();
+
+    if (cnt < 1) cnt = 1;
+
+    wxSize wsz = GetSize();
+    if (wsz.GetWidth() <= 50) {
+        return;
+    }
+
+    Panel_Sizer->SetSize(wsz);
+    Panel_Sizer->SetMinSize(wsz);
+    Panel_Sizer->SetMaxSize(wsz);
+    Panel_Sizer->Refresh();
+
+    int cols = (wsz.GetWidth()-20) / ITEMSIZE;
+    if (cols < 1) cols = 1;
+    GridSizer1->SetCols(cols);
+    int rows = cnt / cols + 1;
+
+    ScrolledWindow1->SetSize(wsz);
+    ScrolledWindow1->SetMinSize(wsz);
+    ScrolledWindow1->SetMaxSize(wsz);
+    ScrolledWindow1->FitInside();
+    ScrolledWindow1->SetScrollRate(0, 5);
+    ScrolledWindow1->Refresh();
+    GridSizer1->SetDimension(0, 0, wsz.GetWidth() - 20, (ITEMSIZE + 5) * rows);
+    Layout();
+}

@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 #include "AudioManager.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"

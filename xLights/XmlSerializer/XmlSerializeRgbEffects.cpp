@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "XmlNodeKeys.h"
-#include "../LayoutGroup.h"
+#include "ui/layout/LayoutGroup.h"
 #include "../xLightsMain.h"
 
 #include <memory>

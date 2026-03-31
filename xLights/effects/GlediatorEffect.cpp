@@ -27,7 +27,7 @@
 #include "../render/SequenceFile.h"
 #include "../render/RenderContext.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include "../../include/glediator-16.xpm"
 #include "../../include/glediator-64.xpm"

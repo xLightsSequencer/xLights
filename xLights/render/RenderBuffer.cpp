@@ -27,7 +27,7 @@
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
 #include "GPURenderUtils.h"
-#include "BufferPanel.h"
+#include "ui/sequencer/BufferPanel.h"
 
 #include <log.h>
 #include "Parallel.h"

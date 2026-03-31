@@ -13,7 +13,7 @@
 
 #include "WindowFramePropertyAdapter.h"
 #include "../../../models/WindowFrameModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
     "Top Left",

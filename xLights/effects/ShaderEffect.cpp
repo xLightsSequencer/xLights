@@ -90,11 +90,11 @@
 #include "../render/RenderContext.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
-#include "../TimingPanel.h"
+#include "ui/sequencer/TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "graphics/opengl/DrawGLUtils.h"
 #include <nlohmann/json.hpp>
 // wxJSON kept for reference - can revert if nlohmann causes issues

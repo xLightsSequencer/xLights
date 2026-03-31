@@ -21,7 +21,7 @@
 #include "../../../models/DMX/Servo.h"
 #include "ServoConfigDialog.h"
 #include "../../../controllers/ControllerCaps.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const std::string CLICK_TO_EDIT("--Click To Edit--");
 

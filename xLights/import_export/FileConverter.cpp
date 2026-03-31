@@ -41,13 +41,13 @@
 #include "outputs/Controller.h"
 #ifndef FPP
     #include "xLightsMain.h"
-    #include "ConvertDialog.h"
-    #include "ConvertLogDialog.h"
+    #include "ui/import-export/ConvertDialog.h"
+    #include "ui/import-export/ConvertLogDialog.h"
     #include "outputs/Output.h"
     #define string_format wxString::Format
 #endif
 #include "xLightsVersion.h"
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include <log.h>
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;

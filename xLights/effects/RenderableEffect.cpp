@@ -20,9 +20,9 @@
 #include "UtilFunctions.h"
 #include "EffectManager.h"
 
-#include "../BufferPanel.h"
-#include "../ColorPanel.h"
-#include "../TimingPanel.h"
+#include "ui/sequencer/BufferPanel.h"
+#include "ui/color/ColorPanel.h"
+#include "ui/sequencer/TimingPanel.h"
 #include "../render/RenderContext.h"
 #include "../models/SubModel.h"
 

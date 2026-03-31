@@ -36,14 +36,14 @@
 #include <wx/spinctrl.h>
 #include <wx/clrpicker.h>
 
-#include "../../BitmapCache.h"
+#include "../../ui/shared/utils/BitmapCache.h"
 #include "ui/ValueCurveButton.h"
 #include "ui/ValueCurveDialog.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../wxUtilities.h"
-#include "../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include <wx/tglbtn.h>
 

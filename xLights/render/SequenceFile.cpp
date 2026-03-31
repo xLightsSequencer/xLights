@@ -30,16 +30,16 @@
 #include "UICallbacks.h"
 #include "AudioManager.h"
 #include "../xLightsMain.h"
-#include "../JukeboxPanel.h"
-#include "../OptionChooser.h"
+#include "ui/media/JukeboxPanel.h"
+#include "../ui/shared/dialogs/OptionChooser.h"
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
-#include "../sequencer/TimeLine.h"
+#include "../ui/sequencer/TimeLine.h"
 #include "../import_export/Vixen3.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include <log.h>
 

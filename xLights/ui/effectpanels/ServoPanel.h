@@ -24,7 +24,7 @@ class wxToggleButton;
 //*)
 
 
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class Model;

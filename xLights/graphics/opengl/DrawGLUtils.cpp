@@ -35,7 +35,7 @@
 #include <wx/graphics.h>
 #include <wx/dcgraph.h>
 #include "xlGLCanvas.h"
-#include "../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 
 #include <map>

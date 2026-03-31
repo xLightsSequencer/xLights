@@ -15,7 +15,7 @@
 #include "ValueCurveButton.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 
 //(*InternalHeaders(ValueCurvesPanel)

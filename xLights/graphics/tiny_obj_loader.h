@@ -64,7 +64,7 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 
 namespace tinyobj {

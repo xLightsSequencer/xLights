@@ -13,7 +13,7 @@
 
 #include "SpherePropertyAdapter.h"
 #include "../../../models/SphereModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 SpherePropertyAdapter::SpherePropertyAdapter(Model& model)
     : MatrixPropertyAdapter(model), _sphere(static_cast<SphereModel&>(model)) {}

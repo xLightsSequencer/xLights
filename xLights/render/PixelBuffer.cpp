@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "AudioManager.h"
-#include "BufferPanel.h"
+#include "ui/sequencer/BufferPanel.h"
 #include "DimmingCurve.h"
 #include "PixelBuffer.h"
 #include "UtilClasses.h"

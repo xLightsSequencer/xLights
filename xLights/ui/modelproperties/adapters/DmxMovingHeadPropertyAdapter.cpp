@@ -18,7 +18,7 @@
 #include "../../../models/DMX/DmxColorAbility.h"
 #include "../../../models/DMX/DmxMotor.h"
 #include "../../../controllers/ControllerCaps.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* DMX_STYLE_VALUES[] = {
     "Moving Head Top",

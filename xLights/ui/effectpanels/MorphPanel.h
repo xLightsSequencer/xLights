@@ -26,7 +26,7 @@ class wxTextCtrl;
 
 class MorphQuickSet;
 
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class MorphPanel: public xlEffectPanel

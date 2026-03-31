@@ -13,7 +13,7 @@
 
 #include "CubePropertyAdapter.h"
 #include "../../../models/CubeModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
     "Front Bottom Left",

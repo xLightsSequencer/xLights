@@ -26,7 +26,7 @@
 #include "../render/SequenceFile.h"
 #include "../models/Model.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 #include "../render/SequenceElements.h"
 #include "../utils/xlPoint.h"

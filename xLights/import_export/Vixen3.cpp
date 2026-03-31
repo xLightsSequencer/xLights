@@ -17,7 +17,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <log.h>
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 double CorrectForGamma(double value)
 {

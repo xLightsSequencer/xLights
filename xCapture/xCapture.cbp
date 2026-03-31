@@ -95,8 +95,8 @@
 		<Unit filename="../xLights/utils/JobPool.h" />
 		<Unit filename="../xLights/utils/Parallel.cpp" />
 		<Unit filename="../xLights/utils/Parallel.h" />
-		<Unit filename="../xLights/TraceLog.cpp" />
-		<Unit filename="../xLights/TraceLog.h" />
+		<Unit filename="../xLights/utils/TraceLog.cpp" />
+		<Unit filename="../xLights/utils/TraceLog.h" />
 		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../xLights/utils/UtilFunctions.cpp" />
 		<Unit filename="../xLights/utils/UtilFunctions.h" />

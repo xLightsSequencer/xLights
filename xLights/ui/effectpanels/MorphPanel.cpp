@@ -17,7 +17,7 @@
 #include "UtilFunctions.h"
 #include "../wxUtilities.h"
 #include "../../xLightsMain.h"
-#include "../../sequencer/MainSequencer.h"
+#include "../../ui/sequencer/MainSequencer.h"
 
 //(*InternalHeaders(MorphPanel)
 #include <wx/bitmap.h>

@@ -23,7 +23,7 @@
 #include "DmxShutterAbility.h"
 #include "DmxDimmerAbility.h"
 #include "../ModelScreenLocation.h"
-#include "../../ModelPreview.h"
+#include "../../ui/layout/ModelPreview.h"
 #include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
 #include "UtilFunctions.h"

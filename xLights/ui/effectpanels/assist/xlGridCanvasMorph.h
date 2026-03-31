@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include <wx/wx.h>
-#include "../../../xlGridCanvas.h"
+#include "../../../ui/shared/utils/xlGridCanvas.h"
 #include "../../../render/Effect.h"
 
 #include <array>

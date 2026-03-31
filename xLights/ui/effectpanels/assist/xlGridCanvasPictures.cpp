@@ -13,13 +13,13 @@
 #include <wx/filefn.h>
 #include <wx/filename.h>
 
-#include "../../../ResizeImageDialog.h"
+#include "../../../ui/media/ResizeImageDialog.h"
 
-#include "../../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "../../wxUtilities.h"
 #include "../../../render/SequenceMedia.h"
-#include "../../../ManageMediaPanel.h"
+#include "ui/media/ManageMediaPanel.h"
 #include "../../../xLightsMain.h"
 #include <wx/textdlg.h>
 #include "../../../render/EffectLayer.h"

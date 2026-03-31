@@ -25,7 +25,7 @@
 #include <wx/textctrl.h>
 //*)
 
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 #include "MovingHeadPanels/MHColorPanel.h"
 #include "MovingHeadPanels/MovingHeadCanvasPanel.h"

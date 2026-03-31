@@ -21,7 +21,7 @@
 #include <wx/textctrl.h>
 //*)
 
-#include "xlCustomControl.h"
+#include "ui/shared/utils/xlCustomControl.h"
 #include "render/ValueCurve.h"
 #include <wx/dir.h>
 

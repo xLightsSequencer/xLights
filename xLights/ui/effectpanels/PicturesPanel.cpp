@@ -33,7 +33,7 @@
 #include "assist/PicturesAssistPanel.h"
 #include "../../effects/PicturesEffect.h"
 #include "EffectPanelUtils.h"
-#include "../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
@@ -41,7 +41,7 @@
 #include "../../xLightsMain.h"
 #include "../../ai/AIImageDialog.h"
 #include "../../ai/aiType.h"
-#include "../../ManageMediaPanel.h"
+#include "ui/media/ManageMediaPanel.h"
 #include "../wxUtilities.h"
 #include <wx/artprov.h>
 #include <wx/datetime.h>

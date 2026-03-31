@@ -13,7 +13,7 @@
 
 #include "SpinnerPropertyAdapter.h"
 #include "../../../models/SpinnerModel.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
     "Center Counter Clockwise",

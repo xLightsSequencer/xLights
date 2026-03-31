@@ -13,7 +13,7 @@
 #include "UtilFunctions.h"
 #include "Output.h"
 #include "OutputManager.h"
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "../controllers/ControllerCaps.h"
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"

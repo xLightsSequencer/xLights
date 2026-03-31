@@ -19,7 +19,7 @@
 #include "UtilFunctions.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Controller.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "CustomModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 

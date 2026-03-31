@@ -15,7 +15,7 @@
 #include "../PropertyGridHelpers.h"
 #include "../../../models/PolyLineModel.h"
 #include "../../../models/Model.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 #include "UtilFunctions.h"
 
 static const char* POLY_CORNER_VALUES[] = {

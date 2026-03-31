@@ -18,10 +18,10 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../support/VectorMath.h"
 #include "RulerObject.h"
-#include "ColorManager.h"
+#include "ui/color/ColorManager.h"
 #include "../ui/wxUtilities.h"
 
 #include <log.h>

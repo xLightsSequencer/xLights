@@ -16,7 +16,7 @@
 #include <wx/string.h>
 #endif
 #include "render/DataLayer.h"
-#include "SequenceData.h"
+#include "render/SequenceData.h"
 #include "Color.h"
 
 class xLightsFrame; // forward declare to prevent including the world

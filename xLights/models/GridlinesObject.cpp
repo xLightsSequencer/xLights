@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "GridlinesObject.h"
-#include "ModelPreview.h"
+#include "ui/layout/ModelPreview.h"
 #include "Model.h"
 
 GridlinesObject::GridlinesObject(const ViewObjectManager &manager)

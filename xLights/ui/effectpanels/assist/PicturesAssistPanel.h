@@ -18,10 +18,10 @@
 #include <wx/stattext.h>
 //*)
 
-#include "../../../FlickerFreeBitmapButton.h"
+#include "../../shared/utils/FlickerFreeBitmapButton.h"
 #include "xlGridCanvasPictures.h"
 #include "../../../render/Effect.h"
-#include "../../../ColorPanel.h"
+#include "ui/color/ColorPanel.h"
 
 class xlColorPicker;
 class xLightsFrame;

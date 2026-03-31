@@ -19,7 +19,7 @@
 #include "../../../models/DMX/DmxImage.h"
 #include "../../../models/DMX/Servo.h"
 #include "../../../controllers/ControllerCaps.h"
-#include "../../../OutputModelManager.h"
+#include "../../../models/OutputModelManager.h"
 
 static const int SUPPORTED_SERVOS = 24;
 

@@ -8,7 +8,7 @@
 #include "UtilFunctions.h"
 #include "../../wxUtilities.h"
 #include <xLightsMain.h>
-#include "../../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include <wx/button.h>
 #include <wx/listbox.h>

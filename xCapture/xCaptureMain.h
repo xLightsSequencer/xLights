@@ -38,7 +38,7 @@
 //*)
 
 #include "../common/xlBaseApp.h"
-#include "../xLights/xLightsTimer.h"
+#include "../xLights/ui/shared/utils/xLightsTimer.h"
 #include <list>
 #include <wx/socket.h>
 

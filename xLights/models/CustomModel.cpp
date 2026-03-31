@@ -24,7 +24,7 @@
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "outputs/OutputManager.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "RulerObject.h"
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/XmlNodeKeys.h"

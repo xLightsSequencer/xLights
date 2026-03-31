@@ -17,7 +17,7 @@
 #include "DmxServo3D.h"
 #include "Mesh.h"
 #include "Servo.h"
-#include "../../ModelPreview.h"
+#include "../../ui/layout/ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../render/UICallbacks.h"
 #include "UtilFunctions.h"

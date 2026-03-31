@@ -16,7 +16,7 @@
 #include "../../../models/TerrainObject.h"
 #include "../../../models/RulerObject.h"
 #include "../../../models/ModelScreenLocation.h"
-#include "../../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../../wxUtilities.h"
 
 TerrainObjectPropertyAdapter::TerrainObjectPropertyAdapter(TerrainObject& obj)

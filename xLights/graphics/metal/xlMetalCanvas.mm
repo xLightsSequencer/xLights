@@ -8,7 +8,7 @@
 #include "xlMetalCanvas.h"
 #include "xlMetalGraphicsContext.h"
 
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include "wx/osx/private.h"
 #include "../xlGraphicsBase.h"

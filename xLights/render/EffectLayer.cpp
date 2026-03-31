@@ -14,9 +14,9 @@
 #include <vector>
 
 #include "EffectLayer.h"
-#include "../sequencer/EffectsGrid.h"
+#include "../ui/sequencer/EffectsGrid.h"
 #include "Effect.h"
-#include "../sequencer/RowHeading.h"
+#include "../ui/sequencer/RowHeading.h"
 #include "../models/Model.h"
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"

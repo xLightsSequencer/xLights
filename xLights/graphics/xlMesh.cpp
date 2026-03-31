@@ -9,7 +9,7 @@
 
 #include <wx/filename.h>
 
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "../utils/xlImage.h"
 

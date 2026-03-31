@@ -14,7 +14,7 @@
 
 #include "VUMeterEffect.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../utils/xlPoint.h"
 #include "AudioManager.h"
 #include "../render/SequenceElements.h"
@@ -26,7 +26,7 @@
 #include "UtilClasses.h"
 #include "../models/Model.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include "../../include/vumeter-16.xpm"
 #include "../../include/vumeter-24.xpm"

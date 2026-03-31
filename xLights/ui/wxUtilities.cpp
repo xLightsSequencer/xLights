@@ -30,7 +30,7 @@
 #include <wx/wfstream.h>
 
 #include "wxUtilities.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../xLightsVersion.h"
 #include "../utils/CurlManager.h"
 #include "../utils/string_utils.h"

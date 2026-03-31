@@ -53,7 +53,7 @@
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Mesh.h"
 #include "../models/DMX/Servo.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../xLightsMain.h"
 #include "../utils/string_utils.h"
 

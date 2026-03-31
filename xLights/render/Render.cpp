@@ -22,17 +22,17 @@
 
 #include "xLightsMain.h"
 #include "SequenceFile.h"
-#include "RenderCommandEvent.h"
+#include "ui/sequencer/RenderCommandEvent.h"
 #include "effects/RenderableEffect.h"
-#include "RenderProgressDialog.h"
+#include "../ui/diagnostics/RenderProgressDialog.h"
 #include "RenderUtils.h"
 #include "models/ModelGroup.h"
-#include "sequencer/MainSequencer.h"
+#include "ui/sequencer/MainSequencer.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "PixelBuffer.h"
 #include "Parallel.h"
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "GPURenderUtils.h"
 
 #include <log.h>

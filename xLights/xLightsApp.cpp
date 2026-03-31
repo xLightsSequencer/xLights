@@ -37,11 +37,11 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
-#include "TraceLog.h"
-#include "ExternalHooks.h"
-#include "BitmapCache.h"
+#include "utils/TraceLog.h"
+#include "utils/ExternalHooks.h"
+#include "ui/shared/utils/BitmapCache.h"
 #include "utils/CurlManager.h"
-#include "SequencePackage.h"
+#include "render/SequencePackage.h"
 #include <SpecialOptions.h>
 
 #ifndef __WXMSW__

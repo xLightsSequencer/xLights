@@ -11,7 +11,7 @@
 #include "StringSerializingVisitor.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
-#include "CheckboxSelectDialog.h"
+#include "ui/shared/dialogs/CheckboxSelectDialog.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../models/ModelGroup.h"

@@ -16,7 +16,7 @@
 #include <wx/tglbtn.h>
 #include <wx/bmpbuttn.h>
 
-#include "../../xlLockButton.h"
+#include "../shared/utils/xlLockButton.h"
 
 wxDECLARE_EVENT(EVT_VALIDATEWINDOW, wxCommandEvent);
 

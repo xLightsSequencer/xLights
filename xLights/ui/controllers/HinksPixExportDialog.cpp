@@ -15,7 +15,7 @@
 #include "AudioManager.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
-#include "ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "HinksPixExportDialog.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"

@@ -19,9 +19,11 @@
 #include "outputs/ControllerSerial.h"
 #include "outputs/OutputManager.h"
 #include "outputs/SerialOutput.h"
-#include "OutputModelManager.h"
+#include "outputs/DDPOutput.h"
+#include "models/OutputModelManager.h"
 #include "controllers/ControllerCaps.h"
-#include "SpecialOptions.h"
+#include "UtilFunctions.h"
+#include "utils/SpecialOptions.h"
 #include "models/ModelManager.h"
 
 #ifdef SetPort

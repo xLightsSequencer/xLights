@@ -31,7 +31,7 @@ class wxTextCtrl;
 #include <wx/bmpbuttn.h>
 #include <wx/filepicker.h>
 #include <wx/timer.h>
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class SequenceMedia;

@@ -27,9 +27,9 @@ class wxTextCtrl;
 //*)
 
 #include <wx/filepicker.h>
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
-#include "../../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 class MediaPickerCtrl;
 

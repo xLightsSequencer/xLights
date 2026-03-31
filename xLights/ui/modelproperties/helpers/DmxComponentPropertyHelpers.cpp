@@ -19,8 +19,8 @@
 #include "../../../models/DMX/DmxImage.h"
 #include "../../../models/BaseObject.h"
 #include "../../../models/Model.h"
-#include "../../../OutputModelManager.h"
-#include "../../../ExternalHooks.h"
+#include "../../../models/OutputModelManager.h"
+#include "utils/ExternalHooks.h"
 #include "../../../graphics/xlMesh.h"
 
 #include <filesystem>

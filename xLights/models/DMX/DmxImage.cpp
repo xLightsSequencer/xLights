@@ -14,8 +14,8 @@
 #include "DmxImage.h"
 #include "../../utils/xlImage.h"
 #include "UtilFunctions.h"
-#include "../../ExternalHooks.h"
-#include "../../ModelPreview.h"
+#include "utils/ExternalHooks.h"
+#include "../../ui/layout/ModelPreview.h"
 
 #include <log.h>
 

@@ -11,7 +11,7 @@
 
 #include "ViewObject.h"
 #include "ObjectManager.h"
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 
 ViewObject::ViewObject(const ObjectManager &manager)
     : objectManager(manager)

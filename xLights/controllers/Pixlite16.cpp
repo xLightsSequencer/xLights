@@ -23,7 +23,7 @@
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
-#include "../Discovery.h"
+#include "ui/setup/Discovery.h"
 #include "../utils/CurlManager.h"
 
 #include "../utils/string_utils.h"

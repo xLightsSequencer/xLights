@@ -13,7 +13,7 @@
 #include "PolyPointScreenLocation.h"
 
 
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "Shapes.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"

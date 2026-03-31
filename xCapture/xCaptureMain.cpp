@@ -24,7 +24,7 @@
 #include <wx/filedlg.h>
 #include <wx/numdlg.h>
 #include "ResultDialog.h"
-#include "../xLights/IPEntryDialog.h"
+#include "../xLights/ui/setup/IPEntryDialog.h"
 
 #ifndef __WXMSW__
 #include <netinet/in.h>

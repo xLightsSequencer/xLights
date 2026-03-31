@@ -23,7 +23,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../effects/RenderableEffect.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
 #include <cassert>
 #include <filesystem>

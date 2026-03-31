@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EffectPanelUtils.h"
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 
 class BulkEditCheckBox;
 class BulkEditSlider;

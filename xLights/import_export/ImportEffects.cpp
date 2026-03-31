@@ -21,22 +21,22 @@
 
 #include <pugixml.hpp>
 
-#include "../LMSImportChannelMapDialog.h"
+#include "../ui/import-export/LMSImportChannelMapDialog.h"
 #include "LOREdit.h"
-#include "../SuperStarImportDialog.h"
+#include "../ui/import-export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "VSAFile.h"
-#include "../VsaImportDialog.h"
-#include "../BufferPanel.h"
+#include "../ui/import-export/VsaImportDialog.h"
+#include "ui/sequencer/BufferPanel.h"
 #include "FileConverter.h"
-#include "../xLightsImportChannelMapDialog.h"
+#include "../ui/import-export/xLightsImportChannelMapDialog.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../xLightsVersion.h"
 #include "../render/SequenceMedia.h"
-#include "../ExternalHooks.h"
-#include "../SequencePackage.h"
+#include "utils/ExternalHooks.h"
+#include "../render/SequencePackage.h"
 #include "Vixen3.h"
 #include "../effects/BarsEffect.h"
 #include "../effects/ButterflyEffect.h"
@@ -50,7 +50,7 @@
 #include "../render/FontManager.h"
 #include "../models/DMX/DmxModel.h"
 #include "../models/ModelGroup.h"
-#include "../sequencer/MainSequencer.h"
+#include "../ui/sequencer/MainSequencer.h"
 
 #include <log.h>
 

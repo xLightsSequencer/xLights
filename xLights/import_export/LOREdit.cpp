@@ -14,7 +14,7 @@
 #include <wx/uri.h>
 #include <wx/regex.h>
 
-#include "sequencer/TimeLine.h"
+#include "ui/sequencer/TimeLine.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "models/Model.h"

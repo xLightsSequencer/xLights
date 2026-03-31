@@ -22,7 +22,7 @@
  //*)
 
 #include <list>
-#include "../../BulkEditControls.h"
+#include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 
 class FireworksPanel: public xlEffectPanel

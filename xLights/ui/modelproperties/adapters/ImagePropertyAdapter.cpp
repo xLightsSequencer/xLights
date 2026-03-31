@@ -13,8 +13,8 @@
 
 #include "ImagePropertyAdapter.h"
 #include "../../../models/ImageModel.h"
-#include "../../../OutputModelManager.h"
-#include "../../../ExternalHooks.h"
+#include "../../../models/OutputModelManager.h"
+#include "utils/ExternalHooks.h"
 
 ImagePropertyAdapter::ImagePropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _image(static_cast<ImageModel&>(model)) {}

@@ -28,14 +28,14 @@
 #include "outputs/xxxEthernetOutput.h"
 #include "outputs/OPCOutput.h"
 #include "outputs/TwinklyOutput.h"
-#include "OutputModelManager.h"
+#include "models/OutputModelManager.h"
 #include "controllers/ControllerCaps.h"
 #include "UtilFunctions.h"
 #include "utils/ip_utils.h"
 #include "models/ModelManager.h"
 #include "models/Model.h"
 
-#include "SpecialOptions.h"
+#include "utils/SpecialOptions.h"
 
 #include <log.h>
 

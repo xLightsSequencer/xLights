@@ -20,10 +20,10 @@
 
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../utils/nanosvg_xl.h"
 #include "../effects/ShaderEffect.h"
-#include "../VideoReader.h"
+#include "VideoReader.h"
 #include "../xLightsMain.h"
 #include "Element.h"
 #include "EffectLayer.h"

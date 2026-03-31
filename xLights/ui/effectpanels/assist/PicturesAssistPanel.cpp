@@ -21,14 +21,14 @@
 #include <wx/wfstream.h>
 
 #include "PicturesAssistPanel.h"
-#include "../../../xlColorPicker.h"
-#include "../../../xlColorPickerFields.h"
+#include "../../../ui/color/xlColorPicker.h"
+#include "../../../ui/color/xlColorPickerFields.h"
 #include "../../../../include/PaintToolIcons.h"
 #include "../../../models/Model.h"
 #include "../../../xLightsMain.h"
 #include "../../../render/SequenceFile.h"
-#include "ExternalHooks.h"
-#include "ColorPanel.h"
+#include "utils/ExternalHooks.h"
+#include "ui/color/ColorPanel.h"
 
 #include <log.h>
 #include "../../../ui/wxUtilities.h"

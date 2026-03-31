@@ -16,7 +16,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
