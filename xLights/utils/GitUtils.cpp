@@ -217,7 +217,7 @@ wxString GitUtils::CalcShortHash() const
 	wxExecuteEnv parm;
 	parm.cwd = m_folder;
 	wxArrayString output, errors;
-	int code = wxExecute(wxT("git rev-parse --short=7 HEAD"), output, errors, wxEXEC_BLOCK | wxEXEC_HIDE_CONSOLE | wxEXEC_NODISABLE, &parm);
+    wxExecute(wxT("git rev-parse --short=7 HEAD"), output, errors, wxEXEC_BLOCK | wxEXEC_HIDE_CONSOLE | wxEXEC_NODISABLE, &parm);
 	if (output.size() > 0) {
 		return output[0];
 	}
@@ -292,7 +292,7 @@ bool GitUtils::RunCommands(std::vector<wxString> const& commands, wxFrame* frame
 
 	for (auto const& cmd : commands) {
 		returnCode = -1;
-		long pid = wxExecute(cmd, wxEXEC_ASYNC, process, &parm);
+        wxExecute(cmd, wxEXEC_ASYNC, process, &parm);
 		process->Redirect();
 
 		if (process) {

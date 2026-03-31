@@ -26,7 +26,7 @@
 #include "TraceLog.h"
 #include "ExternalHooks.h"
 
-#ifdef __WXOSX__
+#ifdef __APPLE__
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>

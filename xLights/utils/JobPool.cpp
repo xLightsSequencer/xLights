@@ -8,7 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-// needed to ensure the __WXMSW__ is defined
 #include <wx/wx.h>
 
 #include <string>
@@ -169,7 +168,7 @@ void JobPoolWorker::Stop()
     pool->signal.notify_all();
 }
 
-#ifndef __WXMSW__
+#ifndef _WIN32
 static std::string OriginalThreadName() {
     char buf[256];
     pthread_getname_np(pthread_self(), buf, 256);
@@ -177,7 +176,7 @@ static std::string OriginalThreadName() {
 }
 
 static void SetThreadName(const std::string &name) {
-#ifdef __WXOSX__
+#ifdef __APPLE__
     pthread_setname_np(name.c_str());
 #else
     pthread_setname_np(pthread_self(), name.c_str());

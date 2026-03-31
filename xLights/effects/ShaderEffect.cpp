@@ -26,7 +26,7 @@
 #include <semaphore>
 #include <sstream>
 
-#ifndef __WXOSX__
+#ifndef __APPLE__
     #include <GL/gl.h>
     #ifdef _MSC_VER
         #include "graphics\opengl\GL\glext.h"
@@ -34,7 +34,7 @@
         #include <GL/glext.h>
     #endif
 
-    #ifdef __WXMSW__
+    #ifdef _WIN32
         extern PFNGLACTIVETEXTUREPROC glActiveTexture;
     #endif
     extern PFNGLGENBUFFERSPROC glGenBuffers;
@@ -371,7 +371,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     }
 }
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 typedef HGLRC(WINAPI * wglCreateContextAttribsARB_t)
 (HDC hDC, HGLRC hShareContext, const int *attribList);
 template <typename T>
@@ -529,10 +529,10 @@ private:
     std::mutex lock;
     std::queue<GLContextInfo*> contexts;
 } GL_CONTEXT_POOL;
-#endif /* __WXMSW__*/
+#endif /* _WIN32 */
 
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
 constexpr int osxMaxSharedContextCount = 24;
 constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 24;
 static WXGLContext sharedContext = 0;
@@ -634,12 +634,12 @@ public:
             s_programId = 0;
         }
         if (_shaderConfig != nullptr) delete _shaderConfig;
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
         std::unique_lock<std::mutex> lock(sharedContextsLock);
         WXGLSetCurrentContext(sharedContext);
         DestroyResources();
         WXGLUnsetCurrentContext();
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
         if (glContextInfo) {
             glContextInfo->SetCurrent();
             DestroyResources();
@@ -783,9 +783,9 @@ public:
         }
     }
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     WXGLContext s_glContext = nullptr;
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
     GLContextInfo *glContextInfo = nullptr;
 #else
     xlGLCanvas *preview;
@@ -809,14 +809,14 @@ ShaderEffect::~ShaderEffect()
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
     // the OSX GL engine is thread safe.
     //
     // on windows, we need to create the GL contexts on the main thread, but then can use them
     // on the background thread.  Similar to the Path and text drawing contexts
     return true;
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
     return useBackgroundRender;
 #else
     return false;
@@ -824,7 +824,7 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
 }
 
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     WXGLUnsetCurrentContext();
     
     std::unique_lock<std::mutex> lock(sharedContextsLock);
@@ -832,7 +832,7 @@ void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
     cache->s_glContext = nullptr;
     lock.unlock();
     sharedContextsNotifier.notify_all();
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
     if (cache->glContextInfo != nullptr) {
         // release it from the thread every time so we never find ourselves in a situation where it has not been released by a thread
         cache->glContextInfo->UnsetCurrent();
@@ -840,7 +840,7 @@ void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
 #endif
 }
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
 void adjustWGLContext(WXGLContext ctx) {
     struct GLRendererInfo {
       GLint rendererID;       // RendererID number
@@ -975,7 +975,7 @@ WXGLContext createContext() {
 
 
 bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     if (cache->s_glContext == nullptr) {
         std::unique_lock<std::mutex> lock(sharedContextsLock);
         if (sharedContext == 0) {
@@ -993,7 +993,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     }
     WXGLSetCurrentContext(cache->s_glContext);
     return true;
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
     ShaderPanel *p = static_cast<ShaderPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
     if (!ShaderEffect::IsBackgroundRender()) {
         p->_preview->SetCurrentGLContext();
@@ -1928,6 +1928,6 @@ bool ShaderConfig::UsesEvents() const
                        [](const ShaderParm& p) { return p._type == ShaderParmType::SHADER_PARM_EVENT; });
 }
 
-#ifdef __WXOSX__
+#ifdef __APPLE__
 #pragma clang diagnostic push
 #endif

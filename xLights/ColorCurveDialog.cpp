@@ -22,6 +22,7 @@
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "ui/wxColorCurveRenderer.h"
 #include "ui/wxUtilities.h"
 #include "xLightsApp.h"
 #include "ExternalHooks.h"
@@ -222,7 +223,7 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
             cc.LoadXCC(fn.GetFullPath());
             if (cc.IsActive()) { // will only be active if it loaded ok
                 long id = wxNewId();
-                wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition,
+                wxBitmapButton* bmb = new wxBitmapButton(this, id, wxColorCurveRenderer::GetColorCurveImage(cc, 30, 30, false), wxDefaultPosition,
                     wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
                 bmb->SetLabel(fn.GetFullPath());
                 bmb->SetToolTip(fn.GetFullPath());
@@ -737,7 +738,7 @@ void ColorCurvePanel::Paint(wxPaintEvent& event)
 
     if (_cc != nullptr)
     {
-        wxBitmap bmp = _cc->GetImage(s.GetWidth(), s.GetHeight(), true);
+        wxBitmap bmp = wxColorCurveRenderer::GetColorCurveImage(*_cc, s.GetWidth(), s.GetHeight(), true);
         pdc.DrawBitmap(bmp, 0, 0);
 
         //DrawStopsAsLines(pdc);

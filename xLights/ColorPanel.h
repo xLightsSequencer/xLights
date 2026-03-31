@@ -29,7 +29,6 @@
 #include <map>
 
 #include "xlLockButton.h"
-#include "render/ColorCurve.h"
 #include "BulkEditControls.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
 
@@ -53,6 +52,7 @@
 #define COLORPANEL_SATURATION_MAX 100
 
 class ColourList;
+class ColorCurveButton;
 
 class ColorPanel: public xlEffectPanel
 {

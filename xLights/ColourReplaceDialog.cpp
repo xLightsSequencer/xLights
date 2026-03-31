@@ -23,6 +23,8 @@
 #include <wx/dc.h>
 
 #include "Color.h"
+#include "ui/wxColorCurveButton.h"
+#include "ui/wxColorCurveRenderer.h"
 #include "xLightsMain.h"
 #include "ui/wxUtilities.h"
 
@@ -74,7 +76,7 @@ public:
 
         if (s.Contains("Active")) {
             ColorCurve cc(s.ToStdString());
-            dc.DrawBitmap(cc.GetImage(GetSize().GetWidth(), rect.GetHeight() - 1, false), GetSize().GetWidth(), rect.GetTop());
+            dc.DrawBitmap(wxColorCurveRenderer::GetColorCurveImage(cc, GetSize().GetWidth(), rect.GetHeight() - 1, false), GetSize().GetWidth(), rect.GetTop());
         } else {
             xlColor c;
             c.SetFromString(s.ToStdString());

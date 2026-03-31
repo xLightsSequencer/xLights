@@ -10,14 +10,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/position.h>
-#include <wx/string.h>
-#include <wx/wx.h>
-#include <wx/colour.h>
-#include <wx/colourdata.h>
-
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <list>
+#include <string>
 
 #include "Color.h"
 
@@ -47,7 +45,10 @@ public:
     std::string Serialise() const
     {
         std::string res = "";
-        res += "x=" + wxString::Format("%.3f", x).ToStdString();
+        char buffer[32];
+        std::snprintf(buffer, sizeof(buffer), "%.3f", x);
+        res += "x=";
+        res += buffer;
         std::string c = color;
         std::replace(c.begin(), c.end(), ',', '@');
         res += "^c=" + c;
@@ -67,14 +68,16 @@ public:
         }
         else
         {
-            wxArrayString v = wxSplit(s, '^');
-            for (auto vs = v.begin(); vs != v.end(); vs++)
-            {
-                wxArrayString v1 = wxSplit(*vs, '=');
-                if (v1.size() == 2)
-                {
-                    SetSerialisedValue(v1[0].ToStdString(), v1[1].ToStdString());
+            size_t start = 0;
+            while (start <= s.size()) {
+                size_t end = s.find('^', start);
+                std::string token = s.substr(start, end == std::string::npos ? std::string::npos : end - start);
+                size_t eq = token.find('=');
+                if (eq != std::string::npos && eq > 0 && eq + 1 < token.size()) {
+                    SetSerialisedValue(token.substr(0, eq), token.substr(eq + 1));
                 }
+                if (end == std::string::npos) break;
+                start = end + 1;
             }
         }
     }
@@ -83,12 +86,12 @@ public:
     {
         if (k == "x")
         {
-            x = ccSortableColorPoint::Normalise(wxAtof(wxString(v)));
+            x = ccSortableColorPoint::Normalise(static_cast<float>(std::strtod(v.c_str(), nullptr)));
         }
         else if (k == "c")
         {
-            wxString c(v);
-            c.Replace("@", ",", true);
+            std::string c(v);
+            std::replace(c.begin(), c.end(), '@', ',');
             color = xlColor(c);
         }
     }
@@ -186,8 +189,6 @@ public:
     void SetType(const std::string &type);
     xlColor GetValueAt(float offset) const;
     ccSortableColorPoint* GetPointAt(float offset);
-    wxBitmap GetImage(int x, int y, bool bars);
-    static wxBitmap GetSolidColourImage(int x, int y, const wxColour& c);
     void SetActive(bool a) { _active = a; }
     bool IsActive() const { return _active && IsOk(); }
     void ToggleActive() { _active = !_active; }
@@ -206,36 +207,4 @@ public:
     float FindMaxPointGreaterThan(float point);
     void SetDefault(const xlColor& color);
     void LoadXCC(const std::string& filename);
-};
-
-wxDECLARE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
-
-class ColorCurveButton :
-    public wxBitmapButton
-{
-    ColorCurve* _cc;
-    std::string _color;
-    void LeftClick(wxCommandEvent& event);
-    void RightClick(wxContextMenuEvent& event);
-
-public:
-    ColorCurveButton(wxWindow *parent, 
-        wxWindowID id,
-        const wxBitmap& bitmap,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize,
-        long style = wxBU_AUTODRAW,
-        const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = wxButtonNameStr);
-    ~ColorCurveButton();
-    virtual void SetValue(const wxString& value);
-    ColorCurve* GetValue() const;
-    void ToggleActive();
-    void SetActive(bool active, bool notify = true);
-    void UpdateState(bool notify = true);
-    void UpdateBitmap();
-    std::string GetColor() const { return _color; }
-    void SetColor(std::string color, bool notify = true);
-    void SetDefaultCC(const std::string& color);
-    void NotifyChange(bool coloursPanelReload = false);
 };

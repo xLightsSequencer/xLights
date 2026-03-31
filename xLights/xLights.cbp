@@ -194,6 +194,10 @@
 		<Unit filename="utils/Color.cpp" />
 		<Unit filename="render/ColorCurve.cpp" />
 		<Unit filename="render/ColorCurve.h" />
+		<Unit filename="ui/wxColorCurveButton.cpp" />
+		<Unit filename="ui/wxColorCurveButton.h" />
+		<Unit filename="ui/wxColorCurveRenderer.cpp" />
+		<Unit filename="ui/wxColorCurveRenderer.h" />
 		<Unit filename="ColorCurveDialog.cpp" />
 		<Unit filename="ColorCurveDialog.h" />
 		<Unit filename="ColorManager.cpp" />

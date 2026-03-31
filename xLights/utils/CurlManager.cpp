@@ -254,7 +254,7 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
         *cpd = data;
     }
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     if (StartsWith(fullUrl, "https")) {
         // FIXME - curl on Windows is broken... Likely need to update to a newer version or one with  proper
         // options compiled in.  Alternatively, drop support for Windows 8 and use curl provided by Win 10/11

@@ -12,6 +12,7 @@
 #include <wx/dnd.h>
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
+#include "ui/wxColorCurveRenderer.h"
 #include "ui/wxUtilities.h"
 
 DragColoursBitmapButton::DragColoursBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos,
@@ -49,13 +50,13 @@ void DragColoursBitmapButton::SetColour(const std::string& colour)
 
     if (ColorCurve::IsColorCurve(colour)) {
         ColorCurve cc(colour);
-        const wxBitmap& bbmp = cc.GetImage(size.GetWidth(), size.GetHeight(), false);
+        const wxBitmap& bbmp = wxColorCurveRenderer::GetColorCurveImage(cc, size.GetWidth(), size.GetHeight(), false);
         SetBitmap(bbmp);
         UnsetToolTip();
     }
     else {
         wxColour color (colour);
-        SetBitmap(ColorCurve::GetSolidColourImage(size.GetWidth(), size.GetHeight(), color));
+        SetBitmap(wxColorCurveRenderer::GetSolidColourImage(size.GetWidth(), size.GetHeight(), color));
         SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", colour, color.Red(), color.Green(), color.Blue(), GetColourName(wxColourToXlColor(color))));
     }
 }

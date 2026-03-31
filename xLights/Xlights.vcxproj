@@ -739,6 +739,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ChannelLayoutDialog.cpp" />
     <ClCompile Include="utils\Color.cpp" />
     <ClCompile Include="render\ColorCurve.cpp" />
+    <ClCompile Include="ui\wxColorCurveButton.cpp" />
+    <ClCompile Include="ui\wxColorCurveRenderer.cpp" />
     <ClCompile Include="ColorCurveDialog.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
     <ClCompile Include="ControllerConnectionDialog.cpp" />
@@ -1312,6 +1314,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ChannelLayoutDialog.h" />
     <ClInclude Include="utils\Color.h" />
     <ClInclude Include="render\ColorCurve.h" />
+    <ClInclude Include="ui\wxColorCurveButton.h" />
+    <ClInclude Include="ui\wxColorCurveRenderer.h" />
     <ClInclude Include="colorcurvedialog.h" />
     <ClInclude Include="ColorPanel.h" />
     <ClInclude Include="ControllerConnectionDialog.h" />

@@ -834,6 +834,12 @@
     <ClCompile Include="ui\wxUtilities.cpp">
       <Filter>ui</Filter>
     </ClCompile>
+    <ClCompile Include="ui\wxColorCurveButton.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\wxColorCurveRenderer.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
     <ClCompile Include="ui\modelproperties\ModelPropertyAdapter.cpp">
       <Filter>ui\modelproperties</Filter>
     </ClCompile>
@@ -2278,6 +2284,12 @@
       <Filter>ui</Filter>
     </ClInclude>
     <ClInclude Include="ui\wxUtilities.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\wxColorCurveButton.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\wxColorCurveRenderer.h">
       <Filter>ui</Filter>
     </ClInclude>
     <ClInclude Include="ui\modelproperties\ModelPropertyAdapter.h">

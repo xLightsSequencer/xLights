@@ -45,7 +45,7 @@ SDLManager __sdlManager;
 
 #define SDL_INPUT_BUFFER_SIZE 8192
 
-#ifndef __WXOSX__
+#ifndef __APPLE__
 #define DEFAULT_NUM_SAMPLES 1024
 #define RESAMPLE_RATE (44100)
 #define DEFAULT_RATE RESAMPLE_RATE
@@ -98,7 +98,7 @@ void fill_audio(void* udata, Uint8* stream, int len) {
             if (__sdlManager.GetGlobalVolume() != 100) {
                 volume = (volume * __sdlManager.GetGlobalVolume()) / 100;
             }
-            // #ifdef __WXMSW__
+            // #ifdef _WIN32
             SDL_MixAudioFormat(stream, it->_audio_pos, AUDIO_S16SYS, len, volume);
             // wxASSERT(strlen(SDL_GetError()) == 0);
             // #else
@@ -296,7 +296,7 @@ bool InputSDL::OpenDevice() {
 std::list<std::string> InputSDL::GetAudioDevices() {
     std::list<std::string> devices;
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     // TODO we need to this working on OSX/Linux
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(1);
@@ -545,7 +545,7 @@ OutputSDL::~OutputSDL() {
 std::list<std::string> OutputSDL::GetAudioDevices() {
     std::list<std::string> devices;
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     // TODO we need to this working on OSX/Linux
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(0);
@@ -878,7 +878,7 @@ SDLManager::SDLManager() {
         return;
     }
 
-#ifndef __WXMSW__
+#ifndef _WIN32
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
 #else
     // override the default driver on windows so we can access the microphone
@@ -896,7 +896,7 @@ SDLManager::~SDLManager() {
     _outputs.clear();
 
     if (_initialised) {
-#ifdef __WXMSW__
+#ifdef _WIN32
         SDL_AudioQuit();
 #endif
         SDL_Quit();

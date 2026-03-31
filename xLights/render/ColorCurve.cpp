@@ -8,28 +8,17 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-#include <wx/string.h>
 #include <pugixml.hpp>
-#include <wx/bitmap.h>
-#include <wx/colour.h>
-#include <wx/colordlg.h>
-#include <wx/graphics.h>
+
+#include <cassert>
+#include <cmath>
+#include <filesystem>
+#include <string_view>
 
 #include "ColorCurve.h"
-#include "../ColorCurveDialog.h"
-#include "../ui/wxUtilities.h"
 #include "UtilFunctions.h"
-#include "../ColorPanel.h"
-
-#include "../xlColourData.h"
 
 #include <log.h>
-
-#if wxUSE_GRAPHICS_CONTEXT == 0
-#error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
-#error You will also need to rebuild wxWidgets once the change is made.
-#endif
 
 ColorCurve::ColorCurve(const std::string& id, const std::string type, xlColor c)
 {
@@ -100,19 +89,16 @@ void ColorCurve::Deserialise(const std::string& s)
         _timecurve = TC_TIME;
         _values.clear();
         _type = "Gradient";
-        wxArrayString v = wxSplit(wxString(s.c_str()), '|');
-        for (auto vs = v.begin(); vs != v.end(); vs++)
-        {
-            if (vs->Find('=') != wxNOT_FOUND)
-            {
-                wxArrayString v1;
-                v1.Add(vs->SubString(0, vs->Find('=')-1));
-                v1.Add(vs->SubString(vs->Find('=')+1, vs->Length()));
-                if (v1.size() == 2)
-                {
-                    SetSerialisedValue(v1[0].ToStdString(), v1[1].ToStdString());
-                }
+        size_t start = 0;
+        while (start <= s.size()) {
+            size_t end = s.find('|', start);
+            std::string token = s.substr(start, end == std::string::npos ? std::string::npos : end - start);
+            size_t eq = token.find('=');
+            if (eq != std::string::npos && eq > 0 && eq + 1 < token.size()) {
+                SetSerialisedValue(token.substr(0, eq), token.substr(eq + 1));
             }
+            if (end == std::string::npos) break;
+            start = end + 1;
         }
     }
 
@@ -136,7 +122,7 @@ std::string ColorCurve::Serialise()
         }
         if (_timecurve != TC_TIME)
         {
-            res += "Timecurve=" + wxString::Format("%d", _timecurve).ToStdString() + "|";
+            res += "Timecurve=" + std::to_string(_timecurve) + "|";
         }
         res += "Values=";
         for (auto it = _values.begin(); it != _values.end(); ++it)
@@ -158,12 +144,11 @@ std::string ColorCurve::Serialise()
 
 void ColorCurve::SetSerialisedValue(std::string k, std::string s)
 {
-    wxString kk = wxString(k.c_str());
-    if (kk == "Id")
+    if (k == "Id")
     {
         _id = s;
     }
-    else if (kk == "Active")
+    else if (k == "Active")
     {
         if (s == "FALSE")
         {
@@ -172,27 +157,30 @@ void ColorCurve::SetSerialisedValue(std::string k, std::string s)
         else
         {
             // it should already be true
-            wxASSERT(_active == true);
+            assert(_active == true);
         }
     }
-    else if (kk == "Type")
+    else if (k == "Type")
     {
         _type = s;
     }
-    else if (kk == "Timecurve")
+    else if (k == "Timecurve")
     {
-        _timecurve = wxAtoi(s);
+        _timecurve = static_cast<int>(std::strtol(s.c_str(), nullptr, 10));
     }
-    else if (kk == "Values")
-        {
-            wxArrayString points = wxSplit(s, ';');
-
-            for (auto p = points.begin(); p != points.end(); p++)
-            {
-                std::string ss = p->ToStdString();
-                _values.push_back(ccSortableColorPoint(ss));
+    else if (k == "Values")
+    {
+        size_t start = 0;
+        while (start <= s.size()) {
+            size_t end = s.find(';', start);
+            std::string point = s.substr(start, end == std::string::npos ? std::string::npos : end - start);
+            if (!point.empty()) {
+                _values.push_back(ccSortableColorPoint(point));
             }
+            if (end == std::string::npos) break;
+            start = end + 1;
         }
+    }
 
     _values.sort();
 }
@@ -382,7 +370,7 @@ void ColorCurve::DeletePoint(float offset)
     }
     else
     {
-        wxBell();
+        // No-op in core logic; UI decides whether to alert.
     }
 }
 
@@ -451,68 +439,19 @@ void ColorCurve::SetValueAt(float offset, xlColor c)
     _values.sort();
 }
 
-wxBitmap ColorCurve::GetImage(int x, int y, bool bars)
-{
-    wxImage bmp(x, y);
-    wxBitmap b(bmp);
-    wxMemoryDC dc(b);
-
-    dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
-    dc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
-    dc.DrawRectangle(0, 0, x, y);
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-
-    for (int i = 0; i < x; i++)
-    {
-        wxColor c = xlColorToWxColour(GetValueAt(static_cast<float>(i) / static_cast<float>(x)));
-        dc.SetPen(wxPen(c, 1, wxPENSTYLE_SOLID));
-        if (bars)
-        {
-            //dc.DrawLine(wxPoint(i, static_cast<float>(y)*0.05), wxPoint(i, static_cast<float>(y)*0.95));
-            dc.DrawLine(wxPoint(i, 0), wxPoint(i, static_cast<float>(y) * 0.75));
-        }
-        else
-        {
-            dc.DrawLine(wxPoint(i, 0), wxPoint(i, y));
-        }
-    }
-
-    if (!bars)
-    {
-        dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
-        dc.DrawRectangle(0, 0, x, y);
-    }
-    return b;
-}
-
-wxBitmap ColorCurve::GetSolidColourImage(int x, int y, const wxColour& c)
-{
-    wxImage bmp(x, y);
-    wxBitmap b(bmp);
-    wxMemoryDC dc(b);
-    dc.SetPen(wxPen(c));
-    dc.SetBrush(wxBrush(c));
-    dc.DrawRectangle(0, 0, x, y);
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
-    dc.DrawRectangle(0, 0, x, y);
-    return b;
-}
-
 std::string ColorCurve::GetColorCurveFolder(const std::string& showFolder)
 {
-    if (showFolder == "") return "";
+    if (showFolder.empty()) return "";
 
-    std::string ccf = showFolder + "/colorcurves";
-    if (!wxDir::Exists(ccf))
-    {
-        wxMkdir(ccf);
-        if (!wxDir::Exists(ccf))
-        {
-            return "";
-        }
+    std::filesystem::path ccf = std::filesystem::path(showFolder) / "colorcurves";
+    std::error_code ec;
+    if (!std::filesystem::exists(ccf, ec)) {
+        std::filesystem::create_directories(ccf, ec);
     }
-    return ccf;
+    if (ec || !std::filesystem::exists(ccf, ec)) {
+        return "";
+    }
+    return ccf.string();
 }
 
 bool ColorCurve::NearPoint(float x)
@@ -579,149 +518,6 @@ const ccSortableColorPoint* ColorCurve::GetNextActivePoint(float x, float& durat
     return nullptr;
 }
 
-#pragma region ColorCurveButton
-#include <wx/dcmemory.h>
-
-wxDEFINE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
-
-ColorCurveButton::ColorCurveButton(wxWindow *parent,
-    wxWindowID id,
-    const wxBitmap& bitmap,
-    const wxPoint& pos,
-    const wxSize& size,
-    long style,
-    const wxValidator& validator,
-    const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
-{
-    _color = "#FFFFFF";
-    _cc = new ColorCurve(name.ToStdString(), "Gradient", _color);
-    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveButton::LeftClick);
-    Connect(id, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ColorCurveButton::RightClick);
-}
-
-void ColorCurveButton::LeftClick(wxCommandEvent& event)
-{
-    ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
-    wxColour color = w->GetBackgroundColour();
-    auto const& [res, ncolor] = xlColourData::INSTANCE.ShowColorDialog(this, color);
-    if (res == wxID_OK) {
-        _cc->SetActive(false);
-        color = ncolor;
-        _color = color.GetAsString();
-        _cc->SetDefault(wxColourToXlColor(color));
-        UpdateBitmap();
-        NotifyChange(true);
-    }
-}
-
-void ColorCurveButton::RightClick(wxContextMenuEvent& event)
-{
-    ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
-
-    ColorCurveDialog ccd(this, w->GetValue());
-    if (ccd.ShowModal() == wxID_OK)
-    {
-        w->SetActive(true);
-        UpdateBitmap();
-        NotifyChange(true);
-    }
-    else
-    {
-        if (ccd.DidExport())
-        {
-            NotifyChange(true);
-        }
-    }
-}
-
-ColorCurveButton::~ColorCurveButton()
-{
-    if (_cc != nullptr)
-    {
-        delete _cc;
-    }
-}
-
-void ColorCurveButton::SetActive(bool active, bool notify)
-{
-    _cc->SetActive(active);
-    UpdateState(notify);
-}
-
-void ColorCurveButton::ToggleActive()
-{
-    _cc->ToggleActive();
-    UpdateState();
-}
-
-void ColorCurveButton::SetDefaultCC(const std::string& color)
-{
-    _cc->SetDefault(xlColor(color));
-}
-
-void ColorCurveButton::SetColor(std::string color, bool notify)
-{
-    _cc->SetActive(false);
-    _cc->SetDefault(xlColor(color));
-    _color = color;
-    UpdateBitmap();
-    if (notify) {
-        NotifyChange();
-    }
-}
-
-void ColorCurveButton::UpdateBitmap() {
-    wxSize sz = GetSize();
-    if (GetValue()->IsActive())
-    {
-        SetBitmap(_cc->GetImage(sz.GetWidth(), sz.GetHeight(), false));
-        UnsetToolTip();
-    }
-    else
-    {
-        wxColor color(_color);
-        SetBackgroundColour(color);
-        SetForegroundColour(color);
-        wxImage image(sz.GetWidth(), sz.GetHeight());
-        if (color.IsOk()) {
-            image.SetRGB(wxRect(0, 0, sz.GetWidth(), sz.GetHeight()),
-                color.Red(), color.Green(), color.Blue());
-        }
-        wxBitmap bmp(image);
-        SetBitmap(bmp);
-        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", _color, color.Red(), color.Green(), color.Blue(), GetColourName(wxColourToXlColor(color))));
-    }
-    Refresh();
-}
-
-void ColorCurveButton::UpdateState(bool notify)
-{
-    UpdateBitmap();
-    if (notify) {
-        NotifyChange();
-    }
-}
-
-void ColorCurveButton::SetValue(const wxString& value)
-{
-    _cc->Deserialise(value.ToStdString());
-    _cc->SetId(GetName().ToStdString());
-    UpdateState();
-}
-
-void ColorCurveButton::NotifyChange(bool coloursPanelReload)
-{
-    wxCommandEvent eventCCChange(EVT_CC_CHANGED);
-    eventCCChange.SetInt(coloursPanelReload);
-    eventCCChange.SetEventObject(this);
-    wxPostEvent(GetParent(), eventCCChange);
-}
-
-ColorCurve* ColorCurveButton::GetValue() const
-{
-    return _cc;
-}
-
 float ColorCurve::FindMinPointLessThan(float point)
 {
     float res = 0.0;
@@ -772,5 +568,3 @@ void ColorCurve::SetValidTimeCurve(bool supportslinear, bool supportsradial)
         _timecurve = TC_TIME;
     }
 }
-
-#pragma endregion

@@ -13,9 +13,11 @@
 #include "xLightsMain.h"
 #include "ColorPanel.h"
 #include "render/ColorCurve.h"
+#include "ui/wxColorCurveRenderer.h"
 #include "ui/wxUtilities.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
 #include "UtilFunctions.h"
+#include "ui/wxColorCurveButton.h"
 #include "xLightsApp.h"
 #include "ExternalHooks.h"
 #include "sequencer/MainSequencer.h"
@@ -165,7 +167,7 @@ public:
                 if (it->Contains("Active"))
                 {
                     ColorCurve cc(it->ToStdString());
-                    dc.DrawBitmap(cc.GetImage(swatchWidth - 1, rect.GetHeight() - 1, false), i * swatchWidth, rect.GetTop());
+                    dc.DrawBitmap(wxColorCurveRenderer::GetColorCurveImage(cc, swatchWidth - 1, rect.GetHeight() - 1, false), i * swatchWidth, rect.GetTop());
                 }
                 else
                 {
