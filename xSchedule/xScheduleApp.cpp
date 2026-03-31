@@ -235,10 +235,12 @@ void InitialiseLogging(bool fromMain)
         auto file_logger = std::make_shared<spdlog::logger>("xschedule", rotating_file_sink);
         auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
         auto frame_logger = std::make_shared<spdlog::logger>("frame", rotating_file_sink);
+        auto job_logger = std::make_shared<spdlog::logger>("job", rotating_file_sink);
         curl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("curl_logger", "info")));
         frame_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("frame_logger", "info")));
         spdlog::register_logger(curl_logger);
         spdlog::register_logger(frame_logger);
+        spdlog::register_logger(job_logger);
 
         loggingInitialised = true;
         spdlog::initialize_logger(file_logger);

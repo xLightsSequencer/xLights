@@ -97,7 +97,7 @@ static void startFunc(JobPoolWorker *jpw) {
 }
 
 JobPoolWorker::JobPoolWorker(JobPool *p) :
-    pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr), m_logger(spdlog::get("job")) {
+    pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr), m_logger(spdlog::get("job") ? spdlog::get("job") : spdlog::default_logger()) {
     //
     thread = new std::thread(startFunc, this);
     tid = thread->get_id();
@@ -334,7 +334,7 @@ JobPool::~JobPool()
         for (; iter != queue.end(); ++iter) {
             delete (*iter);
         }
-        auto logger = spdlog::get("job");
+        auto logger = spdlog::get("job") ? spdlog::get("job") : spdlog::default_logger();
         logger->debug("Clearing JobPool queue.");
         queue.clear();
     }
