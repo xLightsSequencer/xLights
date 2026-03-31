@@ -19,6 +19,7 @@
 #include "../outputs/Output.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
+#include <wx/socket.h>
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"

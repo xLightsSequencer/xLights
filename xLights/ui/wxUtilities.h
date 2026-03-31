@@ -10,15 +10,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-#include <wx/button.h>
-#include <wx/colour.h>
-#include <wx/dir.h>
-#include <wx/file.h>
-#include <wx/filepicker.h>
-#include <wx/filename.h>
-#include <wx/image.h>
-#include <wx/socket.h>
+#include <string>
+#include <vector>
+
+#include <wx/string.h>
+#include <wx/event.h>    // wxDECLARE_EVENT, wxCommandEvent
+#include <wx/gdicmn.h>   // wxPoint, wxSize
 
 #include "Color.h"
 #include "UtilFunctions.h"
@@ -26,67 +23,24 @@
 
 #include <nlohmann/json.hpp>
 
-#include <string>
-#include <vector>
+// Forward declarations — avoid pulling in full wx headers
+class wxWindow;
+class wxButton;
+class wxDialog;
+class wxImage;
+class wxColour;
+class wxFileName;
+class wxIPV4address;
+class wxArrayString;
+typedef wxColour wxColor;
 
-// wx<->xlColor conversions
-inline wxColour xlColorToWxColour(const xlColor& c) {
-    return wxColour(c.red, c.green, c.blue, c.alpha);
-}
+// wx<->xlColor conversions (implementations in wxUtilities.cpp)
+wxColour xlColorToWxColour(const xlColor& c);
+xlColor wxColourToXlColor(const wxColour& c);
 
-inline xlColor wxColourToXlColor(const wxColour& c) {
-    return xlColor(c.Red(), c.Green(), c.Blue());
-}
-
-inline xlImage wxImageToXlImage(const wxImage& img) {
-    if (!img.IsOk()) return xlImage();
-    int w = img.GetWidth();
-    int h = img.GetHeight();
-    xlImage result(w, h);
-    const unsigned char* rgb = img.GetData();
-    const unsigned char* alpha = img.HasAlpha() ? img.GetAlpha() : nullptr;
-    bool hasMask = img.HasMask();
-    unsigned char maskR = hasMask ? img.GetMaskRed() : 0;
-    unsigned char maskG = hasMask ? img.GetMaskGreen() : 0;
-    unsigned char maskB = hasMask ? img.GetMaskBlue() : 0;
-    uint8_t* dst = result.GetData();
-    int count = w * h;
-    for (int i = 0; i < count; i++) {
-        unsigned char r = rgb[i * 3];
-        unsigned char g = rgb[i * 3 + 1];
-        unsigned char b = rgb[i * 3 + 2];
-        dst[i * 4]     = r;
-        dst[i * 4 + 1] = g;
-        dst[i * 4 + 2] = b;
-        if (alpha) {
-            dst[i * 4 + 3] = alpha[i];
-        } else if (hasMask && r == maskR && g == maskG && b == maskB) {
-            dst[i * 4 + 3] = 0;
-        } else {
-            dst[i * 4 + 3] = 255;
-        }
-    }
-    return result;
-}
-
-inline wxImage xlImageToWxImage(const xlImage& img) {
-    if (!img.IsOk()) return wxImage();
-    int w = img.GetWidth();
-    int h = img.GetHeight();
-    wxImage result(w, h);
-    result.InitAlpha();
-    const uint8_t* src = img.GetData();
-    unsigned char* rgb = result.GetData();
-    unsigned char* alpha = result.GetAlpha();
-    int count = w * h;
-    for (int i = 0; i < count; i++) {
-        rgb[i * 3]     = src[i * 4];
-        rgb[i * 3 + 1] = src[i * 4 + 1];
-        rgb[i * 3 + 2] = src[i * 4 + 2];
-        alpha[i]        = src[i * 4 + 3];
-    }
-    return result;
-}
+// wx<->xlImage conversions (implementations in wxUtilities.cpp)
+xlImage wxImageToXlImage(const wxImage& img);
+wxImage xlImageToWxImage(const xlImage& img);
 
 // UI events used by effect panels (moved from render/Effect.h to keep render core wx-free)
 wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
@@ -127,7 +81,7 @@ void DisplayError(const std::string& err, wxWindow* win = nullptr);
 void DisplayWarning(const std::string& warn, wxWindow* win = nullptr);
 void DisplayInfo(const std::string& info, wxWindow* win = nullptr);
 void DisplayCrit(const std::string& crit, wxWindow* win = nullptr);
-std::string DecodeIPError(wxSocketError err);
+std::string DecodeIPError(int err);
 wxArrayString Split(const wxString& s, const std::vector<char>& delimiters);
 inline bool IsFileInShowDir(const wxString& showDir, const std::string filename) { return IsFileInShowDir(showDir.ToStdString(), filename); }
 // wxString wrappers around std::string versions in UtilFunctions.h
@@ -176,7 +130,7 @@ bool IsSuppressDarkMode();
 // ExternalHooks wx-dependent functions (moved from ExternalHooks.h)
 bool FileExists(const wxString& s, bool waitForDownload = true);
 bool FileExists(const wxFileName& fn, bool waitForDownload = true);
-void GetAllFilesInDir(const wxString& dir, wxArrayString& files, const wxString& filespec, int flags = wxDIR_FILES);
+void GetAllFilesInDir(const wxString& dir, wxArrayString& files, const wxString& filespec, int flags = 0x0001 /*wxDIR_FILES*/);
 void SetButtonBackground(wxButton* b, const wxColour& c, int bgType = 0);
 void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a);
 bool DoInAppPurchases(wxWindow* w);
@@ -188,7 +142,9 @@ wxString GetOSFormattedClipboardData();
 #define AdjustModalDialogParent(par)
 #endif
 
-// ImageFilePickerCtrl
+// ImageFilePickerCtrl — needs full wx/filepicker.h for inheritance
+#include <wx/filepicker.h>
+
 class ImageFilePickerCtrl : public wxFilePickerCtrl
 {
 public:
