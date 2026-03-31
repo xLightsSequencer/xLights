@@ -9,6 +9,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/mstream.h>
 #include <wx/base64.h>
+#include <wx/msgdlg.h>
 #include <wx/choice.h>
 
 #include <vector>

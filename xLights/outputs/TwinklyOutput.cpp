@@ -17,6 +17,8 @@
 
 #include "../utils/CurlManager.h"
 #include <log.h>
+#include <wx/time.h>
+#include <wx/stopwatch.h>
 #include <wx/base64.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>

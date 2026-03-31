@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "xLightsTimer.h"
+#include <wx/stopwatch.h>
 #include <wx/thread.h>
 #include <log.h>
 #include <mutex>

@@ -15,6 +15,7 @@
 //#define SIMULATE_UPGRADE
 #endif
 
+#include <wx/stopwatch.h>
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/debugrpt.h>

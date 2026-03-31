@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ESPixelStick.h"
+#include <wx/time.h>
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"

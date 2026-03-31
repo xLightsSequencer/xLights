@@ -13,6 +13,8 @@
 #include <arpa/inet.h>
 #endif
 
+#include <wx/time.h>
+#include <wx/stopwatch.h>
 #include <wx/settings.h>
 #include <wx/config.h>
 #include <wx/artprov.h>

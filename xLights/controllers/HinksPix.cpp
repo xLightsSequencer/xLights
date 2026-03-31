@@ -18,6 +18,7 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
+#include <wx/stopwatch.h>
 #include <wx/datetime.h>
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>

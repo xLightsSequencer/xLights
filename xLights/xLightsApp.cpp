@@ -14,6 +14,7 @@
 
 //(*AppHeaders
 #include "xLightsMain.h"
+#include <wx/time.h>
 #include <wx/image.h>
 //*)
 

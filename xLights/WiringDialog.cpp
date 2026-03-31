@@ -26,6 +26,7 @@
 #include <wx/cmndata.h>
 #include <wx/prntbase.h>
 #include <wx/msgdlg.h>
+#include <wx/filedlg.h>
 
 #include "cad/DXFWriter.h"
 

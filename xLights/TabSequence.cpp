@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <wx/stopwatch.h>
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
