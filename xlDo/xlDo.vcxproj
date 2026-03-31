@@ -160,10 +160,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\xLights\automation\automation.cpp" />
+    <ClCompile Include="..\xLights\utils\CurlManager.cpp" />
     <ClCompile Include="xlDo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\automation\automation.h" />
+    <ClInclude Include="..\xLights\utils\CurlManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
