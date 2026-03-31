@@ -20,6 +20,10 @@ class UICallbacks;
 class ViewObject;
 class xLightsFrame;
 
+#ifdef GetObject
+#undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
+#endif
+
 class ViewObjectManager : public ObjectManager
 {
 public:
