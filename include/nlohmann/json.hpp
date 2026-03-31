@@ -12998,11 +12998,13 @@ class parser
                     parser_callback_t<BasicJsonType> cb = nullptr,
                     const bool allow_exceptions_ = true,
                     const bool ignore_comments = false,
-                    const bool ignore_trailing_commas_ = false)
+                    const bool ignore_trailing_commas_ = false,
+                    const bool ignore_missing_values_ = false)
         : callback(std::move(cb))
         , m_lexer(std::move(adapter), ignore_comments)
         , allow_exceptions(allow_exceptions_)
         , ignore_trailing_commas(ignore_trailing_commas_)
+        , ignore_missing_values(ignore_missing_values_)
     {
         // read first token
         get_token();
@@ -13283,11 +13285,112 @@ class parser
                                                 m_lexer.get_token_string(),
                                                 parse_error::create(101, m_lexer.get_position(), exception_message(token_type::literal_or_value, "value"), nullptr));
                     }
-                    case token_type::uninitialized:
-                    case token_type::end_array:
                     case token_type::end_object:
-                    case token_type::name_separator:
+                    {
+                        if (ignore_missing_values && !states.empty() && !states.back())
+                        {
+                            // Missing value in object (e.g. {"key":}) — key() already created a null entry.
+                            // Close the object directly.
+                            if (JSON_HEDLEY_UNLIKELY(!sax->end_object()))
+                            {
+                                return false;
+                            }
+                            JSON_ASSERT(!states.empty());
+                            states.pop_back();
+                            skip_to_state_evaluation = true;
+                            continue;
+                        }
+                        return sax->parse_error(m_lexer.get_position(),
+                                                m_lexer.get_token_string(),
+                                                parse_error::create(101, m_lexer.get_position(), exception_message(token_type::literal_or_value, "value"), nullptr));
+                    }
+
+                    case token_type::end_array:
+                    {
+                        if (ignore_missing_values && !states.empty() && states.back())
+                        {
+                            // Missing value in array — close the array directly.
+                            if (JSON_HEDLEY_UNLIKELY(!sax->end_array()))
+                            {
+                                return false;
+                            }
+                            JSON_ASSERT(!states.empty());
+                            states.pop_back();
+                            skip_to_state_evaluation = true;
+                            continue;
+                        }
+                        return sax->parse_error(m_lexer.get_position(),
+                                                m_lexer.get_token_string(),
+                                                parse_error::create(101, m_lexer.get_position(), exception_message(token_type::literal_or_value, "value"), nullptr));
+                    }
+
                     case token_type::value_separator:
+                    {
+                        if (ignore_missing_values && !states.empty())
+                        {
+                            // Missing value before comma (e.g. {"key":,"key2":1} or [,1,2]).
+                            // In objects, key() already created a null entry.
+                            // Get next token and continue parsing the next element.
+                            get_token();
+
+                            if (!states.back())
+                            {
+                                // Object: handle trailing comma check, then parse next key
+                                if (ignore_trailing_commas && last_token == token_type::end_object)
+                                {
+                                    if (JSON_HEDLEY_UNLIKELY(!sax->end_object()))
+                                    {
+                                        return false;
+                                    }
+                                    JSON_ASSERT(!states.empty());
+                                    states.pop_back();
+                                    skip_to_state_evaluation = true;
+                                    continue;
+                                }
+                                // parse key
+                                if (JSON_HEDLEY_UNLIKELY(last_token != token_type::value_string))
+                                {
+                                    return sax->parse_error(m_lexer.get_position(),
+                                                            m_lexer.get_token_string(),
+                                                            parse_error::create(101, m_lexer.get_position(), exception_message(token_type::value_string, "object key"), nullptr));
+                                }
+                                if (JSON_HEDLEY_UNLIKELY(!sax->key(m_lexer.get_string())))
+                                {
+                                    return false;
+                                }
+                                // parse separator (:)
+                                if (JSON_HEDLEY_UNLIKELY(get_token() != token_type::name_separator))
+                                {
+                                    return sax->parse_error(m_lexer.get_position(),
+                                                            m_lexer.get_token_string(),
+                                                            parse_error::create(101, m_lexer.get_position(), exception_message(token_type::name_separator, "object separator"), nullptr));
+                                }
+                                get_token();
+                            }
+                            else
+                            {
+                                // Array: handle trailing comma check
+                                if (ignore_trailing_commas && last_token == token_type::end_array)
+                                {
+                                    if (JSON_HEDLEY_UNLIKELY(!sax->end_array()))
+                                    {
+                                        return false;
+                                    }
+                                    JSON_ASSERT(!states.empty());
+                                    states.pop_back();
+                                    skip_to_state_evaluation = true;
+                                    continue;
+                                }
+                            }
+                            continue;
+                        }
+                        return sax->parse_error(m_lexer.get_position(),
+                                                m_lexer.get_token_string(),
+                                                parse_error::create(101, m_lexer.get_position(), exception_message(token_type::literal_or_value, "value"), nullptr));
+                    }
+
+                    case token_type::uninitialized:
+                    case token_type::name_separator:
                     case token_type::literal_or_value:
                     default: // the last token was unexpected
                     {
@@ -13456,6 +13559,8 @@ class parser
     const bool allow_exceptions = true;
     /// whether trailing commas in objects and arrays should be ignored (true) or signaled as errors (false)
     const bool ignore_trailing_commas = false;
+    /// whether missing values (e.g. {"key":} or {"key":,"key2":1}) should be treated as null (true) or signaled as errors (false)
+    const bool ignore_missing_values = false;
 };
 
 }  // namespace detail
@@ -20247,11 +20352,12 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         detail::parser_callback_t<basic_json>cb = nullptr,
         const bool allow_exceptions = true,
         const bool ignore_comments = false,
-        const bool ignore_trailing_commas = false
+        const bool ignore_trailing_commas = false,
+        const bool ignore_missing_values = false
                                  )
     {
         return ::nlohmann::detail::parser<basic_json, InputAdapterType>(std::move(adapter),
-            std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas);
+            std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas, ignore_missing_values);
     }
 
   private:
@@ -24159,10 +24265,11 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
                             parser_callback_t cb = nullptr,
                             const bool allow_exceptions = true,
                             const bool ignore_comments = false,
-                            const bool ignore_trailing_commas = false)
+                            const bool ignore_trailing_commas = false,
+                            const bool ignore_missing_values = false)
     {
         basic_json result;
-        parser(detail::input_adapter(std::forward<InputType>(i)), std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas).parse(true, result); // cppcheck-suppress[accessMoved,accessForwarded]
+        parser(detail::input_adapter(std::forward<InputType>(i)), std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas, ignore_missing_values).parse(true, result); // cppcheck-suppress[accessMoved,accessForwarded]
         return result;
     }
 
@@ -24175,10 +24282,11 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
                             parser_callback_t cb = nullptr,
                             const bool allow_exceptions = true,
                             const bool ignore_comments = false,
-                            const bool ignore_trailing_commas = false)
+                            const bool ignore_trailing_commas = false,
+                            const bool ignore_missing_values = false)
     {
         basic_json result;
-        parser(detail::input_adapter(std::move(first), std::move(last)), std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas).parse(true, result); // cppcheck-suppress[accessMoved]
+        parser(detail::input_adapter(std::move(first), std::move(last)), std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas, ignore_missing_values).parse(true, result); // cppcheck-suppress[accessMoved]
         return result;
     }
 
@@ -24188,10 +24296,11 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
                             parser_callback_t cb = nullptr,
                             const bool allow_exceptions = true,
                             const bool ignore_comments = false,
-                            const bool ignore_trailing_commas = false)
+                            const bool ignore_trailing_commas = false,
+                            const bool ignore_missing_values = false)
     {
         basic_json result;
-        parser(i.get(), std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas).parse(true, result); // cppcheck-suppress[accessMoved]
+        parser(i.get(), std::move(cb), allow_exceptions, ignore_comments, ignore_trailing_commas, ignore_missing_values).parse(true, result); // cppcheck-suppress[accessMoved]
         return result;
     }
 

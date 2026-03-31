@@ -13,6 +13,9 @@
 #include "../../ExternalHooks.h"
 #include "../../render/FontManager.h"
 #include "../../render/SequenceElements.h"
+#include "../../render/SequenceMedia.h"
+#include "../../xLightsMain.h"
+#include "../../xLightsApp.h"
 #include "../MediaPickerCtrl.h"
 #include <wx/settings.h>
 
@@ -98,8 +101,18 @@ void xlTextFilePickerCtrl::ValidateControl()
             GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
             SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
         } else if (!file.IsEmpty() && !FileExists(file)) {
-            GetTextCtrl()->SetBackgroundColour(*wxRED);
-            SetToolTip("File " + file + " does not exist.");
+            bool inMedia = false;
+            auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
+            if (xl) {
+                inMedia = xl->GetSequenceElements().GetSequenceMedia().HasMedia(file.ToStdString());
+            }
+            if (!inMedia) {
+                GetTextCtrl()->SetBackgroundColour(*wxRED);
+                SetToolTip("File " + file + " does not exist.");
+            } else {
+                SetToolTip("");
+                GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            }
         } else {
             SetToolTip("");
             GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));

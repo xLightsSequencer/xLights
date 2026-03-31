@@ -96,8 +96,9 @@
 #include "ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "graphics/opengl/DrawGLUtils.h"
-//#include <nlohmann/json.hpp>
-#include "../../xSchedule/wxJSON/jsonreader.h"
+#include <nlohmann/json.hpp>
+// wxJSON kept for reference - can revert if nlohmann causes issues
+// #include "../../xSchedule/wxJSON/jsonreader.h"
 
 #include <regex>
 
@@ -1446,12 +1447,11 @@ std::string SafeValueOption(std::string value)
 ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code, const std::string& json, SequenceElements* sequenceElements) :
     _filename(filename) {
     
-    /*
     std::string canvasImgName;
     std::string audioFFTName;
 
     auto getNumberProperty = [](nlohmann::json const& item, std::string const& name, double defaultVal) {
-        if (!item.contains(name)) {
+        if (!item.contains(name) || item.at(name).is_null()) {
             return defaultVal;
         }
         if (item.at(name).is_number()) {
@@ -1461,61 +1461,61 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             return static_cast<double>(item.at(name).get<bool>());
         }
         if (item.at(name).is_string()) {
-            {
-                const auto& s = item.at(name).get<std::string>();
-                char* end;
-                double val = std::strtod(s.c_str(), &end);
-                if (end == s.c_str()) {
-                    spdlog::warn("Error parsing shader Property : {} (not a number).", name);
-                } else {
-                    return val;
-                }
+            const auto& s = item.at(name).get<std::string>();
+            char* end;
+            double val = std::strtod(s.c_str(), &end);
+            if (end != s.c_str()) {
+                return val;
             }
+            spdlog::warn("Error parsing shader Property : {} (not a number).", name);
+        }
+        return defaultVal;
+    };
+
+    auto getStringProperty = [](nlohmann::json const& item, std::string const& name, const std::string& defaultVal = "") {
+        if (!item.contains(name) || item.at(name).is_null()) {
+            return defaultVal;
+        }
+        if (item.at(name).is_string()) {
+            return item.at(name).get<std::string>();
         }
         return defaultVal;
     };
 
     auto getPointProperty = [](nlohmann::json const& item, std::string const& name, double defaultX, double defaultY) {
-        if (!item.contains(name) || item.at(name).empty()) {
+        if (!item.contains(name) || item.at(name).is_null() || item.at(name).empty()) {
             return xlPointD(defaultX, defaultY);
         }
-        if (item.at(name)[0].is_number()) {
-            defaultX = item.at(name)[0].get<double>();
-        }
-        if (item.at(name)[1].is_number()) {
-            defaultY = item.at(name)[1].get<double>();
-        }
-        if (item.at(name)[0].is_string()) {
-            const auto& s = item.at(name)[0].get<std::string>();
-            char* end;
-            double val = std::strtod(s.c_str(), &end);
-            if (end != s.c_str()) {
-                defaultX = val;
-            } else {
-                spdlog::warn("Error parsing shader Property : {} (not a number).", name);
+        const auto& arr = item.at(name);
+        auto getComponent = [](const nlohmann::json& v, double def) {
+            if (v.is_number()) {
+                return v.get<double>();
             }
-        }
-        if (item.at(name)[1].is_string()) {
-            const auto& s = item.at(name)[1].get<std::string>();
-            char* end;
-            double val = std::strtod(s.c_str(), &end);
-            if (end != s.c_str()) {
-                defaultY = val;
-            } else {
-                spdlog::warn("Error parsing shader Property : {} (not a number).", name);
+            if (v.is_string()) {
+                char* end;
+                double val = std::strtod(v.get<std::string>().c_str(), &end);
+                if (end != v.get<std::string>().c_str()) {
+                    return val;
+                }
             }
+            return def;
+        };
+        if (arr.size() >= 2) {
+            defaultX = getComponent(arr[0], defaultX);
+            defaultY = getComponent(arr[1], defaultY);
         }
         return xlPointD(defaultX, defaultY);
     };
 
     try {
-        nlohmann::json root = nlohmann::json::parse(json.ToStdString(),
+        nlohmann::json root = nlohmann::json::parse(json,
                                                     nullptr,
-                                                    true,
-                                                    false,
-                                                    true);
+                                                    true,    // allow_exceptions
+                                                    true,    // ignore_comments
+                                                    true,    // ignore_trailing_commas
+                                                    true);   // ignore_missing_values
         if (root.contains("DESCRIPTION")) {
-            _description = root["DESCRIPTION"].get<std::string>();
+            _description = getStringProperty(root, "DESCRIPTION");
         }
         if (_description == "xLights AudioFFT") {
             _audioFFTMode = true;
@@ -1523,27 +1523,21 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             _audioIntensityMode = true;
         }
         if (root.contains("INPUTS")) {
-            nlohmann::json inputs = root["INPUTS"];
+            const auto& inputs = root["INPUTS"];
 
             for (const auto& input : inputs) {
-                std::string const name = input.contains("NAME") ? input["NAME"].get<std::string>() : "";
+                std::string const name = getStringProperty(input, "NAME");
 
                 // we ignore these as xlights provides these settings
-                if (name == "XL_OFFSET") {
-                    continue;
-                }
-                if (name == "XL_DURATION") {
-                    continue;
-                }
-                if (name == "XL_ZOOM") {
+                if (name == "XL_OFFSET" || name == "XL_DURATION" || name == "XL_ZOOM") {
                     continue;
                 }
 
-                std::string const type = input["TYPE"].get<std::string>();
+                std::string const type = getStringProperty(input, "TYPE");
                 if (type == "float") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_FLOAT,
                         getNumberProperty(input, "MIN", 0.0),
                         getNumberProperty(input, "MAX", 1.0),
@@ -1551,24 +1545,24 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                 } else if (type == "long") {
                     if (input.contains("MIN")) {
                         _parms.emplace_back(
-                            input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                            input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                            name,
+                            getStringProperty(input, "LABEL"),
                             ShaderParmType::SHADER_PARM_LONG,
                             getNumberProperty(input, "MIN", 0.0),
                             getNumberProperty(input, "MAX", 1.0),
                             getNumberProperty(input, "DEFAULT", 0.0));
                     } else if (input.contains("LABELS") && input.contains("VALUES")) {
                         _parms.emplace_back(
-                            input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                            input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                            name,
+                            getStringProperty(input, "LABEL"),
                             ShaderParmType::SHADER_PARM_LONGCHOICE,
                             0.0,
                             0.0,
-                            (input.contains("DEFAULT") ? input["DEFAULT"].get<double>() : 0.0));
-                        auto ls = input["LABELS"];
-                        auto vs = input["VALUES"];
+                            getNumberProperty(input, "DEFAULT", 0.0));
+                        const auto& ls = input["LABELS"];
+                        const auto& vs = input["VALUES"];
                         int const no = std::min(ls.size(), vs.size());
-                        for (int i = 0; i < no; i++) {
+                        for (int i = 0; i < static_cast<int>(no); i++) {
                             _parms.back()._valueOptions[vs[i].get<int>()] = SafeValueOption(ls[i].get<std::string>());
                         }
                     } else {
@@ -1576,18 +1570,18 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                     }
                 } else if (type == "color") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_COLOUR);
                 } else if (type == "audio") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_AUDIO);
                 } else if (type == "bool") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_BOOL,
                         0.0,
                         0.0,
@@ -1597,41 +1591,31 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                     xlPointD const maxPt = getPointProperty(input, "MAX", 1.0, 1.0);
                     xlPointD const defPt = getPointProperty(input, "DEFAULT", 0.0, 0.0);
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_POINT2D,
                         minPt,
                         maxPt,
                         defPt);
                 } else if (type == "image") {
                     // ignore these as we will use the existing buffer content
-                    //_parms.push_back({
-                    //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    //        ShaderParmType::SHADER_PARM_IMAGE,
-                    //        0.0f,
-                    //        0.0f,
-                    //        0.0f
-                    //    });
-                    if (input.contains("NAME")) {
-                        canvasImgName = input["NAME"].get<std::string>();
-                        //_canvasMode = true;
+                    if (!name.empty()) {
+                        canvasImgName = name;
                     }
                 } else if (type == "audioFFT") {
-                    if (input.contains("NAME")) {
-                        audioFFTName = input["NAME"].get<std::string>();
-                        spdlog::info("ShaderEffect - found audioFFT shader with name '{}'", static_cast<const char*>(audioFFTName.c_str()));
+                    if (!name.empty()) {
+                        audioFFTName = name;
+                        spdlog::info("ShaderEffect - found audioFFT shader with name '{}'", audioFFTName.c_str());
                     }
                 } else if (type == "text") {
                     // ignore these
-                    if (input.contains("NAME")) {
-                        spdlog::warn("ShaderEffect - found text property with name '{}' ... ignored", static_cast<const char*>(input["NAME"].get<std::string>().c_str()));
+                    if (!name.empty()) {
+                        spdlog::warn("ShaderEffect - found text property with name '{}' ... ignored", name.c_str());
                     }
                 } else if (type == "event") {
-                    // ignore these
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_EVENT,
                         0.0,
                         0.0,
@@ -1640,7 +1624,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                     // Add timing tracks
                     if (sequenceElements != nullptr) {
                         int tt = 0;
-                        for (int i = 0; i < (int)sequenceElements->GetElementCount(); i++) {
+                        for (int i = 0; i < static_cast<int>(sequenceElements->GetElementCount()); i++) {
                             Element* e = sequenceElements->GetElement(i);
                             if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                                 _parms.back()._valueOptions[tt++] = e->GetName();
@@ -1648,24 +1632,26 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                         }
                     }
                 } else {
-                    spdlog::warn("Unknown type parsing shader JSON : {}.", (const char*)type.c_str());
+                    spdlog::warn("Unknown type parsing shader JSON : {}.", type.c_str());
                     assert(false);
                 }
             }
             if (root.contains("PASSES")) {
-                nlohmann::json passes = root["PASSES"];
-                for (int i = 0; i < passes.size(); i++) {
-                    _passes.push_back({ inputs[i].contains("TARGET") ? inputs[i]["TARGET"].get<std::string>() : "",
-                                        passes[i].contains("PERSISTENT") ? passes[i]["PERSISTENT"].get<std::string>() == "true" : false });
+                const auto& inputs2 = root["INPUTS"];
+                const auto& passes = root["PASSES"];
+                for (int i = 0; i < static_cast<int>(passes.size()); i++) {
+                    _passes.push_back({ (i < static_cast<int>(inputs2.size()) && inputs2[i].contains("TARGET")) ? inputs2[i]["TARGET"].get<std::string>() : "",
+                                        passes[i].contains("PERSISTENT") ? getStringProperty(passes[i], "PERSISTENT") == "true" : false });
                 }
             }
         }
     } catch (const nlohmann::json::exception& e) {
-        spdlog::warn("Error parsing shader JSON :  {} {}.", (const char*)filename.c_str(), (const char*)e.what());
+        spdlog::warn("Error parsing shader JSON :  {} {}.", filename.c_str(), e.what());
     } catch (std::exception& ex) {
-        spdlog::warn("Error parsing shader JSON :  {} {}.", (const char*)filename.c_str(), (const char*)ex.what());
-    }*/
+        spdlog::warn("Error parsing shader JSON :  {} {}.", filename.c_str(), ex.what());
+    }
 
+    /* wxJSON implementation - kept for reference, can revert if nlohmann causes issues
     wxJSONReader reader;
     wxJSONValue root;
     reader.Parse(wxString(json), &root);
@@ -1758,18 +1744,8 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                 maxPt,
                 defPt));
         } else if (type == "image") {
-            // ignore these as we will use the existing buffer content
-            //_parms.push_back({
-            //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-            //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-            //        ShaderParmType::SHADER_PARM_IMAGE,
-            //        0.0,
-            //        0.0,
-            //        0.0
-            //    });
             if (inputs[i].HasMember("NAME")) {
                 canvasImgName = inputs[i]["NAME"].AsString().ToStdString();
-                //_canvasMode = true;
             }
         } else if (type == "audioFFT") {
             if (inputs[i].HasMember("NAME")) {
@@ -1777,12 +1753,10 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                 spdlog::info("ShaderEffect - found audioFFT shader with name '{}'", audioFFTName.c_str());
             }
         } else if (type == "text") {
-            // ignore these
             if (inputs[i].HasMember("NAME")) {
                 spdlog::warn("ShaderEffect - found text property with name '{}' ... ignored", static_cast<const char*>(inputs[i]["NAME"].AsString().c_str()));
             }
         } else if (type == "event") {
-            // ignore these
             _parms.push_back(ShaderParm(
                 inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
                 inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
@@ -1811,6 +1785,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
         _passes.push_back({ inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString().ToStdString() : "",
                             passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false });
     }
+    */
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings

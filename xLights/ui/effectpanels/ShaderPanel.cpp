@@ -252,7 +252,14 @@ ShaderPanel::~ShaderPanel()
 void ShaderPanel::ValidateWindow()
 {
     auto file = FilePickerCtrl1->GetFileName().GetFullPath();
-    if (!file.empty() && !FileExists(file)) {
+    bool fileExists = file.empty() || FileExists(file);
+    if (!fileExists) {
+        auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
+        if (xl) {
+            fileExists = xl->GetSequenceElements().GetSequenceMedia().HasMedia(file.ToStdString());
+        }
+    }
+    if (!file.empty() && !fileExists) {
         FilePickerCtrl1->SetBackgroundColour(*wxRED);
         SetToolTip("File " + file + " does not exist.");
     } else if (!file.empty() && !IsXmlSafe(file)) {
