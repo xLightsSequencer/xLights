@@ -104,8 +104,8 @@
 		<Unit filename="../../common/xlBaseApp.cpp" />
 		<Unit filename="../../common/xlBaseApp.h" />
 		<Unit filename="../../common/xlStackWalker.h" />
-		<Unit filename="../../xLights/SpecialOptions.cpp" />
-		<Unit filename="../../xLights/SpecialOptions.h" />
+		<Unit filename="../../xLights/utils/SpecialOptions.cpp" />
+		<Unit filename="../../xLights/utils/SpecialOptions.h" />
 		<Unit filename="../../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../../xLights/utils/UtilFunctions.cpp" />
 		<Unit filename="../../xLights/utils/UtilFunctions.h" />

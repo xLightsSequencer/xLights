@@ -191,7 +191,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
-    <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
+    <ClCompile Include="..\xLights\ui\setup\IPEntryDialog.cpp" />
     <ClCompile Include="..\xLights\utils\JobPool.cpp" />
     <ClCompile Include="..\xLights\utils\TraceLog.cpp" />
     <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
@@ -212,7 +212,7 @@
     <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
     <ClInclude Include="..\xLights\utils/ExternalHooks.h" />
-    <ClInclude Include="..\xLights\IPEntryDialog.h" />
+    <ClInclude Include="..\xLights\ui\setup\IPEntryDialog.h" />
     <ClInclude Include="..\xLights\utils\JobPool.h" />
     <ClInclude Include="..\xLights\utils\TraceLog.h" />
     <ClInclude Include="..\xLights\utils\UtilFunctions.h" />

@@ -89,8 +89,8 @@
 		<Unit filename="../common/xlBaseApp.cpp" />
 		<Unit filename="../common/xlBaseApp.h" />
 		<Unit filename="../common/xlStackWalker.h" />
-		<Unit filename="../xLights/IPEntryDialog.cpp" />
-		<Unit filename="../xLights/IPEntryDialog.h" />
+		<Unit filename="../xLights/ui/setup/IPEntryDialog.cpp" />
+		<Unit filename="../xLights/ui/setup/IPEntryDialog.h" />
 		<Unit filename="../xLights/utils/JobPool.cpp" />
 		<Unit filename="../xLights/utils/JobPool.h" />
 		<Unit filename="../xLights/utils/Parallel.cpp" />

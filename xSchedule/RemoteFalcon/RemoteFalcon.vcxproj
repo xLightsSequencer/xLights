@@ -191,7 +191,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\dependencies\pugixml\src\pugixml.cpp" />
     <ClCompile Include="..\..\common\xlBaseApp.cpp" />
-    <ClCompile Include="..\..\xLights\SpecialOptions.cpp" />
+    <ClCompile Include="..\..\xLights\utils\SpecialOptions.cpp" />
     <ClCompile Include="..\..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="..\..\xLights\ui\wxUtilities.cpp" />
     <ClCompile Include="..\..\xLights\utils\CurlManager.cpp" />
@@ -208,7 +208,7 @@
     <ClInclude Include="..\..\common\xlBaseApp.h" />
     <ClInclude Include="..\..\common\xlStackWalker.h" />
     <ClInclude Include="..\..\xLights\utils/ExternalHooks.h" />
-    <ClInclude Include="..\..\xLights\SpecialOptions.h" />
+    <ClInclude Include="..\..\xLights\utils\SpecialOptions.h" />
     <ClInclude Include="..\..\xLights\ui\wxUtilities.h" />
     <ClInclude Include="..\..\xLights\utils\CurlManager.h" />
     <ClInclude Include="..\..\xLights\utils\string_utils.h" />

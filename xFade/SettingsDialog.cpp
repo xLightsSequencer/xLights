@@ -17,7 +17,7 @@
 #include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 #include "../xLights/utils/ip_utils.h"
-#include "../xLights/IPEntryDialog.h"
+#include "../xLights/ui/setup/IPEntryDialog.h"
 
 //(*IdInit(SettingsDialog)
 const long SettingsDialog::ID_STATICTEXT5 = wxNewId();
