@@ -26,6 +26,10 @@
 #include "SpecialOptions.h"
 #include "models/ModelManager.h"
 
+#ifdef SetPort
+#undef SetPort  // Windows winspool.h defines SetPort as SetPortW
+#endif
+
 static wxPGChoices __serialTypes;
 static wxPGChoices __serialPorts;
 static wxPGChoices __serialSpeeds;
