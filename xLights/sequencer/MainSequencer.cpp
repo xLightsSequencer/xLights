@@ -19,7 +19,7 @@
 #include <wx/artprov.h>
 
 #include "MainSequencer.h"
-#include "SequenceElements.h"
+#include "../render/SequenceElements.h"
 #include "../xLightsMain.h"
 #include "../JukeboxPanel.h"
 #include "TimeLine.h"

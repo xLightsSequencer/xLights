@@ -172,7 +172,9 @@ public:
 #pragma region UI
     // UI property grid methods moved to ui/controllerproperties/ControllerEthernetPropertyAdapter
     bool SupportsUniversePerString() const;
+    #ifndef EXCLUDENETWORKUI
     virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}, uint32_t universeSize = 510) override;
+    #endif
 
     #ifndef EXCLUDEDISCOVERY
         void SetAllSameSize(bool allSame, OutputModelManager* omm);

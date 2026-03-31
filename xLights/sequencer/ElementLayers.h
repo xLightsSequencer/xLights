@@ -12,7 +12,7 @@
 
 #include <wx/wx.h>
 #include <vector>
-#include "Effect.h"
+#include "../render/Effect.h"
 
 #define EFFECT_BARS         0
 #define EFFECT_BUTTERFLY    1

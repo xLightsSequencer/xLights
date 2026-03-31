@@ -643,6 +643,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\controllerproperties\ControllerPropertyAdapter.cpp" />
     <ClCompile Include="ui\controllerproperties\ControllerPropertyManager.cpp" />
     <ClCompile Include="ui\controllerproperties\ControllerSerialPropertyAdapter.cpp" />
+    <ClCompile Include="ui\controllerproperties\OutputPropertyAdapters.cpp" />
     <ClCompile Include="ui\modelproperties\ModelPropertyAdapter.cpp" />
     <ClCompile Include="ui\modelproperties\ModelPropertyManager.cpp" />
     <ClCompile Include="ui\modelproperties\adapters\ArchesPropertyAdapter.cpp" />
@@ -1653,6 +1654,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui\controllerproperties\ControllerPropertyAdapter.h" />
     <ClInclude Include="ui\controllerproperties\ControllerPropertyManager.h" />
     <ClInclude Include="ui\controllerproperties\ControllerSerialPropertyAdapter.h" />
+    <ClInclude Include="ui\controllerproperties\OutputPropertyAdapters.h" />
     <ClInclude Include="ui\modelproperties\ModelPropertyAdapter.h" />
     <ClInclude Include="ui\modelproperties\ModelPropertyManager.h" />
     <ClInclude Include="ui\modelproperties\adapters\ArchesPropertyAdapter.h" />

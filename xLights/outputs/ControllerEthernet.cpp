@@ -27,7 +27,9 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+#ifndef EXCLUDENETWORKUI
 #include "../models/Model.h"
+#endif
 #include "../utils/ip_utils.h"
 
 #include "../xLightsMain.h"
@@ -763,6 +765,7 @@ bool ControllerEthernet::SupportsUpload() const {
 
 #pragma region UI
 
+#ifndef EXCLUDENETWORKUI
 bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
     
@@ -927,6 +930,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
     }
     return true;
 }
+#endif // EXCLUDENETWORKUI
 
 bool ControllerEthernet::SupportsUniversePerString() const
 {
@@ -987,11 +991,13 @@ void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)
                 it->SetChannels(_outputs.front()->GetChannels());
             }
         }
+        #ifndef EXCLUDENETWORKUI
         if (omm != nullptr) {
             omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE |
                              OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES, "ControllerEthernet::SetAllSameSize");
             omm->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::SetAllSameSize", nullptr);
         }
+        #endif
     }
 }
 

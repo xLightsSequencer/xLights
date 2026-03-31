@@ -1204,6 +1204,8 @@
 		<Unit filename="ui/controllerproperties/ControllerPropertyManager.h" />
 		<Unit filename="ui/controllerproperties/ControllerSerialPropertyAdapter.cpp" />
 		<Unit filename="ui/controllerproperties/ControllerSerialPropertyAdapter.h" />
+		<Unit filename="ui/controllerproperties/OutputPropertyAdapters.cpp" />
+		<Unit filename="ui/controllerproperties/OutputPropertyAdapters.h" />
 		<Unit filename="ui/modelproperties/ModelPropertyAdapter.cpp" />
 		<Unit filename="ui/modelproperties/ModelPropertyAdapter.h" />
 		<Unit filename="ui/modelproperties/ModelPropertyManager.cpp" />

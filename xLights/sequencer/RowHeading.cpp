@@ -22,7 +22,7 @@
 #include "MainSequencer.h"
 #include "EffectsGrid.h"
 #include "ColorManager.h"
-#include "SequenceElements.h"
+#include "../render/SequenceElements.h"
 #include "../xLightsMain.h"
 #include "NewTimingDialog.h"
 #include "VAMPPluginDialog.h"

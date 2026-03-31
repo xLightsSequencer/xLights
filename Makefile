@@ -47,7 +47,7 @@ all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc makefile subdirs
 
 #############################################################################
 
-subdirs: $(SUBDIRS)
+subdirs: makefile $(SUBDIRS)
 
 $(SUBDIRS): FORCE
 	@${MAKE} -C $@ -f `basename $@`.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
@@ -99,7 +99,7 @@ ispc: FORCE
 
 #############################################################################
 
-debug: $(addsuffix _debug,$(SUBDIRS))
+debug: makefile $(addsuffix _debug,$(SUBDIRS))
 
 $(addsuffix _debug,$(SUBDIRS)):
 	@${MAKE} -C $(subst _debug,,$@) -f $(subst _debug,,`basename $@`).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_debug

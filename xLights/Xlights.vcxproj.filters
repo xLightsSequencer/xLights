@@ -855,6 +855,9 @@
     <ClCompile Include="ui\controllerproperties\ControllerSerialPropertyAdapter.cpp">
       <Filter>ui\controllerproperties</Filter>
     </ClCompile>
+    <ClCompile Include="ui\controllerproperties\OutputPropertyAdapters.cpp">
+      <Filter>ui\controllerproperties</Filter>
+    </ClCompile>
     <ClCompile Include="ui\modelproperties\ModelPropertyAdapter.cpp">
       <Filter>ui\modelproperties</Filter>
     </ClCompile>
@@ -2320,6 +2323,9 @@
       <Filter>ui\controllerproperties</Filter>
     </ClInclude>
     <ClInclude Include="ui\controllerproperties\ControllerSerialPropertyAdapter.h">
+      <Filter>ui\controllerproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controllerproperties\OutputPropertyAdapters.h">
       <Filter>ui\controllerproperties</Filter>
     </ClInclude>
     <ClInclude Include="ui\modelproperties\ModelPropertyAdapter.h">

@@ -9,8 +9,8 @@
  **************************************************************/
 
 #include "UndoManager.h"
-#include "Element.h"
-#include "SequenceElements.h"
+#include "../render/Element.h"
+#include "../render/SequenceElements.h"
 #include <log.h>
 
 DeletedEffectInfo::DeletedEffectInfo( const std::string &element_name_, int layer_index_, const std::string &name_, const std::string &settings_,
