@@ -2,6 +2,9 @@
 
 #define SERIALPORT_BUFSIZE 6144
 
+#include <thread>
+#include <chrono>
+
 enum SerialLineState
 {
     /*! Data Carrier Detect (read only) */
@@ -54,7 +57,10 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
         return -1;
     }
 
-    _fd = CreateFile(wxString(devName).t_str(),     // device name
+    // Convert std::string to wide string for Unicode builds
+    std::wstring wDevName(devName.begin(), devName.end());
+    
+    _fd = CreateFile(wDevName.c_str(),          // device name
                     GENERIC_READ | GENERIC_WRITE,   // O_RDWR
                     0,                              // not shared
                     NULL,                           // default value for object security ?!?
@@ -275,8 +281,7 @@ int SerialPort::SendBreak() {
         spdlog::error("Error setting commport break.");
         return -1;
     }
-
-    wxMilliSleep(1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     if (!ClearCommBreak(_fd)) {
         spdlog::error("Error clearing commport break.");

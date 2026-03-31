@@ -11,7 +11,8 @@
  **************************************************************/
 
 #include "Output.h"
-#include "serial.h"
+
+class SerialPort;
 
 class SerialOutput : public Output
 {

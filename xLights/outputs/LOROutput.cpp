@@ -11,6 +11,10 @@
 
 #include "LOROutput.h"
 
+#include "serial.h"
+
+#include <thread>
+#include <chrono>
 
 #pragma region Constructors and Destructors
 LOROutput::LOROutput(const LOROutput& from) :
@@ -133,6 +137,6 @@ void LOROutput::AllOff() {
     }
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
-    wxMilliSleep(50);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 #pragma endregion 

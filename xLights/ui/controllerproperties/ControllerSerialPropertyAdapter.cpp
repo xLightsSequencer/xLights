@@ -14,15 +14,12 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-
 #include "outputs/Controller.h"
 #include "outputs/ControllerSerial.h"
 #include "outputs/OutputManager.h"
 #include "outputs/SerialOutput.h"
-#include "outputs/DDPOutput.h"
 #include "OutputModelManager.h"
 #include "controllers/ControllerCaps.h"
-#include "UtilFunctions.h"
 #include "SpecialOptions.h"
 #include "models/ModelManager.h"
 

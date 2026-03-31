@@ -1,5 +1,7 @@
 #include "GenericSerialOutput.h"
 
+#include "serial.h"
+
 #include <log.h>
 
 #define MAX_PREFIX_POSTFIX 256

@@ -11,6 +11,7 @@
 
 #include "OpenPixelNetOutput.h"
 
+#include "serial.h"
 
 #pragma region Constructs and Destructors
 OpenPixelNetOutput::OpenPixelNetOutput(const OpenPixelNetOutput& from) :

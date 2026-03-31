@@ -30,6 +30,7 @@
 #include "utils/ip_utils.h"
 #include <format>
 #include <numeric>
+#include <chrono>
 
 #include <log.h>
 
@@ -48,16 +49,14 @@ std::function<bool(const std::string&, const std::string&)> OutputManager::_conf
 
 bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc) const {
 
-    
-
     bool changed = false;
 
     // if it is of form <number>:<number> then we need to fix it
-    auto parts = wxSplit(sc, ':');
+    auto parts = Split(sc, ':');
     if (parts.size() == 2 && parts[0].size() > 0) {
         if (isdigit(parts[0][0])) {
-            int on = wxAtoi(parts[0]);
-            int scc = wxAtoi(parts[1]);
+            int const on = std::stoi(parts[0]);
+            int scc = std::stoi(parts[1]);
 
             if (on > 0) {
                 auto it = _conversionOutputs.begin();
@@ -91,8 +90,8 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
         }
         else if (parts[0][0] == '!') {
             // output name may need to be updated
-            auto on = parts[0].substr(1);
-            int scc = wxAtoi(parts[1]);
+            auto const on = parts[0].substr(1);
+            int const scc = std::stoi(parts[1]);
 
             for (const auto& it : _conversionOutputs) {
                 if (it.first->GetDescription_CONVERT() == on) {
@@ -320,7 +319,6 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
 bool OutputManager::MergeFromBase(bool prompt)
 {
-    
     bool changed = false;
 
     OutputManager baseOM;
@@ -357,7 +355,7 @@ bool OutputManager::MergeFromBase(bool prompt)
                     // we only update if controller originally came from base
                     if (force || it->IsFromBase()) {
                         if (force) it->SetFromBase(true);
-                        bool thischanged = it->UpdateFrom(baseit);
+                        bool const thischanged = it->UpdateFrom(baseit);
                         changed = thischanged || changed;
                         if (thischanged) spdlog::debug("Controller '{}' updated from base show folder.", (const char*)it->GetName().c_str());
                     } else {
@@ -476,7 +474,12 @@ bool OutputManager::ConvertModelStartChannels(pugi::xml_node modelsNode) const {
 #pragma region Static Functions
 void OutputManager::RegisterSentPacket() {
 
-    int second = wxGetLocalTime() % 60;
+    auto const now = std::chrono::system_clock::now();
+    auto const duration = now.time_since_epoch();
+    auto const aseconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+    long long const total_seconds = aseconds.count();
+    // 4. Get 0-59 range using modulo
+    int const second = total_seconds % 60;
 
     if (second == _currentSecond) {
         _currentSecondCount++;
@@ -604,7 +607,7 @@ void OutputManager::MoveController(Controller* controller, int toControllerNumbe
 
 Controller* OutputManager::GetController(const std::string& name) const {
 
-    auto n = Trim(name);
+    auto const n = Trim(name);
     for (const auto& it : _controllers) {
         if (it->GetName() == n) return it;
     }

@@ -1,5 +1,7 @@
 #include "RenardOutput.h"
 
+#include "serial.h"
+
 #include <log.h>
 
 #pragma region Constructors and Destructors

@@ -19,7 +19,7 @@
 
 #include "Color.h"
 
-#define CC_X_POINTS 100.0
+#define CC_X_POINTS 100.0f
 
 class ccSortableColorPoint
 {

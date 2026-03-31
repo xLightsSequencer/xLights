@@ -53,18 +53,7 @@ public:
     std::string GetDeviceChannels() const {
         return _deviceChannels;
     }
-    void SetDeviceChannels(const std::string& deviceChannels) {
-        if (_deviceChannels != deviceChannels) {
-            _deviceChannels = deviceChannels;
-            _dirty = true;
-        }
-        auto ch = wxSplit(_deviceChannels, ',');
-        uint8_t channels = 0;
-        for (const auto& it : ch) {
-            channels += wxAtoi(it);
-        }
-        SetChannels(channels);
-    }
+    void SetDeviceChannels(const std::string& deviceChannels);
     virtual pugi::xml_node Save(pugi::xml_node parent) override;
 
     virtual int32_t GetMaxChannels() const override { return xxx_MAX_CHANNELS; }

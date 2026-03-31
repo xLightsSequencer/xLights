@@ -10,8 +10,9 @@
  **************************************************************/
 
 #include "xxxSerialOutput.h"
-#include "ControllerSerial.h"
-#include "OutputModelManager.h"
+#include "serial.h"
+
+#include "string_utils.h"
 
 
 #pragma region Private Functions
@@ -27,6 +28,19 @@ void xxxSerialOutput::SendHeartbeat() const {
     if (_serial != nullptr) {
         _serial->Write((char*)d, 4);
     }
+}
+
+void xxxSerialOutput::SetDeviceChannels(const std::string& deviceChannels) {
+    if (_deviceChannels != deviceChannels) {
+        _deviceChannels = deviceChannels;
+        _dirty = true;
+    }
+    auto ch = Split(_deviceChannels, ',');
+    uint8_t channels = 0;
+    for (const auto& it : ch) {
+        channels += std::stoi(it);
+    }
+    SetChannels(channels);
 }
 #pragma endregion
 
@@ -136,9 +150,9 @@ void xxxSerialOutput::EndFrame(int suppressFrames) {
 
 uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
     uint8_t device = 0;
-    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = wxAtoi(it);
+        int ch = std::stoi(it);
         if (channel < (uint32_t)ch) {
             break;
         }
@@ -149,9 +163,9 @@ uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
 }
 
 uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
-    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = wxAtoi(it);
+        int ch = std::stoi(it);
         if (channel < (uint32_t)ch) {
             break;
         }
@@ -161,9 +175,9 @@ uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
 }
 
 uint8_t xxxSerialOutput::GetDeviceChannels(uint8_t device) const {
-	auto deviceChannels = wxSplit(_deviceChannels, ',');
+	auto deviceChannels = Split(_deviceChannels, ',');
     if (device < deviceChannels.size()) {
-		return wxAtoi(deviceChannels[device]);
+		return std::stoi(deviceChannels[device]);
 	}
 	return 0;
 }

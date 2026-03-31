@@ -405,7 +405,7 @@ public:
 			0.0
 		};
 
-		double sum = 0;
+		double sum {0.0};
 		for (int i = 0; i < to && i < 127; i++)
 		{
 			sum += logarithmicX[i];

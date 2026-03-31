@@ -14,6 +14,11 @@
 #include "../OutputModelManager.h"
 #include "UtilFunctions.h"
 
+#include "serial.h"
+
+#include <wx/debug.h>
+#include <wx/wx.h>
+
 #include <log.h>
 
 #define MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE 100

@@ -12,8 +12,6 @@
 
 #include "ControllerSerial.h"
 #include "../OutputModelManager.h"
-#include "UtilFunctions.h"
-#include "../SpecialOptions.h"
 #include "../controllers/ControllerCaps.h"
 #include "OutputManager.h"
 #include "Output.h"

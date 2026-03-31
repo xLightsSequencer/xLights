@@ -15,9 +15,9 @@
 
 #include <log.h>
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 # include "serial_win32.cpp"
-#elif defined __WXOSX__
+#elif defined __APPLE__
 // # include "serial_osx.cpp"
 #else
 # include "serial_posix.cpp"

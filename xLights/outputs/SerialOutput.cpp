@@ -26,6 +26,8 @@
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 
+#include "serial.h"
+
 #include <log.h>
 
 #pragma region Private Functions
