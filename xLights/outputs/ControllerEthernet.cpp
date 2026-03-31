@@ -27,6 +27,9 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+#ifndef EXCLUDENETWORKUI
+#include "../models/Model.h"
+#endif
 #include "../utils/ip_utils.h"
 
 #ifndef EXCLUDENETWORKUI
@@ -822,6 +825,7 @@ bool ControllerEthernet::SupportsUpload() const {
 
 #pragma region UI
 
+#ifndef EXCLUDENETWORKUI
 bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
     
@@ -986,6 +990,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
     }
     return true;
 }
+#endif // EXCLUDENETWORKUI
 
 bool ControllerEthernet::SupportsUniversePerString() const
 {

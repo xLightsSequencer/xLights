@@ -20,6 +20,8 @@
 #include "outputs/ControllerEthernet.h"
 #include <nlohmann/json.hpp>
 #include <wx/secretstore.h>
+#include <wx/textdlg.h>
+#include <wx/checkbox.h>
 #include <set>
 
 class wxWindow;

@@ -10,6 +10,7 @@
 
 #include "WaveEffect.h"
 
+#include <cmath>
 #include <cstdlib>
 
 #include "render/ValueCurve.h"
@@ -265,7 +266,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 
             if (WaveType == WAVETYPE_SQUARE) { // Square Wave
-                if (signbit(sinrad) != signbit(sinradMinus1)) {
+                if (std::signbit(sinrad) != std::signbit(sinradMinus1)) {
                     y1 = yc - yc * (WaveHeight / 100.0);
                     y2 = yc + yc * (WaveHeight / 100.0);
                 } else if (sinrad > 0.0) {

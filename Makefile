@@ -109,8 +109,11 @@ $(addsuffix _debug,$(SUBDIRS)):
 clean: $(addsuffix _clean,$(SUBDIRS))
 
 $(addsuffix _clean,$(SUBDIRS)):
-	@${MAKE} -C $(subst _clean,,$@) -f $(subst _clean,,`basename $@`).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
-	
+	@if test -f $(subst _clean,,$@)/$(subst _clean,,`basename $@`).cbp.mak; then \
+		${MAKE} -C $(subst _clean,,$@) -f $(subst _clean,,`basename $@`).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean; \
+		$(DEL_FILE) $(subst _clean,,$@)/$(subst _clean,,`basename $@`).cbp.mak $(subst _clean,,$@)/$(subst _clean,,`basename $@`).cbp.mak.orig; \
+	fi
+
 
 #############################################################################
 

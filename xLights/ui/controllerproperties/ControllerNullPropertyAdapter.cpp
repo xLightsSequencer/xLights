@@ -13,6 +13,7 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/settings.h>
 
 #include "outputs/Controller.h"
 #include "outputs/ControllerNull.h"

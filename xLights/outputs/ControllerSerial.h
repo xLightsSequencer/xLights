@@ -15,6 +15,7 @@
 #include <string>
 
 #include "Controller.h"
+#include <wx/propgrid/propgrid.h>
 
 class Output;
 class SerialOutput;
