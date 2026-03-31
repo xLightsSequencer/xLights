@@ -617,7 +617,7 @@ struct HTTPUploadData {
                 }
                 if (donePct != lastDone) {
                     lastDone = donePct;
-                    cancelled = !progress(donePct, progressString);
+                    cancelled = !progress(static_cast<int>(donePct), progressString);
                     std::this_thread::yield();
                 }
             }
