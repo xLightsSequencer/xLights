@@ -34,7 +34,7 @@
 #include <wx/msgdlg.h>
 
 #include "../../xLights/xLightsVersion.h"
-#include "../../xLights/SpecialOptions.h"
+#include "../../xLights/utils/SpecialOptions.h"
 
 #ifdef _MSC_VER
 #ifdef _DEBUG

@@ -17,7 +17,7 @@
 
 
 #include "RemoteFalconOptions.h"
-#include "../../xLights/SpecialOptions.h"
+#include "../../xLights/utils/SpecialOptions.h"
 
 #include "../../xLights/utils/string_utils.h"
 
