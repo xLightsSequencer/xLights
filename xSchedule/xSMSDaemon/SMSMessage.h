@@ -1,5 +1,4 @@
-#ifndef SMSMESSAGE_H
-#define SMSMESSAGE_H
+#pragma once
 
 #include <locale>
 #include <fstream>
@@ -9,13 +8,13 @@
 
 #include "utils/CurlManager.h"
 
+#include "string_utils.h"
+
 #include <wx/wx.h>
 #include <wx/uri.h>
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
-#include "../../xLights/utils/UtilFunctions.h"
-#include "../../xLights/ui/wxUtilities.h"
 
 class SMSMessage
 {
@@ -248,4 +247,3 @@ class SMSMessage
         return true;
     }
 };
-#endif

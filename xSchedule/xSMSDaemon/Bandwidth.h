@@ -1,24 +1,21 @@
-#ifndef BANDWIDTH_H
-#define BANDWIDTH_H
-
+#pragma once
 #include <string>
 
 #include "utils/CurlManager.h"
 
-#include <wx/wx.h>
-
 #include <log.h>
 
-#include "../../xLights/utils/UtilFunctions.h"
-#include "../../xLights/ui/wxUtilities.h"
-#include "../wxJSON/jsonreader.h"
+#include "../../xLights/utils/string_utils.h"
+
 #include "SMSMessage.h"
 #include "SMSService.h"
+
+#include <nlohmann/json.hpp>
 
 class Bandwidth : public SMSService
 {
 	const std::string BANDWIDTH_API_URL = "https://api.catapult.inetwork.com/v1/users/{user}";
-    const wxString body = "{\"from\":\"{phone}\",\"to\":\"{tophone}\",\"text\":\"{message}\"}";
+    const std::string body = "{\"from\":\"{phone}\",\"to\":\"{tophone}\",\"text\":\"{message}\"}"; // why does someone like to hand gerenate JSON, instead of using a JSON library??
 
     public:
 
@@ -36,10 +33,10 @@ class Bandwidth : public SMSService
             Replace(url, "{token}", token);
             url += "/messages";
 
-            wxString b = body;
-            b.Replace("{phone}", GetPhone());
-            b.Replace("{tophone}", number);
-            b.Replace("{message}", message);
+            std::string b = body;
+            Replace(b, "{phone}", GetPhone());
+            Replace(b, "{tophone}", number);
+            Replace(b, "{message}", message);
 
             spdlog::debug("Sending SMS tophone:'{}' phone:'{}' message:'{}'.",
                           number,
@@ -66,57 +63,48 @@ class Bandwidth : public SMSService
             url += "/messages?page=0&size=100";
             spdlog::debug("Retrieving messages.");
             std::string res = CurlManager::HTTPSGet(url, sid, token);
-            //spdlog::debug("%s", (const char*)url.c_str());
-            spdlog::debug("%s", (const char*)res.c_str());
-
-            // construct the JSON root object
-            wxJSONValue  root;
-
-            // construct a JSON parser
-            wxJSONReader reader;
-
-            // now read the JSON text and store it in the 'root' structure
-            // check for errors before retreiving values...
+            spdlog::debug("{}", res);
 
             // strip out unicode characters as they cause a crash
             Replace(res, "\\u", "!!u!!");
 
-            int numErrors = reader.Parse(res, &root);
-            if (numErrors > 0) {
-                spdlog::error("The JSON document is not well-formed: {}", res);
-            }
-            else
+            try
             {
+                nlohmann::json const root = nlohmann::json::parse(res);
                 Retrieved();
 
-                if (root.IsArray())
-                {
-                    for (int i = 0; i < root.Size(); i++)
-                    {
-                        wxJSONValue &m = root[i];
-
-                        wxJSONValue defaultValue = wxString("");
-
+                if (root.is_array()) {
+                    for (const auto& m : root) {
                         // only add inbound messages
-                        if (m.Get("direction", defaultValue).AsString() == "in")
-                        {
+                        if (m.contains("direction") && m["direction"].get<std::string>() == "in") {
                             SMSMessage msg;
-                            auto timestamp = m.Get("time", defaultValue).AsString();
-                            msg._timestamp.ParseISOCombined(timestamp);
-                            msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
-                            msg._from = m.Get("from", defaultValue).AsString().ToStdString();
-                            msg._rawMessage = m.Get("text", defaultValue).AsString().ToStdString();
+                            
+                            if (m.contains("time")) {
+                                auto timestamp = wxString(m["time"].get<std::string>());
+                                msg._timestamp.ParseISOCombined(timestamp);
+                                msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
+                            }
+                            
+                            if (m.contains("from")) {
+                                msg._from = m["from"].get<std::string>();
+                            }
+                            
+                            if (m.contains("text")) {
+                                msg._rawMessage = m["text"].get<std::string>();
+                            }
 
-                            if (AddMessage(msg))
-                            {
+                            if (AddMessage(msg)) {
                                 added = true;
                             }
                         }
                     }
                 }
             }
-
+            catch (const nlohmann::json::parse_error& e)
+            {
+                spdlog::error("The JSON document is not well-formed: {}. Error: {}", res, e.what());
+                return false;
+            }
             return added;
         }
 };
-#endif

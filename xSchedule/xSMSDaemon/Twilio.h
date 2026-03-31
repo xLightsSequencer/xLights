@@ -1,5 +1,4 @@
-#ifndef TWILIO_H
-#define TWILIO_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -8,11 +7,9 @@
 
 #include <log.h>
 
-#include <wx/wx.h>
 
-#include "../../xLights/utils/UtilFunctions.h"
-#include "../../xLights/ui/wxUtilities.h"
-#include "../wxJSON/jsonreader.h"
+#include <nlohmann/json.hpp>
+
 #include "SMSMessage.h"
 #include "SMSService.h"
 
@@ -69,59 +66,51 @@ class Twilio : public SMSService
             //logger_base.debug("%s", (const char*)url.c_str());
             spdlog::debug("{}", res);
 
-            // construct the JSON root object
-            wxJSONValue  root;
-
-            // construct a JSON parser
-            wxJSONReader reader;
-
             // now read the JSON text and store it in the 'root' structure
             // check for errors before retreiving values...
 
             // strip out unicode characters as they cause a crash
             Replace(res, "\\u", "!!u!!");
 
-            int numErrors = reader.Parse(res, &root);
-            if (numErrors > 0) {
-                spdlog::error("The JSON document is not well-formed: {}", res);
-            }
-            else
-            {
+            try {
+                // construct the JSON root object
+                nlohmann::json const root = nlohmann::json::parse(res);
+
                 Retrieved();
 
-                wxJSONValue defaultValue = wxString("");
-                wxJSONValue msgs = root.Get("messages", defaultValue);
+                nlohmann::json const msgs = root.at("messages");
 
-                if (msgs.IsArray())
-                {
-                    for (int i = 0; i < msgs.Size(); i++)
-                    {
-                        wxJSONValue &m = msgs[i];
-
-                        if (m.Get("direction", defaultValue).AsString() == "inbound") // received
+                if (msgs.is_array()) {
+                    for (int i = 0; i < msgs.size(); i++) {
+                        nlohmann::json const& m = msgs[i];
+                        if (m.at("direction").get<std::string>() == "inbound") // received
                         {
                             SMSMessage msg;
-                            wxString timestamp = m.Get("date_created", defaultValue).AsString();
+                            std::string timestamp = m.value("date_created", std::string());
                             wxString::const_iterator end;
                             //"Sat, 10 Jun 2017 14:03:59 +0000"
                             msg._timestamp.ParseFormat(timestamp, "%a, %d %b %Y %H:%M:%S ", &end);
                             msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
-                            msg._from = m.Get("from", defaultValue).AsString().ToStdString();
-                            msg._rawMessage = m.Get("body", defaultValue).AsString().ToStdString();
+                            msg._from = m.value("from", std::string());
+                            msg._rawMessage = m.value("body", std::string());
 
-                            if (AddMessage(msg))
-                            {
+                            if (AddMessage(msg)) {
                                 added = true;
                             }
                         }
                     }
-                }
-                else
-                {
+                } else {
                     spdlog::error("No SMS messages found: {}", res);
                 }
+            }
+            catch (nlohmann::json::parse_error& e) {
+                spdlog::error("The JSON document is not well-formed: {}", res);
+                spdlog::error("Parse error at byte {}: {}", e.byte, e.what());
+                return false;
+            } catch (std::exception& e) {
+                spdlog::error("Parse error: {}", e.what());
+                return false;
             }
             return added;
         }
 };
-#endif

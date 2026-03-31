@@ -1,18 +1,13 @@
-#ifndef VOIP_MS_H
-#define VOIP_MS_H
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include "utils/CurlManager.h"
 
-#include <wx/wx.h>
-
 #include <log.h>
 
-#include "../../xLights/utils/UtilFunctions.h"
-#include "../../xLights/ui/wxUtilities.h"
-#include "../wxJSON/jsonreader.h"
+#include <nlohmann/json.hpp>
 #include "SMSMessage.h"
 #include "SMSService.h"
 
@@ -78,43 +73,34 @@ public:
         std::string res = CurlManager::HTTPSGet(url, "", "", 10, vars);
         spdlog::debug("Result '{}'", res);
 
-        // construct the JSON root object
-        wxJSONValue root;
-
-        // construct a JSON parser
-        wxJSONReader reader;
-
-        // now read the JSON text and store it in the 'root' structure
-        // check for errors before retreiving values...
-
         // strip out unicode characters as they cause a crash
         Replace(res, "\\u", "!!u!!");
 
-        int numErrors = reader.Parse(res, &root);
-        if (numErrors > 0) {
-            spdlog::error("The JSON document is not well-formed: {}", res);
-        } else {
-            wxJSONValue defaultValue = wxString("");
-            if (root.Get("status", defaultValue).AsString() == "success") {
+         try {
+            // now read the JSON text and store it in the 'root' structure
+            // check for errors before retreiving values...
+            // construct the JSON root object
+            nlohmann::json const root = nlohmann::json::parse(res);
+
+            if (root.value("status", "") == "success") {
                 Retrieved();
 
-                wxJSONValue msgs = root.Get("sms", defaultValue);
+                nlohmann::json const msgs = root.value("sms", nlohmann::json::array());
 
-                if (msgs.IsArray()) {
-                    for (int i = 0; i < msgs.Size(); i++) {
-                        wxJSONValue& m = msgs[i];
+                if (msgs.is_array()) {
+                    for (int i = 0; i < msgs.size(); i++) {
+                        nlohmann::json const& m = msgs[i];
 
-                        if (m.Get("type", defaultValue).AsString() == "1") // received
+                        if (m.value("type", std::string()) == "1") // received
                         {
                             SMSMessage msg;
-                            wxString timestamp = m.Get("date", defaultValue).AsString();
+                            wxString timestamp = m.value("date", std::string());
                             wxString::const_iterator end;
                             msg._timestamp.ParseFormat(timestamp, "%Y-%m-%d %H:%M:%S", &end);
                             msg._timestamp += wxTimeSpan(0, _options->GetTimezoneAdjust());
                             wxASSERT(end == timestamp.end());
-                            msg._from = m.Get("contact", defaultValue).AsString().ToStdString();
-                            msg._rawMessage = m.Get("message", defaultValue).AsString().ToStdString();
-
+                            msg._from = m.value("contact", std::string());
+                            msg._rawMessage = m.value("message", std::string());
                             if (AddMessage(msg)) {
                                 added = true;
                             }
@@ -126,8 +112,15 @@ public:
             } else {
                 spdlog::error("Get SMS call failed: {}", res);
             }
+            
+        } catch (nlohmann::json::parse_error& e) {
+            spdlog::error("The JSON document is not well-formed: {}", res);
+            spdlog::error("Parse error at byte {}: {}", e.byte, e.what());
+            return false;
+        } catch (std::exception& e) {
+            spdlog::error("Parse error: {}", e.what());
+            return false;
         }
         return added;
     }
 };
-#endif
