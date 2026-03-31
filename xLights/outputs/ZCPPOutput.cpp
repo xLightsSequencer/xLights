@@ -620,13 +620,13 @@ bool ZCPPOutput::SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData
     
     spdlog::debug("ZCPP setting the model data {}.", (const char*)c->GetName().c_str());
 
-    wxString fileName = GetIP();
+    std::string fileName = GetIP();
 
     if (_multicast) {
         fileName = ZCPP_MULTICAST_DATA_ADDRESS + wxString(GetIP()).AfterLast('.');
     }
 
-    fileName.Replace(".", "_");
+    Replace(fileName ,".", "_");
     fileName += ".zcpp";
     fileName = showDir + GetPathSeparator() + fileName;
 

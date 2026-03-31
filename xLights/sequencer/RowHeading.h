@@ -12,7 +12,7 @@
 
 #include "wx/window.h"
 #include <pugixml.hpp>
-#include "SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "wx/wx.h"
 #include "Color.h"
 
