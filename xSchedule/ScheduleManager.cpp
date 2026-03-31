@@ -48,10 +48,11 @@
 #include "PlayList/PlayListItemVideo.h"
 #include "PlayList/PlayListStep.h"
 #include "events/ListenerManager.h"
-#include "wxJSON/jsonreader.h"
 #include <wx/stdpaths.h>
 
 #include <memory>
+
+#include <nlohmann/json.hpp>
 
 #include <log.h>
 
@@ -2249,25 +2250,26 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         wxString data1;
                         wxString msg1;
                         RetrieveData("GetModels", data1, msg1);
-                        wxJSONValue root;
-                        wxJSONReader reader;
-                        int numErrors = reader.Parse(data1, &root);
-                        if (numErrors == 0) {
-                            auto models = root["models"].AsArray();
-                            if (models != nullptr) {
-                                auto size = models->size();
-                                for (size_t i = 0; i < size && start == -1; ++i) {
-                                    auto m = (*models)[i];
-                                    if (m["name"].AsString() == pp[1]) {
-                                        start = wxAtoi(m["startchannel"].AsString()) - 1;
-                                        end = start + wxAtoi(m["channels"].AsString()) - 1;
+                        try {
+                            nlohmann::json root = nlohmann::json::parse(data1.ToStdString());
+                        
+                            if (root.contains("models") && root["models"].is_array()) {
+                                auto models = root["models"];
+                                for (const auto& m : models) {
+                                    if (m.contains("name") && m["name"].get<std::string>() == pp[1]) {
+                                        start = wxAtoi(m["startchannel"].get<std::string>()) - 1;
+                                        end = start + wxAtoi(m["channels"].get<std::string>()) - 1;
+                                        break;
                                     }
                                 }
                             }
                             if (start == -1) {
                                 spdlog::error("Unable to find model '{}' in models JSON", pp[1].ToStdString());
                             }
-                        } else {
+                        } catch (nlohmann::json::exception& ex) {
+                            spdlog::error("Unable to load models JSON");
+                        
+                        } catch(std::exception &ex) {
                             spdlog::error("Unable to load models JSON");
                         }
                         GetOptions()->GetTestOptions()->SetBounds(start, end);

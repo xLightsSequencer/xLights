@@ -15,15 +15,17 @@
 
 #include "utils/CurlManager.h"
 
-#include <wx/wx.h>
 
-#include "../../xLights/utils/UtilFunctions.h"
-#include "../../xLights/ui/wxUtilities.h"
-#include "../wxJSON/jsonreader.h"
 #include "RemoteFalconOptions.h"
 #include "../../xLights/SpecialOptions.h"
 
+#include "../../xLights/utils/string_utils.h"
+
+#include <nlohmann/json.hpp>
 #include <log.h>
+
+#include <format>
+#include <string>
 
 class RemoteFalcon
 {
@@ -44,9 +46,8 @@ class RemoteFalcon
 
         static std::string DeTokenfy(std::string s)
         {
-            wxString ss(s);
-            ss.Replace(__token, "{token}");
-            return ss.ToStdString();
+            Replace(s, __token, "{token}");
+            return s;
         }
 
         std::string FetchCurrentPlaylistFromQueue()
@@ -66,61 +67,74 @@ class RemoteFalcon
 
         std::string UpdatePlaylistQueue()
         {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", __token);
-            return CurlManager::HTTPSPost(_URLBase + "/updatePlaylistQueue", t, "", "", "JSON", 10, { {"remotetoken", __token} });
+            nlohmann::json val;
+            val["remoteToken"] = __token;
+            return CurlManager::HTTPSPost(_URLBase + "/updatePlaylistQueue", val.dump(), "", "", "JSON", 10, { { "remotetoken", __token } });
         }
 
         std::string PurgeQueue() {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", __token);
-            return CurlManager::HTTPSDelete(_URLBase + "/purgeQueue", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+            nlohmann::json val;
+            val["remoteToken"] = __token;
+            return CurlManager::HTTPSDelete(_URLBase + "/purgeQueue", val.dump(), "", "", "JSON", 10, { { "remotetoken", __token } });
         }
 
         std::string EnableMangaedPSA(bool enable) {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"managedPsaEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
-            return CurlManager::HTTPSPost(_URLBase + "/updateManagedPsa", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+            nlohmann::json val;
+            val["remoteToken"] = __token;
+            val["managedPsaEnabled"] = enable ? "Y" : "N";
+            return CurlManager::HTTPSPost(_URLBase + "/updateManagedPsa", val.dump(), "", "", "JSON", 10, { { "remotetoken", __token } });
         }
 
         std::string EnableViewerControl(bool enable)
         {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"viewerControlEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
-            return CurlManager::HTTPSPost(_URLBase + "/updateViewerControl", t, "", "", "JSON", 10, { {"remotetoken", __token} });
+            nlohmann::json val;
+            val["remoteToken"] = __token;
+            val["viewerControlEnabled"] = enable ? "Y" : "N";
+            return CurlManager::HTTPSPost(_URLBase + "/updateViewerControl", val.dump(), "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
         std::string SendPlayingSong(const std::string& playing)
         {
-            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"playlist\":\"%s\"}", __token, playing);
-            return CurlManager::HTTPSPost(_URLBase + "/updateWhatsPlaying", t, "", "", "JSON", 10, { {"remotetoken", __token} });
+            nlohmann::json val;
+            val["remoteToken"] = __token;
+            val["playlist"] = playing;
+            return CurlManager::HTTPSPost(_URLBase + "/updateWhatsPlaying", val.dump(), "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
         std::string SyncPlayLists(const std::string& playlist, const std::string& steps)
         {
-            std::string body = wxString::Format("{\"remoteToken\":\"%s\",\"playlists\":[", __token);
+            nlohmann::json val;
+            val["remoteToken"] = __token;
+            val["playlists"] = nlohmann::json::array();
 
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(steps, &val);
-            bool first = true;
-            if (!val.IsNull()) {
-                for (size_t i = 0; i < val["steps"].AsArray()->Count(); i++) {
-                    // filter out any everystep
-                    if (val["steps"][i]["everystep"].AsString() == "false") {
-                        if (first) {
-                            first = false;
-                        }
-                        else {
-                            body += ",";
-                        }
+            try {
+                nlohmann::json stepsJson = nlohmann::json::parse(steps);
+                
+                bool first = true;
+                if (!stepsJson.is_null() && stepsJson.contains("steps") && stepsJson["steps"].is_array()) {
+                    for (size_t i = 0; i < stepsJson["steps"].size(); i++) {
+                        // filter out any everystep
+                        if (stepsJson["steps"][i].contains("everystep") && stepsJson["steps"][i]["everystep"].get<std::string>() == "false") {
+                            nlohmann::json pl_json;
+                            pl_json["playlistName"] = stepsJson["steps"][i]["name"].get<std::string>();
+                            pl_json["playlistIndex"] = (i + 1);
+                            pl_json[ "playlistDuration"] = std::stoi(stepsJson["steps"][i]["lengthms"].get<std::string>()) / 1000;
 
-                        body += wxString::Format("{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistIndex\":%d, \"playlistDuration\":%d}",
-                            (i+1), wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
+                            val["playlists"].push_back(pl_json);
+                        }
                     }
                 }
+            } catch (nlohmann::json::parse_error& ex) {
+                spdlog::error("Failed to parse steps JSON for SyncPlayLists");
+                spdlog::error(ex.what());
+            } catch (std::exception& ex) {
+                spdlog::error("Exception occurred while processing steps JSON for SyncPlayLists");
+                spdlog::error(ex.what());
             }
-        
-            body += "]}";
-            auto url = _URLBase + "/syncPlaylists";
+
+            auto const url = _URLBase + "/syncPlaylists";
             spdlog::debug(RemoteFalcon::DeTokenfy(url));
-            spdlog::debug(RemoteFalcon::DeTokenfy(body));
-            return CurlManager::HTTPSPost(url, body, "", "", "JSON", 10, { {"remotetoken", __token} });
+            spdlog::debug(RemoteFalcon::DeTokenfy(val.dump()));
+            return CurlManager::HTTPSPost(url, val.dump(), "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 };

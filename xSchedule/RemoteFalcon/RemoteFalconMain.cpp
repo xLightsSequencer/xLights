@@ -34,6 +34,8 @@
 #include "xSchedule.h"
 #include "RemoteFalcon.h"
 
+#include <nlohmann/json.hpp>
+
 #include "../../include/xLights.xpm"
 #include "../../include/xLights-16.xpm"
 #include "../../include/xLights-32.xpm"
@@ -102,38 +104,41 @@ void RemoteFalconFrame::SendPlaylists()
     }
 }
 
-void RemoteFalconFrame::DoSendPlaylists()
-{
-    if (_remoteFalcon == nullptr) return;
+void RemoteFalconFrame::DoSendPlaylists() {
+    if (_remoteFalcon == nullptr)
+        return;
 
     auto plsteps = xSchedule::GetPlayListSteps(_playlist);
 
-    if (plsteps.find("' not found.") != std::string::npos) {//playlist not found, must have been removed
+    if (plsteps.find("' not found.") != std::string::npos) { // playlist not found, must have been removed
         return;
     }
 
     if (plsteps == _oldSteps) {
         // no need to send
-    }
-    else {
+    } else {
         AddMessage(MESSAGE_LEVEL::ML_INFO, "Uploading playlist to Remote Falcon.");
-        auto res = _remoteFalcon->SyncPlayLists(_playlist, plsteps);
+        auto const res = _remoteFalcon->SyncPlayLists(_playlist, plsteps);
         AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + res);
 
-        wxJSONReader reader;
-        wxJSONValue val;
-        reader.Parse(res, &val);
+        try {
+            nlohmann::json const val = nlohmann::json::parse(res);
 
-        if (!val.IsNull()) {
-            if (val["message"].AsString() == "Success") {
-                _oldSteps = plsteps;
-            }
-            else if (!val["message"].IsNull()) {
-                AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + val["message"].AsString());
+            if (!val.is_null()) {
+                if (val["message"].get<std::string>() == "Success") {
+                    _oldSteps = plsteps;
+                } else if (!val["message"].is_null()) {
+                    AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + val["message"].get<std::string>());
+                }
+            } else {
+                AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: uploading playlist to remote falcon.");
             }
         }
-        else             {
-            AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: uploading playlist to remote falcon.");
+        catch (const nlohmann::json::exception& ex) {
+            AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
+            
+        } catch (const std::exception& ex) {
+            AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
         }
     }
 }
@@ -263,18 +268,23 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
 
         auto res = _remoteFalcon->PurgeQueue();
 
-        wxJSONReader reader;
-        wxJSONValue val;
-        reader.Parse(res, &val);
+        try {
+            nlohmann::json const val = nlohmann::json::parse(res);
 
-        if (!val.IsNull()) {
-            if (val["message"].AsString() == "Success") {
-                AddMessage(MESSAGE_LEVEL::ML_INFO, "Cleared remote falcon list of songs.");
+            if (!val.is_null()) {
+                if (val["message"].get<std::string>() == "Success") {
+                    AddMessage(MESSAGE_LEVEL::ML_INFO, "Cleared remote falcon list of songs.");
+                } else {
+                    AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].get<std::string>());
+                }
             } else {
-                AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
+                AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + res);
             }
-        } else {
-            AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
+        } catch (const nlohmann::json::exception& ex) {
+            AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
+
+        } catch (const std::exception& ex) {
+            AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
         }
     }
     ValidateWindow();
@@ -494,40 +504,44 @@ void RemoteFalconFrame::GetMode()
     _mode = "";
     _subdomain = "";
 
-    wxJSONReader reader;
-    wxJSONValue val;
-    reader.Parse(res, &val);
-
-    if (!val.IsNull()) {
-        if (!val["viewerControlMode"].IsNull()) {
-            _mode = val["viewerControlMode"].AsString();
+    try {
+        nlohmann::json const val = nlohmann::json::parse(res);
+        if (!val.is_null()) {
+            if (!val["viewerControlMode"].is_null()) {
+                _mode = val["viewerControlMode"].get<std::string>();
+            }
+            if (!val["remoteSubdomain"].is_null()) {
+                _subdomain = val["remoteSubdomain"].get<std::string>();
+            }
+            if (!val["message"].is_null()) {
+                AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + val["message"].get<std::string>());
+            }
         }
-        if (!val["remoteSubdomain"].IsNull())             {
-            _subdomain = val["remoteSubdomain"].AsString();
-        }
-        if (!val["message"].IsNull()) {
-            AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + val["message"].AsString());
-        }
-    }
 
-    if (_mode == "")         {
-        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: Unknown mode so defaulting to JUKEBOX.");
-        _mode = "jukebox";
-    }
-    else         {
-        AddMessage(MESSAGE_LEVEL::ML_INFO, "MODE: " + _mode);
-    }
+        if (_mode.empty()) {
+            AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: Unknown mode so defaulting to JUKEBOX.");
+            _mode = "jukebox";
+        }
+        else {
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "MODE: " + _mode);
+        }
 
-    if (_subdomain == "")         {
-        MenuItem_VisitorWebPage->Enable(false);
-        HyperlinkCtrl1->SetLabel("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
-        HyperlinkCtrl1->SetURL("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
-    }
-    else         {
-        MenuItem_VisitorWebPage->Enable();
-        HyperlinkCtrl1->SetLabel("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
-        HyperlinkCtrl1->SetURL("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
-        AddMessage(MESSAGE_LEVEL::ML_INFO, "SUBDOMAIN: " + _subdomain);
+        if (_subdomain.empty()) {
+            MenuItem_VisitorWebPage->Enable(false);
+            HyperlinkCtrl1->SetLabel("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+            HyperlinkCtrl1->SetURL("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+        }
+        else {
+            MenuItem_VisitorWebPage->Enable();
+            HyperlinkCtrl1->SetLabel("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+            HyperlinkCtrl1->SetURL("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "SUBDOMAIN: " + _subdomain);
+        }
+    } catch (const nlohmann::json::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
+
+    } catch (const std::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
     }
 }
 
@@ -546,47 +560,52 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
     }
     AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + song);
 
-    wxJSONReader reader;
-    wxJSONValue val;
-    reader.Parse(song, &val);
+    try {
+        nlohmann::json const val = nlohmann::json::parse(song);
 
-    std::string nextSong = "";
-    if (!val.IsNull())         {
-        if (_mode == "voting") {
-            if (!val["winningPlaylist"].IsNull()) {
-                nextSong = val["winningPlaylist"].AsString();
+        std::string nextSong;
+        if (!val.is_null()) {
+            if (_mode == "voting") {
+                if (!val["winningPlaylist"].is_null()) {
+                    nextSong = val["winningPlaylist"].get<std::string>();
+                }
+            }
+            else {
+                if (!val["nextPlaylist"].is_null()) {
+                    nextSong = val["nextPlaylist"].get<std::string>();
+                }
             }
         }
-        else {
-            if (!val["nextPlaylist"].IsNull()) {
-                nextSong = val["nextPlaylist"].AsString();
-            }
-        }
-    }
 
-    if (nextSong != "" && nextSong != "null" && playing != nextSong) {
-        std::string songresult;
-        if (_options.GetImmediatelyInterrupt()) {
-            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to immediately play " + nextSong);
-           // xSchedule::NextStepinPlayList();
-            songresult = xSchedule::EnqueuePlaylistStep(_playlist, nextSong);
-        } else {
-            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play at end of step: " + nextSong);
-            songresult = xSchedule::EnqueuePlaylistStepAtEndOfStep(_playlist, nextSong);
-            std::this_thread::sleep_for(std::chrono::milliseconds(_options.GetLeadTime() * 1000 + 200));
-        }
-        
-        if (_mode != "voting") {
-            //auto result = xSchedule::PlayPlayListStep(_playlist, nextSong);
-            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + songresult);
-            if (songresult == "{\"result\":\"ok\"}") {
-                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking remote falcon to take the song off the queue as it is now playing.");
-                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + _remoteFalcon->UpdatePlaylistQueue());
+        if (nextSong != "" && nextSong != "null" && playing != nextSong) {
+            std::string songresult;
+            if (_options.GetImmediatelyInterrupt()) {
+                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to immediately play " + nextSong);
+               // xSchedule::NextStepinPlayList();
+                songresult = xSchedule::EnqueuePlaylistStep(_playlist, nextSong);
             } else {
-                AddMessage(MESSAGE_LEVEL::ML_WARN, "Asking remote falcon to take the song off the queue as it caused an error.");
-                AddMessage(MESSAGE_LEVEL::ML_WARN, "    " + _remoteFalcon->UpdatePlaylistQueue());
+                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play at end of step: " + nextSong);
+                songresult = xSchedule::EnqueuePlaylistStepAtEndOfStep(_playlist, nextSong);
+                std::this_thread::sleep_for(std::chrono::milliseconds(_options.GetLeadTime() * 1000 + 200));
+            }
+        
+            if (_mode != "voting") {
+                //auto result = xSchedule::PlayPlayListStep(_playlist, nextSong);
+                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + songresult);
+                if (songresult == "{\"result\":\"ok\"}") {
+                    AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking remote falcon to take the song off the queue as it is now playing.");
+                    AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + _remoteFalcon->UpdatePlaylistQueue());
+                } else {
+                    AddMessage(MESSAGE_LEVEL::ML_WARN, "Asking remote falcon to take the song off the queue as it caused an error.");
+                    AddMessage(MESSAGE_LEVEL::ML_WARN, "    " + _remoteFalcon->UpdatePlaylistQueue());
+                }
             }
         }
+    } catch (const nlohmann::json::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
+
+    } catch (const std::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
     }
 }
 
@@ -604,36 +623,41 @@ void RemoteFalconFrame::GetAndPlayEffect() {
     }
     AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + song);
 
-    wxJSONReader reader;
-    wxJSONValue val;
-    reader.Parse(song, &val);
+    try {
+        nlohmann::json const val = nlohmann::json::parse(song);
 
-    std::string nextSong = "";
-    if (!val.IsNull()) {
-        if (_mode == "voting") {
-            if (!val["winningPlaylist"].IsNull()) {
-                nextSong = val["winningPlaylist"].AsString();
-            }
-        } else {
-            if (!val["nextPlaylist"].IsNull()) {
-                nextSong = val["nextPlaylist"].AsString();
-            }
-        }
-    }
-
-    if (nextSong != "" && nextSong != "null") {
-        AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play effect " + nextSong);
-        auto result = xSchedule::PlayEffect(_playlist, nextSong, _options.GetEffectMode());
-        if (_mode != "voting") {
-            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + result);
-            if (result == "{\"result\":\"ok\"}") {
-                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking remote falcon to take the song off the queue as it is now playing.");
-                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + _remoteFalcon->UpdatePlaylistQueue());
+        std::string nextSong;
+        if (!val.is_null()) {
+            if (_mode == "voting") {
+                if (!val["winningPlaylist"].is_null()) {
+                    nextSong = val["winningPlaylist"].get<std::string>();
+                }
             } else {
-                AddMessage(MESSAGE_LEVEL::ML_WARN, "Asking remote falcon to take the song off the queue as it caused an error.");
-                AddMessage(MESSAGE_LEVEL::ML_WARN, "    " + _remoteFalcon->UpdatePlaylistQueue());
+                if (!val["nextPlaylist"].is_null()) {
+                    nextSong = val["nextPlaylist"].get<std::string>();
+                }
             }
         }
+
+        if (nextSong != "" && nextSong != "null") {
+            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play effect " + nextSong);
+            auto result = xSchedule::PlayEffect(_playlist, nextSong, _options.GetEffectMode());
+            if (_mode != "voting") {
+                AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + result);
+                if (result == "{\"result\":\"ok\"}") {
+                    AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking remote falcon to take the song off the queue as it is now playing.");
+                    AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + _remoteFalcon->UpdatePlaylistQueue());
+                } else {
+                    AddMessage(MESSAGE_LEVEL::ML_WARN, "Asking remote falcon to take the song off the queue as it caused an error.");
+                    AddMessage(MESSAGE_LEVEL::ML_WARN, "    " + _remoteFalcon->UpdatePlaylistQueue());
+                }
+            }
+        }
+    } catch (const nlohmann::json::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
+
+    } catch (const std::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
     }
 }
 
@@ -641,60 +665,69 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
 {
     static std::string _lastPlaying;
 
-    wxJSONReader reader;
-    wxJSONValue val;
-    reader.Parse(status, &val);
+    try {
+        nlohmann::json const val = nlohmann::json::parse(status);
 
-    if (!val.IsNull()) {
-
-        std::string playing = "";
-        if (_options.IsSendPlayingEffect()) {
-            auto effects = xSchedule::GetPlayingEffects();
-            if (effects.size() > 0)
-                playing = effects.front();
-        } else {
-            if (!val["step"].IsNull()) {
-                playing = val["step"].AsString();
-            }
-        }
-
-        if (_lastPlaying != playing) {
-            SendPlayingSong(playing);
-            _lastPlaying = playing;
-        }
-
-        auto trigger = val["trigger"].AsString();
-
-        // Only play songs if a schedule is playing
-        if (trigger == "scheduled" || trigger == "queued") {
-            int queueLength = wxAtoi(val["queuelength"].AsString());
-            auto lefts = wxAtol(val["leftms"].AsString()) / 1000;
-            _playingPlaylist = val["playlist"].AsString();
-
-            // we can only play a song if the playlist playing allows
-            if (_options.IsPlayDuring(_playingPlaylist) || _playingPlaylist == "Song Queue") {
-
-                if (!_viewerControlEnabled) {
-                    if (_options.IsEnableDisable()) {
-                        AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to enable viewer control.");
-                        AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + _remoteFalcon->EnableViewerControl(true));
-                        _viewerControlEnabled = true;
-                    }
-                }
-
-                if (_options.IsEffectPlaylist()) {
-                    GetAndPlayEffect();
-                } else {
-                    if (
-                        (queueLength == 0 && _options.GetImmediatelyInterrupt()) ||                                  // if immediately interrupt then we always ask for the next song
-                        (queueLength == 1 && lefts <= _options.GetLeadTime()) ||                                     // if there is a song in the queue then dont ask until it is almost done
-                        (queueLength == 0 && !_options.GetImmediatelyInterrupt() && lefts <= _options.GetLeadTime()) // if there is nothing in the queue but we are to gracefully interrupt then wait until the current song is almost done
-                    ) {
-                        GetAndPlaySong(playing);
-                    }
+        if (!val.is_null()) {
+            std::string playing;
+            if (_options.IsSendPlayingEffect()) {
+                auto effects = xSchedule::GetPlayingEffects();
+                if (effects.size() > 0)
+                    playing = effects.front();
+            } else {
+                if (!val["step"].is_null()) {
+                    playing = val["step"].get<std::string>();
                 }
             }
-            else                 {
+
+            if (_lastPlaying != playing) {
+                SendPlayingSong(playing);
+                _lastPlaying = playing;
+            }
+
+            auto trigger = val["trigger"].get<std::string>();
+
+            // Only play songs if a schedule is playing
+            if (trigger == "scheduled" || trigger == "queued") {
+                int queueLength = wxAtoi(val["queuelength"].get<std::string>());
+                auto lefts = wxAtol(val["leftms"].get<std::string>()) / 1000;
+                _playingPlaylist = val["playlist"].get<std::string>();
+
+                // we can only play a song if the playlist playing allows
+                if (_options.IsPlayDuring(_playingPlaylist) || _playingPlaylist == "Song Queue") {
+
+                    if (!_viewerControlEnabled) {
+                        if (_options.IsEnableDisable()) {
+                            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to enable viewer control.");
+                            AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + _remoteFalcon->EnableViewerControl(true));
+                            _viewerControlEnabled = true;
+                        }
+                    }
+
+                    if (_options.IsEffectPlaylist()) {
+                        GetAndPlayEffect();
+                    } else {
+                        if (
+                            (queueLength == 0 && _options.GetImmediatelyInterrupt()) ||                                  // if immediately interrupt then we always ask for the next song
+                            (queueLength == 1 && lefts <= _options.GetLeadTime()) ||                                     // if there is a song in the queue then dont ask until it is almost done
+                            (queueLength == 0 && !_options.GetImmediatelyInterrupt() && lefts <= _options.GetLeadTime()) // if there is nothing in the queue but we are to gracefully interrupt then wait until the current song is almost done
+                        ) {
+                            GetAndPlaySong(playing);
+                        }
+                    }
+                }
+                else {
+                    if (_viewerControlEnabled) {
+                        if (_options.IsEnableDisable()) {
+                            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to disable viewer control.");
+                            AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + _remoteFalcon->EnableViewerControl(false));
+                            _viewerControlEnabled = false;
+                        }
+                    }
+                }
+            }
+            else {
+                _playingPlaylist = "";
                 if (_viewerControlEnabled) {
                     if (_options.IsEnableDisable()) {
                         AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to disable viewer control.");
@@ -704,16 +737,11 @@ void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
                 }
             }
         }
-        else             {
-            _playingPlaylist = "";
-            if (_viewerControlEnabled)                 {
-                if (_options.IsEnableDisable()) {
-                    AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to disable viewer control.");
-                    AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + _remoteFalcon->EnableViewerControl(false));
-                    _viewerControlEnabled = false;
-                }
-            }
-        }
+    } catch (const nlohmann::json::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
+
+    } catch (const std::exception& ex) {
+        AddMessage(MESSAGE_LEVEL::ML_ERROR, "ERROR: " + std::string(ex.what()));
     }
 }
 
@@ -742,8 +770,8 @@ bool RemoteFalconFrame::SendCommand(const std::string& command, const std::strin
 {
     if (command == "Set playlist") {
         auto playlists = xSchedule::GetPlaylists();
-        for (const auto& it : playlists)             {
-            if (it.first == parameters)                 {
+        for (const auto& it : playlists) {
+            if (it.first == parameters) {
                 Stop();
                 _options.SetPlaylist(it.second);
                 SaveOptions();
@@ -762,7 +790,6 @@ bool RemoteFalconFrame::SendCommand(const std::string& command, const std::strin
     // Interupt schedule
     else if (command == "interrupt_schedule") {
         if (parameters == "on") {
-            
             _options.SetImmediatelyInterrupt(true);
             SaveOptions();
             LoadOptions();
@@ -770,7 +797,6 @@ bool RemoteFalconFrame::SendCommand(const std::string& command, const std::strin
 
             return true;
         } else if (parameters == "off") {
-            
             _options.SetImmediatelyInterrupt(false);
             SaveOptions();
             LoadOptions();

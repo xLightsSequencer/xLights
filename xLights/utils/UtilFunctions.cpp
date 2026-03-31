@@ -504,7 +504,11 @@ static std::string BeforeInt(std::string& s) {
 int intRand(const int& min, const int& max) {
     static thread_local std::mt19937* generator = nullptr;
     if (!generator)
-        generator = new std::mt19937(clock() + std::hash<std::thread::id>{}(std::this_thread::get_id()));
+        generator = new std::mt19937(
+    static_cast<std::mt19937::result_type>(
+        clock() + std::hash<std::thread::id>{}(std::this_thread::get_id())
+    )
+);
     std::uniform_int_distribution<int> distribution(min, max);
     return distribution(*generator);
 }

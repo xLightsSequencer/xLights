@@ -38,7 +38,7 @@ extern const std::string xlEMPTY_STRING;
     }
 
     inline int CountChar(const std::string& s, char c) {
-        return std::count(begin(s), end(s), c);
+        return static_cast<int>(std::count(begin(s), end(s), c));
     }
 
     inline size_t CountStrings(const std::string& what, const std::string& in)

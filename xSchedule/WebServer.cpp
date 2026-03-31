@@ -24,9 +24,10 @@
 #include "md5.h"
 
 #include <log.h>
+#include <nlohmann/json.hpp>
 
 #undef WXUSINGDLL
-#include "wxJSON/jsonreader.h"
+
 
 //#define DETAILED_LOGGING
 
@@ -647,97 +648,86 @@ void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
         wxString result;
         wxString text((char*)message.Content().GetData(), message.Content().GetDataLen());
 
-        if (text != "") {
+        if (!text.empty()) {
             spdlog::info("Received {}", text.ToStdString());
 
-            // construct the JSON root object
-            wxJSONValue  root;
+            try {
+                nlohmann::json root = nlohmann::json::parse(text.ToStdString());
 
-            // construct a JSON parser
-            wxJSONReader reader;
+                // extract the type of request
+                wxString const type = wxString::FromUTF8(root.value("Type", "").c_str()).Lower();
 
-            // now read the JSON text and store it in the 'root' structure
-            // check for errors before retreiving values...
-            int numErrors = reader.Parse(text, &root);
-            if (numErrors > 0) {
-                spdlog::error("The JSON document is not well-formed: {}", text.ToStdString());
-                const wxArrayString& errors = reader.GetErrors();
-                for (auto it = errors.begin(); it != errors.end(); ++it) {
-                    spdlog::error("    {}", std::string(it->ToStdString()));
+                if (type == "command") {
+                    wxString const c = wxString::FromUTF8(root.value("Command", "").c_str());
+                    wxString const p = wxString::FromUTF8(root.value("Parameters", "").c_str());
+                    wxString const d = wxString::FromUTF8(root.value("Data", "").c_str());
+                    wxString const r = wxString::FromUTF8(root.value("Reference", "").c_str());
+                    wxString const pass = wxString::FromUTF8(root.value("Pass", "").c_str());
+                    result = ProcessCommand(connection, c, p, d, r, pass.ToStdString());
+                } else if (type == "query") {
+                    wxString const q = wxString::FromUTF8(root.value("Query", "").c_str());
+                    wxString const p = wxString::FromUTF8(root.value("Parameters", "").c_str());
+                    wxString const r = wxString::FromUTF8(root.value("Reference", "").c_str());
+                    wxString const pass = wxString::FromUTF8(root.value("Pass", "").c_str());
+                    result = ProcessQuery(connection, q, p, r, pass.ToStdString());
+                } else if (type == "xyzzy2") {
+                    wxString const c = wxString::FromUTF8(root.value("c", "").c_str());
+                    wxString const p = wxString::FromUTF8(root.value("p", "").c_str());
+                    wxString const r = wxString::FromUTF8(root.value("r", "").c_str());
+                    result = ProcessXyzzy(connection, c + "2", p, r, "");
+                } else if (type == "xyzzy") {
+                    wxString const c = wxString::FromUTF8(root.value("c", "").c_str());
+                    wxString const p = wxString::FromUTF8(root.value("p", "").c_str());
+                    wxString const r = wxString::FromUTF8(root.value("r", "").c_str());
+                    result = ProcessXyzzy(connection, c, p, r, "");
+                } else if (type == "login") {
+                    wxString const c = wxString::FromUTF8(root.value("Credential", "").c_str());
+                    wxString const r = wxString::FromUTF8(root.value("Reference", "").c_str());
+                    result = ProcessLogin(connection, c, r);
+                } else if (type == "stash") {
+                    wxString const c = wxString::FromUTF8(root.value("Command", "").c_str());
+                    wxString const k = wxString::FromUTF8(root.value("Key", "").c_str());
+                    wxString d = wxString::FromUTF8(root.value("Data", "").c_str());
+                    wxString const r = wxString::FromUTF8(root.value("Reference", "").c_str());
+                    wxString const pass = wxString::FromUTF8(root.value("Pass", "").c_str());
+                    result = ProcessStash(connection, c, k, d, r, pass.ToStdString());
+                    if (result.IsEmpty()) {
+                        result = d;
+                    }
+                } else {
+                    std::string const plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type.ToStdString());
+                    if (!plugin.empty()) {
+                        wxString const c = wxString::FromUTF8(root.value("Command", "").c_str());
+                        wxString const p = wxString::FromUTF8(root.value("Parameters", "").c_str());
+                        wxString const d = wxString::FromUTF8(root.value("Data", "").c_str());
+                        wxString const r = wxString::FromUTF8(root.value("Reference", "").c_str());
+                        wxString const pass = wxString::FromUTF8(root.value("Pass", "").c_str());
+                        result = ProcessPluginRequest(connection, plugin, c, p, d, r, pass.ToStdString());
+                    } else {
+                        wxString r = wxString::FromUTF8(root.value("Reference", "").c_str());
+                        WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\"" + r + "\",\"message\":\"Unknown request type or plugin not running.\"}");
+                        connection.SendMessage(wsm);
+                        return;
+                    }
                 }
+            } catch (const nlohmann::json::parse_error& e) {
+                spdlog::error("The JSON document is not well-formed: {}", text.ToStdString());
+                spdlog::error("message: {}", e.what());
+                spdlog::error("exception id: {}", e.id);
+                spdlog::error("byte position of error: {}", e.byte);
+
+                WebSocketMessage wsm("{\"result\":\"failed\",\"message\":\"JSON message not well formed.\"}");
+                connection.SendMessage(wsm);
+                return;
+
+            } catch (std::exception& ex) {
+                spdlog::error("The JSON document is not well-formed: {}", text.ToStdString());
+                spdlog::error("    {}", ex.what());
                 WebSocketMessage wsm("{\"result\":\"failed\",\"message\":\"JSON message not well formed.\"}");
                 connection.SendMessage(wsm);
                 return;
             }
-
-            wxJSONValue defaultValue = wxString("");
-            std::string plugin;
-
-            // extract the type of request
-            wxString type = root.Get("Type", defaultValue).AsString().Lower();
-
-            if (type == "command") {
-                wxString c = root.Get("Command", defaultValue).AsString();
-                wxString p = root.Get("Parameters", defaultValue).AsString();
-                wxString d = root.Get("Data", defaultValue).AsString();
-                wxString r = root.Get("Reference", defaultValue).AsString();
-                wxString pass = root.Get("Pass", defaultValue).AsString();
-                result = ProcessCommand(connection, c, p, d, r, pass);
-            }
-            else if (type == "query") {
-                wxString q = root.Get("Query", defaultValue).AsString();
-                wxString p = root.Get("Parameters", defaultValue).AsString();
-                wxString r = root.Get("Reference", defaultValue).AsString();
-                wxString pass = root.Get("Pass", defaultValue).AsString();
-                result = ProcessQuery(connection, q, p, r, pass);
-            }
-            else if (type == "xyzzy2") {
-                wxString c = root.Get("c", defaultValue).AsString();
-                wxString p = root.Get("p", defaultValue).AsString();
-                wxString r = root.Get("r", defaultValue).AsString();
-                result = ProcessXyzzy(connection, c + "2", p, r, "");
-            }
-            else if (type == "xyzzy") {
-                wxString c = root.Get("c", defaultValue).AsString();
-                wxString p = root.Get("p", defaultValue).AsString();
-                wxString r = root.Get("r", defaultValue).AsString();
-                result = ProcessXyzzy(connection, c, p, r, "");
-            }
-            else if (type == "login") {
-                wxString c = root.Get("Credential", defaultValue).AsString();
-                wxString r = root.Get("Reference", defaultValue).AsString();
-                result = ProcessLogin(connection, c, r);
-            }
-            else if (type == "stash") {
-                wxString c = root.Get("Command", defaultValue).AsString();
-                wxString k = root.Get("Key", defaultValue).AsString();
-                wxString d = root.Get("Data", defaultValue).AsString();
-                wxString r = root.Get("Reference", defaultValue).AsString();
-                wxString pass = root.Get("Pass", defaultValue).AsString();
-                result = ProcessStash(connection, c, k, d, r, pass);
-                if (result == "") {
-                    result = d;
-                }
-            }
-            else {
-                plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type);
-                if (plugin != "") {
-                    wxString c = root.Get("Command", defaultValue).AsString();
-                    wxString p = root.Get("Parameters", defaultValue).AsString();
-                    wxString d = root.Get("Data", defaultValue).AsString();
-                    wxString r = root.Get("Reference", defaultValue).AsString();
-                    wxString pass = root.Get("Pass", defaultValue).AsString();
-                    result = ProcessPluginRequest(connection, plugin, c, p, d, r, pass);
-                }
-                else {
-                    wxString r = root.Get("Reference", defaultValue).AsString();
-                    WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\"" + r + "\",\"message\":\"Unknown request type or plugin not running.\"}");
-                    connection.SendMessage(wsm);
-                    return;
-                }
-            }
-        }
-        else {
+        } else {
             result = "{\"result\":\"failed\",\"reference\":\"\",\"message\":\"Empty request.\"}";
         }
 

@@ -13,7 +13,6 @@
 #include <list>
 #include <string>
 #include <vector>
-#include <wx/wx.h>
 
 enum class EFFECT_MODE {
     EM_PLAY_IMMEDIATELY,

@@ -245,9 +245,10 @@ bool Falcon::V4_SendBoardMode(int boardMode, int controllerMode, unsigned long s
     // {"R":200,"T":"S","M":"BM","F":1,"B":0,"RB":1,"P":{},"W":" ","L":""}
 
     bool success{ true };
-
-    std::string const params = std::format("{{\"B\":{},\"O\":{},\"ps\":{}}}", boardMode, controllerMode, startChannel - 1);
-    nlohmann::json p = nlohmann::json::parse(params);
+    nlohmann::json p;
+    p["B"] = boardMode;
+    p["O"] = controllerMode;
+    p["ps"] = startChannel - 1;
 
     bool finalCall;
     int outBatch;
@@ -308,8 +309,11 @@ bool Falcon::V4_SetSerialConfig(int protocol, int universe, int startChannel, in
 
     bool success = true;
 
-    std::string const params = std::format("{{\"sm\":{},\"su\":{},\"ssc\":{},\"sr\":{}}}", protocol, universe, startChannel, rate);
-    nlohmann::json p = nlohmann::json::parse(params);
+    nlohmann::json p;
+    p["sm"] = protocol;
+    p["su"] = universe;
+    p["ssc"] = startChannel;
+    p["sr"] = rate;
 
     bool finalCall;
     int outBatch;
@@ -389,8 +393,6 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res) {
 }
 
 void Falcon::V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str) {
-    
-
     int lastPort = -1;
     int lastRemote = -1;
 

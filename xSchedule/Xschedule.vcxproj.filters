@@ -52,8 +52,6 @@
     <ClCompile Include="..\xLights\utils\xlImage.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="Blend.cpp" />
-    <ClCompile Include="wxJSON\jsonreader.cpp" />
-    <ClCompile Include="wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
@@ -551,7 +549,6 @@
     <ClCompile Include="..\xLights\Discovery.cpp" />
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
-    <ClCompile Include="wxJSON\jsonwriter.cpp" />
     <ClCompile Include="ExcludeDimDialog.cpp">
       <Filter>OutputProcessing</Filter>
     </ClCompile>
@@ -581,6 +578,7 @@
     <ClCompile Include="..\xLights\SpecialOptions.cpp" />
     <ClCompile Include="RGBEffects.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
+    <ClCompile Include="..\xLights\ui\wxUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -621,8 +619,6 @@
     <ClInclude Include="..\xLights\utils\xlImage.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="Blend.h" />
-    <ClInclude Include="wxJSON\jsonreader.h" />
-    <ClInclude Include="wxJSON\jsonval.h" />
     <ClInclude Include="..\xLights\utils\UtilFunctions.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="VideoCache.h" />
@@ -1125,7 +1121,6 @@
     <ClInclude Include="..\xLights\Discovery.h" />
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
-    <ClInclude Include="wxJSON\jsonwriter.h" />
     <ClInclude Include="ExcludeDimDialog.h">
       <Filter>OutputProcessing</Filter>
     </ClInclude>
@@ -1153,6 +1148,7 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="RGBEffects.h" />
+    <ClInclude Include="..\xLights\ui\wxUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

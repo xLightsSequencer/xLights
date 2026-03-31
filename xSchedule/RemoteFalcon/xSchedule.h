@@ -13,8 +13,10 @@
 
 #include "utils/CurlManager.h"
 #include "RemoteFalconApp.h"
-#include "../wxJSON/jsonreader.h"
+#include <nlohmann/json.hpp>
 #include "RemoteFalconOptions.h"
+
+#include <log.h>
 
 class xSchedule
 {
@@ -55,22 +57,22 @@ public:
 	{
 		std::list<std::pair<std::string, int>> res;
 
-		auto json = Action("getplaylists");
+		auto const json = Action("getplaylists");
 
-		if (json != "") {
-
-			wxJSONReader reader;
-			wxJSONValue val;
-			reader.Parse(json, &val);
-
-			if (!val.IsNull()) {
-				for (int i = 0; i < (int)val["playlists"].AsArray()->Count(); i++) {
-					auto pl = val["playlists"][i];
-					res.push_back({ pl["name"].AsString(), wxAtoi(pl["id"].AsString()) });
-				}
+		if (!json.empty()) {
+			try {
+                nlohmann::json const val = nlohmann::json::parse(json);
+                if (!val.is_null()) {
+                    for (int i = 0; i < (int)val["playlists"].size(); i++) {
+                        auto pl = val["playlists"][i];
+                        res.push_back({ pl["name"].get<std::string>(), std::stoi(pl["id"].get<std::string>()) });
+                    }
+                }
+			} catch (nlohmann::json::parse_error& ex) {
+				spdlog::error("Failed to parse playlists JSON");
+				spdlog::error(ex.what());
 			}
-		}
-
+        }
 		return res;
 	}
 
@@ -106,21 +108,22 @@ public:
     static std::list<std::string> GetPlayingEffects()
     {
         std::list<std::string> res;
-        auto json = Action("getplayingeffects");
+        auto const json = Action("getplayingeffects");
 
-        if (json != "") {
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(json, &val);
-
-            if (!val.IsNull()) {
-                for (int i = 0; i < (int)val["playingeffects"].AsArray()->Count(); i++) {
-                    auto pl = val["playingeffects"][i];
-                    res.push_back(pl["name"].AsString());
+        if (!json.empty()) {
+            try {
+                nlohmann::json const val = nlohmann::json::parse(json);
+                if (!val.is_null()) {
+                    for (int i = 0; i < (int)val["playingeffects"].size(); i++) {
+                        auto pl = val["playingeffects"][i];
+                        res.push_back(pl["name"].get<std::string>());
+                    }
                 }
+            } catch (nlohmann::json::parse_error& ex) {
+                spdlog::error("Failed to parse playing effects JSON");
+                spdlog::error(ex.what());
             }
         }
-
         return res;
     }
 };
