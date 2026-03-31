@@ -20,6 +20,8 @@
 #ifndef EXCLUDENETWORKUI
 #include "../models/ModelManager.h"
 #endif
+#include <format>
+
 #include <log.h>
 
 #include "../Discovery.h"
@@ -275,20 +277,20 @@ std::string ArtNetOutput::GetLongDescription() const {
 
     if (!_enabled) res += "INACTIVE ";
     res += "ArtNet {" + GetUniverseString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
 
     return res;
 }
 
 std::string ArtNetOutput::GetUniverseString() const {
 
-    return wxString::Format(wxT("%i:%i:%i or %d"), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), GetUniverse()).ToStdString();
+    return std::format("{}:{}:{} or {}", GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), GetUniverse());
 }
 
 std::string ArtNetOutput::GetExport() const {
 
-    return wxString::Format(",%ld,%ld,,%s,%s,,,,%d,%i",
+    return std::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

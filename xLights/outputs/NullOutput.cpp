@@ -12,6 +12,8 @@
 #include "NullOutput.h"
 #include "../OutputModelManager.h"
 
+#include <format>
+
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
@@ -41,12 +43,12 @@ std::string NullOutput::GetLongDescription() const {
 
     if (!_enabled) res += "INACTIVE ";
     res += "NULL ";
-    res += "(" + std::string(wxString::Format(wxT("%d"), _startChannel)) + "-" + std::string(wxString::Format(wxT("%d"), GetEndChannel())) + ")";
+    res += "(" + std::to_string(_startChannel) + "-" + std::to_string(GetEndChannel()) + ")";
 
     return res;
 }
 
 std::string NullOutput::GetSortName() const {
-    return wxString::Format("NULL%02d", _nullNumber).ToStdString();
+    return std::format("NULL{:02d}", _nullNumber);
 }
 #pragma endregion

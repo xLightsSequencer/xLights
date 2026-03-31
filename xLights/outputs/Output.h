@@ -10,22 +10,25 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <chrono>
+#include <cstdint>
 #include <list>
 #include <mutex>
 #include <shared_mutex>
 
-#include <wx/window.h>
-#include <wx/time.h>
 #include <pugixml.hpp>
 
 class ModelManager;
 class OutputManager;
 class OutputModelManager;
+class ControllerEthernet;
+class Controller;
+
+#ifndef EXCLUDENETWORKUI
 class wxPGProperty;
 class wxPropertyGrid;
 class wxPropertyGridEvent;
-class ControllerEthernet;
-class Controller;
+#endif
 
 #pragma region Output Constants
 // These are used to identify each output type
@@ -73,7 +76,7 @@ protected:
     bool _ok = false;
     bool _tempDisable = false;
     bool _suppressDuplicateFrames = false;
-    wxLongLong _lastOutputTime = 0;
+    int64_t _lastOutputTime = 0;
     int _skippedFrames = 9999;
     bool _changed = false; // set to true when something in the packed has changed
     std::string _fppProxy;
@@ -147,7 +150,7 @@ public:
 
     int GetUniverse() const { return _universe; }
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }
-    virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
+    virtual std::string GetUniverseString() const { return std::to_string(GetUniverse()); }
 
     int32_t GetChannels() const { return _channels; }
     virtual void SetChannels(int32_t channels) {

@@ -26,6 +26,7 @@
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
+#include <format>
 #include <log.h>
 
 #pragma region Dumps
@@ -547,7 +548,7 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
         // extract the universes
-        const int univers = ExtractIntFromPage(page, wxString::Format("%c", fieldStart++), "input", 1, start);
+        const int univers = ExtractIntFromPage(page, std::format("{:c}", fieldStart++), "input", 1, start);
         _universes.push_back(univers);
     }
 
@@ -573,7 +574,7 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
         // extract the universes
-        const int univers = ExtractIntFromPage(page, wxString::Format("%c", fieldStart++), "input", 1, start);
+        const int univers = ExtractIntFromPage(page, std::format("{:c}", fieldStart++), "input", 1, start);
         _universes.push_back(univers);
     }
 
@@ -759,7 +760,7 @@ SanDevicesProtocol* SanDevices::ExtractProtocalDataV5(const std::string& page, i
     const wxString p(page);
     int start = p.find("Output Group Configuration:");
 
-    const std::string tofind = "<td>" + wxString::Format("%i-1 thru %i-4", group, group) + "</td>";
+    const std::string tofind = "<td>" + std::format("{}-1 thru {}-4", group, group) + "</td>";
 
     start = p.find(tofind, start);
 
@@ -778,10 +779,10 @@ SanDevicesOutput* SanDevices::ExtractOutputDataV5(const std::string& page, int g
     std::string tofind;
 
     if (IsE682()) {
-        tofind = "<td>" + wxString::Format("%i-%i", group, port) + "</td>";
+        tofind = "<td>" + std::format("{}-{}", group, port) + "</td>";
     }
     else {
-        tofind = "<td>" + wxString::Format("%i", group) + "</td>";
+        tofind = "<td>" + std::to_string(group) + "</td>";
     }
     const int start = p.find(tofind);
 
@@ -817,10 +818,10 @@ SanDevicesOutputV4* SanDevices::ExtractOutputDataV4(const std::string& page, int
     std::string tofind;
 
     if (IsE682()) {
-        tofind = "<td>" + wxString::Format("%i-1 to %i-4", group, group) + "</td>";
+        tofind = "<td>" + std::format("{}-1 to {}-4", group, group) + "</td>";
     }
     else {
-        tofind = "<td>" + wxString::Format("%i", group) + "</td>";
+        tofind = "<td>" + std::to_string(group) + "</td>";
     }
     start = p.find(tofind, start);
 
@@ -1041,7 +1042,7 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
     // extract null pixels
     std::string null;
     if (outputData->nullPixel != 0) { // Only Add to Request if it currently exists
-        null = wxString::Format("&H=%i", outputData->nullPixel);
+        null = std::format("&H={}", outputData->nullPixel);
     }
     // extract chase
     std::string chase;
@@ -1052,7 +1053,7 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
     }
     std::string colorOrder;
     if (!outputData->serial) {
-        colorOrder = wxString::Format("&E=%c", outputData->colorOrder);
+        colorOrder = std::format("&E={:c}", outputData->colorOrder);
     }
 
     const int controlPort = EncodeControllerPortV5(outputData->group, outputData->output);
@@ -1089,7 +1090,7 @@ std::string SanDevices::GenerateOutputURLV4(SanDevicesOutputV4* outputData) {
 
     std::string output;
     if (outputData->outputSize != 0) {
-        output = wxString::Format("A=%d&", outputData->outputSize);
+        output = std::format("A={}&", outputData->outputSize);
     }
 
     // extract reverse
@@ -1361,7 +1362,7 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
     }
 
     if (_connected) {
-        _model = wxString::Format("E%d", _sdmodel);
+        _model = std::format("E{}", static_cast<int>(_sdmodel));
     }
 }
 
@@ -1407,7 +1408,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
     std::list<Output*> outputs = controller->GetOutputs();
 
     if (outputs.size() > 12) {
-        DisplayError(wxString::Format("Attempt to upload %d universes to SanDevices controller but only 12 are supported.", outputs.size()).ToStdString());
+        DisplayError(std::format("Attempt to upload {} universes to SanDevices controller but only 12 are supported.", outputs.size()));
         return false;
     }
 
@@ -1431,7 +1432,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
     }
 
     if ((t == 2 || t == 0) && outputs.size() > 7) {
-        DisplayError(wxString::Format("Attempt to upload %d universes to SanDevices controller but only 7 are supported in Multicast/Artnet Mode.", outputs.size()).ToStdString());
+        DisplayError(std::format("Attempt to upload {} universes to SanDevices controller but only 7 are supported in Multicast/Artnet Mode.", outputs.size()));
         return false;
     }
 
@@ -1463,10 +1464,10 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
         if (currentReceiveMode == newReceiveMode) {
             upload = false;
         }
-        request += std::string(wxString::Format("&E=%c", t).c_str());
+        request += std::format("&E={:c}", t);
     }
     else {
-        request += std::string(wxString::Format("&E=%i", t).c_str());
+        request += std::format("&E={}", t);
     }
     request += "&F=" + ExtractFromPage(page, "F", "input");
 
@@ -1509,14 +1510,14 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
         }
         if (IsFirmware5()) {
             if (it->GetChannels() != 510 && it->GetChannels() != 512) {
-                DisplayError(wxString::Format("Attempt to upload a universe of size %d to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()).ToStdString());
+                DisplayError(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()));
                 return false;
             }
             requestUnvSize += wxString::Format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
         }
         else {
             if (it->GetChannels() != 510) {
-                DisplayError(wxString::Format("Attempt to upload a universe of size %d to SanDevices controller, but only a size of 510 is supported in Firmware 4.", it->GetChannels()).ToStdString());
+                DisplayError(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510 is supported in Firmware 4.", it->GetChannels()));
                 return false;
             }
         }

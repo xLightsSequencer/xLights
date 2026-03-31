@@ -32,7 +32,6 @@ protected:
 #pragma region Property Choices
     static wxPGChoices __types;
     static void InitialiseTypes(bool forceXXX);
-    wxPGChoices GetProtocols() const;
 #pragma endregion
 
 #pragma region Member Variables
@@ -102,6 +101,25 @@ public:
     void SetVersion(int version);
 
     bool AllSameSize() const;
+
+    wxPGChoices GetProtocols() const;
+
+    void SetForceSizes(bool force) { if (_forceSizes != force) { _forceSizes = force; _dirty = true; } }
+
+    // Output list manipulation for adapters
+    void AppendOutput(Output* output) { _outputs.push_back(output); }
+    void ClearOutputs() {
+        while (_outputs.size()) {
+            delete _outputs.back();
+            _outputs.pop_back();
+        }
+    }
+    void RemoveTrailingOutputs(int keepCount) {
+        while (keepCount < (int)_outputs.size()) {
+            delete _outputs.back();
+            _outputs.pop_back();
+        }
+    }
 #pragma endregion
 
 #pragma region Virtual Functions
@@ -144,7 +162,7 @@ public:
     virtual std::string GetColumn2Label() const override { return _ip; }
     virtual std::string GetColumn3Label() const override;
 
-    virtual void VMVChanged(wxPropertyGrid *grid = nullptr) override;
+    virtual void VMVChanged() override;
 
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() override;
@@ -162,16 +180,9 @@ public:
 #pragma endregion
 
 #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-        bool SupportsUniversePerString() const;
-    
-        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) override;
-        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-        virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
-        virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
-        virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override { SetExpanded(expanded); }
-        virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}, uint32_t universeSize = 510) override;
-#endif
+    // UI property grid methods moved to ui/controllerproperties/ControllerEthernetPropertyAdapter
+    bool SupportsUniversePerString() const;
+    virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}, uint32_t universeSize = 510) override;
 
     #ifndef EXCLUDEDISCOVERY
         void SetAllSameSize(bool allSame, OutputModelManager* omm);

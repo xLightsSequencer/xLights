@@ -13,6 +13,8 @@
 #include "IPOutput.h"
 #include "ZCPP.h"
 
+#include <vector>
+
 #include <wx/socket.h>
 
 class ControllerEthernet;
@@ -78,7 +80,7 @@ public:
     static void PrepareDiscovery(Discovery &discovery);
     #endif
 
-    static wxArrayString GetVendors();
+    static std::vector<std::string> GetVendors();
     static int EncodeVendor(const std::string& vendor);
     static std::string DecodeVendor(int vendor);
     #pragma endregion 

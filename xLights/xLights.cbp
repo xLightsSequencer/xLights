@@ -585,16 +585,16 @@
 		<Unit filename="controllers/Experience.h" />
 		<Unit filename="controllers/FPP.cpp" />
 		<Unit filename="controllers/FPP.h" />
-		<Unit filename="controllers/FPPConnectDialog.cpp" />
-		<Unit filename="controllers/FPPConnectDialog.h" />
-		<Unit filename="controllers/FPPUploadProgressDialog.cpp" />
-		<Unit filename="controllers/FPPUploadProgressDialog.h" />
+		<Unit filename="ui/controllers/FPPConnectDialog.cpp" />
+		<Unit filename="ui/controllers/FPPConnectDialog.h" />
+		<Unit filename="ui/controllers/FPPUploadProgressDialog.cpp" />
+		<Unit filename="ui/controllers/FPPUploadProgressDialog.h" />
 		<Unit filename="controllers/Falcon.cpp" />
 		<Unit filename="controllers/Falcon.h" />
 		<Unit filename="controllers/HinksPix.cpp" />
 		<Unit filename="controllers/HinksPix.h" />
-		<Unit filename="controllers/HinksPixExportDialog.cpp" />
-		<Unit filename="controllers/HinksPixExportDialog.h" />
+		<Unit filename="ui/controllers/HinksPixExportDialog.cpp" />
+		<Unit filename="ui/controllers/HinksPixExportDialog.h" />
 		<Unit filename="controllers/ILightThat.cpp" />
 		<Unit filename="controllers/ILightThat.h" />
 		<Unit filename="controllers/J1Sys.cpp" />
@@ -1194,6 +1194,16 @@
 		<Unit filename="ui/modelproperties/helpers/DmxAbilityPropertyHelpers.h" />
 		<Unit filename="ui/modelproperties/helpers/DmxComponentPropertyHelpers.cpp" />
 		<Unit filename="ui/modelproperties/helpers/DmxComponentPropertyHelpers.h" />
+		<Unit filename="ui/controllerproperties/ControllerEthernetPropertyAdapter.cpp" />
+		<Unit filename="ui/controllerproperties/ControllerEthernetPropertyAdapter.h" />
+		<Unit filename="ui/controllerproperties/ControllerNullPropertyAdapter.cpp" />
+		<Unit filename="ui/controllerproperties/ControllerNullPropertyAdapter.h" />
+		<Unit filename="ui/controllerproperties/ControllerPropertyAdapter.cpp" />
+		<Unit filename="ui/controllerproperties/ControllerPropertyAdapter.h" />
+		<Unit filename="ui/controllerproperties/ControllerPropertyManager.cpp" />
+		<Unit filename="ui/controllerproperties/ControllerPropertyManager.h" />
+		<Unit filename="ui/controllerproperties/ControllerSerialPropertyAdapter.cpp" />
+		<Unit filename="ui/controllerproperties/ControllerSerialPropertyAdapter.h" />
 		<Unit filename="ui/modelproperties/ModelPropertyAdapter.cpp" />
 		<Unit filename="ui/modelproperties/ModelPropertyAdapter.h" />
 		<Unit filename="ui/modelproperties/ModelPropertyManager.cpp" />
@@ -1564,10 +1574,10 @@
 					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="EffectTimingDialog.cpp" hdr="EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="EffectTreeDialog.cpp" hdr="EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EmailDialog.wxs" src="EmailDialog.cpp" hdr="EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="controllers/FPPConnectDialog.cpp" hdr="controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="ui/controllers/FPPConnectDialog.cpp" hdr="ui/controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateCustomModelDialog.wxs" src="GenerateCustomModelDialog.cpp" hdr="GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/HinksPixExportDialog.wxs" src="controllers/HinksPixExportDialog.cpp" hdr="controllers/HinksPixExportDialog.h" fwddecl="0" i18n="1" name="HinksPixExportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/HinksPixExportDialog.wxs" src="ui/controllers/HinksPixExportDialog.cpp" hdr="ui/controllers/HinksPixExportDialog.h" fwddecl="0" i18n="1" name="HinksPixExportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/IPEntryDialog.wxs" src="IPEntryDialog.cpp" hdr="IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
@@ -1721,7 +1731,7 @@
 					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="controllers/FPPUploadProgressDialog.cpp" hdr="controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="ui/controllers/FPPUploadProgressDialog.cpp" hdr="ui/controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="AutoLabelDialog.cpp" hdr="AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />

@@ -33,6 +33,7 @@
 
 #include <log.h>
 #include <filesystem>
+#include <format>
 
 #pragma pack(push, 2)
 
@@ -289,7 +290,7 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
     
     nlohmann::json data;
 
-    bool const worked = GetControllerDataJSON(GetJSONPortURL(), data, wxString::Format("BLK: %d", expansion - 1));
+    bool const worked = GetControllerDataJSON(GetJSONPortURL(), data, std::format("BLK: {}", expansion - 1));
 
     if (!worked || !data.contains("LIST")) {
         spdlog::error("Invalid Data from controller");
@@ -351,10 +352,9 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     std::list<Output*> outputs = controller->GetOutputs();
 
     if (controller->GetOutputCount() > _numberOfUniverses) {
-        DisplayError(wxString::Format(
-                         "Attempt to upload %d universes to HinksPix controller but only %d are supported.",
-                         controller->GetOutputCount(), _numberOfUniverses)
-                         .ToStdString());
+        DisplayError(std::format(
+                         "Attempt to upload {} universes to HinksPix controller but only {} are supported.",
+                         controller->GetOutputCount(), _numberOfUniverses));
         return false;
     }
 
@@ -555,7 +555,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
         int const maxUnv = wxAtoi(map.at("C"));
 
         if (controller->GetOutputCount() > maxUnv) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to HinksPix controller but only %d are supported.", controller->GetOutputCount(), maxUnv).ToStdString());
+            DisplayError(std::format("Attempt to upload {} universes to HinksPix controller but only {} are supported.", controller->GetOutputCount(), maxUnv));
             return false;
         }
 
@@ -1158,7 +1158,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
             _numberOfUniverses = wxAtoi(data.at("MaxU").get<std::string>());
         }
         if (data.contains("MCPU") && data.contains("PCPU") && data.contains("ECPU") && data.contains("WEB")) {
-            _version = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
+            _version = std::format("MAIN:{},POWER:{},WIFI:{},WEB:{}",
                                         data.at("MCPU").get<std::string>().substr(3),
                                         data.at("PCPU").get<std::string>().substr(3),
                                         data.at("ECPU").get<std::string>().substr(3),
@@ -1186,7 +1186,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
     } else {
         _connected = false;
         spdlog::error("Error connecting to HinksPix controller on {}.", (const char*)_ip.c_str());
-        DisplayError(wxString::Format("Error connecting to HinksPix controller on %s.", _ip).ToStdString());
+        DisplayError(std::format("Error connecting to HinksPix controller on {}.", _ip));
     }
 }
 
@@ -1214,12 +1214,12 @@ struct less_than_key
 bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, wxWindow* parent) {
     ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
-        DisplayError(wxString::Format("%s is not a HinksPix controller.", c->GetName().c_str()));
+        DisplayError(std::format("{} is not a HinksPix controller.", c->GetName()));
         return false;
     }
 
     if (_MCPU_Version < 101 && _controllerType == "H") {
-        DisplayError(wxString::Format("HinksPix CPU Firmware is too old (v%d) Update to v101 or Newer.", _MCPU_Version));
+        DisplayError(std::format("HinksPix CPU Firmware is too old (v{}) Update to v101 or Newer.", _MCPU_Version));
         return false;
     }
     /*
@@ -1230,11 +1230,11 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     if (controller->GetModel() == "PRO V1/V2" && _model == "HinksPix PRO 80") {// Hinkle added 
 
-        DisplayError(wxString::Format("Controller Reports as PRO V3 BUT You have the Model as PRO V1/V2 - Please Fix"));
+        DisplayError("Controller Reports as PRO V3 BUT You have the Model as PRO V1/V2 - Please Fix");
         return false;
     }
     else if (controller->GetModel() == "PRO V3" && _model == "HinksPix PRO") {// Hinkle added 
-        DisplayError(wxString::Format("Controller Reports as PRO V1/V2 BUT You have the Model as PRO V3 - Please Fix"));
+        DisplayError("Controller Reports as PRO V1/V2 BUT You have the Model as PRO V3 - Please Fix");
         return false;
     }
 

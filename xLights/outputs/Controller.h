@@ -10,17 +10,18 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-
 #include <list>
 #include <map>
 #include <string>
 #include <functional>
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 #include "UtilFunctions.h"
 #include "Output.h"
+
+#ifndef EXCLUDENETWORKUI
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+#endif
 
 class OutputManager;
 class OutputModelManager;
@@ -85,9 +86,11 @@ public:
     #pragma endregion
 
     #pragma region Static Functions
-    // encodes/decodes string lists to indices
+#ifndef EXCLUDENETWORKUI
+    // encodes/decodes string lists to indices (UI helper)
     static int EncodeChoices(const wxPGChoices& choices, const std::string& choice);
     static std::string DecodeChoices(const wxPGChoices& choices, int choice);
+#endif
     static Controller::ACTIVESTATE EncodeActiveState(const std::string& state);
     static std::string DecodeActiveState(Controller::ACTIVESTATE state);
 
@@ -97,11 +100,13 @@ public:
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
+    OutputManager* GetOutputManager() const { return _outputManager; }
+
     Output* GetOutput(int outputNumber) const; // output number is zero based
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const;
     const std::list<Output*> &GetOutputs() const { return _outputs; }
     int GetOutputCount() const { return _outputs.size(); }
-    Output* GetFirstOutput() const { wxASSERT(_outputs.size() > 0); return _outputs.front(); }
+    Output* GetFirstOutput() const { return _outputs.front(); }
 
     void DeleteAllOutputs();
 
@@ -170,11 +175,11 @@ public:
     bool IsOk() const { return _ok; }
 
     const std::string &GetVendor() const { return _vendor; }
-    void SetVendor(const std::string& vendor, wxPropertyGrid *grid = nullptr) { if (_vendor != vendor) { _vendor = vendor; _dirty = true; VMVChanged(grid); } }
+    void SetVendor(const std::string& vendor) { if (_vendor != vendor) { _vendor = vendor; _dirty = true; VMVChanged(); } }
     const std::string &GetModel() const { return _model; }
-    void SetModel(const std::string& model, wxPropertyGrid *grid = nullptr) { if (_model != model) { _model = model; _dirty = true; VMVChanged(grid); } }
+    void SetModel(const std::string& model) { if (_model != model) { _model = model; _dirty = true; VMVChanged(); } }
     const std::string &GetVariant() const { return _variant; }
-    void SetVariant(const std::string& variant, wxPropertyGrid *grid = nullptr) { if (_variant != variant) { _variant = variant; _dirty = true;  VMVChanged(grid); } }
+    void SetVariant(const std::string& variant) { if (_variant != variant) { _variant = variant; _dirty = true;  VMVChanged(); } }
     std::string GetVMV() const;
     ControllerCaps* GetControllerCaps() const;
     void SearchForNewVendor( std::string const& vendor, std::string const& model, std::string const& variant);
@@ -210,7 +215,7 @@ public:
     virtual bool SupportsAutoLayout() const;
     virtual bool IsManaged() const = 0;
     virtual bool CanSendData() const { return true; }
-    virtual void VMVChanged(wxPropertyGrid *grid = nullptr) {}
+    virtual void VMVChanged() {}
 
     virtual bool CanTempDisable() const { return false; }
     void TempDisable(bool disable)
@@ -234,7 +239,7 @@ public:
     virtual std::string GetShortDescription() const { return GetLongDescription(); }
 
     // Used in xSchedule
-    virtual std::string GetPingDescription() const { return GetName() + (IsActive() ? "" : " (Inactive)") + (IsTempDisable() ? _(" (Down)") : _("") ); }
+    virtual std::string GetPingDescription() const { return GetName() + (IsActive() ? "" : " (Inactive)") + (IsTempDisable() ? " (Down)" : ""); }
 
     // return the controller type
     virtual std::string GetType() const = 0;
@@ -270,7 +275,7 @@ public:
     virtual std::string GetColumn1Label() const { return GetType(); }
     virtual std::string GetColumn2Label() const { return ""; }
     virtual std::string GetColumn3Label() const { return GetUniverseString(); }
-    virtual std::string GetColumn4Label() const { return wxString::Format("%ld [%ld-%ld]", (long)GetChannels(), (long)GetStartChannel(), (long)GetEndChannel()); }
+    virtual std::string GetColumn4Label() const { return std::format("{} [{}-{}]", GetChannels(), GetStartChannel(), GetEndChannel()); }
     virtual std::string GetColumn5Label() const { return GetVendor(); }
     virtual std::string GetColumn6Label() const { return GetModel(); }
     virtual std::string GetColumn7Label() const { return GetVariant(); }
@@ -296,17 +301,7 @@ public:
     #pragma endregion
 
     #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-        void AddModels(wxPGProperty* property, wxPGProperty* vp);
-        void AddVariants(wxPGProperty* property);
-
-        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager);
-        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
-	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
-        virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;
-        virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded);
-
-    #endif
+    // UI property grid methods moved to ui/controllerproperties/ adapters
 
     #ifndef EXCLUDEDISCOVERY
         virtual bool SetChannelSize(int32_t channels, std::list<Model*> models = {}, uint32_t universeSize = 510);

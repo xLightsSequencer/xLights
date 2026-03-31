@@ -341,7 +341,7 @@
     <ClCompile Include="controllers\FPP.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="controllers\FPPConnectDialog.cpp">
+    <ClCompile Include="ui\controllers\FPPConnectDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="controllers\J1Sys.cpp">
@@ -523,7 +523,7 @@
     <ClCompile Include="controllers\HinksPix.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="controllers\HinksPixExportDialog.cpp">
+    <ClCompile Include="ui\controllers\HinksPixExportDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="effects\ColorWashEffect.cpp">
@@ -840,6 +840,21 @@
     <ClCompile Include="ui\wxColorCurveRenderer.cpp">
       <Filter>ui</Filter>
     </ClCompile>
+    <ClCompile Include="ui\controllerproperties\ControllerEthernetPropertyAdapter.cpp">
+      <Filter>ui\controllerproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\controllerproperties\ControllerNullPropertyAdapter.cpp">
+      <Filter>ui\controllerproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\controllerproperties\ControllerPropertyAdapter.cpp">
+      <Filter>ui\controllerproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\controllerproperties\ControllerPropertyManager.cpp">
+      <Filter>ui\controllerproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\controllerproperties\ControllerSerialPropertyAdapter.cpp">
+      <Filter>ui\controllerproperties</Filter>
+    </ClCompile>
     <ClCompile Include="ui\modelproperties\ModelPropertyAdapter.cpp">
       <Filter>ui\modelproperties</Filter>
     </ClCompile>
@@ -974,7 +989,7 @@
     <ClCompile Include="utils\CurlManager.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="controllers\FPPUploadProgressDialog.cpp">
+    <ClCompile Include="ui\controllers\FPPUploadProgressDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="AutoLabelDialog.cpp" />
@@ -1764,7 +1779,7 @@
     <ClInclude Include="controllers\FPP.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="controllers\FPPConnectDialog.h">
+    <ClInclude Include="ui\controllers\FPPConnectDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="controllers\J1Sys.h">
@@ -1946,7 +1961,7 @@
     <ClInclude Include="controllers\HinksPix.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="controllers\HinksPixExportDialog.h">
+    <ClInclude Include="ui\controllers\HinksPixExportDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="effects\ColorWashEffect.h">
@@ -2292,6 +2307,21 @@
     <ClInclude Include="ui\wxColorCurveRenderer.h">
       <Filter>ui</Filter>
     </ClInclude>
+    <ClInclude Include="ui\controllerproperties\ControllerEthernetPropertyAdapter.h">
+      <Filter>ui\controllerproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controllerproperties\ControllerNullPropertyAdapter.h">
+      <Filter>ui\controllerproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controllerproperties\ControllerPropertyAdapter.h">
+      <Filter>ui\controllerproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controllerproperties\ControllerPropertyManager.h">
+      <Filter>ui\controllerproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controllerproperties\ControllerSerialPropertyAdapter.h">
+      <Filter>ui\controllerproperties</Filter>
+    </ClInclude>
     <ClInclude Include="ui\modelproperties\ModelPropertyAdapter.h">
       <Filter>ui\modelproperties</Filter>
     </ClInclude>
@@ -2412,7 +2442,7 @@
     <ClInclude Include="ui\modelproperties\helpers\DmxComponentPropertyHelpers.h">
       <Filter>ui\modelproperties\helpers</Filter>
     </ClInclude>
-    <ClInclude Include="controllers\FPPUploadProgressDialog.h">
+    <ClInclude Include="ui\controllers\FPPUploadProgressDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="AutoLabelDialog.h" />
@@ -2919,6 +2949,9 @@
     </Filter>
     <Filter Include="ui">
       <UniqueIdentifier>{a3b2c1d0-1234-5678-abcd-ef0123456789}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\controllerproperties">
+      <UniqueIdentifier>{e7f6a5b4-5678-9abc-ef01-23456789abcd}</UniqueIdentifier>
     </Filter>
     <Filter Include="ui\modelproperties">
       <UniqueIdentifier>{b4c3d2e1-2345-6789-bcde-f01234567890}</UniqueIdentifier>

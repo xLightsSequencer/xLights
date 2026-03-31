@@ -18,6 +18,8 @@
 #include "../ui/wxUtilities.h"
 #include "../utils/ip_utils.h"
 
+#include <format>
+
 #include <log.h>
 
 static const int32_t xxxCHANNELSPERPACKET = 1200;
@@ -27,7 +29,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
     
 
-    static wxLongLong __lastTime = 0;
+    static int64_t __lastTime = 0;
     static wxIPV4address __remoteAddr;
     static uint8_t __pkt[] = { 0x80, 0x01, 0x00, 0x81 };
     static wxDatagramSocket* __datagram = nullptr;
@@ -36,7 +38,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
         // output
         if (__datagram == nullptr) return;
 
-        wxLongLong now = wxGetUTCTimeMillis();
+        int64_t now = GetCurrentTimeMillis();
         if (__lastTime + xxx_HEARTBEATINTERVAL < now) {
             __datagram->SendTo(__remoteAddr, __pkt, sizeof(__pkt));
             __lastTime = now;
@@ -165,16 +167,16 @@ std::string xxxEthernetOutput::GetLongDescription() const {
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "xxxEthernet {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += "xxxEthernet {" + std::to_string(_universe) + "} ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
 
     return res;
 }
 
 std::string xxxEthernetOutput::GetExport() const {
 
-    return wxString::Format(",%ld,%ld,,%s,%s,,,,%d,%i",
+    return std::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

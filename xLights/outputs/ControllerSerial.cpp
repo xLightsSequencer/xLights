@@ -31,6 +31,8 @@
 #include "GenericSerialOutput.h"
 #include "../models/ModelManager.h"
 
+#include <format>
+
 #include <log.h>
 
 #pragma region Property Choices
@@ -300,7 +302,7 @@ void ControllerSerial::SetFPPProxy(const std::string& proxy) {
         GetFirstOutput()->SetFPPProxyIP(_fppProxy);
     }
 }
-void ControllerSerial::VMVChanged(wxPropertyGrid *grid) {
+void ControllerSerial::VMVChanged() {
     if (_model == "FPP") {
         if (GetFirstOutput()->GetType() != "DDP") {
             if (_serialOutput && GetFirstOutput() != _serialOutput) delete _serialOutput;
@@ -438,7 +440,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
         o = new GenericSerialOutput();
     } else {
         wxASSERT(false);
-        spdlog::error("Could not create serial output of type {}.", (const char*)type.c_str());
+        spdlog::error("Could not create serial output of type {}.", type);
     }
 
     if (o != nullptr) {
@@ -478,7 +480,7 @@ std::string ControllerSerial::GetLongDescription() const {
 
     if (!IsActive()) res += "INACTIVE ";
     res += GetName() + " " + GetProtocol() + " " + GetPort();
-    res += " (" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += " (" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
     res += _description;
 
     return res;
@@ -532,13 +534,13 @@ void ControllerSerial::Convert(pugi::xml_node node, std::string showDir) {
 
 std::string ControllerSerial::GetChannelMapping(int32_t ch) const
 {
-    return wxString::Format("Channel %d maps to ...\nType: %s\nName: %s\nComPort: %s\nChannel: %d\n%s",
-        ch, 
-        GetProtocol(), 
-        GetName(), 
-        GetPort(), 
+    return std::format("Channel {} maps to ...\nType: {}\nName: {}\nComPort: {}\nChannel: {}\n{}",
+        ch,
+        GetProtocol(),
+        GetName(),
+        GetPort(),
         ch - GetStartChannel() + 1,
-        (IsActive() ? _("") : _("INACTIVE\n")));
+        (IsActive() ? "" : "INACTIVE\n"));
 }
 
 Output::PINGSTATE ControllerSerial::Ping()
@@ -560,7 +562,7 @@ Output::PINGSTATE ControllerSerial::Ping()
 
 std::string ControllerSerial::GetExport() const {
 
-    return wxString::Format("%s,%d,%d,%s,%s,,%s,%d,\"%s\",%d,%ld,%s,%s,%s,%s,%s,,%s",
+    return std::format("{},{},{},{},{},,{},{},\"{}\",{},{},{},{},{},{},{},,{}",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
@@ -571,274 +573,16 @@ std::string ControllerSerial::GetExport() const {
         GetDescription(),
         GetId(),
         GetChannels(),
-        (IsActive() ? _("") : _("DISABLED")),
-        (IsSuppressDuplicateFrames() ? _("SuppressDuplicates") : _("")),
-        (IsAutoSize() ? _("AutoSize") : _("")),
-        (IsAutoLayout() ? _("AutoLayout") : _("")),
-        (IsAutoUpload() ? _("AutoUpload") : _("")),
+        (IsActive() ? "" : "DISABLED"),
+        (IsSuppressDuplicateFrames() ? "SuppressDuplicates" : ""),
+        (IsAutoSize() ? "AutoSize" : ""),
+        (IsAutoLayout() ? "AutoLayout" : ""),
+        (IsAutoUpload() ? "AutoUpload" : ""),
         GetFPPProxy()
     );
 }
 #pragma endregion
 
 #pragma region UI
-#ifndef EXCLUDENETWORKUI
-void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties)
-{
-    Controller::AddProperties(propertyGrid, modelManager, expandProperties);
-    wxPGProperty *p;
-
-    ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
-    if (caps != nullptr && caps->GetModel() == "FPP") {
-        //FPP based serial devices
-        std::string port = _port;
-        std::string ip;
-        if (_port.find(":") != std::string::npos) {
-            ip = _port.substr(0, _port.find(":"));
-            port = _port.substr(_port.find(":") + 1);
-        }
-        p = propertyGrid->Append(new wxStringProperty("IP Address", "IP", ip));
-        p->SetHelpString("FPP IP address or host name.");
-
-        p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", _fppProxy));
-        p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
-
-
-        wxPGChoices ports;
-        //FIXME - query FPP  for list of ports
-        for (int x = 0; x < 6; x++) {
-            ports.Add("ttyS" + std::to_string(x));
-        }
-        for (int x = 0; x < 6; x++) {
-            ports.Add("ttyUSB" + std::to_string(x));
-        }
-        for (int x = 0; x < 6; x++) {
-            ports.Add("ttyACM" + std::to_string(x));
-        }
-        ports.Add("ttyAMA0");
-        /*
-         FIXME - coming soon
-        ports.Add("i2c1");
-        ports.Add("i2c2");
-        ports.Add("spidev0.0");
-        ports.Add("spidev0.1");
-        ports.Add("spidev1.0");
-        ports.Add("spidev1.1");
-
-         */
-
-        auto protocols = GetProtocols();
-        propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
-
-        p = propertyGrid->Append(new wxEnumProperty("Port", "Port", ports, Controller::EncodeChoices(ports, port)));
-        if (StartsWith(port, "tty")) {
-            if (GetProtocol() != OUTPUT_DMX && GetProtocol() != OUTPUT_OPENDMX && GetProtocol() != OUTPUT_PIXELNET && GetProtocol() != OUTPUT_OPENPIXELNET) {
-                wxPGChoices speeds;
-                speeds.Add("9600");
-                speeds.Add("19200");
-                speeds.Add("38400");
-                speeds.Add("57600");
-                speeds.Add("115200");
-                speeds.Add("230400");
-                speeds.Add("460800");
-                speeds.Add("921600");
-                p = propertyGrid->Append(new wxEnumProperty("Speed", "Speed", speeds, Controller::EncodeChoices(speeds, wxString::Format("%d", _speed))));
-            }
-        } else if (StartsWith(port, "i2c")) {
-            wxPGChoices i2cDevices;
-            for (int x = 0; x < 128; x++) {
-                char buf[12];
-                snprintf(buf, sizeof(buf), "0x%02X", x);
-                i2cDevices.Add(buf);
-            }
-            p = propertyGrid->Append(new wxEnumProperty("I2C Device", "I2CDevice", i2cDevices, Controller::EncodeChoices(i2cDevices, wxString::Format("0x%02X", _speed))));
-        } else if (StartsWith(port, "spidev")) {
-            p = propertyGrid->Append(new wxUIntProperty("Speed (kHz)", "SPISpeed", _speed));
-            p->SetAttribute("Min", 0);
-            p->SetAttribute("Max", 999999);
-        }
-    } else {
-        p = propertyGrid->Append(new wxEnumProperty("Port", "Port", __ports, Controller::EncodeChoices(__ports, _port)));
-        p->SetHelpString("This must be unique across all controllers.");
-
-        auto protocols = GetProtocols();
-        propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, Controller::EncodeChoices(protocols, _type)));
-
-        p = propertyGrid->Append(new wxEnumProperty("Speed", "Speed", __speeds, Controller::EncodeChoices(__speeds, wxString::Format("%d", _speed))));
-        if (dynamic_cast<SerialOutput*>(_outputs.front())) {
-            if (!dynamic_cast<SerialOutput*>(_outputs.front())->AllowsBaudRateSetting()) {
-                p->ChangeFlag(wxPGFlags::ReadOnly , true);
-                p->SetBackgroundColour(*wxLIGHT_GREY);
-                p->SetHelpString("Speed is fixed for this protocol.");
-            }
-        }
-    }
-
-    if (GetProtocol() == "Generic Serial") {
-        p = propertyGrid->Append(new wxStringProperty("Prefix", "Prefix", _saveablePrefix));
-        p = propertyGrid->Append(new wxStringProperty("Postfix", "Postfix", _saveablePostfix));
-    }
-    if (_serialOutput && _serialOutput->GetType() != OUTPUT_LOR_OPT) {
-        p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", _outputs.front()->GetChannels()));
-        p->SetAttribute("Min", 1);
-
-        auto max = _serialOutput->GetMaxChannels();
-        if (caps) {
-            max = std::min(max, caps->GetMaxSerialPortChannels());
-        }
-        p->SetAttribute("Max", max);
-
-        if (IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetBackgroundColour(*wxLIGHT_GREY);
-            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
-        } else {
-            p->SetEditor("SpinCtrl");
-        }
-    }
-
-    p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
-    p->ChangeFlag(wxPGFlags::ReadOnly , true);
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->SetHelpString(modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), 4));
-
-    _serialOutput->AddProperties(propertyGrid, p, this, true, expandProperties);
-}
-
-bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
-
-    if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
-
-    wxString const name = event.GetPropertyName();
-
-    if (name == "IP") {
-        std::string ip = event.GetValue().GetString();
-        if (_model == "FPP") {
-            std::string port = _port;
-            if (port.find(":") != std::string::npos) {
-                port = port.substr(port.find(":") + 1);
-            }
-            ip = ip + ":" + port;
-        }
-        SetPort(ip);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Port");
-        return true;
-    } else if (name == "FPPProxyIP") {
-        std::string ip = event.GetValue().GetString();
-        SetFPPProxy(ip);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Port");
-        return true;
-    } else if (name == "Port") {
-        std::string port = Controller::DecodeChoices(event.GetProperty()->GetChoices(), event.GetValue().GetLong());
-        if (_model == "FPP") {
-            if (_port.find(":") != std::string::npos) {
-                port = _port.substr(0, _port.find(":") + 1) + port;
-            }
-        }
-        SetPort(port);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Port");
-        return true;
-    } else if (name == "I2CDevice") {
-        SetSpeed(std::strtoul(Controller::DecodeChoices(event.GetProperty()->GetChoices(), event.GetValue().GetLong()).c_str(),  nullptr, 16));
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Speed");
-        return true;
-    } else if (name == "SPISpeed") {
-        SetSpeed(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Speed");
-        return true;
-    } else if (name == "Speed") {
-        SetSpeed(wxAtoi(Controller::DecodeChoices(event.GetProperty()->GetChoices(), event.GetValue().GetLong())));
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerSerial::HandlePropertyEvent::Speed");
-        return true;
-    } else if (name == "Prefix") {
-        SetPrefix(event.GetValue().GetString());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Prefix");
-        return true;
-    } else if (name == "Postfix") {
-        SetPostfix(event.GetValue().GetString());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Postfix");
-        return true;
-    } else if (name == "Protocol") {
-
-        if (_outputs.size() > 0) {
-            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-            _outputs.front()->RemoveProperties(grid);
-        }
-
-        auto protocols = GetProtocols();
-        SetProtocol(Controller::DecodeChoices(protocols, event.GetValue().GetLong()));
-
-        if (_outputs.size() > 0) {
-            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-            std::list<wxPGProperty*> expandProperties;
-            auto before = grid->GetProperty("Models");
-            _outputs.front()->AddProperties(grid, before, this, true, expandProperties);
-        }
-
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "ControllerSerial::HandlePropertyEvent::Protocol");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::Protocol", nullptr);
-        return true;
-    } else if (name == "Channels") {
-        SetChannels(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "ControllerSerial::HandlePropertyEvent::Channels");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::Channels", nullptr);
-        return true;
-    }
-
-    if (_serialOutput->HandlePropertyEvent(event, outputModelManager, this)) return true;
-
-    return false;
-}
-
-void ControllerSerial::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const {
-
-    Controller::ValidateProperties(om, propGrid);
-
-    for (const auto& it : om->GetControllers()) {
-        auto s = dynamic_cast<ControllerSerial*>(it);
-
-        // Port must be unique
-        auto p = propGrid->GetPropertyByName("Port");
-        if (p != nullptr) {
-            if (s != nullptr && it->GetName() != GetName() && s->GetPort() == GetPort() && GetPort() != "NotConnected") {
-                p->SetBackgroundColour(*wxRED);
-                break;
-            } else {
-                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-            }
-        }
-    }
-
-    auto p = propGrid->GetPropertyByName("Protocol");
-    auto caps = ControllerCaps::GetControllerConfig(this);
-    if (caps != nullptr && p != nullptr) {
-        // controller must support the protocol
-        if (!caps->IsValidInputProtocol(Lower(_type)) && !caps->IsValidSerialProtocol(Lower(_type))) {
-            p->SetBackgroundColour(*wxRED);
-        } else {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-
-    p = propGrid->GetPropertyByName("Channels");
-    if (p != nullptr) {
-        if (_serialOutput->GetMaxChannels() < GetChannels() || GetChannels() < 1) {
-            p->SetBackgroundColour(*wxRED);
-        } else {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-
-    if (_model == "FPP") {
-        p = propGrid->GetPropertyByName("IP");
-        if (p != nullptr) {
-            if (_port.find(":") == std::string::npos) {
-                p->SetBackgroundColour(*wxRED);
-            } else {
-                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-            }
-        }
-    }
-}
-#endif
+// UI property grid methods moved to ui/controllerproperties/ControllerSerialPropertyAdapter
 #pragma endregion

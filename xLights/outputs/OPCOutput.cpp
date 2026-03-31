@@ -124,9 +124,9 @@ std::string OPCOutput::GetLongDescription() const {
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "OPC {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ")";
+    res += "OPC {" + std::to_string(_universe) + "} ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ")";
 
     return res;
 }
@@ -145,7 +145,7 @@ void OPCOutput::SetChannels(int32_t channels)
 
 std::string OPCOutput::GetExport() const {
 
-    return wxString::Format(",%ld,%ld,,%s,%s,,,,%d,%i",
+    return std::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

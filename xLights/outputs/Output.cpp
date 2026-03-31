@@ -292,7 +292,7 @@ void Output::SetManyChannels(int32_t channel, unsigned char* data, size_t size) 
 
 #pragma region Frame Handling
 void Output::FrameOutput() {
-    _lastOutputTime = wxGetUTCTimeMillis();
+    _lastOutputTime = GetCurrentTimeMillis();
     _skippedFrames = 0;
     _changed = false;
     OutputManager::RegisterSentPacket();

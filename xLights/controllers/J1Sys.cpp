@@ -24,6 +24,7 @@
 #include <wx/regex.h>
 #include <wx/sstream.h>
 
+#include <format>
 #include <log.h>
 
 // This code has been tested with
@@ -117,13 +118,13 @@ std::string J1Sys::BuildStringPort(bool active, int string, char protocol, int s
     spdlog::debug("     Output String {}, Protocol {} Universe {} StartChannel {} Pixels {}",
         string, protocol, universe, startChannel, pixels);
 
-    return wxString::Format("sA%c=%d&sT%c=%c&sB%c=%d&sU%c=%d&sS%c=%d&sC%c=%d",
+    return std::format("sA{:c}={}&sT{:c}={:c}&sB{:c}={}&sU{:c}={}&sS{:c}={}&sC{:c}={}",
         out, active ? 1 : 0,
         out, protocol,
         out, speed,
         out, universe,
         out, startChannel,
-        out, pixels).ToStdString();
+        out, pixels);
 }
 
 void J1Sys::ResetStringOutputs() {
@@ -201,11 +202,11 @@ std::string J1Sys::BuildSerialPort(bool active, int port, char protocol, int spe
     spdlog::debug("     Output Serial {}, Protocol {} Universe {}",
         port, protocol, universe);
 
-    return wxString::Format("pA%d=%d&pP%d=%c&pB%d=%d&pU%d=%d",
+    return std::format("pA{}={}&pP{}={:c}&pB{}={}&pU{}={}",
         port, active ? 1 : 0,
         port, protocol,
         port, speed,
-        port, universe).ToStdString();
+        port, universe);
 }
 
 void J1Sys::ResetSerialOutputs() {
@@ -321,7 +322,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
 
     if (_outputs == 2) {
         if (outputs.size() > 8) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to j1Sys P2 controller but only 8 are supported.", (int)outputs.size()).ToStdString());
+            DisplayError(std::format("Attempt to upload {} universes to j1Sys P2 controller but only 8 are supported.", (int)outputs.size()));
             return false;
         }
     }
@@ -333,7 +334,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
         }
         if ((int)outputs.size() > maxUniverses)
         {
-            DisplayError(wxString::Format("Attempt to upload %d universes to j1Sys P12 controller but only %d are supported.", (int)outputs.size(), maxUniverses).ToStdString());
+            DisplayError(std::format("Attempt to upload {} universes to j1Sys P12 controller but only {} are supported.", (int)outputs.size(), maxUniverses));
             return false;
         }
     }
@@ -342,12 +343,12 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
     {
         if (o->GetChannels() > 510)
         {
-            DisplayError(wxString::Format("Attempt to upload universe %d to j1Sys controller of size %ld but maximum is 510.", o->GetUniverse(), o->GetChannels()).ToStdString());
+            DisplayError(std::format("Attempt to upload universe {} to j1Sys controller of size {} but maximum is 510.", o->GetUniverse(), o->GetChannels()));
             return false;
         }
     }
 
-    std::string request = wxString::Format("an=0&e1en=%d&anen=%d", (e131) ? 1 : 0, (artnet) ? 1 : 0).ToStdString();
+    std::string request = std::format("an=0&e1en={}&anen={}", (e131) ? 1 : 0, (artnet) ? 1 : 0);
     std::string res = PutURL("/protect/ipConfig.htm", request, _username, _password);
     if (res != "" && !StartsWith(res, "401 "))
     {
@@ -407,7 +408,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                         int channels = m->Channels();
                         while (channels > 0) {
                             if (output >= bankStart + GetBankSize()) {
-                                DisplayError("Controller " + _ip + " too many outputs required for port " + wxString::Format("%d", pp) + ".");
+                                DisplayError("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".");
                                 spdlog::debug("Erroneous config:");
                                 DumpConfig(j1SysOutputs);
                                 return false;
@@ -440,7 +441,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                         int channels = m->Channels();
                         while (channels > 0) {
                             if (output >= bankStart + GetBankSize()) {
-                                DisplayError("Controller " + _ip + " too many outputs required for port " + wxString::Format("%d", pp) + ".");
+                                DisplayError("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".");
                                 spdlog::debug("Erroneous config:");
                                 DumpConfig(j1SysOutputs);
                                 return false;
@@ -533,16 +534,16 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                 auto o2 = outputManager->GetOutput(port->GetEndChannel(), sc2);
 
                 if (o != o2) {
-                    DisplayError("Controller " + _ip + " serial port " + wxString::Format("%d", sp) + "requires more than 1 universe.");
+                    DisplayError("Controller " + _ip + " serial port " + std::to_string(sp) + " requires more than 1 universe.");
                     spdlog::debug("Erroneous config:");
                     DumpConfig(j1SysOutputs);
                     return false;
                 }
 
                 if (sc != 1) {
-                    DisplayError("Controller " + _ip + " serial port " + wxString::Format("%d", sp) + "does not start on channel 1 of universe " +
-                        wxString::Format("%d", port->GetUniverse()) + ". It starts at " +
-                        wxString::Format("%d", port->GetStartChannel()) + ".");
+                    DisplayError("Controller " + _ip + " serial port " + std::to_string(sp) + " does not start on channel 1 of universe " +
+                        std::to_string(port->GetUniverse()) + ". It starts at " +
+                        std::to_string(port->GetStartChannel()) + ".");
                     spdlog::debug("Erroneous config:");
                     DumpConfig(j1SysOutputs);
                     return false;

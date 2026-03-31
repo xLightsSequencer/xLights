@@ -17,6 +17,7 @@
 #include <cctype>
 #include <thread>
 #include <cinttypes>
+#include <format>
 
 #include <curl/curl.h>
 
@@ -60,7 +61,7 @@
 
 #include <log.h>
 #include "ControllerUploadData.h"
-#include "FPPUploadProgressDialog.h"
+#include "ui/controllers/FPPUploadProgressDialog.h"
 #include "../render/FSEQFile.h"
 #include "../Discovery.h"
 #include "../utils/CurlManager.h"
@@ -389,7 +390,7 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
 
     for (int i = 1; i <= ports; i++)
     {
-        auto s = caps->GetCustomPropertyByPath(ToUTF8(wxString::Format("fpp%d", i)), "0,0");
+        auto s = caps->GetCustomPropertyByPath(std::format("fpp{}", i), "0,0");
         if (s != "0,0")
         {
             auto ss = Split(s, ',');
@@ -1680,7 +1681,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
     int totH = std::max(previewHi, int(maxY - minY));
 
     ret += "# Preview Size\n";
-    ret += ToUTF8(wxString::Format("%d,%d\n", totW, totH));
+    ret += std::format("{},{}\n", totW, totH);
 
     for (auto m = allmodels.begin(); m != allmodels.end(); ++m) {
         Model* model = m->second;
@@ -1717,7 +1718,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             stringType = "White";
         }
 
-        ret += ToUTF8(wxString::Format("# Model: '%s', %d nodes\n", model->GetName().c_str(), model->GetNodeCount()));
+        ret += std::format("# Model: '{}', {} nodes\n", model->GetName(), model->GetNodeCount());
 
         std::multiset<std::tuple<float, float, float, int>,
                 bool (*)(const std::tuple<float, float, float, int>& l,
@@ -1737,9 +1738,9 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             }
         }
         for (auto const&[x,y,z, ch] : modelPts) {
-            ret += ToUTF8(wxString::Format("%d,%d,%d,%d,%d,%s,%d\n",
+            ret += std::format("{},{},{},{},{},{},{}\n",
                 (int)std::round(x), (int)std::round(y), (int)std::round(z), ch,
-                model->GetChanCountPerNode(), stringType.c_str(), model->GetPixelSize()));
+                model->GetChanCountPerNode(), stringType, model->GetPixelSize());
         }
 
     }
@@ -2543,9 +2544,9 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                     v["colorOrder"] = std::string("RGB");
                     v["invert"] = 0;
                     if (IsVersionAtLeast(8, 0)) {
-                        v["device"] = wxString::Format("HDMI-A-%d", port + 1).ToStdString(); //hdmi ports are 1 based, not 0 like fb
+                        v["device"] = std::format("HDMI-A-{}", port + 1); //hdmi ports are 1 based, not 0 like fb
                     } else {
-                        v["device"] = wxString::Format("fb%d", port).ToStdString();
+                        v["device"] = std::format("fb{}", port);
                     }
                     v["xoff"] = 0;
                     v["description"] = name;
@@ -2966,7 +2967,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["endNulls"] = 0;
                     vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
                     vs["brightness"] = defaultBrightness;
-                    vs["gamma"] = wxString::Format("%.1f", defaultGamma).ToStdString();
+                    vs["gamma"] = std::format("{:.1f}", defaultGamma);
                 }
                 if (pvs->_reverseSet) {
                     vs["reverse"] = pvs->_reverse == "Reverse" ? 1 : 0;
@@ -3048,7 +3049,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             vs["endNulls"] = 0;
             vs["zigZag"] = 0;
             vs["brightness"] = defaultBrightness;
-            vs["gamma"] = wxString::Format("%.1f", defaultGamma).ToStdString();
+            vs["gamma"] = std::format("{:.1f}", defaultGamma);
             stringData["outputs"][x]["virtualStrings"].push_back(vs);
         }
         if ((x & 0x3) == 0) {

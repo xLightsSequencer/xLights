@@ -85,23 +85,23 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         auto ipo = dynamic_cast<IPOutput*>(it->first);
 
                         if (ipo->GetIP() == "MULTICAST") {
-                            newsc = wxString::Format("#%d:%d", it->first->GetUniverse(), scc);
+                            newsc = std::format("#{}:{}", it->first->GetUniverse(), scc);
                             changed = true;
-                            spdlog::debug("Networks conversion MULTICAST {} converted start channel '{}' to '{}'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            spdlog::debug("Networks conversion MULTICAST {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                         }
                         else {
-                            newsc = wxString::Format("#%s:%d:%d", it->first->GetIP(), it->first->GetUniverse(), scc);
+                            newsc = std::format("#{}:{}:{}", it->first->GetIP(), it->first->GetUniverse(), scc);
                             changed = true;
-                            spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                         }
                     }
                     else {
                         // these convert to a controller 1:1 so just use the referenced controller
 
                         // convert to !name:sc if description isnt blank
-                        newsc = wxString::Format("!%s:%d", it->second->GetName(), scc);
+                        newsc = std::format("!{}:{}", it->second->GetName(), scc);
                         changed = true;
-                        spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                        spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                     }
                 }
             }
@@ -121,9 +121,9 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         nsc += it2->GetChannels();
                     }
 
-                    newsc = wxString::Format("!%s:%d", it.second->GetName(), nsc + scc);
+                    newsc = std::format("!{}:{}", it.second->GetName(), nsc + scc);
                     changed = true;
-                    spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", (const char*)it.first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                    spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it.first->GetType(), sc, newsc);
                     break;
                 }
             }
@@ -167,13 +167,12 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     DeleteTestPreset();
 
-    wxFileName fn(showdir + GetPathSeparator() + GetNetworksFileName());
-    _filename = fn.GetFullPath();
+    _filename = (std::filesystem::path(showdir) / GetNetworksFileName()).string();
     ObtainAccessToURL(_filename);
     FileExists(_filename, true);
 
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(fn.GetFullPath().ToStdString().c_str());
+    pugi::xml_parse_result result = doc.load_file(_filename.c_str());
 
     Controller* cu = nullptr;
     std::string lasttype = "";
@@ -316,7 +315,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         }
     }
     else {
-        spdlog::warn("Error loading networks file: {}.", (const char*)fn.GetFullPath().c_str());
+        spdlog::warn("Error loading networks file: {}.", _filename);
         return false;
     }
 
@@ -993,8 +992,7 @@ void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
 
 void OutputManager::SetShowDir(const std::string& showDir) {
 
-    wxFileName fn(showDir + GetPathSeparator() + GetNetworksFileName());
-    _filename = fn.GetFullPath();
+    _filename = (std::filesystem::path(showDir) / GetNetworksFileName()).string();
 }
 
 void OutputManager::SuspendAll(bool suspend) {
@@ -1049,7 +1047,7 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
 
     if (GetController(prefix) == nullptr) return prefix;
 
-    wxString n;
+    std::string n;
     std::string nprefix { BeforeLast(prefix, '_') };
     if (nprefix.empty()) {
         nprefix = prefix;
@@ -1061,9 +1059,9 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
     }
 
     do {
-        n = wxString::Format("%s_%d", nprefix, i++);
+        n = std::format("{}_{}", nprefix, i++);
     } while (GetController(n) != nullptr);
-    return n.ToStdString();
+    return n;
 }
 
 bool OutputManager::IsIDUsed(int id)
@@ -1129,13 +1127,13 @@ std::string OutputManager::GetChannelName(int32_t channel) {
 
     auto c = GetController(channel, startChannel);
     if (c == nullptr) {
-        return wxString::Format(wxT("Ch %ld: invalid"), channel).ToStdString();
+        return std::format("Ch {}: invalid", channel);
     }
     else {
-        return wxString::Format(wxT("Ch %ld: Net %i #%ld"),
+        return std::format("Ch {}: Net {} #{}",
             channel,
             GetControllerIndex(c) + 1,
-            (long)(channel - c->GetStartChannel() + 1)).ToStdString();
+            channel - c->GetStartChannel() + 1);
     }
 }
 

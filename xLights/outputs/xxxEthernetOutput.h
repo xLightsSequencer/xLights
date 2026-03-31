@@ -69,7 +69,7 @@ public:
     virtual std::string GetLongDescription() const override;
 
     virtual std::string GetExport() const override;
-    virtual std::string GetUniverseString() const override { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
+    virtual std::string GetUniverseString() const override { return std::to_string(GetUniverse()); }
     #pragma endregion
 
     #pragma region Start and Stop

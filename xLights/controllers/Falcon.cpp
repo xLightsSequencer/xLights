@@ -883,7 +883,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent) {
         auto outputs = controller->GetOutputs();
 
         if (outputs.size() > 192) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to falcon v4 controller but only 192 are supported.", outputs.size()).ToStdString());
+            DisplayError(std::format("Attempt to upload {} universes to falcon v4 controller but only 192 are supported.", outputs.size()));
             return false;
         }
 
@@ -1590,23 +1590,22 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
 }
 
 std::string Falcon::BuildStringPort(FalconString* string) const {
-    return wxString::Format("&p%i=%i&x%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i&w%i=%d&z%i=%d",
-                            string->index, string->port,
-                            string->index, string->virtualStringIndex,
-                            string->index, string->protocol,
-                            string->index, string->universe,
-                            string->index, string->startChannel,
-                            string->index, string->pixels,
-                            string->index, string->description,
-                            string->index, EncodeBrightness(string->brightness),
-                            string->index, string->nullPixels,
-                            string->index, EncodeGamma(string->gamma),
-                            string->index, EncodeColourOrder(string->colourOrder),
-                            string->index, EncodeDirection(string->direction),
-                            string->index, string->groupCount,
-                            string->index, string->smartRemote,
-                            string->index, string->zig)
-        .ToStdString();
+    return std::format("&p{}={}&x{}={}&t{}={}&u{}={}&s{}={}&c{}={}&y{}={}&b{}={}&n{}={}&G{}={}&o{}={}&d{}={}&g{}={}&w{}={}&z{}={}",
+                       string->index, string->port,
+                       string->index, string->virtualStringIndex,
+                       string->index, string->protocol,
+                       string->index, string->universe,
+                       string->index, string->startChannel,
+                       string->index, string->pixels,
+                       string->index, string->description,
+                       string->index, EncodeBrightness(string->brightness),
+                       string->index, string->nullPixels,
+                       string->index, EncodeGamma(string->gamma),
+                       string->index, EncodeColourOrder(string->colourOrder),
+                       string->index, EncodeDirection(string->direction),
+                       string->index, string->groupCount,
+                       string->index, string->smartRemote,
+                       string->index, string->zig);
 }
 
 FalconString* Falcon::FindPort(const std::vector<FalconString*>& stringData, int port) const {
@@ -1875,10 +1874,10 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
         m = 1;
     }
 
-    std::string base = wxString::Format("m=%i&S=%i", m, S).ToStdString();
+    std::string base = std::format("m={}&S={}", m, S);
 
     if (SupportsVariableExpansions()) {
-        base += wxString::Format("&k0=%i&k1=%i&k2=%i", maxMain, maxDaughter1, maxDaughter2).ToStdString();
+        base += std::format("&k0={}&k1={}&k2={}", maxMain, maxDaughter1, maxDaughter2);
     }
 
 #define PACKETSIZE 40
@@ -1896,26 +1895,24 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
 
 std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent) {
     if (output > caps->GetMaxSerialPort()) {
-        DisplayError("Falcon " + GetModel() + " only supports " + wxString::Format("%d", caps->GetMaxSerialPort()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", parent);
+        DisplayError(std::format("Falcon {} only supports {} outputs. Attempt to upload to output {}.", GetModel(), caps->GetMaxSerialPort(), output), parent);
         return "";
     }
 
     if (_usingAbsolute) {
-        return wxString::Format("t%d=%d&s%d=%d",
-                                output - 1, protocol,
-                                output - 1, portstart)
-            .ToStdString();
+        return std::format("t{}={}&s{}={}",
+                           output - 1, protocol,
+                           output - 1, portstart);
     } else {
         int32_t sc;
         auto o = outputManager->GetOutput(portstart, sc);
         if (o != nullptr) {
-            return wxString::Format("t%d=%d&u%d=%d&s%d=%d",
-                                    output - 1, protocol,
-                                    output - 1, o->GetUniverse(),
-                                    output - 1, (int)sc)
-                .ToStdString();
+            return std::format("t{}={}&u{}={}&s{}={}",
+                               output - 1, protocol,
+                               output - 1, o->GetUniverse(),
+                               output - 1, (int)sc);
         } else {
-            DisplayError("Error uploading serial output to falcon. " + wxString::Format("%i", portstart) + " does not map to a universe.");
+            DisplayError(std::format("Error uploading serial output to falcon. {} does not map to a universe.", portstart));
         }
     }
 
@@ -2553,7 +2550,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         return (response != "");
     } else {
         if (outputs.size() > 96) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size()).ToStdString());
+            DisplayError(std::format("Attempt to upload {} universes to falcon controller but only 96 are supported.", outputs.size()));
             return false;
         }
 
@@ -2968,9 +2965,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
         if (maxDaughter1 > 0) {
             if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2) {
-                DisplayError(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
-                                              _ip, maxMain, maxDaughter1)
-                                 .ToStdString());
+                DisplayError(std::format("Falcon Outputs Upload: {} V2 Controller only supports 340/340 pixel split with expansion board. ({}/{})",
+                                       _ip, maxMain, maxDaughter1));
                 success = false;
             }
 
@@ -2978,9 +2974,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             maxDaughter1 = maxPixels / 2;
 
             if (maxDaughter2 > 0) {
-                DisplayError(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
-                                              _ip)
-                                 .ToStdString());
+                DisplayError(std::format("Falcon Outputs Upload: {} V2 Controller only supports one expansion board.",
+                                       _ip));
                 success = false;
                 maxDaughter2 = 0;
             }
@@ -3013,11 +3008,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             success = false;
             check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + std::to_string(maxPixels) + "\n";
             if (largestDaughter2Port >= 0) {
-                check += wxString::Format("       Bank 1 Port %d=%d, Bank 2 Port %d=%d, Bank 3 Port %d=%d\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1, largestDaughter2Port, maxDaughter2);
+                check += std::format("       Bank 1 Port {}={}, Bank 2 Port {}={}, Bank 3 Port {}={}\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1, largestDaughter2Port, maxDaughter2);
             } else if (largestDaughter1Port >= 0) {
-                check += wxString::Format("       Bank 1 Port %d=%d, Bank 2 Port %d=%d\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1);
+                check += std::format("       Bank 1 Port {}={}, Bank 2 Port {}={}\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1);
             } else {
-                check += wxString::Format("       Bank 1 Port %d=%d\n", largestMainPort, maxMain);
+                check += std::format("       Bank 1 Port {}={}\n", largestMainPort, maxMain);
             }
 
             spdlog::warn("ERROR: Total pixels exceeded maximum allowed on a pixel port: {}", maxPixels);
@@ -3081,7 +3076,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
             if (smartRemoteFound && nonSmartRemoteFound) {
                 success = false;
-                check += wxString::Format("ERROR: Ports %d-%d have a mix of models using smart and non-smart remotes. This is not supported.\n", i, i + 3);
+                check += std::format("ERROR: Ports {}-{} have a mix of models using smart and non-smart remotes. This is not supported.\n", i, i + 3);
                 spdlog::error("Ports {}-{} have a mix of models using smart and non-smart remotes. This is not supported.", i, i + 3);
             }
         }

@@ -200,12 +200,12 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
             }
             //need to enlarge read buf if this happens; just truncate string for now
             //                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
-            res.push_back(wxString::Format("%s", portname).ToStdString());
+            res.push_back(wxString(portname).ToStdString());
             vallen = sizeof(valname);
             portlen = sizeof(portname);
         }
         if (err && (err != ERROR_NO_MORE_ITEMS)) {
-            res.push_back(wxString::Format("Error %d (can't get serial comm ports from registry)", err).ToStdString());
+            res.push_back(std::format("Error {} (can't get serial comm ports from registry)", err));
         }
         if (hkey) RegCloseKey(hkey);
     }
@@ -244,8 +244,8 @@ std::string SerialOutput::GetLongDescription() const {
 
     if (!_enabled) res += "INACTIVE ";
     res += GetType();
-    res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += " [1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
 
     return res;
 }
@@ -359,7 +359,7 @@ void SerialOutput::Close() {
         _serial->Purge();
 
         // wait until the die time has passed
-        while (wxGetUTCTimeMillis() < _dieTime) {
+        while (GetCurrentTimeMillis() < _dieTime) {
             wxMilliSleep(5);
         }
 

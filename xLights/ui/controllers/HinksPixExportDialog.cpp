@@ -13,19 +13,19 @@
 #include <wx/numdlg.h>
 
 #include "AudioManager.h"
-#include "ControllerCaps.h"
-#include "ControllerUploadData.h"
-#include "../ExternalHooks.h"
+#include "controllers/ControllerCaps.h"
+#include "controllers/ControllerUploadData.h"
+#include "ExternalHooks.h"
 #include "HinksPixExportDialog.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "xLightsMain.h"
 #include "render/SequenceFile.h"
-#include "../outputs/ControllerEthernet.h"
+#include "outputs/ControllerEthernet.h"
 #include "models/ModelManager.h"
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
-#include "HinksPix.h"
+#include "controllers/HinksPix.h"
 
 #include <log.h>
 

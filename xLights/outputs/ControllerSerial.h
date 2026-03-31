@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include <list>
 #include <string>
 
@@ -28,7 +29,6 @@ protected:
     static wxPGChoices __ports;
     static wxPGChoices __speeds;
     static void InitialiseTypes(bool forceXXX);
-    wxPGChoices GetProtocols() const;
 #pragma endregion
 
 #pragma region Member Variables
@@ -79,13 +79,20 @@ public:
     void SetProtocol(const std::string& type);
 
     void SetFPPProxy(const std::string& proxy);
+    std::string GetControllerFPPProxy() const { return _fppProxy; }
+
+    SerialOutput* GetSerialOutput() const { return _serialOutput; }
+
+    wxPGChoices GetProtocols() const;
+    wxPGChoices GetPortChoices() const { return __ports; }
+    wxPGChoices GetSpeedChoices() const { return __speeds; }
 
 #pragma endregion
 
 #pragma region Virtual Functions
     virtual void SetId(int id) override;
 
-    virtual void VMVChanged(wxPropertyGrid *grid = nullptr) override;
+    virtual void VMVChanged() override;
 
     virtual bool IsManaged() const override { return false; }
 
@@ -106,7 +113,7 @@ public:
     }
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
-    virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
+    virtual std::string GetUniverseString() const override { return std::to_string(_id); }
 
     virtual std::string GetColumn1Label() const override {
         if (_model == "FPP") return _type;
@@ -124,7 +131,7 @@ public:
     }
     virtual std::string GetFPPProxy() const override;
 
-    virtual std::string GetColumn2Label() const override { return wxString::Format("%s:%d", _port, _speed); }
+    virtual std::string GetColumn2Label() const override { return std::format("{}:{}", _port, _speed); }
     virtual std::string GetProtocol() const override { return _type; }
 
     virtual Output::PINGSTATE Ping() override;
@@ -133,11 +140,5 @@ public:
     virtual std::string GetExport() const override;
 #pragma endregion 
 
-#pragma region UI
-    #ifndef EXCLUDENETWORKUI
-        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-        virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
-        virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
-    #endif
-#pragma endregion
+    // UI property grid methods moved to ui/controllerproperties/ControllerSerialPropertyAdapter
 };

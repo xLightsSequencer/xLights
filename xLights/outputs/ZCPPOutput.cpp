@@ -14,8 +14,8 @@
 #endif
 #include <list>
 
-#include <wx/file.h>
-#include <wx/filename.h>
+#include <algorithm>
+#include <fstream>
 
 #include "../controllers/Falcon.h"
 #include "ZCPPOutput.h"
@@ -124,39 +124,38 @@ ZCPPOutput::ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir) 
     DeserialiseProtocols(node.attribute("Protocols").as_string(""));
 
     if (!_dontConfigure) {
-        wxString fileName = GetIP();
-        fileName.Replace(".", "_");
-        fileName += ".zcpp";
-        fileName = showdir + GetPathSeparator() + fileName;
+        std::string ipStr = GetIP();
+        std::replace(ipStr.begin(), ipStr.end(), '.', '_');
+        std::string fileName = showdir + GetPathSeparator() + ipStr + ".zcpp";
 
         if (FileExists(fileName)) {
-            wxFile zf;
-            if (zf.Open(fileName)) {
+            std::ifstream zf(fileName, std::ios::binary);
+            if (zf.is_open()) {
                 uint8_t tag[4];
-                zf.Read(tag, sizeof(tag));
+                zf.read(reinterpret_cast<char*>(tag), sizeof(tag));
                 if (tag[0] != 'Z' || tag[1] != 'C' || tag[2] != 'P' || tag[3] != 'P') {
-                    spdlog::warn("ZCPP Model data file {} did not contain opening tag.", (const char*)fileName.c_str());
+                    spdlog::warn("ZCPP Model data file {} did not contain opening tag.", fileName);
                 }
                 else {
-                    while (!zf.Eof()) {
+                    while (zf.good() && zf.peek() != EOF) {
                         uint8_t type;
-                        zf.Read(&type, sizeof(type));
+                        zf.read(reinterpret_cast<char*>(&type), sizeof(type));
                         switch (type) {
                         case 0x00:
                         {
                             uint8_t b1;
                             uint8_t b2;
-                            zf.Read(&b1, sizeof(b1));
-                            zf.Read(&b2, sizeof(b2));
+                            zf.read(reinterpret_cast<char*>(&b1), sizeof(b1));
+                            zf.read(reinterpret_cast<char*>(&b2), sizeof(b2));
                             uint16_t size = (b1 << 8) + b2;
                             if (size == sizeof(ZCPP_packet_t)) {
                                 ZCPP_packet_t* modelPacket = (ZCPP_packet_t*)malloc(sizeof(ZCPP_packet_t));
-                                zf.Read(modelPacket, sizeof(ZCPP_packet_t));
+                                zf.read(reinterpret_cast<char*>(modelPacket), sizeof(ZCPP_packet_t));
                                 _modelData.push_back(modelPacket);
                             }
                             else {
-                                spdlog::warn("ZCPP Model data file {} unrecognised model data size.", (const char*)fileName.c_str());
-                                zf.SeekEnd();
+                                spdlog::warn("ZCPP Model data file {} unrecognised model data size.", fileName);
+                                zf.seekg(0, std::ios::end);
                             }
                         }
                         break;
@@ -164,40 +163,38 @@ ZCPPOutput::ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir) 
                         {
                             uint8_t b1;
                             uint8_t b2;
-                            zf.Read(&b1, sizeof(b1));
-                            zf.Read(&b2, sizeof(b2));
+                            zf.read(reinterpret_cast<char*>(&b1), sizeof(b1));
+                            zf.read(reinterpret_cast<char*>(&b2), sizeof(b2));
                             uint16_t size = (b1 << 8) + b2;
                             if (size == sizeof(ZCPP_packet_t)) {
                                 ZCPP_packet_t* descPacket = (ZCPP_packet_t*)malloc(sizeof(ZCPP_packet_t));
-                                zf.Read(descPacket, sizeof(ZCPP_packet_t));
+                                zf.read(reinterpret_cast<char*>(descPacket), sizeof(ZCPP_packet_t));
                                 _extraConfig.push_back(descPacket);
                             }
                             else {
-                                spdlog::warn("ZCPP Model data file {} unrecognised extra config size.", (const char*)fileName.c_str());
-                                zf.SeekEnd();
+                                spdlog::warn("ZCPP Model data file {} unrecognised extra config size.", fileName);
+                                zf.seekg(0, std::ios::end);
                             }
                         }
                         break;
                         case 0xFF:
-                            zf.SeekEnd();
+                            zf.seekg(0, std::ios::end);
                             break;
                         default:
-                            wxASSERT(false);
-                            spdlog::warn("ZCPP Model data file {} unrecognised type {}.", (const char*)fileName.c_str(), type);
+                            spdlog::warn("ZCPP Model data file {} unrecognised type {}.", fileName, type);
                             break;
                         }
                     }
-                    spdlog::debug("ZCPP Model data file {} loaded.", (const char*)fileName.c_str());
+                    spdlog::debug("ZCPP Model data file {} loaded.", fileName);
                 }
-                zf.Close();
             }
             else {
-                spdlog::warn("ZCPP Model data file {} could not be opened.", (const char*)fileName.c_str());
+                spdlog::warn("ZCPP Model data file {} could not be opened.", fileName);
             }
             if (c != nullptr) ExtractUsedChannelsFromModelData(c);
         }
         else {
-             spdlog::warn("ZCPP Model data file {} not found.", (const char*)fileName.c_str());
+             spdlog::warn("ZCPP Model data file {} not found.", fileName);
         }
     }
     else {
@@ -554,9 +551,9 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
 #ifndef EXCLUDENETWORKUI
 #endif
 
-wxArrayString ZCPPOutput::GetVendors() {
+std::vector<std::string> ZCPPOutput::GetVendors() {
 
-    wxArrayString res;
+    std::vector<std::string> res;
     res.push_back("Falcon");
     res.push_back("ESP Pixel Stick");
     res.push_back("Unknown");
@@ -593,9 +590,9 @@ std::string ZCPPOutput::GetLongDescription() const {
 
     if (!_enabled) res += "INACTIVE ";
     res += "ZCPP ";
-    res += "[1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" +
-        std::string(wxString::Format(wxT("%d"), GetEndChannel())) + ") ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" +
+        std::to_string(GetEndChannel()) + ") ";
 
     return res;
 }
@@ -704,39 +701,36 @@ bool ZCPPOutput::SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData
         _extraConfig.push_back(it);
     }
 
-    wxFile zf;
-    if (zf.Create(fileName, true)) {
-        zf.Write(ZCPP_token, sizeof(ZCPP_token));
+    std::ofstream zf(fileName, std::ios::binary | std::ios::trunc);
+    if (zf.is_open()) {
+        zf.write(reinterpret_cast<const char*>(ZCPP_token), sizeof(ZCPP_token));
 
         for (const auto& it : _modelData) {
-            wxASSERT(it->Configuration.ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
             uint8_t type = 0x00;
-            zf.Write(&type, sizeof(type));
+            zf.write(reinterpret_cast<const char*>(&type), sizeof(type));
 
             uint8_t b = (sizeof(ZCPP_packet_t) & 0xFF00) >> 8;
-            zf.Write(&b, sizeof(b));
+            zf.write(reinterpret_cast<const char*>(&b), sizeof(b));
             b = sizeof(ZCPP_packet_t) & 0xFF;
-            zf.Write(&b, sizeof(b));
+            zf.write(reinterpret_cast<const char*>(&b), sizeof(b));
 
-            zf.Write(it, sizeof(ZCPP_packet_t));
+            zf.write(reinterpret_cast<const char*>(it), sizeof(ZCPP_packet_t));
         }
 
         for (const auto& it : _extraConfig) {
             uint8_t type = 0x01;
-            zf.Write(&type, sizeof(type));
+            zf.write(reinterpret_cast<const char*>(&type), sizeof(type));
 
             uint8_t b = (sizeof(ZCPP_packet_t) & 0xFF00) >> 8;
-            zf.Write(&b, sizeof(b));
+            zf.write(reinterpret_cast<const char*>(&b), sizeof(b));
             b = sizeof(ZCPP_packet_t) & 0xFF;
-            zf.Write(&b, sizeof(b));
+            zf.write(reinterpret_cast<const char*>(&b), sizeof(b));
 
-            zf.Write(it, sizeof(ZCPP_packet_t));
+            zf.write(reinterpret_cast<const char*>(it), sizeof(ZCPP_packet_t));
         }
 
         uint8_t type = 0xFF;
-        zf.Write(&type, sizeof(type));
-
-        zf.Close();
+        zf.write(reinterpret_cast<const char*>(&type), sizeof(type));
     }
 
     _lastSecond = -1;

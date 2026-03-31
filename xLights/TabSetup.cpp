@@ -63,6 +63,8 @@
 #include "outputs/LOROptimisedOutput.h"
 #include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
+#include "ui/controllerproperties/ControllerPropertyManager.h"
+#include "ui/controllerproperties/ControllerPropertyAdapter.h"
 
 #include "../xFade/wxLED.h"
 
@@ -1987,9 +1989,12 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
             // one item selected - display selected controller properties
             if (rebuildPropGrid) {
                 Controllers_PropertyEditor->Clear();
-                controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
+                _controllerAdapter = ControllerPropertyManager::CreateAdapter(*controller);
+                _controllerAdapter->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
             }
-            controller->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
+            if (_controllerAdapter) {
+                _controllerAdapter->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
+            }
 
             if (controller->IsFromBase()) {
                 Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
@@ -2040,7 +2045,9 @@ void xLightsFrame::ValidateControllerProperties() {
         auto name = p->GetValue().GetString();
         auto controller = _outputManager.GetController(name);
         // controller settings
-        controller->ValidateProperties(&_outputManager, Controllers_PropertyEditor);
+        if (_controllerAdapter) {
+            _controllerAdapter->ValidateProperties(&_outputManager, Controllers_PropertyEditor);
+        }
     }
 }
 
@@ -2052,7 +2059,9 @@ void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
         auto controllername = selections.front();
         auto controller = _outputManager.GetController(controllername);
 
-        controller->HandleExpanded(event, false);
+        if (_controllerAdapter) {
+            _controllerAdapter->HandleExpanded(event, false);
+        }
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::OnControllerPropertyGridCollapsed");
     }
 }
@@ -2065,7 +2074,9 @@ void xLightsFrame::OnControllerPropertyGridExpanded(wxPropertyGridEvent& event)
         auto controllername = selections.front();
         auto controller = _outputManager.GetController(controllername);
 
-        controller->HandleExpanded(event, true);
+        if (_controllerAdapter) {
+            _controllerAdapter->HandleExpanded(event, true);
+        }
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::OnControllerPropertyGridExpanded");
     }
 }
@@ -2082,7 +2093,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
         std::string oldName = controllername;
         std::string oldIP = controller->GetIP();
 
-        auto processed = controller->HandlePropertyEvent(event, &_outputModelManager);
+        auto processed = _controllerAdapter ? _controllerAdapter->HandlePropertyEvent(event, &_outputModelManager) : false;
 
         if (name == "ControllerName") {
             // it may not have been processed if it would have resulted in a duplicate

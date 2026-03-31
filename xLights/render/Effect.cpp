@@ -265,12 +265,6 @@ Effect::~Effect()
 
 #pragma endregion
 
-static int64_t GetCurrentTimeMillis()
-{
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
 void Effect::SetTimeToDelete()
 {
     // we can delete the effect 1 minute later ... this tries to guarantee all dangling pointers are gone at the expense of some memory use

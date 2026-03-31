@@ -22,6 +22,8 @@
 #include <wx/process.h>
 #include <wx/propgrid/propgrid.h>
 
+#include <format>
+
 #include <log.h>
 
 #pragma region Private Functions
@@ -251,7 +253,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
 std::string E131Output::GetTag() {
     // creates a unique tag per running instance of xLights on this machine
-    return "xLights " + wxString::Format("%ld", wxGetProcessId());
+    return "xLights " + std::to_string(wxGetProcessId());
 }
 #pragma endregion
 
@@ -263,16 +265,16 @@ std::string E131Output::GetLongDescription() const {
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "E1.31 {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ")";
+    res += "E1.31 {" + std::to_string(_universe) + "} ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ")";
 
     return res;
 }
 
 std::string E131Output::GetExport() const {
 
-    return wxString::Format(",%d,%d,,%s,%s,,,,%d,%d",
+    return std::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

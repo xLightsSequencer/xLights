@@ -430,7 +430,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             if (_serial != nullptr && frame_changed) {
                 _serial->Write((char*)d, idx);
                 // After we output we dont want to close too early as that causes crashes
-                SetDontDieUntil(wxGetUTCTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
+                SetDontDieUntil(GetCurrentTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
                 total_bytes_sent += idx;
             }
 
@@ -484,7 +484,7 @@ void LOROptimisedOutput::AllOff() {
             if (_serial != nullptr) {
                 _serial->Write((char*)d, idx);
                 // After we output we dont want to close too early as that causes crashes
-                SetDontDieUntil(wxGetUTCTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
+                SetDontDieUntil(GetCurrentTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
             }
             controller_channels_to_process -= channels_per_pass;
             ++unit_id;

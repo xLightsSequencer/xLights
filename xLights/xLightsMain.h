@@ -1422,6 +1422,7 @@ public:
     wxListCtrl* List_Controllers = nullptr;
     bool inInitialize = false;
     wxPropertyGrid* Controllers_PropertyEditor = nullptr;
+    std::unique_ptr<class ControllerPropertyAdapter> _controllerAdapter;
     wxLed* LedPing = nullptr;
 
     void OnListItemActivatedControllers(wxListEvent& event);

@@ -24,7 +24,7 @@
 #include <wx/filename.h>
 
 #include <nlohmann/json.hpp>
-#include "../render/FSEQFile.h"
+#include "render/FSEQFile.h"
 
 class ModelManager;
 class OutputManager;

@@ -28,6 +28,7 @@
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 
+#include <format>
 #include <log.h>
 
 #pragma region MinleonString Handling
@@ -46,7 +47,7 @@ public:
             spdlog::debug("    Port {:02} Tees {} {} Nodes {} Start {}",
                 _port + 1,
                 _tees,
-                (const char*)(_reverse ? _("REVERSE") : _("")).c_str(),
+                (_reverse ? "REVERSE" : ""),
                 _nodes,
                 _startChannel
             );
@@ -55,7 +56,7 @@ public:
             spdlog::debug("    Port {:02} Tees {} {} Nodes {} Start {} (Universe {}, Start Channel {})",
                 _port + 1,
                 _tees,
-                (const char*)(_reverse ? _("REVERSE") : _("")).c_str(),
+                (_reverse ? "REVERSE" : ""),
                 _nodes,
                 _startChannel,
                 startUniverse + (_startChannel - 1) / 510,
@@ -161,12 +162,12 @@ std::string Minleon::BuildStringPort(MinleonString* string) const {
 
     int start = 25 + string->_port * 3;
 
-    return wxString::Format("&L%03d=%d&I%03d=%d%sI%03d=%d",
+    return std::format("&L{:03d}={}{}&I{:03d}={}&I{:03d}={}",
         start, string->_tees,
-        (string->_reverse ? wxString::Format("H%03d=0", start) : _("")),
+        (string->_reverse ? std::format("&H{:03d}=0", start) : std::string("")),
         start + 1, string->_nodes,
         start + 2, string->_startChannel
-    ).ToStdString();
+    );
 }
 
 MinleonString* Minleon::FindPort(const std::vector<MinleonString*>& stringData, int port) const {
@@ -366,10 +367,10 @@ void Minleon::UploadNDBPro(bool reboot)
     _conv = ConvForProtocol(_chip, _conv);
 
     // univ and universe is present because different firmwares use different names
-    std::string data = wxString::Format("{\"chip\":\"%d\",\"conv\":\"%s\",\"t0h\":\"%d\",\"t1h\":\"%d\",\"tbit\":\"%d\",\"trst\":\"%d\",\"proto\":\"%d\",\"univ\":\"%d\",\"universe\":\"%d\",\"ports\":[", 
+    std::string data = std::format("{{\"chip\":\"{}\",\"conv\":\"{}\",\"t0h\":\"{}\",\"t1h\":\"{}\",\"tbit\":\"{}\",\"trst\":\"{}\",\"proto\":\"{}\",\"univ\":\"{}\",\"universe\":\"{}\",\"ports\":[",
         EncodeStringPortProtocol(_chip),
         _conv,
-        _t0h, _t1h, _tbit, _tres, 
+        _t0h, _t1h, _tbit, _tres,
         EncodeInputProtocol(_protocol),
         universe, universe);
     bool first = true;
@@ -379,7 +380,7 @@ void Minleon::UploadNDBPro(bool reboot)
         } else {
             first = false;
         }
-        data += wxString::Format("{\"p\":%d,\"ts\":\"%d\",\"l\":\"%d\",\"rev\":\"%d\",\"ss\":\"%d\"}",
+        data += std::format("{{\"p\":{},\"ts\":\"{}\",\"l\":\"{}\",\"rev\":\"{}\",\"ss\":\"{}\"}}",
                                  it->_port,
                                  it->_tees,
                                  it->_nodes,
@@ -422,15 +423,15 @@ void Minleon::UploadNDB(bool reboot)
     parms["I010"] = gws.size() > 2 ? gws[2] : "0";
     parms["I011"] = gws.size() > 3 ? gws[3] : "0";
 
-    parms["I012"] = wxString::Format("%d", EncodeInputProtocol(_protocol));
+    parms["I012"] = std::to_string(EncodeInputProtocol(_protocol));
 
-    parms["I013"] = wxString::Format("%d", universe);
+    parms["I013"] = std::to_string(universe);
 
     int i = 14;
     for (const auto& it : _stringPorts) {
-        parms[wxString::Format("I%03d", i++)] = wxString::Format("%d", it->_tees);
-        parms[wxString::Format("I%03d", i++)] = wxString::Format("%d", it->_nodes);
-        parms[wxString::Format("I%03d", i++)] = wxString::Format("%d", it->_startChannel);
+        parms[std::format("I{:03d}", i++)] = std::to_string(it->_tees);
+        parms[std::format("I{:03d}", i++)] = std::to_string(it->_nodes);
+        parms[std::format("I{:03d}", i++)] = std::to_string(it->_startChannel);
     }
     parms["op"] = "Save";
 
@@ -495,30 +496,30 @@ void Minleon::UploadNDPPlus(bool reboot)
     parms["I010"] = gws.size() > 2 ? gws[2] : "0";
     parms["I011"] = gws.size() > 3 ? gws[3] : "0";
 
-    parms["I012"] = wxString::Format("%d", EncodeInputProtocol(_protocol));
+    parms["I012"] = std::to_string(EncodeInputProtocol(_protocol));
 
-    parms["I013"] = wxString::Format("%d", universe);
+    parms["I013"] = std::to_string(universe);
 
-    parms["I015"] = wxString::Format("%d", _t0h);
-    parms["I016"] = wxString::Format("%d", _t1h);
-    parms["I017"] = wxString::Format("%d", _tbit);
-    parms["I018"] = wxString::Format("%d", _tres);
+    parms["I015"] = std::to_string(_t0h);
+    parms["I016"] = std::to_string(_t1h);
+    parms["I017"] = std::to_string(_tbit);
+    parms["I018"] = std::to_string(_tres);
     parms["I019"] = _conv;
 
-    parms["I020"] = wxString::Format("%d", EncodeStringPortProtocol(_chip));
+    parms["I020"] = std::to_string(EncodeStringPortProtocol(_chip));
 
-    parms["I021"] = wxString::Format("%d", (int)_stringPorts.size());
+    parms["I021"] = std::to_string((int)_stringPorts.size());
 
-    parms["I022"] = wxString::Format("%d", _grouping);
+    parms["I022"] = std::to_string(_grouping);
 
     int i = 25;
     for (const auto& it : _stringPorts) {
         if (it->_reverse) {
-            parms[wxString::Format("H%03d", i)] = "0";
+            parms[std::format("H{:03d}", i)] = "0";
         }
-        parms[wxString::Format("L%03d", i++)] = wxString::Format("%d", it->_tees);
-        parms[wxString::Format("I%03d", i++)] = wxString::Format("%d", it->_nodes);
-        parms[wxString::Format("I%03d", i++)] = wxString::Format("%d", it->_startChannel);
+        parms[std::format("L{:03d}", i++)] = std::to_string(it->_tees);
+        parms[std::format("I{:03d}", i++)] = std::to_string(it->_nodes);
+        parms[std::format("I{:03d}", i++)] = std::to_string(it->_startChannel);
     }
     parms["op"] = "Save";
 
@@ -800,7 +801,7 @@ Minleon::~Minleon() {
 
 std::string Minleon::ParseNDBHTML(const std::string& html, uint8_t index)
 {
-    auto tag = wxString::Format("I%03d", index).ToStdString();
+    auto tag = std::format("I{:03d}", index);
     wxRegEx extractTagValue("name=\"I" + tag + "\"value=\"([^\"]*)\"",
                             wxRE_ADVANCED | wxRE_NEWLINE);
     if (extractTagValue.Matches(wxString(html))) {
@@ -879,7 +880,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
             maxPorts = 8;
         }
         if (neededports > maxPorts) {
-            check += wxString::Format("Needed ports %d but maximum possible ports is only %d.\n", neededports, maxPorts);
+            check += std::format("Needed ports {} but maximum possible ports is only {}.\n", neededports, maxPorts);
             success = false;
         }
 
@@ -935,7 +936,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                         it->_startChannel = vs->_startChannel - controller->GetStartChannel() + 1;
 
                         if (vs->Channels() / 3 > maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2)) {
-                            check += wxString::Format("Port %d has %d pixels but can only support %d.\n", it->_port + 1, vs->Channels() / 3, maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2));
+                            check += std::format("Port {} has {} pixels but can only support {}.\n", it->_port + 1, vs->Channels() / 3, maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2));
                             success = false;
                         }
                     }

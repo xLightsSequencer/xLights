@@ -24,6 +24,7 @@
 #define NO_VALUE_INT -9999
 #define NO_VALUE_STRING "unknown"
 
+#include <format>
 #include <numeric>
 
 #include <log.h>
@@ -225,11 +226,11 @@ void UDControllerPortModel::Dump() const {
 
     if (_string == -1) {
         spdlog::debug("                Model {}. Controller Connection {}. Start Channel {}. End Channel {}. Channels {}. Pixels {}. Start Channel #{}:{}",
-            (const char*)_model->GetName().c_str(), (const char*)_model->GetControllerConnectionRangeString().c_str(),
+            _model->GetName(), _model->GetControllerConnectionRangeString(),
             _startChannel, _endChannel, Channels(),  INTROUNDUPDIV(Channels() , GetChannelsPerPixel()), GetUniverse(), GetUniverseStartChannel());
     } else {
         spdlog::debug("                Model {}. String {}. Controller Connection {}. Start Channel {}. End Channel {}.",
-            (const char*)_model->GetName().c_str(), _string + 1, (const char*)_model->GetControllerConnectionRangeString().c_str(),
+            _model->GetName(), _string + 1, _model->GetControllerConnectionRangeString(),
             _startChannel, _endChannel);
     }
 }
@@ -239,30 +240,30 @@ bool UDControllerPortModel::Check(Controller* controller, const ControllerCaps* 
 
     bool success = true;
     if (!ChannelsOnOutputs(controller->GetOutputs())) {
-        res += wxString::Format("WARN: Model %s uses channels not being sent to this controller.\n", GetName());
+        res += std::format("WARN: Model {} uses channels not being sent to this controller.\n", GetName());
     }
     if (_model->GetSmartRemote() + _model->GetSRMaxCascade() - 1 > rules->GetSmartRemoteCount()) {
-        res += wxString::Format("ERR: Model %s has invalid smart remote %c with cascade of %d.\n", GetName(), _model->GetSmartRemoteLetter(), _model->GetSRMaxCascade());
+        res += std::format("ERR: Model {} has invalid smart remote {:c} with cascade of {}.\n", GetName(), _model->GetSmartRemoteLetter(), _model->GetSRMaxCascade());
         success = false;
     }
     if (rules->GetMaxStartNullPixels() >= 0 && GetStartNullPixels(-1) > rules->GetMaxStartNullPixels()) {
-        res += wxString::Format("ERR: Model %s has too many start NULL pixels : %d. Maximum %d.\n", GetName(), GetStartNullPixels(-1), rules->GetMaxStartNullPixels());
+        res += std::format("ERR: Model {} has too many start NULL pixels : {}. Maximum {}.\n", GetName(), GetStartNullPixels(-1), rules->GetMaxStartNullPixels());
         success = false;
     }
     if (rules->GetMaxEndNullPixels() >= 0 && GetEndNullPixels(-1) > rules->GetMaxEndNullPixels()) {
-        res += wxString::Format("ERR: Model %s has too many end NULL pixels : %d. Maximum %d.\n", GetName(), GetEndNullPixels(-1), rules->GetMaxEndNullPixels());
+        res += std::format("ERR: Model {} has too many end NULL pixels : {}. Maximum {}.\n", GetName(), GetEndNullPixels(-1), rules->GetMaxEndNullPixels());
         success = false;
     }
     if (rules->GetMaxGroupPixels() >= 0 && GetGroupCount(-1) > rules->GetMaxGroupPixels()) {
-        res += wxString::Format("ERR: Model %s has too many grouped pixels : %d. Maximum %d.\n", GetName(), GetGroupCount(-1), rules->GetMaxGroupPixels());
+        res += std::format("ERR: Model {} has too many grouped pixels : {}. Maximum {}.\n", GetName(), GetGroupCount(-1), rules->GetMaxGroupPixels());
         success = false;
     }
     if (rules->GetMinGroupPixels() >= 0 && GetGroupCount(999) < rules->GetMinGroupPixels()) {
-        res += wxString::Format("ERR: Model %s has too few grouped pixels : %d. Minimum %d.\n", GetName(), GetGroupCount(999), rules->GetMinGroupPixels());
+        res += std::format("ERR: Model {} has too few grouped pixels : {}. Minimum {}.\n", GetName(), GetGroupCount(999), rules->GetMinGroupPixels());
         success = false;
     }
     if (rules->GetMaxZigZagPixels() >= 0 && GetZigZag(-1) > rules->GetMaxZigZagPixels()) {
-        res += wxString::Format("ERR: Model %s has too many zig zagged pixels : %d. Maximum %d.\n", GetName(), GetZigZag(-1), rules->GetMaxZigZagPixels());
+        res += std::format("ERR: Model {} has too many zig zagged pixels : {}. Maximum {}.\n", GetName(), GetZigZag(-1), rules->GetMaxZigZagPixels());
         success = false;
     }
     return success;
@@ -387,8 +388,8 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                     if ((*it2)->GetEndChannel() <= (*it)->GetEndChannel()) {
                         // it2 is totally inside it
                         spdlog::debug("CUD add model removed model {} as it totally overlaps with model {}",
-                            (const char*)(*it2)->GetName().c_str(),
-                            (const char*)(*it)->GetName().c_str()
+                            (*it2)->GetName(),
+                            (*it)->GetName()
                         );
                         if (eliminateOverlaps) (*it2)->GetModel()->SetControllerPort(0);
                         _models.erase(it2);
@@ -399,8 +400,8 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                              (*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // i1 totally inside it2
                         spdlog::debug("CUD add model removed model {} as it totally overlaps with model {}",
-                            (const char*)(*it)->GetName().c_str(),
-                            (const char*)(*it2)->GetName().c_str()
+                            (*it)->GetName(),
+                            (*it2)->GetName()
                         );
                         if (eliminateOverlaps) (*it)->GetModel()->SetControllerPort(0);
                         _models.erase(it);
@@ -409,8 +410,8 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                     else if ((*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // so this is the difficult partial overlap case ... to prevent issues i will just erase model 2 and the user will need to fix it
                         spdlog::debug("CUD add model removed model {} as it PARTIALLY overlaps with model {}. This will cause issues but it cannot be handled by the upload.",
-                            (const char*)(*it2)->GetName().c_str(),
-                            (const char*)(*it)->GetName().c_str()
+                            (*it2)->GetName(),
+                            (*it)->GetName()
                         );
                         if (eliminateOverlaps) (*it2)->GetModel()->SetControllerPort(0);
                         _models.erase(it2);
@@ -550,8 +551,8 @@ bool UDControllerPort::EnsureAllModelsAreChained()
             {
                 if (it->GetModel()->GetModelChain() != last)
                 {
-                    spdlog::debug("Model '{}' was chained to '{}' but fixed to chain to '{}'.", (const char*)it->GetModel()->GetName().c_str(),
-                        (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)last.c_str());
+                    spdlog::debug("Model '{}' was chained to '{}' but fixed to chain to '{}'.", it->GetModel()->GetName(),
+                        it->GetModel()->GetModelChain(), last);
                     changed = true;
                     it->GetModel()->SetModelChain(last);
                 }
@@ -560,8 +561,8 @@ bool UDControllerPort::EnsureAllModelsAreChained()
             {
                 if (it->GetModel()->GetModelChain() != ">" + last)
                 {
-                    spdlog::debug("Model '{}' was chained to '{}' but fixed to chain to '{}'.", (const char*)it->GetModel()->GetName().c_str(),
-                        (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)((">" + last).c_str()));
+                    spdlog::debug("Model '{}' was chained to '{}' but fixed to chain to '{}'.", it->GetModel()->GetName(),
+                        it->GetModel()->GetModelChain(), ">" + last);
                     changed = true;
                     it->GetModel()->SetModelChain(">" + last);
                 }
@@ -1043,7 +1044,7 @@ void UDControllerPort::Dump() const {
 
     
 
-    spdlog::debug("            Port {}. Protocol {}. Valid {}. Invalid Reason '{}'. Channels {}. Pixels {}. Start #{}:{}.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(),  INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
+    spdlog::debug("            Port {}. Protocol {}. Valid {}. Invalid Reason '{}'. Channels {}. Pixels {}. Start #{}:{}.", _port, _protocol, toStr( _valid ), _invalidReason, Channels(),  INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
     for (const auto& it : _models) {
         it->Dump();
     }
@@ -1056,13 +1057,13 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
     // protocols must be valid for these output types and controller
     if (pixel) {
         if (!rules->IsValidPixelProtocol(_protocol)) {
-            res += wxString::Format("ERR: Invalid protocol on pixel port %d: %s\n", _port, _protocol).ToStdString();
+            res += std::format("ERR: Invalid protocol on pixel port {}: {}\n", _port, _protocol);
             success = false;
         }
         else {
             for (const auto& it : _models) {
                 if (Lower(it->GetProtocol()) != Lower(_protocol)) {
-                    res += wxString::Format("ERR: Model %s on pixel port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
+                    res += std::format("ERR: Model {} on pixel port {} has protocol {} but port protocol has been set to {}. This is because you have mixed protocols on your models.", it->GetName(), _port, it->GetProtocol(), _protocol);
                     success = false;
                 }
             }
@@ -1071,12 +1072,12 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
         // port must not have too many pixels on it
         // max channels is always expressed in terms of 3 channel pixels
         if (Channels() > rules->GetMaxPixelPortChannels()) {
-            res += wxString::Format("ERR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
+            res += std::format("ERR: Pixel port {} has {} nodes allocated but maximum is {}.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3);
             success = false;
         } else {
             if (rules->SupportsPixelPortGrouping() && rules->SupportsVirtualStrings()) {
                 if (EffectiveChannels(rules->GetVendor()) > rules->GetMaxPixelPortChannels()) {
-                    res += wxString::Format("ERR: Pixel port %d has %d nodes allocated (as a result of grouping) but maximum is %d.\n", _port, (int)EffectiveChannels(rules->GetVendor()) / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
+                    res += std::format("ERR: Pixel port {} has {} nodes allocated (as a result of grouping) but maximum is {}.\n", _port, (int)EffectiveChannels(rules->GetVendor()) / 3, rules->GetMaxPixelPortChannels() / 3);
                     success = false;
                 }
             }
@@ -1084,26 +1085,26 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
 
         for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {
             if (!AllSmartRemoteTypesSame(i + 1)) {
-                res += wxString::Format("ERR: Pixel port %d has different types of smart remotes types for %s.\n", _port, std::string(1, 'A' + i)).ToStdString();
+                res += std::format("ERR: Pixel port {} has different types of smart remotes types for {}.\n", _port, std::string(1, 'A' + i));
                 success = false;
             }
         }
     }
     else {
         if (!rules->IsValidSerialProtocol(_protocol)) {
-            res += wxString::Format("ERR: Invalid protocol on serial port %d: %s\n", _port, _protocol).ToStdString();
+            res += std::format("ERR: Invalid protocol on serial port {}: {}\n", _port, _protocol);
             success = false;
         }
         else {
             for (const auto& it : _models) {
                 if (Lower(it->GetProtocol()) != Lower(_protocol)) {
-                    res += wxString::Format("ERR: Model %s on serial port %d has protocol %s but port protocol has been set to %s. This is because you have mixed protocols on your models.\n", it->GetName(), _port, it->GetProtocol(), _protocol).ToStdString();
+                    res += std::format("ERR: Model {} on serial port {} has protocol {} but port protocol has been set to {}. This is because you have mixed protocols on your models.\n", it->GetName(), _port, it->GetProtocol(), _protocol);
                     success = false;
                 }
             }
         }
         if (Channels() > rules->GetMaxSerialPortChannels()) {
-            res += wxString::Format("ERR: Serial port %d has %d channels allocated but maximum is %d.\n", _port, (int)Channels(), rules->GetMaxSerialPortChannels()).ToStdString();
+            res += std::format("ERR: Serial port {} has {} channels allocated but maximum is {}.\n", _port, (int)Channels(), rules->GetMaxSerialPortChannels());
             success = false;
         }
     }
@@ -1119,11 +1120,11 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
                     // we dont warn about serial or packed gaps ... they are normal 
                 }
                 else {
-                    res += wxString::Format("WARN: Gap in models on pixel port %d channel %d to %d.\n", _port, ch, it->GetStartChannel()).ToStdString();
+                    res += std::format("WARN: Gap in models on pixel port {} channel {} to {}.\n", _port, ch, it->GetStartChannel());
                 }
             }
             else {
-                res += wxString::Format("WARN: Gap in models on pixel port %d smart remote %c channel %d to %d.\n", _port, it->GetSmartRemoteLetter(), ch, it->GetStartChannel()).ToStdString();
+                res += std::format("WARN: Gap in models on pixel port {} smart remote {:c} channel {} to {}.\n", _port, it->GetSmartRemoteLetter(), ch, it->GetStartChannel());
             }
         }
         lastSmartRemote = it->GetSmartRemote();
@@ -1141,7 +1142,7 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
 std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness) const
 {
     std::vector<std::string> columns;
-    std::string port = wxString::Format("%s Port %d", _type, _port);
+    std::string port = std::format("{} Port {}", _type, _port);
     if ((settings & ExportSettings::SETTINGS_PORT_ABSADDRESS) && GetStartChannel() != -1) {
         port += "(SC:" + std::to_string(GetStartChannel()) + ")";
     }
@@ -1155,7 +1156,7 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
         port += "(PIX:" + std::to_string( INTROUNDUPDIV(Channels(), GetChannelsPerPixel(GetProtocol()))) + ")";
     }
     if (settings & ExportSettings::SETTINGS_PORT_CURRENT && _type != "Serial" ) {
-        port += wxString::Format("(CUR:%0.2fA)", GetAmps(brightness));
+        port += std::format("(CUR:{:.2f}A)", GetAmps(brightness));
     }
     columns.push_back(port);
 
@@ -1184,7 +1185,7 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
             model += "(PIX:" + std::to_string(it->Channels() / it->GetChannelsPerPixel()) + ")";
         }
         if (settings & ExportSettings::SETTINGS_MODEL_CURRENT && _type != "Serial") {
-            model += wxString::Format("(CUR:%0.2fA)", it->GetAmps(brightness));
+            model += std::format("(CUR:{:.2f}A)", it->GetAmps(brightness));
         }
         columns.push_back(model);
     }
@@ -1774,9 +1775,9 @@ void UDController::Dump() const {
 
     spdlog::debug("UDController Dump");
 
-    spdlog::debug("   IP Address {}.", (const char*)_ipAddress.c_str());
+    spdlog::debug("   IP Address {}.", _ipAddress);
     if (_hostName != "" && _hostName != _ipAddress) {
-        spdlog::debug("   HostName {}.", (const char*)_hostName.c_str());
+        spdlog::debug("   HostName {}.", _hostName);
     }
     spdlog::debug("   Outputs:");
     auto outputs = _controller->GetOutputs();
@@ -1824,7 +1825,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     // all serial ports must be valid ports for this controller
     // all pixel ports must be valid for this controller
     if (rules->GetMaxPixelPort() == 0 && _pixelPorts.size() > 0) {
-        res += wxString::Format("ERR: Attempt to upload pixel port %d but this controller does not support pixel ports.\n", _pixelPorts.begin()->second->GetPort()).ToStdString();
+        res += std::format("ERR: Attempt to upload pixel port {} but this controller does not support pixel ports.\n", _pixelPorts.begin()->second->GetPort());
         success = false;
     }
     else {
@@ -1851,7 +1852,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             success &= it.second->Check(_controller, true, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPixelPort()) {
-                res += wxString::Format("ERR: Pixel port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxPixelPort()).ToStdString();
+                res += std::format("ERR: Pixel port {} is not valid on this controller. Valid ports {}-{}.\n", it.second->GetPort(), 1, rules->GetMaxPixelPort());
                 success = false;
             }
         }
@@ -1870,7 +1871,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
             if (blocksAreSmart[block] > 0) {
                 if (it.second->AtLeastOneModelIsNotUsingSmartRemote()){
-                    res += wxString::Format("ERR: Pixel port %d has a model configured not on a smart remote but this block of 4 ports has at least one model that is configured as on a smart remote.\n", it.second->GetPort()).ToStdString();
+                    res += std::format("ERR: Pixel port {} has a model configured not on a smart remote but this block of 4 ports has at least one model that is configured as on a smart remote.\n", it.second->GetPort());
                     success = false;
                 }
 
@@ -1879,7 +1880,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                         if (smType[0].empty()) {
                             smType[0] = it.second->GetSmartRemoteType(i + 1);
                         } else if (it.second->GetSmartRemoteType(i + 1) != smType[0] && !it.second->GetSmartRemoteType(i + 1).empty()) {
-                            res += wxString::Format("ERR: Pixel Port:%d SRID:%s has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i)).ToStdString();
+                            res += std::format("ERR: Pixel Port:{} SRID:{} has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i));
                             success = false;
                         }
                     }
@@ -1888,7 +1889,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                         if (smType[i].empty()) {
                             smType[i] = it.second->GetSmartRemoteType(i + 1);
                         } else if (it.second->GetSmartRemoteType(i + 1) != smType[i] && !it.second->GetSmartRemoteType(i + 1).empty()) {
-                            res += wxString::Format("ERR: Pixel Port:%d SRID:%s has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i)).ToStdString();
+                            res += std::format("ERR: Pixel Port:{} SRID:{} has different smart remotes types for this block of 4 ports.\n", it.second->GetPort(), std::string(1, 'A' + i));
                             success = false;
                         }
                     }
@@ -1899,7 +1900,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         if (rules->AllSmartRemoteTypesPerPortMustBeSame()) {
             for (const auto& it : _pixelPorts) {
                 if (!it.second->AllSmartRemoteTypesSame()){
-                    res += wxString::Format("ERR: Pixel port %d has a models not configured all as the same smart remote type.\n", it.second->GetPort()).ToStdString();
+                    res += std::format("ERR: Pixel port {} has a models not configured all as the same smart remote type.\n", it.second->GetPort());
                     success = false;
                 }
             }
@@ -1915,7 +1916,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             else
             {
                 if (o->GetType() != protocol) {
-                    res += wxString::Format("ERR: Controller only support a single input protocol at a time. %s and %s found.\n", protocol, o->GetType()).ToStdString();
+                    res += std::format("ERR: Controller only support a single input protocol at a time. {} and {} found.\n", protocol, o->GetType());
                     success = false;
                 }
             }
@@ -1925,11 +1926,11 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     for (const auto& o : outputs) {
         if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_KINET) {
             if (o->GetChannels() > rules->GetMaxInputUniverseChannels()) {
-                res += wxString::Format("ERR: Controller limits universe sizes to max of %d but you are trying to use %d. Universe %d.\n", rules->GetMaxInputUniverseChannels(), o->GetChannels(), o->GetUniverse()).ToStdString();
+                res += std::format("ERR: Controller limits universe sizes to max of {} but you are trying to use {}. Universe {}.\n", rules->GetMaxInputUniverseChannels(), o->GetChannels(), o->GetUniverse());
                 success = false;
             }
             if (o->GetChannels() < rules->GetMinInputUniverseChannels()) {
-                res += wxString::Format("ERR: Controller limits universe sizes to min of %d but you are trying to use %d. Universe %d.\n", rules->GetMinInputUniverseChannels(), o->GetChannels(), o->GetUniverse()).ToStdString();
+                res += std::format("ERR: Controller limits universe sizes to min of {} but you are trying to use {}. Universe {}.\n", rules->GetMinInputUniverseChannels(), o->GetChannels(), o->GetUniverse());
                 success = false;
             }
         }
@@ -1941,7 +1942,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             if (protocol == "") protocol = it.second->GetProtocol();
 
             if (Lower(protocol) != Lower(it.second->GetProtocol())) {
-                res += wxString::Format("ERR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
+                res += std::format("ERR: Pixel ports only support a single protocol at a time. {} and {} found.\n", protocol, it.second->GetProtocol());
                 success = false;
             }
         }
@@ -1951,7 +1952,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             if (protocol == "") protocol = it.second->GetProtocol();
 
             if (Lower(protocol) != Lower(it.second->GetProtocol())) {
-                res += wxString::Format("ERR: Serial ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
+                res += std::format("ERR: Serial ports only support a single protocol at a time. {} and {} found.\n", protocol, it.second->GetProtocol());
                 success = false;
             }
         }
@@ -1961,7 +1962,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         for (const auto& it : _pixelPorts) {
             for (const auto& it2 : it.second->GetModels()) {
                 if (it2->GetSmartRemote() != 0) {
-                    res += wxString::Format("ERR: Port %d has model %s with smart remote set ... but this controller does not support smart remotes.\n",
+                    res += std::format("ERR: Port {} has model {} with smart remote set ... but this controller does not support smart remotes.\n",
                         it.second->GetPort(), it2->GetName());
                     success = false;
                 }
@@ -1980,7 +1981,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                 }
             }
             if (countSmart > 0 && countNoSmart > 0) {
-                res += wxString::Format("ERR: Port %d has a mix of models with smart and non smart remotes. This is not supported.\n",
+                res += std::format("ERR: Port {} has a mix of models with smart and non smart remotes. This is not supported.\n",
                     it.second->GetPort());
                 success = false;
             }
@@ -1992,7 +1993,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         for (const auto& it : outputs) {
             if (size == -1) size = it->GetChannels();
             if (size != it->GetChannels()) {
-                res += wxString::Format("ERR: All universes must be the same size. %d and %d found.\n", size, (int)it->GetChannels()).ToStdString();
+                res += std::format("ERR: All universes must be the same size. {} and {} found.\n", size, (int)it->GetChannels());
                 success = false;
             }
         }
@@ -2001,7 +2002,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (rules->AllInputUniversesMustBe510()) {
         for (const auto& it : outputs) {
             if (it->GetChannels() != 510) {
-                res += wxString::Format("ERR: All universes must be 510 channels. %d found.\n", (int)it->GetChannels()).ToStdString();
+                res += std::format("ERR: All universes must be 510 channels. {} found.\n", (int)it->GetChannels());
                 success = false;
             }
         }
@@ -2024,11 +2025,11 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             int const sum = std::accumulate(bankSizes.begin(), bankSizes.end(), 0);
             if (sum > rules->GetMaxPixelPortChannels()) {
                 // always expressed in terms of 3 channel pixels
-                res += wxString::Format("ERR: Controllers 'Bank' channel count [%d (%d)] is over the maximum [%d (%d)].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3).ToStdString();
+                res += std::format("ERR: Controllers 'Bank' channel count [{} ({})] is over the maximum [{} ({})].\n", sum, sum / 3, rules->GetMaxPixelPortChannels(), rules->GetMaxPixelPortChannels() / 3);
                 res += "     Largest ports on banks: ";
                 for (int i = 0; i < rules->GetNumberOfBanks(); i++) {
                     if (i != 0) res += ", ";
-                    res += wxString::Format(" Bank %d - Port %d [%d (%d)]", i + 1, bankLargestPort[i], bankSizes[i], bankSizes[i] / 3);
+                    res += std::format(" Bank {} - Port {} [{} ({})]", i + 1, bankLargestPort[i], bankSizes[i], bankSizes[i] / 3);
                 }
                 res += "\n";
                 success = false;
@@ -2041,7 +2042,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
         for (const auto& it : outputs) {
             if (last >= it->GetUniverse()) {
-                res += wxString::Format("ERR: All universes must be in numerical order. %d followed %d.\n", it->GetUniverse(), last).ToStdString();
+                res += std::format("ERR: All universes must be in numerical order. {} followed {}.\n", it->GetUniverse(), last);
                 success = false;
             }
             last = it->GetUniverse();
@@ -2054,7 +2055,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         for (const auto& it : outputs) {
             if (seq == -1) seq = it->GetUniverse() - 1;
             if (seq + 1 != it->GetUniverse()) {
-                res += wxString::Format("ERR: All universes must be sequential. %d followed %d.\n", it->GetUniverse(), seq).ToStdString();
+                res += std::format("ERR: All universes must be sequential. {} followed {}.\n", it->GetUniverse(), seq);
                 success = false;
             }
             seq = it->GetUniverse();
@@ -2064,41 +2065,41 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     ControllerEthernet* eth = dynamic_cast<ControllerEthernet*>(_controller);
     if (eth != nullptr) {
         if (!rules->IsValidInputProtocol(eth->GetProtocol())) {
-            res += wxString::Format("ERR: %s is not a protocol this controller supports.\n", eth->GetProtocol()).ToStdString();
+            res += std::format("ERR: {} is not a protocol this controller supports.\n", eth->GetProtocol());
             success = false;
         }
     }
 
     if (rules->GetMaxSerialPort() == 0 && _serialPorts.size() > 0) {
-        res += wxString::Format("ERR: Attempt to upload serial port %d but this controller does not support serial ports.\n", _serialPorts.begin()->second->GetPort()).ToStdString();
+        res += std::format("ERR: Attempt to upload serial port {} but this controller does not support serial ports.\n", _serialPorts.begin()->second->GetPort());
         success = false;
     } else {
         for (const auto& it : _serialPorts) {
             success &= it.second->Check(_controller, false, rules, res);
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort()) {
-                res += wxString::Format("ERR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
+                res += std::format("ERR: Serial port {} is not valid on this controller. Valid ports {}-{}.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort());
                 success = false;
             }
         }
     }
     if (rules->GetMaxPWMPort() == 0 && _pwmPorts.size() > 0) {
-        res += wxString::Format("ERR: Attempt to upload PWM port %d but this controller does not support PWM ports.\n", _pwmPorts.begin()->second->GetPort()).ToStdString();
+        res += std::format("ERR: Attempt to upload PWM port {} but this controller does not support PWM ports.\n", _pwmPorts.begin()->second->GetPort());
         success = false;
     } else {
         for (const auto& it : _pwmPorts) {
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPWMPort()) {
-                res += wxString::Format("ERR: PWM port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxPWMPort()).ToStdString();
+                res += std::format("ERR: PWM port {} is not valid on this controller. Valid ports {}-{}.\n", it.second->GetPort(), 1, rules->GetMaxPWMPort());
                 success = false;
             }
         }
     }
     if (!rules->SupportsVirtualMatrix() && _virtualMatrixPorts.size() > 0) {
-        res += wxString::Format("ERR: Attempt to upload Virtual Matrix but this controller does not support Virtual Matrices.\n");
+        res += "ERR: Attempt to upload Virtual Matrix but this controller does not support Virtual Matrices.\n";
         success = false;
     }
     if (!rules->SupportsLEDPanelMatrix() && _ledPanelMatrixPorts.size() > 0) {
-        res += wxString::Format("ERR: Attempt to upload LED Panel Matrix but this controller does not support LED Panel Matrices.\n");
+        res += "ERR: Attempt to upload LED Panel Matrix but this controller does not support LED Panel Matrices.\n";
         success = false;
     }
 
@@ -2110,7 +2111,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             for (const auto& it2 : it.second->GetModels()) {
                 CO = it2->GetColourOrder("RGB");
                 if (strlen(CO.c_str()) > 3) {
-                    res += wxString::Format("ERR: Controller does NOT Support Color Order %s.\n", CO);
+                    res += std::format("ERR: Controller does NOT Support Color Order {}.\n", CO);
                     success = false;
                 }
             }
@@ -2152,7 +2153,7 @@ std::vector<std::vector<std::string>> UDController::ExportAsCSV(ExportSettings::
 
     std::vector<std::string> header({ "Output" });
     for (int i = 1; i <= columnSize; i++) {
-        header.push_back( wxString::Format("Model %d", i));
+        header.push_back( std::format("Model {}", i));
     }
 
     lines.insert(lines.begin(), header);

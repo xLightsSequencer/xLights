@@ -18,7 +18,7 @@
 
 #include <wx/treelist.h>
 #include <wx/dataview.h>
-#include "FPP.h"
+#include "controllers/FPP.h"
 
 class OutputManager;
 class wxProgressDialog;

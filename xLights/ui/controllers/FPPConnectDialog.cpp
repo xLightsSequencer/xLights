@@ -13,16 +13,16 @@
 
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
-#include "FPP.h"
+#include "controllers/FPP.h"
 #include "render/SequenceFile.h"
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "ExternalHooks.h"
-#include "../outputs/ControllerEthernet.h"
-#include "../utils/CurlManager.h"
-#include "ControllerCaps.h"
+#include "outputs/ControllerEthernet.h"
+#include "utils/CurlManager.h"
+#include "controllers/ControllerCaps.h"
 #include "utils/ip_utils.h"
 #include "FPPUploadProgressDialog.h"
 #include "ModelPreview.h"
@@ -33,11 +33,11 @@
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
-#include "../render/FSEQFile.h"
+#include "render/FSEQFile.h"
 #include "Parallel.h"
-#include "../Discovery.h"
-#include "Falcon.h"
-#include "Experience.h"
+#include "Discovery.h"
+#include "controllers/Falcon.h"
+#include "controllers/Experience.h"
 #include <algorithm>
 
 //(*IdInit(FPPConnectDialog)

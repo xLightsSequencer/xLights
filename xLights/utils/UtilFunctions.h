@@ -13,6 +13,7 @@
 #include "globals.h"
 #include "string_utils.h"
 
+#include <chrono>
 #include <format>
 #include <string>
 #include <algorithm>
@@ -34,6 +35,12 @@ inline std::string FormatTimeHMS(uint32_t ms) {
 }
 #define FORMATTIME(ms) FormatTime(static_cast<uint32_t>(ms)).c_str()
 #define FORMATTIME_H_M_S(ms) FormatTimeHMS(static_cast<uint32_t>(ms)).c_str()
+
+// Monotonic millisecond timestamp for timing comparisons (replaces wxGetUTCTimeMillis)
+inline int64_t GetCurrentTimeMillis() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
 #define UNUSED(x) (void)(x)

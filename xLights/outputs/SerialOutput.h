@@ -20,14 +20,14 @@ protected:
     #pragma region Member Variables
     SerialPort* _serial = nullptr;
     char _serialConfig[4];
-    wxLongLong _dieTime = 0;
+    int64_t _dieTime = 0;
     std::vector<uint8_t> _prefix;
     std::vector<uint8_t> _postfix;
 #pragma endregion
 
     #pragma region Private Functions
     virtual void SaveAttr(pugi::xml_node node) override;
-    void SetDontDieUntil(wxLongLong dieTime) { _dieTime = dieTime; }
+    void SetDontDieUntil(int64_t dieTime) { _dieTime = dieTime; }
     #pragma endregion
 
 public:

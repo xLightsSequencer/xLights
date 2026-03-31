@@ -62,7 +62,7 @@ public:
     virtual bool SupportsAutoSize() const override { return IsAutoLayout(); }
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
-    virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
+    virtual std::string GetUniverseString() const override { return std::to_string(_id); }
 
     virtual std::string GetColumn1Label() const override { return "NULL"; }
 
@@ -71,10 +71,5 @@ public:
     virtual std::string GetExport() const override;
     #pragma endregion 
 
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-        virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
-    #endif
-    #pragma endregion
+    // UI property grid methods moved to ui/controllerproperties/ControllerNullPropertyAdapter
 };
