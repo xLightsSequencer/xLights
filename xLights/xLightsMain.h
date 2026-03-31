@@ -63,9 +63,12 @@
 #ifdef LINUX
 #include <unistd.h>
 #endif
-#ifdef WINDOWS
-#include <windows.h>
-#endif
+//#ifdef WINDOWS
+//#ifndef WIN32_LEAN_AND_MEAN
+//#define WIN32_LEAN_AND_MEAN 1
+//#endif
+//#include <windows.h> //addeding this to the header is asking for trouble...
+//#endif
 
 #include "../common/xlBaseApp.h"
 #include "outputs/OutputManager.h"
