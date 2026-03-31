@@ -32,8 +32,6 @@
 #endif
 #include "../utils/ip_utils.h"
 
-#include "../xLightsMain.h"
-
 #include <format>
 
 #include <log.h>
