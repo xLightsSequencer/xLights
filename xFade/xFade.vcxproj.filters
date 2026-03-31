@@ -36,6 +36,7 @@
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\TraceLog.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
+    <ClCompile Include="..\xLights\ui\wxUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -74,6 +75,7 @@
     </ClInclude>
     <ClInclude Include="..\xLights\JobPool.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />
+    <ClInclude Include="..\xLights\ui\wxUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
