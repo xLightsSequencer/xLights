@@ -9,6 +9,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/mstream.h>
 #include <wx/base64.h>
+#include <wx/choice.h>
 
 #include <vector>
 #include <string>
@@ -79,7 +80,7 @@ std::pair<std::string, bool> gemini::CallLLM(const std::string& prompt) const {
     }
 
     if (api_key.empty() && apiKey.empty()) {
-        wxMessageBox("You must set a Gemini API Key in the Preferences on the Services Panel", "Error", wxICON_ERROR);
+        //wxMessageBox("You must set a Gemini API Key in the Preferences on the Services Panel", "Error", wxICON_ERROR);
         return { "Gemini: API Key is empty", false };
     }
 

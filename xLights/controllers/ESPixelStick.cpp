@@ -19,6 +19,8 @@
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 
+#include <wx/time.h>
+
 #include <log.h>
 
 #include <vector>
@@ -54,13 +56,13 @@ static std::map<std::string, std::string> EspsV4ColorOrders = {
 ESPixelStick::ESPixelStick(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
     
-    spdlog::debug("connecting to ESPixelStick controller on {}.", (const char*)_ip.c_str());
+    spdlog::debug("connecting to ESPixelStick controller on {}.", _ip);
 
     if (!CheckHTTPconnection()) 
     {
         if (!CheckWsConnection()) {
             _connected = false;
-            spdlog::error("Error connecting to ESPixelStick controller on {}.", (const char*)_ip.c_str());
+            spdlog::error("Error connecting to ESPixelStick controller on {}.", _ip);
         }
     }
 }
@@ -70,8 +72,6 @@ ESPixelStick::ESPixelStick(const std::string& ip, const std::string &proxy) : Ba
 
 bool ESPixelStick::CheckWsConnection()
 {
-    
-
     _wsClient.Connect(_ip, "/ws");
 
     if (_wsClient.IsConnected()) {
@@ -79,7 +79,7 @@ bool ESPixelStick::CheckWsConnection()
         _connected = true;
         _wsClient.Send("G2");
         _version = GetFromJSON("", "version", GetWSResponse());
-        spdlog::debug("Connected to ESPixelStick WebSocket - Firmware Version {}", (const char*)_version.c_str());
+        spdlog::debug("Connected to ESPixelStick WebSocket - Firmware Version {}", _version);
         return true;
     }
 
@@ -101,7 +101,7 @@ bool ESPixelStick::CheckHTTPconnection()
         _model = "ESPixelStick";
         _connected = true;
         _version = HttpResponse["version"].get<std::string>();
-        spdlog::debug("Connected to ESPixelStick HTTP - Firmware Version {}", (const char*)_version.c_str());
+        spdlog::debug("Connected to ESPixelStick HTTP - Firmware Version {}", _version);
         return true;
     }
 
@@ -630,7 +630,6 @@ void EspsV4Protocol::ParseV4Settings(std::string const& Id, const nlohmann::json
 
 bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
 {
-    
     // spdlog::debug("EspsPort:ParseV4Config: Start");
 
     bool Response { true };
@@ -726,8 +725,7 @@ bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
 
 bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
-    
-    spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", (const char *)_ip.c_str());
+    spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", _ip);
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -915,7 +913,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
 bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
     
-    spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", (const char *)_ip.c_str());
+    spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", _ip);
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);

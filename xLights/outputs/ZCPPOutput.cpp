@@ -28,7 +28,9 @@
 #include "../ExternalHooks.h"
 #include "../utils/ip_utils.h"
 
-#include "../controllers/Falcon.h"
+#include <wx/stopwatch.h>
+
+
 
 #ifndef EXCLUDEDISCOVERY
 #include "../Discovery.h"

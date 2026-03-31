@@ -10,6 +10,7 @@
 
 #include <wx/socket.h>
 #include <wx/secretstore.h>
+#include <wx/time.h>
 
 #ifndef __WXMSW__
 #include <sys/socket.h>

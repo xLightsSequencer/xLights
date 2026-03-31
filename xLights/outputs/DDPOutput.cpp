@@ -23,6 +23,10 @@
 #include <log.h>
 #include <wx/stopwatch.h>
 
+#include <wx/stopwatch.h>
+
+
+
 #ifndef EXCLUDEDISCOVERY
 #include "../Discovery.h"
 #endif
