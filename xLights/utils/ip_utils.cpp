@@ -16,7 +16,7 @@
 #include <regex>
 #include <thread>
 
-#ifndef __WXMSW__
+#ifndef _WIN32
 #include <netdb.h>
 #include <arpa/inet.h>
 #else
