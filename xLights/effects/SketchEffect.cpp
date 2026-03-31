@@ -12,7 +12,6 @@
 
 #include <filesystem>
 
-#include "ui/shared/controls/BulkEditControls.h"
 #include "../render/RenderBuffer.h"
 #include "SketchEffectDrawing.h"
 #include "../ui/effectpanels/SketchPanel.h"

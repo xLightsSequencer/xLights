@@ -21,7 +21,6 @@
 #include "BaseObject.h"
 #include "CandyCaneModel.h"
 #include "ChannelBlockModel.h"
-#include "ui/shared/dialogs/CheckboxSelectDialog.h"
 #include "CircleModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"

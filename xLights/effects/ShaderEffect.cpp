@@ -80,7 +80,6 @@
 #include "ShaderEffect.h"
 #include "AudioManager.h"
 #include "../ui/effectpanels/ShaderPanel.h"
-#include "../ui/effectpanels/EffectPanelManager.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h"
@@ -90,10 +89,8 @@
 #include "../render/RenderContext.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
-#include "ui/sequencer/TimingPanel.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "graphics/opengl/DrawGLUtils.h"
 #include <nlohmann/json.hpp>

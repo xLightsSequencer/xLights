@@ -21,7 +21,6 @@
 #include "../ui/layout/ModelPreview.h"
 #include "../support/VectorMath.h"
 #include "RulerObject.h"
-#include "ui/color/ColorManager.h"
 #include "../ui/wxUtilities.h"
 
 #include <log.h>

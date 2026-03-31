@@ -23,8 +23,6 @@
 #include "../render/SequenceFile.h"
 #include "../render/SequenceElements.h"
 #include "models/Model.h"
-#include "../ui/effectpanels/EffectPanelUtils.h"
-#include "../ui/effectpanels/EffectPanelManager.h"
 
 #include <log.h>
 

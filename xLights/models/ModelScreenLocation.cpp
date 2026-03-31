@@ -20,7 +20,6 @@
 #include "../ui/layout/ModelPreview.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Shapes.h"
-#include "ui/layout/ViewpointMgr.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
 #include "RulerObject.h"
