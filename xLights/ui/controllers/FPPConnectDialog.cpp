@@ -830,11 +830,10 @@ FPPConnectDialog::~FPPConnectDialog()
     }
 }
 
-void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
+void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    
-    spdlog::info("Scanning folder for sequences for FPP upload: {}", (const char *)dir.c_str());
+    spdlog::info("Scanning folder for sequences for FPP upload: {}", dir.ToStdString());
 
     wxDir directory;
     directory.Open(dir);

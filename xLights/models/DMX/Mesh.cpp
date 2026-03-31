@@ -80,8 +80,7 @@ void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
         
         obj_exists = true;
                 
-        spdlog::debug("Loading mesh model file {}.",
-                          (const char *)_objFile.c_str());
+        spdlog::debug("Loading mesh model file {}.", _objFile);
         mesh3d = ctx->loadMeshFromObjFile(_objFile);
         width = mesh3d->GetXMax() - mesh3d->GetXMin();
         height = mesh3d->GetYMax() - mesh3d->GetYMin();

@@ -1211,7 +1211,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 }
                 else
                 {
-                    spdlog::error("SelectedEffectChanged ... node layer no longer exists {} {}", (const char *)event._elementName.c_str(), event._node);
+                    spdlog::error("SelectedEffectChanged ... node layer no longer exists {} {}", event._elementName, event._node);
                 }
             }
             else
@@ -1224,13 +1224,13 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 }
                 else
                 {
-                    spdlog::error("SelectedEffectChanged ... element layer no longer exists {} {}", (const char *)event._elementName.c_str(), event._layer);
+                    spdlog::error("SelectedEffectChanged ... element layer no longer exists {} {}", event._elementName, event._layer);
                 }
             }
         }
         else
         {
-            spdlog::error("SelectedEffectChanged ... element no longer exists {}", (const char *)event._elementName.c_str());
+            spdlog::error("SelectedEffectChanged ... element no longer exists {}", event._elementName);
         }
 
         //effect = event.effect;
@@ -1238,7 +1238,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 
         if (effect == nullptr)
         {
-            spdlog::error("SelectedEffectChanged ... effect no longer exists {} {} {}ms", (const char *)event._elementName.c_str(), event._layer, event._startTime);
+            spdlog::error("SelectedEffectChanged ... effect no longer exists {} {} {}ms", event._elementName, event._layer, event._startTime);
         }
         else
         {
@@ -2800,7 +2800,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         colorPanel->SetSupports(ef->SupportsLinearColorCurves(settings), ef->SupportsRadialColorCurves(settings));
     } else {
         colorPanel->SetColorCount(8);
-        spdlog::warn("Setting effect controls for unknown effect type: {}", (const char *)effectName.c_str());
+        spdlog::warn("Setting effect controls for unknown effect type: {}", effectName);
     }
     //p->Thaw();
     //timingPanel->Thaw();
@@ -3122,7 +3122,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         spdlog::debug("Saved perspective.");
         LogPerspective(settings);
     }
-    spdlog::debug("Loading perspective {}", (const char *)name.c_str());
+    spdlog::debug("Loading perspective {}", name.ToStdString());
     PushTraceContext();
     AddTraceMessage(settings);
     LogPerspective(settings);

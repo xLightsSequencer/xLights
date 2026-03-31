@@ -18,8 +18,7 @@ WebSocketClient::WebSocketClient()
 
 bool WebSocketClient::Connect(std::string ip, std::string url)
 {
-    
-    spdlog::debug("Connecting to websocket {} {}.", (const char *)ip.c_str(), (const char *)url.c_str());
+    spdlog::debug("Connecting to websocket {} {}.", ip, url);
 
     wxIPV4address addr;
     addr.Hostname(ip);
@@ -61,7 +60,7 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
 bool WebSocketClient::Send(std::string message)
 {
     
-    spdlog::debug("WebSocket Sent: {}", (const char *)message.c_str());
+    spdlog::debug("WebSocket Sent: {}", message);
     //printf("Send: %s\n", message.c_str());
 
     bool useMask = false;
@@ -178,7 +177,7 @@ std::string WebSocketClient::Receive()
 
                     res += std::string((char*)&buffer[header_size]);
                     if (fin) {
-                        spdlog::debug("WebSocket Received: {}", (const char *)res.c_str());
+                        spdlog::debug("WebSocket Received: {}", res);
                         //printf("Receive: %s\n", res.c_str());
                         return res;
                     }

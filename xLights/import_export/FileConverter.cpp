@@ -246,9 +246,7 @@ void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *unitSizes)
 
 void FileConverter::ReadLorFile(ConvertParameters& params)
 {
-    
-
-    spdlog::debug("ReadLorFile {}.", (const char *)params.inp_filename.c_str());
+    spdlog::debug("ReadLorFile {}.", params.inp_filename.ToStdString());
     spdlog::debug("     Channels Off At End? {}.", toStr(params.channels_off_at_end ));
     spdlog::debug("     Map Empty Channels? {}.", toStr(params.map_empty_channels));
     spdlog::debug("     Map No Network Channels? {}.", toStr(params.map_no_network_channels));

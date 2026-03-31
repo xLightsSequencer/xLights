@@ -203,7 +203,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
             uint32_t channels = 510;
 
             auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
-            spdlog::debug("     From {}.", (const char *)ip.c_str());
+            spdlog::debug("     From {}.", ip.ToStdString());
 
             // We cant use Get IP as controller may have responded to multiple discovery requests
             ControllerEthernet* existing = nullptr;

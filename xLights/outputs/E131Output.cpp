@@ -216,15 +216,15 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
             syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
             if (syncdatagram == nullptr) {
-                spdlog::error("Error initialising E131 sync datagram. {}", (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error initialising E131 sync datagram. {}", localaddr.IPAddress().ToStdString());
             }
             else if (!syncdatagram->IsOk()) {
-                spdlog::error("Error initialising E131 sync datagram ... is network connected? OK : FALSE {}", (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error initialising E131 sync datagram ... is network connected? OK : FALSE {}", localaddr.IPAddress().ToStdString());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
             else if (syncdatagram->Error()) {
-                spdlog::error("Error creating E131 sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error creating E131 sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), DecodeIPError(syncdatagram->LastError()), localaddr.IPAddress().ToStdString());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
@@ -234,7 +234,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
             syncremoteAddr.Hostname(ipaddrWithUniv);
             syncremoteAddr.Service(E131_PORT);
 
-            spdlog::debug("e131 Sync sync universe changed to {} => {}:{}.", syncUniverse, (const char *)ipaddrWithUniv.c_str(), E131_PORT);
+            spdlog::debug("e131 Sync sync universe changed to {} => {}:{}.", syncUniverse, ipaddrWithUniv.ToStdString(), E131_PORT);
         }
 
         syncdata[44] = syncSequenceNum++;   // sequence number

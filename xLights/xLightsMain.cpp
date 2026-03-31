@@ -9298,7 +9298,7 @@ void xLightsFrame::DoBackupPurge()
                         purged++;
                     }
                 } else {
-                    // spdlog::debug("    Backup purge keeping {}.", (const char *)filename.c_str());
+                    // spdlog::debug("    Backup purge keeping {}.", filename.ToStdString());
                 }
             }
 
@@ -9307,7 +9307,7 @@ void xLightsFrame::DoBackupPurge()
         }
         spdlog::debug("Backup purge deleted {} of {} backups.", purged, count);
     } else {
-        spdlog::debug("Backup purging skipped as {} does not exist.", (const char*)backupDir.c_str());
+        spdlog::debug("Backup purging skipped as {} does not exist.", backupDir.ToStdString());
     }
 }
 

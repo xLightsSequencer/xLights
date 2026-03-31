@@ -387,7 +387,7 @@ void CubeModel::DumpNodes(std::vector<std::tuple<int,int,int>> nodes, int width,
             }
             out += "\n";
         }
-        spdlog::debug("Layer: {} {}", z, (const char *)out.c_str());
+        spdlog::debug("Layer: {} {}", z, out);
     }
 }
 

@@ -1232,8 +1232,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         if (mBackgroundImageExists) {
             if (background == nullptr) {
                 spdlog::debug("Loading background image file {} for preview {}.",
-                                  (const char *)mBackgroundImage.c_str(),
-                                  (const char *)GetName().c_str());
+                                  mBackgroundImage.ToStdString(),
+                                  GetName().ToStdString());
                 wxImage image(mBackgroundImage);
                 if (image.IsOk()) {
                     int orientation = GetExifOrientation(mBackgroundImage);

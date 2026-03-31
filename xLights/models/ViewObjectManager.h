@@ -30,7 +30,7 @@ public:
     ViewObjectManager(xLightsFrame* xl);
     virtual ~ViewObjectManager();
 
-    virtual BaseObject *GetObject(const std::string &name) const override;
+    virtual BaseObject *GetObject(const std::string &name) const;
     ViewObject *GetViewObject(const std::string &name) const;
 
     xLightsFrame* GetXLightsFrame() const { return xlights; }

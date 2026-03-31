@@ -69,9 +69,8 @@ UpdaterDialog::~UpdaterDialog()
 
 void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
 {
-    
     spdlog::debug("User has chosen to upgrade to version {}. URL: {}",
-        (const char *)urlVersion.c_str(), (const char *)downloadUrl.c_str());
+        urlVersion.ToStdString(), downloadUrl.ToStdString());
     wxLaunchDefaultBrowser(downloadUrl);
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("SkipVersion","");
@@ -80,8 +79,7 @@ void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
 
 void UpdaterDialog::OnButtonUpdateSkipClick(wxCommandEvent& event)
 {
-    
-    spdlog::debug("User has chosen to skip upgrade to version {}.", (const char *)urlVersion.c_str());
+    spdlog::debug("User has chosen to skip upgrade to version {}.", urlVersion.ToStdString());
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("SkipVersion","");
     EndDialog(wxID_CANCEL);
@@ -89,8 +87,7 @@ void UpdaterDialog::OnButtonUpdateSkipClick(wxCommandEvent& event)
 
 void UpdaterDialog::OnButtonUpdateIgnoreClick(wxCommandEvent& event)
 {
-    
-    spdlog::debug("User has chosen to ignore upgrade to version {}.", (const char *)urlVersion.c_str());
+    spdlog::debug("User has chosen to ignore upgrade to version {}.", urlVersion.ToStdString());
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("SkipVersion", urlVersion);
     EndDialog(wxID_CLOSE);

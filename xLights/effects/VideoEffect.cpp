@@ -390,7 +390,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                         }
                         spdlog::debug("Video effect length: {}, video length: {}, startoffset: {}, duration treatment: {}.",
                             (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
-                            (const char *)durationTreatment.c_str());
+                            durationTreatment);
                     }
                 }
             }
@@ -399,7 +399,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         {
             if (buffer.curPeriod == buffer.curEffStartPer)
             {
-                spdlog::warn("VideoEffect: Video file '{}' not found.", (const char *)filename.c_str());
+                spdlog::warn("VideoEffect: Video file '{}' not found.", filename);
             }
         }
     }

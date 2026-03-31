@@ -178,11 +178,11 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     // Create a wxString to store the JSON text
     auto json_payload_str = request_payload.dump(3);
 
-    spdlog::debug("ollama: {}", (const char *)json_payload_str.c_str());
+    spdlog::debug("ollama: {}", json_payload_str);
     int responseCode{ 0 };
     std::string const response = CurlManager::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
 
-    spdlog::debug("ollama Response {}: {}", responseCode, response.c_str());
+    spdlog::debug("ollama Response {}: {}", responseCode, response);
 
     if (responseCode != 200) {
         return {};

@@ -518,7 +518,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
     if (event.GetId() == ID_SLIDER_BULKEDIT)
     {
         // Logging this because these dont happen often and I have seen crashes here and I would like to know which slider is crashing
-        spdlog::debug("BulkEditSlider::OnSliderPopup {}", (const char *)GetName().c_str());
+        spdlog::debug("BulkEditSlider::OnSliderPopup {}", GetName().ToStdString());
 
         // does it support a value curve - this function should be common
         ValueCurveButton* vcb = GetSettingValueCurveButton(GetParent(), GetName().ToStdString(), "SLIDER");
@@ -544,7 +544,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             }
             else
             {
-                spdlog::critical("BulkEditSlider::OnSliderPopup text control not found {}", (const char *)GetName().c_str());
+                spdlog::critical("BulkEditSlider::OnSliderPopup text control not found {}", GetName().ToStdString());
                 wxASSERT(false);
             }
 
@@ -1426,7 +1426,7 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
         int thiseffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect);
         if (thiseffect < 2)
         {
-            spdlog::debug("Bulk edit refused ... insufficient effects of type {} selected.", (const char *)effect.c_str());
+            spdlog::debug("Bulk edit refused ... insufficient effects of type {} selected.", effect);
             return false;
         }
 

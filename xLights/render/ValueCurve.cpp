@@ -1581,8 +1581,7 @@ void ValueCurve::LoadXVC(const std::string& fn)
 
 void ValueCurve::SaveXVC(const std::string& filename)
 {
-    
-    spdlog::info("Saving to xvc file {}.", (const char *)filename.c_str());
+    spdlog::info("Saving to xvc file {}.", filename);
 
     std::ofstream f(filename);
     if (!f.is_open())

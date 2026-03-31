@@ -1368,7 +1368,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (phoneme == "" || !IsValidPhoneme(phoneme))
                 {
-                    spdlog::warn("Phoneme '{}' was not known. File {} ignored.", (const char *)phoneme.c_str(), (const char *)it.c_str());
+                    spdlog::warn("Phoneme '{}' was not known. File {} ignored.", phoneme, it);
                     error = true;
                 }
                 else

@@ -130,7 +130,7 @@ PluginHostAdapter::getPluginPath()
 #endif
     }
     // xLights
-    spdlog::info("VAMP_PATH final value '{}'", (const char *)envPath.c_str());
+    spdlog::info("VAMP_PATH final value '{}'", envPath);
     // end xLights
     std::string::size_type index = 0, newindex = 0;
 
@@ -357,7 +357,7 @@ PluginHostAdapter::getOutputDescriptors() const
         return list;
     }
     // xLights
-    spdlog::debug("Getting vamp descriptors for {}", (const char *)getName().c_str());
+    spdlog::debug("Getting vamp descriptors for {}", getName());
     //end xLights
 
     unsigned int count = m_descriptor->getOutputCount(m_handle);

@@ -85,9 +85,9 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
             spdlog::debug("Loading image model {} file {} for preview {}.",
-                (const char *)GetName().c_str(),
-                (const char *)_imageFile.c_str(),
-                (const char *)preview->GetName().c_str());
+                GetName(),
+                _imageFile,
+                preview->GetName().ToStdString());
             xlImage image;
             if (image.LoadFromFile(_imageFile) && image.IsOk()) {
                 xlTexture *t = ctx->createTexture(image, GetName(), true);

@@ -1425,8 +1425,7 @@ void ColorPanel::SavePalette(bool saveAs)
 
         _loadedPalettes.push_back(pal);
     } else {
-        
-        spdlog::error("Unable to create file {}.", (const char *)fn.c_str());
+        spdlog::error("Unable to create file {}.", fn.ToStdString());
     }
 
     LoadAllPalettes();

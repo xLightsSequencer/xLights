@@ -2610,9 +2610,7 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
 
     std::map<int, int> rngs;
     FillRanges(rngs);
-
-    
-    spdlog::debug("FPP Serial Outputs Upload: Uploading to {}", (const char *)ipAddress.c_str());
+    spdlog::debug("FPP Serial Outputs Upload: Uploading to {}", ipAddress);
 
     UDController cud(controller, outputManager, allmodels, false);
     if (cud.GetMaxSerialPort() == 0) {
@@ -2823,9 +2821,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     std::map<int, int> rngs;
     FillRanges(rngs);
-
-    
-    spdlog::debug("FPP Pixel Outputs Upload: Uploading to {}", (const char *)ipAddress.c_str());
+    spdlog::debug("FPP Pixel Outputs Upload: Uploading to {}", ipAddress);
 
     UDController cud(controller, outputManager, allmodels, false);
 
@@ -4027,8 +4023,7 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
             // genuine FPP instance and able to connect via http
             return true;
         } else {
-            
-            spdlog::info("FPP Discovery - Skipping {} no http connection", (const char *)res->ip.c_str());
+            spdlog::info("FPP Discovery - Skipping {} no http connection", res->ip);
             return false;
         }
     }

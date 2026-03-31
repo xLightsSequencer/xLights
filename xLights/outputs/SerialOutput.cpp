@@ -1,4 +1,3 @@
-
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -305,20 +304,20 @@ bool SerialOutput::Open() {
 
     if (_commPort == "NotConnected") {
 
-        spdlog::warn("Serial port {} for {} not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
+        spdlog::warn("Serial port {} for {} not opened as it is tagged as not connected.", _commPort, GetType());
         // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
     }
     else {
         _serial = new SerialPort();
 
-        spdlog::debug("Opening serial port {}. Baud rate = {}. Config = {}.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
+        spdlog::debug("Opening serial port {}. Baud rate = {}. Config = {}.", _commPort, _baudRate, _serialConfig);
 
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0) {
             delete _serial;
             _serial = nullptr;
 
-            spdlog::warn("Unable to open serial port {}. Error code = {}", (const char *)_commPort.c_str(), errcode);
+            spdlog::warn("Unable to open serial port {}. Error code = {}", _commPort, errcode);
             _ok = false;
 
             std::string p = "";
@@ -330,22 +329,23 @@ bool SerialOutput::Open() {
             }
 
             if (OutputManager::IsInteractive()) {
-                wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
-                    _("Things to check:\n") +
-                    _("1. Are all required cables plugged in?\n") +
-                    _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
-                    _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
-                    _("Unable to open serial port %s. Error code = %d"),
-                    (const char *)GetType().c_str(),
-                    (const char *)GetCommPort().c_str(),
-                    (const char *)p.c_str(),
-                    (const char *)_commPort.c_str(),
+                std::string msg = std::format(
+                    "Error occurred while connecting to {} network on {} (Available Ports {}) \n\n"
+                    "Things to check:\n"
+                    "1. Are all required cables plugged in?\n"
+                    "2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n"
+                    "3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n"
+                    "Unable to open serial port {}. Error code = {}",
+                    GetType(),
+                    GetCommPort(),
+                    p,
+                    _commPort,
                     errcode);
                 DisplayError(msg);
             }
         }
         else {
-            spdlog::debug("    Serial port {} open.", (const char *)_commPort.c_str());
+            spdlog::debug("    Serial port {} open.", _commPort);
         }
     }
 
@@ -353,9 +353,6 @@ bool SerialOutput::Open() {
 }
 
 void SerialOutput::Close() {
-
-    
-
     if (_serial != nullptr) {
         // throw away any pending data
         _serial->Purge();
@@ -375,7 +372,7 @@ void SerialOutput::Close() {
         _serial->Close();
         delete _serial;
         _serial = nullptr;
-        spdlog::debug("    Serial port {} closed in {} milliseconds.", (const char *)_commPort.c_str(), i * 5);
+        spdlog::debug("    Serial port {} closed in {} milliseconds.", _commPort, i * 5);
     }
 }
 #pragma endregion
@@ -390,7 +387,7 @@ void SerialOutput::StartFrame(long msec) {
     if (!_ok && OutputManager::IsRetryOpen()) {
         _ok = SerialOutput::Open();
         if (_ok) {
-            spdlog::debug("SerialOutput: Open retry successful. {}.", (const char *)_commPort.c_str());
+            spdlog::debug("SerialOutput: Open retry successful. {}.", _commPort);
         }
     }
 

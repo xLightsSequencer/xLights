@@ -79,12 +79,12 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
     }
 
     if (!FileExists(phonemeFile.GetFullPath())) {
-        spdlog::warn("Failed to open phoneme dictionary. '{}'", (const char *)filename.c_str());
+        spdlog::warn("Failed to open phoneme dictionary. '{}'", filename.ToStdString());
         DisplayError("Failed to open Phoneme dictionary!");
         return;
     }
 
-    spdlog::debug("Loading phoneme dictionary. '{}'", (const char *)phonemeFile.GetFullPath().c_str());
+    spdlog::debug("Loading phoneme dictionary. '{}'", phonemeFile.GetFullPath().ToStdString());
 
     wxProgressDialog dlg("Loading", "Loading dictionary " + phonemeFile.GetName(), 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 

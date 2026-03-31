@@ -1424,9 +1424,9 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         for (const auto& it : grp->ModelNames()) {
             Model *m = xlights->AllModels[it];
             if (m == nullptr) {
-                spdlog::error("Model group {} thought it contained model. '{}' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it.c_str());
+                spdlog::error("Model group {} thought it contained model. '{}' but it didnt. This would have crashed.", grp->GetName(), it);
             } else if (m == grp) {
-                spdlog::error("Model group contains itself. '{}'", (const char *)grp->GetName().c_str());
+                spdlog::error("Model group contains itself. '{}'", grp->GetName());
             } else {
                 AddModelToTree(m, &item, false, toExpand, i, true);
                 i++;
@@ -2801,7 +2801,7 @@ void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
     Model *m = xlights->AllModels[name];
     if (m == nullptr)
     {
-        spdlog::warn("LayoutPanel:SelectModel Unable to select model '{}'.", (const char *)name.c_str());
+        spdlog::warn("LayoutPanel:SelectModel Unable to select model '{}'.", name);
     }
     else {
         SelectModelInTree(m);
@@ -7477,8 +7477,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 }
             } else {
-                
-                spdlog::warn("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. {}.", (const char *)data.GetText().c_str());
+                spdlog::warn("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. {}.", data.GetText().ToStdString());
             }
         }
     }

@@ -359,7 +359,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
                 if (_csvReader == nullptr)
                 {
-                    spdlog::warn("GlediatorEffect: Failed to load csv file {}.", (const char *)glediatorFilename.c_str());
+                    spdlog::warn("GlediatorEffect: Failed to load csv file {}.", glediatorFilename);
                 }
                 else
                 {
@@ -383,7 +383,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
                 if (_glediatorReader == nullptr)
                 {
-                    spdlog::warn("GlediatorEffect: Failed to load glediator file {}.", (const char *)glediatorFilename.c_str());
+                    spdlog::warn("GlediatorEffect: Failed to load glediator file {}.", glediatorFilename);
                 }
                 else
                 {
@@ -403,7 +403,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
         else
         {
-            spdlog::warn("GlediatorEffect: Glediator file '{}' not found.", (const char *)glediatorFilename.c_str());
+            spdlog::warn("GlediatorEffect: Glediator file '{}' not found.", glediatorFilename);
         }
     }
 

@@ -100,7 +100,7 @@ class FPPConnectDialog: public wxDialog
         void OnMediaPopupClick(wxCommandEvent& event);
 		//*)
 
-        void LoadSequencesFromFolder(wxString dir) const;
+        void LoadSequencesFromFolder(wxString const& dir) const;
         void LoadSequences();
         void PopulateFPPInstanceList(wxProgressDialog *prgs = nullptr);
         void AddInstanceRow(const FPP &inst);

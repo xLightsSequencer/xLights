@@ -198,8 +198,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
 
 void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
-    
-    spdlog::info("ColorCurveDialog Scanning directory for *.xcc files: {}.", (const char *)directory.GetNameWithSep().c_str());
+    spdlog::info("ColorCurveDialog Scanning directory for *.xcc files: {}.", directory.GetNameWithSep().ToStdString());
 
     int count = 0;
 
@@ -262,7 +261,7 @@ void ColorCurveDialog::PopulatePresets()
     }
     else
     {
-        spdlog::info("Directory for *.xcc files not found: {}.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xcc files not found: {}.", d.ToStdString());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -279,7 +278,7 @@ void ColorCurveDialog::PopulatePresets()
     }
     else
     {
-        spdlog::info("Directory for *.xcc files not found: {}.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xcc files not found: {}.", d.ToStdString());
     }
 
     PresetSizer->Layout();
@@ -828,7 +827,7 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
     wxFile f(filename);
     
-    spdlog::info("Saving to xcc file {}.", (const char *)filename.c_str());
+    spdlog::info("Saving to xcc file {}.", filename.ToStdString());
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {

@@ -149,16 +149,16 @@ void DDPOutput::SendSync(const std::string& localIP) {
 
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
         if (syncdatagram == nullptr) {
-            spdlog::error("Error initialising DDP sync datagram. {}", (const char *)localaddr.IPAddress().c_str());
+            spdlog::error("Error initialising DDP sync datagram. {}", localaddr.IPAddress().ToStdString());
             return;
         } else if (!syncdatagram->IsOk()) {
-            spdlog::error("Error initialising DDP sync datagram ... is network connected? OK: FALSE {}", (const char *)localaddr.IPAddress().c_str());
+            spdlog::error("Error initialising DDP sync datagram ... is network connected? OK: FALSE {}", localaddr.IPAddress().ToStdString());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
         }
         else if (syncdatagram->Error()) {
-            spdlog::error("Error creating DDP sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+            spdlog::error("Error creating DDP sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), DecodeIPError(syncdatagram->LastError()), localaddr.IPAddress().ToStdString());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -168,7 +168,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
         // I should use the net mask but i cant find a good way to do that
         //syncremoteAddr.BroadcastAddress();
         wxString broadcast = "255.255.255.255";
-        spdlog::debug("DDP Sync broadcasting to {}.", (const char *)broadcast.c_str());
+        spdlog::debug("DDP Sync broadcasting to {}.", broadcast.ToStdString());
         syncremoteAddr.Hostname(broadcast);
         syncremoteAddr.Service(DDP_PORT);
     }
@@ -434,7 +434,7 @@ bool DDPOutput::Open() {
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);
     if (_fulldata == nullptr) {
-        spdlog::error("Problem allocating {} memory for DDP output '{}'.", _channels, (const char *)GetIP().c_str());
+        spdlog::error("Problem allocating {} memory for DDP output '{}'.", _channels, GetIP());
         _ok = false;
         return false;
     }

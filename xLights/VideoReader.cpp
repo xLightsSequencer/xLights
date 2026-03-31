@@ -198,7 +198,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
       {
          if ( _codecContext->width == 0 || _codecContext->height == 0 )
          {
-            spdlog::error( "VideoReader: Invalid input reader dimensions ({},{}) {}", _codecContext->width, _codecContext->height, (const char *)filename.c_str() );
+            spdlog::error( "VideoReader: Invalid input reader dimensions ({},{}) {}", _codecContext->width, _codecContext->height, filename );
             return;
          }
 
@@ -858,7 +858,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 #endif
 
 #ifdef VIDEO_EXTRALOGGING
-    spdlog::debug("Video {} getting frame {}.", (const char *)_filename.c_str(), timestampMS);
+    spdlog::debug("Video {} getting frame {}.", _filename, timestampMS);
 #endif
 
     int currenttime = GetPos();
@@ -888,7 +888,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     if (currenttime > timestampMS + gracetime || timestampMS - currenttime > 1000)
     {
 #ifdef VIDEO_EXTRALOGGING
-        spdlog::debug("    Video {} seeking from {} to {}.", (const char *)_filename.c_str(), currenttime, timestampMS);
+        spdlog::debug("    Video {} seeking from {} to {}.", _filename, currenttime, timestampMS);
 #endif
         Seek(timestampMS, false);
         currenttime = GetPos();

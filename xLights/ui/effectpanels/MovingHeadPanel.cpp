@@ -567,8 +567,7 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
 
 void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
-    
-    spdlog::info("MovingHeadPanel Scanning directory for *.xmh files: {}.", (const char *)directory.GetNameWithSep().c_str());
+    spdlog::info("MovingHeadPanel Scanning directory for *.xmh files: {}.", directory.GetNameWithSep().ToStdString());
 
     auto existing = FlexGridSizerPresets->GetChildren();
     auto existing_path = FlexGridSizerPathPresets->GetChildren();
@@ -705,7 +704,7 @@ void MovingHeadPanel::PopulatePresets()
     }
     else
     {
-        spdlog::info("Directory for *.xmh files not found: {}.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xmh files not found: {}.", d.ToStdString());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -723,7 +722,7 @@ void MovingHeadPanel::PopulatePresets()
     }
     else
     {
-        spdlog::info("Directory for *.xmh files not found: {}.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xmh files not found: {}.", d.ToStdString());
     }
 }
 
@@ -791,7 +790,7 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool
     wxFile f(filename);
 
     
-    spdlog::info("Saving to xcc file {}.", (const char *)filename.c_str());
+    spdlog::info("Saving to xcc file {}.", filename.ToStdString());
 
     bool replace_existing {false};
     if( f.Exists(filename) ) {

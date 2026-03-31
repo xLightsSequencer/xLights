@@ -1404,7 +1404,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     _renderMode = b;
 
     printf("Processing file %s\n", (const char *)seq.c_str());
-    spdlog::debug("Batch Render Processing file {}\n", (const char *)seq.c_str());
+    spdlog::debug("Batch Render Processing file {}\n", seq.ToStdString());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
@@ -1610,7 +1610,7 @@ void xLightsFrame::SaveSequence()
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
-            spdlog::info("{}", (const char *) displayBuff.c_str());
+            spdlog::info(displayBuff.ToStdString());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             EnableSequenceControls(true);
             mSavedChangeCount = _sequenceElements.GetChangeCount();
@@ -1630,7 +1630,7 @@ void xLightsFrame::SaveSequence()
     }
     float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), display_name, elapsedTime);
-    spdlog::info("{}", (const char *)displayBuff.c_str());
+    spdlog::info(displayBuff.ToStdString());
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = _sequenceElements.GetChangeCount();

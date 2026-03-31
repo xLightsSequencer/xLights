@@ -4020,10 +4020,10 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "NewCustomModel", wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    spdlog::info("Saving to xmodel file {}.", (const char *)filename.c_str());
+    spdlog::info("Saving to xmodel file {}.", filename.ToStdString());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        DisplayError("Unable to create file "+filename+". Error "+std::to_string(f.GetLastError())+"\n");
+        DisplayError("Unable to create file " + filename.ToStdString() + ". Error " + std::to_string(f.GetLastError()) + "\n");
         return;
     }
     wxString name = wxFileName(filename).GetName();

@@ -82,8 +82,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../include/ffmpeg-6/include;..\include;..\include\zlib;..\xLights;..\xLights\utils;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;GL;$(VCToolsInstallDir)lib\x64</LibraryPath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../include/ffmpeg-6/include;..\include;..\include\zlib;..\xLights;..\xLights\utils;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include;$(VULKAN_SDK)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;GL;$(VCToolsInstallDir)lib\x64;$(VULKAN_SDK)\Lib</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>

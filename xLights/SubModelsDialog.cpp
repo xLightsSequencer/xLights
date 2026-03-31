@@ -3588,8 +3588,7 @@ void SubModelsDialog::ImportCSVSubModel(wxString const& filename)
         TextCtrl_Name->SetFocus();
         TextCtrl_Name->SelectAll();
     } else {
-        
-        spdlog::warn("Failed to Open File {}", (const char *)filename.c_str());
+        spdlog::warn("Failed to Open File {}", filename.ToStdString());
     }
 }
 

@@ -132,11 +132,11 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
     mEffect = effect_;
     EffectLayer* layer = mEffect->GetParentEffectLayer();
     if (layer == nullptr) {
-        spdlog::error("No layer found for effect {}", (const char *)mEffect->GetEffectName().c_str());
+        spdlog::error("No layer found for effect {}", mEffect->GetEffectName());
     }
     Element* elem = layer->GetParentElement();
     if (elem == nullptr) {
-        spdlog::error("No element found for effect {}", (const char *)mEffect->GetEffectName().c_str());
+        spdlog::error("No element found for effect {}", mEffect->GetEffectName());
     }
     std::string model_name = elem->GetModelName();
     mModel = xlights_parent->GetModel(model_name);
@@ -147,7 +147,7 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         }
     }
     if (mModel == nullptr) {
-        spdlog::error("No model found for effect {} for model {}", (const char *)mEffect->GetEffectName().c_str(), (const char *)model_name.c_str());
+        spdlog::error("No model found for effect {} for model {}", mEffect->GetEffectName(), model_name);
     }
     RefreshEffect();
 }

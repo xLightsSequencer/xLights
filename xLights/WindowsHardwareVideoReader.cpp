@@ -659,7 +659,7 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &dwFlags, &currentTime, &sample), "WHVD: Failed to read frame");
 
 #ifdef DETAILED_LOGGING
-        spdlog::info("Read flags: {:#08x}x : {}", dwFlags, (const char *)DecodeReadFlags(dwFlags).c_str());
+        spdlog::info("Read flags: {:#08x}x : {}", dwFlags, DecodeReadFlags(dwFlags));
 #endif
 
         if (FAILED(hr)) {
