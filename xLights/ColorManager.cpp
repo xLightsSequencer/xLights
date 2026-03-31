@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ColorManager.h"
+#include <wx/settings.h>
 #include "xLightsMain.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 

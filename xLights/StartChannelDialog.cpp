@@ -12,6 +12,7 @@
 #include <vector>
 
 //(*InternalHeaders(StartChannelDialog)
+#include <wx/settings.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)

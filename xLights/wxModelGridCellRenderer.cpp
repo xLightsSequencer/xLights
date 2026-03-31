@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "wxModelGridCellRenderer.h"
+#include <wx/settings.h>
 
 wxModelGridCellRenderer::wxModelGridCellRenderer(wxImage* image_, wxGrid& grid)
 : image(image_),

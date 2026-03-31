@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "LOROutput.h"
+#include <cstring>
 
 #include "serial.h"
 

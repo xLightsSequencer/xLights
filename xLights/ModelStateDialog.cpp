@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ModelStateDialog.h"
+#include <wx/settings.h>
 #include <wx/progdlg.h>
 #include "render/SequenceFile.h"
 #include "NodesGridCellEditor.h"

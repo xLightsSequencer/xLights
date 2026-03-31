@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "xxxSerialOutput.h"
+#include <cstring>
 #include "serial.h"
 
 #include "string_utils.h"

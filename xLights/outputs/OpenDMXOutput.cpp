@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "OpenDMXOutput.h"
+#include <cstring>
 
 #include "serial.h"
 

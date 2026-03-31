@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #endif
 
+#include <wx/settings.h>
 #include <wx/config.h>
 #include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>

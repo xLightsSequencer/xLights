@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <wx/settings.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
 #include <wx/choicdlg.h>

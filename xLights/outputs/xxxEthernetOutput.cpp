@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "xxxEthernetOutput.h"
+#include <cstring>
 
 #include <wx/process.h>
 

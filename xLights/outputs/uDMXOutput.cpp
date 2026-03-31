@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "uDMXOutput.h"
+#include <cstring>
 
 #include "Output.h"
 

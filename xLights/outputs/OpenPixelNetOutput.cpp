@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "OpenPixelNetOutput.h"
+#include <cstring>
 
 #include "serial.h"
 

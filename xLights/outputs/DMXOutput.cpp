@@ -12,6 +12,7 @@
 #include "DMXOutput.h"
 
 #include "serial.h"
+#include <cstring>
 
 #pragma region Constructors and Destructors
 DMXOutput::DMXOutput(const DMXOutput& from) : SerialOutput(from) {

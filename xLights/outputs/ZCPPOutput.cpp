@@ -11,6 +11,7 @@
 
 #ifdef LINUX
 #include <arpa/inet.h>
+#include <cstring>
 #endif
 #include <list>
 
@@ -34,6 +35,7 @@
 #endif
 
 #include <log.h>
+#include <wx/time.h>
 
 #pragma region Private Functions
 void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {

@@ -25,6 +25,7 @@
 #include "../../TimingPanel.h"
 #include "UtilFunctions.h"
 
+#include <wx/settings.h>
 #include <wx/statbmp.h>
 
  //(*InternalHeaders(ShaderPanel)

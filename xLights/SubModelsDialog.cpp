@@ -9,7 +9,8 @@
  **************************************************************/
 
  //(*InternalHeaders(SubModelsDialog)
- #include <wx/button.h>
+ #include <wx/settings.h>
+#include <wx/button.h>
  #include <wx/checkbox.h>
  #include <wx/choice.h>
  #include <wx/grid.h>

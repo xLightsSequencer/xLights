@@ -12,6 +12,7 @@
 #include "ControllerPropertyAdapter.h"
 #include "OutputPropertyAdapters.h"
 
+#include <wx/settings.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 

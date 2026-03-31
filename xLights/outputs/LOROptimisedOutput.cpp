@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "LOROptimisedOutput.h"
+#include <cstring>
 #include "Controller.h"
 #include "../OutputModelManager.h"
 #include "UtilFunctions.h"

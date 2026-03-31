@@ -6,6 +6,8 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+#include <wx/string.h>
+#include <wx/utils.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>

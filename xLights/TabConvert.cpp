@@ -12,6 +12,7 @@
 #include <sstream>
 #include <iomanip>
 
+#include <wx/settings.h>
 #include <wx/wx.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>

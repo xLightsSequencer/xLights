@@ -1,4 +1,5 @@
 #include "GenericSerialOutput.h"
+#include <cstring>
 
 #include "serial.h"
 

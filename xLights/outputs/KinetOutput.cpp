@@ -11,6 +11,7 @@
 
 
 #include "KinetOutput.h"
+#include <cstring>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"

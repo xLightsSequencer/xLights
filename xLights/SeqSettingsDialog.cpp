@@ -9,6 +9,7 @@
  **************************************************************/
 
 //(*InternalHeaders(SeqSettingsDialog)
+#include <wx/settings.h>
 #include <wx/bitmap.h>
 #include <wx/font.h>
 #include <wx/image.h>

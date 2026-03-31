@@ -10,6 +10,7 @@
 
 #include "wxUtilities.h"
 
+#include <wx/settings.h>
 #include <wx/wx.h>
 #include <wx/button.h>
 #include <wx/image.h>

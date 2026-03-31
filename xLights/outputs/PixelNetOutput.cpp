@@ -11,6 +11,7 @@
 #include "PixelNetOutput.h"
 
 #include "serial.h"
+#include <cstring>
 
 #pragma region Constructors and Destructors
 PixelNetOutput::PixelNetOutput(const PixelNetOutput& from) :
