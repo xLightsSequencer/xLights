@@ -20,7 +20,6 @@
 
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "xlImage.h"
 #include "string_utils.h"
 
 #include <mutex>
@@ -286,11 +285,6 @@ int GetExifOrientation(const std::string& filename) {
         }
     }
 
-    // Fallback: xlImage verifies decode success, but does not expose EXIF orientation metadata.
-    xlImage img;
-    if (img.LoadFromFile(filename)) {
-        return 1;
-    }
     return 1; // default
 }
 
