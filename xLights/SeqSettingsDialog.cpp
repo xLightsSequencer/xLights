@@ -592,8 +592,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
         ProcessSequenceType();
         ObtainAccessToURL(media);
 
-        wxFileName name_and_path(media);
-        MediaLoad(name_and_path);
+        MediaLoad(media);
         if (wizard_active) {
             EndModal(wxID_OK);
         }
@@ -898,7 +897,6 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
         path = TextCtrl_Xml_Media_File->GetValue();
         if (FileExists(path))
         {
-            wxFileName name_and_path(path);
             MediaLoad(path);
         }
     }
@@ -1609,10 +1607,10 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
     }
 }
 
-void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
+void SeqSettingsDialog::MediaLoad(const wxString& filename)
 {
-    xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
-    TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
+    xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), filename, CheckBox_Overwrite_Tags->IsChecked());
+    TextCtrl_Xml_Media_File->SetValue(filename);
     TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::SONG));
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
     TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ARTIST));
@@ -1664,7 +1662,7 @@ void SeqSettingsDialog::MediaChooser()
         name_and_path.SetPath(fDir);
 
         SetCursor(wxCURSOR_WAIT);
-        MediaLoad(name_and_path);
+        MediaLoad(name_and_path.GetFullPath());
         SetCursor(wxCURSOR_DEFAULT);
     }
 }

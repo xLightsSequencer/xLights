@@ -343,7 +343,7 @@ class SeqSettingsDialog: public wxDialog
         void WizardPage5();
         bool ImportDataLayer(const wxString& filetypes, ConvertLogDialog* plog);
         void SetHash();
-        void MediaLoad(wxFileName filename);
+        void MediaLoad(const wxString& filename);
 		bool UpdateSequenceTiming();
 		void ValidateWindow();
 };
