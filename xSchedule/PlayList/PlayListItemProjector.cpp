@@ -20,6 +20,7 @@
 #include "../md5.h"
 #include <log.h>
 #include "../../xLights/outputs/SerialOutput.h"
+#include "../../xLights/outputs/serial.h"
 #include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 

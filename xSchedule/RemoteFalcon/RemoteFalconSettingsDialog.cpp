@@ -17,6 +17,7 @@
 
 #include "RemoteFalconOptions.h"
 #include "xSchedule.h"
+#include <wx/menu.h>
 #include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 

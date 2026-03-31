@@ -6,6 +6,9 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/choicdlg.h>
+#include <wx/filedlg.h>
+#include <wx/log.h>
+#include <wx/msgdlg.h>
 
 #include "Settings.h"
 #include "SettingsDialog.h"

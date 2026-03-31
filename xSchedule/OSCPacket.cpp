@@ -16,6 +16,7 @@
 #include "../xLights/utils/ip_utils.h"
 #include <log.h>
 #include <wx/sckaddr.h>
+#include <wx/socket.h>
 #include <chrono>
 
 std::string OSCPacket::GetTypeChar(OSCTYPE type) {
