@@ -17,8 +17,8 @@
 #include <wx/event.h>    // wxDECLARE_EVENT, wxCommandEvent
 #include <wx/gdicmn.h>   // wxPoint, wxSize
 
-#include "Color.h"
-#include "UtilFunctions.h"
+#include "../utils/Color.h"
+#include "../utils/UtilFunctions.h"
 #include "../utils/xlImage.h"
 
 #include <nlohmann/json.hpp>
