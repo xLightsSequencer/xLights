@@ -19,6 +19,7 @@
 #include <log.h>
 
 #include "UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "../utils/nanosvg_xl.h"
 #include "../effects/ShaderEffect.h"

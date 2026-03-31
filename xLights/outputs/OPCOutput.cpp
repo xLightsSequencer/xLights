@@ -13,6 +13,7 @@
 #include <cstring>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../utils/ip_utils.h"
 
 #include <wx/process.h>

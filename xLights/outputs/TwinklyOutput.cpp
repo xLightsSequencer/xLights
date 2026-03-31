@@ -13,6 +13,7 @@
 #include <cstring>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 
 #include "../utils/CurlManager.h"
 #include <log.h>

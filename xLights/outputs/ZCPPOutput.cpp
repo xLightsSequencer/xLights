@@ -22,6 +22,7 @@
 #include "ZCPPOutput.h"
 #include "OutputManager.h"
 #include "UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "ControllerEthernet.h"
 #include "../models/OutputModelManager.h"
 #include "utils/ExternalHooks.h"
