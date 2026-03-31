@@ -18,11 +18,6 @@
 #include "UtilFunctions.h"
 #include "Output.h"
 
-#ifndef EXCLUDENETWORKUI
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#endif
-
 class OutputManager;
 class OutputModelManager;
 class ModelManager;
@@ -86,11 +81,6 @@ public:
     #pragma endregion
 
     #pragma region Static Functions
-#ifndef EXCLUDENETWORKUI
-    // encodes/decodes string lists to indices (UI helper)
-    static int EncodeChoices(const wxPGChoices& choices, const std::string& choice);
-    static std::string DecodeChoices(const wxPGChoices& choices, int choice);
-#endif
     static Controller::ACTIVESTATE EncodeActiveState(const std::string& state);
     static std::string DecodeActiveState(Controller::ACTIVESTATE state);
 

@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <unordered_set>
+
 #include "Experience.h"
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"

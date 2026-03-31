@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "ControllerPropertyAdapter.h"
+#include "OutputPropertyAdapters.h"
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -29,11 +30,19 @@ ControllerPropertyAdapter::ControllerPropertyAdapter(Controller& controller)
 }
 
 int ControllerPropertyAdapter::EncodeChoices(const wxPGChoices& choices, const std::string& choice) {
-    return Controller::EncodeChoices(choices, choice);
+    wxString c(choice);
+    c.MakeLower();
+    for (size_t i = 0; i < choices.GetCount(); i++) {
+        if (choices[i].GetText().Lower() == c) return i;
+    }
+    return -1;
 }
 
 std::string ControllerPropertyAdapter::DecodeChoices(const wxPGChoices& choices, int choice) {
-    return Controller::DecodeChoices(choices, choice);
+    if (choice < 0 || choice >= (int)choices.GetCount()) {
+        return "";
+    }
+    return choices[choice].GetText().ToStdString();
 }
 
 void ControllerPropertyAdapter::AddModels(wxPGProperty* p, wxPGProperty* vp) {
@@ -446,6 +455,7 @@ void ControllerPropertyAdapter::ValidateProperties(OutputManager* om, wxProperty
 
 void ControllerPropertyAdapter::HandleExpanded(wxPropertyGridEvent& event, bool expanded) {
     if (_controller.GetOutputCount() > 0) {
-        _controller.GetFirstOutput()->HandleExpanded(event, expanded);
+        auto adapter = OutputPropertyAdapter::Create(*_controller.GetFirstOutput());
+        adapter->HandleExpanded(event, expanded);
     }
 }

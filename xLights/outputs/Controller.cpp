@@ -308,26 +308,6 @@ bool Controller::UpdateFrom(Controller* from)
 #pragma endregion
 
 #pragma region Static Functions
-#ifndef EXCLUDENETWORKUI
-int Controller::EncodeChoices(const wxPGChoices& choices, const std::string& choice) {
-    wxString c(choice);
-    c.MakeLower();
-
-    for (size_t i = 0; i < choices.GetCount(); i++) {
-        if (choices[i].GetText().Lower() == c) return i;
-    }
-    return -1;
-}
-
-std::string Controller::DecodeChoices(const wxPGChoices& choices, int choice)
-{
-    if (choice < 0 || choice >= (int)choices.GetCount()) {
-        return "";
-    }
-    return choices[choice].GetText();
-}
-#endif
-
 Controller::ACTIVESTATE Controller::EncodeActiveState(const std::string& state)
 {
     if (state == "Active") return ACTIVESTATE::ACTIVE;

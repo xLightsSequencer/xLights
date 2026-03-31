@@ -13,6 +13,7 @@
 #include <wx/thread.h>
 #include <pugixml.hpp>
 
+#include <functional>
 #include <list>
 #include <map>
 #include <string>
@@ -57,6 +58,9 @@ class OutputManager
     static int _currentSecondCount;
     static bool _isRetryOpen;
     static bool _isInteractive;
+    // Callback for user confirmation prompts (replaces wxMessageBox in non-UI code)
+    // Returns true if user confirms (Yes), false otherwise
+    static std::function<bool(const std::string& message, const std::string& title)> _confirmCallback;
     #pragma endregion 
 
     #pragma region Private Functions
@@ -87,6 +91,12 @@ public:
     static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
     static bool IsInteractive() { return _isInteractive; }
     static void SetInteractive(bool interactive) { _isInteractive = interactive; }
+    static void SetConfirmCallback(std::function<bool(const std::string&, const std::string&)> cb) { _confirmCallback = std::move(cb); }
+    // Ask user for confirmation. Returns true if confirmed, false if declined or non-interactive.
+    static bool Confirm(const std::string& message, const std::string& title) {
+        if (_isInteractive && _confirmCallback) return _confirmCallback(message, title);
+        return false;
+    }
     static std::vector<std::string> GetExportHeaders();
     #pragma endregion
 

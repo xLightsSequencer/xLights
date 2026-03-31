@@ -632,6 +632,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     CurlManager::INSTANCE.setYieldFunction([] { wxYieldIfNeeded(); });
 
+    OutputManager::SetConfirmCallback([](const std::string& message, const std::string& title) -> bool {
+        return wxMessageBox(message, title, wxICON_QUESTION | wxYES_NO) == wxYES;
+    });
+
     ValueCurve::SetSequenceElements(&_sequenceElements);
 
     _exiting = false;

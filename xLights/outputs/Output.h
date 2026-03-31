@@ -24,11 +24,6 @@ class OutputModelManager;
 class ControllerEthernet;
 class Controller;
 
-#ifndef EXCLUDENETWORKUI
-class wxPGProperty;
-class wxPropertyGrid;
-class wxPropertyGridEvent;
-#endif
 
 #pragma region Output Constants
 // These are used to identify each output type
@@ -232,13 +227,4 @@ public:
 
     virtual void SendHeartbeat() const {}
 
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {}
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) { }
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) {}
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) { return false; }
-    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) {}
-    #endif
-    #pragma endregion UI
 };

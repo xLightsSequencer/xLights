@@ -16,6 +16,7 @@
 #include <string.h>
 #include <cctype>
 #include <thread>
+#include <unordered_set>
 #include <cinttypes>
 #include <format>
 

@@ -14,8 +14,6 @@
 
 #include <format>
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #pragma region Constructors and Destructors
 NullOutput::NullOutput(pugi::xml_node node) : Output(node) {

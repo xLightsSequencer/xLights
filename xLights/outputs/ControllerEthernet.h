@@ -18,22 +18,13 @@
 
 #include "Controller.h"
 #include "IPOutput.h"
-#include <wx/propgrid/propgrid.h>
 
 class Output;
 
 // An ethernet controller sends data to a unique IP address
 class ControllerEthernet : public Controller
 {
-private:
-    void SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager);
-
 protected:
-
-#pragma region Property Choices
-    static wxPGChoices __types;
-    static void InitialiseTypes(bool forceXXX);
-#pragma endregion
 
 #pragma region Member Variables
     std::string _ip;
@@ -102,8 +93,6 @@ public:
     void SetVersion(int version);
 
     bool AllSameSize() const;
-
-    wxPGChoices GetProtocols() const;
 
     void SetForceSizes(bool force) { if (_forceSizes != force) { _forceSizes = force; _dirty = true; } }
 
@@ -183,9 +172,7 @@ public:
 #pragma region UI
     // UI property grid methods moved to ui/controllerproperties/ControllerEthernetPropertyAdapter
     bool SupportsUniversePerString() const;
-    #ifndef EXCLUDENETWORKUI
     virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}, uint32_t universeSize = 510) override;
-    #endif
 
     #ifndef EXCLUDEDISCOVERY
         void SetAllSameSize(bool allSame, OutputModelManager* omm);

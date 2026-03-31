@@ -706,7 +706,6 @@ bool TwinklyOutput::GetLayout(std::vector<std::tuple<float, float, float>>& resu
     return GetLayout(_ip, result, is3D);
 }
 
-#ifndef EXCLUDENETWORKUI
 nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP)
 {
     
@@ -797,7 +796,6 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
 
     return val;
 }
-#endif
 
 void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
 {
@@ -859,66 +857,3 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
 #pragma endregion
 
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-
-#include "OutputModelManager.h"
-void TwinklyOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller *c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
-    auto p = propertyGrid->GetProperty("HTTPPort");
-    if (p) {
-        p->SetValue(GetHttpPort());
-    }
-    p = propertyGrid->GetProperty("Channels");
-    if (p) {
-        p->SetValue(GetChannels());
-        if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
-        } else {
-            p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPGFlags::ReadOnly , false);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            p->SetHelpString("");
-        }
-    }
-}
-void TwinklyOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
-    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
-    auto p = propertyGrid->Insert(before, new wxUIntProperty("HTTP Port", "HTTPPort", 80));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 65535);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("Twinkly normally listens on port 80 but you may want to change the port if using Artnet To Twinkly.");
-    
-    p = propertyGrid->Insert(before, new wxUIntProperty("Channels", "Channels", GetChannels()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", GetMaxChannels());
-}
-void TwinklyOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
-    IPOutput::RemoveProperties(propertyGrid);
-    propertyGrid->DeleteProperty("HTTPPort");
-    propertyGrid->DeleteProperty("Channels");
-}
-bool TwinklyOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c) {
-    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) {
-        return true;
-    }
-    wxString const name = event.GetPropertyName();
-    if (name == "HTTPPort") {
-        SetHttpPort(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "TwinklyOutput::HandlePropertyEvent::HTTPPort");
-        return true;
-    } else if (name == "Channels") {
-        SetChannels(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "TwinklyOutput::HandlePropertyEvent::Channels");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "TwinklyOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "TwinklyOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "TwinklyOutput::HandlePropertyEvent::Channels", nullptr);
-        return true;
-    }
-    return false;
-}
-#endif
-#pragma endregion UI

@@ -11,8 +11,6 @@
 
 // Based on the protocol as described at http://www.3waylabs.com/ddp/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include "DDPOutput.h"
 #include "OutputManager.h"
@@ -179,7 +177,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
     }
 }
 
-#ifndef EXCLUDENETWORKUI
+#ifndef EXCLUDEDISCOVERY
 nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP) {
     
 
@@ -600,72 +598,3 @@ void DDPOutput::AllOff() {
 }
 #pragma endregion
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-void DDPOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
-    auto p = propertyGrid->GetProperty("Channels");
-    if (p) {
-        p->SetValue(GetChannels());
-        if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
-        } else {
-            p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPGFlags::ReadOnly , false);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            p->SetHelpString("");
-        }
-    }
-}
-void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
-{
-    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
-    auto p = propertyGrid->Insert(before, new wxUIntProperty("Channels Per Packet", "ChannelsPerPacket", GetChannelsPerPacket()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 1440);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("It would be very rare that you would ever want to change this from the default.");
-
-    p = propertyGrid->Insert(before, new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", IsKeepChannelNumbers()));
-    p->SetEditor("CheckBox");
-    p->SetHelpString("When not selected DDP data arrives at each controller looking like it starts at channel 1. When selected it arrives with the xLights channel number.");
-    
-    p = propertyGrid->Insert(before, new wxUIntProperty("Channels", "Channels", GetChannels()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", GetMaxChannels());
-}
-
-bool DDPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
-    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
-    wxString const name = event.GetPropertyName();
-
-    if (name == "ChannelsPerPacket") {
-        SetChannelsPerPacket(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::ChannelsPerPacket");
-        return true;
-    } else if (name == "KeepChannelNumbers") {
-        SetKeepChannelNumber(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::KeepChannelNumbers");
-        return true;
-    } else if (name == "Channels") {
-        SetChannels(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::Channels");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DDPOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DDPOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DDPOutput::HandlePropertyEvent::Channels", nullptr);
-        return true;
-    }
-
-    return false;
-}
-void DDPOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
-    IPOutput::RemoveProperties(propertyGrid);
-    propertyGrid->DeleteProperty("ChannelsPerPacket");
-    propertyGrid->DeleteProperty("KeepChannelNumbers");
-    propertyGrid->DeleteProperty("Channels");
-}
-
-#endif
-#pragma endregion UI

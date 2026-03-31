@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "ControllerEthernetPropertyAdapter.h"
+#include "OutputPropertyAdapters.h"
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -33,7 +34,58 @@
 #include "models/ModelManager.h"
 #include "models/Model.h"
 
+#include "SpecialOptions.h"
+
 #include <log.h>
+
+static wxPGChoices __ethernetTypes;
+
+static void InitialiseEthernetTypes(bool forceXXX) {
+    if (__ethernetTypes.GetCount() == 0) {
+        __ethernetTypes.Add(OUTPUT_E131);
+        __ethernetTypes.Add(OUTPUT_ZCPP);
+        __ethernetTypes.Add(OUTPUT_ARTNET);
+        __ethernetTypes.Add(OUTPUT_DDP);
+        __ethernetTypes.Add(OUTPUT_OPC);
+        __ethernetTypes.Add(OUTPUT_KINET);
+        if (SpecialOptions::GetOption("xxx") == "true" || forceXXX) {
+            __ethernetTypes.Add(OUTPUT_xxxETHERNET);
+        }
+        __ethernetTypes.Add(OUTPUT_TWINKLY);
+        __ethernetTypes.Add(OUTPUT_PLAYER_ONLY);
+    } else if (forceXXX) {
+        bool found = false;
+        for (size_t i = 0; i < __ethernetTypes.GetCount(); i++) {
+            if (__ethernetTypes.GetLabel(i) == OUTPUT_xxxETHERNET) { found = true; break; }
+        }
+        if (!found) __ethernetTypes.Add(OUTPUT_xxxETHERNET);
+    }
+}
+
+static wxPGChoices GetEthernetProtocols(const ControllerEthernet& ethernet) {
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(&ethernet);
+    if (caps == nullptr) {
+        InitialiseEthernetTypes(ethernet.GetProtocol() == OUTPUT_xxxETHERNET);
+        return __ethernetTypes;
+    }
+    wxPGChoices types;
+    for (const auto& it : caps->GetInputProtocols()) {
+        if (it == "e131") types.Add(OUTPUT_E131);
+        else if (it == "zcpp") types.Add(OUTPUT_ZCPP);
+        else if (it == "artnet") types.Add(OUTPUT_ARTNET);
+        else if (it == "kinet") types.Add(OUTPUT_KINET);
+        else if (it == "ddp") types.Add(OUTPUT_DDP);
+        else if (it == "opc") types.Add(OUTPUT_OPC);
+        else if (it == "player only") types.Add(OUTPUT_PLAYER_ONLY);
+        else if (it == "twinkly") types.Add(OUTPUT_TWINKLY);
+        else if (it == "xxx ethernet") {
+            if (SpecialOptions::GetOption("xxx") == "true" || ethernet.GetProtocol() == OUTPUT_xxxETHERNET) {
+                types.Add(OUTPUT_xxxETHERNET);
+            }
+        }
+    }
+    return types;
+}
 
 ControllerEthernetPropertyAdapter::ControllerEthernetPropertyAdapter(Controller& controller)
     : ControllerPropertyAdapter(controller)
@@ -206,7 +258,7 @@ void ControllerEthernetPropertyAdapter::UpdateProperties(wxPropertyGrid* propert
 
     wxPGProperty* p = propertyGrid->GetProperty("Protocol");
     if (p) {
-        wxPGChoices protocols = _ethernet.GetProtocols();
+        wxPGChoices protocols = GetEthernetProtocols(_ethernet);
         p->SetChoices(protocols);
         if (EncodeChoices(protocols, protocol) == -1) {
             p->SetChoiceSelection(0);
@@ -301,7 +353,8 @@ void ControllerEthernetPropertyAdapter::UpdateProperties(wxPropertyGrid* propert
 
     auto const& outputs = _ethernet.GetOutputs();
     if (outputs.size() >= 1) {
-        outputs.front()->UpdateProperties(propertyGrid, &_ethernet, modelManager, expandProperties);
+        auto adapter = OutputPropertyAdapter::Create(*outputs.front());
+        adapter->UpdateProperties(propertyGrid, &_ethernet, modelManager, expandProperties);
     }
 }
 
@@ -321,7 +374,7 @@ void ControllerEthernetPropertyAdapter::AddProperties(wxPropertyGrid* propertyGr
     p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", _ethernet.GetControllerFPPProxy()));
     p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
 
-    auto protocols = _ethernet.GetProtocols();
+    auto protocols = GetEthernetProtocols(_ethernet);
     p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, protocol)));
 
     auto ips = GetLocalIPs();
@@ -350,7 +403,8 @@ void ControllerEthernetPropertyAdapter::AddProperties(wxPropertyGrid* propertyGr
     bool allSameSize = _ethernet.AllSameSize();
     auto const& outputs = _ethernet.GetOutputs();
     if (outputs.size() >= 1) {
-        outputs.front()->AddProperties(propertyGrid, p2, &_ethernet, allSameSize, expandProperties);
+        auto adapter = OutputPropertyAdapter::Create(*outputs.front());
+        adapter->AddProperties(propertyGrid, p2, &_ethernet, allSameSize, expandProperties);
     }
 }
 
@@ -407,7 +461,7 @@ bool ControllerEthernetPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerEthernet::HandlePropertyEvent::Managed");
         return true;
     } else if (name == "Protocol") {
-        auto protocols = _ethernet.GetProtocols();
+        auto protocols = GetEthernetProtocols(_ethernet);
         wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
         SetProtocolAndRebuildProperties(DecodeChoices(protocols, event.GetValue().GetLong()), grid, outputModelManager);
         return true;
@@ -473,13 +527,16 @@ bool ControllerEthernetPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
 
     auto const& outputs = _ethernet.GetOutputs();
     if (outputs.size() == 1) {
-        if (outputs.front()->HandlePropertyEvent(event, outputModelManager, &_ethernet)) return true;
+        auto adapter = OutputPropertyAdapter::Create(*outputs.front());
+        if (adapter->HandlePropertyEvent(event, outputModelManager, &_ethernet)) return true;
     } else if (outputs.size() > 1) {
         auto it = outputs.begin();
-        if ((*it)->HandlePropertyEvent(event, outputModelManager, &_ethernet)) {
+        auto adapter = OutputPropertyAdapter::Create(**it);
+        if (adapter->HandlePropertyEvent(event, outputModelManager, &_ethernet)) {
             ++it;
             while (it != outputs.end()) {
-                (*it)->HandlePropertyEvent(event, outputModelManager, &_ethernet);
+                auto a = OutputPropertyAdapter::Create(**it);
+                a->HandlePropertyEvent(event, outputModelManager, &_ethernet);
                 ++it;
             }
             return true;
@@ -610,14 +667,16 @@ void ControllerEthernetPropertyAdapter::ValidateProperties(OutputManager* om, wx
 void ControllerEthernetPropertyAdapter::SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
     auto const& outputs = _ethernet.GetOutputs();
     if (outputs.size() > 0) {
-        outputs.front()->RemoveProperties(grid);
+        auto adapter = OutputPropertyAdapter::Create(*outputs.front());
+        adapter->RemoveProperties(grid);
     }
     _ethernet.SetProtocol(protocol);
 
     if (_ethernet.GetOutputCount() > 0) {
         std::list<wxPGProperty*> expandProperties;
         auto before = grid->GetProperty("Managed");
-        _ethernet.GetFirstOutput()->AddProperties(grid, before, &_ethernet, _ethernet.AllSameSize(), expandProperties);
+        auto adapter = OutputPropertyAdapter::Create(*_ethernet.GetFirstOutput());
+        adapter->AddProperties(grid, before, &_ethernet, _ethernet.AllSameSize(), expandProperties);
     }
     outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
     outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);

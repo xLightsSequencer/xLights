@@ -35,85 +35,7 @@
 
 #include <log.h>
 
-#pragma region Property Choices
-wxPGChoices ControllerSerial::__types;
-wxPGChoices ControllerSerial::__ports;
-wxPGChoices ControllerSerial::__speeds;
-
-wxPGChoices ControllerSerial::GetProtocols() const
-{
-    ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
-
-    if (caps == nullptr) return __types;
-
-    wxPGChoices types;
-    for (const auto& it : caps->GetInputProtocols()) {
-        if (it == "dmx") types.Add(OUTPUT_DMX);
-        else if (it == "lor") types.Add(OUTPUT_LOR);
-        else if (it == "lor optimised") types.Add(OUTPUT_LOR_OPT);
-        else if (it == "opendmx") types.Add(OUTPUT_OPENDMX);
-        else if (it == "pixelnet") types.Add(OUTPUT_PIXELNET);
-        else if (it == "openpixelnet") types.Add(OUTPUT_OPENPIXELNET);
-        else if (it == "renard") types.Add(OUTPUT_RENARD);
-        else if (it == "dlight") types.Add(OUTPUT_DLIGHT);
-        else if (it == "generic serial") types.Add(OUTPUT_GENERICSERIAL);
-        else if (it == "xxx serial") {
-            if (SpecialOptions::GetOption("xxx") == "true" || GetProtocol() == OUTPUT_xxxSERIAL) {
-                types.Add(OUTPUT_xxxSERIAL);
-            }
-        } else if (it == "ddp-input") {
-            for (const auto& it2 : caps->GetSerialProtocols()) {
-                types.Add(it2);
-            }
-        }
-    }
-    return types;
-}
-
-void ControllerSerial::InitialiseTypes(bool forceXXX) {
-
-    if (__types.GetCount() == 0) {
-        __types.Add(OUTPUT_DMX);
-        __types.Add(OUTPUT_LOR);
-        __types.Add(OUTPUT_LOR_OPT);
-        __types.Add(OUTPUT_OPENDMX);
-        __types.Add(OUTPUT_PIXELNET);
-        __types.Add(OUTPUT_OPENPIXELNET);
-        __types.Add(OUTPUT_RENARD);
-        __types.Add(OUTPUT_DLIGHT);
-        __types.Add(OUTPUT_GENERICSERIAL);
-        if (forceXXX || SpecialOptions::GetOption("xxx") == "true") {
-            __types.Add(OUTPUT_xxxSERIAL);
-        }
-    }
-    else if (forceXXX) {
-        bool found = false;
-        for (size_t i = 0; i < __types.GetCount(); i++) {
-            if (__types.GetLabel(i) == OUTPUT_xxxSERIAL) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            __types.Add(OUTPUT_xxxSERIAL);
-        }
-    }
-
-    if (__speeds.GetCount() == 0) {
-        auto s = SerialOutput::GetPossibleBaudRates();
-        for (const auto& it : s) {
-            __speeds.Add(it);
-        }
-    }
-
-    if (__ports.GetCount() == 0) {
-        auto p = SerialOutput::GetPossibleSerialPorts();
-        for (const auto& it : p) {
-            __ports.Add(it);
-        }
-    }
-}
-#pragma endregion
+// Property choices moved to ui/controllerproperties/ControllerSerialPropertyAdapter
 
 #pragma region Constructors and Destructors
 std::vector<uint8_t> ControllerSerial::Encode(const std::string& s)
@@ -184,7 +106,7 @@ ControllerSerial::ControllerSerial(OutputManager* om, pugi::xml_node node, const
     _type = node.attribute("Protocol").as_string("");
     _serialOutput = dynamic_cast<SerialOutput*>(_outputs.front());
     _serialOutput->SetId(GetId());
-    InitialiseTypes(_type == OUTPUT_xxxSERIAL);
+    // Property choice initialization moved to ControllerSerialPropertyAdapter
     SetSpeed(node.attribute("Speed").as_int(0));
     SetPrefix(node.attribute("Prefix").as_string(""));
     SetPostfix(node.attribute("Postfix").as_string(""));
@@ -195,7 +117,7 @@ ControllerSerial::ControllerSerial(OutputManager* om, pugi::xml_node node, const
 }
 
 ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
-    InitialiseTypes(false);
+    // Property choice initialization moved to ControllerSerialPropertyAdapter
     _name = om->UniqueName("Serial_");
     _serialOutput = new DMXOutput();
     _serialOutput->SetChannels(512);
@@ -420,9 +342,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
         o = new LOROutput();
     } else if (type == OUTPUT_LOR_OPT) {
         o = new LOROptimisedOutput();
-#ifndef EXCLUDENETWORKUI
         SetAutoSize(false, nullptr);
-#endif
     } else if (type == OUTPUT_OPENDMX) {
         o = new OpenDMXOutput();
     } else if (type == OUTPUT_OPENPIXELNET) {
@@ -433,9 +353,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
         o = new PixelNetOutput();
     } else if (type == OUTPUT_xxxSERIAL) {
         o = new xxxSerialOutput();
-#ifndef EXCLUDENETWORKUI
         SetAutoSize(false, nullptr);
-#endif
     } else if (type == OUTPUT_GENERICSERIAL) {
         o = new GenericSerialOutput();
     } else {
@@ -527,7 +445,7 @@ void ControllerSerial::Convert(pugi::xml_node node, std::string showDir) {
         _type = _serialOutput->GetType();
         _id = _serialOutput->GetUniverse();
         if (GetProtocol() == OUTPUT_xxxSERIAL) {
-            InitialiseTypes(true);
+            // xxx serial type - adapter handles protocol choices initialization
         }
     }
 }

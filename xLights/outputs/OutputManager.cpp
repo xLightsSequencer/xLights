@@ -10,10 +10,7 @@
  **************************************************************/
 
 #include <pugixml.hpp>
-#include <wx/msgdlg.h>
 #include <wx/config.h>
-#include <wx/filename.h>
-#include <wx/dir.h>
 
 #include "IPOutput.h"
 #include "OutputManager.h"
@@ -32,8 +29,6 @@
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "utils/ip_utils.h"
-#include <wx/regex.h>
-
 #include <format>
 #include <numeric>
 
@@ -47,6 +42,7 @@ int OutputManager::_currentSecondCount = 0;
 bool OutputManager::__isSync = false;
 bool OutputManager::_isRetryOpen = false;
 bool OutputManager::_isInteractive = true;
+std::function<bool(const std::string&, const std::string&)> OutputManager::_confirmCallback;
 #pragma endregion
 
 #pragma region Private Functions
@@ -368,7 +364,7 @@ bool OutputManager::MergeFromBase(bool prompt)
 
                     bool force = false;
                     if (prompt && !it->IsFromBase()) {
-                        force = wxMessageBox(wxString::Format("Controller %s found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash", wxICON_QUESTION | wxYES_NO, nullptr) == wxYES;
+                        force = Confirm(std::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash");
                     }
 
                     // we only update if controller originally came from base
@@ -1193,8 +1189,8 @@ bool OutputManager::StartOutput() {
             if (name == "") name = it->GetCommPort();
 
             spdlog::error("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
-            if (OutputManager::IsInteractive()) {
-                if (wxMessageBox(wxString::Format(wxT("An error occurred opening output %d (%s). Do you want to continue trying to start output?"), started + 1, name), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            if (!Confirm(std::format("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, name), "Continue?")) {
+                return _outputting;
             }
             err = true;
         }

@@ -27,84 +27,22 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
-#ifndef EXCLUDENETWORKUI
 #include "../models/Model.h"
-#endif
 #include "../utils/ip_utils.h"
 
-#ifndef EXCLUDENETWORKUI
 #include "../xLightsMain.h"
-#endif
 
 #include <format>
 
 #include <log.h>
 
-#pragma region Property Choices
-wxPGChoices ControllerEthernet::__types;
-
-wxPGChoices ControllerEthernet::GetProtocols() const
-{
-    ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
-
-    if (caps == nullptr) return __types;
-
-    wxPGChoices types;
-    for (const auto& it : caps->GetInputProtocols()) {
-        if (it == "e131") types.Add(OUTPUT_E131);
-        else if (it == "zcpp") types.Add(OUTPUT_ZCPP);
-        else if (it == "artnet") types.Add(OUTPUT_ARTNET);
-        else if (it == "kinet") types.Add(OUTPUT_KINET);
-        else if (it == "ddp") types.Add(OUTPUT_DDP);
-        else if (it == "opc") types.Add(OUTPUT_OPC);
-        else if (it == "player only")
-            types.Add(OUTPUT_PLAYER_ONLY);
-        else if (it == "twinkly")
-            types.Add(OUTPUT_TWINKLY);
-        else if (it == "xxx ethernet") {
-            if (SpecialOptions::GetOption("xxx") == "true" || GetProtocol() == OUTPUT_xxxETHERNET) {
-                types.Add(OUTPUT_xxxETHERNET);
-            }
-        }
-    }
-    return types;
-}
-
-void ControllerEthernet::InitialiseTypes(bool forceXXX) {
-
-    if (__types.GetCount() == 0) {
-        __types.Add(OUTPUT_E131);
-        __types.Add(OUTPUT_ZCPP);
-        __types.Add(OUTPUT_ARTNET);
-        __types.Add(OUTPUT_DDP);
-        __types.Add(OUTPUT_OPC);
-        __types.Add(OUTPUT_KINET);
-        if (SpecialOptions::GetOption("xxx") == "true" || forceXXX) {
-            __types.Add(OUTPUT_xxxETHERNET);
-        }
-        __types.Add(OUTPUT_TWINKLY);
-        __types.Add(OUTPUT_PLAYER_ONLY);
-    }
-    else if (forceXXX) {
-        bool found = false;
-        for (size_t i = 0; i < __types.GetCount(); i++) {
-            if (__types.GetLabel(i) == OUTPUT_xxxETHERNET) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            __types.Add(OUTPUT_xxxETHERNET);
-        }
-    }
-}
-#pragma endregion
+// Property choices moved to ui/controllerproperties/ControllerEthernetPropertyAdapter
 
 #pragma region Constructors and Destructors
 ControllerEthernet::ControllerEthernet(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
 
     _type = node.attribute("Protocol").as_string("");
-    InitialiseTypes(_type == OUTPUT_xxxETHERNET);
+    // Property choice initialization moved to ControllerEthernetPropertyAdapter
     SetIP(node.attribute("IP").as_string(""));
     SetFPPProxy(node.attribute("FPPProxy").as_string(""));
     SetPriority(node.attribute("Priority").as_int(100));
@@ -118,7 +56,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, pugi::xml_node node, c
 ControllerEthernet::ControllerEthernet(OutputManager* om, bool acceptDuplicates) : Controller(om) {
 
     _managed = !acceptDuplicates;
-    InitialiseTypes(false);
+    // Property choice initialization moved to ControllerEthernetPropertyAdapter
     _name = (om == nullptr) ? "Dummy" : om->UniqueName("Ethernet_");
     _type = OUTPUT_E131;
     _expanded = false;
@@ -603,7 +541,7 @@ void ControllerEthernet::Convert(pugi::xml_node node, std::string showDir) {
             _priority = dynamic_cast<ZCPPOutput*>(_outputs.front())->GetPriority();
         }
         else if (_type == OUTPUT_xxxETHERNET) {
-            InitialiseTypes(true);
+            // xxx ethernet type - adapter handles protocol choices initialization
         }
     }
 
@@ -825,7 +763,6 @@ bool ControllerEthernet::SupportsUpload() const {
 
 #pragma region UI
 
-#ifndef EXCLUDENETWORKUI
 bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
     
@@ -990,7 +927,6 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
     }
     return true;
 }
-#endif // EXCLUDENETWORKUI
 
 bool ControllerEthernet::SupportsUniversePerString() const
 {
@@ -1051,13 +987,11 @@ void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)
                 it->SetChannels(_outputs.front()->GetChannels());
             }
         }
-#ifndef EXCLUDENETWORKUI
         if (omm != nullptr) {
             omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE |
                              OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES, "ControllerEthernet::SetAllSameSize");
             omm->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::SetAllSameSize", nullptr);
         }
-#endif
     }
 }
 

@@ -15,7 +15,6 @@
 #include <string>
 
 #include "Controller.h"
-#include <wx/propgrid/propgrid.h>
 
 class Output;
 class SerialOutput;
@@ -24,13 +23,6 @@ class SerialOutput;
 class ControllerSerial : public Controller
 {
 protected:
-
-#pragma region Property Choices
-    static wxPGChoices __types;
-    static wxPGChoices __ports;
-    static wxPGChoices __speeds;
-    static void InitialiseTypes(bool forceXXX);
-#pragma endregion
 
 #pragma region Member Variables
     std::string _port;
@@ -83,10 +75,6 @@ public:
     std::string GetControllerFPPProxy() const { return _fppProxy; }
 
     SerialOutput* GetSerialOutput() const { return _serialOutput; }
-
-    wxPGChoices GetProtocols() const;
-    wxPGChoices GetPortChoices() const { return __ports; }
-    wxPGChoices GetSpeedChoices() const { return __speeds; }
 
 #pragma endregion
 

@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "ControllerSerialPropertyAdapter.h"
+#include "OutputPropertyAdapters.h"
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -22,7 +23,68 @@
 #include "OutputModelManager.h"
 #include "controllers/ControllerCaps.h"
 #include "UtilFunctions.h"
+#include "SpecialOptions.h"
 #include "models/ModelManager.h"
+
+static wxPGChoices __serialTypes;
+static wxPGChoices __serialPorts;
+static wxPGChoices __serialSpeeds;
+
+static void InitialiseSerialTypes(bool forceXXX) {
+    if (__serialTypes.GetCount() == 0) {
+        __serialTypes.Add(OUTPUT_DMX);
+        __serialTypes.Add(OUTPUT_LOR);
+        __serialTypes.Add(OUTPUT_LOR_OPT);
+        __serialTypes.Add(OUTPUT_OPENDMX);
+        __serialTypes.Add(OUTPUT_PIXELNET);
+        __serialTypes.Add(OUTPUT_OPENPIXELNET);
+        __serialTypes.Add(OUTPUT_RENARD);
+        __serialTypes.Add(OUTPUT_DLIGHT);
+        __serialTypes.Add(OUTPUT_GENERICSERIAL);
+        if (forceXXX || SpecialOptions::GetOption("xxx") == "true") {
+            __serialTypes.Add(OUTPUT_xxxSERIAL);
+        }
+    } else if (forceXXX) {
+        bool found = false;
+        for (size_t i = 0; i < __serialTypes.GetCount(); i++) {
+            if (__serialTypes.GetLabel(i) == OUTPUT_xxxSERIAL) { found = true; break; }
+        }
+        if (!found) __serialTypes.Add(OUTPUT_xxxSERIAL);
+    }
+    if (__serialSpeeds.GetCount() == 0) {
+        for (const auto& it : SerialOutput::GetPossibleBaudRates()) __serialSpeeds.Add(it);
+    }
+    if (__serialPorts.GetCount() == 0) {
+        for (const auto& it : SerialOutput::GetPossibleSerialPorts()) __serialPorts.Add(it);
+    }
+}
+
+static wxPGChoices GetSerialProtocols(const ControllerSerial& serial) {
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(&serial);
+    if (caps == nullptr) {
+        InitialiseSerialTypes(serial.GetProtocol() == OUTPUT_xxxSERIAL);
+        return __serialTypes;
+    }
+    wxPGChoices types;
+    for (const auto& it : caps->GetInputProtocols()) {
+        if (it == "dmx") types.Add(OUTPUT_DMX);
+        else if (it == "lor") types.Add(OUTPUT_LOR);
+        else if (it == "lor optimised") types.Add(OUTPUT_LOR_OPT);
+        else if (it == "opendmx") types.Add(OUTPUT_OPENDMX);
+        else if (it == "pixelnet") types.Add(OUTPUT_PIXELNET);
+        else if (it == "openpixelnet") types.Add(OUTPUT_OPENPIXELNET);
+        else if (it == "renard") types.Add(OUTPUT_RENARD);
+        else if (it == "dlight") types.Add(OUTPUT_DLIGHT);
+        else if (it == "generic serial") types.Add(OUTPUT_GENERICSERIAL);
+        else if (it == "xxx serial") {
+            if (SpecialOptions::GetOption("xxx") == "true" || serial.GetProtocol() == OUTPUT_xxxSERIAL)
+                types.Add(OUTPUT_xxxSERIAL);
+        } else if (it == "ddp-input") {
+            for (const auto& it2 : caps->GetSerialProtocols()) types.Add(it2);
+        }
+    }
+    return types;
+}
 
 ControllerSerialPropertyAdapter::ControllerSerialPropertyAdapter(Controller& controller)
     : ControllerPropertyAdapter(controller)
@@ -65,7 +127,7 @@ void ControllerSerialPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid
         }
         ports.Add("ttyAMA0");
 
-        auto protocols = _serial.GetProtocols();
+        auto protocols = GetSerialProtocols(_serial);
         propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, protocol)));
 
         p = propertyGrid->Append(new wxEnumProperty("Port", "Port", ports, EncodeChoices(ports, portStr)));
@@ -96,14 +158,14 @@ void ControllerSerialPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid
             p->SetAttribute("Max", 999999);
         }
     } else {
-        auto portChoices = _serial.GetPortChoices();
+        auto portChoices = __serialPorts;
         p = propertyGrid->Append(new wxEnumProperty("Port", "Port", portChoices, EncodeChoices(portChoices, port)));
         p->SetHelpString("This must be unique across all controllers.");
 
-        auto protocols = _serial.GetProtocols();
+        auto protocols = GetSerialProtocols(_serial);
         propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, protocol)));
 
-        auto speedChoices = _serial.GetSpeedChoices();
+        auto speedChoices = __serialSpeeds;
         p = propertyGrid->Append(new wxEnumProperty("Speed", "Speed", speedChoices, EncodeChoices(speedChoices, wxString::Format("%d", speed))));
         if (serialOutput) {
             if (!serialOutput->AllowsBaudRateSetting()) {
@@ -143,7 +205,8 @@ void ControllerSerialPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid
     p->SetHelpString(modelManager->GetModelsOnChannels(_serial.GetStartChannel(), _serial.GetEndChannel(), 4));
 
     if (serialOutput) {
-        serialOutput->AddProperties(propertyGrid, p, &_serial, true, expandProperties);
+        auto adapter = OutputPropertyAdapter::Create(*serialOutput);
+        adapter->AddProperties(propertyGrid, p, &_serial, true, expandProperties);
     }
 }
 
@@ -206,17 +269,19 @@ bool ControllerSerialPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& e
         auto const& outputs = _serial.GetOutputs();
         if (outputs.size() > 0) {
             wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-            outputs.front()->RemoveProperties(grid);
+            auto adapter = OutputPropertyAdapter::Create(*outputs.front());
+            adapter->RemoveProperties(grid);
         }
 
-        auto protocols = _serial.GetProtocols();
+        auto protocols = GetSerialProtocols(_serial);
         _serial.SetProtocol(DecodeChoices(protocols, event.GetValue().GetLong()));
 
         if (outputs.size() > 0) {
             wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
             std::list<wxPGProperty*> expandProperties;
             auto before = grid->GetProperty("Models");
-            outputs.front()->AddProperties(grid, before, &_serial, true, expandProperties);
+            auto adapter = OutputPropertyAdapter::Create(*outputs.front());
+            adapter->AddProperties(grid, before, &_serial, true, expandProperties);
         }
 
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "ControllerSerial::HandlePropertyEvent::Protocol");
@@ -230,7 +295,10 @@ bool ControllerSerialPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& e
     }
 
     auto serialOutput = _serial.GetSerialOutput();
-    if (serialOutput && serialOutput->HandlePropertyEvent(event, outputModelManager, &_serial)) return true;
+    if (serialOutput) {
+        auto adapter = OutputPropertyAdapter::Create(*serialOutput);
+        if (adapter->HandlePropertyEvent(event, outputModelManager, &_serial)) return true;
+    }
 
     return false;
 }
