@@ -14,17 +14,11 @@
 #include <format>
 #include <string_view>
 #include <regex>
-#include <wx/sstream.h>
-#include <wx/mstream.h>
-#include <wx/wfstream.h>
 #include <wx/wx.h>
 #include <pugixml.hpp>
-#include <wx/zipstrm.h>
 
-#include "CachedFileDownloader.h"
 #include "CustomModel.h"
 #include "Model.h"
-#include <wx/progdlg.h>
 #include "ModelGroup.h"
 #include "ModelManager.h"
 #include "../LayoutGroup.h"
@@ -37,7 +31,6 @@
 #include "../ModelPreview.h"
 #include "Pixels.h"
 #include "../UtilFunctions.h"
-#include "../VendorModelDialog.h"
 #include "../controllers/ControllerCaps.h"
 #include "../outputs/Controller.h"
 #include "../outputs/ControllerSerial.h"
@@ -51,7 +44,6 @@
 #include "../render/SequenceFile.h"
 #include "../XmlSerializer/FileSerializingVisitor.h"
 #include "../XmlSerializer/XmlSerializer.h"
-#include "../XmlSerializer/GdtfParser.h"
 
 #include <log.h>
 
@@ -337,7 +329,7 @@ std::vector<std::string> Model::GetSmartRemoteValues(int smartRemoteCount) const
 
 uint32_t Model::ApplyLowDefinition(uint32_t val) const
 {
-    if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender())
+    if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().IsLowDefinitionRender())
         return val;
     return (val * _lowDefFactor) / 100;
 }
@@ -2832,7 +2824,7 @@ std::string Model::GetStartLocation() const
     }
 }
 
-std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
+std::string Model::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode)
 {
     size_t NodeCount = GetNodeCount();
 
@@ -2881,7 +2873,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
             } else {
                 int s = Nodes[n - 1]->StringNum + 1;
                 std::string bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
-                if (IsDarkMode())
+                if (darkMode)
                     bgcolor = (s % 2 == 1) ? "#3F7C85" : "#962B09";
                 while (n > NodesPerString()) {
                     n -= NodesPerString();
@@ -3798,249 +3790,6 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
     return model;
 }
 
-Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)
-{
-    pugi::xml_document doc;
-    bool docLoaded = false;
-    if (last_model.empty()) {
-        if (download) {
-            xlights->SuspendAutoSave(true);
-            VendorModelDialog dlg(xlights, xlights->CurrentDir);
-            xlights->SetCursor(wxCURSOR_WAIT);
-            if (dlg.DlgInit(prog, low, high)) {
-                if (prog != nullptr) {
-                    prog->Update(100);
-                }
-                xlights->SetCursor(wxCURSOR_DEFAULT);
-                if (dlg.ShowModal() == wxID_OK) {
-                    xlights->SuspendAutoSave(false);
-                    last_model = dlg.GetModelFile();
-                    widthmm = dlg.GetModelWidthMM();
-                    heightmm = dlg.GetModelHeightMM();
-                    depthmm = dlg.GetModelDepthMM();
-
-                    if (last_model.empty()) {
-                        DisplayError("Failed to download model file.");
-
-                        cancelled = true;
-                        return model;
-                    }
-                } else {
-                    xlights->SuspendAutoSave(false);
-                    cancelled = true;
-                    return model;
-                }
-            } else {
-                if (prog != nullptr)
-                    prog->Hide();
-                xlights->SetCursor(wxCURSOR_DEFAULT);
-                xlights->SuspendAutoSave(false);
-                cancelled = true;
-                return model;
-            }
-        } else {
-            std::string filename;
-            if (auto* ui = xlights->GetUICallbacks()) {
-                filename = ui->PromptForFile("Choose model file",
-                    "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf|General Device Type Format (*.gdtf)|*.gdtf");
-            }
-            if (filename.empty()) {
-                cancelled = true;
-                return model;
-            }
-            last_model = filename;
-
-            std::string last_model_lower = last_model;
-            std::transform(last_model_lower.begin(), last_model_lower.end(), last_model_lower.begin(), ::tolower);
-            if (last_model_lower.ends_with(".xmodel")) {
-                doc.load_file(last_model.c_str());
-                if (doc.document_element() && !doc.document_element().attribute("name").empty()) {
-                    docLoaded = true;
-                    std::string modelName = doc.document_element().attribute("name").as_string("");
-
-                    if (!doc.document_element().attribute("widthmm").empty()) {
-						widthmm = (int)std::strtol(doc.document_element().attribute("widthmm").as_string(""), nullptr, 10);
-					}
-                    if (!doc.document_element().attribute("heightmm").empty()) {
-						heightmm = (int)std::strtol(doc.document_element().attribute("heightmm").as_string(""), nullptr, 10);
-					}
-                    if (!doc.document_element().attribute("depthmm").empty()) {
-						depthmm = (int)std::strtol(doc.document_element().attribute("depthmm").as_string(""), nullptr, 10);
-					}
-
-#ifdef __WXMSW__
-                    // If a windows user does not want vendor recommendations then dont go looking for them at all
-                    // I have allowed this to be off (ie it does the vendor recommendation check) by default but once
-                    // the user has decided they dont want it then treat them like an adult
-                    if (!xlights->GetIgnoreVendorModelRecommendations()) {
-#endif
-                        wxURI mappingJson("https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/model_vendor_mapping.json");
-                        std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
-                        if (json == "") {
-                            json = GetResourcesDir() + "/model_vendor_mapping.json";
-                        }
-                        if (json != "" && !FileExists(json)) {
-                            json = "";
-                        }
-                        if (json != "") {
-                            try {
-                                std::ifstream file(json);
-
-                                // Check if the file was successfully opened
-                                if (file.is_open()) {
-                                    // Create a json object to hold the data
-                                    nlohmann::json origJson = nlohmann::json::parse(file);
-
-                                    VendorModelDialog* dlg = nullptr;
-#ifndef __WXMSW__
-                                    bool block = false;
-#endif
-                                    std::string vendorBlock;
-                                    for (auto& [name, v] : origJson["mappings"].items()) {
-                                        //nlohmann::json v = origJson["mappings"][name];
-                                        bool matches = false;
-                                        std::string newModelName = modelName;
-                                        bool localBlock = false;
-                                        if (v.contains("regex") && v["regex"].get<bool>()) {
-                                            try {
-                                                std::regex regex(name);
-                                                std::string modelNameStr = modelName;
-                                                if (std::regex_search(modelNameStr, regex)) {
-                                                    std::string nmodel = v["model"].get<std::string>();
-                                                    newModelName = std::regex_replace(modelNameStr, regex, nmodel);
-                                                    matches = true;
-                                                    if (v.contains("block")) {
-                                                        localBlock = v["block"].get<bool>();
-                                                    }
-                                                }
-                                            } catch (std::regex_error&) {
-                                                // invalid regex pattern from JSON data, skip this mapping
-                                            }
-                                        } else if (name == modelName) {
-                                            matches = true;
-                                            newModelName = v["model"].get<std::string>();
-                                            if (v.contains("block")) {
-                                                localBlock = v["block"].get<bool>();
-                                            }
-                                        }
-                                        if (matches) {
-                                            std::string vendor = v["vendor"].get<std::string>();
-                                            if (dlg == nullptr) {
-                                                dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
-                                                UNUSED(dlg->DlgInit(prog, low, high));
-                                            }
-                                            if (localBlock) {
-                                                vendorBlock = vendor;
-#ifndef __WXMSW__
-                                                block = true;
-#endif
-                                            }
-                                            if (dlg->FindModelFile(vendor, newModelName)) {
-                                                if (localBlock) {
-                                                    std::string msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
-                                                    if (auto* ui = xlights->GetUICallbacks()) {
-                                                        if (ui->PromptYesNo(msg, "Use Vendor Certified Model?")) {
-                                                            last_model = dlg->GetModelFile();
-                                                        } else {
-                                                            last_model = "";
-                                                        }
-                                                    }
-                                                    docLoaded = false;
-                                                    break;
-                                                } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
-                                                    // I do not believe we should be saying xLights recommends this as fom what I have seen this claim on quality is historically dubious and I do not believe we have
-                                                    // ever actually assessed the quality of their models. My own experience has been the quality of some models is poor or worse. Others are fine. No vendor in
-                                                    // my experience is noticably better or worse than any other ... they all have had their poor models.
-                                                    // If you want to change the message back then have an OSX specific phrasing.
-                                                    std::string msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
-                                                    if (auto* ui = xlights->GetUICallbacks()) {
-                                                        if (ui->PromptYesNo(msg, "Use Vendor Certified Model?")) {
-                                                            last_model = dlg->GetModelFile();
-                                                            docLoaded = false;
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-#ifndef __WXMSW__
-                                    // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
-                                    if (block) {
-                                        std::string msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
-                                        if (auto* ui = xlights->GetUICallbacks()) {
-                                            ui->ShowMessage(msg, "Loading of Model Blocked");
-                                        }
-                                        last_model = "";
-                                    }
-#endif
-                                    if (dlg) {
-                                        delete dlg;
-                                    }
-                                }
-                            } 
-                            catch (nlohmann::json::parse_error& e) {
-                                
-                            }
-                        }
-                        
-#ifdef __WXMSW__
-                    }
-#endif
-
-                }
-            }
-        }
-    }
-    std::string last_model_lc = last_model;
-    std::transform(last_model_lc.begin(), last_model_lc.end(), last_model_lc.begin(), ::tolower);
-    if (last_model_lc.ends_with(".gdtf")) {
-        wxFileInputStream fin(last_model);
-        wxZipInputStream zin(fin);
-        wxZipEntry* ent = zin.GetNextEntry();
-
-        while (ent != nullptr) {
-            if (ent->GetName() == "description.xml") {
-                pugi::xml_document gdtf_doc;
-                // Read wxZipInputStream into buffer for pugixml
-                wxMemoryOutputStream memStream;
-                zin.Read(memStream);
-                size_t sz = memStream.GetLength();
-                std::vector<char> buf(sz);
-                memStream.CopyTo(buf.data(), sz);
-                gdtf_doc.load_buffer(buf.data(), sz);
-                
-                XmlSerialize::GdtfModelData gdtfData;
-                if (XmlSerialize::ParseGdtfDescriptionXml(gdtf_doc, xlights, cancelled, gdtfData)) {
-                    model = XmlSerialize::CreateDmxModelFromGdtfData(model, gdtfData, xlights);
-                } else {
-                    cancelled = true;
-                }
-                break;
-            }
-            ent = zin.GetNextEntry();
-        }
-        return model;
-    } else if (!last_model_lc.ends_with(".xmodel")) {
-        // if it isnt an xmodel then it is custom
-        return model;
-    }
-
-    if (!docLoaded) {
-        doc.load_file(last_model.c_str());
-    }
-    if (doc.document_element()) {
-        pugi::xml_node root = doc.document_element();
-        
-        model->SetStartChannel("1");
-        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, root, xlights, cancelled);
-
-        if (!cancelled)
-            return model;
-    }
-    return model;
-}
-
 std::string Model::SerialiseSubmodel() const
 {
     std::string res;
@@ -4372,7 +4121,9 @@ std::string Model::GetShadowModelFor() const
 
 void Model::AddASAPWork(uint32_t work, const std::string& from)
 {
-    modelManager.GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
+    if (auto* omm = modelManager.GetOutputModelManager()) {
+        omm->AddASAPWork(work, from, this, nullptr, GetName());
+    }
 }
 
 bool Model::CleanupFileLocations(RenderContext* ctx)

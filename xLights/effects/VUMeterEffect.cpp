@@ -13,7 +13,8 @@
 #include <format>
 
 #include "VUMeterEffect.h"
-#include "../ui/wxUtilities.h"
+#include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "../utils/xlPoint.h"
 #include "../AudioManager.h"
 #include "../render/SequenceElements.h"

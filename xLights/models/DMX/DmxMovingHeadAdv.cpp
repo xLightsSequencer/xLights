@@ -29,7 +29,7 @@
 #include "MovingHeads/MhFeature.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
-#include "../../xLightsMain.h"
+#include "../../render/RenderBuffer.h"
 #include "../../UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 

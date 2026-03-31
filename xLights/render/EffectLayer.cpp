@@ -1256,21 +1256,6 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
     }
 }
 
-void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
-{
-    for (int i = 0; i < (int)mEffects.size(); i++) {
-        if ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_SELECTED)
-            ) {
-            undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
-            mEffects[i]->ConvertTo(effectManager.GetEffectIndex(effectName));
-
-            rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
-        }
-    }
-}
-
 void EffectLayer::UnTagAllEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());

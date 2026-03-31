@@ -16,9 +16,7 @@
 #include "CubeModel.h"
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Controller.h"
 #include "../ModelPreview.h"
@@ -863,7 +861,7 @@ int CubeModel::MapToNodeIndex(int strand, int node) const
     }
 }
 
-std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
+std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode)
 {
     size_t NodeCount = GetNodeCount();
 
@@ -915,7 +913,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
             int string = index / nodesPerString + 1;
             int nodenum = index % nodesPerString + 1;
             std::string bgcolor = string % 2 == 1 ? "#ADD8E6" : "#90EE90";
-            if( IsDarkMode() )
+            if (darkMode)
                 bgcolor = string % 2 == 1 ? "#3f7c85" : "#962B09";
             html += std::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, nodenum, string);
         }

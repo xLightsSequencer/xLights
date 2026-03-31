@@ -10,7 +10,6 @@
 
 #include "StarModel.h"
 #include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"

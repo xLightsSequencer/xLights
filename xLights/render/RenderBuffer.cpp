@@ -31,7 +31,6 @@
 
 #include <log.h>
 #include "Parallel.h"
-#include "ui/wxUtilities.h"
 
 // TextDrawingContext pool and implementation moved to render/TextDrawingContext.cpp and ui/wxTextDrawingContext.cpp
 

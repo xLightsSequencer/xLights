@@ -13,8 +13,9 @@
 #include "ModelPreview.h"
 #include "Model.h"
 #include "../ExternalHooks.h"
+#include "../UtilFunctions.h"
+#include "../utils/xlImage.h"
 #include <log.h>
-#include "../ui/wxUtilities.h"
 
 TerrainObject::TerrainObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
@@ -87,8 +88,8 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
                 (const char *)preview->GetName().c_str());
-            wxImage image(_imageFile);
-            if (image.IsOk()) {
+            xlImage image;
+            if (image.LoadFromFile(_imageFile) && image.IsOk()) {
                 xlTexture *t = ctx->createTexture(image, GetName(), true);
                 _images[preview->GetName().ToStdString()] = t;
                 img_width = image.GetWidth();

@@ -13,7 +13,6 @@
 #include "MatrixModel.h"
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
@@ -210,7 +209,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             }
         }
 
-        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
+        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().IsLowDefinitionRender()) {
             for (int x = 0; x < NumStrands; x++) {
                 stringnum = x / _strandsPerString;
                 segmentnum = x % _strandsPerString;
@@ -350,7 +349,7 @@ void MatrixModel::InitHMatrix() {
         GetModelScreenLocation().SetRenderSize(PixelsPerStrand, NumStrands, GetModelScreenLocation().GetRenderDp());
 
     } else {
-        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
+        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().IsLowDefinitionRender()) {
             for (int y = 0; y < NumStrands; y++) {
                 stringnum = y / _strandsPerString;
                 segmentnum = y % _strandsPerString;

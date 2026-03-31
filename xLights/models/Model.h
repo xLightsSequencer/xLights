@@ -234,7 +234,7 @@ public:
     [[nodiscard]] const ModelManager& GetModelManager() const {
         return modelManager;
     }
-    static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm);
+    // GetXlightsModel moved to LayoutPanel.cpp (UI-layer only)
     bool FourChannelNodes() const;
     bool FiveChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;
@@ -529,7 +529,7 @@ public:
     char GetAbsoluteChannelColorLetter(int32_t absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
     std::string GetControllerPortSortString() const;
 
-    virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
+    virtual std::string ChannelLayoutHtml(OutputManager* outputManager, bool darkMode = false);
     virtual void ExportAsCustomXModel(BaseSerializingVisitor& visitor) const;
     virtual std::string GetStartLocation() const;
     bool IsCustom();

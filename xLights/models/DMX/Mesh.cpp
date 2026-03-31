@@ -16,7 +16,6 @@
 #include "../../UtilFunctions.h"
 #include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
-#include "../../xLightsMain.h"
 #include <log.h>
 
 #include <glm/gtc/quaternion.hpp>

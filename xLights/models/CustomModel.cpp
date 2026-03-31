@@ -11,7 +11,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
-#include <wx/wx.h>
 
 #include <pugixml.hpp>
 
@@ -801,7 +800,7 @@ int CustomModel::NodesPerString(int string) const
     return len / GetNodeChannelCount(StringType);
 }
 
-std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
+std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode) {
     size_t NodeCount = GetNodeCount();
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi, 0);
@@ -870,7 +869,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                     const std::string& value = _data[l][r][c];
                     if (!value.empty() && value != "0") {
                         if (_strings == 1) {
-                            if( IsDarkMode() ) {
+                            if( darkMode ) {
                                 html += "<td bgcolor='#962B09'>n" + value + "</td>";
                             } else {
                                 html += "<td bgcolor='#ADD8E6'>n" + value + "</td>";
@@ -882,16 +881,16 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                             switch (string % 4)
                             {
                             case 0:
-                                bgcolor = IsDarkMode() ? "#7a577a" : "#eed1a4"; // purple / yellow
+                                bgcolor = darkMode ? "#7a577a" : "#eed1a4"; // purple / yellow
                                 break;
                             case 1:
-                                bgcolor = IsDarkMode() ? "#3f7c85" : "#8aa2bb"; // teal / blue
+                                bgcolor = darkMode ? "#3f7c85" : "#8aa2bb"; // teal / blue
                                 break;
                             case 2:
-                                bgcolor = IsDarkMode() ? "#520120" : "#ec9396"; // maroon / red
+                                bgcolor = darkMode ? "#520120" : "#ec9396"; // maroon / red
                                 break;
                             case 3:
-                                bgcolor = IsDarkMode() ? "#08403e" : "#86d0c3"; // dark teal / green
+                                bgcolor = darkMode ? "#08403e" : "#86d0c3"; // dark teal / green
                                 break;
                             }
                             html += "<td bgcolor='" + bgcolor + "'>n" + value + "s" + std::to_string(string) + "</td>";
@@ -1020,7 +1019,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         std::string newname = xlights->AllModels.GenerateModelName(std::filesystem::path(filename).stem().string());
         SetName(newname);
 
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CustomModel::ImportLORModel");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CustomModel::ImportLORModel");
 
         if (chs.size() == 0) {
             spdlog::error("No model data found.");

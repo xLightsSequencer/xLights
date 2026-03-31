@@ -41,7 +41,7 @@ public:
     void SelectHandle(int handle);
     void Lock(bool lock);
     bool IsLocked() const;
-    virtual void AddASAPWork(uint32_t work, const std::string& from);
+    virtual void AddASAPWork(uint32_t work, const std::string& from) = 0;
     virtual void ReloadModel() = 0;
 
     void SetTop(float y);

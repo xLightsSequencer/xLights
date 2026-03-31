@@ -2217,6 +2217,21 @@ void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int,
 void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName) {
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
+    const int newEffIdx = xlights->GetEffectManager().GetEffectIndex(effectName);
+
+    // Capture defaults from the active effect UI once and apply to converted effects.
+    std::string palette;
+    std::string effectText = xlights->GetEffectTextFromWindows(palette);
+    SettingsMap defaultEffectSettings;
+    auto es = Split(effectText, ',');
+    for (const auto& it : es) {
+        if (StartsWith(it, "E_")) {
+            auto sv = Split(it, '=');
+            if (sv.size() == 2) {
+                defaultEffectSettings[sv[0]] = sv[1];
+            }
+        }
+    }
 
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
@@ -2243,7 +2258,33 @@ void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName) {
         if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             // skip timing rows
         } else {
-            mSequenceElements->GetEffectLayer(row)->ConvertSelectedEffectsTo(this, mSequenceElements->get_undo_mgr(), effectName, xlights->GetEffectManager(), rangeAccumulator);
+            EffectLayer* layer = mSequenceElements->GetEffectLayer(row);
+            for (int i = 0; i < layer->GetEffectCount(); i++) {
+                Effect* effect = layer->GetEffect(i);
+                if ((effect->GetSelected() == EFFECT_LT_SELECTED) ||
+                    (effect->GetSelected() == EFFECT_RT_SELECTED) ||
+                    (effect->GetSelected() == EFFECT_SELECTED)) {
+                    mSequenceElements->get_undo_mgr().CaptureModifiedEffect(layer->GetParentElement()->GetName(), layer->GetIndex(), effect->GetID(), effect->GetSettingsAsString(), effect->GetPaletteAsString());
+
+                    if (newEffIdx != effect->GetEffectIndex()) {
+                        effect->SetEffectIndex(newEffIdx);
+
+                        SettingsMap newSettings;
+                        for (const auto& it : effect->GetSettings()) {
+                            if (!StartsWith(it.first, "E_")) {
+                                newSettings[it.first] = it.second;
+                            }
+                        }
+                        effect->GetSettings() = newSettings;
+
+                        for (const auto& it : defaultEffectSettings) {
+                            effect->GetSettings()[it.first] = it.second;
+                        }
+                    }
+
+                    rangeAccumulator.Add(effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                }
+            }
         }
     }
 

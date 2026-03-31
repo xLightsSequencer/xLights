@@ -14,11 +14,13 @@
 #include <filesystem>
 #include <regex>
 #include <cstring>
+#include <fstream>
 
 #include <pugixml.hpp>
 
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
+#include "utils/xlImage.h"
 #include "utils/string_utils.h"
 
 #include <mutex>
@@ -192,6 +194,104 @@ bool IsXmlSafe(const std::string& s) {
         }
     }
     return res;
+}
+
+int GetExifOrientation(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+        spdlog::debug("Failed to open file: {}", filename);
+        file.close();
+        return 1; // Default orientation
+    }
+
+    unsigned char byte1, byte2;
+    file.read(reinterpret_cast<char*>(&byte1), 1);
+    file.read(reinterpret_cast<char*>(&byte2), 1);
+    if (byte1 != 0xFF || byte2 != 0xD8) {
+        file.close();
+        return 1;
+    }
+
+    while (file) {
+        file.read(reinterpret_cast<char*>(&byte1), 1);
+        if (byte1 != 0xFF) break;
+        file.read(reinterpret_cast<char*>(&byte2), 1);
+        if (byte2 == 0xD9 || byte2 == 0xDA) break;
+
+        unsigned short len;
+        file.read(reinterpret_cast<char*>(&len), 2);
+        len = ((len >> 8) & 0xFF) | ((len << 8) & 0xFF00); // big-endian
+        if (len < 2) break;
+
+        if (byte2 == 0xE1) { // APP1 segment
+            std::vector<char> data(len - 2);
+            file.read(data.data(), len - 2);
+
+            if (data.size() < 14) continue; // too small to hold Exif header
+
+            if (memcmp(data.data(), "Exif\0\0", 6) != 0) {
+                continue;
+            }
+
+            size_t tiff_header = 6; // TIFF header starts right after Exif\0\0
+            bool littleEndian = (data[tiff_header] == 'I' && data[tiff_header + 1] == 'I');
+            unsigned short fortytwo = littleEndian ?
+                ((unsigned char)data[tiff_header + 3] << 8) | (unsigned char)data[tiff_header + 2] :
+                ((unsigned char)data[tiff_header + 2] << 8) | (unsigned char)data[tiff_header + 3];
+
+            if (fortytwo != 42) {
+                spdlog::debug("Invalid TIFF header identifier in {}", filename);
+                return 1;
+            }
+
+            // Read offset to IFD0
+            unsigned int ifd_offset;
+            if (littleEndian) {
+                ifd_offset =  (unsigned char)data[tiff_header + 4] |
+                    ((unsigned char)data[tiff_header + 5] << 8) |
+                    ((unsigned char)data[tiff_header + 6] << 16)|
+                    ((unsigned char)data[tiff_header + 7] << 24);
+            } else {
+                ifd_offset = ((unsigned char)data[tiff_header + 4] << 24)|
+                    ((unsigned char)data[tiff_header + 5] << 16)|
+                    ((unsigned char)data[tiff_header + 6] << 8) |
+                    (unsigned char)data[tiff_header + 7];
+            }
+
+            size_t pos = tiff_header + ifd_offset;
+            if (pos + 2 > data.size()) return 1;
+
+            unsigned short num_entries = littleEndian ?
+                ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] :
+                ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+            pos += 2;
+
+            for (unsigned short i = 0; i < num_entries; ++i) {
+                if (pos + 12 > data.size()) break;
+
+                unsigned short tag = littleEndian ?
+                    ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] :
+                    ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+
+                if (tag == 0x0112) { // Orientation
+                    unsigned short orient = littleEndian ?
+                        ((unsigned char)data[pos + 9] << 8) | (unsigned char)data[pos + 8] :
+                        ((unsigned char)data[pos + 8] << 8) | (unsigned char)data[pos + 9];
+                    return static_cast<int>(orient);
+                }
+                pos += 12;
+            }
+        } else {
+            file.seekg(len - 2, std::ios::cur);
+        }
+    }
+
+    // Fallback: xlImage verifies decode success, but does not expose EXIF orientation metadata.
+    xlImage img;
+    if (img.LoadFromFile(filename)) {
+        return 1;
+    }
+    return 1; // default
 }
 
 // This takes a string and removes all problematic characters from it for an XML file

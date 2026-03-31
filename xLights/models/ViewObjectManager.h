@@ -15,6 +15,7 @@
 
 #include "ObjectManager.h"
 
+class OutputModelManager;
 class UICallbacks;
 class ViewObject;
 class xLightsFrame;
@@ -30,6 +31,7 @@ public:
 
     xLightsFrame* GetXLightsFrame() const { return xlights; }
     UICallbacks* GetUICallbacks() const override;
+    OutputModelManager* GetOutputModelManager() const override;
     ViewObject* CreateAndAddObject(const std::string &type);
     ViewObject* CreateObject(pugi::xml_node node) const;
     void AddViewObject(ViewObject *view_object);

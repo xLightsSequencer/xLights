@@ -8,8 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/numdlg.h>
-
 #include "../utils/Base64.h"
 #include <zstd.h>
 

@@ -14,7 +14,6 @@
 #include <format>
 #include <thread>
 
-#include <wx/msgdlg.h>
 #include <pugixml.hpp>
 
 #include "../render/UICallbacks.h"
@@ -79,6 +78,14 @@ ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
 
 UICallbacks* ModelManager::GetUICallbacks() const {
     return xlights ? xlights->GetUICallbacks() : nullptr;
+}
+
+OutputModelManager* ModelManager::GetOutputModelManager() const {
+    return xlights ? xlights->GetOutputModelManager() : nullptr;
+}
+
+bool ModelManager::IsLowDefinitionRender() const {
+    return xlights ? xlights->IsLowDefinitionRender() : false;
 }
 
 ModelManager::~ModelManager()

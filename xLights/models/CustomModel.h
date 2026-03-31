@@ -64,7 +64,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
         [[nodiscard]] bool ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
 
-        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
+        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager* outputManager, bool darkMode = false) override;
         [[nodiscard]] virtual std::string GetNodeName(size_t x, bool def = false) const override;
         [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
         [[nodiscard]] virtual int NodesPerString(int string) const override;

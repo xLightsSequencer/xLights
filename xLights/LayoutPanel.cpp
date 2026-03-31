@@ -29,7 +29,9 @@
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
 #include <pugixml.hpp>
+#include <fstream>
 #include <format>
+#include <regex>
 #include <sstream>
 #include <wx/artprov.h>
 #include <wx/dataview.h>
@@ -84,6 +86,14 @@
 
 #include "LayoutUtils.h"
 #include "ui/wxUtilities.h"
+#include "VendorModelDialog.h"
+#include "CachedFileDownloader.h"
+#include "XmlSerializer/GdtfParser.h"
+
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
+#include <wx/mstream.h>
+#include <wx/uri.h>
 
 #include <log.h>
 
@@ -3631,6 +3641,233 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     FinalizeModel();
 }
 
+static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm)
+{
+    pugi::xml_document doc;
+    bool docLoaded = false;
+    if (last_model.empty()) {
+        if (download) {
+            xlights->SuspendAutoSave(true);
+            VendorModelDialog dlg(xlights, xlights->CurrentDir);
+            xlights->SetCursor(wxCURSOR_WAIT);
+            if (dlg.DlgInit(prog, low, high)) {
+                if (prog != nullptr) {
+                    prog->Update(100);
+                }
+                xlights->SetCursor(wxCURSOR_DEFAULT);
+                if (dlg.ShowModal() == wxID_OK) {
+                    xlights->SuspendAutoSave(false);
+                    last_model = dlg.GetModelFile();
+                    widthmm = dlg.GetModelWidthMM();
+                    heightmm = dlg.GetModelHeightMM();
+                    depthmm = dlg.GetModelDepthMM();
+
+                    if (last_model.empty()) {
+                        DisplayError("Failed to download model file.");
+
+                        cancelled = true;
+                        return model;
+                    }
+                } else {
+                    xlights->SuspendAutoSave(false);
+                    cancelled = true;
+                    return model;
+                }
+            } else {
+                if (prog != nullptr)
+                    prog->Hide();
+                xlights->SetCursor(wxCURSOR_DEFAULT);
+                xlights->SuspendAutoSave(false);
+                cancelled = true;
+                return model;
+            }
+        } else {
+            std::string filename;
+            if (auto* ui = xlights->GetUICallbacks()) {
+                filename = ui->PromptForFile("Choose model file",
+                    "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf|General Device Type Format (*.gdtf)|*.gdtf");
+            }
+            if (filename.empty()) {
+                cancelled = true;
+                return model;
+            }
+            last_model = filename;
+
+            std::string last_model_lower = last_model;
+            std::transform(last_model_lower.begin(), last_model_lower.end(), last_model_lower.begin(), ::tolower);
+            if (last_model_lower.ends_with(".xmodel")) {
+                doc.load_file(last_model.c_str());
+                if (doc.document_element() && !doc.document_element().attribute("name").empty()) {
+                    docLoaded = true;
+                    std::string modelName = doc.document_element().attribute("name").as_string("");
+
+                    if (!doc.document_element().attribute("widthmm").empty()) {
+                        widthmm = (int)std::strtol(doc.document_element().attribute("widthmm").as_string(""), nullptr, 10);
+                    }
+                    if (!doc.document_element().attribute("heightmm").empty()) {
+                        heightmm = (int)std::strtol(doc.document_element().attribute("heightmm").as_string(""), nullptr, 10);
+                    }
+                    if (!doc.document_element().attribute("depthmm").empty()) {
+                        depthmm = (int)std::strtol(doc.document_element().attribute("depthmm").as_string(""), nullptr, 10);
+                    }
+
+#ifdef __WXMSW__
+                    if (!xlights->GetIgnoreVendorModelRecommendations()) {
+#endif
+                        wxURI mappingJson("https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/model_vendor_mapping.json");
+                        std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
+                        if (json == "") {
+                            json = GetResourcesDir() + "/model_vendor_mapping.json";
+                        }
+                        if (json != "" && !FileExists(json)) {
+                            json = "";
+                        }
+                        if (json != "") {
+                            try {
+                                std::ifstream file(json);
+                                if (file.is_open()) {
+                                    nlohmann::json origJson = nlohmann::json::parse(file);
+
+                                    VendorModelDialog* dlg = nullptr;
+#ifndef __WXMSW__
+                                    bool block = false;
+#endif
+                                    std::string vendorBlock;
+                                    for (auto& [name, v] : origJson["mappings"].items()) {
+                                        bool matches = false;
+                                        std::string newModelName = modelName;
+                                        bool localBlock = false;
+                                        if (v.contains("regex") && v["regex"].get<bool>()) {
+                                            try {
+                                                std::regex regex(name);
+                                                std::string modelNameStr = modelName;
+                                                if (std::regex_search(modelNameStr, regex)) {
+                                                    std::string nmodel = v["model"].get<std::string>();
+                                                    newModelName = std::regex_replace(modelNameStr, regex, nmodel);
+                                                    matches = true;
+                                                    if (v.contains("block")) {
+                                                        localBlock = v["block"].get<bool>();
+                                                    }
+                                                }
+                                            } catch (std::regex_error&) {
+                                            }
+                                        } else if (name == modelName) {
+                                            matches = true;
+                                            newModelName = v["model"].get<std::string>();
+                                            if (v.contains("block")) {
+                                                localBlock = v["block"].get<bool>();
+                                            }
+                                        }
+                                        if (matches) {
+                                            std::string vendor = v["vendor"].get<std::string>();
+                                            if (dlg == nullptr) {
+                                                dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
+                                                UNUSED(dlg->DlgInit(prog, low, high));
+                                            }
+                                            if (localBlock) {
+                                                vendorBlock = vendor;
+#ifndef __WXMSW__
+                                                block = true;
+#endif
+                                            }
+                                            if (dlg->FindModelFile(vendor, newModelName)) {
+                                                if (localBlock) {
+                                                    std::string msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
+                                                    if (auto* ui = xlights->GetUICallbacks()) {
+                                                        if (ui->PromptYesNo(msg, "Use Vendor Certified Model?")) {
+                                                            last_model = dlg->GetModelFile();
+                                                        } else {
+                                                            last_model = "";
+                                                        }
+                                                    }
+                                                    docLoaded = false;
+                                                    break;
+                                                } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
+                                                    std::string msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
+                                                    if (auto* ui = xlights->GetUICallbacks()) {
+                                                        if (ui->PromptYesNo(msg, "Use Vendor Certified Model?")) {
+                                                            last_model = dlg->GetModelFile();
+                                                            docLoaded = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+#ifndef __WXMSW__
+                                    if (block) {
+                                        std::string msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
+                                        if (auto* ui = xlights->GetUICallbacks()) {
+                                            ui->ShowMessage(msg, "Loading of Model Blocked");
+                                        }
+                                        last_model = "";
+                                    }
+#endif
+                                    if (dlg) {
+                                        delete dlg;
+                                    }
+                                }
+                            }
+                            catch (nlohmann::json::parse_error& e) {
+                            }
+                        }
+
+#ifdef __WXMSW__
+                    }
+#endif
+
+                }
+            }
+        }
+    }
+    std::string last_model_lc = last_model;
+    std::transform(last_model_lc.begin(), last_model_lc.end(), last_model_lc.begin(), ::tolower);
+    if (last_model_lc.ends_with(".gdtf")) {
+        wxFileInputStream fin(last_model);
+        wxZipInputStream zin(fin);
+        wxZipEntry* ent = zin.GetNextEntry();
+
+        while (ent != nullptr) {
+            if (ent->GetName() == "description.xml") {
+                pugi::xml_document gdtf_doc;
+                wxMemoryOutputStream memStream;
+                zin.Read(memStream);
+                size_t sz = memStream.GetLength();
+                std::vector<char> buf(sz);
+                memStream.CopyTo(buf.data(), sz);
+                gdtf_doc.load_buffer(buf.data(), sz);
+
+                XmlSerialize::GdtfModelData gdtfData;
+                if (XmlSerialize::ParseGdtfDescriptionXml(gdtf_doc, xlights, cancelled, gdtfData)) {
+                    model = XmlSerialize::CreateDmxModelFromGdtfData(model, gdtfData, xlights);
+                } else {
+                    cancelled = true;
+                }
+                break;
+            }
+            ent = zin.GetNextEntry();
+        }
+        return model;
+    } else if (!last_model_lc.ends_with(".xmodel")) {
+        return model;
+    }
+
+    if (!docLoaded) {
+        doc.load_file(last_model.c_str());
+    }
+    if (doc.document_element()) {
+        pugi::xml_node root = doc.document_element();
+
+        model->SetStartChannel("1");
+        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, root, xlights, cancelled);
+
+        if (!cancelled)
+            return model;
+    }
+    return model;
+}
+
 void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
@@ -3687,7 +3924,7 @@ void LayoutPanel::FinalizeModel()
             int heightmm = -1;
             int depthmm = -1;
 
-            _newModel = Model::GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm);
+            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm);
 
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
@@ -5277,7 +5514,7 @@ void LayoutPanel::ShowNodeLayout()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel) return;
-    wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
+    wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager(), IsDarkMode());
     ChannelLayoutDialog dialog(this);
     dialog.SetHtmlSource(html);
     dialog.ShowModal();

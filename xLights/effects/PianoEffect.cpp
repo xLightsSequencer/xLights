@@ -19,7 +19,6 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../render/Effect.h"
 #include "../render/SequenceFile.h"
 #include "../render/SequenceElements.h"

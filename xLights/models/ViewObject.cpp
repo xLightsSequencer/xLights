@@ -10,7 +10,8 @@
 
 
 #include "ViewObject.h"
-#include "Model.h"
+#include "ObjectManager.h"
+#include "../OutputModelManager.h"
 
 ViewObject::ViewObject(const ObjectManager &manager)
     : objectManager(manager)
@@ -21,6 +22,12 @@ ViewObject::~ViewObject()
 {
 }
 
+
+void ViewObject::AddASAPWork(uint32_t work, const std::string& from) {
+    if (auto* omm = objectManager.GetOutputModelManager()) {
+        omm->AddASAPWork(work, from, this, nullptr, GetName());
+    }
+}
 
 void ViewObject::Setup() {
     layout_group = "Default"; // objects in 3d can only belong to default as only default is 3d

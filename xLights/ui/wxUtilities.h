@@ -143,7 +143,6 @@ nlohmann::json xLightsRequest(int xFadePort, const wxString& request, const std:
 bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
 
 wxImage ApplyOrientation(const wxImage& img, int orient);
-int GetExifOrientation(const std::string& filename);
 AnimatedImageData LoadGIFAnimationDataWx(const std::string& filename);
 
 std::string GetResourcesDirectory();

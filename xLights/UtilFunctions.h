@@ -153,3 +153,4 @@ void SetResourcesDir(const std::string& dir);
 std::string ReverseCSV(const std::string& csv);
 void DumpBinary(uint8_t* buffer, size_t read);
 bool IsFloat(const std::string& number);
+int GetExifOrientation(const std::string& filename);

@@ -430,34 +430,6 @@ bool Effect::FilteredIn(const std::string& filterText, bool isFilterTextRegex) c
     return false;
 }
 
-void Effect::ConvertTo(int effectIndex)
-{
-    if (effectIndex != mEffectIndex) {
-        SetEffectIndex(effectIndex);
-        SettingsMap newSettings;
-        // remove any E_ settings as the effect type has changed
-        for (const auto& it : mSettings) {
-            if (!StartsWith(it.first, "E_")) {
-                newSettings[it.first] = it.second;
-            }
-        }
-        mSettings = newSettings;
-
-        std::string palette;
-        std::string effectText = xLightsApp::GetFrame()->GetEffectTextFromWindows(palette);
-
-        auto es = Split(effectText, ',');
-        for (const auto& it: es) {
-            if (StartsWith(it, "E_")) {
-                auto sv = Split(it, '=');
-                if (sv.size()==2) {
-                    mSettings[sv[0]] = sv[1];
-                }
-            }
-        }
-    }
-}
-
 bool Effect::IsModelRenderDisabled() const
 {
     Element* e = GetParentEffectLayer()->GetParentElement();

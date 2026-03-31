@@ -11,8 +11,6 @@
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
-#include "../xLightsMain.h"
-#include "../xLightsApp.h"
 
 BaseObject::BaseObject()
 : changeCount(0), _active(true)
@@ -79,11 +77,6 @@ void BaseObject::Lock(bool lock)
 bool BaseObject::IsLocked() const
 {
     return GetBaseObjectScreenLocation().IsLocked();
-}
-
-void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
-{
-    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
 }
 
 void BaseObject::SetTop(float y) {

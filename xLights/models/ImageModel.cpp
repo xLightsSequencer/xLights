@@ -19,7 +19,6 @@
 #include "../render/RenderBuffer.h"
 #include "../render/RenderContext.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 

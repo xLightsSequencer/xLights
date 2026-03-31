@@ -81,6 +81,8 @@ class ModelManager : public ObjectManager
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
         xLightsFrame* GetXLightsFrame() const { return xlights; }
         UICallbacks* GetUICallbacks() const override;
+        OutputModelManager* GetOutputModelManager() const override;
+        bool IsLowDefinitionRender() const;
         bool IsValidControllerModelChain(Model* m, std::string& tip) const;
         Model *createAndAddModel(pugi::xml_node node, int previewW, int previewH);
         std::string GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const;

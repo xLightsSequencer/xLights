@@ -13,7 +13,6 @@
 #include "../../ModelPreview.h"
 #include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
-#include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"

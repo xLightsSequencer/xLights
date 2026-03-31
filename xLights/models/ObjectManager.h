@@ -13,6 +13,7 @@
 #include <string>
 
 class BaseObject;
+class OutputModelManager;
 class UICallbacks;
 
 class ObjectManager
@@ -25,4 +26,5 @@ public:
 
     virtual BaseObject *GetObject(const std::string &name) const = 0;
     virtual UICallbacks* GetUICallbacks() const { return nullptr; }
+    virtual OutputModelManager* GetOutputModelManager() const { return nullptr; }
 };

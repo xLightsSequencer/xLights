@@ -13,7 +13,6 @@
 #include "ImageObject.h"
 #include "../utils/xlImage.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
 #include "ModelPreview.h"
 #include "../ExternalHooks.h"
 #include "../render/RenderContext.h"

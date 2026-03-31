@@ -34,7 +34,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual int NodesPerString() const override;
 
-        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
+        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager * outputManager, bool darkMode = false) override;
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 

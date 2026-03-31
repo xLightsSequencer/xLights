@@ -35,6 +35,10 @@ UICallbacks* ViewObjectManager::GetUICallbacks() const {
     return xlights ? xlights->GetUICallbacks() : nullptr;
 }
 
+OutputModelManager* ViewObjectManager::GetOutputModelManager() const {
+    return xlights ? xlights->GetOutputModelManager() : nullptr;
+}
+
 ViewObjectManager::~ViewObjectManager()
 {
     //dtor

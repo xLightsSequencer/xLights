@@ -17,7 +17,6 @@
 #include "ModelScreenLocation.h"
 #include "Shapes.h"
 #include "../support/VectorMath.h"
-#include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"

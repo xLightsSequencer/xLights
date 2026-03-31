@@ -26,6 +26,7 @@ public:
 
     virtual std::string GetDimension() const override { return ""; }
     void Setup() override;
+    void AddASAPWork(uint32_t work, const std::string& from) override;
     virtual void InitModel() = 0;
 
     void ReloadModel() override {

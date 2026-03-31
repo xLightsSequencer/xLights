@@ -23,7 +23,6 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
-#include "../ui/wxUtilities.h"
 #include "../models/Model.h"
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
