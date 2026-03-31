@@ -18,7 +18,7 @@
 #include <wx/stdpaths.h>
 #include "../utils/CurlManager.h"
 #include <wx/sckaddr.h>
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 
 #include <log.h>

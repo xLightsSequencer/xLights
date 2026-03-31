@@ -17,7 +17,7 @@
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 #include "../graphics/xlGraphicsBase.h"
-#include "../Color.h"
+#include "Color.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"
 #include "EffectLayer.h"

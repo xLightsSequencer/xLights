@@ -12,7 +12,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/tree-16.xpm"
 #include "../../include/tree-24.xpm"

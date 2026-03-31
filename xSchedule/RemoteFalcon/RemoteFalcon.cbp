@@ -33,6 +33,7 @@
 					<Add directory="../xSchedule/RemoteFalcon" />
 					<Add directory="../include" />
 					<Add directory="../../xLights" />
+					<Add directory="../../xLights/utils" />
 					<Add directory="../../include" />
 					<Add directory="../../dependencies/pugixml/src" />
 					<Add directory="../../dependencies/spdlog/include" />
@@ -74,6 +75,7 @@
 					<Add directory="../xSchedule/RemoteFalcon" />
 					<Add directory="../include" />
 					<Add directory="../../xLights" />
+					<Add directory="../../xLights/utils" />
 					<Add directory="../../include" />
 					<Add directory="../../dependencies/pugixml/src" />
 					<Add directory="../../dependencies/spdlog/include" />
@@ -105,8 +107,8 @@
 		<Unit filename="../../xLights/SpecialOptions.cpp" />
 		<Unit filename="../../xLights/SpecialOptions.h" />
 		<Unit filename="../../dependencies/pugixml/src/pugixml.cpp" />
-		<Unit filename="../../xLights/UtilFunctions.cpp" />
-		<Unit filename="../../xLights/UtilFunctions.h" />
+		<Unit filename="../../xLights/utils/UtilFunctions.cpp" />
+		<Unit filename="../../xLights/utils/UtilFunctions.h" />
 		<Unit filename="../../xLights/ui/wxUtilities.cpp" />
 		<Unit filename="../../xLights/ui/wxUtilities.h" />
 		<Unit filename="../../xLights/utils/CurlManager.cpp" />

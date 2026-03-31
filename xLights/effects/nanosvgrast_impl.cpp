@@ -17,7 +17,7 @@
 
 #include "nanosvgrast_impl.h"
 #include "../render/RenderBuffer.h"
-#include "../Color.h"
+#include "Color.h"
 
 #include <cstring>
 

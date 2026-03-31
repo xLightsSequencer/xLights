@@ -31,7 +31,7 @@
 #include "../../render/SequenceElements.h"
 
 #include <cstdlib>
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(VUMeterPanel)
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_Bars = wxNewId();

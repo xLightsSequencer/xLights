@@ -23,7 +23,7 @@
 #include "OpenPixelNetOutput.h"
 #include "GenericSerialOutput.h"
 #include "OutputManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 
 #include <log.h>

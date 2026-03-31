@@ -18,7 +18,7 @@
 #include "../models/Model.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../models/Pixels.h"
 
 #define NO_VALUE_INT -9999

@@ -18,7 +18,7 @@
 #include "graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsContext.h"
 
-#include "../AudioManager.h"
+#include "AudioManager.h"
 
 #define VERTICAL_PADDING            10
 #define NO_WAVE_VIEW_SELECTED       -1

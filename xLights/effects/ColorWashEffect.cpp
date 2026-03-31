@@ -13,7 +13,7 @@
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../../include/ColorWash.xpm"
 
 #include <format>

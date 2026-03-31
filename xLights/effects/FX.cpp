@@ -29,7 +29,7 @@
 #define XLIGHTS_FX
 
 #ifdef XLIGHTS_FX
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../render/RenderBuffer.h"
 #include "../utils/string_utils.h"
 #include <math.h>

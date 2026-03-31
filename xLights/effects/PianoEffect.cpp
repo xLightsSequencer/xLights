@@ -17,8 +17,8 @@
 
 #include "PianoEffect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
 #include "../render/Effect.h"
 #include "../render/SequenceFile.h"
 #include "../render/SequenceElements.h"

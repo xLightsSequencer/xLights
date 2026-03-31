@@ -16,7 +16,7 @@
 #include "PlayList/PlayListStep.h"
 #include "events/ListenerManager.h"
 
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 #include "../xLights/outputs/ArtNetOutput.h"
 #include <log.h>

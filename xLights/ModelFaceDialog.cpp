@@ -41,7 +41,7 @@
 #include "render/SequenceFile.h"
 #include "NodesGridCellEditor.h"
 #include "ModelPreview.h"
-#include "DimmingCurve.h"
+#include "render/DimmingCurve.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "MatrixFaceDownloadDialog.h"

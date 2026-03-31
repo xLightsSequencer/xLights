@@ -14,7 +14,7 @@
 #include "ModelManager.h"
 #include "SingleLineModel.h"
 #include "ModelScreenLocation.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 #include "../utils/ThreadUtils.h"
 

@@ -11,7 +11,7 @@
 #include "DmxColorAbilityWheel.h"
 #include "../Model.h"
 #include "../Node.h"
-#include "../../Color.h"
+#include "Color.h"
 
 DmxColorAbilityWheel::DmxColorAbilityWheel() :
     DmxColorAbility()

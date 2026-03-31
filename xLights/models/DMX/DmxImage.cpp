@@ -13,7 +13,7 @@
 #include "DmxModel.h"
 #include "DmxImage.h"
 #include "../../utils/xlImage.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
 

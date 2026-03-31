@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "globals.h"
-#include "utils/string_utils.h"
+#include "string_utils.h"
 
 #include <format>
 #include <string>

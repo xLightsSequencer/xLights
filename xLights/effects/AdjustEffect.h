@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 class AdjustEffect : public RenderableEffect
 {

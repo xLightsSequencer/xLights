@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <glm/mat3x3.hpp>
-#include "../Color.h"
+#include "Color.h"
 
 class xlVertexColorAccumulator;
 

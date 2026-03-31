@@ -12,7 +12,7 @@
 
 #include "xLightsMain.h"
 #include "ColorPanel.h"
-#include "ColorCurve.h"
+#include "render/ColorCurve.h"
 #include "ui/wxUtilities.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
 #include "UtilFunctions.h"

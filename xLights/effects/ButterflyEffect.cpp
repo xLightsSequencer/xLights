@@ -12,7 +12,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/butterfly-16.xpm"
 #include "../../include/butterfly-24.xpm"
@@ -20,7 +20,7 @@
 #include "../../include/butterfly-48.xpm"
 #include "../../include/butterfly-64.xpm"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include "ispc/ButterflyFunctions.ispc.h"
 

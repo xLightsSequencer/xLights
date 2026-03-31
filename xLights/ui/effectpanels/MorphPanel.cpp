@@ -14,7 +14,7 @@
 #include "assist/xlGridCanvasMorph.h"
 #include "../../effects/MorphEffect.h"
 #include "../../xLightsApp.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../wxUtilities.h"
 #include "../../xLightsMain.h"
 #include "../../sequencer/MainSequencer.h"

@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "DmxShutterAbility.h"
-#include "../../Color.h"
+#include "Color.h"
 
 DmxShutterAbility::DmxShutterAbility()
 {

@@ -28,7 +28,7 @@
 #include "../../utils/string_utils.h"
 #include "../../render/Effect.h"
 #include "../../effects/GuitarEffect.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 #include "../../render/SequenceElements.h"

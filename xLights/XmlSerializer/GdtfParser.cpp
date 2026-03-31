@@ -18,7 +18,7 @@
 #include "../models/DMX/DmxColorAbilityWheel.h"
 #include "../models/DMX/DmxShutterAbility.h"
 #include "../xLightsMain.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include <wx/choicdlg.h>
 #include <algorithm>
 #include <string_view>

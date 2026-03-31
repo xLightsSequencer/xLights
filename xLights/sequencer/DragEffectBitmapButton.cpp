@@ -15,7 +15,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../ui/effectpanels/EffectIconCache.h"
 #include "../RenderCommandEvent.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "MainSequencer.h"
 #include <log.h>
 

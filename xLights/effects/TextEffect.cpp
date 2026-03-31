@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "TextEffect.h"
-#include "../AudioManager.h"
+#include "AudioManager.h"
 
 #include <cassert>
 #include <chrono>
@@ -27,9 +27,9 @@
 #include "../render/Effect.h"
 #include "../render/Element.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../render/FontManager.h"
 #include "../render/RenderContext.h"
 #include "../render/SequenceElements.h"

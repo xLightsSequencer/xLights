@@ -30,7 +30,7 @@
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../render/RenderBuffer.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 enum MOTION_LINK {

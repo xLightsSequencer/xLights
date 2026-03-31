@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "DmxColorAbility.h"
-#include "../../Color.h"
+#include "Color.h"
 
 class DmxColorAbilityRGB : public DmxColorAbility
 {

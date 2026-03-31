@@ -17,7 +17,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "PlayListStep.h"
-#include "../../xLights/AudioManager.h"
+#include "../../xLights/utils/AudioManager.h"
 #include "PlayList.h"
 
 #define MRDS_STARTBYTEWRITE (uint8_t)0xD6

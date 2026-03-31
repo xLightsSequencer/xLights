@@ -23,7 +23,7 @@
 #include "../LMSImportChannelMapDialog.h"
 #include "LOREdit.h"
 #include "../SuperStarImportDialog.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "VSAFile.h"
 #include "../VsaImportDialog.h"

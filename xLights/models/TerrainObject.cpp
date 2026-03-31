@@ -13,7 +13,7 @@
 #include "ModelPreview.h"
 #include "Model.h"
 #include "../ExternalHooks.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../utils/xlImage.h"
 #include <log.h>
 

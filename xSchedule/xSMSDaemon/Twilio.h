@@ -10,7 +10,7 @@
 
 #include <wx/wx.h>
 
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 #include "../wxJSON/jsonreader.h"
 #include "SMSMessage.h"

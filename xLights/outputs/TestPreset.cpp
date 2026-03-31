@@ -11,7 +11,7 @@
 #include "TestPreset.h"
 
 #include "Output.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <log.h>
 

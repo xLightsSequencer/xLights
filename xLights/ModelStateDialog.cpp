@@ -13,7 +13,7 @@
 #include "render/SequenceFile.h"
 #include "NodesGridCellEditor.h"
 #include "ModelPreview.h"
-#include "DimmingCurve.h"
+#include "render/DimmingCurve.h"
 #include "SevenSegmentDialog.h"
 #include "NodeSelectGrid.h"
 #include "models/Model.h"

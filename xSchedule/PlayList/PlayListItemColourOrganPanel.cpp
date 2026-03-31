@@ -11,7 +11,7 @@
 #include "PlayListItemColourOrganPanel.h"
 #include "PlayListDialog.h"
 #include "PlayListItemColourOrgan.h"
-#include "../../xLights/AudioManager.h"
+#include "../../xLights/utils/AudioManager.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "../ScheduleManager.h"
 #include "../xScheduleMain.h"

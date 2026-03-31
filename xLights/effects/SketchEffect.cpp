@@ -22,7 +22,7 @@
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../render/RenderContext.h"
 #include "../ExternalHooks.h"
 

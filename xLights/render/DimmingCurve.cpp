@@ -15,7 +15,7 @@
 #include <wx/txtstrm.h>
 #include <cmath>
 
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 
 class BaseDimmingCurve : public DimmingCurve {
 public:

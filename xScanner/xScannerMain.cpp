@@ -26,7 +26,7 @@
 #include "xScannerMain.h"
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/outputs/ControllerEthernet.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 #include "../xLights/utils/ip_utils.h"
 #include "../xLights/controllers/BaseController.h"

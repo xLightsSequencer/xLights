@@ -12,7 +12,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/plasma-16.xpm"
 #include "../../include/plasma-24.xpm"
@@ -20,7 +20,7 @@
 #include "../../include/plasma-48.xpm"
 #include "../../include/plasma-64.xpm"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include "ispc/PlasmaFunctions.ispc.h"
 

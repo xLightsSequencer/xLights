@@ -11,7 +11,7 @@
 
 #include "E131Output.h"
 #include "OutputManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../utils/ip_utils.h"
 #include "ControllerEthernet.h"

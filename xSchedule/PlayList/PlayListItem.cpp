@@ -11,7 +11,7 @@
 #include "PlayListItem.h"
 #include "PlayList.h"
 #include "PlayListStep.h"
-#include "../../xLights/AudioManager.h"
+#include "../../xLights/utils/AudioManager.h"
 #include "../RunningSchedule.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"

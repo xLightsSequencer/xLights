@@ -75,28 +75,28 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\xLights\utils;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath);$(VCToolsInstallDir)lib\x86</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../include/ffmpeg-6/include;..\include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../include/ffmpeg-6/include;..\include;..\include\zlib;..\xLights;..\xLights\utils;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;GL;$(VCToolsInstallDir)lib\x64</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-6\include;..\include;..\include\zlib;..\xLights;..\xLights\utils;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../include/ffmpeg-6/include;..\include\zlib;..\xLights;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../include/ffmpeg-6/include;..\include\zlib;..\xLights;..\xLights\utils;..\dependencies;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;</LibraryPath>
     <DefineConstants>
     </DefineConstants>
@@ -213,7 +213,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
-    <ClCompile Include="..\xLights\AudioManager.cpp" />
+    <ClCompile Include="..\xLights\utils\AudioManager.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
     <ClCompile Include="..\xLights\controllers\ControllerCaps.cpp" />
     <ClCompile Include="..\xLights\controllers\Falcon.cpp" />
@@ -221,7 +221,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClCompile Include="..\xLights\utils\AnimatedImage.cpp" />
     <ClCompile Include="..\xLights\utils\xlImage.cpp" />
     <ClCompile Include="..\xLights\render\FSEQFile.cpp" />
-    <ClCompile Include="..\xLights\JobPool.cpp" />
+    <ClCompile Include="..\xLights\utils\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
@@ -254,11 +254,11 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClCompile Include="..\xLights\outputs\xxxEthernetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
-    <ClCompile Include="..\xLights\Parallel.cpp" />
+    <ClCompile Include="..\xLights\utils\Parallel.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="..\xLights\SpecialOptions.cpp" />
     <ClCompile Include="..\xLights\TraceLog.cpp" />
-    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\ui\wxUtilities.cpp" />
     <ClCompile Include="..\xLights\utils\CurlManager.cpp" />
     <ClCompile Include="..\xLights\utils\ip_utils.cpp" />
@@ -471,7 +471,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
     <ClInclude Include="..\common\xlBaseApp.h" />
     <ClInclude Include="..\common\xlStackWalker.h" />
-    <ClInclude Include="..\xLights\AudioManager.h" />
+    <ClInclude Include="..\xLights\utils\AudioManager.h" />
     <ClInclude Include="..\xLights\controllers\BaseController.h" />
     <ClInclude Include="..\xLights\controllers\ControllerCaps.h" />
     <ClInclude Include="..\xLights\controllers\Falcon.h" />
@@ -514,7 +514,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"</Command>
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\xLights\SpecialOptions.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />
-    <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\utils\UtilFunctions.h" />
     <ClInclude Include="..\xLights\ui\wxUtilities.h" />
     <ClInclude Include="..\xLights\utils\CurlManager.h" />
     <ClInclude Include="..\xLights\utils\ip_utils.h" />

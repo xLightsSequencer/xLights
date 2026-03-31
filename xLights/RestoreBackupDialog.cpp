@@ -25,7 +25,7 @@
 
 #include <log.h>
 
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/UtilFunctions.h"
 
 #include "../include/globals.h"
 

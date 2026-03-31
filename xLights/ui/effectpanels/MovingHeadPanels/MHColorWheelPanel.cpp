@@ -16,7 +16,7 @@
 #include <wx/rawbmp.h>
 
 #include <glm/gtx/rotate_vector.hpp>
-#include "../../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 namespace
 {

@@ -78,7 +78,7 @@
 #endif
 
 #include "ShaderEffect.h"
-#include "../AudioManager.h"
+#include "AudioManager.h"
 #include "../ui/effectpanels/ShaderPanel.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
 #include "../render/Effect.h"
@@ -86,7 +86,7 @@
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
 #include "../models/Model.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../render/RenderContext.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"

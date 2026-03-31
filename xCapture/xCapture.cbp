@@ -29,6 +29,7 @@
 					<Add directory="../xCapture" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../xLights/utils" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
@@ -63,6 +64,7 @@
 					<Add directory="../xCapture" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../xLights/utils" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
@@ -89,15 +91,15 @@
 		<Unit filename="../common/xlStackWalker.h" />
 		<Unit filename="../xLights/IPEntryDialog.cpp" />
 		<Unit filename="../xLights/IPEntryDialog.h" />
-		<Unit filename="../xLights/JobPool.cpp" />
-		<Unit filename="../xLights/JobPool.h" />
-		<Unit filename="../xLights/Parallel.cpp" />
-		<Unit filename="../xLights/Parallel.h" />
+		<Unit filename="../xLights/utils/JobPool.cpp" />
+		<Unit filename="../xLights/utils/JobPool.h" />
+		<Unit filename="../xLights/utils/Parallel.cpp" />
+		<Unit filename="../xLights/utils/Parallel.h" />
 		<Unit filename="../xLights/TraceLog.cpp" />
 		<Unit filename="../xLights/TraceLog.h" />
 		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
-		<Unit filename="../xLights/UtilFunctions.cpp" />
-		<Unit filename="../xLights/UtilFunctions.h" />
+		<Unit filename="../xLights/utils/UtilFunctions.cpp" />
+		<Unit filename="../xLights/utils/UtilFunctions.h" />
 		<Unit filename="../xLights/ui/wxUtilities.cpp" />
 		<Unit filename="../xLights/ui/wxUtilities.h" />
 		<Unit filename="../xLights/utils/xlImage.cpp" />

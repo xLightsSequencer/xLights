@@ -15,10 +15,10 @@
 #include <string>
 #include <mutex>
 
-#include "../ColorCurve.h" // This needs to be here
-#include "../UtilClasses.h"
+#include "ColorCurve.h"
+#include "UtilClasses.h"
 #include "../graphics/xlGraphicsAccumulators.h"
-#include "../Color.h"
+#include "Color.h"
 
 class EffectLayer;
 class ValueCurve;

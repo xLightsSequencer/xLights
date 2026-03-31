@@ -13,7 +13,7 @@
 #include <cassert>
 
 #include "RenderableEffect.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../utils/xlPoint.h"
 #include <format>
 #include <map>

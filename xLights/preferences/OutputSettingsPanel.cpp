@@ -21,7 +21,7 @@
 
 #include <wx/preferences.h>
 #include "../xLightsMain.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(OutputSettingsPanel)
 const long OutputSettingsPanel::ID_CHECKBOX1 = wxNewId();

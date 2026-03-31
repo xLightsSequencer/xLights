@@ -29,7 +29,7 @@
 #include <map>
 
 #include "xlLockButton.h"
-#include "ColorCurve.h"
+#include "render/ColorCurve.h"
 #include "BulkEditControls.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
 

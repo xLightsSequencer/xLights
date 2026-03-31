@@ -12,8 +12,8 @@
 #include <cmath>
 
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
 #include "../render/Effect.h"
 
 #include "../../include/shockwave-16.xpm"

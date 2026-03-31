@@ -11,7 +11,7 @@
 #include "MHPathPresetBitmapButton.h"
 #include "../../../effects/SketchEffectDrawing.h"
 
-#include "../../../Color.h"
+#include "Color.h"
 #include "../../../ui/wxUtilities.h"
 
 #include <wx/graphics.h>

@@ -19,7 +19,7 @@
 #include "../xLights/outputs/ArtNetOutput.h"
 #include "../Control.h"
 #include <wx/protocol/http.h>
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 
 PlayListItemARTNetTrigger::PlayListItemARTNetTrigger(wxXmlNode* node) : PlayListItem(node)

@@ -10,7 +10,7 @@
  **************************************************************/
 
 #include "J1Sys.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"

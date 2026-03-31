@@ -18,7 +18,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../ui/wxUtilities.h"
 #include "../outputs/Controller.h"

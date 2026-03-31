@@ -18,13 +18,13 @@
 #include <format>
 
 #include "VideoEffect.h"
-#include "../UtilFunctions.h"
-#include "../AudioManager.h"
+#include "UtilFunctions.h"
+#include "AudioManager.h"
 #include "../ui/effectpanels/VideoPanel.h"
 #include "../VideoReader.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../render/SequenceFile.h"
 #include "../render/SequenceMedia.h"
 #include "../render/RenderContext.h"
@@ -32,10 +32,10 @@
 #include "../render/Element.h"
 #include "../render/SequenceElements.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 #include "ispc/VideoFunctions.ispc.h"
 
 #include <log.h>

@@ -11,7 +11,7 @@
 #include "SpiralsEffect.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/spirals-16.xpm"
 #include "../../include/spirals-24.xpm"
@@ -20,7 +20,7 @@
 #include "../../include/spirals-64.xpm"
 
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 SpiralsEffect::SpiralsEffect(int id) : RenderableEffect(id, "Spirals", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64)
 {

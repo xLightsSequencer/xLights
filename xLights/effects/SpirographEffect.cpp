@@ -14,7 +14,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/spirograph-16.xpm"
 #include "../../include/spirograph-24.xpm"

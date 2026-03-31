@@ -14,7 +14,7 @@
 #include <wx/wx.h>
 #include <string>
 #include <map>
-#include "../xLights/JobPool.h"
+#include "../xLights/utils/JobPool.h"
 
 class VideoReader;
 class VideoCacheItem;

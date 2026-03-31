@@ -23,7 +23,7 @@
 #include "../xLightsMain.h"
 #include "../JukeboxPanel.h"
 #include "TimeLine.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../xLightsVersion.h"
 #include "../EffectsPanel.h"

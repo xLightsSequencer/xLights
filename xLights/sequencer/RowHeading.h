@@ -14,7 +14,7 @@
 #include <pugixml.hpp>
 #include "SequenceElements.h"
 #include "wx/wx.h"
-#include "../Color.h"
+#include "Color.h"
 
 #define HORIZONTAL_PADDING          10
 #define PIXELS_PER_MAJOR_HASH       100

@@ -26,7 +26,7 @@
 #include "../../ModelPreview.h"
 #include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 DmxModel::DmxModel(const ModelManager &manager)
     : ModelWithScreenLocation(manager)

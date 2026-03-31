@@ -17,7 +17,7 @@
 #include <vector>
 #include <cstring>
 
-#include "../Color.h"
+#include "Color.h"
 #include "../utils/string_utils.h"
 
 #define NODE_RGB_CHAN_CNT 3

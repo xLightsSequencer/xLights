@@ -13,7 +13,7 @@
 #include "events/ListenerManager.h"
 
 #include <log.h>
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 #include <wx/filename.h>
 #include "Control.h"

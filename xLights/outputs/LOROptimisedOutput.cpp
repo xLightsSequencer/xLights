@@ -12,7 +12,7 @@
 #include "LOROptimisedOutput.h"
 #include "Controller.h"
 #include "../OutputModelManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <wx/propgrid/propgrid.h>
 

@@ -17,7 +17,7 @@
 #include "Pixlite16.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"

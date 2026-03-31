@@ -12,7 +12,7 @@
 
 #include <cassert>
 #include <string>
-#include "../Color.h"
+#include "Color.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
 class Model;

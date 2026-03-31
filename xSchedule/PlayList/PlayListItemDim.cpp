@@ -13,7 +13,7 @@
 #include <wx/notebook.h>
 #include "PlayListItemDimPanel.h"
 #include "../../xLights/outputs/OutputManager.h"
-#include "../../xLights/Parallel.h"
+#include "../../xLights/utils/Parallel.h"
 
 PlayListItemDim::PlayListItemDim(OutputManager* outputManager, wxXmlNode* node) : PlayListItem(node)
 {

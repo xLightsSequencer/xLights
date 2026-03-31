@@ -14,7 +14,7 @@
 
 #include "../Model.h"
 #include "../Node.h"
-#include "../../Color.h"
+#include "Color.h"
 
 void DmxPresetAbility::AddPreset(uint8_t chan, uint8_t val, const std::string& desc)
 {

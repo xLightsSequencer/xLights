@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "../Color.h"
+#include "Color.h"
 
 class xlImage {
 public:

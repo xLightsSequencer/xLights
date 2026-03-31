@@ -3,7 +3,7 @@
 #include <wx/xml/xml.h>
 #include <wx/file.h>
 #include <wx/filename.h>
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 #include "MagicWord.h"
 

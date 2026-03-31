@@ -17,7 +17,7 @@
 
 #include "RemoteFalconOptions.h"
 #include "xSchedule.h"
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 
 //(*IdInit(RemoteFalconSettingsDialog)

@@ -13,7 +13,7 @@
 
 #include "PlayListItemSerial.h"
 #include "PlayListItemSerialPanel.h"
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 #include "../../xLights/outputs/SerialOutput.h"
 #include "../xLights/outputs/serial.h"

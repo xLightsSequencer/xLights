@@ -1,6 +1,6 @@
 #include "UtilClasses.h"
-#include "effects/RenderableEffect.h"
-#include "effects/EffectManager.h"
+#include "../effects/RenderableEffect.h"
+#include "../effects/EffectManager.h"
 
 void SettingsMap::ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {

@@ -14,10 +14,10 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../render/SequenceElements.h"
 
 #include "../../include/fireworks-16.xpm"

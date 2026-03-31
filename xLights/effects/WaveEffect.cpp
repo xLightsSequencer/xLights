@@ -15,8 +15,8 @@
 #include "render/ValueCurve.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
 
 #include "../../include/wave-16.xpm"
 #include "../../include/wave-24.xpm"

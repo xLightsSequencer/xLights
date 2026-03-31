@@ -35,7 +35,7 @@
 #include "../DuplicateDialog.h"
 #include "../FindDataPanel.h"
 #include "../RenderCommandEvent.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../VideoReader.h"
 #include "../effects/RenderableEffect.h"

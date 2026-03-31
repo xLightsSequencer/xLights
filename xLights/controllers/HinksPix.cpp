@@ -10,7 +10,7 @@
 
 #include "HinksPix.h"
 #include "ControllerCaps.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"

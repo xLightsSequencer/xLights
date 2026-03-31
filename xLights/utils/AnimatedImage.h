@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 #include "xlImage.h"
-#include "../Color.h"
+#include "Color.h"
 
 class AnimatedImage
 {

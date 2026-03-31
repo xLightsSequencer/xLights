@@ -11,7 +11,7 @@
 #include "VideoPanel.h"
 #include "../../effects/VideoEffect.h"
 #include "EffectPanelUtils.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../ExternalHooks.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"

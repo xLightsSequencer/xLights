@@ -12,7 +12,7 @@
 
 #include "RenderableEffect.h"
 
-#include "../Color.h"
+#include "Color.h"
 #include "../render/TextDrawingContext.h"
 #include "../utils/xlPoint.h"
 

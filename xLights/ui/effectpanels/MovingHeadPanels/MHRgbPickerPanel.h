@@ -18,7 +18,7 @@
 
 #include "MHColorPanel.h"
 
-#include "../../../Color.h"
+#include "Color.h"
 
 class IMHRgbPickerPanelParent
 {

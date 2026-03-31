@@ -16,7 +16,7 @@
 
 #include "DDPOutput.h"
 #include "OutputManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../OutputModelManager.h"
 #include "ControllerEthernet.h"

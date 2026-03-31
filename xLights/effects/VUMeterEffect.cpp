@@ -13,19 +13,19 @@
 #include <format>
 
 #include "VUMeterEffect.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../utils/xlPoint.h"
-#include "../AudioManager.h"
+#include "AudioManager.h"
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
 #include "../render/RenderContext.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
 #include "../../include/vumeter-16.xpm"

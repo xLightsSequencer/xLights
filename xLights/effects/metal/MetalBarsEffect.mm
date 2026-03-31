@@ -3,7 +3,7 @@
 #include "MetalEffectDataTypes.h"
 
 #include "../../render/RenderBuffer.h"
-#include "../../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../BarsEffect.h"
 
 class MetalBarsEffectData {

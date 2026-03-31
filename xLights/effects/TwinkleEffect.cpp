@@ -12,7 +12,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/twinkle-16.xpm"
 #include "../../include/twinkle-24.xpm"
@@ -21,7 +21,7 @@
 #include "../../include/twinkle-64.xpm"
 #include "render/ValueCurve.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include <random>
 #include <cmath>

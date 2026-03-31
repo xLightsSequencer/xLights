@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <fstream>
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_STDIO // we handle file I/O ourselves

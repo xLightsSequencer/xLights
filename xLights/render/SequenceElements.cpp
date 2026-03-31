@@ -21,7 +21,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../SequenceViewManager.h"
 #include "../JukeboxPanel.h"

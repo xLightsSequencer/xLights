@@ -26,7 +26,7 @@
 #include <map>
 #include <mutex>
 
-#include "../JobPool.h"
+#include "JobPool.h"
 
 namespace ip_utils
 {

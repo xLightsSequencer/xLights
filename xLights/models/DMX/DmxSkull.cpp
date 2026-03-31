@@ -22,7 +22,7 @@
 #include "DmxColorAbilityRGB.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxSkull::DmxSkull(const ModelManager& manager) :

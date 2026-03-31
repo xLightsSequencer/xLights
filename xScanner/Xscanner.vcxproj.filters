@@ -4,7 +4,7 @@
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="xScannerApp.cpp" />
     <ClCompile Include="xScannerMain.cpp" />
-    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\outputs\Controller.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
@@ -104,13 +104,13 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\JobPool.cpp">
+    <ClCompile Include="..\xLights\utils\JobPool.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\TraceLog.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\Parallel.cpp">
+    <ClCompile Include="..\xLights\utils\Parallel.cpp">
       <Filter>xLights</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\controllers\Falcon.cpp">
@@ -158,7 +158,7 @@
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="xScannerApp.h" />
     <ClInclude Include="xScannerMain.h" />
-    <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\utils\UtilFunctions.h" />
     <ClInclude Include="..\xLights\outputs\Controller.h">
       <Filter>xLights</Filter>
     </ClInclude>
@@ -267,13 +267,13 @@
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h">
       <Filter>xLights</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\JobPool.h">
+    <ClInclude Include="..\xLights\utils\JobPool.h">
       <Filter>xLights</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\TraceLog.h">
       <Filter>xLights</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\Parallel.h">
+    <ClInclude Include="..\xLights\utils\Parallel.h">
       <Filter>xLights</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\controllers\Falcon.h">

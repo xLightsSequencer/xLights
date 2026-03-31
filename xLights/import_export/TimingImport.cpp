@@ -19,7 +19,7 @@
 #include "../render/SequenceFile.h"
 #include "../render/RenderContext.h"
 #include "../xLightsMain.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "../sequencer/TimeLine.h"

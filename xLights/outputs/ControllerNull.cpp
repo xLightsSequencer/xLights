@@ -12,7 +12,7 @@
 #include "ControllerNull.h"
 #include "OutputManager.h"
 #include "Output.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../SpecialOptions.h"
 #include "../OutputModelManager.h"
 #include "NullOutput.h"

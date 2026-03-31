@@ -15,7 +15,7 @@
 #include "../../models/Model.h"
 #include "../../models/ModelGroup.h"
 #include "../../render/SequenceElements.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 //(*InternalHeaders(StatePanel)
 #include <wx/choice.h>

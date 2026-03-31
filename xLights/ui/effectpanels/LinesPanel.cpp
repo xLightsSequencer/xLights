@@ -25,7 +25,7 @@
 #include "LinesPanel.h"
 #include "EffectPanelUtils.h"
 #include "../../effects/LinesEffect.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(LinesPanel)
 const long LinesPanel::ID_STATICTEXT_Lines_Bars = wxNewId();

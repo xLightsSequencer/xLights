@@ -11,7 +11,7 @@
 #include "PlayListItemMicrophonePanel.h"
 #include "PlayListDialog.h"
 #include "PlayListItemMicrophone.h"
-#include "../../xLights/AudioManager.h"
+#include "../../xLights/utils/AudioManager.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "../ScheduleManager.h"
 #include "../xScheduleMain.h"

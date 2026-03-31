@@ -10,10 +10,10 @@
 
 #include "MHPresetBitmapButton.h"
 
-#include "../../../Color.h"
+#include "Color.h"
 #include "../../../ui/wxUtilities.h"
 #include "../../../utils/string_utils.h"
-#include "../../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>

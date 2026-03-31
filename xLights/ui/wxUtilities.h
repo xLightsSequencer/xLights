@@ -20,8 +20,8 @@
 #include <wx/image.h>
 #include <wx/socket.h>
 
-#include "../Color.h"
-#include "../UtilFunctions.h"
+#include "Color.h"
+#include "UtilFunctions.h"
 #include "../utils/xlImage.h"
 
 #include <nlohmann/json.hpp>

@@ -19,9 +19,9 @@
 #include <pugixml.hpp>
 
 #include "UtilFunctions.h"
-#include "ExternalHooks.h"
-#include "utils/xlImage.h"
-#include "utils/string_utils.h"
+#include "../ExternalHooks.h"
+#include "xlImage.h"
+#include "string_utils.h"
 
 #include <mutex>
 #include <string_view>

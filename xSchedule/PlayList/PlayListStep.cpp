@@ -43,7 +43,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 #include "../../xLights/render/FSEQFile.h"
 #include "../ScheduleOptions.h"

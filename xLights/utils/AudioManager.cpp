@@ -22,12 +22,12 @@
 #include <stdlib.h>
 
 #include "AudioManager.h"
-#include "ExternalHooks.h"
+#include "../ExternalHooks.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
-#include "../xSchedule/md5.h"
-#include "kiss_fft/tools/kiss_fftr.h"
+#include "../ui/wxUtilities.h"
+#include "../../xSchedule/md5.h"
+#include "../kiss_fft/tools/kiss_fftr.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

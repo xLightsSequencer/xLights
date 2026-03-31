@@ -41,7 +41,7 @@
 #include "ui/ValueCurveDialog.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../wxUtilities.h"
 #include "../../ExternalHooks.h"
 

@@ -12,12 +12,12 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
 
 #include "../../include/morph-16.xpm"
 #include "../../include/morph-64.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <format>
 

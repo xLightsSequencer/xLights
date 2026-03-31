@@ -9,14 +9,14 @@
  **************************************************************/
 
 #include "MusicEffect.h"
-#include "../AudioManager.h"
+#include "AudioManager.h"
 #include "../render/SequenceElements.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include "../../include/music-16.xpm"
 #include "../../include/music-24.xpm"

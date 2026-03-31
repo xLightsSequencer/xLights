@@ -7,7 +7,7 @@
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
-    <ClCompile Include="CachedFileDownloader.cpp" />
+    <ClCompile Include="utils\CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
@@ -17,20 +17,20 @@
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
-    <ClCompile Include="AudioManager.cpp" />
+    <ClCompile Include="utils\AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="BufferPanel.cpp" />
     <ClCompile Include="BufferSizeDialog.cpp" />
     <ClCompile Include="ChannelLayoutDialog.cpp" />
-    <ClCompile Include="Color.cpp" />
-    <ClCompile Include="ColorCurve.cpp" />
+    <ClCompile Include="utils\Color.cpp" />
+    <ClCompile Include="render\ColorCurve.cpp" />
     <ClCompile Include="ColorCurveDialog.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
     <ClCompile Include="ControllerConnectionDialog.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="ConvertLogDialog.cpp" />
     <ClCompile Include="render\DataLayer.cpp" />
-    <ClCompile Include="DimmingCurve.cpp" />
+    <ClCompile Include="render\DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />
@@ -42,7 +42,7 @@
     <ClCompile Include="import_export\FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
-    <ClCompile Include="JobPool.cpp" />
+    <ClCompile Include="utils\JobPool.cpp" />
     <ClCompile Include="KeyBindings.cpp" />
     <ClCompile Include="LayoutGroup.cpp" />
     <ClCompile Include="LayoutPanel.cpp" />
@@ -143,7 +143,7 @@
     <ClCompile Include="render\RenderCache.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="Parallel.cpp" />
+    <ClCompile Include="utils\Parallel.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="ViewObjectPanel.cpp" />
@@ -808,7 +808,7 @@
     <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="UtilClasses.cpp" />
+    <ClCompile Include="utils\UtilClasses.cpp" />
     <ClCompile Include="automation\PythonRunner.cpp">
       <Filter>automation</Filter>
     </ClCompile>
@@ -819,7 +819,7 @@
     <ClCompile Include="utils\string_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="UtilFunctions.cpp">
+    <ClCompile Include="utils\UtilFunctions.cpp">
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="utils\ip_utils.cpp">
@@ -981,7 +981,7 @@
     <ClCompile Include="EditAliasesDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="TempFileManager.cpp" />
+    <ClCompile Include="utils\TempFileManager.cpp" />
     <ClCompile Include="xlColourData.cpp" />
     <ClCompile Include="utils\xlImage.cpp" />
     <ClCompile Include="effects\MovingHeadEffect.cpp">
@@ -1417,7 +1417,7 @@
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />
-    <ClInclude Include="CachedFileDownloader.h" />
+    <ClInclude Include="utils\CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="render\FontManager.h" />
@@ -1427,20 +1427,20 @@
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="utils\AnimatedImage.h" />
     <ClInclude Include="IPEntryDialog.h" />
-    <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="utils\AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="BufferPanel.h" />
     <ClInclude Include="BufferSizeDialog.h" />
     <ClInclude Include="ChannelLayoutDialog.h" />
-    <ClInclude Include="Color.h" />
-    <ClInclude Include="ColorCurve.h" />
+    <ClInclude Include="utils\Color.h" />
+    <ClInclude Include="render\ColorCurve.h" />
     <ClInclude Include="colorcurvedialog.h" />
     <ClInclude Include="ColorPanel.h" />
     <ClInclude Include="ControllerConnectionDialog.h" />
     <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="ConvertLogDialog.h" />
     <ClInclude Include="render\DataLayer.h" />
-    <ClInclude Include="DimmingCurve.h" />
+    <ClInclude Include="render\DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="EffectAssist.h" />
     <ClInclude Include="EffectIconPanel.h" />
@@ -1453,7 +1453,7 @@
     <ClInclude Include="FlickerFreeBitmapButton.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
     <ClInclude Include="Images_png.h" />
-    <ClInclude Include="JobPool.h" />
+    <ClInclude Include="utils\JobPool.h" />
     <ClInclude Include="KeyBindings.h" />
     <ClInclude Include="LayoutGroup.h" />
     <ClInclude Include="LayoutPanel.h" />
@@ -1500,7 +1500,7 @@
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="UpdaterDialog.h" />
-    <ClInclude Include="UtilClasses.h" />
+    <ClInclude Include="utils\UtilClasses.h" />
     <ClInclude Include="render\ValueCurve.h" />
     <ClInclude Include="ui\ValueCurveButton.h" />
     <ClInclude Include="ui\ValueCurveDialog.h" />
@@ -1549,7 +1549,7 @@
     <ClInclude Include="render\RenderCache.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="Parallel.h" />
+    <ClInclude Include="utils\Parallel.h" />
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="ViewObjectPanel.h" />
@@ -2248,7 +2248,7 @@
     <ClInclude Include="utils\xlPoint.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="UtilFunctions.h">
+    <ClInclude Include="utils\UtilFunctions.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="utils\ip_utils.h">
@@ -2413,7 +2413,7 @@
     <ClInclude Include="EditAliasesDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="TempFileManager.h" />
+    <ClInclude Include="utils\TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
     <ClInclude Include="utils\xlImage.h" />
     <ClInclude Include="utils\Base64.h" />

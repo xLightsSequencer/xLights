@@ -15,7 +15,7 @@
 #include <wx/graphics.h>
 #include <wx/rawbmp.h>
 
-#include "../../../UtilFunctions.h"
+#include "UtilFunctions.h"
 namespace
 {
     const int BorderWidth = 5;

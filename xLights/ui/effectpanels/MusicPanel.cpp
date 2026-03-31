@@ -28,7 +28,7 @@
 
 #include <cstdlib>
 #include "../../effects/MusicEffect.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(MusicPanel)
 const long MusicPanel::ID_STATICTEXT_Music_Bars = wxNewId();

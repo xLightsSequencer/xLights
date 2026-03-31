@@ -5,7 +5,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "../../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../wxUtilities.h"
 #include <xLightsMain.h>
 #include "../../../ExternalHooks.h"

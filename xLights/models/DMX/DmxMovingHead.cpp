@@ -26,7 +26,7 @@
 #include "../../ModelPreview.h"
 #include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxMovingHead::DmxMovingHead(const ModelManager &manager) :

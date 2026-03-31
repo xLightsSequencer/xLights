@@ -9,11 +9,11 @@
 #endif
 
 #include "ScanWork.h"
-#include "../xLights/Parallel.h"
+#include "../xLights/utils/Parallel.h"
 #include "xScannerMain.h"
 #include "xScannerApp.h"
 #include "../xLights/utils/CurlManager.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 #include "../xLights/controllers/Falcon.h"
 #include "../xLights/controllers/Pixlite16.h"

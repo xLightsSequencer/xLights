@@ -7,7 +7,7 @@
     <ClCompile Include="xCaptureApp.cpp" />
     <ClCompile Include="xCaptureMain.cpp" />
     <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
-    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\common\xlBaseApp.cpp" />
@@ -20,7 +20,7 @@
     <ClCompile Include="..\xLights\utils\string_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\JobPool.cpp" />
+    <ClCompile Include="..\xLights\utils\JobPool.cpp" />
     <ClCompile Include="..\xLights\TraceLog.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
   </ItemGroup>
@@ -31,7 +31,7 @@
     <ClInclude Include="xCaptureApp.h" />
     <ClInclude Include="xCaptureMain.h" />
     <ClInclude Include="..\xLights\IPEntryDialog.h" />
-    <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\utils\UtilFunctions.h" />
     <ClInclude Include="..\xSchedule\wxJSON\json_defs.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
@@ -47,7 +47,7 @@
     <ClInclude Include="..\xLights\utils\string_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\JobPool.h" />
+    <ClInclude Include="..\xLights\utils\JobPool.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />
   </ItemGroup>
   <ItemGroup>

@@ -20,8 +20,8 @@
 
 #include <format>
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
 #include "../models/DMX/DmxColorAbility.h"
 #include "../models/DMX/DmxModel.h"
 #include "../models/DMX/DmxMotor.h"

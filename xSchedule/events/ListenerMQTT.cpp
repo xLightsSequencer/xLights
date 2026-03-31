@@ -13,7 +13,7 @@
 #include "../../xLights/outputs/IPOutput.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 #include "../PlayList/PlayListItemMQTT.h"
 

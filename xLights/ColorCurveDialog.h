@@ -22,7 +22,7 @@
 #include <wx/dir.h>
 
 #include "xlCustomControl.h"
-#include "ColorCurve.h"
+#include "render/ColorCurve.h"
 
 class wxAutoBufferedPaintDC;
 class Element;

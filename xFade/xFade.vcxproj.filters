@@ -6,7 +6,7 @@
     <ClCompile Include="xFadeApp.cpp" />
     <ClCompile Include="xFadeMain.cpp" />
     <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
-    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="Emitter.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
     <ClCompile Include="MIDIListener.cpp" />
@@ -33,7 +33,7 @@
     <ClCompile Include="..\xLights\utils\string_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\xLights\JobPool.cpp" />
+    <ClCompile Include="..\xLights\utils\JobPool.cpp" />
     <ClCompile Include="..\xLights\TraceLog.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
   </ItemGroup>
@@ -43,7 +43,7 @@
     <ClInclude Include="xFadeApp.h" />
     <ClInclude Include="xFadeMain.h" />
     <ClInclude Include="..\xLights\IPEntryDialog.h" />
-    <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\utils\UtilFunctions.h" />
     <ClInclude Include="Emitter.h" />
     <ClInclude Include="PacketData.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
@@ -72,7 +72,7 @@
     <ClInclude Include="..\xLights\utils\string_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\xLights\JobPool.h" />
+    <ClInclude Include="..\xLights\utils\JobPool.h" />
     <ClInclude Include="..\xLights\TraceLog.h" />
   </ItemGroup>
   <ItemGroup>

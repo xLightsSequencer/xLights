@@ -27,7 +27,7 @@
 #include "ScheduleManager.h"
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/xLightsVersion.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 #include <wx/cmdline.h>
 #include <wx/confbase.h>

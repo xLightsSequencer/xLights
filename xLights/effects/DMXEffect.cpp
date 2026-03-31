@@ -15,7 +15,7 @@
 #include <format>
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
 

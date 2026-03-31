@@ -17,12 +17,12 @@
 #include <wx/graphics.h>
 
 #include "ColorCurve.h"
-#include "ColorCurveDialog.h"
-#include "ui/wxUtilities.h"
+#include "../ColorCurveDialog.h"
+#include "../ui/wxUtilities.h"
 #include "UtilFunctions.h"
-#include "ColorPanel.h"
+#include "../ColorPanel.h"
 
-#include "xlColourData.h"
+#include "../xlColourData.h"
 
 #include <log.h>
 

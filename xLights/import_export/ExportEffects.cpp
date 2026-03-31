@@ -15,11 +15,11 @@
 #include <wx/zipstrm.h>
 
 #include "../xLightsMain.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../ExternalHooks.h"
 #include "../render/FSEQFile.h"
-#include "../Parallel.h"
+#include "Parallel.h"
 #include "../SeqExportDialog.h"
 #include "../LayoutPanel.h"
 #include "../models/Model.h"

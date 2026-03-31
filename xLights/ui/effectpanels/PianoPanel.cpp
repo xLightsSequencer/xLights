@@ -34,7 +34,7 @@
 #include "../../render/Effect.h"
 #include "../../render/Element.h"
 #include "../../effects/PianoEffect.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 

@@ -7,7 +7,7 @@
 #include <wx/bitmap.h>
 #include <glm/fwd.hpp>
 
-#include "../Color.h"
+#include "Color.h"
 #include "../utils/xlImage.h"
 #include "xlGraphicsAccumulators.h"
 #include "xlFontInfo.h"

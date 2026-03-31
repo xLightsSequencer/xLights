@@ -12,9 +12,9 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
-#include "../Parallel.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
+#include "Parallel.h"
 
 #include "../../include/galaxy-16.xpm"
 #include "../../include/galaxy-24.xpm"

@@ -23,7 +23,7 @@
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
 #include "../../TimingPanel.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <wx/statbmp.h>
 

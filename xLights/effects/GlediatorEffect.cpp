@@ -22,11 +22,11 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
 #include "../render/SequenceFile.h"
 #include "../render/RenderContext.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
 #include "../../include/glediator-16.xpm"

@@ -26,9 +26,9 @@ class BaseSerializingVisitor;
 #include "PolyPointScreenLocation.h"
 #include "PWMOutput.h"
 
-#include "../Color.h"
+#include "Color.h"
 #include "BaseObject.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include "../utils/xlPoint.h"
 

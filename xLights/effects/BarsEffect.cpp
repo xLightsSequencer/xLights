@@ -11,7 +11,7 @@
 #include "BarsEffect.h"
 
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../render/Effect.h"
 
 #include "../../include/bars-16.xpm"

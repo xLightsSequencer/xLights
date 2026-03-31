@@ -28,8 +28,8 @@
 #include "xxxEthernetOutput.h"
 #include "OPCOutput.h"
 #include "TestPreset.h"
-#include "../Parallel.h"
-#include "../UtilFunctions.h"
+#include "Parallel.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "utils/ip_utils.h"
 #include <wx/regex.h>

@@ -12,7 +12,7 @@
 #include "ChannelBlockModel.h"
 #include "ModelScreenLocation.h"
 #include "../OutputModelManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 #define MAX_CB_CHANNELS 128

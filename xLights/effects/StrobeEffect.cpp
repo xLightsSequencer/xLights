@@ -14,11 +14,11 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 #include "../models/Model.h"
 #include "../../include/strobe.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 StrobeEffect::StrobeEffect(int id) : RenderableEffect(id, "Strobe", strobe, strobe, strobe, strobe, strobe)
 {

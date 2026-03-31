@@ -21,7 +21,7 @@
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../render/UICallbacks.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 #include <log.h>
 #include "../../ModelPreview.h"

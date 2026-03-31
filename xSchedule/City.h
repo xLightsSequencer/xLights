@@ -15,7 +15,7 @@
 #include <cmath>
 #include <wx/datetime.h>
 
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/utils/UtilFunctions.h"
 #include "../xLights/ui/wxUtilities.h"
 
 #include <log.h>

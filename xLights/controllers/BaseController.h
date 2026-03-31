@@ -15,7 +15,7 @@
 #include <wx/intl.h>
 
 #include "ControllerUploadData.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 class ModelManager;
 class OutputManager;

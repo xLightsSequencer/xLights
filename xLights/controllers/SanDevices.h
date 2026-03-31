@@ -16,7 +16,7 @@
 #include <string>
 
 #include "ControllerUploadData.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "BaseController.h"
 
 class SanDevices;

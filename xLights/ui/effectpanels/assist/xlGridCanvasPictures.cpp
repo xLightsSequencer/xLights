@@ -16,7 +16,7 @@
 #include "../../../ResizeImageDialog.h"
 
 #include "../../../ExternalHooks.h"
-#include "../../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../wxUtilities.h"
 #include "../../../render/SequenceMedia.h"
 #include "../../../ManageMediaPanel.h"

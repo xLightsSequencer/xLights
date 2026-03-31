@@ -13,7 +13,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "../../graphics/tiny_obj_loader.h"
-#include "../../Color.h"
+#include "Color.h"
 
 class BaseObject;
 

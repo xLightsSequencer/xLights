@@ -15,11 +15,11 @@
 #include <Box2D/Box2D.h>
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
-#include "../UtilFunctions.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
+#include "UtilFunctions.h"
 #include "../models/Model.h"
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include "../../include/liquid-16.xpm"
 #include "../../include/liquid-24.xpm"

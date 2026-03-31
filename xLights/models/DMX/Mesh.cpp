@@ -13,7 +13,7 @@
 
 #include "DmxModel.h"
 #include "Mesh.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
 #include <log.h>

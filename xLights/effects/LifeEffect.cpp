@@ -12,14 +12,14 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/life-16.xpm"
 #include "../../include/life-24.xpm"
 #include "../../include/life-32.xpm"
 #include "../../include/life-48.xpm"
 #include "../../include/life-64.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life", life_16, life_24, life_32, life_48, life_48)
 {

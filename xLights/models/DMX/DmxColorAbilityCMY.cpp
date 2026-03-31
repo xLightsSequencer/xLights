@@ -13,7 +13,7 @@
 #include "DmxColorAbilityCMY.h"
 #include "../Model.h"
 
-#include "../../Color.h"
+#include "Color.h"
 #include "../Node.h"
 
 DmxColorAbilityCMY::DmxColorAbilityCMY() :

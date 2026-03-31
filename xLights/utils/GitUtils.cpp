@@ -1,9 +1,9 @@
 #include "GitUtils.h"
 
-#include "xLightsMain.h"
-#include "xLightsApp.h"
-#include "ConvertLogDialog.h"
-#include "ui/wxUtilities.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
+#include "../ConvertLogDialog.h"
+#include "../ui/wxUtilities.h"
 
 #include <log.h>
 

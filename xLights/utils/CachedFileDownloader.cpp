@@ -8,10 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "utils/CurlManager.h"
+#include "CurlManager.h"
 #include "CachedFileDownloader.h"
-#include "ExternalHooks.h"
-#include "ui/wxUtilities.h"
+#include "../ExternalHooks.h"
+#include "../ui/wxUtilities.h"
 
 #include <wx/wx.h>
 #include <wx/protocol/http.h>

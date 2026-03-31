@@ -13,8 +13,8 @@
 
 #include "PlayListItemAudio.h"
 #include "PlayListItemAudioPanel.h"
-#include "../../xLights/AudioManager.h"
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/AudioManager.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 
 #include <log.h>

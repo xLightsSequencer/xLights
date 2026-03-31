@@ -14,7 +14,7 @@
 #include <wx/dir.h>
 
 #include "Controller.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "Output.h"
 #include "OutputManager.h"

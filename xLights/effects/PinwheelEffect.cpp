@@ -12,7 +12,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/pinwheel-16.xpm"
 #include "../../include/pinwheel-24.xpm"
@@ -21,7 +21,7 @@
 #include "../../include/pinwheel-64.xpm"
 #include <log.h>
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include "ispc/PinwheelFunctions.ispc.h"
 

@@ -49,7 +49,7 @@
 #include "models/ModelManager.h"
 #include "xLightsMain.h"
 #include "ModelPreview.h"
-#include "DimmingCurve.h"
+#include "render/DimmingCurve.h"
 #include "AlignmentDialog.h"
 #include "support/VectorMath.h"
 #include "xLightsVersion.h"

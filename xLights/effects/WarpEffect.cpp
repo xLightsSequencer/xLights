@@ -21,11 +21,11 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../models/Model.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../render/DissolveTransitionPattern.h"
 #include "UtilFunctions.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 namespace
 {

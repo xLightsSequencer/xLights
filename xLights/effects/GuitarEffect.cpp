@@ -18,10 +18,10 @@
 #include "GuitarEffect.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../render/SequenceFile.h"
 #include "../render/SequenceElements.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "models/Model.h"
 
 #include <cstdlib>

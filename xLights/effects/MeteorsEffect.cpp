@@ -12,10 +12,10 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <format>
 
@@ -24,9 +24,9 @@
 #include "../../include/meteors-32.xpm"
 #include "../../include/meteors-48.xpm"
 #include "../../include/meteors-64.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64)
 {

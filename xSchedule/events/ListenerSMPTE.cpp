@@ -11,7 +11,7 @@
 #if !defined(SKIP_SMPTE)
 #include "ListenerSMPTE.h"
 #include "ListenerManager.h"
-#include "../../xLights/AudioManager.h"
+#include "../../xLights/utils/AudioManager.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
 #include "../xScheduleMain.h"

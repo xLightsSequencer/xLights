@@ -37,7 +37,7 @@
 #include "../../RemapDMXChannelsDialog.h"
 #include "../../xLightsApp.h"
 #include "EffectPanelUtils.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../wxUtilities.h"
 
 //(*IdInit(DMXPanel)

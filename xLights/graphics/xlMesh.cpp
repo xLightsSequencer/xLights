@@ -10,7 +10,7 @@
 #include <wx/filename.h>
 
 #include "../ExternalHooks.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../utils/xlImage.h"
 
 #include <log.h>

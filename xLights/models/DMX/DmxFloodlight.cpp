@@ -14,7 +14,7 @@
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
 #include "../../ModelPreview.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../xLightsVersion.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 

@@ -11,7 +11,7 @@
 #include "PlayListItemFPPEvent.h"
 #include "PlayList.h"
 #include "PlayListItemFPPEventPanel.h"
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 #include "../Control.h"
 #include "../xLights/outputs/IPOutput.h"

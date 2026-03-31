@@ -10,7 +10,7 @@
  **************************************************************/
 
 #include "LorController.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <wx/wxchar.h>
 

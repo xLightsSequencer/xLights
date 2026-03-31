@@ -12,7 +12,7 @@
 
 #include "RenderableEffect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include <string>
 #include <list>

@@ -21,10 +21,10 @@
 #include "../models/Model.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "UtilFunctions.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 #include <log.h>
 
 KaleidoscopeEffect::KaleidoscopeEffect(int i) : RenderableEffect(i, "Kaleidoscope", kaleidoscope_16, kaleidoscope_24, kaleidoscope_32, kaleidoscope_48, kaleidoscope_64)

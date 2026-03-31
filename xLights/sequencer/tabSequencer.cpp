@@ -44,7 +44,7 @@
 #include "../RenderCommandEvent.h"
 #include "../xLightsVersion.h"
 #include "../HousePreviewPanel.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../JukeboxPanel.h"
 #include "../FindDataPanel.h"
 #include "../EffectsPanel.h"
@@ -61,7 +61,7 @@
 #include "../LayoutPanel.h"
 #include "../TraceLog.h"
 #include "../ui/effectpanels/EffectPanelUtils.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../models/ModelGroup.h"
 

@@ -19,7 +19,7 @@
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemAudio.h"
-#include "../../xLights/UtilFunctions.h"
+#include "../../xLights/utils/UtilFunctions.h"
 #include "../../xLights/ui/wxUtilities.h"
 #include "../ScheduleOptions.h"
 

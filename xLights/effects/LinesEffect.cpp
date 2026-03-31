@@ -9,14 +9,14 @@
  **************************************************************/
 
 #include "LinesEffect.h"
-#include "../AudioManager.h"
+#include "AudioManager.h"
 #include "../render/SequenceElements.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include "../../include/lines-16.xpm"
 #include "../../include/lines-24.xpm"

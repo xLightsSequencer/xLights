@@ -21,7 +21,7 @@
 
 #include "AdjustPanel.h"
 #include "EffectPanelUtils.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 #include "../../TimingPanel.h"

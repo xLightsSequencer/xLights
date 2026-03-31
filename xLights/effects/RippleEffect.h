@@ -12,7 +12,7 @@
 
 #include "RenderableEffect.h"
 
-#include "../Color.h"
+#include "Color.h"
 
 #define RIPPLE_CYCLES_MIN 0
 #define RIPPLE_CYCLES_MAX 300

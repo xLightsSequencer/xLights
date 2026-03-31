@@ -16,7 +16,7 @@
 #include "../../../models/PolyLineModel.h"
 #include "../../../models/Model.h"
 #include "../../../OutputModelManager.h"
-#include "../../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 static const char* POLY_CORNER_VALUES[] = {
     "Leading Segment",

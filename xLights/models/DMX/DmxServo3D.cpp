@@ -20,7 +20,7 @@
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../render/UICallbacks.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 enum MOTION_LINK {

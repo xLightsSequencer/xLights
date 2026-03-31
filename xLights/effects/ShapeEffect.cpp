@@ -19,7 +19,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"

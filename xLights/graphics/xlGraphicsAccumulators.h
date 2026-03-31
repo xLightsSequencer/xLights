@@ -5,7 +5,7 @@
 #include <vector>
 #include <mutex>
 #include <functional>
-#include "../Color.h"
+#include "Color.h"
 
 class xlGraphicsContext;
 

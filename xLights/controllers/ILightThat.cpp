@@ -11,7 +11,7 @@
 #include "ControllerCaps.h"
 #include "ILightThat.h"
 
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
 #include "../outputs/ControllerEthernet.h"

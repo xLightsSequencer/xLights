@@ -26,10 +26,10 @@
 #include "../../outputs/ControllerSerial.h"
 #include "../../controllers/ControllerCaps.h"
 #include "../../LayoutGroup.h"
-#include "../../Color.h"
+#include "Color.h"
 #include "../../utils/string_utils.h"
 #include "../../models/ControllerConnection.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../models/Pixels.h"
 #include "../../ui/wxUtilities.h"
 

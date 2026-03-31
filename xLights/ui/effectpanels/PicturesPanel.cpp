@@ -34,7 +34,7 @@
 #include "../../effects/PicturesEffect.h"
 #include "EffectPanelUtils.h"
 #include "../../ExternalHooks.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
 #include "../../utils/xlImage.h"

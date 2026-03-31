@@ -11,7 +11,7 @@
 #include "CirclesEffect.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/circles-16.xpm"
 #include "../../include/circles-24.xpm"

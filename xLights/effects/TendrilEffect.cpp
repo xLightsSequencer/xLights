@@ -12,8 +12,8 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 
 #include <cmath>
 #include <algorithm>

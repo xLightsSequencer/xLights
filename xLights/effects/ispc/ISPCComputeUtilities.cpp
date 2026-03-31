@@ -11,7 +11,7 @@
 #include <functional>
 #include "ISPCComputeUtilities.h"
 
-#include "../../Parallel.h"
+#include "Parallel.h"
 
 
 ISPCComputeUtilities ISPCComputeUtilities::INSTANCE;

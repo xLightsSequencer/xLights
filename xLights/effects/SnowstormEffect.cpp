@@ -13,7 +13,7 @@
 #include "../utils/xlPoint.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include "../../include/snowstorm-16.xpm"
 #include "../../include/snowstorm-24.xpm"

@@ -4,7 +4,7 @@
 #include "MetalEffectDataTypes.h"
 
 #include "../../render/RenderBuffer.h"
-#include "../../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include <array>
 

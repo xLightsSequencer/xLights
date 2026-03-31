@@ -34,7 +34,7 @@
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "../render/FSEQFile.h"
-#include "../Parallel.h"
+#include "Parallel.h"
 #include "../Discovery.h"
 #include "Falcon.h"
 #include "Experience.h"

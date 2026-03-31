@@ -11,7 +11,7 @@
 #include "AdjustEffect.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
 #include "../../include/adjust16.xpm"

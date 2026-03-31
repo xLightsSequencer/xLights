@@ -20,7 +20,7 @@
 
 #include "BaseController.h"
 #include "ControllerUploadData.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include <curl/curl.h>
 

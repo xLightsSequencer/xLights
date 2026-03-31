@@ -35,6 +35,7 @@
 					<Add directory="../include" />
 					<Add directory="../../include" />
 					<Add directory="../../xLights" />
+					<Add directory="../../xLights/utils" />
 					<Add directory="../../dependencies/pugixml/src" />
 					<Add directory="../../dependencies/spdlog/include" />
 				</Compiler>
@@ -77,6 +78,7 @@
 					<Add directory="../include" />
 					<Add directory="../../include" />
 					<Add directory="../../xLights" />
+					<Add directory="../../xLights/utils" />
 					<Add directory="../../dependencies/pugixml/src" />
 					<Add directory="../../dependencies/spdlog/include" />
 				</Compiler>
@@ -105,8 +107,8 @@
 		<Unit filename="../../common/xlBaseApp.h" />
 		<Unit filename="../../common/xlStackWalker.h" />
 		<Unit filename="../../dependencies/pugixml/src/pugixml.cpp" />
-		<Unit filename="../../xLights/UtilFunctions.cpp" />
-		<Unit filename="../../xLights/UtilFunctions.h" />
+		<Unit filename="../../xLights/utils/UtilFunctions.cpp" />
+		<Unit filename="../../xLights/utils/UtilFunctions.h" />
 		<Unit filename="../../xLights/ui/wxUtilities.cpp" />
 		<Unit filename="../../xLights/ui/wxUtilities.h" />
 		<Unit filename="../../xLights/utils/CurlManager.cpp" />

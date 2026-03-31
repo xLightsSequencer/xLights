@@ -21,7 +21,7 @@
 #include "../controllers/ControllerCaps.h"
 #include "../controllers/FPP.h"
 #include "../controllers/Falcon.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../ui/wxUtilities.h"
 #include "../xLightsApp.h"

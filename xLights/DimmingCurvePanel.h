@@ -12,7 +12,7 @@
 
 #include "wx/wx.h"
 #include "graphics/xlGraphicsBase.h"
-#include "DimmingCurve.h"
+#include "render/DimmingCurve.h"
 
 class DimmingCurvePanel : public GRAPHICS_BASE_CLASS
 {

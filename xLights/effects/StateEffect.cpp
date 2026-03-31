@@ -13,8 +13,8 @@
 
 #include "StateEffect.h"
 #include "../render/RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
 #include "../models/SubModel.h"

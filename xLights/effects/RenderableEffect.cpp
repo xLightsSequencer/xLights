@@ -17,7 +17,7 @@
 #include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h"
 #include "../render/ValueCurve.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "EffectManager.h"
 
 #include "../BufferPanel.h"

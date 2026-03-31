@@ -42,7 +42,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../Color.h"
+#include "Color.h"
 
 #define PROGMEM
 #define byte uint8_t

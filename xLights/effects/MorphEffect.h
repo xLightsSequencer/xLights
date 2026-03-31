@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #define MORPH_X_MIN 0
 #define MORPH_X_MAX 100

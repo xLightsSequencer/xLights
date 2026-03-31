@@ -12,7 +12,7 @@
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
 #include "CheckboxSelectDialog.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "../models/ModelGroup.h"
 #include "../models/ModelManager.h"

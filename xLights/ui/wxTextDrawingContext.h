@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "../render/TextDrawingContext.h"
-#include "../Color.h"
+#include "Color.h"
 
 #include <memory>
 #include <wx/graphics.h>

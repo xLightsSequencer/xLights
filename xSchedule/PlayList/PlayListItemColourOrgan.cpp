@@ -10,7 +10,7 @@
 
 #include "PlayListItemColourOrgan.h"
 #include "PlayListItemColourOrganPanel.h"
-#include "../../xLights/AudioManager.h"
+#include "../../xLights/utils/AudioManager.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include <wx/notebook.h>
 #include <wx/xml/xml.h>
