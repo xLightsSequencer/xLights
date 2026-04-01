@@ -69,15 +69,19 @@ void PolyLinePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, O
 
         if (_polyLine.HasIndivStartNodes()) {
             int c = _polyLine.GetNumStrings();
+            int nodeCount = (int)_polyLine.GetNodeCount();
             for (int x = 0; x < c; x++) {
                 int v = _polyLine.GetIndivStartNode(x);
                 if (v < 1) v = 1;
-                if (v > _polyLine.NodesPerString()) v = _polyLine.NodesPerString();
+                if (v > nodeCount) v = nodeCount;
                 if (x == 0) {
                     psn->SetValue(v);
                 } else {
                     nm = Model::StartChanAttrName(x);
-                    grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
+                    wxPGProperty* pChild = grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
+                    pChild->SetAttribute("Min", 1);
+                    pChild->SetAttribute("Max", nodeCount);
+                    pChild->SetEditor("SpinCtrl");
                 }
             }
         } else {
@@ -246,7 +250,7 @@ int PolyLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid,
         int string = wxAtoi(s) - 1;
         int value = event.GetValue().GetInteger();
         if (value < 1) value = 1;
-        if (value > _polyLine.NodesPerString()) value = _polyLine.NodesPerString();
+        if (value > (int)_polyLine.GetNodeCount()) value = (int)_polyLine.GetNodeCount();
         _polyLine.SetIndivStartNode(string, value);
         _polyLine.IncrementChangeCount();
         _polyLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
