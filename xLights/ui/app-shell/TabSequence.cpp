@@ -224,6 +224,20 @@ void xLightsFrame::LoadEffectsFile()
         }
     }
 
+    // If this file was last saved by an xLights version before 2026.04, make a versioned backup
+    // before we potentially migrate anything. String comparison works because versions are "YYYY.MM.x".
+    std::string savedVersion = GetXmlSetting("xlightsVersion", "");
+    if (savedVersion.empty() || savedVersion < "2026.04") {
+        wxFileName backupFn;
+        backupFn.AssignDir(CurrentDir);
+        if (savedVersion.empty()) {
+            savedVersion = "pre2026.04";
+        }
+        backupFn.SetFullName(wxString::Format("xlights_rgbeffects_%s.xml", savedVersion));
+        wxCopyFile(effectsFile.GetFullPath(), backupFn.GetFullPath(), true);
+        spdlog::info("Backed up rgbeffects file to {} (was saved by version {})", backupFn.GetFullPath().ToStdString(), savedVersion);
+    }
+
     // This is the earliest we can do the backup as now the settings node will be populated
     _backupDirectory = GetXmlSetting("backupDir", showDirectory);
     ObtainAccessToURL(_backupDirectory);
@@ -594,6 +608,7 @@ void xLightsFrame::LoadEffectsFile()
 
     // update version
     _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    SetXmlSetting("xlightsVersion", xlights_version_string);
 
     // Handle upgrade of networks file to the controller/output structure
     bool converted = _outputManager.ConvertModelStartChannels(modelsNode);
