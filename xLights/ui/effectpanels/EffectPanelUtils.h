@@ -41,6 +41,7 @@ class wxTextCtrl;
 class wxCheckBox;
 class wxRadioButton;
 class Model;
+class RenderableEffect;
 class SequenceElements;
 class xLightsFrame;
 
@@ -70,6 +71,7 @@ public:
     virtual void ValidateWindow() = 0;
     virtual void SetDefaultParameters() {}
     virtual void SetPanelStatus(Model* cls) {}
+    virtual void SetRenderableEffect(RenderableEffect* eff) {}
     virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs) {}
     void SetSequenceElements(SequenceElements* els) { mSequenceElements = els; }
     virtual wxString GetEffectString();

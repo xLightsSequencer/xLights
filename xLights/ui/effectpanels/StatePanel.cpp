@@ -199,6 +199,11 @@ void StatePanel::SetEffect(StateEffect* effect, Model* model)
     UpdateStateList();
 }
 
+void StatePanel::SetRenderableEffect(RenderableEffect* eff)
+{
+    _effect = dynamic_cast<StateEffect*>(eff);
+}
+
 void StatePanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {
 	ValidateWindow();
