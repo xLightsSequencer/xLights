@@ -439,7 +439,7 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
 }
 
 void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore) {
-    if (nodeNum < (int)Nodes.size()) {
+    if (nodeNum >= 0 && nodeNum < (int)Nodes.size()) {
         for (auto &a : Nodes[nodeNum]->Coords) {
             SetPixel(a.bufX, a.bufY, color, false, false, dmx_ignore);
         }

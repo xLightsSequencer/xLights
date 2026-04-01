@@ -517,7 +517,9 @@ void Model::UpdateFaceInfoNodes()
                         start--;
                         end--;
                         for (int n = start; n <= end; ++n) {
-                            nodes.push_back(n);
+                            if (n >= 0) {
+                                nodes.push_back(n);
+                            }
                         }
                     }
                     faceInfoNodes[it.first][it2.first] = nodes;
@@ -559,7 +561,9 @@ void Model::UpdateStateInfoNodes()
                         start--;
                         end--;
                         for (int n = start; n <= end; ++n) {
-                            nodes.push_back(n);
+                            if (n >= 0) {
+                                nodes.push_back(n);
+                            }
                         }
                     }
                     stateInfoNodes[it.first][it2.first] = nodes;
