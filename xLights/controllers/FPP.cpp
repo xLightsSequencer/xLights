@@ -1567,7 +1567,12 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
                 jm["Orientation"] = std::string("horizontal");
             } else {
                 jm["Orientation"] = std::string("custom");
-                jm["data"] = cm->GetCustomData();
+                std::string compressed = cm->GetCompressedData();
+                if (majorVersion >= 10 && !compressed.empty()) {
+                    jm["compressedData"] = compressed;
+                } else {
+                    jm["data"] = cm->GetCustomData();
+                }
             }
         } else {
             jm["Orientation"] = std::string("horizontal");
