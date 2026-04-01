@@ -1607,8 +1607,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
     spdlog::debug("Snap To Timing Marks: {}.", toStr(_snapToTimingMarks));
 
-    config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
+    config->Read("xLightsFSEQVersion", &_fseqVersion, 5);
     spdlog::debug("FSEQ Save Version: {}.", _fseqVersion);
+
+    // If upgrading from a version older than 2026.03.3, reset FSEQ version to 5 (V2 ZSTD/sparse)
+    wxString prevVersion;
+    config->Read("xLightsVersion", &prevVersion, "");
+    if (prevVersion.empty() || IsVersionOlder("2026.03.3", prevVersion.ToStdString())) {
+        _fseqVersion = 5;
+        spdlog::info("Reset FSEQ version to 5 (V2 ZSTD/sparse) due to upgrade from version '{}'.", prevVersion.ToStdString());
+    }
 
     config->Read("xLightsDisableKeyAccelerations", &_disableKeyAcceleration, false);
     spdlog::debug("Disable Key Accelerations: {}.", _disableKeyAcceleration ? "Y": "N");
@@ -2384,6 +2392,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsTimelineZooming", _timelineZooming);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
     config->Write("xLightsFSEQVersion", _fseqVersion);
+    config->Write("xLightsVersion", wxString(xlights_version_string));
     config->Write("xLightsDisableKeyAccelerations", _disableKeyAcceleration);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);

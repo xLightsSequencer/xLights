@@ -134,12 +134,12 @@
 				<object class="wxChoice" name="ID_CHOICE3" variable="FSEQVersionChoice" member="yes">
 					<content>
 						<item>V1</item>
-						<item>V2 ZSTD (Default)</item>
+						<item>V2 ZSTD</item>
 						<item>V2 Uncompressed</item>
 						<item>V2 ZLIB</item>
-						<item>V2 ZSTD/sparse</item>
+						<item>V2 ZSTD/sparse (Default)</item>
 					</content>
-					<selection>1</selection>
+					<selection>4</selection>
 					<handler function="OnFSEQVersionChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>

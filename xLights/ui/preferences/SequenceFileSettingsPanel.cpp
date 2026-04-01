@@ -106,10 +106,10 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	GridBagSizer1->Add(StaticText3, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FSEQVersionChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	FSEQVersionChoice->Append(_("V1"));
-	FSEQVersionChoice->SetSelection( FSEQVersionChoice->Append(_("V2 ZSTD (Default)")) );
+	FSEQVersionChoice->Append(_("V2 ZSTD"));
 	FSEQVersionChoice->Append(_("V2 Uncompressed"));
 	FSEQVersionChoice->Append(_("V2 ZLIB"));
-	FSEQVersionChoice->Append(_("V2 ZSTD/sparse"));
+	FSEQVersionChoice->SetSelection( FSEQVersionChoice->Append(_("V2 ZSTD/sparse (Default)")) );
 	GridBagSizer1->Add(FSEQVersionChoice, wxGBPosition(8, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Render Cache Directory"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
