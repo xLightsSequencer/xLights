@@ -31,7 +31,9 @@ ls -lart
 #install zstd so we can decompress the deps
 brew install zstd
 
-
+xcrun -find metal
+xcodebuild -downloadComponent MetalToolchain
+xcrun -find metal
 if xcrun -find metal >/dev/null 2>&1; then
     echo "Metal tools are already installed."
 else
