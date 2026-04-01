@@ -57,7 +57,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
 
     if (!__loaded)
     {
-        spdlog::debug("Loading special options from " + file);
+        spdlog::info("Loading special options from " + file);
         pugi::xml_document doc;
         auto result = doc.load_file(file.c_str());
         if (result && doc.document_element())
@@ -74,7 +74,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
                     if (name != "")
                     {
                         __cache[name] = value;
-                        spdlog::debug("   Option '" + name + "' = '" + value + "'");
+                        spdlog::info("   Option '" + name + "' = '" + value + "'");
                     }
                 }
             }
