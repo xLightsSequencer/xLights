@@ -167,6 +167,15 @@ void InitialiseLogging(bool fromMain)
         auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
 
         auto file_logger = std::make_shared<spdlog::logger>("xLights", rotating_file_sink);
+
+        // Set up the default logger before calling SpecialOptions::GetOption,
+        // which may use spdlog internally
+        loggingInitialised = true;
+        spdlog::initialize_logger(file_logger);
+        spdlog::set_default_logger(file_logger);
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%n %l] %v");
+        spdlog::flush_on(spdlog::level::info);
+
         auto render_logger = std::make_shared<spdlog::logger>("render", rotating_file_sink);
         auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
         auto opengl_logger = std::make_shared<spdlog::logger>("opengl", rotating_file_sink);
@@ -182,12 +191,6 @@ void InitialiseLogging(bool fromMain)
         spdlog::register_logger(opengl_logger);
         spdlog::register_logger(job_logger);
         spdlog::register_logger(work_logger);
-
-        loggingInitialised = true;
-        spdlog::initialize_logger(file_logger);
-        spdlog::set_default_logger(file_logger);
-        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%n %l] %v");
-        spdlog::flush_on(spdlog::level::info);
 
         // wxOperatingSystemId os = wxGetOsVersion();
         // std::string osStr = DecodeOS(os);
