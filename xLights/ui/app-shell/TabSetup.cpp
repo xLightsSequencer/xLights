@@ -2072,14 +2072,9 @@ void xLightsFrame::ValidateControllerProperties() {
     auto p = Controllers_PropertyEditor->GetPropertyByName("ControllerName");
     if (p == nullptr) {
         // general settings
-    }
-    else {
-        auto name = p->GetValue().GetString();
-        auto controller = _outputManager.GetController(name);
-        // controller settings
-        if (_controllerAdapter) {
+    } else if (_controllerAdapter) {
+            // controller settings
             _controllerAdapter->ValidateProperties(&_outputManager, Controllers_PropertyEditor);
-        }
     }
 }
 
@@ -2088,9 +2083,6 @@ void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() == 1) {
-        auto controllername = selections.front();
-        auto controller = _outputManager.GetController(controllername);
-
         if (_controllerAdapter) {
             _controllerAdapter->HandleExpanded(event, false);
         }
@@ -2103,9 +2095,6 @@ void xLightsFrame::OnControllerPropertyGridExpanded(wxPropertyGridEvent& event)
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() == 1) {
-        auto controllername = selections.front();
-        auto controller = _outputManager.GetController(controllername);
-
         if (_controllerAdapter) {
             _controllerAdapter->HandleExpanded(event, true);
         }
