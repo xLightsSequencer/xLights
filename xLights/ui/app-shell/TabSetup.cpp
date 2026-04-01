@@ -384,6 +384,34 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
             DisplayError(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time()).ToStdString());
         } else {
             spdlog::debug("Loaded network config {} : Time {}ms", (const char*)networkFile.GetFullPath().c_str(), sww.Time());
+
+             // Check for deprecated ZCPP controllers and warn the user
+            std::vector<std::string> zcppControllers;
+            for (const auto& controller : _outputManager.GetControllers()) {
+                for (const auto& output : controller->GetOutputs()) {
+                    if (output->GetType() == OUTPUT_ZCPP) {
+                        zcppControllers.push_back(controller->GetName());
+                        break;
+                    }
+                }
+            }
+
+            if (!zcppControllers.empty()) {
+                wxString controllerList;
+                for (size_t i = 0; i < zcppControllers.size(); i++) {
+                    if (i > 0) controllerList += ", ";
+                    controllerList += zcppControllers[i];
+                }
+
+                wxString message = wxString::Format(
+                    "ZCPP is deprecated and will be removed in a future version.\n\n"
+                    "The following controllers are using ZCPP:\n%s\n\n"
+                    "Please migrate these controllers to use DDP (preferred) or e1.31.",
+                    controllerList);
+
+                wxMessageBox(message, "ZCPP Deprecated", wxOK | wxICON_WARNING, this);
+            }
+
             InitialiseControllersTab();
         }
     } else {
