@@ -84,22 +84,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include;..\xLights;..\xLights\utils;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include;..\xLights;..\xLights\utils;..\xLights\ui\import-export;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../xLights/ffmpeg-dev/include;..\include;..\xLights;..\xLights\utils;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../xLights/ffmpeg-dev/include;..\include;..\xLights;..\xLights\utils;..\xLights\ui\import-export;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include;..\xLights;..\xLights\utils;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include;..\xLights;..\xLights\utils;..\xLights\ui\import-export;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../xLights/ffmpeg-dev/include;..\xLights;..\xLights\utils;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../xLights/ffmpeg-dev/include;..\xLights;..\xLights\utils;..\xLights\ui\import-export;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
@@ -198,7 +198,7 @@
     <ClCompile Include="..\xLights\controllers\FPP.cpp" />
     <ClCompile Include="..\xLights\controllers\Pixlite16.cpp" />
     <ClCompile Include="..\xLights\ui/setup/Discovery.cpp" />
-    <ClCompile Include="..\xLights\ExportSettings.cpp" />
+    <ClCompile Include="..\xLights\ui\import-export\ExportSettings.cpp" />
     <ClCompile Include="..\xLights\utils\JobPool.cpp" />
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\Controller.cpp" />
@@ -231,7 +231,7 @@
     <ClCompile Include="..\xLights\outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\xLights\utils\Parallel.cpp" />
-    <ClCompile Include="..\xLights\SpecialOptions.cpp" />
+    <ClCompile Include="..\xLights\utils\SpecialOptions.cpp" />
     <ClCompile Include="..\xLights\utils\TraceLog.cpp" />
     <ClCompile Include="..\xLights\utils\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\ui\wxUtilities.cpp" />
@@ -257,7 +257,7 @@
     <ClInclude Include="..\xLights\controllers\FPP.h" />
     <ClInclude Include="..\xLights\controllers\Pixlite16.h" />
     <ClInclude Include="..\xLights\ui/setup/Discovery.h" />
-    <ClInclude Include="..\xLights\ExportSettings.h" />
+    <ClInclude Include="..\xLights\ui\import-export\ExportSettings.h" />
     <ClInclude Include="..\xLights\utils/ExternalHooks.h" />
     <ClInclude Include="..\xLights\utils\JobPool.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
