@@ -1453,10 +1453,7 @@ void EffectsGrid::ProcessDroppedEffect(Effect* effect) {
 }
 
 void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event) {
-    mDragging = false;
-    mResizing = false;
-    mDragDropping = false;
-    mResizingMode = EFFECT_RESIZE_NO;
+    CancelMouseOperations();
 }
 
 bool EffectsGrid::AdjustDropLocations(int x, EffectLayer* el) {
