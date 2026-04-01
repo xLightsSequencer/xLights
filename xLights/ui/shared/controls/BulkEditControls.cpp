@@ -165,6 +165,13 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
             }
 
             if (xl) {
+                // If an effect-grid drag operation is in progress, release mouse capture
+                // before opening a modal dialog so the drag state does not remain stuck.
+                if (xl->GetMainSequencer() != nullptr &&
+                    xl->GetMainSequencer()->PanelEffectGrid != nullptr) {
+                    xl->GetMainSequencer()->PanelEffectGrid->CancelMouseOperations();
+                }
+
                 wxString msg = wxString::Format(
                     "The selected file is not in the show directory or media directories:\n\n%s\n\n"
                     "What would you like to do?",

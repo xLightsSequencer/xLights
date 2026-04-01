@@ -165,6 +165,18 @@ public:
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
     void LockEffects(bool lock);    
     void DisableRenderEffects(bool disable);
+    void CancelMouseOperations()
+    {
+        if (HasCapture()) {
+            ReleaseMouse();
+        }
+        mDragging = false;
+        mResizing = false;
+        mDragDropping = false;
+        mResizingMode = EFFECT_RESIZE_NO;
+        mDragThresholdExceeded = false;
+        mResizeEffectIndex = -1;
+    }
 
     bool EnDisableSelectedModel(int iOverrideState);
     void EnDisableSelectedModelWithRefresh(int iOverrideState = -1);
