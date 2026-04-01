@@ -141,7 +141,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             report.AddText("backtrace.txt", backtrace_txt, "Backtrace");
             spdlog::critical("{}", backtrace_txt.ToStdString());
 
-            std::string const logFileName = m_appName + "_spd.log";
+            std::string const logFileName = m_appName + "_spdlog.log";
 #ifdef __WXMSW__
             wxString dir;
             wxGetEnv("APPDATA", &dir);
