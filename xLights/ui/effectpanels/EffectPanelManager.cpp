@@ -133,7 +133,7 @@ void EffectPanelManager::RegisterPanels() {
     Register<ShapePanel>(E::eff_SHAPE, "Shape");
     Register<ShimmerPanel>(E::eff_SHIMMER, "Shimmer");
     Register<ShockwavePanel>(E::eff_SHOCKWAVE, "Shockwave");
-    Register<SingleStrandPanel>(E::eff_SINGLESTRAND, "Single Strand");
+    Register<SingleStrandPanel>(E::eff_SINGLESTRAND, "SingleStrand");
     Register<SketchPanel>(E::eff_SKETCH, "Sketch");
     Register<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes");
     Register<SnowstormPanel>(E::eff_SNOWSTORM, "Snowstorm");
