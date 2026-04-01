@@ -205,6 +205,21 @@ void InitialiseLogging(bool fromMain)
 
 void ApplyLoggingSpecialOptions()
 {
+    static bool levelsApplied = false;
+    if (!levelsApplied) {
+        levelsApplied = true;
+        auto applyLevel = [](const std::string& name, const std::string& option, const std::string& defaultLevel) {
+            std::string level = SpecialOptions::GetOption(option, defaultLevel);
+            spdlog::get(name)->set_level(spdlog::level::from_str(level));
+            spdlog::info("Logger '{}' level set to '{}'", name, level);
+        };
+        applyLevel("render", "render_logger", "warn");
+        applyLevel("curl",   "curl_logger",   "info");
+        applyLevel("opengl", "opengl_logger", "info");
+        applyLevel("job",    "job_logger",    "info");
+        applyLevel("work",   "work_logger",   "info");
+    }
+
     if (SpecialOptions::GetOption("console_logger", "false") != "true") return;
 
     static bool consoleApplied = false;
