@@ -40,6 +40,7 @@ class StatePanel: public xlEffectPanel
 		virtual ~StatePanel();
 		virtual void SetDefaultParameters() override;
 		virtual void SetPanelStatus(Model* cls) override;
+		virtual void SetRenderableEffect(RenderableEffect* eff) override;
 		virtual void ValidateWindow() override;
 
 		//(*Declarations(StatePanel)
