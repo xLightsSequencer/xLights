@@ -340,6 +340,7 @@ private:
     bool mResizing;
     bool mDragging;
     bool mDragThresholdExceeded;
+    bool mMouseOperationsCancelled;
     int mDragStartRow;
     int mDragStartX;
     int mDragStartY;

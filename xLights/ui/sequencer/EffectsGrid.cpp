@@ -195,6 +195,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint& po
     mResizing = false;
     mDragThresholdExceeded = false;
     mDragDropping = false;
+    mMouseOperationsCancelled = false;
     mDropStartX = 0;
     mDropEndX = 0;
     mCellRangeSelected = false;
@@ -1876,8 +1877,9 @@ void EffectsGrid::ClearSelection() {
 }
 
 void EffectsGrid::mouseDown(wxMouseEvent& event) {
-    
+
     mPartialCellSelected = false;
+    mMouseOperationsCancelled = false;
 
     _doubleClick = false;
 
@@ -1986,37 +1988,39 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
         Draw();
     }
 
-    if (mResizingMode != EFFECT_RESIZE_NO) {
-        if (selectedEffect != nullptr) {
-            mResizing = true;
-            mDragThresholdExceeded = false;
-            mResizeEffectIndex = effectIndex;
-            CaptureMouse();
-            Draw();
-        }
-    } else {
-        if (!mDragging) {
-            if (!event.ShiftDown() || (mDragStartX == -1)) {
-                mDragStartX = event.GetX();
-                mDragStartY = event.GetY();
-                mDragStartRow = mSequenceElements->GetFirstVisibleModelRow();
-                if (selectedEffect == nullptr) {
-                    UnselectEffect();
-                    mSelectedEffect = nullptr;
-                    mSelectedRow = -1;
+    if (!mMouseOperationsCancelled) {
+        if (mResizingMode != EFFECT_RESIZE_NO) {
+            if (selectedEffect != nullptr) {
+                mResizing = true;
+                mDragThresholdExceeded = false;
+                mResizeEffectIndex = effectIndex;
+                CaptureMouse();
+                Draw();
+            }
+        } else {
+            if (!mDragging) {
+                if (!event.ShiftDown() || (mDragStartX == -1)) {
+                    mDragStartX = event.GetX();
+                    mDragStartY = event.GetY();
+                    mDragStartRow = mSequenceElements->GetFirstVisibleModelRow();
+                    if (selectedEffect == nullptr) {
+                        UnselectEffect();
+                        mSelectedEffect = nullptr;
+                        mSelectedRow = -1;
+                    }
                 }
+                mDragging = true;
+                mDragThresholdExceeded = false;
+                mDragEndX = event.GetX();
+                mDragEndY = event.GetY();
+                if (event.ShiftDown()) {
+                    UpdateSelectionRectangle();
+                } else {
+                    EstablishSelectionRectangle();
+                }
+                CaptureMouse();
+                Draw();
             }
-            mDragging = true;
-            mDragThresholdExceeded = false;
-            mDragEndX = event.GetX();
-            mDragEndY = event.GetY();
-            if (event.ShiftDown()) {
-                UpdateSelectionRectangle();
-            } else {
-                EstablishSelectionRectangle();
-            }
-            CaptureMouse();
-            Draw();
         }
     }
     UpdateZoomPosition(selectedTimeMS);
@@ -6251,6 +6255,7 @@ void EffectsGrid::CancelMouseOperations() {
     mResizingMode = EFFECT_RESIZE_NO;
     mDragThresholdExceeded = false;
     mResizeEffectIndex = -1;
+    mMouseOperationsCancelled = true;
 }
 bool EffectsGrid::CanDropEffect() const {
     return (mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
