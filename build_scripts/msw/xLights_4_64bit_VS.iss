@@ -90,6 +90,9 @@ Source: "../../xSchedule\xSMSDaemon\PhoneBlacklist.txt"; DestDir: "{app}"; Flags
 Source: "../../xSchedule/RemoteFalcon/x64/Release/RemoteFalcon.dll"; DestDir: "{app}"
 ;Source: "../../bin64/RemoteFalcon.map"; DestDir: "{app}"
 
+; fseq_convert
+Source: "../../fseq_convert/cmake_vs/Release/fseq_convert.exe"; DestDir: "{app}"
+
 ; TipOfDay
 ; Commented out until we have enough content and assuming we want to distribute that content
 ; Source: "../../TipOfDay/*.*"; DestDir: "{app}/TipOfDay"; Flags: ignoreversion 

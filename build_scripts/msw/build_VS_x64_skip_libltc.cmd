@@ -122,6 +122,13 @@ cd ..
 mkdir build_scripts\msw\xLights
 copy xLights\x64\Release\*.pdb build_scripts\msw\xLights
 
+cd fseq_convert
+
+cmake -S. -Bcmake_vs -G"Visual Studio 17 2022"
+cmake --build cmake_vs --config Release
+if %ERRORLEVEL% NEQ 0 goto error
+cd ..
+
 cd build_scripts
 cd msw
 
