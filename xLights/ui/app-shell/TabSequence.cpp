@@ -227,7 +227,7 @@ void xLightsFrame::LoadEffectsFile()
     // If this file was last saved by an xLights version before 2026.04, make a versioned backup
     // before we potentially migrate anything. String comparison works because versions are "YYYY.MM.x".
     std::string savedVersion = GetXmlSetting("xlightsVersion", "");
-    if (savedVersion.empty() || savedVersion < "2026.04") {
+    if (!IsReadOnlyMode() && (savedVersion.empty() || savedVersion < "2026.04")) {
         wxFileName backupFn;
         backupFn.AssignDir(CurrentDir);
         if (savedVersion.empty()) {
