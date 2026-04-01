@@ -14,6 +14,7 @@
 #include <wx/statbmp.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
+#include <wx/bmpbuttn.h>
 #include <wx/filepicker.h>
 #include <optional>
 #include <string>
@@ -63,7 +64,7 @@ private:
     MediaType _mediaType;
     wxTextCtrl* _pathCtrl = nullptr;
     wxButton* _selectButton = nullptr;
-    wxButton* _clearButton = nullptr;
+    wxBitmapButton* _clearButton = nullptr;
     wxStaticBitmap* _preview = nullptr;
     wxFilePickerCtrl* _linkedPicker = nullptr;
 };
