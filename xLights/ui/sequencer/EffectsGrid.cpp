@@ -6241,7 +6241,17 @@ void EffectsGrid::UpdateMousePosition(int time) const {
     eventMousePos.SetInt(time);
     wxPostEvent(mParent, eventMousePos);
 }
-
+void EffectsGrid::CancelMouseOperations() {
+    if (HasCapture()) {
+        ReleaseMouse();
+    }
+    mDragging = false;
+    mResizing = false;
+    mDragDropping = false;
+    mResizingMode = EFFECT_RESIZE_NO;
+    mDragThresholdExceeded = false;
+    mResizeEffectIndex = -1;
+}
 bool EffectsGrid::CanDropEffect() const {
     return (mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
 }
