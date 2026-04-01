@@ -26,7 +26,7 @@
   <!--Option name="xLights_logger" value="info"/-->
 
   <!-- Render logger - effect rendering pipeline: frame jobs, blend, per-model render loops (default: warn) -->
-  Option name="render_logger" value="warn"
+  <!--Option name="render_logger" value="warn"/-->
 
   <!-- cURL / HTTP logger - all HTTP/HTTPS traffic via CurlManager: controller uploads, FPP comms, discovery (default: info) -->
   <!--Option name="curl_logger" value="info"/-->
