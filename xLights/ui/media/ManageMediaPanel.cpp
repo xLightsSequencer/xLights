@@ -999,7 +999,11 @@ void ManageMediaPanel::OnTreeMouseMotion(wxMouseEvent& event)
 
     wxDataViewItem item;
     wxDataViewColumn* col = nullptr;
-    _mediaTree->HitTest(event.GetPosition(), item, col);
+    // event.GetPosition() is in inner-window coordinates; HitTest expects
+    // _mediaTree client coordinates (which include the header row offset).
+    wxPoint pos = inner->ClientToScreen(event.GetPosition());
+    pos = _mediaTree->ScreenToClient(pos);
+    _mediaTree->HitTest(pos, item, col);
 
     if (item.IsOk() && !_model->IsGroup(item)) {
         std::string path = _model->GetFilePath(item);
@@ -2109,6 +2113,15 @@ SelectMediaDialog::SelectMediaDialog(wxWindow* parent, SequenceMedia* sequenceMe
 
     _okButton->Bind(wxEVT_BUTTON, &SelectMediaDialog::OnOK, this);
     _addFromDiskButton->Bind(wxEVT_BUTTON, &SelectMediaDialog::OnAddFromDisk, this);
+
+    // Double-click (or Enter) on a leaf item accepts the selection and closes
+    _panel->_mediaTree->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED,
+        [this](wxDataViewEvent& evt) {
+            auto paths = _panel->GetSelectedPaths();
+            if (paths.size() == 1)
+                EndModal(wxID_OK);
+            evt.Skip();
+        });
 
     // Pre-select the specified media file if provided
     if (!selectPath.empty()) {

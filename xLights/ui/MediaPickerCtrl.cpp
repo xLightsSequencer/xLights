@@ -17,6 +17,8 @@
 #include <wx/sizer.h>
 #include <wx/filepicker.h>
 #include <wx/filename.h>
+#include <wx/artprov.h>
+#include <wx/bmpbuttn.h>
 #include <filesystem>
 
 MediaPickerCtrl::MediaPickerCtrl(wxWindow* parent, wxWindowID id,
@@ -43,10 +45,10 @@ MediaPickerCtrl::MediaPickerCtrl(wxWindow* parent, wxWindowID id,
                                  wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
     sizer->Add(_selectButton, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 2);
 
-    // Clear button
-    _clearButton = new wxButton(this, wxID_ANY, wxString::FromUTF8("\xC3\x97"),  // multiplication sign as X
-                                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-    _clearButton->SetMinSize(wxSize(24, -1));
+    // Clear button — bitmap X matching the PicturesPanel style
+    wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
+    _clearButton = new wxBitmapButton(this, wxID_ANY, clearBmp,
+                                      wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
     _clearButton->SetToolTip("Clear selection");
     sizer->Add(_clearButton, 0, wxALIGN_CENTER_VERTICAL);
 
