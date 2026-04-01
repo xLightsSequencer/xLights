@@ -32,17 +32,33 @@ ls -lart
 brew install zstd
 
 
-# need to install the metal toolchain, issue with Xcode 26 in Xcode Cloud
-echo "Downloading and importing Metal Toolchain..."
-xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
-xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
-xcodebuild -downloadComponent metalToolchain
-if ! xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle; then
-    echo "Standard Metal Toolchain install failed, falling back to manual download..."
-    mkdir -p /tmp/MyMetalExport
-    curl -L -o /tmp/MetalToolchain.tgz https://dankulp.com/test/MetalToolChain.tgz
-    tar xzf /tmp/MetalToolchain.tgz -C /tmp/MyMetalExport/
-    rm -f /tmp/MetalToolchain.tgz
+if xcrun -find metal >/dev/null 2>&1; then
+    echo "Metal tools are already installed."
+else
+    echo "Metal tools are NOT installed."
+    xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
     xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle
+
+    if xcrun -find metal >/dev/null 2>&1; then
+        echo "Metal tools were successfully installed."
+    else
+        echo "Metal tools are NOT installed. Trying again."
+        xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
+        xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle
+
+        if xcrun -find metal >/dev/null 2>&1; then
+            echo "Metal tools were successfully installed."
+        else
+            echo "Standard Metal Toolchain install failed, falling back to manual download..."
+            mkdir -p /tmp/MyMetalExport
+            curl -L -o /tmp/MetalToolchain.tgz https://dankulp.com/test/MetalToolChain.tgz
+            tar xzf /tmp/MetalToolchain.tgz -C /tmp/MyMetalExport/
+            rm -f /tmp/MetalToolchain.tgz
+            xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle
+        fi
+    fi
 fi
-echo "Metal Toolchain imported successfully."
+
+if xcrun -find metal >/dev/null 2>&1; then
+    echo "Metal tools have been found and installed."
+fi
