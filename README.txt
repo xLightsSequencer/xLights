@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.04  March ??, 2026
+2026.04  April 2, 2026
     -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
                                     and media manager. Animated GIFs/WebP cycle through all frames, videos
                                     show first 1 second, SVGs show static preview.
@@ -48,17 +48,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Move presets out of xlights_rgbeffects.xml and into a dedicated xlights_effectpresets.json
     -enh (gil)                  Add RotateX support for ThreePointScreenLocation models
     -enh (gil)                  Add Individual Start Channels support for CustomModel
-    -enh (gil)                  Optimize ASAP work into single calls
-    -bug (derwin12)             Fix model video export producing black output
-    -bug (derwin12)             Restore default metronome timing track options
-    -bug (derwin12)             Fix Import from zip not bringing in images
-    -bug (o0charlie0o)          Fix submodel channel mapping after parallel model loading
-    -bug (dkulp)                Fix crash on sequence load for sequences with images animated via -# suffix
-    -bug (dkulp)                Fix issues dropping images already in show/media folders not linking correctly
     -enh (dkulp)                Add "Effect Sequence" type to new sequence wizard. Effect sequences use
                                     sparse V2 FSEQ files with exact channel ranges, no default timing
                                     tracks, and no view selection — designed for reusable effect overlays
                                     that won't interfere with other models on controllers.
+    -bug (derwin12)             Fix model video export producing black output
+    -bug (derwin12)             Restore default metronome timing track options
+    -bug (derwin12)             Fix Import from zip not bringing in images
     -bug (dkulp)                Fix right-click on empty row headings area not showing a popup to
                                     open Display Elements
     -bug (dkulp)                Fix preset import when file has .xml extension

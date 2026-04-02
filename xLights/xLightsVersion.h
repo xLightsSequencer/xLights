@@ -17,7 +17,7 @@
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
 #else
-static const std::string xlights_version_string  = "2026.03.3";
+static const std::string xlights_version_string  = "2026.04";
 #endif
 #ifdef DEBUG
 static const std::string xlights_qualifier       = " DEBUG";
