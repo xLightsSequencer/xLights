@@ -25,6 +25,11 @@
 #include "../ui/sequencer/TimeLine.h"
 #include "Vixen3.h"
 
+#include <nlohmann/json.hpp>
+
+#include <fstream>
+#include <filesystem>
+
 #include <log.h>
 
 static std::string DecodeLSPTTColour(int att)
@@ -320,6 +325,67 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
 
     if (auto* frame = dynamic_cast<xLightsFrame*>(xLightsParent)) {
         frame->SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void SequenceFile::ProcessElevenLabsTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent) {
+    for (std::filesystem::path const& next_file : filenames) {
+        try {
+
+            auto roudTimestoMilli = [&](float start, float end) {
+                int const startTime = TimeLine::RoundToMultipleOfPeriod((int)(start * 1000.0F), GetFrequency());
+                int endTime = TimeLine::RoundToMultipleOfPeriod((int)(end * 1000.0F), GetFrequency());
+                if (startTime == endTime) {
+                    endTime = TimeLine::RoundToMultipleOfPeriod(startTime + GetFrequency(), GetFrequency());
+                }
+                return std::make_pair(startTime, endTime);
+            };
+
+            std::ifstream f(next_file);
+            if (!f.is_open()) {
+                return;
+            }
+
+            std::string filename = next_file.stem().string();
+
+            while (TimingAlreadyExists(filename, xLightsParent)) {
+                filename += "_1";
+            }
+
+            nlohmann::json data;
+            std::ifstream inputFile(next_file);
+            inputFile >> data;
+
+            Element* element = xLightsParent->AddTimingElement(filename);
+            EffectLayer* effectLayerPhrase = element->GetEffectLayer(0);
+            EffectLayer* effectLayerWord = element->AddEffectLayer();
+            //EffectLayer* effectLayerWord = element->GetEffectLayer(1);
+
+            // Read all lines
+            for (auto const& segments : data["segments"]) {
+                auto const start_time = segments["start_time"].get<float>();
+                auto const end_time = segments["end_time"].get<float>();
+
+                auto [startTime, endTime] = roudTimestoMilli(start_time, end_time);
+                effectLayerPhrase->AddEffect(0, segments["text"].get<std::string>(), "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+                for (auto const& word : segments["words"]) {
+                    auto const cword = word["text"].get<std::string>();
+                    if (cword.empty()) {
+                        continue;
+                    }
+                    bool const hasText = std::any_of(cword.begin(), cword.end(), [](unsigned char ch) { return !std::isspace(ch); });
+                    if (!hasText) {
+                        continue;
+                    }
+                    auto const word_start_time = word["start_time"].get<float>();
+                    auto const word_end_time = word["end_time"].get<float>();
+                    auto [wordStartTime, wordEndTime] = roudTimestoMilli(word_start_time, word_end_time);
+                    effectLayerWord->AddEffect(0, cword, "", "", wordStartTime, wordEndTime, EFFECT_NOT_SELECTED, false);
+                }
+            }
+        } catch (const std::exception& ex) {
+            spdlog::error("Error processing timing file {}: {}", next_file.string(), ex.what());
+        }
     }
 }
 

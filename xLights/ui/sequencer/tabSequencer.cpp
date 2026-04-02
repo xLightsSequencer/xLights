@@ -3877,7 +3877,7 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent& command)
 void xLightsFrame::ImportTimingElement()
 {
     wxFileDialog* OpenDialog = new wxFileDialog(this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
-                                                "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xsq)|*.xsq|Old xLights (*.xml)|*.xml",
+                                                "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xsq)|*.xsq|Old xLights (*.xml)|*.xml|Eleven Labs (*.json)|*.json",
                                                 wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     if (OpenDialog->ShowModal() == wxID_OK) {
         wxArrayString wxFilenames;
@@ -3899,7 +3899,9 @@ void xLightsFrame::ImportTimingElement()
             } else if (file1.GetExt().Lower() == "xml" || file1.GetExt().Lower() == "xsq") {
                 CurrentSeqXmlFile->ProcessXLightsTiming( filenames, this);
             } else if (file1.GetExt().Lower() == "tim") {
-                CurrentSeqXmlFile->ProcessVixen3Timing( filenames, this);
+                CurrentSeqXmlFile->ProcessVixen3Timing(filenames, this);
+            } else if (file1.GetExt().Lower() == "json") {
+                CurrentSeqXmlFile->ProcessElevenLabsTimingFiles(filenames, this);
             } else {
                 CurrentSeqXmlFile->ProcessAudacityTimingFiles( filenames, this);
             }

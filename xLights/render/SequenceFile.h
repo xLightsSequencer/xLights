@@ -138,6 +138,7 @@ public:
     void ProcessLSPTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
     void ProcessXLightsTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
     void ProcessVixen3Timing(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    void ProcessElevenLabsTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent);
     static void AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS);
     std::string UniqueTimingName(RenderContext* renderContext, std::string name) const;
     void UpdateVersion();
