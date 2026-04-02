@@ -663,6 +663,7 @@ void BaseSerializingVisitor::Visit(const CircleModel& model) {
     attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumCircleStrings()));
     attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
     AddBoxedScreenLocationAttributes(model, attrs);
+    attrs.Add(XmlNodeKeys::CenterPercentAttribute, std::to_string(model.GetCenterPercent()));
     attrs.Add(XmlNodeKeys::InsideOutAttribute,  model.IsInsideOut() ? "1" : "0");
     attrs.Add(XmlNodeKeys::LayerSizesAttribute, model.SerialiseLayerSizes());
     SortAttributes(attrs);

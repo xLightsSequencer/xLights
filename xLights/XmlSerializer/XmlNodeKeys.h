@@ -279,8 +279,9 @@ namespace XmlNodeKeys {
     constexpr auto ChannelColorAttribute =  "ChannelProperties.ChannelColor";
 
     // Circle Model
-    constexpr auto InsideOutAttribute   = "InsideOut";
-    constexpr auto CircleSizesAttribute = "circleSizes";
+    constexpr auto InsideOutAttribute      = "InsideOut";
+    constexpr auto CircleSizesAttribute    = "circleSizes";
+    constexpr auto CenterPercentAttribute  = "centerPercent";
 
     // Cube
     constexpr auto StyleAttribute          = "Style";

@@ -524,6 +524,7 @@ Model* XmlDeserializingModelFactory::DeserializeCircle(pugi::xml_node node, xLig
     if (node.attribute("StartSide").empty()) {
         model->SetIsBtoT(false);
     }
+    model->SetCenterPercent(ReadAttrWithParmFallback(node, XmlNodeKeys::CenterPercentAttribute, XmlNodeKeys::Parm3Attribute, "0"));
     model->SetInsideOut(std::string_view(node.attribute(XmlNodeKeys::InsideOutAttribute).as_string("0")) == "1");
     model->Setup();
     return model;
