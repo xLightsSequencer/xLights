@@ -170,7 +170,7 @@ Output* Output::Create(Controller* c, pugi::xml_node node, std::string showDir) 
     }
 
     spdlog::warn("Unknown network type {} ignored.", type.c_str());
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 #pragma endregion
@@ -211,7 +211,7 @@ std::string Output::GetForceLocalIPToUse() const
 }
 
 void Output::SetTransientData(int32_t& startChannel, int nullnumber) {
-    wxASSERT(startChannel != -1);
+    assert(startChannel != -1);
     _startChannel = startChannel;
     if (GetType() == OUTPUT_NULL) {
         _nullNumber = nullnumber++;

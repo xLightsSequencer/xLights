@@ -226,7 +226,7 @@ std::string E131Output::GetTag() {
 #pragma region Getters and Setters
 std::string E131Output::GetLongDescription() const {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     std::string res = "";
 
@@ -251,13 +251,13 @@ std::string E131Output::GetExport() const {
 
 void E131Output::SetTransientData(int32_t& startChannel, int nullnumber) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(startChannel, nullnumber);
     }
 
-    wxASSERT(startChannel != -1);
+    assert(startChannel != -1);
     _startChannel = startChannel;
     startChannel += GetChannels();
 }
@@ -266,7 +266,7 @@ void E131Output::SetTransientData(int32_t& startChannel, int nullnumber) {
 #pragma region Start and Stop
 bool E131Output::Open() {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return true;
     if (_ip == "") return false;
@@ -379,7 +379,7 @@ void E131Output::StartFrame(long msec) {
 
     
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
     if (_fppProxyOutput) {
@@ -398,7 +398,7 @@ void E131Output::StartFrame(long msec) {
 
 void E131Output::EndFrame(int suppressFrames) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled || _suspend || _tempDisable) return;
 
@@ -422,7 +422,7 @@ void E131Output::EndFrame(int suppressFrames) {
 
 void E131Output::ResetFrame() {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
     if (_fppProxyOutput) {
@@ -435,7 +435,7 @@ void E131Output::ResetFrame() {
 #pragma region Data Setting
 void E131Output::SetOneChannel(int32_t channel, unsigned char data) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
     if (_fppProxyOutput) {
@@ -451,7 +451,7 @@ void E131Output::SetOneChannel(int32_t channel, unsigned char data) {
 
 void E131Output::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
 
@@ -472,7 +472,7 @@ void E131Output::SetManyChannels(int32_t channel, unsigned char* data, size_t si
 
 void E131Output::AllOff() {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
 

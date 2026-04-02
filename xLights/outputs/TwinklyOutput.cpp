@@ -22,7 +22,7 @@
 #include <thread>
 
 #ifndef EXCLUDEDISCOVERY
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
 #endif
 
 // this is how often we re-call the web service on the controller to put it in real time mode
@@ -93,7 +93,7 @@ void TwinklyOutput::SetTransientData(int32_t& startChannel, int nullnumber)
         _fppProxyOutput->SetTransientData(startChannel, nullnumber);
     }
 
-    wxASSERT(startChannel != -1);
+    assert(startChannel != -1);
     _startChannel = startChannel;
     startChannel += GetChannels();
 }
@@ -230,7 +230,7 @@ void TwinklyOutput::EndFrame(int suppressFrames)
         offset += payloadSize;
         i += payloadSize;
 
-        wxASSERT(i <= PACKET_SIZE);
+        assert(i <= PACKET_SIZE);
         _datagram->SendTo(_ip, UDP_PORT, packet, PACKET_SIZE);
     }
 
@@ -712,73 +712,61 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
     packet[7] = 'e';
     packet[8] = 'r';
 
-    wxIPV4address localaddr;
-    if (localIP == "") {
-        localaddr.AnyAddress();
-    } else {
-        localaddr.Hostname(localIP);
-    }
-
-    spdlog::debug(" Twinkly query using {}", (const char*)localaddr.IPAddress().c_str());
-    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
-
-    if (datagram == nullptr) {
-        spdlog::error("Error initialising Twinkly query datagram.");
-    } else if (!datagram->IsOk()) {
-        spdlog::error("Error initialising Twinkly query datagram ... is network connected? OK : FALSE");
-        delete datagram;
-        datagram = nullptr;
-    } else if (datagram->Error()) {
-        spdlog::error("Error creating Twinkly query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
-        delete datagram;
-        datagram = nullptr;
-    } else {
+    auto datagram = std::make_unique<sockets::UDPSocket>();
+    if (!datagram->Open()) {
+        spdlog::error("Error opening Twinkly query datagram.");
+        return val;
+      } else {
         spdlog::info("Twinkly query datagram opened successfully.");
-    }
+      }
 
-    wxIPV4address remoteaddr;
-    remoteaddr.Hostname(ip);
-    remoteaddr.Service(DISCOVERY_PORT);
+    if (!localIP.empty()) {
+        if (!datagram->Bind(localIP, 0, false)) {
+            spdlog::error("Error binding Twinkly query datagram to {}: {}", localIP, datagram->LastError());
+            return val;
+          }
+      } else {
+        if (!datagram->Bind("", 0, false)) {
+            spdlog::error("Error binding Twinkly query datagram.");
+            return val;
+          }
+      }
 
-    // bail if we dont have a datagram to use
-    if (datagram != nullptr) {
-        spdlog::info("Twinkly sending query packet.");
-        datagram->SendTo(remoteaddr, &packet, sizeof(packet));
-        if (datagram->Error()) {
-            spdlog::error("Error sending Twinkly query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+    spdlog::debug("Twinkly query using {}", localIP.empty() ? "any address" : localIP.c_str());
+    spdlog::info("Twinkly sending query packet.");
+
+    datagram->SendTo(ip, DISCOVERY_PORT, packet, sizeof(packet));
+    spdlog::info("Twinkly sent query packet. Sleeping for 1 second.");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    uint8_t response[1024];
+
+    int lastread = 1;
+
+    while (lastread > 0) {
+        auto sw_start = std::chrono::steady_clock::now();
+        spdlog::debug("Trying to read Twinkly query response packet.");
+        memset(&response, 0x00, sizeof(response));
+        if (!datagram->WaitForData(2000)) {
+            lastread = 0;
         } else {
-            spdlog::info("Twinkly sent query packet. Sleeping for 1 second.");
-
-            // give the controllers 2 seconds to respond
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-            uint8_t response[1024];
-
-            int lastread = 1;
-
-            while (lastread > 0) {
-                auto sw_start = std::chrono::steady_clock::now();
-                spdlog::debug("Trying to read Twinkly query response packet.");
-                memset(&response, 0x00, sizeof(response));
-                datagram->Read(&response, sizeof(response));
-                lastread = datagram->LastReadCount();
-
-                if (lastread > 0) {
-                    spdlog::debug(" Read done. {} bytes {}ms", lastread, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
-
-                    if (response[0] == 0x01 && response[1] == 'd' && response[2] == 'i') {
-                        // getting my own QUERY request, ignore
-                    } else if (response[4] == 'O' && response[5] == 'K') {
-                        spdlog::debug(" Valid response.");
-                        spdlog::debug((const char*)&response[6]);
-                    }
-                }
-                spdlog::info("Twinkly Query Done looking for response.");
-            }
+            lastread = datagram->ReceiveFrom(response, sizeof(response));
         }
-        datagram->Close();
-        delete datagram;
-    }
+
+        if (lastread > 0) {
+            spdlog::debug(" Read done. {} bytes {}ms", lastread, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
+
+            if (response[0] == 0x01 && response[1] == 'd' && response[2] == 'i') {
+                  // getting my own QUERY request, ignore
+              } else if (response[4] == 'O' && response[5] == 'K') {
+                spdlog::debug(" Valid response.");
+                spdlog::debug((const char*)&response[6]);
+              }
+          }
+        spdlog::info("Twinkly Query Done looking for response.");
+        }
+
     spdlog::info("Twinkly Query Finished.");
 
     return val;
@@ -788,7 +776,7 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
 {
     
 
-    discovery.AddBroadcast(DISCOVERY_PORT, [&discovery](wxDatagramSocket* socket, uint8_t* response, int len) {
+    discovery.AddBroadcast(DISCOVERY_PORT, [&discovery](uint8_t* response, int len, const std::string &fromIP) {
         
         if (response[0] == 0x01 && response[1] == 'd' && response[2] == 'i') {
             // getting my own QUERY request, ignore
@@ -802,9 +790,7 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
             spdlog::debug(" Valid Twinkly Status Response.");
             spdlog::debug((const char*)&response[6]);
 
-            wxIPV4address add;
-            socket->GetPeer(add);
-            std::string ip = add.IPAddress();
+            std::string ip = fromIP;
             DiscoveredData* dd = discovery.FindByIp(ip);
             if (dd == nullptr) {
                 ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);

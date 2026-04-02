@@ -25,11 +25,9 @@
 #include <wx/stopwatch.h>
 #include <chrono>
 #include <thread>
-#include <wx/sckaddr.h>
-#include <wx/socket.h>
 
 #ifndef EXCLUDEDISCOVERY
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
 #endif
 
 #pragma region Static Variables
@@ -168,81 +166,62 @@ nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::
     packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
     packet[3] = type;
 
-    wxIPV4address localaddr;
-    if (localIP == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(localIP);
+    auto datagram = std::make_unique<sockets::UDPSocket>();
+    if (!datagram->Open()) {
+        spdlog::error("Error opening DDP query datagram.");
+        return val;
     }
 
-    spdlog::debug(" DDP query using {}", (const char*)localaddr.IPAddress().c_str());
-    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT); // wxSOCKET_BLOCK causes xLights to lock up waiting forever - SEH, dont use NOWAIT as it can result in dropped packets
-
-    if (datagram == nullptr) {
-        spdlog::error("Error initialising DDP query datagram.");
-    }
-    else if (!datagram->IsOk()) {
-        spdlog::error("Error initialising DDP query datagram ... is network connected? OK : FALSE");
-        delete datagram;
-        datagram = nullptr;
-    }
-    else if (datagram->Error()) {
-        spdlog::error("Error creating DDP query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
-        delete datagram;
-        datagram = nullptr;
-    }
-    else {
-        spdlog::info("DDP query datagram opened successfully.");
-    }
-
-    wxIPV4address remoteaddr;
-    remoteaddr.Hostname(ip);
-    remoteaddr.Service(DDP_PORT);
-
-    // bail if we dont have a datagram to use
-    if (datagram != nullptr) {
-        spdlog::info("DDP sending query packet.");
-        datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
-        if (datagram->Error()) {
-            spdlog::error("Error sending DDP query datagram => {} : {}.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+    if (!localIP.empty()) {
+        if (!datagram->Bind(localIP, 0, false)) {
+            spdlog::error("Error binding DDP query datagram to {}: {}", localIP, datagram->LastError());
+            return val;
         }
-        else {
-            spdlog::info("DDP sent query packet. Sleeping for 1 second.");
-
-            // give the controllers 2 seconds to respond
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-            uint8_t response[1024];
-
-            int lastread = 1;
-
-            while (lastread > 0) {
-                auto sw_start = std::chrono::steady_clock::now();
-                spdlog::debug("Trying to read DDP query response packet.");
-                memset(&response, 0x00, sizeof(response));
-                datagram->Read(&response, sizeof(response));
-                lastread = datagram->LastReadCount();
-
-                if (lastread > 10) {
-                    spdlog::debug(" Read done. {} bytes {}ms", lastread, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
-
-                    if (response[3] == type) {
-                        spdlog::debug(" Valid response.");
-                        spdlog::debug((const char*)&response[10]);
-                        try {
-                            val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
-                        } catch (std::exception& e) {
-                            spdlog::error("DDP Query JSON Parse error {}", e.what());
-                        }
-                    }
-                }
-                spdlog::info("DDP Query Done looking for response.");
-            }
+     } else {
+        if (!datagram->Bind("", 0, false)) {
+            spdlog::error("Error binding DDP query datagram.");
+            return val;
         }
-        datagram->Close();
-        delete datagram;
-    }
+     }
+
+    spdlog::debug("DDP query using {}", localIP.empty() ? "any address" : localIP.c_str());
+    spdlog::info("DDP sending query packet.");
+
+    datagram->SendTo(ip, DDP_PORT, packet, DDP_DISCOVERPACKET_LEN);
+    spdlog::info("DDP sent query packet. Sleeping for 1 second.");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    uint8_t response[1024];
+
+    int lastread = 1;
+
+    while (lastread > 0) {
+        auto sw_start = std::chrono::steady_clock::now();
+        spdlog::debug("Trying to read DDP query response packet.");
+        memset(&response, 0x00, sizeof(response));
+        if (!datagram->WaitForData(2000)) {
+            lastread = 0;
+        } else {
+            lastread = datagram->ReceiveFrom(response, sizeof(response));
+        }
+
+        if (lastread > 10) {
+            spdlog::debug(" Read done. {} bytes {}ms", lastread, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
+
+            if (response[3] == type) {
+                spdlog::debug(" Valid response.");
+                spdlog::debug((const char*)&response[10]);
+                try {
+                    val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
+                 } catch (std::exception& e) {
+                    spdlog::error("DDP Query JSON Parse error {}", e.what());
+                 }
+             }
+         }
+        spdlog::info("DDP Query Done looking for response.");
+     }
+
     spdlog::info("DDP Query Finished.");
 
     return val;
@@ -253,7 +232,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
 
     
 
-    discovery.AddBroadcast(DDP_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *response, int len) {
+    discovery.AddBroadcast(DDP_PORT, [&discovery](uint8_t *response, int len, const std::string &fromIP) {
         
         if (response[0] & DDP_FLAGS1_QUERY) {
             //getting my own QUERY request, ignore
@@ -263,9 +242,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             spdlog::debug(" Valid DDP Status Response.");
             spdlog::debug((const char*)&response[10]);
 
-            wxIPV4address add;
-            socket->GetPeer(add);
-            std::string ip = add.IPAddress();
+            std::string ip = fromIP;
             DiscoveredData *dd = discovery.FindByIp(ip);
             if (dd == nullptr) {
                 ControllerEthernet *controller = new ControllerEthernet(discovery.GetOutputManager(), false);
@@ -326,9 +303,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             spdlog::debug(" Valid DDP Config Response.");
             spdlog::debug((const char*)&response[10]);
 
-            wxIPV4address add;
-            socket->GetPeer(add);
-            std::string ip = add.IPAddress();
+            std::string ip = fromIP;
             DiscoveredData *dd = discovery.FindByIp(ip);
             if (dd == nullptr) {
                 ControllerEthernet *controller = new ControllerEthernet(discovery.GetOutputManager(), false);
@@ -354,12 +329,12 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
                         auto ports = val["config"]["ports"].array();
                         for (size_t i = 0; i < ports.size(); i++) {
                             auto ts =
-                                wxAtoi(
-                                    val["config"]["ports"][i]["ts"].get<std::string>()) +
+                                strtol(
+                                    val["config"]["ports"][i]["ts"].get<std::string>().c_str(), nullptr, 10) +
                                 1;
                             auto l =
-                                wxAtoi(
-                                    val["config"]["ports"][i]["l"].get<std::string>());
+                                strtol(
+                                    val["config"]["ports"][i]["l"].get<std::string>().c_str(), nullptr, 10);
                             channels += ts * l * 3;
                         }
                         controller->GetOutputs().front()->SetChannels(

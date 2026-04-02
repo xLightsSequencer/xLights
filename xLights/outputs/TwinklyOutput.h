@@ -14,8 +14,6 @@
 #include "SocketAbstraction.h"
 #include <array>
 #include <chrono>
-#include <wx/socket.h>
-#include <wx/sckaddr.h>
 
 class Discovery;
 

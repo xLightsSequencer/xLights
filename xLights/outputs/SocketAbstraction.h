@@ -520,6 +520,26 @@ public:
         }
     }
 
+    bool JoinMulticast(const std::string& multicastAddr)
+    {
+        if (_socket == INVALID_SOCKET_HANDLE) {
+            return false;
+        }
+        struct ip_mreq mreq{};
+        if (!parseIPv4(multicastAddr, mreq.imr_multiaddr)) {
+            _lastError = "Invalid multicast address: " + multicastAddr;
+            return false;
+        }
+        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+        if (setsockopt(_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                       reinterpret_cast<const char*>(&mreq), sizeof(mreq)) != 0) {
+            _lastError = getLastSocketErrorString();
+            return false;
+        }
+        _lastError.clear();
+        return true;
+    }
+
     const std::string& LastError() const { return _lastError; }
 
 private:

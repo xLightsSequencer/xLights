@@ -35,7 +35,8 @@
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "render/FSEQFile.h"
 #include "Parallel.h"
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
+#include "ui/setup/DiscoveryAuthDialog.h"
 #include "controllers/Falcon.h"
 #include "controllers/Experience.h"
 #include <algorithm>
@@ -1763,7 +1764,8 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
         std::list<std::string> add;
         add.push_back(ipAd);
 
-        Discovery discovery(this, _outputManager);
+        wxDiscoveryDelegate delegate(this);
+        Discovery discovery(_outputManager, &delegate);
         FPP::PrepareDiscovery(discovery, add, false);
         discovery.Discover();
         FPP::MapToFPPInstances(discovery, instances, _outputManager);

@@ -14,7 +14,6 @@
 
 #include <wx/ffile.h>
 #include <wx/log.h>
-#include <wx/string.h>
 #include <wx/wx.h>
 
 #include <algorithm>
@@ -2440,7 +2439,7 @@ std::string AudioManager::MidiToNote(int midi) {
     };
     int offset = midi % 12;
     int octave = midi / 12 - 1;
-    return wxString::Format("%s%d", notes[offset], octave).ToStdString();
+    return std::string(notes[offset]) + std::to_string(octave);
 }
 
 void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
@@ -2931,13 +2930,13 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio) {
                 continue;
             }
 
-            std::string name = std::string(wxString::FromUTF8(it->getName().c_str()).c_str());
+            std::string name = it->getName();
 
             if (outputs.size() > 1) {
                 // This is not the plugin's only output.
                 // Use "plugin name: output name" as the effect name,
                 // unless the output name is the same as the plugin name
-                std::string outputName = std::string(wxString::FromUTF8(j.name.c_str()).c_str());
+                std::string outputName = j.name;
                 if (outputName != name) {
                     std::ostringstream stringStream;
                     stringStream << name << ": " << outputName.c_str();
@@ -2967,13 +2966,13 @@ std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
         Plugin::OutputList outputs = it->getOutputDescriptors();
 
         for (const auto& j : outputs) {
-            std::string name = std::string(wxString::FromUTF8(it->getName().c_str()).c_str());
+            std::string name = it->getName();
 
             if (outputs.size() > 1) {
                 // This is not the plugin's only output.
                 // Use "plugin name: output name" as the effect name,
                 // unless the output name is the same as the plugin name
-                std::string outputName = std::string(wxString::FromUTF8(j.name.c_str()).c_str());
+                std::string outputName = j.name;
                 if (outputName != name) {
                     std::ostringstream stringStream;
                     stringStream << name << ": " << outputName.c_str();

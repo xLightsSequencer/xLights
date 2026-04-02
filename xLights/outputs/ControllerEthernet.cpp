@@ -10,6 +10,8 @@
  **************************************************************/
 
 
+#include <cassert>
+
 #include "ControllerEthernet.h"
 #include "OutputManager.h"
 #include "Output.h"
@@ -555,7 +557,7 @@ void ControllerEthernet::Convert(pugi::xml_node node, std::string showDir) {
                 _outputs.back()->Enable(IsActive());
             }
             else {
-                wxASSERT(false);
+                assert(false);
             }
         }
         delete o;
@@ -912,7 +914,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
 
                         while (chs > 0) {
                             size_t uch = std::min(chs, (size_t)channels_per_universe);
-                            wxASSERT(o != end(_outputs));
+                            assert(o != end(_outputs));
                             if (o == end(_outputs)) {
                                 spdlog::debug("Unexpected error. Not enough outputs. Channels remaining: {}, Outputs size: {}", chs, _outputs.size());
                                 return false;
@@ -967,7 +969,7 @@ void ControllerEthernet::AddOutput()
     }
     else
     {
-		wxASSERT(false);
+		assert(false);
 	}
     if (_outputs.size() > 0) {
         _outputs.back()->SetIP(_outputs.front()->GetIP(), IsActive());

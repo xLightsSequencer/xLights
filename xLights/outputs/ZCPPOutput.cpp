@@ -31,9 +31,7 @@
 #include "../utils/ip_utils.h"
 
 #ifndef EXCLUDEDISCOVERY
-#include "ui/setup/Discovery.h"
-#include <wx/socket.h>
-#include <wx/sckaddr.h>
+#include "discovery/Discovery.h"
 #endif
 
 #include <log.h>
@@ -436,7 +434,7 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
     packet.Discovery.Header.type = ZCPP_TYPE_DISCOVERY;
     packet.Discovery.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
-    discovery.AddBroadcast(ZCPP_PORT, [&discovery] (wxDatagramSocket* socket, uint8_t *buffer, int len) {
+    discovery.AddBroadcast(ZCPP_PORT, [&discovery] (uint8_t *buffer, int len, const std::string &fromIP) {
         ZCPP_packet_t response;
         memcpy(&response, buffer, len);
 

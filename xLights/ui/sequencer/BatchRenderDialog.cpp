@@ -33,7 +33,8 @@
 #include "xLightsMain.h"
 
 
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
+#include "ui/setup/DiscoveryAuthDialog.h"
 #include "controllers/FPP.h"
 #include "outputs/OutputManager.h"
 
@@ -502,7 +503,8 @@ void BatchRenderDialog::DisplayDateRendered(std::string const& fileName, wxTreeL
 
 void BatchRenderDialog::SelectFromFPPPlayList()
 {
-    Discovery discovery(this, m_outputManager); // unsure why outputManager is needed here
+    wxDiscoveryDelegate delegate(this);
+    Discovery discovery(m_outputManager, &delegate); // unsure why outputManager is needed here
     FPP::PrepareDiscovery(discovery);
     std::list<FPP*> instances;
 

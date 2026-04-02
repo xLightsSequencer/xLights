@@ -70,6 +70,7 @@ Adding `-configuration Debug` builds only for the native architecture in Debug m
 - **Models**: `xLights/models/` — 20+ model types plus 9 DMX models. All inherit from `Model`. See [Models Reference](#models-reference) below.
 - **Outputs**: `xLights/outputs/` — protocol handlers and controller connection config. See [Outputs & Controllers Reference](#outputs--controllers-reference) below.
 - **Controllers**: `xLights/controllers/` — vendor-specific hardware upload handlers (Falcon, FPP, WLED, etc.). See [Outputs & Controllers Reference](#outputs--controllers-reference) below.
+- **Discovery core**: `xLights/discovery/` — shared controller/output discovery data structures and discovery API used by core layers.
 - **SequenceMedia** (`sequencer/SequenceMedia.cpp`): Manages image caching and embedding for sequences. Images can be embedded in .xsq files or referenced externally. Uses `FixFile()` to resolve relative paths.
 
 ### Key Patterns

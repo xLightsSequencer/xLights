@@ -62,7 +62,8 @@
 #include "ControllerUploadData.h"
 #include "ui/controllers/FPPUploadProgressDialog.h"
 #include "../render/FSEQFile.h"
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
+#include "ui/setup/DiscoveryAuthDialog.h"
 #include "../utils/CurlManager.h"
 #include "../utils/ip_utils.h"
 
@@ -3975,7 +3976,7 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         return true;
     });
 
-    discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
+    discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](uint8_t *buffer, int len, const std::string &fromIP) {
         ProcessFPPPingPacket(discovery, buffer, len);
     });
     if (broadcastPing) {
@@ -4331,7 +4332,8 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     startAddresses.sort();
     startAddresses.unique();
 
-    Discovery *discovery = new Discovery(frame, outputManager);
+    wxDiscoveryDelegate delegate(frame);
+    Discovery *discovery = new Discovery(outputManager, &delegate);
     FPP::PrepareDiscovery(*discovery, startAddresses);
     discovery->Discover();
     FPP::MapToFPPInstances(*discovery, instances, outputManager);

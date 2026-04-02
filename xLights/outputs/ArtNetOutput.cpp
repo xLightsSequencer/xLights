@@ -24,7 +24,7 @@
 
 #include <log.h>
 
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
 
 #pragma region Static Variables
 int ArtNetOutput::__ip1 = -1;
@@ -163,14 +163,14 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
     packet[12] = 0x10;
     packet[13] = 0x00; //Critical messages Only
 
-    discovery.AddBroadcast(ARTNET_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
-        
+    discovery.AddBroadcast(ARTNET_PORT, [&discovery](uint8_t *buffer, int len, const std::string &fromIP) {
+
         if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
             spdlog::debug(" ArtNET Valid response.");
             uint32_t channels = 510;
 
-            auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
-            spdlog::debug("     From {}.", ip.ToStdString());
+            std::string ip = std::format("{}.{}.{}.{}", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
+            spdlog::debug("     From {}.", ip);
 
             // We cant use Get IP as controller may have responded to multiple discovery requests
             ControllerEthernet* existing = nullptr;
@@ -190,7 +190,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                         int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
                         if (u == existing->GetOutputs().back()->GetUniverse() + 1) {
                             existing->AddOutput();
-                            spdlog::info("        ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
+                            spdlog::info("        ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), ip, existing->GetOutputCount());
                         }
                         else                             {
                             spdlog::info("        ArtNet ignoring universe {} as it was not sequential.", u);
@@ -199,7 +199,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                 }
             }
             else {
-                spdlog::info("        ArtNET Discovery adding controller {}.", (const char*)ip.c_str());
+                spdlog::info("        ArtNET Discovery adding controller {}.", ip);
                 ControllerEthernet* c = new ControllerEthernet(discovery.GetOutputManager(), false);
                 c->SetProtocol(OUTPUT_ARTNET);
                 c->SetName(std::string((char*)&buffer[26]));
@@ -213,7 +213,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                             int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
                             if (u == c->GetOutputs().back()->GetUniverse() + 1) {
                                 c->AddOutput();
-                                spdlog::info("    ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), c->GetOutputCount());
+                                spdlog::info("    ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), ip, c->GetOutputCount());
                             }
                             else {
                                 spdlog::info("        ArtNet ignoring universe {} as it was not sequential.", u);
@@ -222,7 +222,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                     }
                     o->SetChannels(channels);
                 }
-                c->SetIP(ip.ToStdString());
+                c->SetIP(ip);
 
                 discovery.AddController(c);
             }

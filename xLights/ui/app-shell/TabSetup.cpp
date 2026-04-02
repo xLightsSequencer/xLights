@@ -65,7 +65,8 @@
 #include "outputs/DMXOutput.h"
 #include "outputs/LOROptimisedOutput.h"
 #include "outputs/TwinklyOutput.h"
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
+#include "ui/setup/DiscoveryAuthDialog.h"
 #include "ui/controllerproperties/ControllerPropertyManager.h"
 #include "ui/controllerproperties/ControllerPropertyAdapter.h"
 
@@ -1448,7 +1449,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     bool hasChanges = false;
 
-    Discovery discovery(this, &_outputManager);
+    wxDiscoveryDelegate delegate(this);
+    Discovery discovery(&_outputManager, &delegate);
     FPP::PrepareDiscovery(discovery);
     ArtNetOutput::PrepareDiscovery(discovery);
     TwinklyOutput::PrepareDiscovery(discovery);

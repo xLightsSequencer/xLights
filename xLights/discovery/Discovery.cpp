@@ -8,11 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/socket.h>
-#include <wx/secretstore.h>
-#include <wx/time.h>
-
-#ifndef __WXMSW__
+#ifndef _WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -21,9 +17,8 @@
 #include <WS2tcpip.h>
 #endif
 
-#include "ui/setup/Discovery.h"
+#include "Discovery.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
 
 // This stuff is excluded from xSchedule build and this #define is only present in non xLights builds
 #ifndef EXCLUDENETWORKUI
@@ -41,64 +36,8 @@
 #include <dns_sd.h>
 #endif
 
-bool xlPasswordEntryDialog::Create(wxWindow *parent,
-            const wxString& message,
-            const wxString& caption,
-            const wxString& value,
-            long style,
-            const wxPoint& pos) {
-    bool b = wxPasswordEntryDialog::Create(parent, message, caption, value, style, pos);
-    
-    savePasswordCheckbox = new wxCheckBox(this, wxID_ANY, _("Save Password"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PWD"));
-    savePasswordCheckbox->SetValue(false);
-    
-    wxSizerFlags flagsBorder2;
-    flagsBorder2.DoubleBorder();
-
-#if wxUSE_SECRETSTORE
-    GetSizer()->Insert(2, savePasswordCheckbox, flagsBorder2);
-    GetSizer()->SetSizeHints(this);
-    GetSizer()->Fit(this);
-#endif
-    return b;
-}
-    
-#if wxUSE_SECRETSTORE
-static wxSecretStore pwdStore = wxSecretStore::GetDefault();
-bool xlPasswordEntryDialog::GetStoredPasswordForService(const std::string &service, std::string &user, std::string &pwd) {
-    if (pwdStore.IsOk()) {
-        wxSecretValue password;
-        wxString usr;
-        if (pwdStore.Load("xLights/Discovery/" + service, usr, password)) {
-            user = usr;
-            pwd = password.GetAsString();
-            return true;
-        }
-    }
-    return false;
-}
-
-bool xlPasswordEntryDialog::StorePasswordForService(const std::string &service, const std::string &user, const std::string &pwd) {
-    if (pwdStore.IsOk()) {
-        if (pwd.empty()) {
-            pwdStore.Delete("xLights/Discovery/" + service);
-        } else {
-            wxSecretValue password(pwd);
-            if (pwdStore.Save("xLights/Discovery/" + service, user, password)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-#else
-bool xlPasswordEntryDialog::GetStoredPasswordForService(const std::string &service, std::string &user, std::string &pwd) {
-    return false;
-}
-bool xlPasswordEntryDialog::StorePasswordForService(const std::string &service, const std::string &user, const std::string &pwd) {
-    return false;
-}
-#endif
+#include <algorithm>
+#include <cctype>
 
 DiscoveredData::DiscoveredData(ControllerEthernet *e) {
     controller = e;
@@ -150,60 +89,50 @@ DiscoveredData::~DiscoveredData() {
     }
 }
 
-Discovery::DatagramData::DatagramData(int p, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb) : port(p) {
+Discovery::DatagramData::DatagramData(int p, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)> & cb) : port(p) {
     callbacks.push_back(cb);
     Init("", p);
 }
 
-Discovery::DatagramData::DatagramData(const std::string &mc, int p, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb) : port(p) {
+Discovery::DatagramData::DatagramData(const std::string &mc, int p, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)> & cb) : port(p) {
     callbacks.push_back(cb);
     Init(mc, p);
 }
 
 void Discovery::DatagramData::Init(const std::string &mc, int port) {
-    wxIPV4address localaddr;
-    localaddr.AnyAddress();
-    localaddr.Service(port);
-    wxDatagramSocket* mainSocket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
-    mainSocket->SetTimeout(1);
-    mainSocket->Notify(false);
-    if (mainSocket->IsOk()) {
+    // Main socket bound to ANY:port for receiving
+    auto* mainSocket = new sockets::UDPSocket();
+    if (mainSocket->Open(true) && mainSocket->Bind("", port, true)) {
         sockets.push_back(mainSocket);
+    } else {
+        delete mainSocket;
     }
+
+    // Per-interface sockets for sending broadcasts out each NIC
     auto localIPs = GetLocalIPs();
     for (const auto& ip : localIPs) {
         if (ip == "127.0.0.1") {
             continue;
         }
-        wxIPV4address localaddr;
-        localaddr.Hostname(ip);
-        
-        wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
-        socket->SetTimeout(1);
-        socket->Notify(false);
-        if (socket->IsOk()) {
-            sockets.push_back(socket);
+        auto* sock = new sockets::UDPSocket();
+        if (sock->Open(true) && sock->Bind(ip, 0, false)) {
+            sockets.push_back(sock);
         } else {
-            delete socket;
+            delete sock;
         }
     }
-    if (mc != "") {
-        struct ip_mreq mreq;
-        unsigned int a = 0;
-        if (inet_pton(AF_INET, mc.c_str(), &a)) {
-            mreq.imr_multiaddr.s_addr = a;
-            mreq.imr_interface.s_addr = INADDR_ANY;
-            for (auto socket : sockets) {
-                socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const void*)&mreq, sizeof(mreq));
-            }
+
+    if (!mc.empty()) {
+        for (auto* sock : sockets) {
+            sock->JoinMulticast(mc);
         }
     }
 }
 
 Discovery::DatagramData::~DatagramData() {
-    for (const auto& socket : sockets) {
-        socket->Close();
-        delete socket;
+    for (auto* sock : sockets) {
+        sock->Close();
+        delete sock;
     }
 }
 
@@ -212,9 +141,9 @@ class BonjourData {
 public:
     BonjourData(const std::string &n, std::function<void(const std::string &ipAddress)>& callback);
     ~BonjourData();
-    
+
     void handleEvents();
-    
+
     std::string serviceName;
     std::list<std::function<void(const std::string &ipAddress)>> callbacks;
     void invokeCallbacks(const std::string &ip);
@@ -227,7 +156,7 @@ public:
 #ifdef _DNS_SD_H
 void bonjourDNSCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
     const char *hostname, const struct sockaddr *address, uint32_t ttl, void *context) {
-    
+
     char buf[256];
     inet_ntop(AF_INET, &(((struct sockaddr_in *)address)->sin_addr),
                         buf, 256);
@@ -277,24 +206,22 @@ void BonjourData::handleEvents() {
 #ifdef _DNS_SD_H
     fd_set fds;
     FD_ZERO( &fds );
-    
+
     for (auto &ref : bonjourRefs) {
         dnssd_sock_t sock = DNSServiceRefSockFD(ref);
         FD_SET(sock, &fds );
     }
-    
+
     struct timeval tv;
-         
+
     tv.tv_sec = 0;
     tv.tv_usec = 5000;
     if (select( FD_SETSIZE, &fds, 0, 0, &tv ) > 0 ) {
-        int x = 0;
         for (auto &ref : bonjourRefs) {
             dnssd_sock_t sock = DNSServiceRefSockFD(ref);
             if (FD_ISSET( sock, &fds ) != 0) {
                 DNSServiceProcessResult(ref);
             }
-            x++;
         }
     }
 #endif
@@ -307,7 +234,8 @@ void BonjourData::invokeCallbacks(const std::string &ip) {
 
 
 
-Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _outputManager(outputManager), _frame(frame) {
+Discovery::Discovery(OutputManager* outputManager, DiscoveryDelegate* delegate)
+    : _outputManager(outputManager), _delegate(delegate ? delegate : &_defaultDelegate) {
 }
 
 Discovery::~Discovery() {
@@ -320,7 +248,7 @@ Discovery::~Discovery() {
 void Discovery::Close(bool wait) {
     if (wait) {
         while (CurlManager::INSTANCE.processCurls()) {
-            wxYieldIfNeeded();
+            _delegate->Yield();
         }
     }
     for (auto &dg : datagrams) {
@@ -396,7 +324,7 @@ bool Discovery::HandleAuth(const std::string &host, CURL* curl, int origAuthStat
     if (origAuthStatus != 0) {
         // still 401 so password must not be correct, remove it and re-prompt
         data->authStatus = 0;
-        xlPasswordEntryDialog::StorePasswordForService(host, "admin", "");
+        _delegate->StorePassword(host, "admin", "");
     }
     if (data->authStatus == 0) {
         bool handled = false;
@@ -405,8 +333,8 @@ bool Discovery::HandleAuth(const std::string &host, CURL* curl, int origAuthStat
         if (data->authStatus != 2) {
             std::string username;
             std::string password;
-            if (xlPasswordEntryDialog::GetStoredPasswordForService(host, username, password)) {
-                if (password != "") {
+            if (_delegate->GetStoredPassword(host, username, password)) {
+                if (!password.empty()) {
                     data->authStatus = 2;
                     CurlManager::INSTANCE.setHostUsernamePassword(host, username, password);
                     //redo
@@ -415,17 +343,16 @@ bool Discovery::HandleAuth(const std::string &host, CURL* curl, int origAuthStat
             }
         }
         if (!handled) {
-            xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ip, "Password Required");
-            int rc = dlg.ShowModal();
-            if (rc != wxID_CANCEL) {
-                std::string username = "admin";
-                std::string password = dlg.GetValue().ToStdString();
-                if (dlg.shouldSavePassword()) {
-                    xlPasswordEntryDialog::StorePasswordForService(ip, username, password);
+            std::string username = "admin";
+            std::string password;
+            bool savePassword = false;
+            if (_delegate->PromptForPassword(ip, username, password, savePassword)) {
+                if (savePassword) {
+                    _delegate->StorePassword(ip, username, password);
                 }
                 CurlManager::INSTANCE.setHostUsernamePassword(host, username, password);
                 handled = true;
-                discoveryFinishTime = wxGetLocalTimeMillis().GetValue() + 10000L;
+                discoveryFinishTime = GetCurrentTimeMillis() + 10000L;
                 data->authStatus = 1;
             }
         }
@@ -435,7 +362,7 @@ bool Discovery::HandleAuth(const std::string &host, CURL* curl, int origAuthStat
     return false;
 }
 
-void Discovery::AddMulticast(const std::string &mcAddr, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback) {
+void Discovery::AddMulticast(const std::string &mcAddr, int port, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)>&& callback) {
     //if port already exists, just add the callback
     for (auto &a : datagrams) {
         if (port == a->port) {
@@ -448,7 +375,7 @@ void Discovery::AddMulticast(const std::string &mcAddr, int port, std::function<
     datagrams.push_back(dg);
 }
 
-void Discovery::AddBroadcast(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback) {
+void Discovery::AddBroadcast(int port, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)>&& callback) {
     //if port already exists, just add the callback
     for (auto &a : datagrams) {
         if (port == a->port) {
@@ -474,27 +401,20 @@ void Discovery::AddBonjour(const std::string &serviceName, std::function<void(co
 
 
 void Discovery::SendBroadcastData(int port, uint8_t *buffer, int len) {
-    wxIPV4address bcAddress;
-    bcAddress.BroadcastAddress();
-    bcAddress.Service(port);
-
     for (auto &a : datagrams) {
         if (port == a->port) {
-            for (auto s : a->sockets) {
-                s->SendTo(bcAddress, buffer, len);
+            for (auto* s : a->sockets) {
+                s->SendTo("255.255.255.255", port, buffer, len);
             }
         }
     }
 }
 
 void Discovery::SendData(int port, const std::string &host, uint8_t *buffer, int len) {
-    wxIPV4address remoteaddr;
-    remoteaddr.Hostname(host);
-    remoteaddr.Service(port);
     for (auto &a : datagrams) {
         if (port == a->port) {
             // only need to send on the first socket as it's routed via the hostname
-            a->sockets.front()->SendTo(remoteaddr, buffer, len);
+            a->sockets.front()->SendTo(host, port, buffer, len);
         }
     }
 }
@@ -518,7 +438,7 @@ DiscoveredData *Discovery::AddController(ControllerEthernet *c) {
 
 DiscoveredData *Discovery::FindByIp(const std::string &ip, const std::string &hn, bool create) {
     std::string host = ((hn == "") ? ip : hn);
-    
+
     //first check direct IP address match
     for (auto a : results) {
         if (a->ip == ip || a->hostname == ip) {
@@ -603,15 +523,16 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
                     cd = AddController(ce);
                 }
             }
-            
+
             if (falc.GetName() != "") {
                 cd->hostname = falc.GetName();
                 cd->SetDescription(falc.GetName());
             }
             cd->SetVendor("Falcon");
-            wxString model = falc.GetModel();
-            model.UpperCase();
-            cd->SetModel(model.ToStdString());
+            std::string falcModel = falc.GetModel();
+            std::transform(falcModel.begin(), falcModel.end(), falcModel.begin(),
+                           [](unsigned char c) { return std::toupper(c); });
+            cd->SetModel(falcModel);
             cd->version = falc.GetFullName();
             cd->platform = "Falcon";
             std::string mode = falc.GetMode();
@@ -625,9 +546,9 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
                 cd->mode = "bridge";
             }
             int stringCount = falc.NumConfiguredStrings();
-            auto variants = ControllerCaps::GetVariants(CONTROLLER_ETHERNET, "Falcon", model);
+            auto variants = ControllerCaps::GetVariants(CONTROLLER_ETHERNET, "Falcon", falcModel);
             for (auto const& a : variants) {
-                ControllerCaps *caps = ControllerCaps::GetControllerConfig("Falcon", model, a);
+                ControllerCaps *caps = ControllerCaps::GetControllerConfig("Falcon", falcModel, a);
                 if (caps && stringCount <= caps->GetMaxPixelPort()) {
                     cd->SetVariant(a);
                 }
@@ -661,8 +582,7 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
 
 
 void Discovery::Discover() {
-    uint64_t curMs = wxGetLocalTimeMillis().GetValue();
-    //uint64_t start = curMs;
+    uint64_t curMs = GetCurrentTimeMillis();
     auto endBroadcastTime = curMs + 1000l;
     discoveryFinishTime = curMs + 5000L; // Start with 5 seconds max
     bool running = CurlManager::INSTANCE.processCurls();
@@ -675,14 +595,13 @@ void Discovery::Discover() {
         int readSize = 0;
         //first check to see if any of the socket have received data
         for (const auto& dg : datagrams) {
-            for (const auto &socket : dg->sockets) {
-                while (socket->IsOk() && socket->IsData()) {
-                    socket->Read(&buffer[0], sizeof(buffer));
-                    readSize = socket->GetLastIOReadSize();
-                    if (readSize != 0) {
-                        for (auto &cb : dg->callbacks) {
-                            cb(socket, buffer, readSize);
-                        }
+            for (auto* sock : dg->sockets) {
+                while (sock->WaitForData(0)) {
+                    std::string fromIP;
+                    readSize = sock->ReceiveFrom(buffer, sizeof(buffer), &fromIP);
+                    if (readSize <= 0) break;
+                    for (auto &cb : dg->callbacks) {
+                        cb(buffer, readSize, fromIP);
                     }
                 }
             }
@@ -694,9 +613,9 @@ void Discovery::Discover() {
 
         //now check the http/curls
         running = CurlManager::INSTANCE.processCurls();
-        wxYieldIfNeeded();
-        curMs = wxGetLocalTimeMillis().GetValue();
-        
+        _delegate->Yield();
+        curMs = GetCurrentTimeMillis();
+
         // If discovery is finding new instances, we'll increase
         // the timeouts so if there are a LOT of instances where
         // we start hitting curl resource limits and such, we
@@ -711,8 +630,6 @@ void Discovery::Discover() {
                 discoveryFinishTime = nt;
             }
         }
-        
-        //printf("%d:  %d\n", (int)(curMs - start), running);
     }
     finished = true;
 }

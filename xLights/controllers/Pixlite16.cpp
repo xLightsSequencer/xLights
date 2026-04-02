@@ -18,11 +18,10 @@
 #include "../outputs/Output.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
-#include <wx/socket.h>
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
 #include "../utils/CurlManager.h"
 #include "../outputs/SocketAbstraction.h"
 
@@ -1187,7 +1186,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
     uint8_t discoveryData[12];
     Pixlite16::CreateDiscovery(discoveryData);
 
-    discovery.AddBroadcast(PIXLITE_PORT, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
+    discovery.AddBroadcast(PIXLITE_PORT, [&discovery](uint8_t* data, int len, const std::string &fromIP) {
         
         spdlog::error("    Advatech discovery packet type : {}.", data[10]);
         if (data[10] == 0x02) {
@@ -1296,7 +1295,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
     discoveryDataMK3[32] = 0x00; // Exclude MAC count
     discoveryDataMK3[33] = 0x00;
 
-    discovery.AddMulticast("239.255.251.2", 49151, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
+    discovery.AddMulticast("239.255.251.2", 49151, [&discovery](uint8_t* data, int len, const std::string &fromIP) {
         
 
         if (len >= 12 && data[0] == 'D' && data[1] == 'i' && data[2] == 's' && data[3] == 'c' && data[4] == 'P' && data[5] == 'r' && data[6] == 'o' && data[7] == 't' && data[8] == 0x21 && data[9] == 0x02) {

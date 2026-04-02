@@ -15,62 +15,43 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <set>
 #include <curl/curl.h>
 
 #include "outputs/ControllerEthernet.h"
+#include "outputs/SocketAbstraction.h"
 #include <nlohmann/json.hpp>
-#include <wx/secretstore.h>
-#include <wx/textdlg.h>
-#include <wx/checkbox.h>
-#include <set>
-
-class wxWindow;
-class wxDatagramSocket;
 
 class OutputManager;
 class Discovery;
 class BonjourData;
 
-
-class WXDLLIMPEXP_CORE xlPasswordEntryDialog : public wxPasswordEntryDialog
-{
+// Interface for Discovery to call back into the UI/platform layer.
+// Default implementations are no-ops so headless usage works without a subclass.
+class DiscoveryDelegate {
 public:
-    xlPasswordEntryDialog(wxWindow *parent,
-                      const wxString& message,
-                      const wxString& caption = wxGetPasswordFromUserPromptStr,
-                      const wxString& value = wxEmptyString,
-                      long style = wxTextEntryDialogStyle,
-                      const wxPoint& pos = wxDefaultPosition)
-    {
-        Create(parent, message, caption, value, style, pos);
-    }
+    virtual ~DiscoveryDelegate() = default;
 
-    bool Create(wxWindow *parent,
-                const wxString& message,
-                const wxString& caption = wxGetPasswordFromUserPromptStr,
-                const wxString& value = wxEmptyString,
-                long style = wxTextEntryDialogStyle,
-                const wxPoint& pos = wxDefaultPosition);
-    
-    
-    bool shouldSavePassword() const {
-        return savePasswordCheckbox && savePasswordCheckbox->IsChecked();
-    }
+    // Prompt user for credentials. Returns true if user provided them (not cancelled).
+    virtual bool PromptForPassword(const std::string& host, std::string& username,
+                                   std::string& password, bool& savePassword) { return false; }
 
-    static bool GetStoredPasswordForService(const std::string &service, std::string &user, std::string &pwd);
-    static bool StorePasswordForService(const std::string &service, const std::string &user, const std::string &pwd);
+    // Retrieve stored password for a service. Returns true if found.
+    virtual bool GetStoredPassword(const std::string& service, std::string& user, std::string& pwd) { return false; }
 
-private:
-    wxCheckBox *savePasswordCheckbox = nullptr;    
+    // Store (or delete if pwd is empty) password for a service. Returns true on success.
+    virtual bool StorePassword(const std::string& service, const std::string& user, const std::string& pwd) { return false; }
+
+    // Called periodically during discovery to yield to the UI event loop.
+    virtual void Yield() {}
 };
-
 
 class DiscoveredData {
 public:
     DiscoveredData() {}
     DiscoveredData(ControllerEthernet *e);
     ~DiscoveredData();
-    
+
     void SetModel(const std::string &m);
     void SetVendor(const std::string &v);
     void SetVariant(const std::string &v);
@@ -92,7 +73,7 @@ public:
     int patchVersion = 0;
     int typeId = 0;
     std::string uuid;
-    
+
     std::string platform;
     std::string platformModel;
     std::string ranges;
@@ -111,17 +92,17 @@ public:
 class Discovery
 {
 public:
-    Discovery(wxWindow* frame, OutputManager* outputManager);
+    Discovery(OutputManager* outputManager, DiscoveryDelegate* delegate = nullptr);
     virtual ~Discovery();
     void Close(bool wait);
 
     // parallel HTTP requests
     void AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback);
-    
+
     // various protocols that use broadcast or multicast requests
-    void AddBroadcast(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
-    void AddMulticast(const std::string &mcAddr, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
-    
+    void AddBroadcast(int port, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)>&& callback);
+    void AddMulticast(const std::string &mcAddr, int port, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)>&& callback);
+
     // bonjour discovery (on platforms that support it)
     void AddBonjour(const std::string &serviceName, std::function<void(const std::string &ipAddress)>&& callback);
 
@@ -129,17 +110,16 @@ public:
     void SendData(int port, const std::string &host, uint8_t *buffer, int len);
 
     void Discover();
-    
+
     DiscoveredData *AddController(ControllerEthernet *c);
-    
+
     std::vector<DiscoveredData*> &GetResults() { return results; }
-    wxWindow *GetFrame() const { return _frame; }
     OutputManager *GetOutputManager() const { return _outputManager; }
-    
-    
-    
+
+
+
     DiscoveredData *DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer);
-    
+
     DiscoveredData *FindByIp(const std::string &ip, const std::string &hostname = "", bool create = false);
     DiscoveredData *FindByUUID(const std::string &uuid, const std::string &ip);
 private:
@@ -147,14 +127,14 @@ private:
 
     class DatagramData {
     public:
-        DatagramData(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb);
-        DatagramData(const std::string &mc, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb);
+        DatagramData(int port, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)> & cb);
+        DatagramData(const std::string &mc, int port, std::function<void(uint8_t *buffer, int len, const std::string &fromIP)> & cb);
         ~DatagramData();
-        
+
         int port;
-        std::list<wxDatagramSocket *> sockets;
-        std::list<std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>> callbacks;
-        
+        std::list<sockets::UDPSocket *> sockets;
+        std::list<std::function<void(uint8_t *buffer, int len, const std::string &fromIP)>> callbacks;
+
     private:
         void Init(const std::string &mc, int port);
     };
@@ -165,16 +145,16 @@ private:
         int authStatus = 0;
         std::set<std::string> urls;
     };
-    
+
     OutputManager *_outputManager;
-    wxWindow *_frame;
-    
-    
+    DiscoveryDelegate _defaultDelegate;
+    DiscoveryDelegate *_delegate;
+
     std::map<std::string, CurlData*> https;
     std::list<DatagramData *> datagrams;
     std::list<BonjourData *> bonjours;
     std::vector<DiscoveredData*> results;
     bool finished = false;
-    
+
     uint64_t discoveryFinishTime;
 };

@@ -33,6 +33,7 @@ if ! command -v rg >/dev/null 2>&1; then
 fi
 
 CORE_DIRS=(
+    "xLights/discovery"
     "xLights/render"
     "xLights/effects"
     "xLights/models"

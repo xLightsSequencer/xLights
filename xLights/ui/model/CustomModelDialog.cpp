@@ -49,7 +49,8 @@
 #include "utils/ExternalHooks.h"
 #include "ui/layout/ModelPreview.h"
 #include "outputs/TwinklyOutput.h"
-#include "ui/setup/Discovery.h"
+#include "discovery/Discovery.h"
+#include "ui/setup/DiscoveryAuthDialog.h"
 #include "outputs/OutputManager.h"
 #include "XmlSerializer/XmlDeserializingModelFactory.h"
 
@@ -3265,7 +3266,8 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
 {
     wxArrayString choices;
 
-    Discovery discovery(this, nullptr); // need to make sure we dont try to discover anything that cares about the output manager pointer
+    wxDiscoveryDelegate delegate(this);
+    Discovery discovery(nullptr, &delegate); // need to make sure we dont try to discover anything that cares about the output manager pointer
     TwinklyOutput::PrepareDiscovery(discovery);
 
     discovery.Discover();
