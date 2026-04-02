@@ -10,16 +10,32 @@
  **************************************************************/
 
 #include "E131Output.h"
+#include <algorithm>
+#include <cctype>
 #include <cstring>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../utils/ip_utils.h"
 #include "ControllerEthernet.h"
 
 #include <format>
 
 #include <log.h>
+
+// Parse a UUID string (e.g. "c0de0080-c69b-...") into 16 raw bytes at dest[0..15].
+static void ParseUUIDBytes(const char* uuid, uint8_t* dest) {
+    std::string id(uuid);
+    std::erase(id, '-');
+    for (auto& c : id) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    assert(id.size() == 32);
+    for (int i = 0, j = 0; i < 32; i += 2) {
+        char msb = id[i];
+        char lsb = id[i + 1];
+        msb -= std::isdigit(static_cast<unsigned char>(msb)) ? 0x30 : 0x57;
+        lsb -= std::isdigit(static_cast<unsigned char>(lsb)) ? 0x30 : 0x57;
+        dest[j++] = (uint8_t)((msb << 4) | lsb);
+    }
+}
 
 #pragma region Private Functions
 void E131Output::CreateMultiUniverses_CONVERT(int num) {
@@ -162,17 +178,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
         syncdata[17] = 0x21;  // 0x021 = 49 - 16
         syncdata[21] = 0x08;
 
-        wxString id = XLIGHTS_UUID;
-        id.Replace("-", "");
-        id.MakeLower();
-        if (id.Len() != 32) throw "invalid CID";
-        for (int i = 0, j = 22; i < 32; i += 2) {
-            wxChar msb = id.GetChar(i);
-            wxChar lsb = id.GetChar(i + 1);
-            msb -= isdigit(msb) ? 0x30 : 0x57;
-            lsb -= isdigit(lsb) ? 0x30 : 0x57;
-            syncdata[j++] = (uint8_t)((msb << 4) | lsb);
-        }
+        ParseUUIDBytes(XLIGHTS_UUID, &syncdata[22]);
 
         syncdata[38] = 0x70;  // Framing Protocol flags and length (high)
         syncdata[39] = 0x0b;  // 0x00B = 49 - 38
@@ -298,17 +304,7 @@ bool E131Output::Open() {
 
     // CID/UUID
 
-    wxString id = XLIGHTS_UUID;
-    id.Replace("-", "");
-    id.MakeLower();
-    if (id.Len() != 32) throw "invalid CID";
-    for (int i = 0, j = 22; i < 32; i += 2) {
-        wxChar msb = id.GetChar(i);
-        wxChar lsb = id.GetChar(i + 1);
-        msb -= isdigit(msb) ? 0x30 : 0x57;
-        lsb -= isdigit(lsb) ? 0x30 : 0x57;
-        _data[j++] = (uint8_t)((msb << 4) | lsb);
-    }
+    ParseUUIDBytes(XLIGHTS_UUID, &_data[22]);
 
     _data[38] = 0x72;  // Framing Protocol flags and length (high)
     _data[39] = 0x58;  // 0x258 = 638 - 38

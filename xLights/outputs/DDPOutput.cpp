@@ -16,7 +16,6 @@
 #include <cassert>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../models/OutputModelManager.h"
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"

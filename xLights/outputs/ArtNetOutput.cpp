@@ -15,7 +15,6 @@
 #include <cstring>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "ControllerEthernet.h"
 #include "../models/OutputModelManager.h"
 #include "../utils/SpecialOptions.h"

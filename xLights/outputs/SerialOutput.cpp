@@ -9,9 +9,8 @@
  **************************************************************/
 
 #include <chrono>
+#include <filesystem>
 #include <thread>
-
-#include <wx/msgdlg.h>
 
 #include "SerialOutput.h"
 #include "LOROutput.h"
@@ -124,19 +123,16 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
 #elif defined(__APPLE__)
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
-    wxArrayString output, errors;
-    wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
-    if (!errors.IsEmpty()) {
-        DisplayError(errors.Last());
-    }
-    else if (output.IsEmpty()) {
-        DisplayError(_("no devices found"));
-    }
-    else {
-        for (int i = 0; i < output.Count(); i++) {
-            if (output[i].StartsWith("cu.")) {
-                res.push_back("/dev/" + output[i].ToStdString());
+    {
+        std::error_code ec;
+        for (const auto& entry : std::filesystem::directory_iterator("/dev", ec)) {
+            auto name = entry.path().filename().string();
+            if (name.starts_with("cu.")) {
+                res.push_back("/dev/" + name);
             }
+        }
+        if (ec) {
+            DisplayError("no devices found");
         }
     }
 #else
@@ -204,7 +200,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
             }
             //need to enlarge read buf if this happens; just truncate string for now
             //                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
-            res.push_back(wxString(portname).ToStdString());
+            res.push_back(std::string(portname, portname + portlen / sizeof(TCHAR) - 1));
             vallen = sizeof(valname);
             portlen = sizeof(portname);
         }
@@ -219,18 +215,17 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
 #elif defined(__APPLE__)
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
-    wxArrayString output, errors;
-    wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
-    if (!errors.IsEmpty()) {
-        DisplayError(errors.Last());
-    } else if (output.IsEmpty()) {
-        res.push_back("(no available ports)");
-        DisplayError(_("no devices found"));
-    } else {
-        for (int i = 0; i < output.Count(); i++) {
-            if (output[i].StartsWith("cu.") && !output[i].StartsWith("cu.B")) {
-                res.push_back("/dev/" + output[i].ToStdString());
+    {
+        std::error_code ec;
+        for (const auto& entry : std::filesystem::directory_iterator("/dev", ec)) {
+            auto name = entry.path().filename().string();
+            if (name.starts_with("cu.") && !name.starts_with("cu.B")) {
+                res.push_back("/dev/" + name);
             }
+        }
+        if (ec) {
+            res.push_back("(no available ports)");
+            DisplayError("no devices found");
         }
     }
 #else

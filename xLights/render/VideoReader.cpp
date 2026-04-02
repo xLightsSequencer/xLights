@@ -14,8 +14,8 @@
 
 #undef min
 #include <algorithm>
+#include <filesystem>
 #include <list>
-#include <wx/filename.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -485,8 +485,11 @@ int VideoReader::GetPos()
 
 bool VideoReader::IsVideoFile(const std::string& filename)
 {
-    wxFileName fn(filename);
-    auto ext = fn.GetExt().Lower().ToStdString();
+    auto ext = std::filesystem::path(filename).extension().string();
+    // extension() returns ".mp4", strip the leading dot and lowercase it
+    if (!ext.empty() && ext[0] == '.') ext.erase(0, 1);
+    std::transform(ext.begin(), ext.end(), ext.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
 
     if (ext == "avi" ||
         ext == "mp4" ||

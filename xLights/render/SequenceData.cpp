@@ -13,7 +13,6 @@
 
 #include <log.h>
 
-#include "../common/xlBaseApp.h"
 #include "utils/Base64.h"
 #include "render/SequenceData.h"
 #include "UtilFunctions.h"
@@ -49,10 +48,7 @@ SequenceData::SequenceData() : _invalidFrame()
     if (firstSeq) {
         firstSeq = false;
         std::thread([]{
-            try
-            {
-                xlCrashHandler::SetupCrashHandlerForNonWxThread();
-
+            try {
                 _hugePageAllocSize = 32 * 1024 * 1024;
                 size_t blockSize = 0;
                 BlockType type = BlockType::NORMAL;
@@ -89,7 +85,13 @@ SequenceData::SequenceData() : _invalidFrame()
             }
             catch (...)
             {
-                wxTheApp->OnUnhandledException();
+                // Huge page pre-allocation failed — release any blocks we
+                // managed to map and mark huge pages as failed so AllocBlock
+                // falls back to normal calloc allocations.
+                std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
+                HUGE_BLOCK_CACHE.clear(); // ~DataBlock calls munmap
+                lock.unlock();
+                _hugePagesFailed = true;
             }
         }).detach();
     }

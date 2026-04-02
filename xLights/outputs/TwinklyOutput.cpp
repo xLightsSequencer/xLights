@@ -13,7 +13,6 @@
 #include <cstring>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 
 #include "../utils/CurlManager.h"
 #include "../utils/Base64.h"
@@ -305,9 +304,9 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     if (body != nullptr)
         spdlog::debug("         '{}'", body);
 
-    wxString bod;
+    std::string bod;
     if (body != nullptr) {
-        bod = wxString(body);
+        bod = body;
     }
 
     std::vector<std::pair<std::string, std::string>> customHeaders;
