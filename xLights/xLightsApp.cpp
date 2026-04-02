@@ -283,7 +283,6 @@ void DumpConfig()
         versionStr += " - App Store";
     }
     spdlog::info(versionStr);
-    spdlog::info("Bits: " + GetBitness());
     spdlog::info("Build Date: " + xlights_build_date);
     spdlog::info("WX Version: " + std::string(wxString( wxVERSION_STRING).c_str()));
 

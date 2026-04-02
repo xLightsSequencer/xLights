@@ -167,7 +167,6 @@ void RenderCache::LoadCache()
     // the thread self deletes so we dont need to track it
     if (IsEnabled())
     {
-        assert(GetBitness() != "32bit");
         if (_loadThread.joinable()) {
             _loadThread.join();
         }
@@ -202,15 +201,8 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
             std::error_code ec;
             if (fs::exists(_cacheFolder, ec))
             {
-                if (GetBitness() == "32bit")
-                {
-                    spdlog::get("render")->debug("Render cache disabled but NOT removing folder {} as this is the 32 bt version.", _cacheFolder);
-                }
-                else
-                {
-                    spdlog::get("render")->debug("Render cache disabled so removing folder {}.", _cacheFolder);
-                    fs::remove_all(_cacheFolder, ec);
-                }
+                spdlog::get("render")->debug("Render cache disabled so removing folder {}.", _cacheFolder);
+                fs::remove_all(_cacheFolder, ec);
             }
         }
         return;

@@ -1766,14 +1766,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem_ShowACRamps->Check(_showACRamps);
     spdlog::debug("Show AC Ramps: {}.", toStr(_showACRamps));
 
-    bool bit64 = GetBitness() == "64bit";
     config->Read(_("xLightsEnableRenderCache"), &_enableRenderCache, _("Locked Only"));
-
-    // Dont enable render caching in 32 bit ... there just isnt enough memory
-    if (!bit64) {
-        spdlog::debug("Enable Render Cache: false due to running 32 bit.");
-        _enableRenderCache = "Disabled";
-    }
     spdlog::debug("Enable Render Cache: {}.", (const char*)_enableRenderCache.c_str());
     _renderCache.Enable(_enableRenderCache);
 
