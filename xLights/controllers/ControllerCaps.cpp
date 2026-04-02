@@ -549,33 +549,33 @@ bool ControllerCaps::SupportsPixelPortCommonSettings() const {
 
 int ControllerCaps::GetMaxInputE131Universes() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverses"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxInputUniverses").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetSmartRemoteCount() const
 {
 
-    return wxAtoi(GetXmlNodeContent(_config, "SupportsSmartRemotes"));
+    return (int)strtol(GetXmlNodeContent(_config, "SupportsSmartRemotes").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxPixelPort() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxPixelPort"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxPixelPort").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxSerialPort() const {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxSerialPort"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxSerialPort").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxPWMPort() const {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxPWMPort"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxPWMPort").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxVirtualMatrixPort() const {
     //for now, use 1 if supported.  Technially FPP supports unlimitted Virtual Matrices,
     //on one port, but has two HDMI ports on the Pi4 so some of this may need to
     //be adjusted at some point
-    return SupportsVirtualMatrix() ? wxAtoi(GetXmlNodeContent(_config, "MaxVirtualMatrixPorts", "1")): 0;
+    return SupportsVirtualMatrix() ? (int)strtol(GetXmlNodeContent(_config, "MaxVirtualMatrixPorts", "1").c_str(), nullptr, 10): 0;
 }
 int ControllerCaps::GetMaxLEDPanelMatrixPort() const {
     //FPP 9 supports up to 5 PanelMatrices defined
@@ -584,64 +584,64 @@ int ControllerCaps::GetMaxLEDPanelMatrixPort() const {
 
 int ControllerCaps::GetMaxPixelPortChannels() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxPixelPortChannels"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxPixelPortChannels").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxSerialPortChannels() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxSerialPortChannels"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxSerialPortChannels").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxInputUniverseChannels() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverseChannels", "512"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxInputUniverseChannels", "512").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMinInputUniverseChannels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MinInputUniverseChannels", "1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MinInputUniverseChannels", "1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetNumberOfBanks() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "NumberOfBanks", "1"));
+    return (int)strtol(GetXmlNodeContent(_config, "NumberOfBanks", "1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetBankSize() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "BankSize", "16"));
+    return (int)strtol(GetXmlNodeContent(_config, "BankSize", "16").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxStartNullPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxStartNulls", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxStartNulls", "-1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxEndNullPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxEndNulls", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxEndNulls", "-1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxGroupPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxGroup", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxGroup", "-1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxZigZagPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxZigZag", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxZigZag", "-1").c_str(), nullptr, 10);
 }
 
 // Maximum pixels on a local port or dumb remotes and achieve 40 FPS
 int ControllerCaps::GetMaxPixelsAt40FPS() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "FPS40Pixels", "-1").c_str(), nullptr, 10);
 }
 
 // Maximum pixels on a port using smart remotes and achieve 40 FPS
 int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
 {
-    int res = wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels_SR", "-1"));
+    int res = (int)strtol(GetXmlNodeContent(_config, "FPS40Pixels_SR", "-1").c_str(), nullptr, 10);
 
     if (res == -1)
         return GetMaxPixelsAt40FPS();
@@ -650,7 +650,7 @@ int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
 
 int ControllerCaps::GetMinGroupPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MinGroup", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MinGroup", "-1").c_str(), nullptr, 10);
 }
 
 bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {

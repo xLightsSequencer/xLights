@@ -131,7 +131,7 @@ public:
     void DownloadImages()
     {
         if (_imageURL != "") {
-            _imageFile = ShaderDownloadDialog::GetCache().GetFile(wxURI(_imageURL), CACHEFOR::CACHETIME_LONG, "jpg");
+            _imageFile = ShaderDownloadDialog::GetCache().GetFile(_imageURL, CACHEFOR::CACHETIME_LONG, "jpg");
         }
     }
 
@@ -352,7 +352,11 @@ bool ShaderDownloadDialog::DlgInit(wxProgressDialog* prog, int low, int high)
 pugi::xml_document* ShaderDownloadDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const
 {
     filename = "";
-    wxFileName fn = wxFileName(ShaderDownloadDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high));
+    std::function<bool(int)> progressFn;
+    if (prog) {
+        progressFn = [prog](int value) -> bool { return prog->Update(value); };
+    }
+    wxFileName fn = wxFileName(ShaderDownloadDialog::GetCache().GetFile(url.BuildURI().ToStdString(), CACHEFOR::CACHETIME_SESSION, "", progressFn, low, high));
     if (FileExists(fn))
     {
         filename = fn.GetFullPath();

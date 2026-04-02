@@ -12,7 +12,7 @@
 #include "Minleon.h"
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
-#include <wx/regex.h>
+#include <regex>
 #include <wx/progdlg.h>
 
 #include "../utils/CurlManager.h"
@@ -670,9 +670,10 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         spdlog::debug("/:\n{}", (const char*)html.c_str());
         //</script>NDB+ v2.2
         //<p><form>
-        wxRegEx extractVersion("\\/script>([^<\r\n]*)(\r|\n|<)", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (extractVersion.Matches(wxString(html))) {
-            _version = extractVersion.GetMatch(wxString(html), 1).ToStdString();
+        std::regex extractVersion("\\/script>([^<\r\n]*)(\r|\n|<)");
+        std::smatch evm;
+        if (std::regex_search(html, evm, extractVersion)) {
+            _version = evm[1].str();
             spdlog::debug("Firmware version : {}", (const char*)_version.c_str());
         } else {
             spdlog::debug("Firmware version : Unable to determine.");
@@ -744,9 +745,10 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
                 p = val["config"]["protocol"].get<std::string>();
             } else {
                 html = GetURL("/pout.html");
-                wxRegEx extractProtocol("type=\"radio\"[^>]*value=\"([^\"]*)[^>]* checked>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (extractProtocol.Matches(wxString(html))) {
-                    p = extractProtocol.GetMatch(wxString(html), 1).ToStdString();
+                std::regex extractProtocol("type=\"radio\"[^>]*value=\"([^\"]*)[^>]* checked>");
+                std::smatch epm;
+                if (std::regex_search(html, epm, extractProtocol)) {
+                    p = epm[1].str();
                 }
             }
             if (p == "E1.31" || p == "2") {
@@ -802,10 +804,10 @@ Minleon::~Minleon() {
 std::string Minleon::ParseNDBHTML(const std::string& html, uint8_t index)
 {
     auto tag = std::format("I{:03d}", index);
-    wxRegEx extractTagValue("name=\"I" + tag + "\"value=\"([^\"]*)\"",
-                            wxRE_ADVANCED | wxRE_NEWLINE);
-    if (extractTagValue.Matches(wxString(html))) {
-        return extractTagValue.GetMatch(wxString(html), 1).ToStdString();
+    std::regex extractTagValue("name=\"I" + tag + "\"value=\"([^\"]*)\"");
+    std::smatch etm;
+    if (std::regex_search(html, etm, extractTagValue)) {
+        return etm[1].str();
     }
     return "";
 }

@@ -32,6 +32,9 @@
 #include <unistd.h>
 #endif
 
+#include <chrono>
+#include <thread>
+
 #include <log.h>
 #include <filesystem>
 #include <format>
@@ -127,24 +130,24 @@ void HinksPixOutput::SetConfig(wxString const& data) {
         return;
     }
 
-    if (wxAtoi(config[0]) != output) {
-        
+    if ((int)strtol(config[0].c_str(), nullptr, 10) != output) {
+
         spdlog::error("Mismatched output ports data port:'{}' data:'{}'", output, (const char*)data.c_str());
         return;
     }
     if (config[1] != "undefined") {
-        protocol = wxAtoi(config[1]);
+        protocol = (int)strtol(config[1].c_str(), nullptr, 10);
     } else {
         protocol = 0;
     }
-    controllerStartChannel = wxAtoi(config[2]);
-    pixels = wxAtoi(config[3]);
-    controllerEndChannel = wxAtoi(config[4]);
-    direction = wxAtoi(config[5]);
-    colorOrder = wxAtoi(config[6]);
-    nullPixel = wxAtoi(config[7]);
-    brightness = wxAtoi(config[8]);
-    gamma = wxAtoi(config[9]);
+    controllerStartChannel = (int)strtol(config[2].c_str(), nullptr, 10);
+    pixels = (int)strtol(config[3].c_str(), nullptr, 10);
+    controllerEndChannel = (int)strtol(config[4].c_str(), nullptr, 10);
+    direction = (int)strtol(config[5].c_str(), nullptr, 10);
+    colorOrder = (int)strtol(config[6].c_str(), nullptr, 10);
+    nullPixel = (int)strtol(config[7].c_str(), nullptr, 10);
+    brightness = (int)strtol(config[8].c_str(), nullptr, 10);
+    gamma = (int)strtol(config[9].c_str(), nullptr, 10);
 }
 
 wxString HinksPixOutput::BuildCommand() const {
@@ -229,12 +232,12 @@ void HinksSmartOutput::SetConfig(wxString const& data) {
         return;
     }
 
-    id = wxAtoi(config[0]);
-    type = wxAtoi(config[1]);
-    portStartPixel[0] = wxAtoi(config[2]);
-    portStartPixel[1] = wxAtoi(config[3]);
-    portStartPixel[2] = wxAtoi(config[4]);
-    portStartPixel[3] = wxAtoi(config[5]);
+    id = (int)strtol(config[0].c_str(), nullptr, 10);
+    type = (int)strtol(config[1].c_str(), nullptr, 10);
+    portStartPixel[0] = (int)strtol(config[2].c_str(), nullptr, 10);
+    portStartPixel[1] = (int)strtol(config[3].c_str(), nullptr, 10);
+    portStartPixel[2] = (int)strtol(config[4].c_str(), nullptr, 10);
+    portStartPixel[3] = (int)strtol(config[5].c_str(), nullptr, 10);
 }
 
 wxString HinksSmartOutput::BuildCommand() const {
@@ -553,7 +556,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
 
         const auto map = StringToMap(data);
 
-        int const maxUnv = wxAtoi(map.at("C"));
+        int const maxUnv = (int)strtol(map.at("C").c_str(), nullptr, 10);
 
         if (controller->GetOutputCount() > maxUnv) {
             DisplayError(std::format("Attempt to upload {} universes to HinksPix controller but only {} are supported.", controller->GetOutputCount(), maxUnv));
@@ -1156,7 +1159,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
         _controllerType = data.at("Controller").get<std::string>(); //"H" for Pro, "E" for EasyLights
 
         if (data.contains("MaxU")) {
-            _numberOfUniverses = wxAtoi(data.at("MaxU").get<std::string>());
+            _numberOfUniverses = (int)strtol(data.at("MaxU").get<std::string>().c_str(), nullptr, 10);
         }
         if (data.contains("MCPU") && data.contains("PCPU") && data.contains("ECPU") && data.contains("WEB")) {
             _version = std::format("MAIN:{},POWER:{},WIFI:{},WEB:{}",
@@ -1524,7 +1527,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         spdlog::info("Rebooting Controller.");
         progress.Update(90, "Rebooting Controller.");
         SendRebootController(worked);
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         SendRebootController(worked);
     }
 
@@ -1902,8 +1905,8 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
             auto const parts = Split(it, std::vector<char>({ ',' }));
             if (parts.size() == 3) {
                 file.FileName = parts[0];
-                file.Date = wxAtoi(parts[1]);
-                file.Time = wxAtoi(parts[2]);
+                file.Date = (int)strtol(parts[1].c_str(), nullptr, 10);
+                file.Time = (int)strtol(parts[2].c_str(), nullptr, 10);
                 files.push_back(file);
             }
         }

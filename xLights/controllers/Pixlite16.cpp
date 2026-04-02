@@ -12,7 +12,6 @@
 #include <nlohmann/json.hpp>
 
 #include <wx/msgdlg.h>
-#include <wx/regex.h>
 
 #include "Pixlite16.h"
 #include "../outputs/OutputManager.h"
@@ -31,7 +30,9 @@
 
 #include <log.h>
 
+#include <chrono>
 #include <format>
+#include <thread>
 
 #define PIXLITE_PORT 49150
 
@@ -976,7 +977,7 @@ bool Pixlite16::GetConfig(const std::string& localIp, std::string ip, const std:
             uint32_t count = 0;
 #define SLP_TIME 100
             while (count < 5000 && !discovery.WaitForData(SLP_TIME)) {
-                wxMilliSleep(SLP_TIME);
+                std::this_thread::sleep_for(std::chrono::milliseconds(SLP_TIME));
                 count += SLP_TIME;
             }
 

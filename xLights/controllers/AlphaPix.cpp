@@ -10,9 +10,8 @@
  **************************************************************/
 
 #include <wx/msgdlg.h>
-#include <wx/regex.h>
-
 #include <wx/progdlg.h>
+#include <regex>
 
 #include "AlphaPix.h"
 #include "../models/Model.h"
@@ -26,7 +25,9 @@
 
 #include <log.h>
 
+#include <chrono>
 #include <curl/curl.h>
+#include <thread>
 
 #include <format>
 
@@ -107,14 +108,15 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         }
         //AlphaPix 4 V2/V3 Classic
         //AlphaPix Flex Lighting Controller
-        static wxRegEx modelregex("(\\d+) Port Ethernet to SPI Controller", wxRE_ADVANCED | wxRE_NEWLINE);
-        static wxRegEx modelregex2("AlphaPix (\\d+) ", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (modelregex.Matches(_page)) {
-            _modelnum = wxAtoi(modelregex.GetMatch(_page, 1).ToStdString());
+        static std::regex modelregex("(\\d+) Port Ethernet to SPI Controller");
+        static std::regex modelregex2("AlphaPix (\\d+) ");
+        std::smatch modm;
+        if (std::regex_search(_page, modm, modelregex)) {
+            _modelnum = (int)std::strtol(modm[1].str().c_str(), nullptr, 10);
             _connected = true;
         }
-        else if (modelregex2.Matches(_page)) {
-            _modelnum = wxAtoi(modelregex2.GetMatch(_page, 1).ToStdString());
+        else if (std::regex_search(_page, modm, modelregex2)) {
+            _modelnum = (int)std::strtol(modm[1].str().c_str(), nullptr, 10);
             _connected = true;
         } else if (Contains(_page, "AlphaPix Flex Lighting Controller") || Contains(_page, "AlphaPix Evolution Lighting Controller")) {
             _modelnum = 48;
@@ -126,9 +128,10 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         }
 
         //Currently Installed Firmware Version:  2.08
-        static wxRegEx firmwareregex("(Currently Installed Firmware Version:  ([0-9]+.[0-9]+))", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (firmwareregex.Matches(wxString(_page))) {
-            _version = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
+        static std::regex firmwareregex("(Currently Installed Firmware Version:  ([0-9]+.[0-9]+))");
+        std::smatch fwm;
+        if (std::regex_search(_page, fwm, firmwareregex)) {
+            _version = fwm[2].str();
         }
 
         if (Contains(_page, "name=\"U01\"")) { // look for certain web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
@@ -373,50 +376,40 @@ std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string
         //<input  style = " width: 80px ;TEXT-ALIGN: center" type="text" value="1" name="DMX512"/>
         //<input\s+style\s=\s\".*\"\stype="text"\s+value=\")([0-9\\.]*?)\"
         //<input\s+style\s=\s\".*\"\stype=\"text\"\s+value=\"(.*)\"\s+name=\"SU1\"
-        const wxString regex = "<input\\s+style\\s?=\\s?\\\".*\\\"\\stype=\\\"text\\\"\\s+value=\\\"(.*)\\\"\\s+name=\\\"" + parameter + "\\\"";
-        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
-
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string res = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            return res;
+        std::regex inputregex("<input\\s+style\\s?=\\s?\".*\"\\stype=\"text\"\\s+value=\"(.*)\"\\s+name=\"" + parameter + "\"");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            return m[1].str();
         }
     }
     else if (type == "select") {
-        int startSel = p.find("<select name=\"" + parameter + "\"");
-        const wxString pSel = wxString(p).Mid(startSel);
+        size_t startSel = p.find("<select name=\"" + parameter + "\"");
+        std::string pSel = (startSel != std::string::npos) ? p.substr(startSel) : p;
         //<select name="RGBS"
         //<option value="([0-9])\"\sselected=\"selected\"
-        const wxString regex = "<option\\s+value=\"([0-9])\\\"\\sselected=\\\"selected\\\"";
-        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(pSel))) {
-            const std::string res = inputregex.GetMatch(wxString(pSel), 1).ToStdString();
-            return res;
+        std::regex inputregex("<option\\s+value=\"([0-9])\"\\sselected=\"selected\"");
+        std::smatch m;
+        if (std::regex_search(pSel, m, inputregex)) {
+            return m[1].str();
         }
     }
     else if (type == "checkbox") {
         //<input\s+(?:style\s=\s\".*\"\s+)?type=\"checkbox\"\s+name=\"(\w+)\"\s+(checked=\"checked\"\s+)?value=\"[0-9]\"
-        const wxString regex = "<input\\s+(?:style\\s?=\\s?\\\".*\\\"\\s+)?type=\"checkbox\"\\s+name=\\\"" + parameter + "\"\\s+(checked=\\\"checked\\\"\\s+)?value=\\\"[0-9]\\\"";
-        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string res = inputregex.GetMatch(wxString(p), 0).ToStdString();
-            const std::string res2 = inputregex.GetMatch(wxString(p), 1).ToStdString();
+        std::regex inputregex("<input\\s+(?:style\\s?=\\s?\".*\"\\s+)?type=\"checkbox\"\\s+name=\"" + parameter + "\"\\s+(checked=\"checked\"\\s+)?value=\"[0-9]\"");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            const std::string res2 = m[1].str();
             if (!res2.empty())
                 return "1";
             return "0";
-            //return res;
         }
     }
     else if (type == "radio") {
         // <input\s+type="radio"\s+(?:id="\w+")?\s+name=\"\w+"\s+value=\"([0-9])\"\s+checked="checked"
-        const wxString regex = "<input\\s+type=\"radio\"\\s+(?:id=\"\\w+\")?\\s+name=\\\"" + parameter + "\"\\s+value=\\\"([0-9])\\\"\\s+checked=\"checked\"";
-        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string res = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            return res;
+        std::regex inputregex("<input\\s+type=\"radio\"\\s+(?:id=\"\\w+\")?\\s+name=\"" + parameter + "\"\\s+value=\"([0-9])\"\\s+checked=\"checked\"");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            return m[1].str();
         }
     }
     else {
@@ -430,7 +423,7 @@ std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string
 int AlphaPix::ExtractIntFromPage(std::string const& page, const std::string& parameter, const std::string& type, int defaultValue, int start) {
     const std::string value = ExtractFromPage(page, parameter, type, start);
     if (!value.empty()) {
-        return wxAtoi(value);
+        return (int)strtol(value.c_str(), nullptr, 10);
     }
     return defaultValue;
 }
@@ -708,7 +701,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
                 const std::string res = APPutURL(GetDMXURL(), serialRequest);
                 if (res.empty())
                     worked = false;
-                wxMilliSleep(1000);
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
             else {
                 const std::string serialRequest = std::format("Rever{}=1&DMX512_{}={}",
@@ -716,7 +709,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
                 const std::string res = APPutURL(GetDMXURL(serial->output), serialRequest);
                 if (res.empty())
                     worked = false;
-                wxMilliSleep(1000);
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }
     }
@@ -728,7 +721,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         const std::string res = APPutURL(GetProtocolURL(), std::format("IC={}", newProtocol));
         if (res.empty())
             worked = false;
-        wxMilliSleep(1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     spdlog::info("Uploading Color Order.");
@@ -742,14 +735,14 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             const std::string res = APPutURL(GetColorOrderURL(), std::format("RGBORD=0&RGBS={}", colorOrder[0]));
             if (res.empty())
                 worked = false;
-            wxMilliSleep(1000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
         else {
             // different color orders, "advance mode" needed
             const std::string res = APPutURL(GetColorOrderURL(), "RGBORD=1");
             if (res.empty())
                 worked = false;
-            wxMilliSleep(1000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
             std::string colorRequestString;
             for (const auto& pixelPort : _pixelOutputs) {
@@ -762,7 +755,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             const std::string res2 = APPutURL(GetIndvColorOrderURL(), colorRequestString);
             if (res2.empty())
                 worked = false;
-            wxMilliSleep(1000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
     }
 
@@ -773,7 +766,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         const std::string res = APPutURL(GetNameURL(), "name=" + outName);
         if (res.empty())
             worked = false;
-        wxMilliSleep(1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     //upload Input Type
@@ -795,7 +788,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         if (res.empty())
             worked = false;
         //wait for reboot
-        wxMilliSleep(5000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     }
 
     if(!worked)
@@ -824,7 +817,7 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
         const std::string res = APPutURL(GetOutputURL(), requestString);
         if (res.empty())
             worked = false;
-        wxMilliSleep(2000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
 }
 
@@ -854,7 +847,7 @@ void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
             const std::string res = APPutURL(GetOutputURL(i + 1), requestString);
             if (res.empty())
                 worked = false;
-            wxMilliSleep(2000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         }
     }
 }

@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+
 #include "models/BaseObject.h"
 #include "outputs/Controller.h"
 #include "xLightsMain.h"
@@ -93,13 +95,13 @@ void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, Bas
         if (m != nullptr)
         {
             // either must not have previously had a model or must be the same model
-            wxASSERT(_modelToModelFromXml == nullptr || _modelToModelFromXml == m);
+            assert(_modelToModelFromXml == nullptr || _modelToModelFromXml == m);
             _modelToModelFromXml = m;
         }
         else
         {
             // model must be specified
-            wxASSERT(false);
+            assert(false);
             work &= ~WORK_RELOAD_MODEL_FROM_XML;
         }
     }
@@ -127,7 +129,7 @@ void OutputModelManager::AddSetupTabWork(uint32_t work, const std::string& from,
     {
         // this is not allowed as the model pointer must be valid until this message is processed
         // and there is no way to guarantee that
-        wxASSERT(false);
+        assert(false);
         work &= ~WORK_RELOAD_MODEL_FROM_XML;
     }
     _setupTabWork |= work;
@@ -149,7 +151,7 @@ void OutputModelManager::AddLayoutTabWork(uint32_t work, const std::string& from
     {
         // this is not allowed as the model pointer must be valid until this message is processed
         // and there is no way to guarantee that
-        wxASSERT(false);
+        assert(false);
         work &= ~WORK_RELOAD_MODEL_FROM_XML;
     }
     _layoutTabWork |= work;
@@ -157,7 +159,7 @@ void OutputModelManager::AddLayoutTabWork(uint32_t work, const std::string& from
 
 BaseObject* OutputModelManager::GetModelToReload()
 {
-    wxASSERT(_modelToModelFromXml != nullptr);
+    assert(_modelToModelFromXml != nullptr);
     BaseObject* res = _modelToModelFromXml;
     _modelToModelFromXml = nullptr;
     return res;
@@ -185,7 +187,7 @@ void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from
         if (m == nullptr)
         {
             // model must be specified
-            wxASSERT(false);
+            assert(false);
             work &= ~WORK_RELOAD_MODEL_FROM_XML;
         }
     }

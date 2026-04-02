@@ -10,9 +10,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
+#include <cassert>
+#include <cstring>
+#include <list>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <vector>
+
+#include <wx/string.h>
 
 #ifdef __WXOSX__
 #include <sys/mman.h>
@@ -57,7 +63,7 @@ public:
         
         [[nodiscard]] unsigned char& operator[](unsigned int channel)
         {
-            wxASSERT(_zero == 0);
+            assert(_zero == 0);
             return channel < _numChannels ? _data[channel] : _zero;
         }
         

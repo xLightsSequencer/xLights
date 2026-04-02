@@ -1058,6 +1058,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="controllers\BaseController.h" />
     <ClInclude Include="controllers\ControllerCaps.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
+    <ClInclude Include="controllers\ExportSettings.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />
     <ClInclude Include="controllers\Experience.h" />
     <ClInclude Include="controllers\Falcon.h" />

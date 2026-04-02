@@ -18,7 +18,7 @@
 #include <set>
 #include <vector>
 
-#include "../ui/import-export/ExportSettings.h"
+#include "ExportSettings.h"
 #include "UtilFunctions.h"
 #include "../models/Pixels.h"
 

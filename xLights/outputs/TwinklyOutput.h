@@ -13,7 +13,9 @@
 #include "IPOutput.h"
 #include "SocketAbstraction.h"
 #include <array>
-#include <wx/wx.h>
+#include <chrono>
+#include <wx/socket.h>
+#include <wx/sckaddr.h>
 
 class Discovery;
 
@@ -22,7 +24,7 @@ class Discovery;
 
 class TwinklyOutput : public IPOutput
 {
-    wxMilliClock_t _lastLEDModeTime = 0;
+    std::chrono::milliseconds _lastLEDModeTime{0};
 
 public:
 #pragma region Constructors and Destructors

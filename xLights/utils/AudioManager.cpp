@@ -8,7 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/stopwatch.h>
+#include <cassert>
+#include <chrono>
+#include <thread>
+
 #include <wx/ffile.h>
 #include <wx/log.h>
 #include <wx/string.h>
@@ -80,7 +83,7 @@ SDLManager __sdlManager;
 void fill_audio(void* udata, Uint8* stream, int len) {
     // SDL 2.0
     SDL_memset(stream, 0, len);
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
 
     OutputSDL* sdl = (OutputSDL*)udata;
     std::mutex* audio_lock = sdl->GetAudioLock();
@@ -101,7 +104,7 @@ void fill_audio(void* udata, Uint8* stream, int len) {
             }
             // #ifdef _WIN32
             SDL_MixAudioFormat(stream, it->_audio_pos, AUDIO_S16SYS, len, volume);
-            // wxASSERT(strlen(SDL_GetError()) == 0);
+            // assert(strlen(SDL_GetError()) == 0);
             // #else
             //  TODO we need to replace this on OSX/Linux
             //             SDL_MixAudio(stream, it->_audio_pos, len, volume);
@@ -185,14 +188,14 @@ bool BaseSDL::CloseDevice() {
     if (_dev > 0) {
         SDL_ClearError();
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
         if (as == SDL_AUDIO_PLAYING) {
             SDL_PauseAudioDevice(_dev, 1);
-            wxASSERT(strlen(SDL_GetError()) == 0);
+            assert(strlen(SDL_GetError()) == 0);
         }
         SDL_ClearError();
         SDL_CloseAudioDevice(_dev);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
         _dev = 0;
     }
 
@@ -283,10 +286,10 @@ bool InputSDL::OpenDevice() {
         spdlog::debug("Unpausing audio input device {}.", _dev);
         SDL_ClearError();
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
         if (as == SDL_AUDIO_PAUSED) {
             SDL_PauseAudioDevice(_dev, 0);
-            wxASSERT(strlen(SDL_GetError()) == 0);
+            assert(strlen(SDL_GetError()) == 0);
         }
         spdlog::debug("    Result '{}'", SDL_GetError());
     }
@@ -301,11 +304,11 @@ std::list<std::string> InputSDL::GetAudioDevices() {
     // TODO we need to this working on OSX/Linux
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(1);
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
 
     for (int i = 0; i < count; i++) {
         devices.push_back(SDL_GetAudioDeviceName(i, 1));
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
     }
 #endif
 
@@ -347,13 +350,13 @@ void InputSDL::PurgeAllButInputAudio(int ms) const {
     uint32_t bytesNeeded = DEFAULT_RATE * ms / 1000 * 2;
 
     while (SDL_GetQueuedAudioSize(_dev) > bytesNeeded) {
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
         uint32_t avail = SDL_GetQueuedAudioSize(_dev);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
         uint32_t toread = std::min(avail - bytesNeeded, (uint32_t)sizeof(buffer));
         uint32_t read = SDL_DequeueAudio(_dev, buffer, toread);
-        wxASSERT(strlen(SDL_GetError()) == 0);
-        wxASSERT(read == toread);
+        assert(strlen(SDL_GetError()) == 0);
+        assert(read == toread);
     }
 }
 
@@ -363,7 +366,7 @@ int InputSDL::GetAudio(uint8_t* buffer, int bufsize) {
 
     SDL_ClearError();
     auto res = SDL_DequeueAudio(_dev, buffer, bufsize);
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
     return res;
 }
 
@@ -380,7 +383,7 @@ int InputSDL::GetMax(int ms) const {
     int read = 0;
     SDL_ClearError();
     read = SDL_DequeueAudio(_dev, buffer, sizeof(buffer));
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
 
     // if we didn't get anything bailout
     if (read == 0) {
@@ -415,7 +418,7 @@ std::vector<float> InputSDL::GetSpectrum(int ms) const {
     int read = 0;
     SDL_ClearError();
     read = SDL_DequeueAudio(_dev, buffer, sizeof(buffer));
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
 
     // if we didn't get anything bailout
     if (read == 0) {
@@ -479,7 +482,7 @@ std::vector<float> InputSDL::GetSpectrum(int ms) const {
 
 void InputSDL::PurgeInput() {
     SDL_ClearQueuedAudio(_dev);
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
 }
 #pragma endregion
 
@@ -550,11 +553,11 @@ std::list<std::string> OutputSDL::GetAudioDevices() {
     // TODO we need to this working on OSX/Linux
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesn't
     int count = SDL_GetNumAudioDevices(0);
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
 
     for (int i = 0; i < count; i++) {
         devices.push_back(SDL_GetAudioDeviceName(i, 0));
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
     }
 #endif
 
@@ -803,13 +806,13 @@ void OutputSDL::Play() {
     }
     SDL_ClearError();
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
     if (as == SDL_AUDIO_PAUSED || as == SDL_AUDIO_STOPPED) {
         SDL_PauseAudioDevice(_dev, 0);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
     }
 
-    wxASSERT(SDL_GetAudioDeviceStatus(_dev) == SDL_AUDIO_PLAYING);
+    assert(SDL_GetAudioDeviceStatus(_dev) == SDL_AUDIO_PLAYING);
     _state = SDLSTATE::SDLPLAYING;
 }
 
@@ -818,13 +821,13 @@ void OutputSDL::Stop() {
         SDL_ClearError();
         _state = SDLSTATE::SDLNOTPLAYING;
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
         if (as == SDL_AUDIO_PLAYING) {
             SDL_PauseAudioDevice(_dev, 1);
-            wxASSERT(strlen(SDL_GetError()) == 0);
+            assert(strlen(SDL_GetError()) == 0);
         }
         SDL_ClearQueuedAudio(_dev);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
     }
 }
 
@@ -834,10 +837,10 @@ void OutputSDL::Pause() {
     if (_dev > 0) {
         SDL_ClearError();
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
         if (as == SDL_AUDIO_PLAYING) {
             SDL_PauseAudioDevice(_dev, 1);
-            wxASSERT(strlen(SDL_GetError()) == 0);
+            assert(strlen(SDL_GetError()) == 0);
         }
         _state = SDLSTATE::SDLNOTPLAYING;
     }
@@ -853,10 +856,10 @@ void OutputSDL::Unpause() {
     }
     SDL_ClearError();
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
-    wxASSERT(strlen(SDL_GetError()) == 0);
+    assert(strlen(SDL_GetError()) == 0);
     if (as == SDL_AUDIO_PAUSED) {
         SDL_PauseAudioDevice(_dev, 0);
-        wxASSERT(strlen(SDL_GetError()) == 0);
+        assert(strlen(SDL_GetError()) == 0);
     }
     _state = SDLSTATE::SDLPLAYING;
 }
@@ -1287,13 +1290,13 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         return;
     }
 
-    wxStopWatch sw;
+    auto sw_start = std::chrono::steady_clock::now();
 
     spdlog::info("DoPolyphonicTranscription: Polyphonic transcription started on file " + _audio_file);
 
     while (!IsDataLoaded()) {
         spdlog::debug("DoPolyphonicTranscription: Waiting for audio data to load.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     spdlog::debug("Processing polyphonic transcription on file " + _audio_file);
@@ -1338,7 +1341,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 lastProgress = progress;
             }
             pdata[0] = GetRawLeftDataPtr(start);
-            wxASSERT(pdata[0] != nullptr);
+            assert(pdata[0] != nullptr);
             pdata[1] = GetRawRightDataPtr(start);
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
@@ -1412,7 +1415,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
     }
 
     _polyphonicTranscriptionDone = true;
-    spdlog::info("DoPolyphonicTranscription: Polyphonic transcription completed in {}.", sw.Time());
+    spdlog::info("DoPolyphonicTranscription: Polyphonic transcription completed in {}.", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
 }
 
 // Frame Data Extraction Functions
@@ -1430,7 +1433,7 @@ void AudioManager::DoPrepareFrameData() {
         return;
     }
 
-    wxStopWatch sw;
+    auto sw_start = std::chrono::steady_clock::now();
 
     // if we have already done it ... bail
     if (_frameDataPrepared && _frameDataPreparedForInterval == _intervalMS) {
@@ -1443,7 +1446,7 @@ void AudioManager::DoPrepareFrameData() {
     // wait for the data to load
     while (!IsDataLoaded()) {
         spdlog::info("DoPrepareFrameData: waiting for audio data to load.");
-        wxMilliSleep(1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     spdlog::info("DoPrepareFrameData: Data is loaded.");
@@ -1502,7 +1505,7 @@ void AudioManager::DoPrepareFrameData() {
         // only get the data if we are not ahead of the music
         while (pos < i * samplesperframe + samplesperframe && pos + (int)step < totalsamples) {
             pdata[0] = GetRawLeftDataPtr(pos);
-            wxASSERT(pdata[0] != nullptr);
+            assert(pdata[0] != nullptr);
             pdata[1] = GetRawRightDataPtr(pos);
             float max2 = 0;
 
@@ -1587,7 +1590,7 @@ void AudioManager::DoPrepareFrameData() {
 
     // flag the fact that the data is all ready
     _frameDataPrepared = true;
-    spdlog::info("DoPrepareFrameData: Audio frame data processing complete in {}. Frames: {}", sw.Time(), frames);
+    spdlog::info("DoPrepareFrameData: Audio frame data processing complete in {}. Frames: {}", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count(), frames);
 }
 // Called to trigger frame data creation
 void AudioManager::PrepareFrameData(bool separateThread) {
@@ -1641,7 +1644,7 @@ const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing
         // wait until the new thread grabs the lock
         while (!_frameDataPrepared) {
             lock.unlock();
-            wxMilliSleep(5);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
             lock.lock();
         }
     }
@@ -1842,7 +1845,7 @@ AudioManager::~AudioManager() {
 
     while (IsOk() && !IsDataLoaded()) {
         spdlog::debug("~AudioManager waiting for audio data to complete loading before destroying it.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     // wait for async tasks to finish
@@ -1943,7 +1946,7 @@ int AudioManager::OpenMediaFile() {
     if (res != 0) {
         spdlog::error("avformat_open_input Error opening the file {} => {}.", (const char*)_audio_file.c_str(), res);
         _ok = false;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
@@ -1952,7 +1955,7 @@ int AudioManager::OpenMediaFile() {
         formatContext = nullptr;
         spdlog::error("avformat_find_stream_info Error finding the stream info {}.", (const char*)_audio_file.c_str());
         _ok = false;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
@@ -1967,7 +1970,7 @@ int AudioManager::OpenMediaFile() {
         formatContext = nullptr;
         spdlog::error("av_find_best_stream Could not find any audio stream in the file {}.", (const char*)_audio_file.c_str());
         _ok = false;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
@@ -1977,19 +1980,19 @@ int AudioManager::OpenMediaFile() {
         formatContext = nullptr;
         spdlog::error("formatContext->streams[{}] was nullptr.", streamIndex);
         _ok = false;
-        wxASSERT(false);
+        assert(false);
         return 1;
     } else if (audioStream->codecpar == nullptr) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
         spdlog::error("formatContext->codecpar was nullptr.");
         _ok = false;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
     AVCodecContext* codecContext = avcodec_alloc_context3(cdc);
-    wxASSERT(codecContext != nullptr);
+    assert(codecContext != nullptr);
 
     avcodec_parameters_to_context(codecContext, audioStream->codecpar);
 
@@ -1998,7 +2001,7 @@ int AudioManager::OpenMediaFile() {
         formatContext = nullptr;
         spdlog::error("avcodec_open2 Couldn't open the context with the decoder {}.", (const char*)_audio_file.c_str());
         _ok = false;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
@@ -2008,20 +2011,20 @@ int AudioManager::OpenMediaFile() {
     _channels = codecContext->ch_layout.nb_channels;
     #endif
 
-    wxASSERT(_channels > 0);
+    assert(_channels > 0);
 
 #ifdef RESAMPLE_RATE
     _rate = RESAMPLE_RATE;
 #else
     _rate = codecContext->sample_rate;
 #endif
-    wxASSERT(_rate > 0);
+    assert(_rate > 0);
 
     _sampleRate = codecContext->sample_rate;
     _bitRate = codecContext->bit_rate;
 
     _bits = av_get_bytes_per_sample(codecContext->sample_fmt);
-    wxASSERT(_bits > 0);
+    assert(_bits > 0);
 
     /* Get Track Size */
     GetTrackMetrics(formatContext, codecContext, audioStream);
@@ -2029,7 +2032,7 @@ int AudioManager::OpenMediaFile() {
     if (!_ok) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
@@ -2052,7 +2055,7 @@ int AudioManager::OpenMediaFile() {
         formatContext = nullptr;
         spdlog::error("Unable to allocate {} memory to load audio file {}.", (long)size, (const char*)_audio_file.c_str());
         _ok = false;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
@@ -2064,7 +2067,7 @@ int AudioManager::OpenMediaFile() {
             formatContext = nullptr;
             spdlog::error("Unable to allocate {} memory to load audio file {}.", (long)size, (const char*)_audio_file.c_str());
             _ok = false;
-            wxASSERT(false);
+            assert(false);
             return 1;
         }
         memset(_data[1], 0x00, size);
@@ -2077,7 +2080,7 @@ int AudioManager::OpenMediaFile() {
     if (!_ok) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        wxASSERT(false);
+        assert(false);
         return 1;
     }
 
@@ -2135,7 +2138,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     
     spdlog::debug("DoLoadAudioData: Doing load of song data.");
 
-    wxStopWatch sw;
+    auto sw_start = std::chrono::steady_clock::now();
 
     long read = 0;
     int lastpct = 0;
@@ -2175,7 +2178,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     if (au_convert_ctx == nullptr) {
         spdlog::error("DoLoadAudioData: swe_alloc_set_opts was null");
         // let it go as it may be the cause of a crash
-        wxASSERT(false);
+        assert(false);
     }
 
     swr_init(au_convert_ctx);
@@ -2228,7 +2231,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
         _trackSize = _loadedData;
     }
 #endif
-    wxASSERT(_trackSize == _loadedData);
+    assert(_trackSize == _loadedData);
 
     // Clean up!
     swr_free(&au_convert_ctx);
@@ -2238,7 +2241,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
     avformat_close_input(&formatContext);
 
-    spdlog::debug("DoLoadAudioData: Song data loaded in {}. Read: {}", sw.Time(), read);
+    spdlog::debug("DoLoadAudioData: Song data loaded in {}. Read: {}", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count(), read);
 }
 
 void AudioManager::LoadAudioFromFrame(AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx, bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct) {
@@ -2262,18 +2265,18 @@ void AudioManager::LoadDecodedAudioFromFrame(AVFrame* frame, AVFormatContext* fo
         if (*(frame->data) == nullptr) {
             spdlog::error("LoadDecodedAudioFromFrame: frame->data was a pointer to a nullptr.");
             // let this go maybe it causes the crash
-            wxASSERT(false);
+            assert(false);
         }
         if (frame->nb_samples == 0) {
             spdlog::error("LoadDecodedAudioFromFrame: frame->nb_samples was 0.");
             // let this go maybe it causes the crash
-            wxASSERT(false);
+            assert(false);
         }
 
         outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t**)frame->data, frame->nb_samples);
     } catch (...) {
         spdlog::error("LoadDecodedAudioFromFrame: swr_convert threw an exception.");
-        wxASSERT(false);
+        assert(false);
         std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
         _trackSize = _loadedData; // makes it looks like we are done
         return;
@@ -2297,7 +2300,7 @@ void AudioManager::LoadResampledAudio(int sampleCount, int out_channels, uint8_t
     }
 
     // copy the PCM data into the PCM buffer for playing
-    wxASSERT(_pcmdatasize + PCMFUDGE > (long)(read * out_channels * sizeof(uint16_t) + sampleCount * out_channels * sizeof(uint16_t)));
+    assert(_pcmdatasize + PCMFUDGE > (long)(read * out_channels * sizeof(uint16_t) + sampleCount * out_channels * sizeof(uint16_t)));
     memcpy(_pcmdata + (read * out_channels * sizeof(uint16_t)), out_buffer, sampleCount * out_channels * sizeof(uint16_t));
 
     // possible optimization here... we ask resampler for S16 data and then convert that to floating-point?
@@ -2403,7 +2406,7 @@ float AudioManager::GetFilteredLeftData(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetLeftData waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     if (_data[0] == nullptr || offset > _trackSize) {
@@ -2416,7 +2419,7 @@ float AudioManager::GetRawLeftData(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetLeftData waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
@@ -2455,7 +2458,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
 
     double scale = 1.0;
     double mm = (double)std::max(max, abs(min));
-    wxASSERT(mm <= 32768.0);
+    assert(mm <= 32768.0);
     if (mm > 0) {
         scale = 32768.0 / mm;
     }
@@ -2503,7 +2506,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
 
     double fscale = 1.0;
     mm = std::max(fmax, abs(fmin));
-    wxASSERT(mm <= 32767.0);
+    assert(mm <= 32767.0);
     if (fmax > 0) {
         fscale = 1.0 / mm;
     }
@@ -2525,7 +2528,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     while (!IsDataLoaded()) {
         
         spdlog::debug("SwitchTo waiting for data to be loaded.");
-        wxMilliSleep(50);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
 
@@ -2710,7 +2713,7 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
 
 FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     while (_filtered.size() == 0) {
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     for (const auto& it : _filtered) {
@@ -2725,7 +2728,7 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
     
     while (!IsDataLoaded(end - 1)) {
         spdlog::debug("GetLeftDataMinMax waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     minimum = 0;
@@ -2747,7 +2750,7 @@ float AudioManager::GetFilteredRightData(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetRightData waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     if (_data[1] == nullptr || offset > _trackSize) {
@@ -2760,7 +2763,7 @@ float AudioManager::GetRawRightData(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetRightData waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
@@ -2776,10 +2779,10 @@ float* AudioManager::GetFilteredLeftDataPtr(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetLeftDataPtr waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    wxASSERT(_data[0] != nullptr);
+    assert(_data[0] != nullptr);
     if (offset > _trackSize) {
         return nullptr;
     }
@@ -2790,7 +2793,7 @@ float* AudioManager::GetRawLeftDataPtr(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetLeftDataPtr waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
@@ -2804,7 +2807,7 @@ float* AudioManager::GetRawRightDataPtr(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetRightDataPtr waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     FilteredAudioData* fad = GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
@@ -2819,10 +2822,10 @@ float* AudioManager::GetFilteredRightDataPtr(long offset) {
     
     while (!IsDataLoaded(offset)) {
         spdlog::debug("GetRightDataPtr waiting for data to be loaded.");
-        wxMilliSleep(100);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    wxASSERT(_data[1] != nullptr);
+    assert(_data[1] != nullptr);
     if (offset > _trackSize) {
         return nullptr;
     }
@@ -2848,7 +2851,7 @@ std::string AudioManager::Hash() {
         
         while (!IsDataLoaded(_trackSize)) {
             spdlog::debug("GetLeftDataPtr waiting for data to be loaded.");
-            wxMilliSleep(100);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         MD5 md5;

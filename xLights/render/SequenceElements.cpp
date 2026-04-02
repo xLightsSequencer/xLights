@@ -15,6 +15,7 @@
 
 #include "SequenceElements.h"
 #include "pugixml.hpp"
+#include "RenderUtils.h"
 #include "../ui/sequencer/TimeLine.h"
 #include "../xLightsMain.h"
 #include "SequenceFile.h"
@@ -632,9 +633,9 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
             long palette = -1;
 
             double startTime = std::strtod(effect.attribute("startTime").as_string("0"), nullptr);
-            startTime = TimeLine::RoundToMultipleOfPeriod(startTime, mFrequency);
+            startTime = RoundToMultipleOfPeriod(startTime, mFrequency);
             double endTime = std::strtod(effect.attribute("endTime").as_string("0"), nullptr);
-            endTime = TimeLine::RoundToMultipleOfPeriod(endTime, mFrequency);
+            endTime = RoundToMultipleOfPeriod(endTime, mFrequency);
 
             if (startTime >= endTime) {
                 spdlog::warn("Effect dropped as its start time was greater than or equal to its end time : '{}' : {} Layer {} Start {} End {}.",
@@ -805,8 +806,8 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                         interval = elementNode.attribute("fixed").as_int(0);
                     }
                     if (interval > 0) {
-                        if (interval != TimeLine::RoundToMultipleOfPeriod(interval, mFrequency)) {
-                            int newinterval = TimeLine::RoundToMultipleOfPeriod(interval, mFrequency);
+                        if (interval != RoundToMultipleOfPeriod(interval, mFrequency)) {
+                            int newinterval = RoundToMultipleOfPeriod(interval, mFrequency);
                             if (newinterval == 0)
                                 newinterval = 1000 / mFrequency;
                             spdlog::warn("Timing interval of {}ms not a multiple of frame time so changed to {}ms.", interval, newinterval);
@@ -815,7 +816,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                         dynamic_cast<TimingElement*>(element)->SetFixedTiming(interval);
                         EffectLayer* effectLayer = element->AddEffectLayer();
                         int time = 0;
-                        int end_time = TimeLine::RoundToMultipleOfPeriod(xml_file.GetSequenceDurationMS(), mFrequency);
+                        int end_time = RoundToMultipleOfPeriod(xml_file.GetSequenceDurationMS(), mFrequency);
                         while (time < end_time) {
                             int startTime = time;
                             int endTime = time + interval;

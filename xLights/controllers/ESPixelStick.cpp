@@ -20,7 +20,8 @@
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 
-#include <wx/time.h>
+#include <chrono>
+#include <thread>
 
 #include <log.h>
 
@@ -238,7 +239,7 @@ std::string ESPixelStick::GetWSResponse()
     wxLongLong diff = 0;
     std::string resp = "";
     while (diff < 500 && resp == "") {
-        wxMilliSleep(5);
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
         resp = _wsClient.Receive();
         diff = wxGetLocalTimeMillis() - start;
     }
@@ -322,7 +323,7 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
         }
         else if (JsonConfig[ElementName].is_number_integer())
         {
-            JsonConfig[ElementName] = wxAtoi(ElementValue);
+            JsonConfig[ElementName] = (int)strtol(ElementValue.c_str(), nullptr, 10);
         }
         else if (JsonConfig[ElementName].is_boolean())
         {

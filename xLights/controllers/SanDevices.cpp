@@ -21,12 +21,15 @@
 
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
-#include <wx/regex.h>
 #include <wx/sckstrm.h>
+#include <regex>
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
+#include <chrono>
 #include <format>
+#include <thread>
+
 #include <log.h>
 
 #pragma region Dumps
@@ -164,7 +167,7 @@ wxInputStream* SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
     inp_stream = new MyHTTPStream(this);
 
     if (!GetHeader(wxT("Content-Length")).empty()) {
-        inp_stream->m_httpsize = wxAtoi(GetHeader(wxT("Content-Length")));
+        inp_stream->m_httpsize = (int)strtol(GetHeader(wxT("Content-Length")).c_str(), nullptr, 10);
     } else {
         inp_stream->m_httpsize = -1;
     }
@@ -231,7 +234,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
             return false;
         }
 
-        wxMilliSleep(10);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     m_lastError = wxPROTO_NOERR;
 
@@ -251,7 +254,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
     token.NextToken();
     tmp_str2 = token.NextToken();
 
-    m_http_response = wxAtoi(tmp_str2);
+    m_http_response = (int)strtol(tmp_str2.c_str(), nullptr, 10);
 
     switch (tmp_str2[0u].GetValue()) {
     case wxT('1'):
@@ -374,7 +377,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
         if (outputD->upload) {
             const std::string url = GenerateOutputURLV4(outputD);
             SDGetURL(url);
-            wxMilliSleep(2000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         }
         p += 10;
     }
@@ -478,7 +481,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
         if (proro->shouldUpload()) {
             const std::string url = GenerateProtocolURLV5(proro);
             SDGetURL(url);
-            wxMilliSleep(3000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
     }
 
@@ -486,7 +489,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     spdlog::info("Getting Output Data from Controller.");
 
     const std::string page2 = SDGetURL("/H?");
-    wxMilliSleep(3000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
     if (page2.empty()) {
         spdlog::error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
@@ -532,7 +535,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
         if (outputD->upload) {
             const std::string url = GenerateOutputURLV5(outputD);
             SDGetURL(url);
-            wxMilliSleep(3000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
     }
     return true;
@@ -675,49 +678,43 @@ inline int SanDevices::GetOutputsPerGroup() const {
 
 std::string SanDevices::ExtractFromPage(const std::string& page, const std::string& parameter, const std::string& type, int start) {
 
-    const wxString p = wxString(page).Mid(start);
+    const std::string p = page.substr(start);
     if (type == "input") {
-        const wxString regex = "(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')([0-9\\.]*?)\\'";
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
-            return res;
+        std::regex inputregex("(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')([0-9\\.]*?)\\'");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            return m[2].str();
         }
     }
     else if (type == "inputText") {
-        const wxString regex = "(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')(\\w+)(\\s+)?\\'";
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
-            return res;
+        std::regex inputregex("(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')(\\w+)(\\s+)?\\'");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            return m[2].str();
         }
     }
     else if (type == "select") {
-        const wxString regex = "(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z0-9])\\'selected";
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
-            return res;
+        std::regex inputregex("(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z0-9])\\'selected");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            return m[2].str();
         }
     }
     else if (type == "selectLetter") {
-        const wxString regex = "(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z])\\'selected";
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            const std::string res = inputregex.GetMatch(wxString(p), 2).ToStdString();
-            return res;
+        std::regex inputregex("(\\<select name=\\'" + parameter + "\\'\\>.*?\\')([A-Z])\\'selected");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            return m[2].str();
         }
     }
     else if (type == "checkbox") {
-        const wxString regex = "(\\<input type=\\'checkbox\\' name=\\'" + parameter + "\\' value=\\'[0-9]\\')([^\\>]*)\\>";
-        wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-        if (inputregex.Matches(wxString(p))) {
-            const std::string a = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            const std::string res = inputregex.GetMatch(wxString(p), 2).Trim().Trim(false).ToStdString();
+        std::regex inputregex("(\\<input type=\\'checkbox\\' name=\\'" + parameter + "\\' value=\\'[0-9]\\')([^\\>]*)\\>");
+        std::smatch m;
+        if (std::regex_search(p, m, inputregex)) {
+            std::string res = m[2].str();
+            auto start_it = std::find_if_not(res.begin(), res.end(), ::isspace);
+            auto end_it = std::find_if_not(res.rbegin(), res.rend(), ::isspace).base();
+            res = (start_it < end_it) ? std::string(start_it, end_it) : "";
             if (res == "checked") {
                 return "1";
             }
@@ -732,7 +729,7 @@ int SanDevices::ExtractIntFromPage(const std::string& page, const std::string& p
 
     const std::string value = ExtractFromPage(page, parameter, type, start);
     if (!value.empty()) {
-        return wxAtoi(value);
+        return (int)strtol(value.c_str(), nullptr, 10);
     }
     return defaultValue;
 }
@@ -1319,27 +1316,30 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
         for (int i = 0; i < 2; i++) {
             _page = SDGetURL("/");
             if (!_page.empty()) {
-                static wxRegEx modelregex("(Controller Model )(E\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (modelregex.Matches(wxString(_page))) {
-                    _sdmodel = DecodeControllerType(modelregex.GetMatch(wxString(_page), 2).ToStdString());
+                static std::regex modelregex("(Controller Model )(E\\d+)");
+                std::smatch modm;
+                if (std::regex_search(_page, modm, modelregex)) {
+                    _sdmodel = DecodeControllerType(modm[2].str());
                     spdlog::info("Connected to SanDevices controller model {}.", GetModel());
                 }
-                static wxRegEx versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (versionregex.Matches(wxString(_page))) {
+                static std::regex versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>");
+                std::smatch verm;
+                if (std::regex_search(_page, verm, versionregex)) {
                     _firmware = FirmwareVersion::Four;
-                    _version = versionregex.GetMatch(wxString(_page), 2).ToStdString();
+                    _version = verm[2].str();
                     spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
                     spdlog::info("                                 version {}.", _version);
                     break;
                 }
                 // Firmware Version:</th></td><td>5.038</td>
                 // Firmware Version:</th></td><td> 5.051-W5200</td>
-                static wxRegEx version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)\\s?([0-9]+\\.[0-9]+)(-W5200)?\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                if (version5regex.Matches(wxString(_page))) {
+                static std::regex version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)\\s?([0-9]+\\.[0-9]+)(-W5200)?\\<\\/td\\>");
+                std::smatch ver5m;
+                if (std::regex_search(_page, ver5m, version5regex)) {
                     _firmware = FirmwareVersion::Five;
-                    _version = version5regex.GetMatch(wxString(_page), 2).ToStdString();
-                    if (version5regex.GetMatchCount() > 3) {
-                        _version += version5regex.GetMatch(wxString(_page), 3).ToStdString();
+                    _version = ver5m[2].str();
+                    if (ver5m[3].matched) {
+                        _version += ver5m[3].str();
                     }
                     spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
                     spdlog::info("                                 version {}.", _version);
@@ -1486,7 +1486,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     if (upload) {
         SDGetURL(request.ToStdString());
-        wxMilliSleep(2000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
     upload = true;
 
@@ -1539,10 +1539,10 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     if (IsFirmware5()) {
         SDGetURL(requestUnvSize.ToStdString());
-        wxMilliSleep(3000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     }
     bool const passed = not SDGetURL(request.ToStdString()).empty();
-    wxMilliSleep(2000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     return passed;
 }
 

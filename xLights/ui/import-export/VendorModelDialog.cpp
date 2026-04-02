@@ -71,7 +71,7 @@ public:
         if (_imageFiles.size() != _images.size()) {
             _imageFiles.clear();
             for (const auto& it : _images) {
-                std::string fn = VendorModelDialog::GetCache().GetFile(it, CACHEFOR::CACHETIME_LONG);
+                std::string fn = VendorModelDialog::GetCache().GetFile(it.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG);
                 if (fn != "") {
                     _imageFiles.push_back(wxFileName(fn));
                 }
@@ -391,7 +391,7 @@ public:
         _imageFiles.clear();
 
         for (const auto& it : _images) {
-            std::string fn = VendorModelDialog::GetCache().GetFile(it, CACHEFOR::CACHETIME_LONG);
+            std::string fn = VendorModelDialog::GetCache().GetFile(it.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG);
             if (fn != "") {
                 _imageFiles.push_back(wxFileName(fn));
             }
@@ -406,8 +406,8 @@ void MModelWiring::DownloadXModel()
         if (_xmodelLink.GetPath().Lower().EndsWith("zip")) {
             ext = "zip";
         }
-        
-        _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink, CACHEFOR::CACHETIME_LONG, ext);
+
+        _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG, ext);
 
         if (ext == "xmodel") {
             pugi::xml_document d;
@@ -620,8 +620,8 @@ public:
                                         _notes = v.text().get();
                                     }
                                     else if (nn == "logolink") {
-                                        wxURI logo(v.text().get());
-                                        _logoFile = wxFileName(VendorModelDialog::GetCache().GetFile(logo, CACHEFOR::CACHETIME_LONG));
+                                        std::string logoUrl = v.text().get();
+                                        _logoFile = wxFileName(VendorModelDialog::GetCache().GetFile(logoUrl, CACHEFOR::CACHETIME_LONG));
                                     }
                                     else {
                                         spdlog::warn("MVendor: Error processing vendor xml: {} ", nn);
@@ -953,7 +953,11 @@ bool VendorModelDialog::FindModelFile(const std::string &vendor, const std::stri
 pugi::xml_document* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const
 {
     filename = "";
-    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high, keepProgress));
+    std::function<bool(int)> progressFn;
+    if (prog) {
+        progressFn = [prog](int value) -> bool { return prog->Update(value); };
+    }
+    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url.BuildURI().ToStdString(), CACHEFOR::CACHETIME_SESSION, "", progressFn, low, high, keepProgress));
     if (FileExists(fn)) {
         filename = fn.GetFullPath();
         auto doc = new pugi::xml_document();

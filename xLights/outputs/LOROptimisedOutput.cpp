@@ -17,8 +17,8 @@
 
 #include "serial.h"
 
-#include <wx/debug.h>
-#include <wx/wx.h>
+#include <cassert>
+#include <cstdlib>
 
 #include <log.h>
 
@@ -48,7 +48,7 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
     if ((type == "Pixie2") || (type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
         std::size_t found = type.find("Pixie");
         if (found != std::string::npos) {
-            int outputs_per_card = wxAtoi(type.substr(found + 5, type.length() - found - 5));
+            int outputs_per_card = (int)std::strtol(type.substr(found + 5, type.length() - found - 5).c_str(), nullptr, 10);
             channels_per_pass = channel_count;
             channel_count = outputs_per_card * channels_per_pass;
             controller_channels_to_process = channel_count;
@@ -199,13 +199,13 @@ void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data) {
         // Don't try to only send changes since this is used for test mode
         // and not all channels are written every frame
         SetupHistory();
-        wxASSERT(sizeof(_curData) <= sizeof(_lastSent));
+        assert(sizeof(_curData) <= sizeof(_lastSent));
         memset(_curData, 0x00, sizeof(_curData));
         memset(_lastSent, 0xFF, sizeof(_curData));
         _changed = true;
     }
 
-    wxASSERT((size_t)channel < sizeof(_curData));
+    assert((size_t)channel < sizeof(_curData));
     _curData[channel] = data;
 }
 
@@ -235,7 +235,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
         while (controller_channels_to_process > 0) {
             size_t idx = 0;  // running index for placing next byte
             uint8_t d[8192];
-            std::vector< std::vector<std::pair<uint8_t, wxWord>> > lorBankData;
+            std::vector< std::vector<std::pair<uint8_t, uint16_t>> > lorBankData;
             lorBankData.resize((channels_per_pass / 16) + 1);
 
             bool bank_changed = false;
@@ -256,14 +256,14 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             while (channels_to_process > 0) {
                 bool processed = false;
 
-                wxASSERT((size_t)cur_channel < sizeof(_curData));
+                assert((size_t)cur_channel < sizeof(_curData));
                 if ((data[cur_channel] > 0) && (data[cur_channel] < 0xFF)) {
                     if ((unsigned int)shift_offset < MAX_BANKS) {
                         color_mode[shift_offset] = true;
                     }
                 }
 
-                wxASSERT((size_t)shift_offset < sizeof(lorBankData));
+                assert((size_t)shift_offset < sizeof(lorBankData));
                 for (int i = 0; i < (int)lorBankData[shift_offset].size(); ++i) {
                     if (lorBankData[shift_offset][i].first == data[cur_channel]) {
                         lorBankData[shift_offset][i].second |= (1 << chan_offset);
@@ -273,8 +273,8 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                 }
 
                 if (!processed) {
-                    // std::pair<uint8_t, wxWord> first = value, second = bits
-                    lorBankData[shift_offset].push_back(std::pair<uint8_t, wxWord>({ data[cur_channel], 1 << chan_offset }));
+                    // std::pair<uint8_t, uint16_t> first = value, second = bits
+                    lorBankData[shift_offset].push_back(std::pair<uint8_t, uint16_t>({ data[cur_channel], 1 << chan_offset }));
                 }
 
                 if (data[cur_channel] != _lastSent[cur_channel]) {
@@ -299,7 +299,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
 
             // now build the commands to send out the serial port
             for (int bank = (int)lorBankData.size() - 1; bank >= 0; --bank) {
-                wxASSERT((size_t)bank < sizeof(banks_changed));
+                assert((size_t)bank < sizeof(banks_changed));
                 if (banks_changed[bank]) {
                     int num_bank_records = lorBankData[bank].size();
 

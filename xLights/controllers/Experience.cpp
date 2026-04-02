@@ -25,7 +25,7 @@
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
-#include <wx/regex.h>
+#include <regex>
 #include <wx/sstream.h>
 
 #include <log.h>
@@ -60,13 +60,13 @@ bool Experience::UploadSequence(std::string const& seq, std::string const& file,
     return CurlManager::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
 }
 bool Experience::DecodeFirmwareInformation(std::string const& firmware) {
-    //todo use std::regex
-    static wxRegEx firmware_regex(R"(v(\d+)\.(\d+)\.(\d+)?(?:\-(\d+)))", wxRE_EXTENDED | wxRE_ICASE | wxRE_NEWLINE);
-    if (firmware_regex.Matches(firmware)) {
-        _firmwareMajor = wxAtoi(firmware_regex.GetMatch(firmware, 1));
-        _firmwareMinor = wxAtoi(firmware_regex.GetMatch(firmware, 2));
-        _firmwarePatch = wxAtoi(firmware_regex.GetMatch(firmware, 3));
-        _firmwareBuild = wxAtoi(firmware_regex.GetMatch(firmware, 4));
+    static std::regex firmware_regex(R"(v(\d+)\.(\d+)\.(\d+)?(?:\-(\d+)))", std::regex::icase);
+    std::smatch m;
+    if (std::regex_search(firmware, m, firmware_regex)) {
+        _firmwareMajor = (int)std::strtol(m[1].str().c_str(), nullptr, 10);
+        _firmwareMinor = (int)std::strtol(m[2].str().c_str(), nullptr, 10);
+        _firmwarePatch = (int)std::strtol(m[3].str().c_str(), nullptr, 10);
+        _firmwareBuild = (int)std::strtol(m[4].str().c_str(), nullptr, 10);
         return true;
     }
     
@@ -78,7 +78,7 @@ bool Experience::DecodeModelInformation(std::string const& model) {
     if (model.find('_') != std::string::npos) {
         std::string const modelYear = model.substr(model.find('_') + 1);
         _controllerModel = model.substr(0, model.find('_'));
-        _modelYear = wxAtoi(modelYear);
+        _modelYear = (int)strtol(modelYear.c_str(), nullptr, 10);
         return true;
     } 
     if (!model.empty()) {

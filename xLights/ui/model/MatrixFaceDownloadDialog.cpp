@@ -72,7 +72,7 @@ public:
 
     void DownloadImages()
     {
-		std::string fn = MatrixFaceDownloadDialog::GetCache().GetFile(_image, CACHEFOR::CACHETIME_LONG);
+		std::string fn = MatrixFaceDownloadDialog::GetCache().GetFile(_image.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG);
 		if (fn != "")
 		{
 			_imageFile = wxFileName(fn);
@@ -238,7 +238,7 @@ public:
     {
         if (!FileExists(_faceFile))
         {
-            _faceFile = MatrixFaceDownloadDialog::GetCache().GetFile(_faceLink, CACHEFOR::CACHETIME_LONG);
+            _faceFile = MatrixFaceDownloadDialog::GetCache().GetFile(_faceLink.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG);
         }
     }
 };
@@ -442,7 +442,7 @@ bool MatrixFaceDownloadDialog::DlgInit(int width, int height)
 pugi::xml_document* MatrixFaceDownloadDialog::GetXMLFromURL(wxURI url, std::string& filename) const
 {
     filename = "";
-    wxFileName fn = wxFileName(MatrixFaceDownloadDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION));
+    wxFileName fn = wxFileName(MatrixFaceDownloadDialog::GetCache().GetFile(url.BuildURI().ToStdString(), CACHEFOR::CACHETIME_SESSION));
     if (FileExists(fn))
     {
         filename = fn.GetFullPath();

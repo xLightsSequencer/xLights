@@ -10,10 +10,10 @@
 
 #include "DimmingCurve.h"
 
-#include <wx/file.h>
-#include <wx/wfstream.h>
-#include <wx/txtstrm.h>
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <string>
 
 #include "utils/ExternalHooks.h"
 
@@ -175,17 +175,15 @@ public:
 
 class FileDimmingCurve : public BaseDimmingCurve {
 public:
-    FileDimmingCurve(const wxString &f, int ch) : BaseDimmingCurve(ch) {
+    FileDimmingCurve(const std::string &f, int ch) : BaseDimmingCurve(ch) {
         std::vector<bool> done(256);
-        wxFileInputStream fin(f);
-        wxTextInputStream text(fin);
-        
-        wxString datas;
+        std::ifstream fin(f);
+
+        std::string line;
         int count = 0;
-        while(fin.Eof() == false){
-            datas = text.ReadLine();
-            if (datas != "") {
-                data[count] = stoi(datas.ToStdString());
+        while (std::getline(fin, line)) {
+            if (!line.empty()) {
+                data[count] = (unsigned char)strtol(line.c_str(), nullptr, 10);
                 if (!done[data[count]] || count > 127) {
                     reverseData[data[count]] = count;
                     done[data[count]] = true;
@@ -273,8 +271,8 @@ DimmingCurve *createCurve(const std::map<std::string, std::string> &dcn, int cha
         std::string gamma = dcn.contains("gamma") ? dcn.find("gamma")->second : "1.0";
         std::string brightness = dcn.contains("brightness") ? dcn.find("brightness")->second : "0";
 
-        BasicDimmingCurve *bdc = new BasicDimmingCurve(stoi(validate(brightness, "0")),
-                                                       stod(validate(gamma, "1.0")),
+        BasicDimmingCurve *bdc = new BasicDimmingCurve((int)strtol(validate(brightness, "0").c_str(), nullptr, 10),
+                                                       (float)strtod(validate(gamma, "1.0").c_str(), nullptr),
                                                        channel);
         if (bdc->isIdentity()) {
             delete bdc;
@@ -329,7 +327,7 @@ DimmingCurve *DimmingCurve::createBrightnessGamma(int brightness, float gamma) {
     BasicDimmingCurve *c = new BasicDimmingCurve(brightness, gamma, -1);
     return c;
 }
-DimmingCurve *DimmingCurve::createFromFile(const wxString &fileName) {
+DimmingCurve *DimmingCurve::createFromFile(const std::string &fileName) {
     if (FileExists(fileName)) {
         return new FileDimmingCurve(fileName, -1);
     }

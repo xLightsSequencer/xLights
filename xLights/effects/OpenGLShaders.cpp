@@ -8,9 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "wx/wx.h"
-
-
 #ifndef __WXMAC__
 #include <GL/gl.h>
 #ifdef _MSC_VER
@@ -23,7 +20,6 @@
 
 #include <memory>
 #include <iostream>
-#include <string>
 
 extern PFNGLCREATESHADERPROC      glCreateShader;
 extern PFNGLSHADERSOURCEPROC      glShaderSource;
@@ -92,6 +88,10 @@ static bool canUseFramebufferObjects()
    return true;
 }
 #endif
+
+#include <cstdio>
+#include <sstream>
+#include <string>
 
 #include "UtilFunctions.h"
 #include "OpenGLShaders.h"
@@ -171,7 +171,11 @@ std::string OpenGLShaders::PrepareShaderCodeForLogging(const std::string& code)
     char buffer[4096];
     do {
         reader.getline(buffer, sizeof(buffer));
-        res += wxString::Format("%04d: %s\n", line++, buffer);
+        char linePrefix[16];
+        snprintf(linePrefix, sizeof(linePrefix), "%04d: ", line++);
+        res += linePrefix;
+        res += buffer;
+        res += '\n';
     } while (!reader.eof() && !reader.fail());
 
     Replace(res, "\r", "");

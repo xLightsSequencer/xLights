@@ -24,7 +24,6 @@
 
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
-#include <wx/regex.h>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/wfstream.h>
@@ -387,7 +386,7 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
 {
     std::map<int, int> res;
 
-    int const ports = wxAtoi(caps->GetCustomPropertyByPath("fpp", "0"));
+    int const ports = (int)strtol(caps->GetCustomPropertyByPath("fpp", "0").c_str(), nullptr, 10);
 
     for (int i = 1; i <= ports; i++)
     {
@@ -484,14 +483,14 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
     }
 
     if (fullVersion != "") {
-        majorVersion = wxAtoi(fullVersion);
+        majorVersion = (int)strtol(fullVersion.c_str(), nullptr, 10);
         if (fullVersion[2] == 'x') {
-            minorVersion = wxAtoi(fullVersion.substr(4)) + 1000;
+            minorVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10) + 1000;
         } else {
-            minorVersion = wxAtoi(fullVersion.substr(2));
+            minorVersion = (int)strtol(fullVersion.substr(2).c_str(), nullptr, 10);
         }
         if (fullVersion.size() > 3 && (fullVersion[3] == '-' || fullVersion[3] == '.')) {
-            patchVersion = wxAtoi(fullVersion.substr(4));
+            patchVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10);
         }
     }
     if (val.contains("channelRanges")) {
@@ -1228,10 +1227,10 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             wxArrayString r1 = wxSplit(wxString(ranges), ',');
             for (const auto& a : r1) {
                 wxArrayString r = wxSplit(a, '-');
-                int start = wxAtoi(r[0]);
+                int start = (int)strtol(r[0].c_str(), nullptr, 10);
                 int len = 4; //at least 4
                 if (r.size() == 2) {
-                    len = wxAtoi(r[1]) - start + 1;
+                    len = (int)strtol(r[1].c_str(), nullptr, 10) - start + 1;
                 }
                 newRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
                 channelCount += len;
@@ -3459,7 +3458,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         if (!system["version"].is_null()) {
             inst.version = GetJSONStringValue(system, "version");
             if (inst.version.size() > 3 && (inst.version[3] == '-' || inst.version[3] == '.')) {
-                inst.patchVersion = wxAtoi(inst.version.substr(4));
+                inst.patchVersion = (int)strtol(inst.version.substr(4).c_str(), nullptr, 10);
             }
         }
         inst.minorVersion = GetJSONIntValue(system, "minorVersion", inst.minorVersion);
@@ -3724,14 +3723,14 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     }
     inst->canZipUpload = val.contains("zip");
     if (inst->version != "") {
-        inst->majorVersion = wxAtoi(inst->version);
+        inst->majorVersion = (int)strtol(inst->version.c_str(), nullptr, 10);
         if (inst->version[2] == 'x') {
-            inst->minorVersion = wxAtoi(inst->version.substr(4)) + 1000;
+            inst->minorVersion = (int)strtol(inst->version.substr(4).c_str(), nullptr, 10) + 1000;
         } else {
-            inst->minorVersion = wxAtoi(inst->version.substr(2));
+            inst->minorVersion = (int)strtol(inst->version.substr(2).c_str(), nullptr, 10);
         }
         if (inst->version.size() > 3 && (inst->version[3] == '-' || inst->version[3] == '.')) {
-            inst->patchVersion = wxAtoi(inst->version.substr(4));
+            inst->patchVersion = (int)strtol(inst->version.substr(4).c_str(), nullptr, 10);
         }
     }
     std::string r = GetJSONStringValue(val, "channelRanges");
@@ -3932,8 +3931,8 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
 
     wxString ver = xlights_version_string;
     auto parts = wxSplit(ver, '.');
-    int maj = wxAtoi(parts[0]);
-    int min = wxAtoi(parts[1]);
+    int maj = (int)strtol(parts[0].c_str(), nullptr, 10);
+    int min = (int)strtol(parts[1].c_str(), nullptr, 10);
 
     buffer[10] = (maj >> 8) & 0xFF;
     buffer[11] = maj & 0xFF;

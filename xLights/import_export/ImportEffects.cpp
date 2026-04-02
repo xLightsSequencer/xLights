@@ -51,6 +51,7 @@
 #include "../models/DMX/DmxModel.h"
 #include "../models/ModelGroup.h"
 #include "../ui/sequencer/MainSequencer.h"
+#include "../render/RenderUtils.h"
 
 #include <log.h>
 
@@ -2148,7 +2149,7 @@ bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& fi
             for (pugi::xml_node t = timingTracks[name].first_child(); t; t = t.next_sibling()) {
                 if (std::string_view(t.name()) == "timing") {
                     int time = t.attribute("centisecond").as_int() * 10 + offset;
-                    int adjTime = TimeLine::RoundToMultipleOfPeriod(time, CurrentSeqXmlFile->GetFrequency());
+                    int adjTime = RoundToMultipleOfPeriod(time, CurrentSeqXmlFile->GetFrequency());
                     if (adjTime > last) {
                         targetLayer->AddEffect(0, "", "", "", last, adjTime, false, false);
                         last = adjTime;
@@ -3099,7 +3100,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
                                                 }
 
                                                 // only create effect if there is nothing there
-                                                if (!layer->HasEffectsInTimeRange(TimeLine::RoundToMultipleOfPeriod(startCentisecond * 10, frequency), TimeLine::RoundToMultipleOfPeriod(endCentisecond * 10, frequency))) {
+                                                if (!layer->HasEffectsInTimeRange(RoundToMultipleOfPeriod(startCentisecond * 10, frequency), RoundToMultipleOfPeriod(endCentisecond * 10, frequency))) {
                                                     wxString blend = MapLPEBlend(settingsArray[0], left);
                                                     int blendPos = wxAtoi(settingsArray[1]);
                                                     int sparkle = wxAtoi(settingsArray[2]);
@@ -3136,7 +3137,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
 
                                                     newsettings += LPEParseEffectSettings(effectType, effSettings, newpalette, (endCentisecond - startCentisecond) * 10);
 
-                                                    layer->AddEffect(0, ourEffectType, newsettings, newpalette, TimeLine::RoundToMultipleOfPeriod(startCentisecond * 10, frequency), TimeLine::RoundToMultipleOfPeriod(endCentisecond * 10, frequency), false, false);
+                                                    layer->AddEffect(0, ourEffectType, newsettings, newpalette, RoundToMultipleOfPeriod(startCentisecond * 10, frequency), RoundToMultipleOfPeriod(endCentisecond * 10, frequency), false, false);
                                                 }
                                             }
                                         }

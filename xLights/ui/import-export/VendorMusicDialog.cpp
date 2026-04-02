@@ -201,7 +201,7 @@ bool VendorMusicDialog::DlgInit(std::string hash, std::string showFolder)
 pugi::xml_document* VendorMusicDialog::GetXMLFromURL(wxURI url, std::string& filename) const
 {
     filename = "";
-    wxFileName fn = wxFileName(VendorMusicDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION));
+    wxFileName fn = wxFileName(VendorMusicDialog::GetCache().GetFile(url.BuildURI().ToStdString(), CACHEFOR::CACHETIME_SESSION));
     if (fn.Exists()) {
         filename = fn.GetFullPath();
         auto doc = new pugi::xml_document();

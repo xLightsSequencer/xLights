@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
+#include <wx/defs.h>
 #include <mutex>
 
 #ifdef __WXMSW__

@@ -19,8 +19,6 @@
 #include <string>
 #include <vector>
 
-class wxWindow;
-
 class Output;
 class Controller;
 class TestPreset;

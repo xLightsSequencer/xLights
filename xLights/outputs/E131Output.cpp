@@ -17,8 +17,6 @@
 #include "../utils/ip_utils.h"
 #include "ControllerEthernet.h"
 
-#include <wx/process.h>
-
 #include <format>
 
 #include <log.h>

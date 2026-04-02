@@ -23,6 +23,8 @@
 
 #include <log.h>
 #include <wx/stopwatch.h>
+#include <chrono>
+#include <thread>
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
 
@@ -209,21 +211,21 @@ nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::
             spdlog::info("DDP sent query packet. Sleeping for 1 second.");
 
             // give the controllers 2 seconds to respond
-            wxMilliSleep(1000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
             uint8_t response[1024];
 
             int lastread = 1;
 
             while (lastread > 0) {
-                wxStopWatch sw;
+                auto sw_start = std::chrono::steady_clock::now();
                 spdlog::debug("Trying to read DDP query response packet.");
                 memset(&response, 0x00, sizeof(response));
                 datagram->Read(&response, sizeof(response));
                 lastread = datagram->LastReadCount();
 
                 if (lastread > 10) {
-                    spdlog::debug(" Read done. {} bytes {}ms", lastread, sw.Time());
+                    spdlog::debug(" Read done. {} bytes {}ms", lastread, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
 
                     if (response[3] == type) {
                         spdlog::debug(" Valid response.");

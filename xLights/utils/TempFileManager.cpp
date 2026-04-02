@@ -1,6 +1,8 @@
 #include "TempFileManager.h"
 
-#include <wx/file.h>
+#include <filesystem>
+
+#include "ExternalHooks.h"
 
 TempFileManager __tempFileManager;
 
@@ -22,8 +24,9 @@ void TempFileManager::AddTempFile(const std::string& file)
 void TempFileManager::CleanupTempFiles()
 {
     for (const auto& it : _tempFiles) {
-        if (wxFile::Exists(it)) {
-            wxRemoveFile(it);
+        if (FileExists(it)) {
+            std::error_code ec;
+            std::filesystem::remove(it, ec);
         }
     }
     _tempFiles.clear();

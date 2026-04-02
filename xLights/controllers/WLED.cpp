@@ -404,7 +404,7 @@ WLEDOutput* WLED::FindPortData(int port) {
 }
 
 const uint8_t WLED::GetOutputPin(int port, ControllerCaps* caps) {
-    return wxAtoi(caps->GetCustomPropertyByPath(std::format("Port{}", port), "2"));
+    return (int)strtol(caps->GetCustomPropertyByPath(std::format("Port{}", port), "2").c_str(), nullptr, 10);
 }
 
 #pragma endregion

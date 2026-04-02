@@ -33,7 +33,6 @@ class BaseSerializingVisitor;
 #include "../utils/xlPoint.h"
 
 
-class wxProgressDialog;
 class DimmingCurve;
 #include <pugixml.hpp>
 class ModelPreview;
@@ -68,8 +67,6 @@ enum {
 
     //GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
 };
-
-class wxDropPatternProperty;
 
 class Model : public BaseObject
 {

@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <format>
 #include <thread>
+
 #include <log.h>
 
 WebSocketClient::WebSocketClient()

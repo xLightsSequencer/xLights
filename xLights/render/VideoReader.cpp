@@ -14,6 +14,7 @@
 
 #undef min
 #include <algorithm>
+#include <list>
 #include <wx/filename.h>
 
 extern "C" {

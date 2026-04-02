@@ -13,6 +13,7 @@
 #pragma once
 
 #include <string>
+#include <wx/event.h>
 #include "render/Element.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"

@@ -35,6 +35,7 @@
 #include "xLightsMain.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
+#include "ui/import-export/ExportSettings.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
 #include "outputs/Controller.h"

@@ -13,7 +13,6 @@
 #include "IPOutput.h"
 #include "SocketAbstraction.h"
 
-class wxWindow;
 class OutputManager;
 class ModelManager;
 

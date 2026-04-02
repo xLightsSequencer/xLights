@@ -37,6 +37,7 @@
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
+#include "RenderUtils.h"
 #include "../ui/sequencer/TimeLine.h"
 #include "../import_export/Vixen3.h"
 #include "utils/ExternalHooks.h"
@@ -606,13 +607,13 @@ void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& fi
         }
 
         for (size_t k = 0; k < start_times.size(); ++k) {
-            int startTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(start_times[k].c_str(), nullptr, 10), GetFrequency());
-            int endTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(end_times[k].c_str(), nullptr, 10), GetFrequency());
+            int startTime = RoundToMultipleOfPeriod(std::strtol(start_times[k].c_str(), nullptr, 10), GetFrequency());
+            int endTime = RoundToMultipleOfPeriod(std::strtol(end_times[k].c_str(), nullptr, 10), GetFrequency());
             if (startTime == endTime) {
                 if (k == start_times.size() - 1) {
                     endTime = startTime + GetFrequency();
                 } else {
-                    endTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(start_times[k + 1].c_str(), nullptr, 10), GetFrequency());
+                    endTime = RoundToMultipleOfPeriod(std::strtol(start_times[k + 1].c_str(), nullptr, 10), GetFrequency());
                 }
             }
 
@@ -715,8 +716,8 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, R
 
                                 for (size_t k = 0; k < grid_times.size()-1; ++k )
                                 {
-                                    int startTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(grid_times[k].c_str(), nullptr, 10),GetFrequency());
-                                    int endTime = TimeLine::RoundToMultipleOfPeriod(std::strtol(grid_times[k+1].c_str(), nullptr, 10),GetFrequency());
+                                    int startTime = RoundToMultipleOfPeriod(std::strtol(grid_times[k].c_str(), nullptr, 10),GetFrequency());
+                                    int endTime = RoundToMultipleOfPeriod(std::strtol(grid_times[k+1].c_str(), nullptr, 10),GetFrequency());
                                     effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                 }
                             }
@@ -1504,8 +1505,8 @@ void SequenceFile::AddNewTimingSection(const std::string& filename, RenderContex
 
     tms.resize(starts.size());
     for (size_t k = 0; k < starts.size(); k++) {
-        tms[k] = tm({ TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency()),
-                   TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency()),
+        tms[k] = tm({ RoundToMultipleOfPeriod(starts[k], GetFrequency()),
+                   RoundToMultipleOfPeriod(ends[k], GetFrequency()),
                    labels[k] });
     }
 
@@ -1551,7 +1552,7 @@ void SequenceFile::AddNewTimingSection(const std::string& filename, RenderContex
             // zero length timing marks are not valid ... but if the following start is greater than the current start then use that as the end
             if (k == tms.size() - 1) {
                 // special case use the end of the sequence
-                end = TimeLine::RoundToMultipleOfPeriod(GetSequenceDurationMS(), GetFrequency());
+                end = RoundToMultipleOfPeriod(GetSequenceDurationMS(), GetFrequency());
                 if (start == end) {
                     continue;
                 }
@@ -1599,8 +1600,8 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, Rende
             int end_time = GetSequenceDurationMS();
             while (time <= end_time) {
                 int next_time = (time + interval <= end_time) ? time + interval : end_time;
-                int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
-                int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+                int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
+                int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());
                 effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
                 time += interval;
             }
@@ -1626,8 +1627,8 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int i
         int end_time = GetSequenceDurationMS();
         while (time <= end_time) {
             int next_time = (time + interval <= end_time) ? time + interval : end_time;
-            int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
-            int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+            int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
+            int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());
             effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
             time += interval;
         }
@@ -1669,8 +1670,8 @@ void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_na
     while (time < end_time) {
         int interval = minForRandomRange == -1 ? _interval : intRand(minForRandomRange, _interval);
         int next_time = (time + interval <= end_time) ? time + interval : end_time;
-        int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
-        int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+        int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
+        int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());
 
         std::string label;
         if (randomLabels) {

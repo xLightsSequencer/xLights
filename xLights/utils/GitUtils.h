@@ -1,10 +1,9 @@
 #ifndef GITUTILS_H
 #define GITUTILS_H
 
-#include <wx/string.h>
-#include "wx/frame.h"
-
+#include <string>
 #include <vector>
+#include <functional>
 #include <unordered_set>
 
 struct GitUtils
@@ -13,45 +12,25 @@ struct GitUtils
 
 	[[nodiscard]] bool IsGitInstalled() const;
 
-	void SetFolder(wxString folder);
+	void SetFolder(std::string folder);
 
 	[[nodiscard]] bool IsFolderInGit() const;
 
-	[[nodiscard]] wxString GetLocalBranch() const;
+	[[nodiscard]] std::string GetLocalBranch() const;
 
-	[[nodiscard]] wxString GetRemoteBranch() const;
+	[[nodiscard]] std::string GetRemoteBranch() const;
 
-	[[nodiscard]] wxString GetLocalHash() const;
+	[[nodiscard]] std::string GetLocalHash() const;
 
-	[[nodiscard]] wxString CalcShortHash() const;
+	[[nodiscard]] std::string CalcShortHash() const;
 
 	[[nodiscard]] bool HasLocalChanges() const;
-
-	bool Fetch(wxFrame* frame);
-
-	bool PullAndRebase(wxFrame* frame);
-
-	bool Commit(wxFrame* frame);
-
-	bool Push(wxFrame* frame);
-
-	bool Status(wxFrame* frame);
-
-	bool Reset(wxFrame* frame, bool hard = false);
 
 	bool StashChanges() const;
 
 	bool UnStashChanges() const;
 
-	bool AddFile(wxString const& filePath);
-
-	bool RunCommands(std::vector<wxString> const& commands, wxFrame* frame);
-
-	bool RunCommand(wxString const& command, wxFrame* frame)
-	{
-		return RunCommands({ command }, frame);
-	}
-
+	bool AddFile(std::string const& filePath);
 
 private:
 	GitUtils();
@@ -60,14 +39,17 @@ private:
 
 	bool checkIfFolderIsInGit();
 
+	std::string RunGitCommand(std::string const& cmd) const;
+	std::string RunGitCommandInFolder(std::string const& cmd) const;
+
 	bool m_hasGit{ false };
 	bool m_folderInGit{ false };
-	wxString m_folder;
-	wxString m_localBranch;
-	wxString m_remoteBranch;
-	wxString m_hash;
+	std::string m_folder;
+	std::string m_localBranch;
+	std::string m_remoteBranch;
+	std::string m_hash;
 
-	std::unordered_set<wxString> m_filesInGit;
+	std::unordered_set<std::string> m_filesInGit;
 };
 
 #endif

@@ -12,11 +12,10 @@
 
 #include <string>
 #include <list>
-#include <wx/uri.h>
-#include <wx/filename.h>
 #include <mutex>
+#include <functional>
+#include <fstream>
 
-class wxProgressDialog;
 #include <pugixml.hpp>
 
 typedef enum
@@ -29,23 +28,23 @@ typedef enum
 
 class FileCacheItem
 {
-    wxURI _url;
+    std::string _url;
     CACHEFOR _cacheFor;
     std::string _fileName;
 
 public:
     FileCacheItem(pugi::xml_node n);
-    FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
-    void Save(wxFile& f);
+    FileCacheItem(const std::string& url, CACHEFOR cacheFor, const std::string& forceType = "", std::function<bool(int)> progressCallback = nullptr, int low = 0, int high = 100, bool keepProgress = false);
+    void Save(std::ofstream& f);
     virtual ~FileCacheItem() {}
-    void Download(const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
+    void Download(const std::string& forceType = "", std::function<bool(int)> progressCallback = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     bool Exists() const;
-    void Touch() const { if (Exists()) wxFileName(_fileName).Touch(); }
+    void Touch() const;
     void Delete() const;
     std::string GetFileName() const { if (Exists()) return _fileName; else return ""; }
-    bool operator==(const wxURI& url) const;
-    static bool DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress =  false);
-    std::string DownloadURLToTemp(wxURI url, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
+    bool operator==(const std::string& url) const;
+    static bool DownloadURL(const std::string& url, const std::string& filename, std::function<bool(int)> progressCallback = nullptr, int low = 0, int high = 100, bool keepProgress = false);
+    std::string DownloadURLToTemp(const std::string& url, const std::string& forceType = "", std::function<bool(int)> progressCallback = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     void PurgeIfAged() const;
     bool ShouldSave() { PurgeIfAged();  return Exists() && (_cacheFor == CACHETIME_DAY || _cacheFor == CACHETIME_LONG); }
 };
@@ -63,7 +62,7 @@ class CachedFileDownloader
     void SaveCache();
     void LoadCache();
     bool Initialize();
-    FileCacheItem* Find(wxURI url);
+    FileCacheItem* Find(const std::string& url);
 
     CachedFileDownloader();
 public:
@@ -72,10 +71,10 @@ public:
     // erase everything from cache
     void ClearCache();
     void Save() { SaveCache(); }
-    // retrieve a file from cache … if not present filename will be “”
-    std::string GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
+    // retrieve a file from cache … if not present filename will be ""
+    std::string GetFile(const std::string& url, CACHEFOR cacheFor, const std::string& forceType = "", std::function<bool(int)> progressCallback = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     int size();
-    
-    
+
+
     static CachedFileDownloader& GetDefaultCache();
 };

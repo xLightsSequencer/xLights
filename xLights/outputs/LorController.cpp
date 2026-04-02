@@ -12,7 +12,7 @@
 #include "LorController.h"
 #include "UtilFunctions.h"
 
-#include <wx/wxchar.h>
+#include <cstdlib>
 
 #pragma region Constructors and Destructors
 LorController::LorController() {
@@ -64,7 +64,7 @@ void LorController::Save(pugi::xml_node node) {
 int LorController::GetTotalNumChannels() const {
 
     if (StartsWith(_type, "Pixie")) {
-        return GetNumChannels() * wxAtoi(_type.substr(5));
+        return GetNumChannels() * static_cast<int>(std::strtol(_type.substr(5).c_str(), nullptr, 10));
     }
 
     return GetNumChannels();

@@ -1794,6 +1794,9 @@
     <ClInclude Include="controllers\ControllerUploadData.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="controllers\ExportSettings.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
     <ClInclude Include="import_export\Vixen3.h" />
     <ClInclude Include="effects\MorphEffect.h">
       <Filter>Effects</Filter>

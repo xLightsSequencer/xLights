@@ -16,12 +16,10 @@
 #include "../ui/wxUtilities.h"
 
 #include "../utils/CurlManager.h"
+#include "../utils/Base64.h"
 #include <log.h>
-#include <wx/time.h>
-#include <wx/stopwatch.h>
-#include <wx/base64.h>
-#include <wx/protocol/http.h>
-#include <wx/sstream.h>
+#include <chrono>
+#include <thread>
 
 #ifndef EXCLUDEDISCOVERY
 #include "ui/setup/Discovery.h"
@@ -109,7 +107,7 @@ bool TwinklyOutput::SetLEDMode(bool rt)
         if (!MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"rt\"}")) {
             return false;
         }
-        _lastLEDModeTime = wxGetLocalTimeMillis();
+        _lastLEDModeTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
     }
     else
     {
@@ -238,7 +236,8 @@ void TwinklyOutput::EndFrame(int suppressFrames)
 
     FrameOutput();
 
-    if (wxGetLocalTimeMillis() - _lastLEDModeTime > ENSURELEDMODE_SECS * 1000)
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+    if ((now - _lastLEDModeTime).count() > ENSURELEDMODE_SECS * 1000)
     {
         SetLEDMode(true);
     }
@@ -358,8 +357,8 @@ bool TwinklyOutput::ReloadToken()
         return false;
     }
     auto token = reply.at("authentication_token").get<std::string>();
-    auto decoded = wxBase64Decode(token);
-    if (decoded.GetDataLen() != TOKEN_SIZE) {
+    auto decoded = Base64::Decode(token);
+    if (decoded.size() != TOKEN_SIZE) {
         spdlog::error("Invalid authentication token");
         return false;
     }
@@ -371,7 +370,7 @@ bool TwinklyOutput::ReloadToken()
         return false;
     }
 
-    std::copy((char*)decoded.GetData(), (char*)decoded.GetData() + 8, m_decodedToken.data());
+    std::copy(decoded.begin(), decoded.begin() + 8, m_decodedToken.data());
     return true;
 }
 
@@ -751,21 +750,21 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
             spdlog::info("Twinkly sent query packet. Sleeping for 1 second.");
 
             // give the controllers 2 seconds to respond
-            wxMilliSleep(1000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
             uint8_t response[1024];
 
             int lastread = 1;
 
             while (lastread > 0) {
-                wxStopWatch sw;
+                auto sw_start = std::chrono::steady_clock::now();
                 spdlog::debug("Trying to read Twinkly query response packet.");
                 memset(&response, 0x00, sizeof(response));
                 datagram->Read(&response, sizeof(response));
                 lastread = datagram->LastReadCount();
 
                 if (lastread > 0) {
-                    spdlog::debug(" Read done. {} bytes {}ms", lastread, sw.Time());
+                    spdlog::debug(" Read done. {} bytes {}ms", lastread, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
 
                     if (response[0] == 0x01 && response[1] == 'd' && response[2] == 'i') {
                         // getting my own QUERY request, ignore

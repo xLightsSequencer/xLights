@@ -577,6 +577,7 @@
 		<Unit filename="controllers/BaseController.h" />
 		<Unit filename="controllers/ControllerCaps.cpp" />
 		<Unit filename="controllers/ControllerCaps.h" />
+		<Unit filename="controllers/ExportSettings.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />

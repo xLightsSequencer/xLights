@@ -8,6 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <chrono>
+#include <thread>
+
 #include <wx/msgdlg.h>
 
 #include "SerialOutput.h"
@@ -359,13 +362,13 @@ void SerialOutput::Close() {
 
         // wait until the die time has passed
         while (GetCurrentTimeMillis() < _dieTime) {
-            wxMilliSleep(5);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
         // wait until pending data to send is sent
         int i = 0;
         while( !TxEmpty() && (i < 200) ) {
-            wxMilliSleep(5);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
             i++;
         }
 

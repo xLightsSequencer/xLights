@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #include <cstring>
 #endif
+#include <cassert>
 #include <list>
 
 #include <algorithm>
@@ -48,7 +49,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {
 
     for (const auto& it : _modelData) {
         int ports = it->Configuration.ports;
-        wxASSERT(ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
+        assert(ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
         if (ports > ZCPP_CONFIG_MAX_PORT_PER_PACKET) {
             spdlog::warn("ZCPP file corrupt. Abandoning read.");
             _usedChannels = 1;
@@ -67,11 +68,11 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {
         spdlog::debug("    End of config packet ... channels {}.", (long)_usedChannels);
     }
 
-    wxASSERT(_channels < 100000); // catch weird numbers
+    assert(_channels < 100000); // catch weird numbers
     if (_usedChannels != _channels && c->IsAutoSize()) {
         spdlog::debug("    usedChannels {} != _channels {} and autosize.", (long)_usedChannels, (long)_channels);
         SetChannels(_usedChannels);
-        wxASSERT(_channels < 100000); // catch weird numbers
+        assert(_channels < 100000); // catch weird numbers
     }
     else if (_usedChannels > _channels) {
         spdlog::debug("    usedChannels {} > _channels {} and NO autosize.", (long)_usedChannels, (long)_channels);

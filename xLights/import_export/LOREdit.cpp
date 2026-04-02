@@ -14,7 +14,7 @@
 #include <wx/uri.h>
 #include <wx/regex.h>
 
-#include "ui/sequencer/TimeLine.h"
+#include "render/RenderUtils.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "models/Model.h"
@@ -1075,7 +1075,7 @@ std::vector<std::pair<uint32_t, uint32_t>> LOREdit::GetTimings(const std::string
                             if (std::string_view(t.name()) == "timing")
                             {
                                 int time = t.attribute("centisecond").as_int() * 10 + offset;
-                                int adjTime = TimeLine::RoundToMultipleOfPeriod(time, _frequency);
+                                int adjTime = RoundToMultipleOfPeriod(time, _frequency);
                                 if (adjTime > lastMS)
                                 {
                                     res.push_back({ lastMS, adjTime });

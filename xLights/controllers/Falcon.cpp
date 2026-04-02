@@ -11,8 +11,8 @@
 #include "Falcon.h"
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
-#include <wx/regex.h>
 #include <wx/sstream.h>
+#include <regex>
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
@@ -29,6 +29,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/DDPOutput.h"
 
+#include <chrono>
 #include <log.h>
 #include <thread>
 #include <algorithm>
@@ -455,7 +456,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
         nlohmann::json outParams;
         if (CallFalconV4API("S", "SP", batch, res.size(), batch * FALCON_V4_SEND_STRING_BATCH_SIZE, p, finalCall, outBatch, reboot, outParams) == 200) {
             ++batch;
-            wxMilliSleep(50);
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         } else {
             success = false;
         }
@@ -2241,18 +2242,20 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
 
                 if (_firmwareVersion == "") {
                     //<title>F4V2            - v1.10</title>
-                    static wxRegEx firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-                    if (firmwareversionregex.Matches(wxString(version))) {
-                        _firmwareVersion = firmwareversionregex.GetMatch(wxString(version), 2).ToStdString();
+                    static std::regex firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>");
+                    std::smatch fwm;
+                    if (std::regex_search(version, fwm, firmwareversionregex)) {
+                        _firmwareVersion = fwm[2].str();
                     }
                 }
             }
 
             if (_firmwareVersion != "") {
-                static wxRegEx majminregex("(\\d+)\\.(\\d+)(.*)", wxRE_ADVANCED);
-                if (majminregex.Matches(wxString(_firmwareVersion))) {
-                    _majorFirmwareVersion = (int)std::strtol(majminregex.GetMatch(wxString(_firmwareVersion), 1).c_str(), nullptr, 10);
-                    _minorFirmwareVersion = (int)std::strtol(majminregex.GetMatch(wxString(_firmwareVersion), 2).c_str(), nullptr, 10);
+                static std::regex majminregex("(\\d+)\\.(\\d+)(.*)");
+                std::smatch mm;
+                if (std::regex_search(_firmwareVersion, mm, majminregex)) {
+                    _majorFirmwareVersion = (int)std::strtol(mm[1].str().c_str(), nullptr, 10);
+                    _minorFirmwareVersion = (int)std::strtol(mm[2].str().c_str(), nullptr, 10);
                     spdlog::error("    Parsed firmware version {}.{}.", _majorFirmwareVersion, _minorFirmwareVersion);
                 }
             }
@@ -2518,9 +2521,10 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         // the m parameter in strings.xml is not reliable ... so get the home page and search for "<input type="hidden" name="m" id="m"  value="64" />"
         std::string status = GetURL("/");
         if (status != "") {
-            static wxRegEx mregex("(id=\"m\" +value=\")([0-9]+)\"", wxRE_ADVANCED);
-            if (mregex.Matches(wxString(status))) {
-                cm = (int)std::strtol(mregex.GetMatch(wxString(status), 2).c_str(), nullptr, 10);
+            static std::regex mregex("(id=\"m\" +value=\")([0-9]+)\"");
+            std::smatch mrm;
+            if (std::regex_search(status, mrm, mregex)) {
+                cm = (int)std::strtol(mrm[2].str().c_str(), nullptr, 10);
             }
         }
     }

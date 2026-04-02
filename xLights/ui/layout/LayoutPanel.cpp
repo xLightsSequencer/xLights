@@ -3715,7 +3715,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 #ifdef __WXMSW__
                     if (!xlights->GetIgnoreVendorModelRecommendations()) {
 #endif
-                        wxURI mappingJson("https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/model_vendor_mapping.json");
+                        std::string mappingJson = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/model_vendor_mapping.json";
                         std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
                         if (json == "") {
                             json = GetResourcesDir() + "/model_vendor_mapping.json";

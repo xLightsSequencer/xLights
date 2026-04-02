@@ -8,12 +8,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/stopwatch.h>
+#include <cassert>
+#include <chrono>
+
 #include <wx/wx.h>
 
-
 #include <log.h>
-
 
 #include "../common/xlBaseApp.h"
 #include "render/SequenceData.h"
@@ -163,7 +163,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
     lock.unlock();
     if (!_hugePagesFailed) {
 #ifdef __WXOSX__
-        wxStopWatch sw;
+        auto sw_start = std::chrono::steady_clock::now();
         //size_t origSize = sz;
         blockType = BlockType::HUGE_PAGE;
         size_t szToAlloc = sz;
@@ -177,7 +177,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
         if (data != MAP_FAILED) {
             sz = szToAlloc;
         }
-        while (data == MAP_FAILED && (_hugePageAllocSize >= 16 * 1024 * 1024) && (sw.Time() < 1500)) {
+        while (data == MAP_FAILED && (_hugePageAllocSize >= 16 * 1024 * 1024) && (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count() < 1500)) {
             _hugePageAllocSize /= 2;
             data = (unsigned char*)mmap(nullptr, _hugePageAllocSize,
                 PROT_READ | PROT_WRITE,
@@ -191,7 +191,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
             data = nullptr;
             _hugePagesFailed = true;
         }
-        if (sw.Time() > 2000) {
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count() > 2000) {
             //if its taking more than 2 seconds to get a huge block, we'll stop as we're obviously having memory constraints
             _hugePagesFailed = true;
         }
@@ -263,11 +263,11 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
 
 unsigned char *SequenceData::checkBlockPtr(unsigned char *block, size_t sizeRemaining) {
     
-    wxASSERT(block != nullptr); // if this fails then we have a memory allocation error
+    assert(block != nullptr); // if this fails then we have a memory allocation error
     if (block == nullptr) {
         spdlog::critical("Error allocating memory for frame data. Frames={}, Channels={}, Memory={}.", _numFrames, _numChannels, sizeRemaining);
         spdlog::critical("***** THIS IS GOING TO CRASH *****");
-        wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sizeRemaining);
+        std::string settings = "Frames=" + std::to_string(_numFrames) + ", Channels=" + std::to_string(_numChannels) + ", Memory=" + std::to_string(sizeRemaining) + ".";
         DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
     } else {
         spdlog::debug("Memory allocated for frame data. Block={}, Frames={}, Channels={}, Memory={}.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);

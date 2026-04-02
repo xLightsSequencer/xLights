@@ -162,7 +162,7 @@ std::string MSLSequenceLyric::Download(std::string folder)
 
 	if (!_downloadFile.Exists())
 	{
-		FileCacheItem::DownloadURL(_download, _downloadFile);
+		FileCacheItem::DownloadURL(_download.BuildURI().ToStdString(), _downloadFile.GetFullPath().ToStdString());
 	}
 
 	return _downloadFile.GetFullPath().ToStdString();
@@ -302,8 +302,8 @@ MSLVendor::MSLVendor(pugi::xml_document& doc, int max, CachedFileDownloader* cac
 						}
 						else if (nn == "logolink")
 						{
-							 wxURI logo(v.text().get());
-							 _logoFile = wxFileName(cache->GetFile(logo, CACHEFOR::CACHETIME_LONG));
+							 std::string logoUrl = v.text().get();
+							 _logoFile = wxFileName(cache->GetFile(logoUrl, CACHEFOR::CACHETIME_LONG));
 						}
 						else
 						{

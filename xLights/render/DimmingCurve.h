@@ -15,8 +15,6 @@
 #include <map>
 #include <string>
 
-#include <wx/string.h>
-
 class DimmingCurve
 {
     public:
@@ -30,7 +28,7 @@ class DimmingCurve
         static DimmingCurve *createFromInfo(const std::map<std::string, std::map<std::string, std::string>> &info);
         
         static DimmingCurve *createBrightnessGamma(int brightness, float gamma);
-        static DimmingCurve *createFromFile(const wxString &file);
+        static DimmingCurve *createFromFile(const std::string &file);
     protected:
     private:
 };

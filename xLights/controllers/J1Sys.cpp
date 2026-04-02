@@ -21,8 +21,8 @@
 #include "../models/ModelManager.h"
 
 #include <wx/msgdlg.h>
-#include <wx/regex.h>
 #include <wx/sstream.h>
+#include <regex>
 
 #include <format>
 #include <log.h>
@@ -139,20 +139,19 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
     if (!config.empty()) {
         for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
-            wxString activeRegex = wxString::Format("sA%c[^>]*checked", i + 65);
-            wxRegEx ar(activeRegex);
-            j[i].active = ar.Matches(wxString(config));
+            std::regex ar(std::format("sA{:c}[^>]*checked", (char)(i + 65)));
+            j[i].active = std::regex_search(config, ar);
 
             if (i % GetBankSize() == 0) {
-                wxString protocolRegex = wxString::Format("sT%c>[^#]*selected>([^<]*)", i + 65);
-                wxRegEx pr(protocolRegex);
-                if (pr.Matches(wxString(config))) {
-                    j[i].protocol = EncodeStringPortProtocol(pr.GetMatch(wxString(config), 1));
+                std::regex pr(std::format("sT{:c}>[^#]*selected>([^<]*)", (char)(i + 65)));
+                std::smatch pm;
+                if (std::regex_search(config, pm, pr)) {
+                    j[i].protocol = EncodeStringPortProtocol(pm[1].str());
                 }
-                wxString speedRegex = wxString::Format("sB%c[^>]*value=\"([^\"]*)\"", i + 65);
-                wxRegEx sr(speedRegex);
-                if (sr.Matches(wxString(config))) {
-                    j[i].speed = wxAtoi(sr.GetMatch(wxString(config), 1));
+                std::regex sr(std::format("sB{:c}[^>]*value=\"([^\"]*)\"", (char)(i + 65)));
+                std::smatch sm;
+                if (std::regex_search(config, sm, sr)) {
+                    j[i].speed = (int)std::strtol(sm[1].str().c_str(), nullptr, 10);
                 }
             }
             else {
@@ -160,20 +159,20 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
                 j[i].speed = j[i / GetBankSize() * GetBankSize()].speed;
             }
 
-            wxString universeRegex = wxString::Format("sU%c[^>]*value=\"([0-9]*)", i + 65);
-            wxRegEx ur(universeRegex);
-            if (ur.Matches(wxString(config))) {
-                j[i].universe = wxAtoi(ur.GetMatch(wxString(config), 1));
+            std::regex ur(std::format("sU{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::smatch um;
+            if (std::regex_search(config, um, ur)) {
+                j[i].universe = (int)std::strtol(um[1].str().c_str(), nullptr, 10);
             }
-            wxString startChannelRegex = wxString::Format("sS%c[^>]*value=\"([0-9]*)", i + 65);
-            wxRegEx scr(startChannelRegex);
-            if (scr.Matches(wxString(config))) {
-                j[i].startChannel = wxAtoi(scr.GetMatch(wxString(config), 1));
+            std::regex scr(std::format("sS{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::smatch scm;
+            if (std::regex_search(config, scm, scr)) {
+                j[i].startChannel = (int)std::strtol(scm[1].str().c_str(), nullptr, 10);
             }
-            wxString pixelsRegex = wxString::Format("sC%c[^>]*value=\"([0-9]*)", i + 65);
-            wxRegEx pxr(pixelsRegex);
-            if (pxr.Matches(wxString(config))) {
-                j[i].pixels = wxAtoi(pxr.GetMatch(wxString(config), 1));
+            std::regex pxr(std::format("sC{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::smatch pxm;
+            if (std::regex_search(config, pxm, pxr)) {
+                j[i].pixels = (int)std::strtol(pxm[1].str().c_str(), nullptr, 10);
             }
         }
     }
@@ -231,25 +230,24 @@ void J1Sys::ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j) {
     if (!config.empty()) {
         for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
-            wxString activeRegex = wxString::Format("pA%d[^>]*checked", i + 1);
-            wxRegEx ar(activeRegex);
-            j[i].active = ar.Matches(wxString(config));
+            std::regex ar(std::format("pA{}[^>]*checked", i + 1));
+            j[i].active = std::regex_search(config, ar);
 
-            wxString protocolRegex = wxString::Format("pP%d.+?value=\\\"(.)\\\" selected", i + 1);
-            wxRegEx pr(protocolRegex, wxRE_ADVANCED);
-            if (pr.Matches(wxString(config))) {
-                j[i].protocol = pr.GetMatch(wxString(config), 1)[0];
+            std::regex pr(std::format("pP{}.+?value=\"(.)\" selected", i + 1));
+            std::smatch pm;
+            if (std::regex_search(config, pm, pr)) {
+                j[i].protocol = pm[1].str()[0];
             }
-            wxString speedRegex = wxString::Format("pB%d.+?value=\\\"([0-9]+)\\\" selected", i + 1);
-            wxRegEx sr(speedRegex, wxRE_ADVANCED);
-            if (sr.Matches(wxString(config))) {
-                j[i].speed = wxAtoi(sr.GetMatch(wxString(config), 1));
+            std::regex sr(std::format("pB{}.+?value=\"([0-9]+)\" selected", i + 1));
+            std::smatch sm;
+            if (std::regex_search(config, sm, sr)) {
+                j[i].speed = (int)std::strtol(sm[1].str().c_str(), nullptr, 10);
             }
 
-            wxString universeRegex = wxString::Format("pU%d[^>]*value=\\\"([0-9]*)", i + 1);
-            wxRegEx ur(universeRegex);
-            if (ur.Matches(wxString(config))) {
-                j[i].universe = wxAtoi(ur.GetMatch(wxString(config), 1));
+            std::regex ur(std::format("pU{}[^>]*value=\"([0-9]*)", i + 1));
+            std::smatch um;
+            if (std::regex_search(config, um, ur)) {
+                j[i].universe = (int)std::strtol(um[1].str().c_str(), nullptr, 10);
             }
         }
     }
@@ -276,18 +274,21 @@ J1Sys::J1Sys(const std::string& ip, const std::string& proxy) : BaseController(i
     _connected = true;
     std::string page = GetURL("/sysinfo.htm");
     if (page != "") {
-        static wxRegEx versionregex("(App Version:\\<\\/b\\>\\<\\/td\\>\\<td\\>.nbsp;\\<\\/td\\>\\<td\\>)([^\\<]*)\\<", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (versionregex.Matches(wxString(page))) {
-            _version = versionregex.GetMatch(wxString(page), 2).ToStdString();
+        static std::regex versionregex("(App Version:\\<\\/b\\>\\<\\/td\\>\\<td\\>.nbsp;\\<\\/td\\>\\<td\\>)([^\\<]*)\\<");
+        std::smatch verm;
+        if (std::regex_search(page, verm, versionregex)) {
+            _version = verm[2].str();
             spdlog::debug("Connected to J1Sys controller version {}.", (const char*)_version.c_str());
         }
-        static wxRegEx modelregex("(document\\.getElementById\\(.titleRight.\\)\\.innerHTML = .)([^\"]*)\"", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (modelregex.Matches(wxString(page))) {
-            _model = modelregex.GetMatch(wxString(page), 2).ToStdString();
+        static std::regex modelregex("(document\\.getElementById\\(.titleRight.\\)\\.innerHTML = .)([^\"]*)\"");
+        std::smatch modm;
+        if (std::regex_search(page, modm, modelregex)) {
+            _model = modm[2].str();
             spdlog::debug("     model {}.", (const char*)_model.c_str());
-            static wxRegEx outputsregex("([0-9]+)", wxRE_ADVANCED);
-            if (outputsregex.Matches(wxString(_model))) {
-                _outputs = wxAtoi(outputsregex.GetMatch(wxString(_model), 1));
+            static std::regex outputsregex("([0-9]+)");
+            std::smatch outm;
+            if (std::regex_search(_model, outm, outputsregex)) {
+                _outputs = (int)std::strtol(outm[1].str().c_str(), nullptr, 10);
                 spdlog::debug("     outputs {}.", _outputs);
             }
         }

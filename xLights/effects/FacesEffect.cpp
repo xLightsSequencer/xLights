@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include <filesystem>
-#include <wx/stopwatch.h>
 #include <format>
 #include <list>
 

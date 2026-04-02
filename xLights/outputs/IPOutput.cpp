@@ -12,7 +12,6 @@
 #include "IPOutput.h"
 
 #include <wx/socket.h>
-#include <wx/regex.h>
 #include <wx/protocol/http.h>
 
 // This must be below the wx includes

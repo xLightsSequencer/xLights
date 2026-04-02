@@ -22,7 +22,7 @@
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
 #include "utils/ExternalHooks.h"
-#include "../ui/sequencer/TimeLine.h"
+#include "../render/RenderUtils.h"
 #include "Vixen3.h"
 
 #include <nlohmann/json.hpp>
@@ -123,7 +123,7 @@ void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, R
                                                             if (std::string(ti.attribute("eff").as_string("")) == "7" && (ti.attribute("att").as_int(0) & mask)) {
                                                                 sevenfound = true;
                                                                 int start = last;
-                                                                int end = TimeLine::RoundToMultipleOfPeriod((int)(ti.attribute("pos").as_double(0.0) * 50.0 / 4410.0), GetFrequency());
+                                                                int end = RoundToMultipleOfPeriod((int)(ti.attribute("pos").as_double(0.0) * 50.0 / 4410.0), GetFrequency());
                                                                 if (start != end)
                                                                 {
                                                                     effectLayer->AddEffect(0, "", "", "", start, end, EFFECT_NOT_SELECTED, false);
@@ -134,7 +134,7 @@ void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, R
                                                             else if (std::string(ti.attribute("eff").as_string("")) == "4" && sevenfound && !fourfound && (ti.attribute("att").as_int(0) & mask)) {
                                                                 fourfound = true;
                                                                 int start = last;
-                                                                int end = TimeLine::RoundToMultipleOfPeriod((int)(ti.attribute("pos").as_double(0.0) * 50.0 / 4410.0), GetFrequency());
+                                                                int end = RoundToMultipleOfPeriod((int)(ti.attribute("pos").as_double(0.0) * 50.0 / 4410.0), GetFrequency());
                                                                 if (start != end)
                                                                 {
                                                                     effectLayer->AddEffect(0, "", "", "", start, end, EFFECT_NOT_SELECTED, false);
@@ -333,10 +333,10 @@ void SequenceFile::ProcessElevenLabsTimingFiles(const std::vector<std::string>& 
         try {
 
             auto roudTimestoMilli = [&](float start, float end) {
-                int const startTime = TimeLine::RoundToMultipleOfPeriod((int)(start * 1000.0F), GetFrequency());
-                int endTime = TimeLine::RoundToMultipleOfPeriod((int)(end * 1000.0F), GetFrequency());
+                int const startTime = RoundToMultipleOfPeriod((int)(start * 1000.0F), GetFrequency());
+                int endTime = RoundToMultipleOfPeriod((int)(end * 1000.0F), GetFrequency());
                 if (startTime == endTime) {
-                    endTime = TimeLine::RoundToMultipleOfPeriod(startTime + GetFrequency(), GetFrequency());
+                    endTime = RoundToMultipleOfPeriod(startTime + GetFrequency(), GetFrequency());
                 }
                 return std::make_pair(startTime, endTime);
             };

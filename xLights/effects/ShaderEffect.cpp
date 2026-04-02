@@ -14,11 +14,11 @@
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
 #include <wx/wx.h>
-#include <wx/config.h>
 #include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
+#include <thread>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
@@ -94,8 +94,6 @@
 #include "utils/ExternalHooks.h"
 #include "graphics/opengl/DrawGLUtils.h"
 #include <nlohmann/json.hpp>
-// wxJSON kept for reference - can revert if nlohmann causes issues
-// #include "../../xSchedule/wxJSON/jsonreader.h"
 
 #include <regex>
 
@@ -442,7 +440,7 @@ public:
                 spdlog::debug("ShaderEffect Thread {} given open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
                 return;
             }
-            wxMilliSleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         assert(false);
         spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
@@ -454,7 +452,7 @@ public:
                 spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
                 return;
             }
-            wxMilliSleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         assert(false);
         spdlog::error("ShaderEffect Thread {} tried to set no current GL Context but failed.", wxThread::GetCurrentId());
@@ -1647,142 +1645,6 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     } catch (std::exception& ex) {
         spdlog::warn("Error parsing shader JSON :  {} {}.", filename.c_str(), ex.what());
     }
-
-    /* wxJSON implementation - kept for reference, can revert if nlohmann causes issues
-    wxJSONReader reader;
-    wxJSONValue root;
-    reader.Parse(wxString(json), &root);
-    _description = root["DESCRIPTION"].AsString().ToStdString();
-    if (_description == "xLights AudioFFT")
-        _audioFFTMode = true;
-    else if (_description == "xLights Audio2")
-        _audioIntensityMode = true;
-    wxJSONValue inputs = root["INPUTS"];
-    std::string canvasImgName, audioFFTName;
-    for (int i = 0; i < inputs.Size(); i++) {
-        std::string name = inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "";
-
-        // we ignore these as xlights provides these settings
-        if (name == "XL_OFFSET")
-            continue;
-        if (name == "XL_DURATION")
-            continue;
-        if (name == "XL_ZOOM")
-            continue;
-
-        std::string type = inputs[i]["TYPE"].AsString().ToStdString();
-        if (type == "float") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                ShaderParmType::SHADER_PARM_FLOAT,
-                (double)(inputs[i].HasMember("MIN") ? std::strtod(SafeFloat(inputs[i]["MIN"].AsString().ToStdString()).c_str(), nullptr) : 0.0),
-                (double)(inputs[i].HasMember("MAX") ? std::strtod(SafeFloat(inputs[i]["MAX"].AsString().ToStdString()).c_str(), nullptr) : 1.0),
-                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString().ToStdString()).c_str(), nullptr) : 0.0)));
-        } else if (type == "long") {
-            if (inputs[i].HasMember("MIN")) {
-                _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                    ShaderParmType::SHADER_PARM_LONG,
-                    (double)(inputs[i].HasMember("MIN") ? std::strtol(inputs[i]["MIN"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0),
-                    (double)(inputs[i].HasMember("MAX") ? std::strtol(inputs[i]["MAX"].AsString().ToStdString().c_str(), nullptr, 10) : 1.0),
-                    (double)(inputs[i].HasMember("DEFAULT") ? std::strtol(inputs[i]["DEFAULT"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0)));
-            } else if (inputs[i].HasMember("LABELS") && inputs[i].HasMember("VALUES")) {
-                _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                    ShaderParmType::SHADER_PARM_LONGCHOICE,
-                    0.0,
-                    0.0,
-                    (double)(inputs[i].HasMember("DEFAULT") ? std::strtol(inputs[i]["DEFAULT"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0)));
-                auto ls = inputs[i]["LABELS"];
-                auto vs = inputs[i]["VALUES"];
-                int no = std::min(ls.Size(), vs.Size());
-                for (int i = 0; i < no; i++) {
-                    _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString().ToStdString());
-                }
-            } else {
-                assert(false);
-            }
-        } else if (type == "color") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                ShaderParmType::SHADER_PARM_COLOUR));
-        } else if (type == "audio") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                ShaderParmType::SHADER_PARM_AUDIO));
-        } else if (type == "bool") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                ShaderParmType::SHADER_PARM_BOOL,
-                0.0,
-                0.0,
-                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString().ToStdString()).c_str(), nullptr) : 0.0f)));
-        } else if (type == "point2D") {
-            xlPointD minPt = xlPointD(
-                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][0].IsDouble() ? inputs[i]["MIN"][0].AsDouble() : inputs[i]["MIN"][0].AsInt()) : 0.0f,
-                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][1].IsDouble() ? inputs[i]["MIN"][1].AsDouble() : inputs[i]["MIN"][1].AsInt()) : 0.0f);
-            xlPointD maxPt = xlPointD(
-                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][0].IsDouble() ? inputs[i]["MAX"][0].AsDouble() : inputs[i]["MAX"][0].AsInt()) : 1.0f,
-                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][1].IsDouble() ? inputs[i]["MAX"][1].AsDouble() : inputs[i]["MAX"][1].AsInt()) : 1.0f);
-            xlPointD defPt = xlPointD(
-                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][0].IsDouble() ? inputs[i]["DEFAULT"][0].AsDouble() : inputs[i]["DEFAULT"][0].AsInt()) : 0.0f,
-                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][1].IsDouble() ? inputs[i]["DEFAULT"][1].AsDouble() : inputs[i]["DEFAULT"][1].AsInt()) : 0.0f);
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                ShaderParmType::SHADER_PARM_POINT2D,
-                minPt,
-                maxPt,
-                defPt));
-        } else if (type == "image") {
-            if (inputs[i].HasMember("NAME")) {
-                canvasImgName = inputs[i]["NAME"].AsString().ToStdString();
-            }
-        } else if (type == "audioFFT") {
-            if (inputs[i].HasMember("NAME")) {
-                audioFFTName = inputs[i]["NAME"].AsString().ToStdString();
-                spdlog::info("ShaderEffect - found audioFFT shader with name '{}'", audioFFTName.c_str());
-            }
-        } else if (type == "text") {
-            if (inputs[i].HasMember("NAME")) {
-                spdlog::warn("ShaderEffect - found text property with name '{}' ... ignored", static_cast<const char*>(inputs[i]["NAME"].AsString().c_str()));
-            }
-        } else if (type == "event") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
-                ShaderParmType::SHADER_PARM_EVENT,
-                0.0,
-                0.0,
-                0.0));
-
-            // Add timing tracks
-            if (sequenceElements != nullptr) {
-                int tt = 0;
-                for (int i = 0; i < (int)sequenceElements->GetElementCount(); i++) {
-                    Element* e = sequenceElements->GetElement(i);
-                    if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-                        _parms.back()._valueOptions[tt++] = e->GetName();
-                    }
-                }
-            }
-        } else {
-            spdlog::warn("Unknown type parsing shader JSON : {}.", type.c_str());
-            assert(false);
-        }
-    }
-    wxJSONValue passes = root["PASSES"];
-    for (int i = 0; i < passes.Size(); i++) {
-        _passes.push_back({ inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString().ToStdString() : "",
-                            passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false });
-    }
-    */
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
