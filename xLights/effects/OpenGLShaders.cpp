@@ -9,6 +9,9 @@
  **************************************************************/
 
 #ifndef __WXMAC__
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <GL/gl.h>
 #ifdef _MSC_VER
 #include "graphics\opengl\GL\glext.h"
