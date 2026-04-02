@@ -230,8 +230,10 @@
 		<Unit filename="render/DimmingCurve.h" />
 		<Unit filename="ui/color/DimmingCurvePanel.cpp" />
 		<Unit filename="ui/color/DimmingCurvePanel.h" />
-		<Unit filename="ui/setup/Discovery.cpp" />
-		<Unit filename="ui/setup/Discovery.h" />
+		<Unit filename="discovery/Discovery.cpp" />
+		<Unit filename="discovery/Discovery.h" />
+		<Unit filename="ui/setup/DiscoveryAuthDialog.cpp" />
+		<Unit filename="ui/setup/DiscoveryAuthDialog.h" />
 		<Unit filename="render/DissolveTransitionPattern.cpp" />
 		<Unit filename="ui/shared/utils/DragColoursBitmapButton.cpp" />
 		<Unit filename="ui/shared/utils/DragColoursBitmapButton.h" />

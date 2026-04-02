@@ -472,7 +472,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="controllers\WLED.cpp" />
     <ClCompile Include="CopyFormat1.cpp" />
     <ClCompile Include="ui/sequencer/CustomTimingDialog.cpp" />
-    <ClCompile Include="ui/setup/Discovery.cpp" />
+    <ClCompile Include="discovery\Discovery.cpp" />
     <ClCompile Include="render\DissolveTransitionPattern.cpp" />
     <ClCompile Include="ui\shared\utils\DragColoursBitmapButton.cpp" />
     <ClCompile Include="ui\DragValueCurveBitmapButton.cpp" />
@@ -877,6 +877,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\preferences\xLightsPreferences.cpp" />
     <ClCompile Include="ui/layout/PreviewPane.cpp" />
     <ClCompile Include="ui\setup\RemapDMXChannelsDialog.cpp" />
+    <ClCompile Include="ui\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="ui/sequencer/RenameTextDialog.cpp" />
     <ClCompile Include="render\Render.cpp" />
     <ClCompile Include="render\RenderUI.cpp" />
@@ -1074,7 +1075,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="controllers\WLED.h" />
     <ClInclude Include="CopyFormat1.h" />
-    <ClInclude Include="ui/setup/Discovery.h" />
+    <ClInclude Include="discovery\Discovery.h" />
     <ClInclude Include="render\DissolveTransitionPattern.h" />
     <ClInclude Include="ui\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="ui\DragValueCurveBitmapButton.h" />
@@ -1444,6 +1445,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui\preferences\ViewSettingsPanel.h" />
     <ClInclude Include="ui/layout/PreviewPane.h" />
     <ClInclude Include="ui\setup\RemapDMXChannelsDialog.h" />
+    <ClInclude Include="ui\setup\DiscoveryAuthDialog.h" />
     <ClInclude Include="ui/sequencer/RenameTextDialog.h" />
     <ClInclude Include="render\RenderBuffer.h" />
     <ClInclude Include="render\RenderCache.h" />
