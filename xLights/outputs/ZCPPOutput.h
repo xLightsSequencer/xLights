@@ -11,11 +11,10 @@
  **************************************************************/
 
 #include "IPOutput.h"
+#include "SocketAbstraction.h"
 #include "ZCPP.h"
 
 #include <vector>
-
-#include <wx/socket.h>
 
 class ControllerEthernet;
 class Discovery;
@@ -28,8 +27,8 @@ class ZCPPOutput : public IPOutput
     uint8_t* _data = nullptr;
     ZCPP_packet_t _packet;
     uint8_t _sequenceNum = 0;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket*_datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
     long _lastSecond = -1;
     int _vendor = -1;
     int _model = -1;

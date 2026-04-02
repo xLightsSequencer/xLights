@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.05  April ??, 2026
+    -change (dkulp)             Migrate output runtime sockets from wxDatagramSocket/wxIPV4address to SocketAbstraction UDPSocket    
 2026.04  April 2, 2026
     -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
                                     and media manager. Animated GIFs/WebP cycle through all frames, videos

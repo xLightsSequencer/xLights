@@ -13,9 +13,7 @@
 // https://tsp.esta.org/tsp/documents/docs/E1-17_2015(R2020)_secure.zip
 
 #include "IPOutput.h"
-
-#include <wx/sckaddr.h>
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 // ******************************************************
 // * This class represents a single universe for ArtNET
@@ -37,8 +35,8 @@ class ArtNetOutput : public IPOutput
 #pragma region Member Variables
     uint8_t _data[ARTNET_PACKET_LEN] = { 0 };
     uint8_t _sequenceNum = 0;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket* _datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
     bool _forceSourcePort = false;
 
     // These are used for artnet sync

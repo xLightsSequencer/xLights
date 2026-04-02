@@ -14,8 +14,7 @@
 // https://tsp.esta.org/tsp/documents/docs/ANSI_E1-31-2018.pdf
 
 #include "IPOutput.h"
-
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 #pragma region E1.31 Constants
 #define E131_PACKET_HEADERLEN 126
@@ -32,8 +31,8 @@ class E131Output : public IPOutput
     uint8_t _data[E131_PACKET_LEN];
     uint8_t _sequenceNum = 0;
     uint8_t _priority = E131_DEFAULT_PRIORITY;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket *_datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
 
     // Deprecated properties only accessed for conversion
     int _numUniverses_CONVERT = 1;

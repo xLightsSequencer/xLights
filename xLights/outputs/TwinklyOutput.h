@@ -11,10 +11,10 @@
  **************************************************************/
 #include <nlohmann/json.hpp>
 #include "IPOutput.h"
+#include "SocketAbstraction.h"
 #include <array>
 #include <wx/wx.h>
 
-class wxDatagramSocket;
 class Discovery;
 
 // define this to use some hard coded sample date
@@ -107,7 +107,7 @@ private:
     std::string m_token;
     std::array<char, TOKEN_SIZE> m_decodedToken;
     std::vector<unsigned char> m_channelData;
-    wxDatagramSocket* _datagram = nullptr;
+    sockets::UDPSocket* _datagram = nullptr;
 
     void OpenDatagram();
 };

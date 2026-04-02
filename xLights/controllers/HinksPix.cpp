@@ -17,13 +17,13 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
+#include "../outputs/SocketAbstraction.h"
 
+#include <chrono>
 #include <wx/stopwatch.h>
 #include <wx/datetime.h>
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
-#include <wx/sckipc.h>
-#include "wx/socket.h"
 #include <wx/sstream.h>
 
 #ifdef _MSC_VER
@@ -1611,50 +1611,39 @@ uint32_t GetDateTimeWord(wxDateTime dt)
     return GetDateTimeWord(dt.GetMonth() + 1, dt.GetDay(), dt.GetYear(), dt.GetHour(), dt.GetMinute(), dt.GetSecond());
 }
 
-bool ReadLineFromSocket(wxSocketClient* socket, std::string& line, long timeout) {
+bool ReadLineFromSocket(sockets::TCPSocket* socket, std::string& line, long timeout) {
     line.clear();
-    wxStopWatch sw;
+    const auto start = std::chrono::steady_clock::now();
     bool found{false};
-    while ((timeout <= 0) || (sw.Time() < timeout)) {
-        if (socket->WaitForRead(0, 1)) {
-            char c;
-            socket->Read(&c, sizeof(c)).GetLastIOReadSize();
-            if (socket->LastCount() != sizeof(c) && found) {
+    while ((timeout <= 0) || (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() < timeout)) {
+        if (socket->WaitForData(1)) {
+            uint8_t c = 0;
+            const int bytesRead = socket->Read(&c, sizeof(c));
+            if (bytesRead != static_cast<int>(sizeof(c)) && found) {
                 return true;
             }
             if (c == '|') {
                 found = true;
-               // line += c;
             }
-            if (std::isprint(c)) {
-                line += c;
+            if (std::isprint(static_cast<unsigned char>(c))) {
+                line += static_cast<char>(c);
             } else if (found) {
                 return true;
             }
         }
         else {
-           // wxYield(); // Allow other events to be processed
-            // If not in a separate thread you might call wxYield() or wxSafeYield()
-            // to prevent the app from hanging. But doing this can cause several
-            // other problems which can be hard to debug, so be carefull!!
             if (found) {
                 return true;
             }
         }
     }
-    //int cc = sw.Time();
     return false; // Line not received as expected
 }
 
 bool HinksPix::UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const {
-    
-    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
 
-    wxIPV4address addr;
-    addr.Hostname(_ip);
-    addr.Service(80);
-    auto work = sock->Connect(addr);
-    if (!work ) {
+    sockets::TCPSocket sock;
+    if (!sock.Connect(_ip, 80, "", false)) {
         spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
         return false;
     }
@@ -1673,7 +1662,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
     FILE* f = fopen((const char*)localpathname.c_str(), "rb");
     if (f == NULL) {
         spdlog::error("Could not open file {}", (const char*)localpathname.c_str());
-        sock->Close();
+        sock.Close();
         return false;
     }
     memset(&PK, 0, sizeof(struct Tag_Packet));
@@ -1690,20 +1679,19 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
     PK.DataSize = (uint16_t)NumBytes;
     PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + (uint16_t)NumBytes;
 
-    auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
-    if (ss==0) {
+    if (!sock.Write(reinterpret_cast<uint8_t*>(&PK), PK.TotalSize)) {
         fclose(f);
         spdlog::error("ERROR Sending Data to Controller File Data");
-        sock->Close();
+        sock.Close();
         return false;
     }
 
     std::string line;
-    ReadLineFromSocket(sock.get(), line, 5000);
+    ReadLineFromSocket(&sock, line, 5000);
     if (line.find("|FOK") == std::string::npos) {
         fclose(f);
         spdlog::error("Failed to Write {}", (const char*)line.c_str());
-        sock->Close();
+        sock.Close();
         return false;
     }
     wxStopWatch sw;
@@ -1727,7 +1715,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
             auto con = progress_dlg(Progress, maxLoop+1, message);
             if (!con) {
                 fclose(f);
-                sock->Close();
+                sock.Close();
                 return false;
             }
         }
@@ -1747,21 +1735,20 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
 
             PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + sizeof(struct Tag_File_Data_Close);
 
-            auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
-            if (ss == 0) {
-                sock->Close();
+            if (!sock.Write(reinterpret_cast<uint8_t*>(&PK), PK.TotalSize)) {
+                sock.Close();
                 return false;
             }
 
-            ReadLineFromSocket(sock.get(), line, 5000);
+            ReadLineFromSocket(&sock, line, 5000);
             if (line.find("|FOK") == std::string::npos) {
                 spdlog::error("Failed to Write {}", (const char*)line.c_str());
-                sock->Close();
+                sock.Close();
                 return false;
             } else {
                 spdlog::debug("File {} uploaded successfully", (const char*)remotepathname.c_str());
             } 
-            sock->Close();
+            sock.Close();
             return true;
         }
 
@@ -1772,19 +1759,18 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
         PK.DataSize = (uint16_t)NumBytes;
         PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + (uint16_t)NumBytes;
 
-        auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
-        if (ss == 0) {
+        if (!sock.Write(reinterpret_cast<uint8_t*>(&PK), PK.TotalSize)) {
             fclose(f);
             spdlog::error("ERROR Xmitting to Controller File Data");
-            sock->Close();
+            sock.Close();
             return false;
         }
 
-        ReadLineFromSocket(sock.get(), line, 5000);
+        ReadLineFromSocket(&sock, line, 5000);
         if (line.find("|FOK") == std::string::npos) {
             spdlog::error("Failed to Write {}", (const char*)line.c_str());
             fclose(f);
-            sock->Close();
+            sock.Close();
             return false;
         }
 
@@ -1792,14 +1778,9 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
 }
 
 bool HinksPix::UploadTimeToController() const {
-    
-    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
 
-    wxIPV4address addr;
-    addr.Hostname(_ip);
-    addr.Service(80);
-    auto work = sock->Connect(addr);
-    if (!work) {
+    sockets::TCPSocket sock;
+    if (!sock.Connect(_ip, 80, "", false)) {
         spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
         return false;
     }
@@ -1818,33 +1799,27 @@ bool HinksPix::UploadTimeToController() const {
     PK.sec = time.GetSecond();
     PK.dow = time.GetWeekDay(); // zero based
 
-    auto ss = sock->Write((uint8_t*)&PK, sizeof(struct Tag_Dow_TimePacket)).LastCount();
-    if (ss == 0) {
+    if (!sock.Write(reinterpret_cast<uint8_t*>(&PK), sizeof(struct Tag_Dow_TimePacket))) {
         spdlog::error("ERROR Sending Data to Controller File Data");
-        sock->Close();
+        sock.Close();
         return false;
     }
 
     std::string line;
-    ReadLineFromSocket(sock.get(), line, 5000);
+    ReadLineFromSocket(&sock, line, 5000);
     if (line.find("|FOK") == std::string::npos) {
         spdlog::error("Failed to Write {}", (const char*)line.c_str());
-        sock->Close();
+        sock.Close();
         return false;
     }
-    sock->Close();
+    sock.Close();
     return true;
 }
 
 bool HinksPix::UploadModeToController(unsigned char mode) const {
-    
-    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
 
-    wxIPV4address addr;
-    addr.Hostname(_ip);
-    addr.Service(80);
-    auto work = sock->Connect(addr);
-    if (!work) {
+    sockets::TCPSocket sock;
+    if (!sock.Connect(_ip, 80, "", false)) {
         spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
         return false;
     }
@@ -1857,27 +1832,26 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
     CP.CMD[2] = 0xa5;
     CP.CMD[3] = 0;
 
-    auto ss = sock->Write((uint8_t*)&CP, sizeof(struct Tag_CMD_Packet)).LastCount();
-    if (ss == 0) {
+    if (!sock.Write(reinterpret_cast<uint8_t*>(&CP), sizeof(struct Tag_CMD_Packet))) {
         spdlog::error("ERROR Sending Mode to Controller");
-        sock->Close();
+        sock.Close();
         return false;
     }
 
     std::string line;
-    ReadLineFromSocket(sock.get(), line, 5000);
+    ReadLineFromSocket(&sock, line, 5000);
     if (line.find("|FOK") == std::string::npos) {
         spdlog::error("Failed to Send {}", (const char*)line.c_str());
-        sock->Close();
+        sock.Close();
         return false;
     }
-    sock->Close();
+    sock.Close();
     return true;
 }
 
 std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const {
-    
-    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
+
+    sockets::TCPSocket sock;
     std::vector<HinksPixFileData> files;
     uint8_t CMD[4];
     uint8_t B[100];
@@ -1889,13 +1863,7 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
     CMD[2] = 0xa5;
     CMD[3] = 0;
 
-    wxIPV4address addr;
-    // addr.AnyAddress();
-    addr.Hostname(_ip);
-    addr.Service(80);
-
-    auto connected = sock->Connect(addr);
-    if (!connected) {
+    if (!sock.Connect(_ip, 80, "", false)) {
         spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
         return files;
     }
@@ -1908,10 +1876,8 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
     memmove(p, CMD, 4);
     CmdLength += 4;
 
-    auto ss = sock->Write(B, CmdLength).LastCount();
-    if (ss == 0) {
-        //fclose(f);
-        sock->Close();
+    if (!sock.Write(B, static_cast<size_t>(CmdLength))) {
+        sock.Close();
         spdlog::error("ERROR Xmitting to Controller File Data");
         return files;
     }
@@ -1919,11 +1885,10 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
     //std::string line;
     // wxStopWatch sw;
     std::string data;
-    ReadLineFromSocket(sock.get(), data, 5000);
+    ReadLineFromSocket(&sock, data, 5000);
     if (data.find("|FOK") != std::string::npos) {
         spdlog::error("Failed to Write {}", (const char*)data.c_str());
-        // txtRx->AppendText(wxT("Failed to read message.\n"));
-        sock->Close();
+        sock.Close();
         return files;
     }
     //*FILENAME.HSEQ,1002,1504!
@@ -1943,7 +1908,7 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
             }
         }
     }
-    sock->Close();
+    sock.Close();
     return files;
 }
 

@@ -11,9 +11,7 @@
  **************************************************************/
 
 #include "IPOutput.h"
-
-#include <wx/sckaddr.h>
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 #include <nlohmann/json.hpp>
 
@@ -52,8 +50,8 @@ class DDPOutput : public IPOutput
     #pragma region Member Variables
     uint8_t _data[DDP_PACKET_LEN];
     uint8_t _sequenceNum;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket *_datagram;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram;
     uint8_t* _fulldata;
     int _channelsPerPacket;
     bool _keepChannelNumbers;

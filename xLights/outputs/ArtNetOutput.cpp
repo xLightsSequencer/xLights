@@ -10,6 +10,8 @@
  **************************************************************/
 
 #include "ArtNetOutput.h"
+#include <cassert>
+#include <cstdio>
 #include <cstring>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
@@ -38,32 +40,15 @@ void ArtNetOutput::OpenDatagram() {
 
     if (_datagram != nullptr) return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIPToUse());
+    _datagram = new sockets::UDPSocket();
+    if (_datagram == nullptr) {
+        spdlog::error("Error creating Artnet datagram object for {} {}:{}:{}.", _ip, GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse());
+        _ok = false;
     }
 
-    wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
-    if (_forceSourcePort) {
-        flags |= wxSOCKET_REUSEADDR;
-        localaddr.Service(ARTNET_PORT);
-    }
-    _datagram = new wxDatagramSocket(localaddr, flags);
-    if (_datagram == nullptr) {
-        spdlog::error("Error initialising Artnet datagram for {} {}:{}:{}. {}", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
-        _ok = false;
-    }
-    else if (!_datagram->IsOk()) {
-        spdlog::error("Error initialising Artnet datagram for {} {}:{}:{}. {} OK : FALSE", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-    }
-    else if (_datagram->Error()) {
-        spdlog::error("Error creating Artnet datagram => {} : {}. {}", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+    const uint16_t localPort = _forceSourcePort ? ARTNET_PORT : 0;
+    if (!_datagram->Bind(GetForceLocalIPToUse(), localPort, _forceSourcePort)) {
+        spdlog::error("Error initialising Artnet datagram for {} {}:{}:{}. {}", _ip, GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -112,8 +97,8 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
 
     
     static uint8_t syncdata[ARTNET_SYNCPACKET_LEN];
-    static wxIPV4address syncremoteAddr;
-    static wxDatagramSocket* syncdatagram = nullptr;
+    static std::string syncremoteIp;
+    static sockets::UDPSocket* syncdatagram = nullptr;
 
     if (!__initialised) {
         spdlog::debug("Initialising artNet Sync.");
@@ -130,38 +115,22 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         syncdata[9] = 0x52;
         syncdata[11] = 0x0E; // Protocol version Low
 
-        wxIPV4address localaddr;
-        if (localIP == "") {
-            localaddr.AnyAddress();
-        }
-        else {
-            localaddr.Hostname(localIP);
-        }
-
         if (syncdatagram != nullptr) {
             delete syncdatagram;
         }
 
         // using the forced source port for sync packets is buried in a special options as its use is very very rare. Few devices implement this restriction and few users use artnet sync
-        wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
-        if (SpecialOptions::GetOption("ForceArtNetSourcePort", "false") == "true") {
-            flags |= wxSOCKET_REUSEADDR;
-            localaddr.Service(ARTNET_PORT);
+        const bool forceSourcePort = SpecialOptions::GetOption("ForceArtNetSourcePort", "false") == "true";
+        const uint16_t localPort = forceSourcePort ? ARTNET_PORT : 0;
+
+        syncdatagram = new sockets::UDPSocket();
+        if (syncdatagram == nullptr) {
+            spdlog::error("Error creating Artnet sync datagram object.");
+            return;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, flags);
-        if (syncdatagram == nullptr) {
-            spdlog::error("Error initialising Artnet sync datagram. {}", (const char*)localaddr.IPAddress().c_str());
-            return;
-        }
-        else if (!syncdatagram->IsOk()) {
-            spdlog::error("Error initialising Artnet sync datagram ... is network connected? {} OK : FALSE", (const char*)localaddr.IPAddress().c_str());
-            delete syncdatagram;
-            syncdatagram = nullptr;
-            return;
-        }
-        else if (syncdatagram->Error()) {
-            spdlog::error("Error creating Artnet sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        if (!syncdatagram->Bind(localIP, localPort, forceSourcePort) || !syncdatagram->SetBroadcast(true)) {
+            spdlog::error("Error initialising Artnet sync datagram: {}", syncdatagram->LastError());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -170,19 +139,17 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         // broadcast ... this is not really in line with the spec
         // I should use the net mask but i cant find a good way to do that
         //syncremoteAddr.BroadcastAddress();
-        wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", __ip1, __ip2, __ip3, 255);
-        spdlog::debug("artNet Sync broadcasting to {}.", (const char*)ipaddrWithUniv.c_str());
-        syncremoteAddr.Hostname(ipaddrWithUniv);
-        syncremoteAddr.Service(ARTNET_PORT);
+        syncremoteIp = std::format("{}.{}.{}.255", __ip1, __ip2, __ip3);
+        spdlog::debug("artNet Sync broadcasting to {}.", syncremoteIp);
     }
 
     if (syncdatagram != nullptr) {
-        syncdatagram->SendTo(syncremoteAddr, syncdata, ARTNET_SYNCPACKET_LEN);
+        syncdatagram->SendTo(syncremoteIp, ARTNET_PORT, syncdata, ARTNET_SYNCPACKET_LEN);
     }
 }
 
 void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
-    wxByte packet[14];
+    uint8_t packet[14];
     memset(packet, 0x00, sizeof(packet));
     packet[0] = 'A';
     packet[1] = 'r';
@@ -327,30 +294,33 @@ bool ArtNetOutput::Open() {
 
     OpenDatagram();
 
-    _remoteAddr.Hostname(_ip.c_str());
-    _remoteAddr.Service(ARTNET_PORT);
-
-    wxString ipAddr = _remoteAddr.IPAddress();
+    _remoteIp = GetResolvedIP();
 
     // work out our broascast address
-    wxArrayString ipc = wxSplit(ipAddr, '.');
-    if (__ip1 == -1) {
-        __ip1 = wxAtoi(ipc[0]);
-        __ip2 = wxAtoi(ipc[1]);
-        __ip3 = wxAtoi(ipc[2]);
+    int o1 = 255;
+    int o2 = 255;
+    int o3 = 255;
+    int o4 = 255;
+    if (std::sscanf(_remoteIp.c_str(), "%d.%d.%d.%d", &o1, &o2, &o3, &o4) != 4) {
+        o1 = o2 = o3 = 255;
     }
-    else if (wxAtoi(ipc[0]) != __ip1) {
+    if (__ip1 == -1) {
+        __ip1 = o1;
+        __ip2 = o2;
+        __ip3 = o3;
+    }
+    else if (o1 != __ip1) {
         __ip1 = 255;
         __ip2 = 255;
         __ip3 = 255;
     }
     else {
-        if (wxAtoi(ipc[1]) != __ip2) {
+        if (o2 != __ip2) {
             __ip2 = 255;
             __ip3 = 255;
         }
         else {
-            if (wxAtoi(ipc[2]) != __ip3) {
+            if (o3 != __ip3) {
                 __ip3 = 255;
             }
         }
@@ -397,7 +367,7 @@ void ArtNetOutput::EndFrame(int suppressFrames) {
 
     if (_changed || NeedToOutput(suppressFrames)) {
         _data[12] = _sequenceNum;
-        _datagram->SendTo(_remoteAddr, _data, ARTNET_PACKET_LEN - (512 - _channels));
+        _datagram->SendTo(_remoteIp, ARTNET_PORT, _data, ARTNET_PACKET_LEN - (512 - _channels));
         _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
         FrameOutput();
         _changed = false;
@@ -412,7 +382,7 @@ void ArtNetOutput::EndFrame(int suppressFrames) {
 void ArtNetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
     if (!_enabled) return;
-    wxASSERT(channel < _channels);
+    assert(channel < _channels);
 
     if (_data[channel + ARTNET_PACKET_HEADERLEN] != data) {
         _data[channel + ARTNET_PACKET_HEADERLEN] = data;
@@ -423,7 +393,7 @@ void ArtNetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 void ArtNetOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
     if (!_enabled) return;
-    wxASSERT((size_t)channel + size <= (size_t)_channels);
+    assert((size_t)channel + size <= (size_t)_channels);
 
     size_t chs = (std::min)((int32_t)size, _channels - channel);
 

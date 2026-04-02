@@ -12,11 +12,10 @@
 #include "xxxEthernetOutput.h"
 #include <cstring>
 
-#include <wx/process.h>
+#include <cassert>
 
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../utils/ip_utils.h"
 
 #include <format>
@@ -31,9 +30,9 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
     
 
     static int64_t __lastTime = 0;
-    static wxIPV4address __remoteAddr;
+    static std::string __remoteIp;
     static uint8_t __pkt[] = { 0x80, 0x01, 0x00, 0x81 };
-    static wxDatagramSocket* __datagram = nullptr;
+    static sockets::UDPSocket* __datagram = nullptr;
 
     if (mode == 1) {
         // output
@@ -41,7 +40,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
         int64_t now = GetCurrentTimeMillis();
         if (__lastTime + xxx_HEARTBEATINTERVAL < now) {
-            __datagram->SendTo(__remoteAddr, __pkt, sizeof(__pkt));
+            __datagram->SendTo(__remoteIp, xxx_PORT, __pkt, sizeof(__pkt));
             __lastTime = now;
         }
     }
@@ -49,31 +48,20 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
         // initialise
         if (__datagram != nullptr) return;
 
-        wxIPV4address localaddr;
-        if (localIP == "") {
-            localaddr.AnyAddress();
-        }
-        else {
-            localaddr.Hostname(localIP);
-        }
-        __remoteAddr.Hostname("224.0.0.0");
-        __remoteAddr.Service(xxx_PORT);
+        __remoteIp = "224.0.0.0";
 
-        __datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+        __datagram = new sockets::UDPSocket();
 
         if (__datagram != nullptr) {
-            if (!__datagram->IsOk() || __datagram->Error()) {
-                spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet heartbeat datagram => {} : {}.",
-                    (const char*)localaddr.IPAddress().c_str(),
-                    (int)__datagram->LastError(),
-                    (const char*)DecodeIPError(__datagram->LastError()).c_str());
+            if (!__datagram->Bind(localIP, 0, false)) {
+                spdlog::error("xxxEthernetOutput: Error creating xxxEthernet heartbeat datagram. {}",
+                    __datagram->LastError());
                 delete __datagram;
                 __datagram = nullptr;
             }
         }
         else {
-            spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet heartbeat datagram.",
-                (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("xxxEthernetOutput: Error creating xxxEthernet heartbeat datagram.");
         }
     }
     else if (mode == 9) {
@@ -91,25 +79,12 @@ void xxxEthernetOutput::OpenDatagram() {
 
     if (_datagram != nullptr) return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIPToUse());
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+    _datagram = new sockets::UDPSocket();
     if (_datagram == nullptr) {
-        spdlog::error("xxxEthernetOutput: {} Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("xxxEthernetOutput: Error opening datagram.");
     }
-    else if (!_datagram->IsOk()) {
-        spdlog::error("xxxEthernetOutput: {} Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-    }
-    else if (_datagram->Error()) {
-        spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet datagram => {} : {}.", (const char*)localaddr.IPAddress().c_str(), (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+    else if (!_datagram->Bind(GetForceLocalIPToUse(), 0, false)) {
+        spdlog::error("xxxEthernetOutput: Error opening datagram. {}", _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -198,8 +173,7 @@ bool xxxEthernetOutput::Open() {
     memset(_packet, 0, sizeof(_packet));
 
     OpenDatagram();
-    _remoteAddr.Hostname(_ip.c_str());
-    _remoteAddr.Service(xxx_PORT);
+    _remoteIp = GetResolvedIP();
 
     Heartbeat(0, GetForceLocalIPToUse());
 
@@ -253,7 +227,7 @@ void xxxEthernetOutput::EndFrame(int suppressFrames) {
                 _packet[6] = (uint8_t)(ch & 0xFF); // low pixels per packet
                 memcpy(&_packet[xxxETHERNET_PACKET_HEADERLEN], &_data[current], ch);
                 _packet[xxxETHERNET_PACKET_HEADERLEN + ch] = 0x81;
-                _datagram->SendTo(_remoteAddr, _packet, xxxETHERNET_PACKET_HEADERLEN + ch + xxxETHERNET_PACKET_FOOTERLEN);
+                _datagram->SendTo(_remoteIp, xxx_PORT, _packet, xxxETHERNET_PACKET_HEADERLEN + ch + xxxETHERNET_PACKET_FOOTERLEN);
                 current += xxxCHANNELSPERPACKET;
             }
             FrameOutput();

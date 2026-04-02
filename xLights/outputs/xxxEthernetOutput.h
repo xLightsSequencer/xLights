@@ -11,8 +11,7 @@
  **************************************************************/
 
 #include "IPOutput.h"
-
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 class wxWindow;
 class OutputManager;
@@ -33,8 +32,8 @@ protected:
     #pragma region Member Variables
     uint8_t _packet[1208];
     uint8_t* _data = nullptr;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket* _datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
     #pragma endregion 
 
     #pragma region Private Functions

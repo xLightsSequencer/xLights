@@ -53,25 +53,12 @@ void E131Output::OpenDatagram() {
 
     if (_datagram != nullptr) return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIPToUse());
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+    _datagram = new sockets::UDPSocket();
     if (_datagram == nullptr) {
-        spdlog::error("E131Output: {} Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("E131Output: Error creating datagram object.");
     }
-    else if (!_datagram->IsOk()) {
-        spdlog::error("E131Output: {} Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-    }
-    else if (_datagram->Error()) {
-        spdlog::error("E131Output: {} Error creating E131 datagram => {} : {}.", (const char*)localaddr.IPAddress().c_str(), (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+    else if (!_datagram->Bind(GetForceLocalIPToUse(), 0, false)) {
+        spdlog::error("E131Output: Error opening datagram. {}", _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -152,9 +139,9 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
     static uint8_t syncdata[E131_SYNCPACKET_LEN];
     static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
-    static wxUint16 _lastsyncuniverse = 0;
-    static wxIPV4address syncremoteAddr;
-    static wxDatagramSocket *syncdatagram = nullptr;
+    static uint16_t _lastsyncuniverse = 0;
+    static std::string syncremoteIp;
+    static sockets::UDPSocket* syncdatagram = nullptr;
 
     if (!initialised) {
 
@@ -201,40 +188,24 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
             syncdata[45] = syncUniverse >> 8;
             syncdata[46] = syncUniverse & 0xff;
 
-            wxIPV4address localaddr;
-            if (localIP == "") {
-                localaddr.AnyAddress();
-            }
-            else {
-                localaddr.Hostname(localIP);
-            }
-
             if (syncdatagram != nullptr) {
                 delete syncdatagram;
             }
 
-            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+            syncdatagram = new sockets::UDPSocket();
 
             if (syncdatagram == nullptr) {
-                spdlog::error("Error initialising E131 sync datagram. {}", localaddr.IPAddress().ToStdString());
+                spdlog::error("Error creating E131 sync datagram object.");
             }
-            else if (!syncdatagram->IsOk()) {
-                spdlog::error("Error initialising E131 sync datagram ... is network connected? OK : FALSE {}", localaddr.IPAddress().ToStdString());
-                delete syncdatagram;
-                syncdatagram = nullptr;
-            }
-            else if (syncdatagram->Error()) {
-                spdlog::error("Error creating E131 sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), DecodeIPError(syncdatagram->LastError()), localaddr.IPAddress().ToStdString());
+            else if (!syncdatagram->Bind(localIP, 0, false)) {
+                spdlog::error("Error initialising E131 sync datagram: {}", syncdatagram->LastError());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
 
             // multicast - universe number must be in lower 2 bytes
-            wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, syncdata[45], syncdata[46]);
-            syncremoteAddr.Hostname(ipaddrWithUniv);
-            syncremoteAddr.Service(E131_PORT);
-
-            spdlog::debug("e131 Sync sync universe changed to {} => {}:{}.", syncUniverse, ipaddrWithUniv.ToStdString(), E131_PORT);
+            syncremoteIp = std::format("239.255.{}.{}", syncdata[45], syncdata[46]);
+            spdlog::debug("e131 Sync sync universe changed to {} => {}:{}.", syncUniverse, syncremoteIp, E131_PORT);
         }
 
         syncdata[44] = syncSequenceNum++;   // sequence number
@@ -243,7 +214,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
         // bail if we dont have a datagram to use
         if (syncdatagram != nullptr) {
-            syncdatagram->SendTo(syncremoteAddr, syncdata, E131_SYNCPACKET_LEN);
+            syncdatagram->SendTo(syncremoteIp, E131_PORT, syncdata, E131_SYNCPACKET_LEN);
         }
     }
 }
@@ -359,15 +330,13 @@ bool E131Output::Open() {
 
     OpenDatagram();
 
-    if (wxString(_ip).StartsWith("239.255.") || _ip == "MULTICAST") {
+    if (GetResolvedIP().rfind("239.255.", 0) == 0 || _ip == "MULTICAST") {
         // multicast - universe number must be in lower 2 bytes
-        wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, (int)UnivHi, (int)UnivLo);
-        _remoteAddr.Hostname(ipaddrWithUniv);
+        _remoteIp = std::format("239.255.{}.{}", (int)UnivHi, (int)UnivLo);
     }
     else {
-        _remoteAddr.Hostname(_ip.c_str());
+        _remoteIp = GetResolvedIP();
     }
-    _remoteAddr.Service(E131_PORT);
 
     uint8_t NumHi = (_channels + 1) >> 8;   // Channels (high)
     uint8_t NumLo = (_channels + 1) & 0xff; // Channels (low)
@@ -444,7 +413,7 @@ void E131Output::EndFrame(int suppressFrames) {
 
     if (_changed || NeedToOutput(suppressFrames)) {
         _data[111] = _sequenceNum;
-        _datagram->SendTo(_remoteAddr, _data, E131_PACKET_LEN - (512 - _channels));
+        _datagram->SendTo(_remoteIp, E131_PORT, _data, E131_PACKET_LEN - (512 - _channels));
         _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
         FrameOutput();
     }

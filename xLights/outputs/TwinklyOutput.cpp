@@ -206,10 +206,6 @@ void TwinklyOutput::EndFrame(int suppressFrames)
     const int PACKET_SIZE = 1 + TOKEN_SIZE + 2 + 1 + 900;
     unsigned char packet[PACKET_SIZE];
 
-    wxIPV4address remoteAddr;
-    remoteAddr.Hostname(_ip.c_str());
-    remoteAddr.Service(UDP_PORT);
-
     int offset = 0;
     int fragmentNumber = 0;
     while (offset < _channels) {
@@ -237,7 +233,7 @@ void TwinklyOutput::EndFrame(int suppressFrames)
         i += payloadSize;
 
         wxASSERT(i <= PACKET_SIZE);
-        _datagram->SendTo(remoteAddr, packet, PACKET_SIZE);
+        _datagram->SendTo(_ip, UDP_PORT, packet, PACKET_SIZE);
     }
 
     FrameOutput();
@@ -387,22 +383,11 @@ void TwinklyOutput::OpenDatagram()
     if (_datagram != nullptr)
         return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    } else {
-        localaddr.Hostname(GetForceLocalIPToUse());
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+    _datagram = new sockets::UDPSocket();
     if (_datagram == nullptr) {
-        spdlog::error("Twinkly: {} Error opening datagram.",localaddr.IPAddress().ToStdString());
-    } else if (!_datagram->IsOk()) {
-        spdlog::error("Twinkly: {} Error opening datagram. Network may not be connected? OK : FALSE", localaddr.IPAddress().ToStdString());
-        delete _datagram;
-        _datagram = nullptr;
-    } else if (_datagram->Error()) {
-        spdlog::error("Twinkly: {} Error creating Twinkly datagram => {} : {}.", localaddr.IPAddress().ToStdString(), (int)_datagram->LastError(), DecodeIPError(_datagram->LastError()));
+        spdlog::error("Twinkly: Error opening datagram.");
+    } else if (!_datagram->Bind(GetForceLocalIPToUse(), 0, false)) {
+        spdlog::error("Twinkly: Error opening datagram. {}", _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
     }

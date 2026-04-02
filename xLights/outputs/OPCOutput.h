@@ -13,8 +13,7 @@
 // Protocol specification can be found here: http://openpixelcontrol.org/
 
 #include "IPOutput.h"
-
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 #pragma region E1.31 Constants
 #define OPC_PACKET_HEADERLEN 4
@@ -25,8 +24,8 @@ class OPCOutput : public IPOutput
 {
     #pragma region Member Variables
     uint8_t* _data = nullptr;
-    wxIPV4address _remoteAddr;
-    wxSocketClient*_socket = nullptr;
+    std::string _remoteIp;
+    sockets::TCPSocket* _socket = nullptr;
     #pragma endregion
 
     #pragma region Private Functiona

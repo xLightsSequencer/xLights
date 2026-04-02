@@ -13,6 +13,7 @@
 
 
 #include "DDPOutput.h"
+#include <cassert>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
@@ -22,6 +23,8 @@
 
 #include <log.h>
 #include <wx/stopwatch.h>
+#include <wx/sckaddr.h>
+#include <wx/socket.h>
 
 #ifndef EXCLUDEDISCOVERY
 #include "ui/setup/Discovery.h"
@@ -38,27 +41,14 @@ void DDPOutput::OpenDatagram() {
 
     if (_datagram != nullptr) return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIP() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIP());
+    _datagram = new sockets::UDPSocket();
+    if (_datagram == nullptr) {
+        spdlog::error("Error creating DDP datagram object for {}.", _ip);
+        _ok = false;
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK);  // dont use NOWAIT as it can result in dropped packets
-    if (_datagram == nullptr) {
-        spdlog::error("Error initialising DDP datagram for {}. {}", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
-        _ok = false;
-    }
-    else if (!_datagram->IsOk()) {
-        spdlog::error("Error initialising DDP datagram for {}. {} OK: FALSE", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-    }
-    else if (_datagram->Error()) {
-        spdlog::error("Error creating DDP datagram => {} : {}. {}", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+    if (!_datagram->Bind(GetForceLocalIP(), 0, false)) {
+        spdlog::error("Error initialising DDP datagram for {}: {}", _ip, _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -123,8 +113,8 @@ void DDPOutput::SendSync(const std::string& localIP) {
 
     
     static uint8_t syncdata[DDP_SYNCPACKET_LEN];
-    static wxIPV4address syncremoteAddr;
-    static wxDatagramSocket *syncdatagram = nullptr;
+    static std::string syncremoteIp;
+    static sockets::UDPSocket* syncdatagram = nullptr;
 
     if (!__initialised) {
         spdlog::debug("Initialising DDP Sync.");
@@ -135,30 +125,18 @@ void DDPOutput::SendSync(const std::string& localIP) {
         syncdata[2] = 0x80;
         syncdata[3] = DDP_ID_DISPLAY;
 
-        wxIPV4address localaddr;
-        if (localIP == "") {
-            localaddr.AnyAddress();
-        }
-        else {
-            localaddr.Hostname(localIP);
-        }
-
         if (syncdatagram != nullptr) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+        syncdatagram = new sockets::UDPSocket();
         if (syncdatagram == nullptr) {
-            spdlog::error("Error initialising DDP sync datagram. {}", localaddr.IPAddress().ToStdString());
-            return;
-        } else if (!syncdatagram->IsOk()) {
-            spdlog::error("Error initialising DDP sync datagram ... is network connected? OK: FALSE {}", localaddr.IPAddress().ToStdString());
-            delete syncdatagram;
-            syncdatagram = nullptr;
+            spdlog::error("Error creating DDP sync datagram object.");
             return;
         }
-        else if (syncdatagram->Error()) {
-            spdlog::error("Error creating DDP sync datagram => {} : {}. {}", (int)syncdatagram->LastError(), DecodeIPError(syncdatagram->LastError()), localaddr.IPAddress().ToStdString());
+
+        if (!syncdatagram->Bind(localIP, 0, false) || !syncdatagram->SetBroadcast(true)) {
+            spdlog::error("Error initialising DDP sync datagram: {}", syncdatagram->LastError());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -167,14 +145,12 @@ void DDPOutput::SendSync(const std::string& localIP) {
         // broadcast ... this is not really in line with the spec
         // I should use the net mask but i cant find a good way to do that
         //syncremoteAddr.BroadcastAddress();
-        wxString broadcast = "255.255.255.255";
-        spdlog::debug("DDP Sync broadcasting to {}.", broadcast.ToStdString());
-        syncremoteAddr.Hostname(broadcast);
-        syncremoteAddr.Service(DDP_PORT);
+        syncremoteIp = "255.255.255.255";
+        spdlog::debug("DDP Sync broadcasting to {}.", syncremoteIp);
     }
 
     if (syncdatagram != nullptr) {
-        syncdatagram->SendTo(syncremoteAddr, syncdata, DDP_SYNCPACKET_LEN);
+        syncdatagram->SendTo(syncremoteIp, DDP_PORT, syncdata, DDP_SYNCPACKET_LEN);
     }
 }
 
@@ -454,8 +430,7 @@ bool DDPOutput::Open() {
 
     OpenDatagram();
 
-    _remoteAddr.Hostname(_ip.c_str());
-    _remoteAddr.Service(DDP_PORT);
+    _remoteIp = GetResolvedIP();
 
     return _ok;
 }
@@ -534,7 +509,7 @@ void DDPOutput::EndFrame(int suppressFrames) {
 
             memcpy(&_data[10], _fulldata + index, thissend);
 
-            _datagram->SendTo(_remoteAddr, &_data[0], DDP_PACKET_LEN - (1440 - thissend));
+            _datagram->SendTo(_remoteIp, DDP_PORT, &_data[0], DDP_PACKET_LEN - (1440 - thissend));
             _sequenceNum = _sequenceNum == 15 ? 1 : _sequenceNum + 1;
 
             tosend -= thissend;

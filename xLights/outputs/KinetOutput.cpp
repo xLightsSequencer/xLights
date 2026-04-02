@@ -11,10 +11,9 @@
 
 
 #include "KinetOutput.h"
+#include <cassert>
 #include <cstring>
 #include "OutputManager.h"
-#include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"
 
@@ -30,27 +29,15 @@ void KinetOutput::OpenDatagram() {
 
     if (_datagram != nullptr) return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIPToUse());
+    _datagram = new sockets::UDPSocket();
+    if (_datagram == nullptr) {
+        spdlog::error("Error creating Kinet datagram object for {} {}.", _ip, GetUniverse());
+        _ok = false;
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
-    if (_datagram == nullptr) {
-        spdlog::error("Error initialising Kinet datagram for {} {}. {}", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
-        _ok = false;
-    }
-    else if (!_datagram->IsOk()) {
-        spdlog::error("Error initialising Kinet datagram for {} {}. {} OK : FALSE", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-    }
-    else if (_datagram->Error()) {
-        spdlog::error("Error creating Kinet datagram => {} : {}. {}", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+    const std::string localIp = GetForceLocalIPToUse();
+    if (!_datagram->Bind(localIp, 0, false)) {
+        spdlog::error("Error initialising Kinet datagram for {} {}. {}", _ip, GetUniverse(), _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -202,8 +189,7 @@ bool KinetOutput::Open() {
 
     OpenDatagram();
 
-    _remoteAddr.Hostname(_ip.c_str());
-    _remoteAddr.Service(KINET_PORT);
+    _remoteIp = GetResolvedIP();
 
     return _ok;
 }
@@ -243,10 +229,14 @@ void KinetOutput::EndFrame(int suppressFrames) {
         _data[9] = (_sequenceNum >> 8) & 0xFF;
         _data[10] = (_sequenceNum >> 16) & 0xFF;
         _data[11] = (_sequenceNum >> 24) & 0xFF;
-        _datagram->SendTo(_remoteAddr, _data, GetHeaderPacketLength() + _channels);
-        _sequenceNum++;
-        FrameOutput();
-        _changed = false;
+        if (_datagram->SendTo(_remoteIp, KINET_PORT, _data, GetHeaderPacketLength() + _channels)) {
+            _sequenceNum++;
+            FrameOutput();
+            _changed = false;
+        } else {
+            spdlog::error("KinetOutput: SendTo failed for {}:{} - {}", _remoteIp, KINET_PORT, _datagram->LastError());
+            SkipFrame();
+        }
     }
     else {
         SkipFrame();
@@ -258,7 +248,7 @@ void KinetOutput::EndFrame(int suppressFrames) {
 void KinetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
     if (!_enabled) return;
-    wxASSERT(channel < _channels);
+    assert(channel < _channels);
 
     if (_data[channel + GetHeaderPacketLength()] != data) {
         _data[channel + GetHeaderPacketLength()] = data;
@@ -269,7 +259,7 @@ void KinetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 void KinetOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
     if (!_enabled) return;
-    wxASSERT((size_t)channel + size <= (size_t)_channels);
+    assert((size_t)channel + size <= (size_t)_channels);
 
     size_t chs = (std::min)((int32_t)size, _channels - channel);
 

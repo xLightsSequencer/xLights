@@ -11,8 +11,7 @@
  **************************************************************/
 
 #include "IPOutput.h"
-
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 #pragma region KINET Constants
 #define KINET_V1_PACKET_HEADERLEN 21
@@ -26,8 +25,8 @@ class KinetOutput : public IPOutput
     #pragma region Member Variables
     uint8_t _data[KINET_PACKET_LEN];
     uint32_t _sequenceNum = 0;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket *_datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
     int _version = 2;
     #pragma endregion
 

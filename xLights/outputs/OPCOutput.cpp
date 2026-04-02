@@ -10,21 +10,13 @@
  **************************************************************/
 
 #include "OPCOutput.h"
+#include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include "OutputManager.h"
-#include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../utils/ip_utils.h"
 
-#include <wx/process.h>
-
 #include <log.h>
-
-#ifdef __linux__
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#endif
 
 #pragma region Private Functions
 void OPCOutput::OpenSocket() {
@@ -33,44 +25,27 @@ void OPCOutput::OpenSocket() {
 
     if (_socket != nullptr) return;
 
-    _socket = new wxSocketClient();
+    _socket = new sockets::TCPSocket();
     if (_socket == nullptr) {
-        spdlog::error("OPCOutput: Error opening socket to connect to {}.", (const char*)_remoteAddr.IPAddress().c_str());
+        spdlog::error("OPCOutput: Error opening socket object to connect to {}.", _remoteIp);
     }
     else
     {
-        wxIPV4address localaddr;
-        if (GetForceLocalIPToUse() == "") {
-            localaddr.AnyAddress();
-        }
-        else {
-            localaddr.Hostname(GetForceLocalIPToUse());
-        }
-
-        _socket->SetFlags(wxSOCKET_NOWAIT);
-        _socket->SetLocal(localaddr);
-        _socket->Connect(_remoteAddr, true);
-        if (!_socket->IsOk()) {
-            spdlog::error("OPCOutput: {} Error connecting to socket. Network may not be connected? OK : FALSE", (const char*)_remoteAddr.IPAddress().c_str());
-            delete _socket;
-            _socket = nullptr;
-        }
-        else if (_socket->Error()) {
-            spdlog::error("OPCOutput: {} Error connecting OPC socket => {} : {}.", (const char*)_remoteAddr.IPAddress().c_str(), (int)_socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+        const std::string localIp = GetForceLocalIPToUse();
+        if (!_socket->Connect(_remoteIp, OPC_PORT, localIp, false)) {
+            spdlog::error("OPCOutput: {} Error connecting OPC socket: {}", _remoteIp, _socket->LastError());
             delete _socket;
             _socket = nullptr;
         }
         else
         {
-            spdlog::error("OPCOutput: OPC socket connected to {}.", (const char*)_remoteAddr.IPAddress().c_str());
-            #ifdef __linux__
+            spdlog::debug("OPCOutput: OPC socket connected to {}.", _remoteIp);
             // The pixels sent is timing sensitive, TCP_NODELAY disables
             // Nagle algorithm to delay sending out TCP packets to combine
             // with later data.  This needs to not delay or combine writes.
-            int optval = 1;
-            if(setsockopt(_socket->GetSocket(), IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval)) == -1)
+            if (!_socket->SetNoDelay(true)) {
                 spdlog::error("OPCOutput: failed to set TCP_NODELAY");
-            #endif
+            }
         }
     }
 }
@@ -107,7 +82,7 @@ OPCOutput::OPCOutput(const OPCOutput& from) :
 OPCOutput::~OPCOutput()
 {
     if (_socket != nullptr) delete _socket;
-    if (_data != nullptr) delete _data;
+    if (_data != nullptr) free(_data);
 }
 
 pugi::xml_node OPCOutput::Save(pugi::xml_node parent) {
@@ -161,7 +136,7 @@ void OPCOutput::SetTransientData(int32_t& startChannel, int nullnumber) {
     //    _fppProxyOutput->SetTransientData(startChannel, nullnumber);
     //}
 
-    wxASSERT(startChannel != -1);
+    assert(startChannel != -1);
     //_outputNumber = on++;
     _startChannel = startChannel;
     startChannel += GetChannels();
@@ -187,8 +162,7 @@ bool OPCOutput::Open() {
     _data[2] = (uint8_t)((_channels & 0xFF00) >> 8);
     _data[3] = (uint8_t)(_channels & 0xFF);
 
-    _remoteAddr.Hostname(_ip.c_str());
-    _remoteAddr.Service(OPC_PORT);
+    _remoteIp = GetResolvedIP();
 
     OpenSocket();
 
@@ -244,8 +218,15 @@ void OPCOutput::EndFrame(int suppressFrames) {
     reentry = true;
 
     if (_changed || NeedToOutput(suppressFrames)) {
-        _socket->Write(_data, _channels + OPC_PACKET_HEADERLEN);
-        FrameOutput();
+        if (_socket->Write(_data, _channels + OPC_PACKET_HEADERLEN)) {
+            FrameOutput();
+        }
+        else {
+            spdlog::error("OPCOutput: Write failed for {}: {}", _remoteIp, _socket->LastError());
+            delete _socket;
+            _socket = nullptr;
+            SkipFrame();
+        }
     }
     else {
         SkipFrame();

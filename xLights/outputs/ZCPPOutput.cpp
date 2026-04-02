@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <format>
 
 #include "../controllers/Falcon.h"
 #include "ZCPPOutput.h"
@@ -30,6 +31,8 @@
 
 #ifndef EXCLUDEDISCOVERY
 #include "ui/setup/Discovery.h"
+#include <wx/socket.h>
+#include <wx/sckaddr.h>
 #endif
 
 #include <log.h>
@@ -226,7 +229,7 @@ ZCPPOutput::ZCPPOutput(const ZCPPOutput& from) : IPOutput(from) {
     }
     memset(&_packet, 0, sizeof(_packet));
     _sequenceNum = from._sequenceNum;
-    _remoteAddr = from._remoteAddr;
+    _remoteIp = from._remoteIp;
     _datagram = nullptr;
     _lastSecond = -1;
     _vendor = from._vendor;
@@ -278,8 +281,8 @@ void ZCPPOutput::SendSync(const std::string& localIP) {
     static ZCPP_packet_t syncdata;
     static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
-    static wxIPV4address syncremoteAddr;
-    static wxDatagramSocket* syncdatagram = nullptr;
+    static std::string syncremoteIp;
+    static sockets::UDPSocket* syncdatagram = nullptr;
 
     if (!initialised) {
         spdlog::debug("Initialising ZCPP Sync.");
@@ -291,45 +294,30 @@ void ZCPPOutput::SendSync(const std::string& localIP) {
         syncdata.Sync.Header.type = ZCPP_TYPE_SYNC;
         syncdata.Sync.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
-        wxIPV4address localaddr;
-        if (localIP == "") {
-            localaddr.AnyAddress();
-        }
-        else {
-            localaddr.Hostname(localIP);
-        }
-
         if (syncdatagram != nullptr) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+        syncdatagram = new sockets::UDPSocket();
 
         if (syncdatagram == nullptr) {
             spdlog::error("Error initialising ZCPP sync datagram.");
         }
-        else if (!syncdatagram->IsOk()) {
-            spdlog::error("Error initialising ZCPP sync datagram ... is network connected? OK : FALSE");
-            delete syncdatagram;
-            syncdatagram = nullptr;
-        }
-        else if (syncdatagram->Error()) {
-            spdlog::error("Error creating ZCPP sync datagram => {} : {}.", (int)syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str());
+        else if (!syncdatagram->Bind(localIP, 0, false)) {
+            spdlog::error("Error initialising ZCPP sync datagram: {}", syncdatagram->LastError());
             delete syncdatagram;
             syncdatagram = nullptr;
         }
 
         // multicast - universe number must be in lower 2 bytes
-        wxString ipaddrWithUniv = ZCPP_MULTICAST_ADDRESS;
-        syncremoteAddr.Hostname(ipaddrWithUniv);
-        syncremoteAddr.Service(ZCPP_PORT);
+        syncremoteIp = ZCPP_MULTICAST_ADDRESS;
     }
 
     syncdata.Sync.sequenceNumber = syncSequenceNum++;   // sequence number
 
     // bail if we dont have a datagram to use
     if (syncdatagram != nullptr) {
-        syncdatagram->SendTo(syncremoteAddr, &syncdata, ZCPP_GetPacketActualSize(syncdata));
+        syncdatagram->SendTo(syncremoteIp, ZCPP_PORT, reinterpret_cast<const uint8_t*>(&syncdata), ZCPP_GetPacketActualSize(syncdata));
     }
 }
 
@@ -758,36 +746,28 @@ bool ZCPPOutput::Open() {
     _packet.Data.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
     _packet.Data.priority = _priority;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIPToUse());
+    _datagram = new sockets::UDPSocket();
+    if (_datagram == nullptr || !_datagram->Open()) {
+        spdlog::error("ZCPPOutput: Error opening datagram{}.",
+            _datagram != nullptr ? std::format(" ({})", _datagram->LastError()) : "");
+        delete _datagram;
+        _datagram = nullptr;
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
-    if (_datagram == nullptr) {
-        spdlog::error("ZCPPOutput: Error opening datagram.");
-    }
-    else if (!_datagram->IsOk()) {
-        spdlog::error("ZCPPOutput: Error opening datagram. Network may not be connected? OK : FALSE");
-        delete _datagram;
-        _datagram = nullptr;
-    }
-    else if (_datagram->Error()) {
-        spdlog::error("Error creating ZCPP datagram => {} : {}.", (int)_datagram->LastError(), DecodeIPError(_datagram->LastError()));
-        delete _datagram;
-        _datagram = nullptr;
+    if (_datagram != nullptr && GetForceLocalIPToUse() != "") {
+        if (!_datagram->Bind(GetForceLocalIPToUse(), 0)) {
+            spdlog::error("ZCPPOutput: Error binding datagram to {}: {}.", GetForceLocalIPToUse(), _datagram->LastError());
+            delete _datagram;
+            _datagram = nullptr;
+        }
     }
 
     if (_multicast) {
-        _remoteAddr.Hostname(ZCPP_MULTICAST_DATA_ADDRESS + wxString(_ip).AfterLast('.'));
+        _remoteIp = ZCPP_MULTICAST_DATA_ADDRESS + wxString(_ip).AfterLast('.').ToStdString();
     }
     else {
-        _remoteAddr.Hostname(_ip.c_str());
+        _remoteIp = GetResolvedIP();
     }
-    _remoteAddr.Service(ZCPP_PORT);
 
     return _ok && _datagram != nullptr;
 }
@@ -847,7 +827,7 @@ void ZCPPOutput::EndFrame(int suppressFrames) {
                     (*it)->Configuration.flags &= ~ZCPP_CONFIG_FLAG_EXTRA_DATA_WILL_FOLLOW;
                 }
 
-                _datagram->SendTo(_remoteAddr, *it, ZCPP_GetPacketActualSize(**it));
+                _datagram->SendTo(_remoteIp, ZCPP_PORT, reinterpret_cast<const uint8_t*>(*it), ZCPP_GetPacketActualSize(**it));
             }
 
             if (sendExtra) {
@@ -867,7 +847,7 @@ void ZCPPOutput::EndFrame(int suppressFrames) {
                     else                         {
                         (*it)->ExtraData.flags &= ~ZCPP_CONFIG_FLAG_LAST;
                     }
-                    _datagram->SendTo(_remoteAddr, *it, ZCPP_GetPacketActualSize(**it));
+                    _datagram->SendTo(_remoteIp, ZCPP_PORT, reinterpret_cast<const uint8_t*>(*it), ZCPP_GetPacketActualSize(**it));
                 }
             }
             _lastSecond = second;
@@ -886,7 +866,7 @@ void ZCPPOutput::EndFrame(int suppressFrames) {
                           (i == 0 ? ZCPP_DATA_FLAG_FIRST : 0x00);
             _packet.Data.packetDataLength = ntohs(packetlen);
             memcpy(_packet.Data.data, &_data[i], packetlen);
-            _datagram->SendTo(_remoteAddr, &_packet, ZCPP_GetPacketActualSize(_packet));
+            _datagram->SendTo(_remoteIp, ZCPP_PORT, reinterpret_cast<const uint8_t*>(&_packet), ZCPP_GetPacketActualSize(_packet));
             i += packetlen;
         }
         _sequenceNum++;

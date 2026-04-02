@@ -25,6 +25,7 @@
 #include "ControllerCaps.h"
 #include "ui/setup/Discovery.h"
 #include "../utils/CurlManager.h"
+#include "../outputs/SocketAbstraction.h"
 
 #include "../utils/string_utils.h"
 
@@ -949,70 +950,51 @@ void Pixlite16::CreateDiscovery(uint8_t* buffer)
     buffer[11] = 0x06;
 }
 
-bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::string& desiredip)
+bool Pixlite16::GetConfig(const std::string& localIp, std::string ip, const std::string& desiredip)
 {
     bool res = false;
 
     memset((void*)&_config, 0x00, sizeof(_config));
 
-    // broadcast packet to find all of them
-    localAddr.Service(PIXLITE_PORT);
-
-    wxSocketFlags flags = wxSOCKET_BLOCK;
+    sockets::UDPSocket discovery;
 
     if (ip == "" || ip == "255.255.255.255") {
-        flags |= wxSOCKET_BROADCAST;
         ip = "255.255.255.255";
     }
 
-    auto discovery = new wxDatagramSocket(localAddr, flags); // dont use NOWAIT as it can result in dropped packets
-
-    if (discovery == nullptr) {
+    if (!discovery.Open(ip == "255.255.255.255")) {
         spdlog::error("Error initialising PixLite/PixCon datagram.");
-    } else if (!discovery->IsOk()) {
-        spdlog::error("Error initialising PixLite/PixCon datagram ... is network connected? OK : FALSE");
-        delete discovery;
-    } else if (discovery->Error()) {
-        spdlog::error("Error creating PixLite/PixCon socket => {} : {}.", (int)discovery->LastError(), DecodeIPError(discovery->LastError()));
-        delete discovery;
+    } else if (!discovery.Bind(localIp, PIXLITE_PORT, false)) {
+        spdlog::error("Error initialising PixLite/PixCon datagram ... {}", discovery.LastError());
     } else {
-        discovery->SetTimeout(1);
-        discovery->Notify(false);
-
-        wxIPV4address remoteAddr;
-        remoteAddr.Hostname(ip);
-        remoteAddr.Service(PIXLITE_PORT);
-
         uint8_t discoveryData[12];
         Pixlite16::CreateDiscovery(discoveryData);
         spdlog::debug("Sending discovery to pixlite: {}:{}.", ip, PIXLITE_PORT);
-        discovery->SendTo(remoteAddr, discoveryData, sizeof(discoveryData));
-
-        if (discovery->Error()) {
-            spdlog::error("PixLite/PixCon error sending to {} => {} : {}.", ip, (int)discovery->LastError(), DecodeIPError(discovery->LastError()));
+        if (!discovery.SendTo(ip, PIXLITE_PORT, discoveryData, sizeof(discoveryData))) {
+            spdlog::error("PixLite/PixCon error sending to {} => {}.", ip, discovery.LastError());
         } else {
             uint32_t count = 0;
 #define SLP_TIME 100
-            while (count < 5000 && !discovery->IsData()) {
+            while (count < 5000 && !discovery.WaitForData(SLP_TIME)) {
                 wxMilliSleep(SLP_TIME);
                 count += SLP_TIME;
             }
 
-            if (!discovery->IsData()) {
+            if (!discovery.WaitForData(1)) {
                 spdlog::warn("No discovery responses.");
             }
 
             // look through responses for one that matches my ip
-            while (discovery->IsData()) {
+            while (discovery.WaitForData(1)) {
                 uint8_t data[1500];
                 memset(data, 0x00, sizeof(data));
-                wxIPV4address pixliteAddr;
-                discovery->RecvFrom(pixliteAddr, data, sizeof(data));
+                std::string pixliteIp;
+                const int bytesRead = discovery.ReceiveFrom(data, sizeof(data), &pixliteIp, nullptr);
 
-                if (!discovery->Error() && data[10] == 0x02) {
-                    spdlog::debug("   Discover response from {}.", pixliteAddr.IPAddress().ToStdString());
+                if (bytesRead > 0 && data[10] == 0x02) {
+                    spdlog::debug("   Discover response from {}.", pixliteIp);
 
-                    if (desiredip == pixliteAddr.IPAddress()) {
+                    if (desiredip == pixliteIp) {
                         spdlog::debug("   This is the one we wanted to see.");
 
                         bool connected = false;
@@ -1063,18 +1045,17 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
                             spdlog::error("Unable to download PixLite/PixCon controller configuration from {}.", ip);
                         }
                     }
-                    if (!discovery->Error() && data[10] == 0x01) {
+                    if (bytesRead > 0 && data[10] == 0x01) {
                         // ignore this ... this is the discovery we sent
                     } else {
                         spdlog::debug("   Not the controller we wanted to see.");
                     }
-                } else if (discovery->Error()) {
-                    spdlog::error("Error reading PixLite/PixCon response => {} : {}.", (int)discovery->LastError(),DecodeIPError(discovery->LastError()));
+                } else if (bytesRead < 0) {
+                    spdlog::error("Error reading PixLite/PixCon response => {}.", discovery.LastError());
                 }
             }
         }
-        discovery->Close();
-        delete discovery;
+        discovery.Close();
     }
 
     return res;
@@ -1083,11 +1064,9 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
 bool Pixlite16::GetConfig()
 {
     bool res = false;
-    wxIPV4address localAddr;
 
     if (_ip != "") {
-        localAddr.AnyAddress();
-        res = GetConfig(localAddr, _ip, _ip);
+        res = GetConfig("", _ip, _ip);
     }
 
     // if we had no luck broadcast to all adapters and see if we can find it
@@ -1099,8 +1078,7 @@ bool Pixlite16::GetConfig()
         {
             if (!res) {
                 spdlog::warn("   Trying {}.", (const char*)lip.c_str());
-                localAddr.Hostname(lip);
-                res = GetConfig(localAddr, "255.255.255.255", _ip);
+                res = GetConfig(lip, "255.255.255.255", _ip);
             }
         }
     }
@@ -1559,32 +1537,18 @@ bool Pixlite16::SendConfig(bool logresult) const
         return SendMk3Config(logresult);
     }
 
-    // broadcast packet to find all of them
-    wxIPV4address localAddr;
-    localAddr.AnyAddress();
-    localAddr.Service(PIXLITE_PORT);
+    sockets::UDPSocket config;
 
-    auto config = new wxDatagramSocket(localAddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
-
-    if (config == nullptr) {
+    if (!config.Open()) {
         spdlog::error("Error initialising PixLite/PixCon config datagram.");
         return false;
     }
-    if (!config->IsOk()) {
-        spdlog::error("Error initialising PixLite/PixCon config datagram ... is network connected? OK : FALSE");
-        delete config;
-        return false;
-    }
-    if (config->Error()) {
-        spdlog::error("Error creating PixLite/PixCon config datagram => {} : {}.", (int)config->LastError(), DecodeIPError(config->LastError()));
-        delete config;
+    if (!config.Bind("", PIXLITE_PORT, false)) {
+        spdlog::error("Error initialising PixLite/PixCon config datagram ... {}", config.LastError());
         return false;
     }
 
     spdlog::debug("PixLite/PixCon sending config to {}.", _ip);
-    wxIPV4address toAddr;
-    toAddr.Hostname(_ip);
-    toAddr.Service(PIXLITE_PORT);
 
     uint8_t data[1500];
     memset(data, 0x00, sizeof(data));
@@ -1610,11 +1574,10 @@ bool Pixlite16::SendConfig(bool logresult) const
     }
 
     if (size > 0) {
-        config->SendTo(toAddr, data, size);
+        config.SendTo(_ip, PIXLITE_PORT, data, size);
     }
 
-    config->Close();
-    delete config;
+    config.Close();
 
     return true;
 }
