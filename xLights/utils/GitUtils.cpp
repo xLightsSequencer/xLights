@@ -5,6 +5,11 @@
 #include <regex>
 #include <format>
 
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
 #include <log.h>
 
 GitUtils& GitUtils::Instance()
