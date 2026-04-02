@@ -19,6 +19,12 @@
 //#define D3D_DEBUG_INFO
 #endif
 
+// Must be defined before windows.h (via d3d11.h) to prevent winsock.h being
+// included, which conflicts with winsock2.h included by other translation units.
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_
+#endif
+
 #include <d3d11.h>
 #include <D2d1.h>
 #include <D2d1helper.h>
