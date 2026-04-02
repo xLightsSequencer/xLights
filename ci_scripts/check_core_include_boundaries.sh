@@ -46,8 +46,8 @@ if [[ ! -f "$ALLOWLIST_FILE" ]]; then
     exit 2
 fi
 
-declare -a VIOLATIONS
-declare -a BLOCKING
+VIOLATIONS=()
+BLOCKING=()
 ALLOWED_COUNT=0
 
 is_forbidden_include() {
