@@ -31,6 +31,7 @@
 #include "GenericSerialOutput.h"
 #include "../models/ModelManager.h"
 
+#include <cassert>
 #include <format>
 
 #include <log.h>
@@ -361,7 +362,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
     } else if (type == OUTPUT_GENERICSERIAL) {
         o = new GenericSerialOutput();
     } else {
-        wxASSERT(false);
+        assert(false);
         spdlog::error("Could not create serial output of type {}.", type);
     }
 
@@ -441,7 +442,7 @@ void ControllerSerial::Convert(pugi::xml_node node, std::string showDir) {
         _serialOutput = dynamic_cast<SerialOutput*>(_outputs.back());
     }
 
-    wxASSERT(_outputs.size() == 1);
+    assert(_outputs.size() == 1);
 
     if (_outputs.size() > 0) {
         _port = _serialOutput->GetCommPort();

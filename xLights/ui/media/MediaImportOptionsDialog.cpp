@@ -13,6 +13,8 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/dirdlg.h>
+
 #include "MediaImportOptionsDialog.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
