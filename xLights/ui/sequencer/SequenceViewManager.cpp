@@ -269,6 +269,7 @@ void SequenceViewManager::DeleteView(const std::string& name)
 void SequenceViewManager::DeleteView(SequenceView* view)
 {
 	_views.remove(view);
+	delete view;
 }
 
 void SequenceViewManager::RenameView(const std::string& oldname, const std::string& newname)
@@ -298,7 +299,7 @@ SequenceView* SequenceViewManager::GetView(const std::string& name) const
 {
 	for (auto it = _views.begin(); it != _views.end(); ++it)
 	{
-		if ((*it)->GetName() == name) return *it;
+		if (*it != nullptr && (*it)->GetName() == name) return *it;
 	}
 
 	return nullptr;
