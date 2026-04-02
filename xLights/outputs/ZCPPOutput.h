@@ -14,6 +14,8 @@
 #include "SocketAbstraction.h"
 #include "ZCPP.h"
 
+#include "../utils/string_utils.h"
+
 #include <vector>
 
 class ControllerEthernet;
@@ -121,11 +123,11 @@ public:
 
     void AddProtocol(const std::string& protocol) {
         if (!SupportsProtocol(protocol)) {
-            _protocols.push_back(wxString(protocol).Lower().ToStdString());
+            _protocols.push_back(Lower(protocol));
         }
     }
     bool SupportsProtocol(const std::string& protocol) {
-        return std::find(_protocols.begin(), _protocols.end(), wxString(protocol).Lower().ToStdString()) != _protocols.end();
+        return std::find(_protocols.begin(), _protocols.end(), Lower(protocol)) != _protocols.end();
     }
 
     bool SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData, std::list<ZCPP_packet_t*> extraConfig, std::string showDir);

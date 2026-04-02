@@ -28,11 +28,31 @@
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
+#include <cassert>
+#include <cstdlib>
 #include <format>
 #include <numeric>
 #include <chrono>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
+#include <unistd.h>
+#endif
+
 #include <log.h>
+
+namespace {
+    std::string GetHostName() {
+        char buf[256];
+        if (gethostname(buf, sizeof(buf)) == 0) {
+            buf[sizeof(buf) - 1] = '\0';
+            return std::string(buf);
+        }
+        return {};
+    }
+}
 
 #pragma region Static Variables
 int OutputManager::_lastSecond = -10;
@@ -247,7 +267,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                         cu = new ControllerSerial(this);
                     }
                     else {
-                        wxASSERT(false);
+                        assert(false);
                     }
                     AddController(cu, -1);
                     cu->DeleteAllOutputs();
@@ -391,7 +411,7 @@ void OutputManager::SaveToXML(pugi::xml_document& doc) {
 
     pugi::xml_node root = doc.append_child("Networks");
 
-    root.append_attribute("computer") = wxGetHostName().ToStdString();
+    root.append_attribute("computer") = GetHostName();
     root.append_attribute("GlobalFPPProxy") = _globalFPPProxy;
     root.append_attribute("GlobalForceLocalIP") = _globalForceLocalIP;
 
@@ -847,11 +867,11 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
 
     if (startChannelString.find(':') != std::string::npos) {
         if (startChannelString[0] == '#') {
-            auto parts = wxSplit(&startChannelString[1], ':');
+            auto parts = Split(startChannelString.substr(1), ':');
             if (parts.size() > 3) return 0;
             if (parts.size() == 2) {
-                int uni = wxAtoi(parts[0]);
-                long sc = wxAtol(parts[1]);
+                int uni = (int)strtol(parts[0].c_str(), nullptr, 10);
+                long sc = strtol(parts[1].c_str(), nullptr, 10);
                 if (uni < 1) return 0;
                 if (sc < 1) return 0;
                 Output* o = GetOutput(uni, "");
@@ -859,9 +879,9 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
                 return o->GetStartChannel() + sc - 1;
             }
             else {
-                std::string ip = parts[0].ToStdString();
-                int uni = wxAtoi(parts[1]);
-                long sc = wxAtol(parts[2]);
+                std::string ip = parts[0];
+                int uni = (int)strtol(parts[1].c_str(), nullptr, 10);
+                long sc = strtol(parts[2].c_str(), nullptr, 10);
                 if (ip == "") return 0;
                 if (uni < 1) return 0;
                 if (sc < 1) return 0;
@@ -871,11 +891,11 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
             }
         }
         else if (startChannelString[0] == '!') {
-            auto parts = wxSplit(&startChannelString[1], ':');
+            auto parts = Split(startChannelString.substr(1), ':');
             if (parts.size() == 2) {
                 auto controller = GetController(parts[0]);
                 if (controller == nullptr) return 0;
-                long sc = wxAtol(parts[1]);
+                long sc = strtol(parts[1].c_str(), nullptr, 10);
                 if (sc < 1) return 0;
                 return controller->GetStartChannel() + sc - 1;
             }
@@ -884,10 +904,10 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
             }
         }
         else {
-            auto parts = wxSplit(startChannelString, ':');
+            auto parts = Split(startChannelString, ':');
             if (parts.size() > 2) return 0;
-            int output = wxAtoi(parts[0]);
-            long sc = wxAtol(parts[1]);
+            int output = (int)strtol(parts[0].c_str(), nullptr, 10);
+            long sc = strtol(parts[1].c_str(), nullptr, 10);
             if (output < 1) return 0;
             if (sc < 1) return 0;
             Output* o = GetOutput_CONVERT(output - 1);
@@ -896,7 +916,7 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
         }
     }
     else {
-        return wxAtol(startChannelString);
+        return strtol(startChannelString.c_str(), nullptr, 10);
     }
 }
 #pragma endregion
@@ -932,7 +952,7 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const {
     std::list<int> res;
     for (const auto& it : GetAllOutputs()) {
         if (ip == "" || (ip == it->GetIP() || ip == it->GetResolvedIP())) {
-            wxASSERT(!it->IsOutputCollection_CONVERT());
+            assert(!it->IsOutputCollection_CONVERT());
             if (std::find(res.begin(), res.end(), it->GetUniverse()) == res.end()) {
                 res.push_back(it->GetUniverse());
             }
@@ -1321,7 +1341,7 @@ void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t
 
     size_t left = size;
     while (left > 0 && o != nullptr) {
-        wxASSERT(!o->IsOutputCollection_CONVERT());
+        assert(!o->IsOutputCollection_CONVERT());
         size_t mx = o->GetChannels() - stch + 1;
         size_t send = std::min(left, mx);
         if (o->IsEnabled()) {

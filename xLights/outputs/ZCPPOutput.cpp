@@ -393,7 +393,7 @@ std::string ZCPPOutput::DecodeProtocol(int protocol) {
 
 int ZCPPOutput::EncodeProtocol(const std::string& protocol) {
 
-    auto p = wxString(protocol).Lower();
+    auto p = Lower(protocol);
     if (p == "ws2811") return 0x00;
     if (p == "gece") return 0x01;
     if (p == "dmx") return 0x02;
