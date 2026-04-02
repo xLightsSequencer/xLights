@@ -21,8 +21,9 @@
 #include "../models/ModelManager.h"
 
 #include <wx/msgdlg.h>
-#include <wx/sstream.h>
 #include <regex>
+
+#include <cassert>
 
 #include <format>
 #include <log.h>
@@ -72,8 +73,7 @@ static std::string J1SYS_MODEL_P12D = "ECG-P12D";
 
 #pragma region Encode and Decode
 char J1Sys::EncodeStringPortProtocol(std::string protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
 
     if (p == "ws2811") return '4';
     if (p == "tm180x") return '2';
@@ -86,8 +86,7 @@ char J1Sys::EncodeStringPortProtocol(std::string protocol) const {
 }
 
 char J1Sys::EncodeSerialPortProtocol(std::string protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
 
     if (p == "dmx") return 'D';
     if (p == "renard") return 'R';
@@ -96,9 +95,7 @@ char J1Sys::EncodeSerialPortProtocol(std::string protocol) const {
 }
 
 int J1Sys::DecodeProtocolSpeed(std::string protocol) const {
-
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
 
     if (p == "ws2811") return 3200;
     if (p == "ws2801") return 750;
@@ -303,7 +300,7 @@ J1Sys::J1Sys(const std::string& ip, const std::string& proxy) : BaseController(i
 #pragma region Getters and Setters
 bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManager) {
 
-    wxASSERT(_outputs != 0);
+    assert(_outputs != 0);
 
     bool e131 = false;
     bool artnet = false;

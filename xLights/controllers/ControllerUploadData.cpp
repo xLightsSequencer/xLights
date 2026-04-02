@@ -11,6 +11,8 @@
 
 #include <wx/msgdlg.h>
 
+#include <cassert>
+
 #include "ControllerUploadData.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
@@ -362,7 +364,7 @@ UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName, 
 UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string, bool eliminateOverlaps) {
 
     
-    wxASSERT(!ContainsModel(m, string));
+    assert(!ContainsModel(m, string));
 
     _om = om;
 
@@ -644,7 +646,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential, bool overrideS
             lastEndChannel = it->GetEndChannel();
         }
         else {
-            wxASSERT(current != nullptr);
+            assert(current != nullptr);
             if ((brightness != NO_VALUE_INT && current->_brightness != brightness) ||
                 (startNullPixels != NO_VALUE_INT) ||                                                    // we always create a new virtual string for models with start nulls
                 (endNullPixels != NO_VALUE_INT || (endNullPixels == NO_VALUE_INT && current->_endNullPixels != 0)) || // we dont assume end nulls carries across automatically between props and we always create a new virtual string for models with end nulls
@@ -701,7 +703,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential, bool overrideS
             lastEndChannel = it->GetEndChannel();
         }
 
-        wxASSERT(current != nullptr);
+        assert(current != nullptr);
         current->_endChannel = it->GetEndChannel();
         current->_models.push_back(it);
 
@@ -892,7 +894,7 @@ int UDControllerPort::GetUniverse() const {
         if (_type == "Serial") {
 
             if (_om == nullptr) {
-                wxASSERT(false);
+                assert(false);
                 return -1;
             }
 
@@ -921,7 +923,7 @@ int UDControllerPort::GetUniverseStartChannel() const {
         if (_type == "Serial") {
 
             if (_om == nullptr) {
-                wxASSERT(false);
+                assert(false);
                 return -1;
             }
 

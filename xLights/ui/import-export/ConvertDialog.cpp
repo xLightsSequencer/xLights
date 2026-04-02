@@ -342,7 +342,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
 
     // add nodes to root in reverse order (prepend produces correct Vixen element ordering)
     pugi::xml_node node = root.prepend_child("EventValues");
-    node.append_child(pugi::node_pcdata).set_value(SeqData.base64_encode().ToStdString().c_str());
+    node.append_child(pugi::node_pcdata).set_value(SeqData.base64_encode());
 
     node = root.prepend_child("Audio");
     node.append_attribute("filename") = mediaFilename.c_str();

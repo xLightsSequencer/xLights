@@ -11,9 +11,10 @@
 
 #include "Minleon.h"
 #include <wx/msgdlg.h>
-#include <wx/sstream.h>
 #include <regex>
 #include <wx/progdlg.h>
+
+#include <cassert>
 
 #include "../utils/CurlManager.h"
 
@@ -67,7 +68,7 @@ public:
     MinleonString(nlohmann::json& val) {
 
         if (!val.is_object()) {
-            wxASSERT(false);
+            assert(false);
             return;
         }
 
@@ -178,7 +179,7 @@ MinleonString* Minleon::FindPort(const std::vector<MinleonString*>& stringData, 
             return it;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 
@@ -405,19 +406,19 @@ void Minleon::UploadNDB(bool reboot)
 
     std::map<std::string, std::string> parms;
 
-    auto ips = wxSplit(_ip, '.');
+    auto ips = Split(_ip, '.');
     parms["I000"] = ips.size() > 0 ? ips[0] : "0";
     parms["I001"] = ips.size() > 1 ? ips[1] : "0";
     parms["I002"] = ips.size() > 2 ? ips[2] : "0";
     parms["I003"] = ips.size() > 3 ? ips[3] : "0";
 
-    auto nms = wxSplit(_nm, '.');
+    auto nms = Split(_nm, '.');
     parms["I004"] = nms.size() > 0 ? nms[0] : "0";
     parms["I005"] = nms.size() > 1 ? nms[1] : "0";
     parms["I006"] = nms.size() > 2 ? nms[2] : "0";
     parms["I007"] = nms.size() > 3 ? nms[3] : "0";
 
-    auto gws = wxSplit(_gw, '.');
+    auto gws = Split(_gw, '.');
     parms["I008"] = gws.size() > 0 ? gws[0] : "0";
     parms["I009"] = gws.size() > 1 ? gws[1] : "0";
     parms["I010"] = gws.size() > 2 ? gws[2] : "0";
@@ -478,19 +479,19 @@ void Minleon::UploadNDPPlus(bool reboot)
 
     std::map<std::string, std::string> parms;
 
-    auto ips = wxSplit(_ip, '.');
+    auto ips = Split(_ip, '.');
     parms["I000"] = ips.size() > 0 ? ips[0]: "0";
     parms["I001"] = ips.size() > 1 ? ips[1]: "0";
     parms["I002"] = ips.size() > 2 ? ips[2] : "0";
     parms["I003"] = ips.size() > 3 ? ips[3] : "0";
 
-    auto nms = wxSplit(_nm, '.');
+    auto nms = Split(_nm, '.');
     parms["I004"] = nms.size() > 0 ? nms[0] : "0";
     parms["I005"] = nms.size() > 1 ? nms[1] : "0";
     parms["I006"] = nms.size() > 2 ? nms[2] : "0";
     parms["I007"] = nms.size() > 3 ? nms[3] : "0";
 
-    auto gws = wxSplit(_gw, '.');
+    auto gws = Split(_gw, '.');
     parms["I008"] = gws.size() > 0 ? gws[0] : "0";
     parms["I009"] = gws.size() > 1 ? gws[1] : "0";
     parms["I010"] = gws.size() > 2 ? gws[2] : "0";

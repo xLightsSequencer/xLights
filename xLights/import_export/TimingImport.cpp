@@ -329,9 +329,9 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
 }
 
 void SequenceFile::ProcessElevenLabsTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent) {
-    for (std::filesystem::path const& next_file : filenames) {
+    for (const std::string &nf : filenames) {
         try {
-
+            const std::filesystem::path next_file(nf);
             auto roudTimestoMilli = [&](float start, float end) {
                 int const startTime = RoundToMultipleOfPeriod((int)(start * 1000.0F), GetFrequency());
                 int endTime = RoundToMultipleOfPeriod((int)(end * 1000.0F), GetFrequency());
@@ -384,7 +384,7 @@ void SequenceFile::ProcessElevenLabsTimingFiles(const std::vector<std::string>& 
                 }
             }
         } catch (const std::exception& ex) {
-            spdlog::error("Error processing timing file {}: {}", next_file.string(), ex.what());
+            spdlog::error("Error processing timing file {}: {}", nf, ex.what());
         }
     }
 }

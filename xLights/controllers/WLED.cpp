@@ -25,6 +25,8 @@
 
 #include <curl/curl.h>
 
+#include <cassert>
+
 #include <log.h>
 
 #pragma region Output Classes
@@ -363,7 +365,7 @@ int WLED::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "p9813") return 53;
     if (p == "lpd6803") return 54;
 
-    wxASSERT(false);
+    assert(false);
     return 22;
 }
 
@@ -384,7 +386,7 @@ int WLED::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "wbgr") return 35;
     if (c == "wgbr") return 33;
 
-    wxASSERT(false);
+    assert(false);
     return 1;
 }
 
@@ -399,7 +401,7 @@ WLEDOutput* WLED::FindPortData(int port) {
             return sd;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 

@@ -26,7 +26,6 @@
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
 #include <regex>
-#include <wx/sstream.h>
 
 #include <log.h>
 
@@ -173,7 +172,7 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
             _has_efuses = data["system"]["has_efuses"].get<bool>();
         }
         DecodeModelInformation(controller_model);
-        DecodeFirmwareInformation(ToWXString(_version));
+        DecodeFirmwareInformation(_version);
         _connected = true;
         spdlog::debug("Connected to Genius controller model {} v{}.", controller_model, GetVersionStr());
     } else {
@@ -204,7 +203,7 @@ int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controll
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
-    data["system"]["friendly_name"] = wxString(eth->GetName());
+    data["system"]["friendly_name"] = eth->GetName();
     data["system"]["auto_chain_all_outputs"] = false; //disable for xLights to handle
 
     auto out = outputs.front();

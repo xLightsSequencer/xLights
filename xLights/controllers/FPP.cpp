@@ -23,7 +23,6 @@
 #include <curl/curl.h>
 
 #include <wx/msgdlg.h>
-#include <wx/sstream.h>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/wfstream.h>
@@ -108,6 +107,21 @@ struct FPPDInfo {
     }
 };
 std::set<FPPDInfo> fppDiscInfo;
+
+static bool ReadConfigString(wxConfigBase* config, const char* key, std::string& out) {
+    wxString value;
+    if (!config->Read(key, &value)) {
+        return false;
+    }
+    out = ToUTF8(value);
+    return true;
+}
+
+static std::string ReadConfigString(wxConfigBase* config, const char* key, const std::string& defaultValue) {
+    wxString value;
+    config->Read(key, &value, ToWXString(defaultValue));
+    return ToUTF8(value);
+}
 
 FPP::FPP(const std::string& ad) : BaseController(ad, ""), ipAddress(ad), majorVersion(0), minorVersion(0), patchVersion(0), fppType(FPP_TYPE::FPP), parent(nullptr), outputFile(nullptr) {
         
@@ -619,39 +633,37 @@ bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch) const{
     return patchVersion >= patch;
 }
 
-static std::string URLEncode(const wxString &value)
-{
-    wxString ret = wxT("");
-    unsigned int nPos = 0;
-
-    while (value.length() > nPos) {
-        wxChar cChar = value.GetChar(nPos);
-
-        if( ( isalpha( cChar )) || ( isdigit( cChar )) || (cChar == wxT('-')) || (cChar == wxT('@'))
-           || (cChar == wxT('*')) || (cChar == wxT('_')) ) {
-            ret.Append( cChar );
+static std::string URLEncode(const std::string &value) {
+    std::string ret;
+    ret.reserve(value.size() * 3);
+    for (unsigned char cChar : value) {
+        if (std::isalnum(cChar) || cChar == '-' || cChar == '@' || cChar == '*' || cChar == '_') {
+            ret.push_back(static_cast<char>(cChar));
         } else {
-            switch( cChar ) {
-                case wxT(' '):  ret.Append("%20"); break;
-                case wxT('\n'): ret.Append("%0D%0A"); break;
-                case wxT('.'):  ret.Append('.'); break;
-                case wxT('\"'):  ret.Append("%22"); break;
-                default: {
-                    ret.Append("%");
-                    if (cChar < 16) {
-                        ret.Append(wxString::Format("0%x", cChar));
-                    } else {
-                        ret.Append(wxString::Format("%x", cChar));
-                    }
-                }
+            switch (cChar) {
+            case ' ':
+                ret += "%20";
+                break;
+            case '\n':
+                ret += "%0D%0A";
+                break;
+            case '.':
+                ret.push_back('.');
+                break;
+            case '"':
+                ret += "%22";
+                break;
+            default: {
+                char buf[4];
+                std::snprintf(buf, sizeof(buf), "%02x", cChar);
+                ret.push_back('%');
+                ret += buf;
+                break;
+            }
             }
         }
-        nPos++;
     }
-    return ToUTF8(ret);
-}
-static std::string URLEncode(const std::string &value) {
-    return ToStdString(URLEncode(ToWXString(value)));
+    return ret;
 }
 
 static inline void addString(std::vector<uint8_t> &buffer, const char *str) {
@@ -725,20 +737,7 @@ bool FPP::updateProgress(int val, bool yield) {
 
 
 bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
-    
-
-    wxString filename = ToWXString(utfFilename);
-    wxString fn;
-    wxString ext;
-
-    for (int a = 0; a < (int)utfFilename.length(); a++) {
-        wxChar ch = utfFilename[a];
-        if (ch == '"') {
-            fn.Append("\\\"");
-        } else {
-            fn.Append(ch);
-        }
-    }
+    std::string filename = utfFilename;
 
     updateProgress(0, true);
     int lastDone = 0;
@@ -761,9 +760,9 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
             report.Process();
             from = report.GetCompressedFileName();
             wxRenameFile(from, fullFileName);
-            wxFileName to = filename;
+            wxFileName to(ToWXString(filename));
             to.SetExt("xlz");
-            fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(to.GetFullPath());
+            fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(ToUTF8(to.GetFullPath()));
         }
         else {
 			fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
@@ -812,13 +811,13 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     data->lastDone = lastDone;
 
     
-    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, ext, utfFilename, data] (CURL *curl) {
+    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, utfFilename, data] (CURL *curl) {
         long response_code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         
         if (response_code == 200) {
             if (usingMove) {
-                if (!callMoveFile(ToUTF8(filename + ext))) {
+                if (!callMoveFile(filename)) {
                     spdlog::warn("Error trying to rename file.");
                 } else {
                     spdlog::debug("Renaming done.");
@@ -1224,9 +1223,9 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         // and can bail quickly if not
     } else if (ranges != "") {
         if (ranges != "") {
-            wxArrayString r1 = wxSplit(wxString(ranges), ',');
+            auto const r1 = Split(ranges, ',');
             for (const auto& a : r1) {
-                wxArrayString r = wxSplit(a, '-');
+                auto const r = Split(a, '-');
                 int start = (int)strtol(r[0].c_str(), nullptr, 10);
                 int len = 4; //at least 4
                 if (r.size() == 2) {
@@ -1812,12 +1811,11 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
 }
 #endif
 
-inline wxString stripInvalidChars(const std::string &str) {
-    wxString s = str;
-    s.Replace("&", "_");
-    s.Replace("<", "_");
-    s.Replace(">", "_");
-	s.Replace("\"", "\\\"");
+inline std::string stripInvalidChars(std::string s) {
+    Replace(s, "&", "_");
+    Replace(s, "<", "_");
+    Replace(s, ">", "_");
+    Replace(s, "\"", "\\\"");
     return s;
 }
 
@@ -1935,28 +1933,25 @@ std::string FPP::GetModel(const std::string& type)
 bool FPP::SetInputUniverses(Controller* controller, wxWindow* parentWin) {
 
     wxConfigBase* config = wxConfigBase::Get();
-    wxString fip;
-    config->Read("xLightsPiIP", &fip, "");
-    wxString ausername;
-    config->Read("xLightsPiUser", &ausername, "fpp");
-    wxString apassword;
-    config->Read("xLightsPiPassword", &apassword, "true");
-    username = ToUTF8(ausername);
-    password = ToUTF8(apassword);
+    std::string fip = ReadConfigString(config, "xLightsPiIP", "");
+    std::string ausername = ReadConfigString(config, "xLightsPiUser", "fpp");
+    std::string apassword = ReadConfigString(config, "xLightsPiPassword", "true");
+    username = ausername;
+    password = apassword;
 
-    auto ips = wxSplit(fip, '|');
-    auto users = wxSplit(ausername, '|');
-    auto passwords = wxSplit(password, '|');
+    auto const ips = Split(fip, '|');
+    auto const users = Split(ausername, '|');
+    auto const passwords = Split(apassword, '|');
 
     // they should all be the same size ... but if not base it off the smallest
     int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
 
     username = "fpp";
-    wxString thePassword = "true";
+    std::string thePassword = "true";
     for (int i = 0; i < count; i++) {
         if (ips[i] == controller->GetIP()) {
-            username = ToUTF8(users[i]);
-            thePassword = ToUTF8(passwords[i]);
+            username = users[i];
+            thePassword = passwords[i];
         }
     }
 
@@ -1966,13 +1961,13 @@ bool FPP::SetInputUniverses(Controller* controller, wxWindow* parentWin) {
         } else if (username == "fpp") {
             password = "falcon";
         } else {
-            wxTextEntryDialog ted(parentWin, "Enter password for " + username, "Password", controller->GetIP());
+            wxTextEntryDialog ted(parentWin, ToWXString(std::format("Enter password for {}", username)), "Password", controller->GetIP());
             if (ted.ShowModal() == wxID_OK) {
                 password = ToUTF8(ted.GetValue());
             }
         }
     } else {
-        wxTextEntryDialog ted(parentWin, "Enter password for " + username, "Password", controller->GetIP());
+        wxTextEntryDialog ted(parentWin, ToWXString(std::format("Enter password for {}", username)), "Password", controller->GetIP());
         if (ted.ShowModal() == wxID_OK) {
             password = ToUTF8(ted.GetValue());
         }
@@ -2040,7 +2035,7 @@ nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, b
             } else {
                 universe["active"] = 1;
             }
-            universe["description"] = stripInvalidChars(it2->GetName()).ToStdString();
+            universe["description"] = stripInvalidChars(it2->GetName());
             universe["id"] = it->GetUniverse();
             universe["startChannel"] = c;
             universe["channelCount"] = it->GetChannels();
@@ -2386,16 +2381,16 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
             }
         }
         if (!found) {
-            wxString msg = "Could not detect a pinout for " + rules->GetID() + " for controller type " + rules->GetModel() + ".  Configuration will not work.  Verify controller type/model/variant.  Continue?";
-            if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
+            std::string msg = "Could not detect a pinout for " + rules->GetID() + " for controller type " + rules->GetModel() + ".  Configuration will not work.  Verify controller type/model/variant.  Continue?";
+            if (wxMessageBox(ToWXString(msg), "Confirm", wxYES_NO, parent) != wxYES) {
                 return false;
             }
         }
     }
     if (origMod != "" && rules->GetModel() != origMod) {
-        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAddress + " is not compatible with type already configured: "
+        std::string msg = "Configured controller type " + rules->GetModel() + " for " + ipAddress + " is not compatible with type already configured: "
             + origMod + ".   Continue?";
-        if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
+        if (wxMessageBox(ToWXString(msg), "Confirm", wxYES_NO, parent) != wxYES) {
             return false;
         }
     }
@@ -2577,9 +2572,9 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         //models we uploaded or they will conflict and produce errors
         for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
             if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
-                wxString dev = origJson["channelOutputs"][x]["device"].get<std::string>();
+                std::string dev = origJson["channelOutputs"][x]["device"].get<std::string>();
                 int port = (char)dev[2] - '0';
-                if (models[port].find(ToUTF8(origJson["channelOutputs"][x]["description"].get<std::string>())) == models[port].end()) {
+                if (models[port].find(origJson["channelOutputs"][x]["description"].get<std::string>()) == models[port].end()) {
                     UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
                 }
             }
@@ -3040,12 +3035,12 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             || stringData["outputs"][x]["virtualStrings"].is_null()
             || stringData["outputs"][x]["virtualStrings"].size() == 0) {
             nlohmann::json vs;
-            vs["description"] = wxString("");
+            vs["description"] = std::string("");
             vs["startChannel"] = 0;
             vs["pixelCount"] = 0;
             vs["groupCount"] = 0;
             vs["reverse"] = 0;
-            vs["colorOrder"] = wxString("RGB");
+            vs["colorOrder"] = std::string("RGB");
             vs["nullNodes"] = 0;
             vs["endNulls"] = 0;
             vs["zigZag"] = 0;
@@ -3899,12 +3894,12 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
 void FPP::PrepareDiscovery(Discovery &discovery) {
     std::list<std::string> startAddresses;
     wxConfigBase* config = wxConfigBase::Get();
-    wxString force;
-    if (config->Read("FPPConnectForcedIPs", &force)) {
-        wxArrayString ips = wxSplit(force, '|');
-        for (auto& a : ips) {
-            if (a != "") {
-                startAddresses.push_back(ToUTF8(a));
+    std::string force;
+    if (ReadConfigString(config, "FPPConnectForcedIPs", force)) {
+        auto const ips = Split(force, '|');
+        for (const auto& a : ips) {
+            if (!a.empty()) {
+                startAddresses.push_back(a);
             }
         }
     }
@@ -3929,8 +3924,8 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     buffer[8] = 1; //discovery
     buffer[9] = 0xC0;
 
-    wxString ver = xlights_version_string;
-    auto parts = wxSplit(ver, '.');
+    std::string ver = xlights_version_string;
+    auto const parts = Split(ver, '.');
     int maj = (int)strtol(parts[0].c_str(), nullptr, 10);
     int min = (int)strtol(parts[1].c_str(), nullptr, 10);
 
@@ -4298,13 +4293,13 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     std::list<std::string> startAddressesForced;
 
     wxConfigBase* config = wxConfigBase::Get();
-    wxString force;
-    if (config->Read("FPPConnectForcedIPs", &force)) {
-        wxArrayString ips = wxSplit(force, '|');
+    std::string force;
+    if (ReadConfigString(config, "FPPConnectForcedIPs", force)) {
+        auto const ips = Split(force, '|');
         for (const auto& a : ips) {
             if (!a.empty()) {
-                startAddresses.push_back(ToUTF8(a));
-                startAddressesForced.push_back(ToUTF8(a));
+                startAddresses.push_back(a);
+                startAddressesForced.push_back(a);
             }
         }
     }
@@ -4342,7 +4337,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     FPP::MapToFPPInstances(*discovery, instances, outputManager);
     instances.sort(sortByIP);
 
-    wxString newForce = "";
+    std::string newForce;
     for (const auto& a : startAddressesForced) {
         for (const auto& fpp : instances) {
             if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
@@ -4353,8 +4348,8 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
             }
         }
     }
-    if (newForce != force) {
-        config->Write("FPPConnectForcedIPs", newForce);
+    if (newForce != ToUTF8(force)) {
+        config->Write("FPPConnectForcedIPs", ToWXString(newForce));
         config->Flush();
     }
     waitForCurlsComplete(discovery);

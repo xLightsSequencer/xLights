@@ -18,8 +18,6 @@
 #include <string>
 #include <vector>
 
-#include <wx/string.h>
-
 #ifdef __WXOSX__
 #include <sys/mman.h>
 #include <mach/vm_statistics.h>
@@ -149,5 +147,5 @@ public:
     }
 
     // encodes contents of SeqData in channel order
-    [[nodiscard]] wxString base64_encode();
+    [[nodiscard]] std::string base64_encode();
 };

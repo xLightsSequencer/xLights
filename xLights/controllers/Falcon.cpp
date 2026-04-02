@@ -11,8 +11,8 @@
 #include "Falcon.h"
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
-#include <wx/sstream.h>
 #include <regex>
+#include <cassert>
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
@@ -797,7 +797,7 @@ int Falcon::V4_GetRebootSecs() {
 
 void Falcon::V4_WaitForReboot(const std::string& name, wxWindow* parent) {
     std::unique_ptr<wxProgressDialog> progress;
-    progress.reset(new wxProgressDialog(wxString::Format("Rebooting controller '%s' ...", name), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
+    progress.reset(new wxProgressDialog(ToWXString(std::format("Rebooting controller '{}' ...", name)), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
     progress->Show();
 
     for (int i = 0; i < 100; i++) {
@@ -833,7 +833,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
     auto protocol = controller->GetProtocol();
 
     if (protocol == OUTPUT_DDP) {
-        wxASSERT(controller->GetOutput(0) != nullptr);
+        assert(controller->GetOutput(0) != nullptr);
         DDPOutput* ddp = dynamic_cast<DDPOutput*>(controller->GetOutput(0));
 
         size_t ddpStart = ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1;
@@ -1397,7 +1397,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     bool oneBased = false;
     if (controller->GetProtocol() == OUTPUT_DDP) {
-        wxASSERT(controller->GetOutput(0) != nullptr);
+        assert(controller->GetOutput(0) != nullptr);
         DDPOutput* ddp = dynamic_cast<DDPOutput*>(controller->GetOutput(0));
         oneBased = !ddp->IsKeepChannelNumbers();
     }
@@ -1617,7 +1617,7 @@ FalconString* Falcon::FindPort(const std::vector<FalconString*>& stringData, int
             return it;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 
@@ -1926,8 +1926,7 @@ std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputM
 
 #pragma region Encode and Decode
 int Falcon::DecodeSerialOutputProtocol(std::string protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
 
     if (p == "dmx")
         return 0;
@@ -1939,8 +1938,7 @@ int Falcon::DecodeSerialOutputProtocol(std::string protocol) const {
 }
 
 int Falcon::DecodeStringPortProtocol(std::string protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
     if (p == "ws2811")
         return 0;
     if (p == "tm18xx")
@@ -2132,19 +2130,21 @@ int Falcon::EncodeDirection(const std::string& direction) const {
 
 #pragma region Private Functions
 std::string Falcon::SafeDescription(const std::string description) const {
-    wxString desc(description);
-    int replaced = desc.Replace("  ", " ");
-    while (replaced != 0) {
-        replaced = desc.Replace("  ", " ");
+    std::string desc = description;
+    while (desc.find("  ") != std::string::npos) {
+        Replace(desc, "  ", " ");
     }
-    return desc.Left(25).ToStdString();
+    if (desc.size() > 25) {
+        desc.resize(25);
+    }
+    return desc;
 }
 
 bool Falcon::IsEnhancedV2Firmware() const {
     if (_firmwareVersion == "")
         return false;
 
-    auto fwv = wxSplit(_firmwareVersion, '.');
+    auto fwv = Split(_firmwareVersion, '.');
     int majorfw = 0;
     int minorfw = 0;
 
@@ -2215,7 +2215,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
             } else if (nodeName == "a") {
                 _usingAbsolute = nodeContent == "0";
             } else if (nodeName == "n") {
-                _name = wxString(nodeContent).Trim().ToStdString();
+                _name = Trim(nodeContent);
             } else if (nodeName == "p") {
                 p = (int)std::strtol(nodeContent.c_str(), nullptr, 10);
                 DecodeModelVersion(p, _modelnum, _versionnum);
@@ -2501,7 +2501,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         return V4_SetInputUniverses(controller, parent);
     }
 
-    wxString request;
+    std::string request;
     int output = 0;
 
     // Get universes based on IP
@@ -2539,12 +2539,12 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
         _usingAbsolute = true;
 
-        request = wxString::Format("c=64&d=%d", ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1);
-        std::string response = PutURL("/index.htm", request.ToStdString());
+        request = std::format("c=64&d={}", ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1);
+        std::string response = PutURL("/index.htm", request);
 
         if ((cm & 0xFE) != 64) {
             std::unique_ptr<wxProgressDialog> progress;
-            progress.reset(new wxProgressDialog(wxString::Format("Rebooting controller '%s' ...", controller->GetName()), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
+            progress.reset(new wxProgressDialog(ToWXString(std::format("Rebooting controller '{}' ...", controller->GetName())), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
             progress->Show();
 
             for (int i = 0; i < 100; i++) {
@@ -2563,10 +2563,10 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         if (IsFirmwareEqualOrGreaterThan(2, 58) && (cm & 0xFE) != 0) {
             // need to switch to e131 mode
             request = "c=0";
-            std::string response = PutURL("/index.htm", request.ToStdString());
+            std::string response = PutURL("/index.htm", request);
 
             std::unique_ptr<wxProgressDialog> progress;
-            progress.reset(new wxProgressDialog(wxString::Format("Rebooting controller '%s' ...", controller->GetName()), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
+            progress.reset(new wxProgressDialog(ToWXString(std::format("Rebooting controller '{}' ...", controller->GetName())), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
             progress->Show();
 
             for (int i = 0; i < 100; i++) {
@@ -2582,16 +2582,16 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
             } else if (it->GetType() == OUTPUT_ARTNET) {
                 t = 1;
             }
-            request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-                                        output, it->GetUniverse(),
-                                        output, (int)it->GetChannels(),
-                                        output, (int)it->GetStartChannel(),
-                                        output, t);
+            request += std::format("&u{}={}&s{}={}&c{}={}&t{}={}",
+                                   output, it->GetUniverse(),
+                                   output, (int)it->GetChannels(),
+                                   output, (int)it->GetStartChannel(),
+                                   output, t);
             output++;
         }
 
-        request = wxString::Format("z=%d&a=%d", output, (_usingAbsolute ? 0 : 1)) + request;
-        std::string response = PutURL("/E131.htm", request.ToStdString());
+        request = std::format("z={}&a={}", output, (_usingAbsolute ? 0 : 1)) + request;
+        std::string response = PutURL("/E131.htm", request);
         return (response != "");
     }
 }
@@ -2797,7 +2797,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     }
                 }
             }
-            wxASSERT(firstString != nullptr);
+            assert(firstString != nullptr);
 
             // need to add virtual strings
             bool first = true;

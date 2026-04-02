@@ -26,6 +26,7 @@
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
+#include <cassert>
 #include <chrono>
 #include <format>
 #include <thread>
@@ -563,7 +564,7 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
     if (_outputDataV4.size() == 4 && _universes.size() == 12) {
         return true;
     }
-    wxASSERT(false);
+    assert(false);
     return true;
 }
 
@@ -589,7 +590,7 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
     if (_protocolData.size() == 4 && _universes.size() == 12) {
         return true;
     }
-    wxASSERT(false);
+    assert(false);
     return true;
 }
 
@@ -605,7 +606,7 @@ bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
     if ((int)_outputData.size() == GetMaxStringOutputs()) {
         return true;
     }
-    wxASSERT(false);
+    assert(false);
     return true;
 }
 
@@ -941,7 +942,7 @@ SanDevicesOutput* SanDevices::FindPortDataV5(int group, int output) {
             return sd;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 
@@ -1025,7 +1026,7 @@ SanDevicesOutputV4* SanDevices::FindPortDataV4(int group) {
             return sd;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 
@@ -1160,7 +1161,7 @@ char SanDevices::EncodeStringPortProtocolV4(const std::string& protocol) const {
     if (p == "gece")    { return 'C'; }
     if (p == "dmx")     { return 'K'; }
     if (p == "renard")  { return 'L'; }
-    wxASSERT(false);
+    assert(false);
     return 'D';
 }
 
@@ -1176,7 +1177,7 @@ char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
     if (p == "gece")    { return 'O'; }
     if (p == "dmx")     { return 'J'; }
     if (p == "renard")  { return 'M'; }
-    wxASSERT(false);
+    assert(false);
     return 'A';
 }
 
@@ -1186,7 +1187,7 @@ char SanDevices::EncodeSerialPortProtocolV5(const std::string& protocol) const {
 
     if (p == "dmx")    { return 'J'; }
     if (p == "renard") { return 'M'; }
-    wxASSERT(false);
+    assert(false);
     return 'J';
 }
 
@@ -1194,7 +1195,7 @@ char SanDevices::EncodeUniverseSize(int universesize) const {
 
     if (universesize == 510) { return 'A'; }
     if (universesize == 512) { return 'B'; }
-    wxASSERT(false);
+    assert(false);
     
     spdlog::debug("SanDevices DecodeUniverseSize Upload: Invalid Universe Size {}", universesize);
     return 'A';
@@ -1210,7 +1211,7 @@ int SanDevices::EncodeColorOrderV4(const std::string& colorOrder) const {
     if (c == "gbr") { return 3; }
     if (c == "brg") { return 4; }
     if (c == "bgr") { return 5; }
-    wxASSERT(false);
+    assert(false);
     return 0;
 }
 
@@ -1224,7 +1225,7 @@ char SanDevices::EncodeColorOrderV5(const std::string& colorOrder) const {
     if (c == "gbr") { return 'D'; }
     if (c == "brg") { return 'E'; }
     if (c == "bgr") { return 'F'; }
-    wxASSERT(false);
+    assert(false);
     return 'A';
 }
 
@@ -1280,7 +1281,7 @@ SanDevices::SanDeviceModel SanDevices::DecodeControllerType(const std::string& m
     if (modelName == "E6804") {
         return SanDeviceModel::E6804;
     }
-    wxASSERT(false);
+    assert(false);
     return SanDeviceModel::Unknown;
 }
 
@@ -1555,7 +1556,7 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     if (IsFirmware4()) {
         return SetOutputsV4(allmodels, outputManager, controller, parent);
     }
-    wxASSERT(false);
+    assert(false);
     return false;
 }
 #pragma endregion

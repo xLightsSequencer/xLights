@@ -18,6 +18,8 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
+#include <cassert>
+
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "../ui/wxUtilities.h"
@@ -96,7 +98,7 @@ void ControllerCaps::LoadControllers() {
             if (FileExists(fn.GetFullPath())) {
                 pugi::xml_parse_result result = docs[count].load_file(fn.GetFullPath().ToStdString().c_str());
                 if (!result) {
-                    wxASSERT(false);
+                    assert(false);
                     spdlog::error("Problem loading " + fn.GetFullPath().ToStdString());
                 }
                 count++;

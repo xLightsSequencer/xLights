@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "ESPixelStick.h"
-#include <wx/time.h>
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
@@ -235,13 +234,13 @@ bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const
 
 std::string ESPixelStick::GetWSResponse()
 {
-    wxLongLong start = wxGetLocalTimeMillis();
-    wxLongLong diff = 0;
+    const auto start = std::chrono::steady_clock::now();
+    auto diff = std::chrono::milliseconds(0);
     std::string resp = "";
-    while (diff < 500 && resp == "") {
+    while (diff < std::chrono::milliseconds(500) && resp.empty()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
         resp = _wsClient.Receive();
-        diff = wxGetLocalTimeMillis() - start;
+        diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
     }
     return resp;
 }

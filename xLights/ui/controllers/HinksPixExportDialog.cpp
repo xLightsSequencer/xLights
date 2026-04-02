@@ -34,6 +34,7 @@
 
 #include <memory>
 #include <wx/zipstrm.h>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -114,6 +115,13 @@ inline std::array<int, 4> getIPBytes(const wxString& ip) {
         return { 0, 0, 0, 0 };
     }
     return { wxAtoi(ips[0]), wxAtoi(ips[1]), wxAtoi(ips[2]), wxAtoi(ips[3]) };
+}
+
+static std::chrono::system_clock::time_point ToSystemClock(const wxDateTime& dt) {
+    if (!dt.IsValid()) {
+        return std::chrono::system_clock::now();
+    }
+    return std::chrono::system_clock::from_time_t(dt.GetTicks());
 }
 
 void HSEQFile::writeHeader() {
@@ -620,7 +628,7 @@ void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
                     }
                     fos.Close();
 
-                    hixpix->UploadFileToController(fnOutput.GetFullPath(), upZe->GetName(), updateProg, wxDateTime::Now());
+                    hixpix->UploadFileToController(fnOutput.GetFullPath(), upZe->GetName(), updateProg, std::chrono::system_clock::now());
                 }
             }
             // get next zip entry
@@ -661,7 +669,7 @@ void HinksPixExportDialog::UploadFile(ControllerEthernet* controller) {
         };
 
         wxFileName const fn = file.GetPath();
-        hixpix->UploadFileToController(fn.GetFullPath(), fn.GetName(), updateProg, wxDateTime::Now());
+        hixpix->UploadFileToController(fn.GetFullPath(), fn.GetName(), updateProg, std::chrono::system_clock::now());
     }
 }
 
@@ -705,7 +713,7 @@ void HinksPixExportDialog::UploadSchedules(ControllerEthernet* controller) {
         }
         auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
         schedule.saveAsFile(temp_schedule);
-        hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
+        hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, std::chrono::system_clock::now());
     }
     bool const anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
                                        [](auto const& b) {
@@ -1576,7 +1584,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
                 if (std::find(filesDone.begin(), filesDone.end(), play.FSEQ) == filesDone.end()) {
                     wxDateTime fseqtime = wxFileName(play.FSEQ).GetModificationTime();
                     worked &= Create_HinksPix_HSEQ_File(play.FSEQ, tempFileName, hix, slave1, slave2, errorMsg);
-                    worked &= hixpix->UploadFileToController(tempFileName, shortHseqName, updateProg, fseqtime);
+                    worked &= hixpix->UploadFileToController(tempFileName, shortHseqName, updateProg, ToSystemClock(fseqtime));
                     if (!worked) {
                         break;
                     }
@@ -1593,7 +1601,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
                         if (worked) {
                             auto tempFileName2 = ToStdString(wxFileName::CreateTempFileName(ToWXString(shortName)));
                             worked &= Make_AU_From_ProcessedAudio(audioLoader.processedAudio(), tempFileName2, errorMsg);
-                            worked &= hixpix->UploadFileToController(tempFileName2, auName, updateProg, mediatime);
+                            worked &= hixpix->UploadFileToController(tempFileName2, auName, updateProg, ToSystemClock(mediatime));
                             if (!worked) {
                                 break;
                             }
@@ -1614,7 +1622,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
             if (worked) {
                 auto temp_playlist = ToStdString(wxFileName::CreateTempFileName("playlist"));
                 playlist.saveAsFile(temp_playlist);
-                worked &= hixpix->UploadFileToController(temp_playlist, playlist.getFileName(), updateProg, wxDateTime::Now());
+                worked &= hixpix->UploadFileToController(temp_playlist, playlist.getFileName(), updateProg, std::chrono::system_clock::now());
             } else {
                 error = true;
             }
@@ -1628,7 +1636,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
             }
             auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
             schedule.saveAsFile(temp_schedule);
-            hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
+            hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, std::chrono::system_clock::now());
         }
         bool anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
                                            [](auto const& b) {

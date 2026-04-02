@@ -30,6 +30,7 @@
 
 #include <log.h>
 
+#include <cassert>
 #include <chrono>
 #include <format>
 #include <thread>
@@ -1028,7 +1029,7 @@ bool Pixlite16::GetConfig(const std::string& localIp, std::string ip, const std:
                             break;
                         default:
                             spdlog::error("Unsupported Pixlite protocol version: {}.", _config._protocolVersion);
-                            wxASSERT(false);
+                            assert(false);
                             break;
                         }
 
@@ -1209,7 +1210,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                 break;
             default:
                 spdlog::error("Unsupported protocol : {}.", it._protocolVersion);
-                wxASSERT(false);
+                assert(false);
                 break;
             }
 
@@ -1570,7 +1571,7 @@ bool Pixlite16::SendConfig(bool logresult) const
         break;
     default:
         spdlog::error("Unsupported protocol : {}.", _protocolVersion);
-        wxASSERT(false);
+        assert(false);
         break;
     }
 

@@ -19,12 +19,10 @@
 #include "../outputs/OutputManager.h"
 #include "../outputs/SocketAbstraction.h"
 
+#include <cassert>
 #include <chrono>
-#include <wx/stopwatch.h>
-#include <wx/datetime.h>
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
-#include <wx/sstream.h>
 
 #ifdef _MSC_VER
 #include <stdio.h>
@@ -32,7 +30,7 @@
 #include <unistd.h>
 #endif
 
-#include <chrono>
+#include <ctime>
 #include <thread>
 
 #include <log.h>
@@ -122,17 +120,15 @@ void HinksPixOutput::Dump() const {
                       toStr(used));
 }
 
-void HinksPixOutput::SetConfig(wxString const& data) {
-    const wxArrayString config = Split(data, std::vector<char>({ ',' }));
+void HinksPixOutput::SetConfig(const std::string& data) {
+    const auto config = Split(data, ',');
     if (config.size() != 10) {
-        
-        spdlog::error("Invalid config data '{}'", (const char*)data.c_str());
+        spdlog::error("Invalid config data '{}'", data);
         return;
     }
 
     if ((int)strtol(config[0].c_str(), nullptr, 10) != output) {
-
-        spdlog::error("Mismatched output ports data port:'{}' data:'{}'", output, (const char*)data.c_str());
+        spdlog::error("Mismatched output ports data port:'{}' data:'{}'", output, data);
         return;
     }
     if (config[1] != "undefined") {
@@ -150,17 +146,16 @@ void HinksPixOutput::SetConfig(wxString const& data) {
     gamma = (int)strtol(config[9].c_str(), nullptr, 10);
 }
 
-wxString HinksPixOutput::BuildCommand() const {
-    return wxString::Format("{\"V\":\"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\"}",
-                            output, protocol, controllerStartChannel, pixels, controllerEndChannel,
-                            direction, colorOrder, nullPixel, brightness, gamma);
+std::string HinksPixOutput::BuildCommand() const {
+    return std::format("{{\"V\":\"{},{},{},{},{},{},{},{},{},{}\"}}",
+                       output, protocol, controllerStartChannel, pixels, controllerEndChannel,
+                       direction, colorOrder, nullPixel, brightness, gamma);
 }
 
-wxString HinksPixOutput::BuildCommandEasyLights() const {
-
-    return wxString::Format("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d|",
-        output, protocol, controllerStartChannel, pixels, controllerEndChannel,
-        direction, colorOrder, nullPixel, brightness, gamma);
+std::string HinksPixOutput::BuildCommandEasyLights() const {
+    return std::format("{},{},{},{},{},{},{},{},{},{}|",
+                       output, protocol, controllerStartChannel, pixels, controllerEndChannel,
+                       direction, colorOrder, nullPixel, brightness, gamma);
 }
 
 void HinksPixOutput::setControllerChannels(const int startChan) {
@@ -198,17 +193,17 @@ void HinksPixSerial::SetConfig(nlohmann::json const& data) {
     ddpDMXNumOfChan = data.at("DDP_DMX_CHAN_CNT").get<int>();
 }
 
-wxString HinksPixSerial::BuildCommand() const {
-    return wxString::Format("DATA: {\"CMD\":\"DATA_MODE\",\"DMX_ACTIVE\":%d,\"DMX_UNIV\":%d,\"DMX_START\":%d,\"DMX_CHAN_CNT\":%d,\"DDP_DMX_ACTIVE\":%d,\"DDP_DMX_START\":%d,\"DDP_DMX_CHAN_CNT\":%d}",
-                            (int)e131Enabled, e131Universe, e131StartChannel, e131NumOfChan,
-                            (int)ddpDMXEnabled, ddpDMXStartChannel, ddpDMXNumOfChan);
+std::string HinksPixSerial::BuildCommand() const {
+    return std::format("DATA: {{\"CMD\":\"DATA_MODE\",\"DMX_ACTIVE\":{},\"DMX_UNIV\":{},\"DMX_START\":{},\"DMX_CHAN_CNT\":{},\"DDP_DMX_ACTIVE\":{},\"DDP_DMX_START\":{},\"DDP_DMX_CHAN_CNT\":{}}}",
+                       (int)e131Enabled, e131Universe, e131StartChannel, e131NumOfChan,
+                       (int)ddpDMXEnabled, ddpDMXStartChannel, ddpDMXNumOfChan);
 }
 
-wxString HinksPixSerial::BuildCommandEasyLights(int mode) const
+std::string HinksPixSerial::BuildCommandEasyLights(int mode) const
 {
-    return wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d,F,%d,G,%d,H,%d",
-        mode, (int)e131Enabled, (int)ddpDMXEnabled, e131Universe, e131StartChannel,
-        e131NumOfChan, ddpDMXStartChannel, ddpDMXNumOfChan);
+    return std::format("A,{},B,{},C,{},D,{},E,{},F,{},G,{},H,{}",
+                       mode, (int)e131Enabled, (int)ddpDMXEnabled, e131Universe, e131StartChannel,
+                       e131NumOfChan, ddpDMXStartChannel, ddpDMXNumOfChan);
 }
 #pragma endregion
 
@@ -224,11 +219,10 @@ void HinksSmartOutput::Dump() const {
                       portStartPixel[3]);
 }
 
-void HinksSmartOutput::SetConfig(wxString const& data) {
-    const wxArrayString config = Split(data, std::vector<char>({ ',' }));
+void HinksSmartOutput::SetConfig(const std::string& data) {
+    const auto config = Split(data, ',');
     if (config.size() != 6) {
-        
-        spdlog::error("Invalid config data '{}'", (const char*)data.c_str());
+        spdlog::error("Invalid config data '{}'", data);
         return;
     }
 
@@ -240,11 +234,11 @@ void HinksSmartOutput::SetConfig(wxString const& data) {
     portStartPixel[3] = (int)strtol(config[5].c_str(), nullptr, 10);
 }
 
-wxString HinksSmartOutput::BuildCommand() const {
+std::string HinksSmartOutput::BuildCommand() const {
     //{"V":"1,0,51,51,51,51"}
-    return wxString::Format("{\"V\":\"%d,%d,%d,%d,%d,%d,\"}",
-                            id, type, portStartPixel[0], portStartPixel[1],
-                            portStartPixel[2], portStartPixel[3]);
+    return std::format("{{\"V\":\"{},{},{},{},{},{},\"}}",
+                       id, type, portStartPixel[0], portStartPixel[1],
+                       portStartPixel[2], portStartPixel[3]);
 }
 #pragma endregion
 
@@ -258,16 +252,16 @@ void HinksPixInputUniverse::Dump() const {
                       hinksPixStartChannel);
 }
 
-wxString HinksPixInputUniverse::BuildCommand() const {
-    return wxString::Format("{\"V\":\"%d,%d,%d,1,%d,%d\"}", index,
-                            universe, numOfChan, hinksPixStartChannel,
-                            hinksPixStartChannel + numOfChan - 1);
+std::string HinksPixInputUniverse::BuildCommand() const {
+    return std::format("{{\"V\":\"{},{},{},1,{},{}\"}}", index,
+                       universe, numOfChan, hinksPixStartChannel,
+                       hinksPixStartChannel + numOfChan - 1);
 }
 
-wxString HinksPixInputUniverse::BuildCommandEasyLights() const {
-    return wxString::Format("%d,%d,%d,1,%d,%d", index,
-        universe, numOfChan, hinksPixStartChannel,
-        hinksPixStartChannel + numOfChan - 1);
+std::string HinksPixInputUniverse::BuildCommandEasyLights() const {
+    return std::format("{},{},{},1,{},{}", index,
+                       universe, numOfChan, hinksPixStartChannel,
+                       hinksPixStartChannel + numOfChan - 1);
 }
 #pragma endregion
 
@@ -363,8 +357,8 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     }
 
     auto out = outputs.front();
-    wxString type = "E131";
-    wxString cmd;
+    std::string type = "E131";
+    std::string cmd;
     if (out->GetType() == OUTPUT_E131) {
         type = "E131";
         cmd = "DATA: {\"CMD\":\"DATA_MODE\",\"MODE\":\"E131\"}";
@@ -373,8 +367,8 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         cmd = "DATA: {\"CMD\":\"DATA_MODE\",\"MODE\":\"ARTNET\"}";
     } else if (out->GetType() == OUTPUT_DDP) {
         type = "DDP";
-        cmd = wxString::Format("DATA: {\"CMD\":\"DATA_MODE\",\"MODE\":\"DDP\",\"DDP_START\":%d,\"DDP_CHAN_COUNT\":%d}",
-                               out->GetStartChannel(), out->GetChannels());
+        cmd = std::format("DATA: {{\"CMD\":\"DATA_MODE\",\"MODE\":\"DDP\",\"DDP_START\":{},\"DDP_CHAN_COUNT\":{}}}",
+                  out->GetStartChannel(), out->GetChannels());
     }
 
     nlohmann::json data;
@@ -414,7 +408,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     int num_of_unv = 0;
 
     for (int j = 0; j < numberOfCalls; j++) {
-        wxString requestString = wxString::Format("DATA: {\"CMD\":\"E131\",\"BLK\":\"%d\",\"LIST\":[", j);
+        std::string requestString = std::format("DATA: {{\"CMD\":\"E131\",\"BLK\":\"{}\",\"LIST\":[", j);
         for (int i = 0; i < UN_PER; i++) {
             auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
             if (inpUn != inputUniverses.end()) {
@@ -428,7 +422,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
                 if (i != 0) {
                     requestString += ",";
                 }
-                requestString += wxString::Format("{\"V\":\"%d,%d,0,1,0,0\"}", index, index);
+                requestString += std::format("{{\"V\":\"{},{},0,1,0,0\"}}", index, index);
                 index++;
             } else {
                 requestString += "{\"V\":\"0,0,0,0,0,0\"}";
@@ -444,7 +438,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     }
 
     //set the universe count
-    auto const unvrequestString = wxString::Format("DATA: {\"CMD\":\"BD_INFO\",\"NumU\":\"%d\"}", num_of_unv);
+    auto const unvrequestString = std::format("DATA: {{\"CMD\":\"BD_INFO\",\"NumU\":\"{}\"}}", num_of_unv);
     auto const unvret = GetJSONControllerData(GetJSONPostURL(), unvrequestString);
     if (unvret.find("\"OK\"") == std::string::npos) {
         spdlog::error("Failed Return {}", (const char*)unvret.c_str());
@@ -460,8 +454,8 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
     
 
     spdlog::debug("Building UnPack");
-    wxString requestString;
-    wxString LE;
+    std::string requestString;
+    std::string LE;
     int BlkNum = 0;
     int LastIndex = 0;
     int Num2Send;
@@ -477,7 +471,7 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
 
     if(LL.size() == 0 || dirty == false)
     {
-        requestString = wxString::Format("DATA: {\"BLK\":\"%d\",\"NUM\":\"%d\",\"LEFT\":\"%d\",\"LIST\":[]}", 0, 0, 0);
+        requestString = std::format("DATA: {{\"BLK\":\"{}\",\"NUM\":\"{}\",\"LEFT\":\"{}\",\"LIST\":[]}}", 0, 0, 0);
 
         auto const ret = GetJSONControllerData(GetJSONUnPackURL(), requestString);
         if(ret.find("\"OK\"") == std::string::npos)
@@ -501,7 +495,7 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
         Num2Send = (TotalEntries > 16) ? 16 : TotalEntries;
         j = 0;
 
-        requestString = wxString::Format("DATA: {\"BLK\":\"%d\",\"NUM\":\"%d\",\"LEFT\":\"%d\",\"LIST\":[", BlkNum, Num2Send, (TotalEntries - Num2Send));
+        requestString = std::format("DATA: {{\"BLK\":\"{}\",\"NUM\":\"{}\",\"LEFT\":\"{}\",\"LIST\":[", BlkNum, Num2Send, (TotalEntries - Num2Send));
 
         i = 0;
 
@@ -509,7 +503,7 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
         {
             if(i > LastIndex)
             {
-                LE = wxString::Format("{%d,%d,%d}", (*it)->MyStart, (*it)->NewStart, (*it)->NumChans);
+                LE = std::format("{{{},{},{}}}", (*it)->MyStart, (*it)->NewStart, (*it)->NumChans);
                 requestString += LE;
 
                 LastIndex = i;
@@ -595,7 +589,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
             int index = 1;
 
             for (int j = 0; j < numberOfCalls; j++) {
-                wxString requestString = wxString::Format("ROWCNT=16:ROW=%d:", j);
+                std::string requestString = std::format("ROWCNT=16:ROW={}:", j);
                 for (int i = 0; i < UN_PER; i++) {
                     auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
                     if (inpUn != inputUniverses.end()) {
@@ -610,7 +604,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
                         if (i != 0) {
                             requestString += ",";
                         }
-                        requestString += wxString::Format("%d,%d,0,1,0,0", index, index);
+                        requestString += std::format("{},{},0,1,0,0", index, index);
                         index++;
                     }
                     else {
@@ -625,8 +619,8 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
             }
         }
 
-        auto const cmd = wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d",
-            multi, type, maxUnv, num_of_unv, DDPStart);
+        auto const cmd = std::format("A,{},B,{},C,{},D,{},E,{}",
+                                     multi, type, maxUnv, num_of_unv, DDPStart);
 
         //Set Controller Input mode
         auto const setRet = GetControllerData(4902, cmd);
@@ -648,7 +642,7 @@ void HinksPix::UploadPixelOutputsEasyLights(bool& worked)
     
 
     spdlog::debug("Building pixel upload EasyLights");
-    wxString requestString;
+    std::string requestString;
 
     for (int i = 0; i < 16; i++) {
         _pixelOutputs[i].Dump();
@@ -679,7 +673,7 @@ void HinksPix::UploadExpansionBoardData(int expansion, int startport, int length
 
     spdlog::debug("Building pixel upload Expansion {}:", expansion);
     //{"CMD":"PCONFIG","BOARD":"0","LIST":[
-    wxString requestString = wxString::Format("DATA: {\"CMD\":\"PCONFIG\",\"BOARD\":\"%d\",\"LIST\":[", expansion - 1);
+    std::string requestString = std::format("DATA: {{\"CMD\":\"PCONFIG\",\"BOARD\":\"{}\",\"LIST\":[", expansion - 1);
 
     for (int i = 0; i < length; i++) {
         _pixelOutputs[(startport - 1) + i].Dump();
@@ -687,7 +681,7 @@ void HinksPix::UploadExpansionBoardData(int expansion, int startport, int length
         requestString += ",";
     }
 
-    requestString.RemoveLast(); //remove last ","
+    requestString.pop_back(); // remove trailing comma
     requestString += "]}";
 
     auto const ret = GetJSONControllerData(GetJSONPostURL(), requestString);
@@ -841,15 +835,15 @@ void HinksPix::UploadSmartReceiverData(int expan, int bank, std::vector<HinksSma
         return;
     }
     //{"CMD":"SCONFIG","BOARD":"0","Port4":"0","LIST":[{"V":"0,1,1,1,1,1"},{"V":"1,0,51,51,51,51"},{"V":"2,0,101,101,101,101"},{"V":"3,0,151,151,151,151"},{"V":"6,2,0,1,0,0"},{"V":"8,0,201,1,1,1"}]}
-    wxString requestString = wxString::Format("DATA: {\"CMD\":\"SCONFIG\",\"BOARD\":\"%d\",\"Port4\":\"%d\",\"LIST\":[",
-                                              expan, bank);
+    std::string requestString = std::format("DATA: {{\"CMD\":\"SCONFIG\",\"BOARD\":\"{}\",\"Port4\":\"{}\",\"LIST\":[",
+                                            expan, bank);
 
     for (auto const& rec: receivers) {
         rec.Dump();
         requestString += rec.BuildCommand();
         requestString += ",";
     }
-    requestString.RemoveLast(); //remove last ","
+    requestString.pop_back(); // remove trailing comma
     requestString += "]}";
 
     auto const ret = GetJSONControllerData(GetJSONPostURL(), requestString);
@@ -1028,8 +1022,7 @@ bool HinksPix::GetControllerDataJSON(const std::string& url, nlohmann::json& val
 
 #pragma region Encode and Decode
 int HinksPix::EncodeStringPortProtocol(const std::string& protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    const auto p = Lower(protocol);
 
     if (p == "ws2811") {
         return 1;
@@ -1052,13 +1045,12 @@ int HinksPix::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "apa102") {
         return 7;
     }
-    wxASSERT(false);
+    assert(false);
     return 1;
 }
 
 int HinksPix::EncodeColorOrder(const std::string& colorOrder) const {
-    wxString c(colorOrder);
-    c = c.Lower();
+    const auto c = Lower(colorOrder);
 
     if (c == "rgb") {
         return 0;
@@ -1084,7 +1076,7 @@ int HinksPix::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "wrgb") {
         return 7;
     }
-    wxASSERT(false);
+    assert(false);
     return 0;
 }
 
@@ -1228,7 +1220,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
     /*
     if (_MCPU_Version < 122 && _controllerType == "E") {
-        DisplayError(wxString::Format("Easylights CPU Firmware is too old (v%d) Update to v122 or Newer.", _MCPU_Version));
+        DisplayError(std::format("Easylights CPU Firmware is too old (v{}) Update to v122 or Newer.", _MCPU_Version));
         return false;
     }*/
 
@@ -1538,19 +1530,19 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
 
 //Get most data using a GET .cgi endpoint
-wxString HinksPix::GetControllerData(int rowIndex, std::string const& data) const
+std::string HinksPix::GetControllerData(int rowIndex, const std::string& data) const
 {
     return GetControllerRowData(rowIndex, GetInfoURL(), data);
 }
 
 //E131 data uses a different .cgi endpoint
-wxString HinksPix::GetControllerE131Data(int rowIndex) const
+std::string HinksPix::GetControllerE131Data(int rowIndex) const
 {
     return GetControllerRowData(rowIndex, GetE131URL(), std::string());
 }
 
 //all of the Controller data is retrieved/set by "GET"ing different ROW values
-wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const
+std::string HinksPix::GetControllerRowData(int rowIndex, const std::string& url, const std::string& data) const
 {
     
     std::string res;
@@ -1609,9 +1601,16 @@ uint32_t GetDateTimeWord(int month, int day, int year, int hour, int min, int se
     return ((DT << 16) & 0xffff0000) | (TM & 0xffff);
 }
 
-uint32_t GetDateTimeWord(wxDateTime dt)
+uint32_t GetDateTimeWord(const std::chrono::system_clock::time_point& dateTime)
 {
-    return GetDateTimeWord(dt.GetMonth() + 1, dt.GetDay(), dt.GetYear(), dt.GetHour(), dt.GetMinute(), dt.GetSecond());
+    const std::time_t raw = std::chrono::system_clock::to_time_t(dateTime);
+    std::tm local{};
+#ifdef _WIN32
+    localtime_s(&local, &raw);
+#else
+    localtime_r(&raw, &local);
+#endif
+    return GetDateTimeWord(local.tm_mon + 1, local.tm_mday, local.tm_year + 1900, local.tm_hour, local.tm_min, local.tm_sec);
 }
 
 bool ReadLineFromSocket(sockets::TCPSocket* socket, std::string& line, long timeout) {
@@ -1643,7 +1642,7 @@ bool ReadLineFromSocket(sockets::TCPSocket* socket, std::string& line, long time
     return false; // Line not received as expected
 }
 
-bool HinksPix::UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const {
+bool HinksPix::UploadFileToController(const std::string& localpathname, const std::string& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, const std::chrono::system_clock::time_point& fileTime) const {
 
     sockets::TCPSocket sock;
     if (!sock.Connect(_ip, 80, "", false)) {
@@ -1659,7 +1658,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
 
     int maxLoop = std::ceil(std::filesystem::file_size(localpathname) / sizeof(PK.Data)) + 1;
 
-    auto up_message = wxString::Format("Uploading '%s' (%d/%d)", remotepathname, Progress, maxLoop);
+    auto up_message = std::format("Uploading '{}' ({}/{})", remotepathname, Progress, maxLoop);
     progress_dlg(Progress, maxLoop, up_message);
 
     FILE* f = fopen((const char*)localpathname.c_str(), "rb");
@@ -1697,23 +1696,23 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
         sock.Close();
         return false;
     }
-    wxStopWatch sw;
+    const auto uploadStart = std::chrono::steady_clock::now();
     while (true) 
     {
         Progress++;
         if (progress_dlg != nullptr) {
-            auto time = sw.Time();
-            wxString message;
+            const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - uploadStart).count();
+            std::string message;
             auto remaining = maxLoop - Progress;
-            if (time > 0 && Progress > 0) {
-                auto const rate = (time / Progress);
+            if (elapsedMs > 0 && Progress > 0) {
+                auto const rate = (elapsedMs / Progress);
                 auto const remainingTime = (int)(remaining * rate);
                 auto const elapsed_seconds = remainingTime / 1000;
                 auto const minutes = elapsed_seconds / 60;
                 auto const seconds = elapsed_seconds % 60;
-                message = wxString::Format("Uploading '%s' (%d/%d) Remaining time: %dm %ds", remotepathname, Progress, maxLoop, minutes, seconds);
+                message = std::format("Uploading '{}' ({}/{}) Remaining time: {}m {}s", remotepathname, Progress, maxLoop, minutes, seconds);
             } else {
-                message = wxString::Format("Uploading '%s' (%d/%d)", remotepathname, Progress, maxLoop);
+                message = std::format("Uploading '{}' ({}/{})", remotepathname, Progress, maxLoop);
             }
             auto con = progress_dlg(Progress, maxLoop+1, message);
             if (!con) {
@@ -1787,7 +1786,14 @@ bool HinksPix::UploadTimeToController() const {
         spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
         return false;
     }
-    auto time = wxDateTime::Now();
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t raw = std::chrono::system_clock::to_time_t(now);
+    std::tm local{};
+#ifdef _WIN32
+    localtime_s(&local, &raw);
+#else
+    localtime_r(&raw, &local);
+#endif
 
     Tag_Dow_TimePacket PK;
     memset(&PK, 0, sizeof(struct Tag_Dow_TimePacket));
@@ -1797,10 +1803,10 @@ bool HinksPix::UploadTimeToController() const {
     PK.CMD[2] = 0xa5;
     PK.CMD[3] = 0;
 
-    PK.hr = time.GetHour();
-    PK.min = time.GetMinute();
-    PK.sec = time.GetSecond();
-    PK.dow = time.GetWeekDay(); // zero based
+    PK.hr = static_cast<uint8_t>(local.tm_hour);
+    PK.min = static_cast<uint8_t>(local.tm_min);
+    PK.sec = static_cast<uint8_t>(local.tm_sec);
+    PK.dow = static_cast<uint8_t>(local.tm_wday); // zero based
 
     if (!sock.Write(reinterpret_cast<uint8_t*>(&PK), sizeof(struct Tag_Dow_TimePacket))) {
         spdlog::error("ERROR Sending Data to Controller File Data");
@@ -1886,7 +1892,7 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
     }
 
     //std::string line;
-    // wxStopWatch sw;
+    // Transfer timing is measured elsewhere when progress callbacks are active.
     std::string data;
     ReadLineFromSocket(&sock, data, 5000);
     if (data.find("|FOK") != std::string::npos) {
@@ -1895,14 +1901,14 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
         return files;
     }
     //*FILENAME.HSEQ,1002,1504!
-    auto const sfiles = Split(data, std::vector<char>({ '!' }));
+    auto const sfiles = Split(data, '!');
     for (auto it : sfiles) {
         if (it.size() > 0) {
             HinksPixFileData file;
             if (it.starts_with('*')) {
-                it = it.Remove(0, 1);
+                it.erase(0, 1);
             }
-            auto const parts = Split(it, std::vector<char>({ ',' }));
+            auto const parts = Split(it, ',');
             if (parts.size() == 3) {
                 file.FileName = parts[0];
                 file.Date = (int)strtol(parts[1].c_str(), nullptr, 10);
@@ -1934,10 +1940,10 @@ bool HinksPix::FirmwareSupportsUpload() const {
     return false;
 }
 
-std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const
+std::map<std::string, std::string> HinksPix::StringToMap(const std::string& text) const
 {
-    std::map<wxString, wxString> map;
-    const wxArrayString items = Split(text, std::vector<char>({ ',' }));
+    std::map<std::string, std::string> map;
+    const auto items = Split(text, ',');
     if (items.size() % 2 == 0) {
         for (int i = 0; i < (int)items.size() - 1; i += 2) {
             map[items[i]] = items[i + 1];
@@ -1963,7 +1969,7 @@ bool HinksPix::CheckPixelOutputs(std::string& message)
 
 bool HinksPix::CheckSmartReceivers(std::string& message)
 {
-    wxASSERT(std::size(_EXP_Outputs) == std::size(_smartOutputs));
+    assert(std::size(_EXP_Outputs) == std::size(_smartOutputs));
 
     for (int exp = 0; exp < EXP_PORTS; ++exp) {
         if (_EXP_Outputs[exp] != EXPType::Long_Range) {

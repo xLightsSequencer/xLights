@@ -13,6 +13,8 @@
 #include <wx/progdlg.h>
 #include <regex>
 
+#include <cassert>
+
 #include "AlphaPix.h"
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
@@ -414,7 +416,7 @@ std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string
     }
     else {
         spdlog::error("AlphaPix::ExtractFromPage   Invalid Regex Type:{}", type);
-        wxASSERT(false);
+        assert(false);
     }
 
     return "";
@@ -446,7 +448,7 @@ int AlphaPix::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "tls3001" && _modelnum != 48) return 4;
     if (p == "tm18xx" && _modelnum != 48) return 6;
     if (p == "tm18xx" && _modelnum == 48) return 4;
-    wxASSERT(false);
+    assert(false);
     return 0;
 }
 
@@ -459,7 +461,7 @@ int AlphaPix::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "gbr") return 3;
     if (c == "brg") return 4;
     if (c == "bgr") return 5;
-    wxASSERT(false);
+    assert(false);
     return 0;
 }
 
@@ -475,7 +477,7 @@ AlphaPixOutput* AlphaPix::FindPortData(int port) {
             return sd;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 
@@ -486,7 +488,7 @@ AlphaPixSerial* AlphaPix::FindSerialData(int port) {
             return sd;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return nullptr;
 }
 
@@ -636,7 +638,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }
     //get current config Page
-    const wxString page = _page;
+    const std::string page = _page;
 
     if (page.empty()) {
         DisplayError("AlphaPix Upload Error:\nWebpage was empty", parent);
