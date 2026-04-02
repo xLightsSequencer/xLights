@@ -1,0 +1,21 @@
+name: Include Boundary Policy
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  boundary-check:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Run include boundary policy (warn mode)
+        run: bash ci_scripts/check_core_include_boundaries.sh --mode warn
