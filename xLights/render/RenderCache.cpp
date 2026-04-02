@@ -628,15 +628,13 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     long duration_ms = end_ms - start_ms;
     long fps = (duration_ms * 1000) / (frame_count * 1000);
 
-    int seqFPS = buffer->frameTimeInMs;
-
-    if (seqFPS != fps) {
-        spdlog::get("render")->info("RenderCache no match because FPS {} doesn't match expected {}", fps, seqFPS);
-        return false;
-    }
-
     if (buffer != nullptr)
     {
+        int seqFPS = buffer->frameTimeInMs;
+        if (seqFPS != fps) {
+            spdlog::get("render")->info("RenderCache no match because FPS {} doesn't match expected {}", fps, seqFPS);
+            return false;
+        }
         std::string mname = GetModelName(buffer);
         if ((size_t)_frameSize.at(mname) != sizeof(xlColor) * buffer->GetPixelCount()) return false;
     }
