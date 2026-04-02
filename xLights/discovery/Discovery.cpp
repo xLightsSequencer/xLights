@@ -248,7 +248,7 @@ Discovery::~Discovery() {
 void Discovery::Close(bool wait) {
     if (wait) {
         while (CurlManager::INSTANCE.processCurls()) {
-            _delegate->Yield();
+            _delegate->YieldToUI();
         }
     }
     for (auto &dg : datagrams) {
@@ -613,7 +613,7 @@ void Discovery::Discover() {
 
         //now check the http/curls
         running = CurlManager::INSTANCE.processCurls();
-        _delegate->Yield();
+        _delegate->YieldToUI();
         curMs = GetCurrentTimeMillis();
 
         // If discovery is finding new instances, we'll increase

@@ -155,6 +155,7 @@
     </ClCompile>
     <ClCompile Include="ui/model/PathGenerationDialog.cpp" />
     <ClCompile Include="ui\setup\RemapDMXChannelsDialog.cpp" />
+    <ClCompile Include="ui\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="import_export\LOREdit.cpp" />
     <ClCompile Include="ui\model\AlignmentDialog.cpp" />
     <ClCompile Include="ui/effects/CharMapDialog.cpp" />
@@ -1586,6 +1587,7 @@
     </ClInclude>
     <ClInclude Include="ui/model/PathGenerationDialog.h" />
     <ClInclude Include="ui\setup\RemapDMXChannelsDialog.h" />
+    <ClInclude Include="ui\setup\DiscoveryAuthDialog.h" />
     <ClInclude Include="import_export\LOREdit.h" />
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="ui\model\AlignmentDialog.h" />

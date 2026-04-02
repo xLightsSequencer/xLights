@@ -43,7 +43,8 @@ public:
     virtual bool StorePassword(const std::string& service, const std::string& user, const std::string& pwd) { return false; }
 
     // Called periodically during discovery to yield to the UI event loop.
-    virtual void Yield() {}
+    // Note: not named Yield() to avoid conflict with the Windows Yield macro.
+    virtual void YieldToUI() {}
 };
 
 class DiscoveredData {

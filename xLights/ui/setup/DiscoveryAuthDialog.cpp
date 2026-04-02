@@ -93,6 +93,6 @@ bool wxDiscoveryDelegate::StorePassword(const std::string& service, const std::s
     return xlPasswordEntryDialog::StorePasswordForService(service, user, pwd);
 }
 
-void wxDiscoveryDelegate::Yield() {
+void wxDiscoveryDelegate::YieldToUI() {
     wxYieldIfNeeded();
 }

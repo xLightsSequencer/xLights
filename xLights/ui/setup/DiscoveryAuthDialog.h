@@ -57,7 +57,7 @@ public:
                            std::string& password, bool& savePassword) override;
     bool GetStoredPassword(const std::string& service, std::string& user, std::string& pwd) override;
     bool StorePassword(const std::string& service, const std::string& user, const std::string& pwd) override;
-    void Yield() override;
+    void YieldToUI() override;
 
 private:
     wxWindow* _parent = nullptr;
