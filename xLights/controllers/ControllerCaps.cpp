@@ -11,18 +11,11 @@
 
 #include "ControllerCaps.h"
 
-#include <wx/filename.h>
-#include <wx/stdpaths.h>
-#include <wx/dir.h>
-
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
 #include <cassert>
+#include <filesystem>
 
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "../ui/wxUtilities.h"
 #include "../outputs/Controller.h"
 
 #include <log.h>
@@ -62,44 +55,40 @@ static void merge(std::map<std::string, pugi::xml_node> &abstracts, const std::s
 
 void ControllerCaps::LoadControllers() {
 
-    
+
     if (__controllers.size() != 0) return;
 
-    wxString d;
-    wxStandardPaths stdp = wxStandardPaths::Get();
-
-#ifndef __WXMSW__
-    d = wxStandardPaths::Get().GetResourcesDir() + "/controllers";
-#else
-    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/controllers";
-#endif
+    std::string d = GetResourcesDir() + "/controllers";
 
     // in debug look in the master folder
-    if (!wxDir::Exists(d)) {
+    std::error_code ec;
+    if (!std::filesystem::exists(d, ec)) {
 #ifdef _DEBUG
-#ifdef __WXMSW__
-        d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../controllers";
+#ifdef _WIN32
+        d = GetResourcesDir() + "/../../../controllers";
 #endif
 #endif
 #ifdef LINUX
-        d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../controllers";
+        d = GetResourcesDir() + "/../controllers";
 #endif
     }
 
-    if (wxDir::Exists(d)) {
-        wxDir dir(d);
-        wxArrayString files;
-        GetAllFilesInDir(d, files, "*.xcontroller");
+    if (std::filesystem::exists(d, ec)) {
+        std::vector<std::string> files;
+        for (const auto& entry : std::filesystem::directory_iterator(d, ec)) {
+            if (entry.is_regular_file() && entry.path().extension() == ".xcontroller") {
+                files.push_back(entry.path().string());
+            }
+        }
         std::vector<pugi::xml_document> docs;
         docs.resize(files.size());
         int count = 0;
-        for (auto &filename : files) {
-            wxFileName fn(filename);
-            if (FileExists(fn.GetFullPath())) {
-                pugi::xml_parse_result result = docs[count].load_file(fn.GetFullPath().ToStdString().c_str());
+        for (const auto& filename : files) {
+            if (FileExists(filename)) {
+                pugi::xml_parse_result result = docs[count].load_file(filename.c_str());
                 if (!result) {
                     assert(false);
-                    spdlog::error("Problem loading " + fn.GetFullPath().ToStdString());
+                    spdlog::error("Problem loading " + filename);
                 }
                 count++;
             }
@@ -158,7 +147,7 @@ void ControllerCaps::LoadControllers() {
             }
         }
     } else {
-        spdlog::error("Controllers folder not found " + d.ToStdString());
+        spdlog::error("Controllers folder not found " + d);
     }
 }
 
@@ -812,53 +801,24 @@ void ControllerCaps::Dump() const
 }
 
 
-void ControllerCaps::AddProperties(Controller *controller, wxPropertyGrid* propertyGrid) {
+std::vector<ControllerCaps::ExtraPropertyDef> ControllerCaps::GetExtraPropertyDefs() const {
+    std::vector<ExtraPropertyDef> result;
     for (pugi::xml_node n = _config.first_child(); n; n = n.next_sibling()) {
         if (std::string_view(n.name()) == "ExtraProperties") {
             for (pugi::xml_node pnode = n.first_child(); pnode; pnode = pnode.next_sibling()) {
-                std::string name = pnode.attribute("name").as_string("");
-                std::string label = pnode.attribute("label").as_string("");
-                std::string def = GetXmlNodeContent(pnode, "Default");
-                std::string type = GetXmlNodeContent(pnode, "Type", "String");
-                if (type == "Enum") {
-                    std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
-                    wxPGChoices pgcValues;
-                    for (auto &v : values) {
-                        pgcValues.Add(v);
-                    }
-                    int idx = pgcValues.Index(controller->GetExtraProperty(name, def));
-                    propertyGrid->Append(new wxEnumProperty(label, "Controller" + name, pgcValues, idx));
-                } else if (type == "String") {
-                    propertyGrid->Append(new wxStringProperty(label, "Controller" + name, controller->GetExtraProperty(name, def)));
+                ExtraPropertyDef def;
+                def.name = pnode.attribute("name").as_string("");
+                def.label = pnode.attribute("label").as_string("");
+                def.defaultValue = GetXmlNodeContent(pnode, "Default");
+                def.type = GetXmlNodeContent(pnode, "Type", "String");
+                if (def.type == "Enum") {
+                    def.values = GetXmlNodeListContent(pnode, "Values", "Value");
                 }
+                result.push_back(std::move(def));
             }
         }
     }
-}
-bool ControllerCaps::HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event) {
-    for (pugi::xml_node n = _config.first_child(); n; n = n.next_sibling()) {
-        if (std::string_view(n.name()) == "ExtraProperties") {
-            for (pugi::xml_node pnode = n.first_child(); pnode; pnode = pnode.next_sibling()) {
-                std::string name = pnode.attribute("name").as_string("");
-                std::string type = GetXmlNodeContent(pnode, "Type", "String");
-                if (event.GetPropertyName() == "Controller" + name) {
-                    if (type == "String") {
-                        controller->SetExtraProperty(name, event.GetPropertyValue().GetString());
-                        return true;
-                    }
-                    if (type == "Enum") {
-                        std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
-                        int idx = event.GetPropertyValue().GetLong();
-                        if (idx < (int)values.size()) {
-                            controller->SetExtraProperty(name, values[idx]);
-                        }
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
+    return result;
 }
 
 #pragma endregion

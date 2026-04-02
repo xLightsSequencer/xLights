@@ -34,7 +34,7 @@ std::list<std::unique_ptr<SequenceData::DataBlock>> SequenceData::HUGE_BLOCK_CAC
 static const size_t LARGE_PAGE_SIZE = 2 * 1024 * 1024;
 static bool firstSeq = true;
 static std::mutex HUGE_BLOCK_LOCK;
-#ifdef __WXOSX__
+#ifdef __APPLE__
 static const size_t DEFAULT_HUGE_ALLOC_SIZE = 64 * 1024 * 1024;
 #else
 static const size_t DEFAULT_HUGE_ALLOC_SIZE = MAX_BLOCK_SIZE;
@@ -161,7 +161,7 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
     }
     lock.unlock();
     if (!_hugePagesFailed) {
-#ifdef __WXOSX__
+#ifdef __APPLE__
         auto sw_start = std::chrono::steady_clock::now();
         //size_t origSize = sz;
         blockType = BlockType::HUGE_PAGE;

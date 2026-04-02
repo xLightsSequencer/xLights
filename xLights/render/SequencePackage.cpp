@@ -180,7 +180,7 @@ void SequencePackage::Extract()
             continue;
         }
 
-#ifdef __WXMSW__
+#ifdef _WIN32
         // folder with spaces at begin and end breaks temp folder paths
         fnEntry.Replace(" " + wxString(wxFileName::GetPathSeparator()), wxFileName::GetPathSeparator());
         fnEntry.Replace(wxString(wxFileName::GetPathSeparator()) + " ", wxFileName::GetPathSeparator());
@@ -191,7 +191,7 @@ void SequencePackage::Extract()
 
         spdlog::debug("   Extracting {} to {}.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
 
-#ifdef __WXMSW__
+#ifdef _WIN32
         if (fnOutput.GetFullPath().length() > MAX_PATH) {
             spdlog::warn("Target filename longer than {} chars ({}). This will likely fail. {}.", MAX_PATH, (int)fnOutput.GetFullPath().length(), (const char*) fnOutput.GetFullPath().c_str());
         }

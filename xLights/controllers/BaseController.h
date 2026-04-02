@@ -12,7 +12,6 @@
 
 #include <list>
 #include <string>
-#include <wx/intl.h>
 
 #include "ControllerUploadData.h"
 #include "UtilClasses.h"
@@ -20,6 +19,7 @@
 class ModelManager;
 class OutputManager;
 class Controller;
+class wxWindow;
 
 class BaseController
 {
@@ -59,7 +59,7 @@ public:
 
     [[nodiscard]] virtual const std::string &GetModel() const { return _model; }
     [[nodiscard]] virtual const std::string &GetVersion() const { return _version; }
-    [[nodiscard]] virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
+    [[nodiscard]] virtual std::string GetFullName() const { return _version.empty() ? _model : (_model + " " + _version); }
 
 #ifndef DISCOVERYONLY
     virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) { return false; }

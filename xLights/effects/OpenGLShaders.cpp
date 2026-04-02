@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#ifndef __WXMAC__
+#ifndef __APPLE__
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -243,7 +243,7 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
     return linkSuccess ? program : 0;
 }
 
-#ifdef __WXOSX__
+#ifdef __APPLE__
 // OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
 #pragma clang diagnostic pop
 #endif

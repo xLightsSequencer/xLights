@@ -10,7 +10,7 @@
 
 #include "WindowsHardwareVideoReader.h"
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 
 //#define DETAILED_LOGGING
 

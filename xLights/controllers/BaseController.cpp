@@ -17,7 +17,7 @@
 
 #include <curl/curl.h>
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 #include "../utils/CurlManager.h"
 #endif
 

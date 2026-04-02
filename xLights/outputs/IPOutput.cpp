@@ -11,11 +11,7 @@
 
 #include "IPOutput.h"
 
-#include <wx/socket.h>
-#include <wx/protocol/http.h>
-
-// This must be below the wx includes
-#ifdef __WXMSW__
+#ifdef _WIN32
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <iphlpapi.h>
@@ -77,7 +73,7 @@ pugi::xml_node IPOutput::Save(pugi::xml_node parent) {
 #pragma region Static Functions
 Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy) {
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     if (proxy == "") {
         unsigned long ipaddr = inet_addr(ip.c_str());
         //unsigned long ipaddr = 0;
@@ -123,7 +119,7 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
         } else {
             return Output::PINGSTATE::PING_ALLFAILED;
         }
-#ifdef __WXMSW__
+#ifdef _WIN32
     }
 #endif
 }

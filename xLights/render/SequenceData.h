@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#ifdef __WXOSX__
+#ifdef __APPLE__
 #include <sys/mman.h>
 #include <mach/vm_statistics.h>
 #define USE_MMAP_BLOCKS

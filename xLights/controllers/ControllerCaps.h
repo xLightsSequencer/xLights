@@ -19,8 +19,6 @@
 
 class Controller;
 class BaseController;
-class wxPropertyGrid;
-class wxPropertyGridEvent;
 
 class ControllerCaps
 {
@@ -151,9 +149,15 @@ public:
     bool DisableMonitoring() const;
 
     void Dump() const;
-    
-    void AddProperties(Controller *controller, wxPropertyGrid* propertyGrid);
-    bool HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event);
+
+    struct ExtraPropertyDef {
+        std::string name;
+        std::string label;
+        std::string defaultValue;
+        std::string type; // "String" or "Enum"
+        std::vector<std::string> values; // populated for Enum type
+    };
+    std::vector<ExtraPropertyDef> GetExtraPropertyDefs() const;
 
     #pragma endregion
 };

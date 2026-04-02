@@ -10,8 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/protocol/http.h>
-
 #include <list>
 #include <string>
 
@@ -97,18 +95,6 @@ public:
     }
 };
 
-// I had to write this http class as wxHTTP is unable to handle the SanDevices
-class SimpleHTTP : public wxHTTP
-{
-    bool MyBuildRequest(const wxString& path, const wxString& method, wxString& startResult);
-
-public:
-    using wxHTTP::GetInputStream;
-    SimpleHTTP() : wxHTTP() { }
-    virtual ~SimpleHTTP() { }
-    wxInputStream *GetInputStream(const wxString& path, wxString& startResult);
-};
-
 class SanDevices : public BaseController
 {
     #pragma region Member Variables
@@ -119,7 +105,6 @@ class SanDevices : public BaseController
                                 E681 = 681,
                                 E682 = 682 }; // enum class
 
-    SimpleHTTP _http;
     std::string _page;
     FirmwareVersion _firmware;
     SanDeviceModel _sdmodel = SanDeviceModel::Unknown;

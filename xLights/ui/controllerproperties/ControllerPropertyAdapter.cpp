@@ -258,7 +258,18 @@ void ControllerPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, Mode
 
     ControllerCaps* caps = ControllerCaps::GetControllerConfig(&_controller);
     if (caps) {
-        caps->AddProperties(&_controller, propertyGrid);
+        for (const auto& prop : caps->GetExtraPropertyDefs()) {
+            if (prop.type == "Enum") {
+                wxPGChoices pgcValues;
+                for (const auto& v : prop.values) {
+                    pgcValues.Add(v);
+                }
+                int idx = pgcValues.Index(_controller.GetExtraProperty(prop.name, prop.defaultValue));
+                propertyGrid->Append(new wxEnumProperty(prop.label, "Controller" + prop.name, pgcValues, idx));
+            } else if (prop.type == "String") {
+                propertyGrid->Append(new wxStringProperty(prop.label, "Controller" + prop.name, _controller.GetExtraProperty(prop.name, prop.defaultValue)));
+            }
+        }
     }
 }
 
@@ -394,9 +405,19 @@ bool ControllerPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, 
     } else {
         ControllerCaps* caps = ControllerCaps::GetControllerConfig(&_controller);
         if (caps) {
-            if (caps->HandlePropertyEvent(&_controller, event)) {
-                outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::" + name);
-                return true;
+            for (const auto& prop : caps->GetExtraPropertyDefs()) {
+                if (event.GetPropertyName() == "Controller" + prop.name) {
+                    if (prop.type == "String") {
+                        _controller.SetExtraProperty(prop.name, event.GetPropertyValue().GetString().ToStdString());
+                    } else if (prop.type == "Enum") {
+                        int idx = event.GetPropertyValue().GetLong();
+                        if (idx < (int)prop.values.size()) {
+                            _controller.SetExtraProperty(prop.name, prop.values[idx]);
+                        }
+                    }
+                    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::" + name);
+                    return true;
+                }
             }
         }
     }

@@ -99,7 +99,7 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
     std::list<std::string> res;
 
     res.push_back("NotConnected");
-#ifdef __WXMSW__
+#ifdef _WIN32
     // Windows
     res.push_back("COM1");
     res.push_back("COM2");
@@ -121,7 +121,7 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
     res.push_back("\\\\.\\COM18");
     res.push_back("\\\\.\\COM19");
     res.push_back("\\\\.\\COM20");
-#elif __WXOSX__
+#elif defined(__APPLE__)
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
     wxArrayString output, errors;
@@ -186,7 +186,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
 
     std::list<std::string> res;
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     TCHAR valname[_MAX_PATH];
     TCHAR portname[_MAX_PATH];
     DWORD vallen = sizeof(valname);
@@ -216,7 +216,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
     else {
         res.push_back("(no available ports)");
     }
-#elif __WXOSX__
+#elif defined(__APPLE__)
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
     wxArrayString output, errors;
@@ -235,7 +235,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
     }
 #else
     res.push_back("port enumeration not supported on Linux");
-#endif // __WXMSW__
+#endif // _WIN32
 
     return res;
 }

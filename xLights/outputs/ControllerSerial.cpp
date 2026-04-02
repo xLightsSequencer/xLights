@@ -131,7 +131,7 @@ ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
     _type = OUTPUT_DMX;
     SetPort(_outputManager->GetFirstUnusedCommPort());
     SetSpeed(_serialOutput->GetBaudRate());
-#ifdef __WXOSX__
+#ifdef __APPLE__
     _model = "FPP";
     _vendor = "FPP";
     VMVChanged();

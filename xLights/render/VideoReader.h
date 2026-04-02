@@ -10,7 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/defs.h>
 #include <string>
 
 extern "C"
@@ -20,7 +19,7 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 class WindowsHardwareVideoReader;
 #endif
 
@@ -96,7 +95,7 @@ private:
     bool _abort = false;
     bool _videoToolboxAccelerated; 
     bool _abandonHardwareDecode = false;
-    #ifdef __WXMSW__
+    #ifdef _WIN32
     WindowsHardwareVideoReader* _windowsHardwareVideoReader = nullptr;
     #endif
 };

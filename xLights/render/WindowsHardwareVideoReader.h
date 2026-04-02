@@ -10,10 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/defs.h>
 #include <mutex>
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 
 #ifdef _DEBUG
 //#define D3D_DEBUG_INFO

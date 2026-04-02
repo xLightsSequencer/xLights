@@ -20,10 +20,7 @@
 #include "../ui/wxUtilities.h"
 
 #include <wx/msgdlg.h>
-#include <wx/sstream.h>
-#include <wx/sckstrm.h>
 #include <regex>
-#include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
 #include <cassert>
@@ -85,203 +82,6 @@ void SanDevicesOutputV4::Dump() const {
 }
 #pragma endregion
 
-#pragma region MyHTTPStream
-class MyHTTPStream : public wxSocketInputStream
-{
-public:
-    wxHTTP * m_http = nullptr;
-    size_t m_httpsize = 0;
-    unsigned long m_read_bytes = 0;
-
-    MyHTTPStream(wxHTTP *http) : wxSocketInputStream(*http) {
-
-        m_http = http;
-    }
-
-    size_t GetSize() const wxOVERRIDE { return m_httpsize; }
-    virtual ~MyHTTPStream(void) { m_http->Abort(); }
-
-protected:
-    size_t OnSysRead(void *buffer, size_t bufsize) wxOVERRIDE {
-
-        if (m_read_bytes >= m_httpsize) {
-            m_lasterror = wxSTREAM_EOF;
-            return 0;
-        }
-
-        size_t ret = wxSocketInputStream::OnSysRead(buffer, bufsize);
-        m_read_bytes += ret;
-
-        if (m_httpsize == (size_t)-1 && m_lasterror == wxSTREAM_READ_ERROR) {
-            // if m_httpsize is (size_t) -1 this means read until connection closed
-            // which is equivalent to getting a READ_ERROR, for clients however this
-            // must be translated into EOF, as it is the expected way of signalling
-            // end end of the content
-            m_lasterror = wxSTREAM_EOF;
-        }
-
-        return ret;
-    }
-
-    wxDECLARE_NO_COPY_CLASS(MyHTTPStream);
-};
-#pragma endregion
-
-#pragma region SimpleHTTP
-wxInputStream* SimpleHTTP::GetInputStream(const wxString& path, wxString& startResult) {
-    
-
-    MyHTTPStream* inp_stream = nullptr;
-
-    m_lastError = wxPROTO_CONNERR; // all following returns share this type of error
-    if (!m_addr) {
-        spdlog::error("SimpleHTTP::GetInputStream m_addr was null");
-        return nullptr;
-    }
-
-    // We set m_connected back to false so wxSocketBase will know what to do.
-#ifdef __WXMAC__
-    wxSocketClient::Connect(*m_addr, false);
-    wxSocketClient::WaitOnConnect(10);
-
-    if (!wxSocketClient::IsConnected())
-        return nullptr;
-#else
-    if (!wxProtocol::Connect(*m_addr)) {
-        spdlog::error("SimpleHTTP::GetInputStream wxProtocol::Connect failed to {}.", (const char*)dynamic_cast<wxIPaddress*>(m_addr)->IPAddress().c_str());
-        return nullptr;
-    }
-
-#endif
-
-    // Use the user-specified method if any or determine the method to use
-    // automatically depending on whether we have anything to post or not.
-    wxString method = m_method;
-    if (method.empty()) {
-        method = m_postBuffer.IsEmpty() ? wxS("GET") : wxS("POST");
-    }
-
-    if (!MyBuildRequest(path, method, startResult)) {
-        return nullptr;
-    }
-
-    inp_stream = new MyHTTPStream(this);
-
-    if (!GetHeader(wxT("Content-Length")).empty()) {
-        inp_stream->m_httpsize = (int)strtol(GetHeader(wxT("Content-Length")).c_str(), nullptr, 10);
-    } else {
-        inp_stream->m_httpsize = -1;
-    }
-
-    inp_stream->m_read_bytes = 0;
-
-    // no error; reset m_lastError
-    m_lastError = wxPROTO_NOERR;
-    return inp_stream;
-}
-
-bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wxString& startResult) {
-
-    startResult = "";
-
-    // Use the data in the post buffer, if any.
-    if (!m_postBuffer.IsEmpty()) {
-        wxString len;
-        len << m_postBuffer.GetDataLen();
-
-        // Content length must be correct, so always set, possibly
-        // overriding the value set explicitly by a previous call to
-        // SetHeader("Content-Length").
-        SetHeader(wxS("Content-Length"), len);
-
-        // However if the user had explicitly set the content type, don't
-        // override it with the content type passed to SetPostText().
-        if (!m_contentType.empty() && GetContentType().empty()) {
-            SetHeader(wxS("Content-Type"), m_contentType);
-        }
-    }
-
-    m_http_response = 0;
-
-    // If there is no User-Agent defined, define it.
-    if (GetHeader(wxT("User-Agent")).empty()) {
-        SetHeader(wxT("User-Agent"), wxVERSION_STRING);
-    }
-
-    // Send authentication information
-    if (!m_username.empty() || !m_password.empty()) {
-        SetHeader(wxT("Authorization"), GenerateAuthString(m_username, m_password));
-    }
-
-    wxString buf;
-    buf.Printf(wxT("%s %s HTTP/1.0\r\n"), method, path);
-    const wxWX2MBbuf pathbuf = buf.mb_str();
-    Write(pathbuf, strlen(pathbuf));
-    SendHeaders();
-    Write("\r\n", 2);
-
-    if (!m_postBuffer.IsEmpty()) {
-        Write(m_postBuffer.GetData(), m_postBuffer.GetDataLen());
-        m_postBuffer.Clear();
-    }
-
-    wxString tmp_str;
-    int i = 0;
-    while (tmp_str.IsEmpty() && i++ < 10) {
-        m_lastError = ReadLine(this, tmp_str);
-
-        // return only if error and no data
-        if (m_lastError != wxPROTO_NOERR && tmp_str.IsEmpty()) {
-            return false;
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-    m_lastError = wxPROTO_NOERR;
-
-    if (!tmp_str.Contains(wxT("HTTP/"))) {
-        m_lastError = wxPROTO_NOERR;
-        SetHeader(wxT("Content-Length"), wxString::Format("%d", (int)tmp_str.Length()));
-        SetHeader(wxT("Content-Type"), wxT("text/html"));
-        startResult = tmp_str;
-
-        return true;
-    }
-
-    wxStringTokenizer token(tmp_str, wxT(' '));
-    wxString tmp_str2;
-    bool ret_value;
-
-    token.NextToken();
-    tmp_str2 = token.NextToken();
-
-    m_http_response = (int)strtol(tmp_str2.c_str(), nullptr, 10);
-
-    switch (tmp_str2[0u].GetValue()) {
-    case wxT('1'):
-        /* INFORMATION / SUCCESS */
-        break;
-
-    case wxT('2'):
-        /* SUCCESS */
-        break;
-
-    case wxT('3'):
-        /* REDIRECTION */
-        break;
-
-    default:
-        m_lastError = wxPROTO_NOFILE;
-        RestoreState();
-        return false;
-    }
-
-    m_lastError = wxPROTO_NOERR;
-    ret_value = ParseHeaders();
-
-    return ret_value;
-}
-#pragma endregion
 
 #pragma region Private Functions
 bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
@@ -610,58 +410,18 @@ bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
     return true;
 }
 
-const std::string DecodeProtocolError(wxProtocolError err)
-{
-    switch (err) {
-    case wxPROTO_NOERR:
-        return "Success";
-    case wxPROTO_NETERR:
-        return "Network Error";
-    case wxPROTO_PROTERR:
-        return "Protocol Error";
-    case wxPROTO_CONNERR:
-        return "Connection Error";
-    case wxPROTO_INVVAL:
-        return "Invalid Value";
-    case wxPROTO_NOHNDLR:
-        return "No Handler";
-    case wxPROTO_NOFILE:
-        return "No File";
-    case wxPROTO_ABRT:
-        return "Abort";
-    case wxPROTO_RCNCT:
-        return "Reconnection Count";
-    case wxPROTO_STREAMING:
-        return "Streaming";
-    }
-    return "Unrecognised error";
-}
-
 std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
+    std::string res = GetURL(url);
+    spdlog::debug("Making request to SanDevices {} '{}'", _ip, url);
 
-    
-    wxString res;
-
-    _http.SetMethod("GET");
-    wxString startResult;
-    wxInputStream* httpStream = _http.GetInputStream(_baseUrl + url, startResult);
-    spdlog::debug("Making request to SanDevices {} '{}' -> {}", _ip, url, _http.GetResponse());
-
-    if (_http.GetError() == wxPROTO_NOERR) {
-        wxStringOutputStream out_stream(&res);
-        httpStream->Read(out_stream);
-
-        if (logresult) {
-            spdlog::debug("Response from SanDevices '{}'.", res.ToStdString());
-        }
-    }
-    else {
-        spdlog::error("Unable to connect to SanDevices {} '{}' : {} {}.", _ip, url, _http.GetError(), DecodeProtocolError(_http.GetError()));
-        wxMessageBox(_T("Unable to connect!"));
-        res = "";
+    if (res.empty()) {
+        spdlog::error("Unable to connect to SanDevices {} '{}'.", _ip, url);
+        wxMessageBox("Unable to connect!");
+    } else if (logresult) {
+        spdlog::debug("Response from SanDevices '{}'.", res);
     }
 
-    return (startResult + res).ToStdString();
+    return res;
 }
 
 void SanDevices::ResetStringOutputs() {
@@ -1303,63 +1063,51 @@ inline int SanDevices::EncodeControllerPortV5(const int group, const int subport
 
 #pragma region Constructors and Destructors
 SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
-    _http.SetMethod("GET");
-    if (!_fppProxy.empty()) {
-        _connected = _http.Connect(_fppProxy);
-    }
-    else {
-        _connected = _http.Connect(_ip);
-    }
     _firmware = FirmwareVersion::Unknown;
 
-    if (_connected) {
-        //Loop For Version 5, we may have to switch web pages first and then scrap data
-        for (int i = 0; i < 2; i++) {
-            _page = SDGetURL("/");
-            if (!_page.empty()) {
-                static std::regex modelregex("(Controller Model )(E\\d+)");
-                std::smatch modm;
-                if (std::regex_search(_page, modm, modelregex)) {
-                    _sdmodel = DecodeControllerType(modm[2].str());
-                    spdlog::info("Connected to SanDevices controller model {}.", GetModel());
-                }
-                static std::regex versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>");
-                std::smatch verm;
-                if (std::regex_search(_page, verm, versionregex)) {
-                    _firmware = FirmwareVersion::Four;
-                    _version = verm[2].str();
-                    spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
-                    spdlog::info("                                 version {}.", _version);
-                    break;
-                }
-                // Firmware Version:</th></td><td>5.038</td>
-                // Firmware Version:</th></td><td> 5.051-W5200</td>
-                static std::regex version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)\\s?([0-9]+\\.[0-9]+)(-W5200)?\\<\\/td\\>");
-                std::smatch ver5m;
-                if (std::regex_search(_page, ver5m, version5regex)) {
-                    _firmware = FirmwareVersion::Five;
-                    _version = ver5m[2].str();
-                    if (ver5m[3].matched) {
-                        _version += ver5m[3].str();
-                    }
-                    spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
-                    spdlog::info("                                 version {}.", _version);
-                    break;
-                }
-
-                //Switch Pages from Version 5 Firmware
-                SDGetURL("/H?");
+    //Loop For Version 5, we may have to switch web pages first and then scrap data
+    for (int i = 0; i < 2; i++) {
+        _page = SDGetURL("/");
+        if (!_page.empty()) {
+            _connected = true;
+            static std::regex modelregex("(Controller Model )(E\\d+)");
+            std::smatch modm;
+            if (std::regex_search(_page, modm, modelregex)) {
+                _sdmodel = DecodeControllerType(modm[2].str());
+                spdlog::info("Connected to SanDevices controller model {}.", GetModel());
             }
-            else {
-                _http.Close();
-                _connected = false;
-                spdlog::error("Error connecting to SanDevices controller on {}.", _ip);
+            static std::regex versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>");
+            std::smatch verm;
+            if (std::regex_search(_page, verm, versionregex)) {
+                _firmware = FirmwareVersion::Four;
+                _version = verm[2].str();
+                spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
+                spdlog::info("                                 version {}.", _version);
                 break;
             }
+            // Firmware Version:</th></td><td>5.038</td>
+            // Firmware Version:</th></td><td> 5.051-W5200</td>
+            static std::regex version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)\\s?([0-9]+\\.[0-9]+)(-W5200)?\\<\\/td\\>");
+            std::smatch ver5m;
+            if (std::regex_search(_page, ver5m, version5regex)) {
+                _firmware = FirmwareVersion::Five;
+                _version = ver5m[2].str();
+                if (ver5m[3].matched) {
+                    _version += ver5m[3].str();
+                }
+                spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
+                spdlog::info("                                 version {}.", _version);
+                break;
+            }
+
+            //Switch Pages from Version 5 Firmware
+            SDGetURL("/H?");
         }
-    }
-    else {
-        spdlog::error("Error connecting to SanDevices controller on {}.", _ip);
+        else {
+            _connected = false;
+            spdlog::error("Error connecting to SanDevices controller on {}.", _ip);
+            break;
+        }
     }
 
     if (_connected) {
@@ -1368,9 +1116,6 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
 }
 
 SanDevices::~SanDevices() {
-
-    _http.Close();
-
     for (const auto& it : _outputData) {
         delete it;
     }

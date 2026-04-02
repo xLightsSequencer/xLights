@@ -23,11 +23,11 @@
 #include "SequenceElements.h"
 #include "SequenceFile.h"
 #include "PixelBuffer.h"
+#include "DimmingCurve.h"
 #include "UtilFunctions.h"
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
 #include "GPURenderUtils.h"
-#include "ui/sequencer/BufferPanel.h"
 
 #include <log.h>
 #include "Parallel.h"

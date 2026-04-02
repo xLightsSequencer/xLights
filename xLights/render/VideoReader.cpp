@@ -29,7 +29,7 @@ extern "C" {
 #include "../utils/SpecialOptions.h"
 #include <log.h>
 
-#ifdef __WXOSX__
+#ifdef __APPLE__
 extern void InitVideoToolboxAcceleration();
 extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
 extern void CleanupVideoToolbox(AVCodecContext *s, void * cache);
@@ -43,7 +43,7 @@ static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame 
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 #include "WindowsHardwareVideoReader.h"
 #include <VersionHelpers.h>
 #endif
@@ -120,7 +120,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _width = _maxwidth;
     _height = _maxheight;
 
-#ifdef __WXMSW__
+#ifdef _WIN32
 
     if (HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() && HW_ACCELERATION_TYPE == WINHARDWARERENDERTYPE::DIRECX11_API) {
         _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
@@ -352,7 +352,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
 #if LIBAVFORMAT_VERSION_MAJOR > 57
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
-#if defined(__WXMSW__)
+#if defined(_WIN32)
         std::list<std::string> hwdecoders = { "cuda", "qsv", "d3d11va", "vulkan" };
 
         switch (HW_ACCELERATION_TYPE) {
@@ -375,7 +375,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
                 break;
         }
 
-#elif defined(__WXOSX__)
+#elif defined(__APPLE__)
         std::list<std::string> hwdecoders = { "videotoolbox" };
 #else
         std::list<std::string> hwdecoders = { "vaapi", "vdpau" };
@@ -573,7 +573,7 @@ VideoReader::~VideoReader()
 {
     
 
-    #ifdef __WXMSW__
+    #ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
         delete _windowsHardwareVideoReader;
         _windowsHardwareVideoReader = nullptr;
@@ -644,7 +644,7 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
 {
     
 
-    #ifdef __WXMSW__
+    #ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
         _windowsHardwareVideoReader->Seek(timestampMS);
         _curPos = _windowsHardwareVideoReader->GetPos();
@@ -845,7 +845,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         return nullptr;
     }
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
         AVFrame * frame = _windowsHardwareVideoReader->GetNextFrame(timestampMS, gracetime);
         _curPos = _windowsHardwareVideoReader->GetPos();
