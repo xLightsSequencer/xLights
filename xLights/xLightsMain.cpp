@@ -137,7 +137,7 @@
 #include "models/DMX/DmxMovingHeadComm.h"
 #include "ui/color/ColorPanel.h"
 
-#include "../xSchedule/wxHTTPServer/wxhttpserver.h"
+#include "../dependencies/wxHTTPServer/wxhttpserver.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -295,9 +295,6 @@ const wxWindowID xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_FIND_SHOW_FOLDER = wxNewId();
-const wxWindowID xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
-const wxWindowID xLightsFrame::ID_MENU_XCAPTURE = wxNewId();
-const wxWindowID xLightsFrame::ID_MNU_XSCANNER = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM5 = wxNewId();
 const wxWindowID xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
@@ -1065,13 +1062,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu1->Append(MenuItemUserDict);
     MenuItemFindShowFolder = new wxMenuItem(Menu1, ID_MENU_FIND_SHOW_FOLDER, _("Search for Show Folders"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemFindShowFolder);
-    Menu1->AppendSeparator();
-    MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
-    Menu1->Append(MenuItem_xSchedule);
-    xCaptureMenuItem = new wxMenuItem(Menu1, ID_MENU_XCAPTURE, _("xCapture"), wxEmptyString, wxITEM_NORMAL);
-    Menu1->Append(xCaptureMenuItem);
-    MenuItem_xScanner = new wxMenuItem(Menu1, ID_MNU_XSCANNER, _("xScanner"), wxEmptyString, wxITEM_NORMAL);
-    Menu1->Append(MenuItem_xScanner);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuView = new wxMenu();
     MenuItem_ViewZoomIn = new wxMenuItem(MenuView, wxID_ZOOM_IN, _("Zoom In"), wxEmptyString, wxITEM_NORMAL);
@@ -1333,9 +1323,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MNU_PREPAREAUDIO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
     Connect(ID_MENU_USER_DICT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
     Connect(ID_MENU_FIND_SHOW_FOLDER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemFindShowFolderSelected);
-    Connect(ID_MNU_XSCHEDULE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
-    Connect(ID_MENU_XCAPTURE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_xCaptureSelected);
-    Connect(ID_MNU_XSCANNER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScannerSelected);
     Connect(wxID_ZOOM_IN, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM5, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
@@ -2232,10 +2219,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::InitHWAcceleration();
 
-    MenuItem_xSchedule->GetMenu()->Remove(MenuItem_xSchedule->GetId());
-    MenuItem_xSchedule = nullptr;
-    MenuItem_xScanner->GetMenu()->Remove(MenuItem_xScanner->GetId());
-    MenuItem_xScanner = nullptr;
 
     MenuFile->AppendSeparator();
     const long newInstId = wxNewId();
@@ -8012,41 +7995,6 @@ void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event
     spdlog::debug("Cleaning up file locations ... DONE.");
 }
 
-void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
-{
-#ifdef LINUX
-    // Handle xschedule not in path
-    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
-    wxString appPath(f.GetPath());
-    wxString cmdline(appPath + wxT("/xSchedule"));
-    wxExecute(cmdline, wxEXEC_ASYNC, NULL, NULL);
-#else
-    wxExecute("xSchedule.exe");
-#endif
-}
-
-#ifdef __WXOSX__
-#include "../xCapture/xCaptureMain.h"
-static xCaptureFrame* xCapture = nullptr;
-#endif
-
-void xLightsFrame::OnMenuItem_xCaptureSelected(wxCommandEvent& event)
-{
-#ifdef LINUX
-    // Handle xschedule not in path
-    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
-    wxString appPath(f.GetPath());
-    wxString cmdline(appPath + wxT("/xCapture"));
-    wxExecute(cmdline, wxEXEC_ASYNC, NULL, NULL);
-#elif defined(__WXOSX__)
-    if (xCapture == nullptr) {
-        xCapture = new xCaptureFrame(this);
-    }
-    xCapture->Show();
-#else
-    wxExecute("xCapture.exe");
-#endif
-}
 
 #pragma endregion Tools Menu
 
@@ -10311,18 +10259,6 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
     SetStatusText("Controller Connections spreadsheet saved to " + filename);
 }
 
-void xLightsFrame::OnMenuItem_xScannerSelected(wxCommandEvent& event)
-{
-#ifdef LINUX
-    // Handle xschedule not in path
-    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
-    wxString appPath(f.GetPath());
-    wxString cmdline(appPath + wxT("/xScanner"));
-    wxExecute(cmdline, wxEXEC_ASYNC, NULL, NULL);
-#else
-    wxExecute("xScanner.exe");
-#endif
-}
 
 std::string xLightsFrame::GetUniqueTimingName(const std::string& baseName)
 {

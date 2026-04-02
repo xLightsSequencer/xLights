@@ -1343,19 +1343,6 @@
 					<label>Search for Show Folders</label>
 					<handler function="OnMenuItemFindShowFolderSelected" entry="EVT_MENU" />
 				</object>
-				<object class="separator" />
-				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
-					<label>xSchedu&amp;le</label>
-					<handler function="OnMenuItem_xScheduleSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MENU_XCAPTURE" variable="xCaptureMenuItem" member="yes">
-					<label>xCapture</label>
-					<handler function="OnMenuItem_xCaptureSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_XSCANNER" variable="MenuItem_xScanner" member="yes">
-					<label>xScanner</label>
-					<handler function="OnMenuItem_xScannerSelected" entry="EVT_MENU" />
-				</object>
 			</object>
 			<object class="wxMenu" variable="MenuView" member="yes">
 				<label>&amp;View</label>

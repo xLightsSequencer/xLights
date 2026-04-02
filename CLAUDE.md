@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-xLights is a cross-platform (Windows/macOS/Linux) C++20 show sequencer for controlling lighting via USB/DMX/sACN/ArtNet/DDP. Built on wxWidgets 3.3 (custom fork). The main application is xLights; companion apps include xSchedule, xCapture, xFade, xScanner.
+xLights is a cross-platform (Windows/macOS/Linux) C++20 show sequencer for controlling lighting via USB/DMX/sACN/ArtNet/DDP. Built on wxWidgets 3.3 (custom fork). Companion apps (xSchedule, xCapture, xFade, xScanner) have been moved to their own repositories.
 
 **Minimum supported platforms:** macOS 11, Linux (Debian 12 / Ubuntu 24.04), Windows 8.
 
@@ -86,7 +86,7 @@ Adding `-configuration Debug` builds only for the native architecture in Debug m
 - Sequence settings stored as XML attributes with typed prefixes
 
 ### Sub-applications
-Each in its own directory with its own .cbp project: `xSchedule/`, `xCapture/`, `xFade/`, `xScanner/`, `xlDo/`.
+Companion apps (xSchedule, xCapture, xFade, xScanner) have been moved to their own repositories under the xLightsSequencer GitHub organization. Only `xlDo/` remains in this repo.
 
 ## Code Style
 

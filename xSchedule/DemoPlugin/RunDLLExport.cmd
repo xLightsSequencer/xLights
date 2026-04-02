@@ -1,2 +1,0 @@
-DllExport -action Configure
-pause

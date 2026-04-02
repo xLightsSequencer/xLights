@@ -129,7 +129,7 @@
     <ClCompile Include="ui/media/SequenceVideoPreview.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="ui/sequencer/LayerSelectDialog.cpp" />
-    <ClCompile Include="..\xSchedule\md5.cpp" />
+    <ClCompile Include="..\dependencies\md5\md5.cpp" />
     <ClCompile Include="ui\import-export\VendorMusicDialog.cpp" />
     <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="ui/media/JukeboxPanel.cpp" />
@@ -613,7 +613,7 @@
     <ClCompile Include="outputs\ControllerSerial.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\xFade\wxLED.cpp" />
+    <ClCompile Include="..\dependencies\wxLED\wxLED.cpp" />
     <ClCompile Include="controllers\BaseController.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
@@ -1388,43 +1388,43 @@
     <ClCompile Include="vamp-hostsdk\FFT.cpp">
       <Filter>vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\context.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\context.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
     <ClCompile Include="vamp-hostsdk\RealTime.cpp">
       <Filter>vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\status.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\status.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\sha1.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\sha1.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\server.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\server.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\response.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\response.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\request.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\request.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\pages.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\pages.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\message.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\message.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxHTTPServer\connection.cpp">
+    <ClCompile Include="..\dependencies\wxHTTPServer\connection.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp">
+    <ClCompile Include="..\dependencies\wxJSON\jsonreader.cpp">
       <Filter>wxJSON</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp">
+    <ClCompile Include="..\dependencies\wxJSON\jsonval.cpp">
       <Filter>wxJSON</Filter>
     </ClCompile>
-    <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp">
+    <ClCompile Include="..\dependencies\wxJSON\jsonwriter.cpp">
       <Filter>wxJSON</Filter>
     </ClCompile>
     <ClCompile Include="controllers\ILightThat.cpp">
@@ -1556,7 +1556,7 @@
     <ClInclude Include="ui/media/SequenceVideoPreview.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="ui/sequencer/LayerSelectDialog.h" />
-    <ClInclude Include="..\xSchedule\md5.h" />
+    <ClInclude Include="..\dependencies\md5\md5.h" />
     <ClInclude Include="ui\import-export\VendorMusicDialog.h" />
     <ClInclude Include="VendorMusicHelpers.h" />
     <ClInclude Include="ui/media/JukeboxPanel.h" />
@@ -2049,7 +2049,7 @@
     <ClInclude Include="outputs\ControllerSerial.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\xFade\wxLED.h" />
+    <ClInclude Include="..\dependencies\wxLED\wxLED.h" />
     <ClInclude Include="controllers\BaseController.h">
       <Filter>Controllers</Filter>
     </ClInclude>
@@ -2840,7 +2840,7 @@
     <ClInclude Include="models\Node.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h">
+    <ClInclude Include="..\dependencies\wxHTTPServer\wxhttpserver.h">
       <Filter>wxHTTPServer</Filter>
     </ClInclude>
     <ClInclude Include="ui\effectpanels\EffectIconCache.h">
@@ -2894,19 +2894,19 @@
     <ClInclude Include="vamp-hostsdk\Window.h">
       <Filter>vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h">
+    <ClInclude Include="..\dependencies\wxHTTPServer\sha1.h">
       <Filter>wxHTTPServer</Filter>
     </ClInclude>
-    <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h">
+    <ClInclude Include="..\dependencies\wxJSON\jsonwriter.h">
       <Filter>wxJSON</Filter>
     </ClInclude>
-    <ClInclude Include="..\xSchedule\wxJSON\json_defs.h">
+    <ClInclude Include="..\dependencies\wxJSON\json_defs.h">
       <Filter>wxJSON</Filter>
     </ClInclude>
-    <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h">
+    <ClInclude Include="..\dependencies\wxJSON\jsonreader.h">
       <Filter>wxJSON</Filter>
     </ClInclude>
-    <ClInclude Include="..\xSchedule\wxJSON\jsonval.h">
+    <ClInclude Include="..\dependencies\wxJSON\jsonval.h">
       <Filter>wxJSON</Filter>
     </ClInclude>
     <ClInclude Include="controllers\ILightThat.h">

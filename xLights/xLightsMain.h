@@ -579,8 +579,6 @@ public:
     void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
-    void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
-    void OnMenuItem_xCaptureSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
     void OnMenuItem_DonateSelected(wxCommandEvent& event);
     void OnAC_OnClick(wxCommandEvent& event);
@@ -651,7 +649,6 @@ public:
     void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
-    void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     void OnButton_OpenProxyClick(wxCommandEvent& event);
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
     void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
@@ -826,9 +823,6 @@ public:
     static const wxWindowID ID_MNU_PREPAREAUDIO;
     static const wxWindowID ID_MENU_USER_DICT;
     static const wxWindowID ID_MENU_FIND_SHOW_FOLDER;
-    static const wxWindowID ID_MNU_XSCHEDULE;
-    static const wxWindowID ID_MENU_XCAPTURE;
-    static const wxWindowID ID_MNU_XSCANNER;
     static const wxWindowID ID_MENUITEM5;
     static const wxWindowID MNU_ID_ACLIGHTS;
     static const wxWindowID ID_MNU_SHOWRAMPS;
@@ -1050,15 +1044,12 @@ public:
     wxMenuItem* MenuItem_ViewZoomIn;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxMenuItem* MenuItem_Zoom;
-    wxMenuItem* MenuItem_xScanner;
-    wxMenuItem* MenuItem_xSchedule;
     wxMenuItem* Menu_GenerateAIImage;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenuItem* QuitMenuItem;
     wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* mExportModelsMenuItem;
-    wxMenuItem* xCaptureMenuItem;
     wxPanel* AUIStatusBar;
     wxPanel* Panel2;
     wxPanel* Panel5;

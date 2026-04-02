@@ -27,7 +27,7 @@
 #include "../xLightsApp.h"
 #include "ui/media/JukeboxPanel.h"
 #include "../outputs/E131Output.h"
-#include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
+#include "../../dependencies/wxHTTPServer/wxhttpserver.h"
 #include "../ui/sequencer/MainSequencer.h"
 #include "../ui/layout/ModelPreview.h"
 #include <wx/uri.h>
