@@ -17,6 +17,7 @@
 #include <list>
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <format>
 
@@ -24,7 +25,6 @@
 #include "ZCPPOutput.h"
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "ControllerEthernet.h"
 #include "../models/OutputModelManager.h"
 #include "utils/ExternalHooks.h"
@@ -37,7 +37,6 @@
 #endif
 
 #include <log.h>
-#include <wx/time.h>
 
 #pragma region Private Functions
 void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {
@@ -84,7 +83,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {
 
 void ZCPPOutput::DeserialiseProtocols(const std::string& protocols) {
 
-    auto ps = wxSplit(protocols, '|');
+    auto ps = Split(protocols, '|');
 
     for (const auto& it : ps) {
         AddProtocol(it);
@@ -112,7 +111,7 @@ ZCPPOutput::ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir) 
         _data = nullptr;
     }
     else {
-        _data = (wxByte*)malloc(_channels);
+        _data = (uint8_t*)malloc(_channels);
         if (_data != nullptr) memset(_data, 0x00, _channels);
     }
     memset(&_packet, 0, sizeof(_packet));
@@ -210,7 +209,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput() {
     _usedChannels = 1;
     _universe = -1;
     _autoSize_CONVERT = true;
-    _data = (wxByte*)malloc(_channels);
+    _data = (uint8_t*)malloc(_channels);
     if (_data != nullptr) memset(_data, 0x00, _channels);
     memset(&_packet, 0, sizeof(_packet));
 }
@@ -225,7 +224,7 @@ ZCPPOutput::ZCPPOutput(const ZCPPOutput& from) : IPOutput(from) {
         _data = nullptr;
     }
     else {
-        _data = (wxByte*)malloc(_channels);
+        _data = (uint8_t*)malloc(_channels);
         if (_data != nullptr) memset(_data, 0x00, _channels);
     }
     memset(&_packet, 0, sizeof(_packet));
@@ -460,7 +459,7 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
                 if (m == 48) {
                     mod = "F48";
                 } else {
-                    mod = wxString::Format("F%dV%d", m, v);
+                    mod = std::format("F{}V{}", m, v);
                 }
                 controller->SetModel(mod);
             }
@@ -476,13 +475,13 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
 
             spdlog::debug("   Firmware {}", response.DiscoveryResponse.firmwareVersion);
 
-            auto ip = wxString::Format("%d.%d.%d.%d",
+            auto ip = std::format("{}.{}.{}.{}",
                 (int)(uint8_t)(response.DiscoveryResponse.ipv4Address & 0xFF),
                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8),
                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16),
                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24));
-            controller->SetIP(ip.ToStdString());
-            spdlog::debug("   IP {}", (const char*)ip.c_str());
+            controller->SetIP(ip);
+            spdlog::debug("   IP {}", ip);
 
             controller->SetName(response.DiscoveryResponse.userControllerName);
             spdlog::debug("   Name {}", (const char*)controller->GetName().c_str());
@@ -589,7 +588,7 @@ void ZCPPOutput::SetChannels(int32_t channels) {
         if (_data != nullptr) {
             free(_data);
         }
-        _data = (wxByte*)malloc(_channels);
+        _data = (uint8_t*)malloc(_channels);
         if (_data != nullptr) memset(_data, 0x00, _channels);
         if (_usedChannels > _channels) _usedChannels = _channels;
     }
@@ -612,7 +611,7 @@ bool ZCPPOutput::SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData
     std::string fileName = GetIP();
 
     if (_multicast) {
-        fileName = ZCPP_MULTICAST_DATA_ADDRESS + wxString(GetIP()).AfterLast('.');
+        fileName = ZCPP_MULTICAST_DATA_ADDRESS + AfterLast(GetIP(), '.');
     }
 
     Replace(fileName ,".", "_");
@@ -764,7 +763,7 @@ bool ZCPPOutput::Open() {
     }
 
     if (_multicast) {
-        _remoteIp = ZCPP_MULTICAST_DATA_ADDRESS + wxString(_ip).AfterLast('.').ToStdString();
+        _remoteIp = ZCPP_MULTICAST_DATA_ADDRESS + AfterLast(_ip, '.');
     }
     else {
         _remoteIp = GetResolvedIP();
@@ -798,7 +797,7 @@ void ZCPPOutput::EndFrame(int suppressFrames) {
     if (_datagram == nullptr || _usedChannels == 0) return;
 
     if (!IsDontConfigure()) {
-        long second = wxGetLocalTime();
+        long second = (long)std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         if (_lastSecond == -1 || (second != _lastSecond && (second - _lastSecond) % ZCPP_SEND_CONFIG_EVERY_N_SECONDS == 0)) {
             bool sendExtra = false;
             if (_lastSecond == -1 || second % ZCPP_SEND_CONFIG_EXTRADATA_EVERY_N_SECONDS == 0) {
