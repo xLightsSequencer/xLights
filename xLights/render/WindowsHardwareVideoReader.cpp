@@ -14,6 +14,7 @@
 
 //#define DETAILED_LOGGING
 
+#include <winsock2.h>
 #include <mferror.h>
 #include <propvarutil.h>
 #include <wincodec.h>
