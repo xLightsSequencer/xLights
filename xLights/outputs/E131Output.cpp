@@ -13,6 +13,12 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#ifdef _WIN32
+#include <process.h>
+#define getpid _getpid
+#else
+#include <unistd.h>
+#endif
 #include "OutputManager.h"
 #include "UtilFunctions.h"
 #include "../utils/ip_utils.h"
@@ -225,7 +231,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
 std::string E131Output::GetTag() {
     // creates a unique tag per running instance of xLights on this machine
-    return "xLights " + std::to_string(wxGetProcessId());
+    return "xLights " + std::to_string(getpid());
 }
 #pragma endregion
 
