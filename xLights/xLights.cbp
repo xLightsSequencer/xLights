@@ -341,6 +341,7 @@
 		<Unit filename="ui/layout/ModelGroupPanel.h" />
 		<Unit filename="ui/layout/ModelPreview.cpp" />
 		<Unit filename="ui/layout/ModelPreview.h" />
+		<Unit filename="graphics/IModelPreview.h" />
 		<Unit filename="ui/import-export/ModelRemap.cpp" />
 		<Unit filename="ui/import-export/ModelRemap.h" />
 		<Unit filename="ui/model/ModelStateDialog.cpp" />
@@ -896,12 +897,12 @@
 			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
 		</Unit>
 		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc.h" />
-		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
-		<Unit filename="graphics/opengl/DrawGLUtils.h" />
-		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
-		<Unit filename="graphics/opengl/xlGLCanvas.h" />
-		<Unit filename="graphics/opengl/xlOGL3GraphicsContext.cpp" />
-		<Unit filename="graphics/opengl/xlOGL3GraphicsContext.h" />
+		<Unit filename="ui/graphics/opengl/DrawGLUtils.cpp" />
+		<Unit filename="ui/graphics/opengl/DrawGLUtils.h" />
+		<Unit filename="ui/graphics/opengl/xlGLCanvas.cpp" />
+		<Unit filename="ui/graphics/opengl/xlGLCanvas.h" />
+		<Unit filename="ui/graphics/opengl/xlOGL3GraphicsContext.cpp" />
+		<Unit filename="ui/graphics/opengl/xlOGL3GraphicsContext.h" />
 		<Unit filename="graphics/xlFontInfo.cpp" />
 		<Unit filename="graphics/xlFontInfo.h" />
 		<Unit filename="graphics/xlGraphicsAccumulators.cpp" />

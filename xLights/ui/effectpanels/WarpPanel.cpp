@@ -11,7 +11,7 @@
 #include "WarpPanel.h"
 #include "../../effects/WarpEffect.h"
 #include "EffectPanelUtils.h"
-#include "../../graphics/opengl/xlGLCanvas.h"
+#include "../graphics/opengl/xlGLCanvas.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
 #include "ui/sequencer/TimingPanel.h"

@@ -27,7 +27,10 @@
 #include "DmxShutterAbility.h"
 #include "Mesh.h"
 #include "MovingHeads/MhFeature.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../xLightsVersion.h"
 #include "../../render/RenderBuffer.h"
 #include "UtilFunctions.h"
@@ -243,7 +246,7 @@ void DmxMovingHeadAdv::CorrectDefaultColorChannels()
     }
 }
 
-void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxMovingHeadAdv::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                             xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                             const xlColor* c, bool allowSelected, bool wiring,
                                             bool highlightFirst, int highlightpixel,
@@ -296,7 +299,7 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
     }
 }
 
-void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxMovingHeadAdv::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -313,7 +316,7 @@ void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double point
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
         float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
         if (GetModelScreenLocation().RenderDp > 1) {
@@ -398,7 +401,7 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
     return res;
 }
 
-void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active, const xlColor* c)
+void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active, const xlColor* c)
 {
     // crash protection
     int min_channels = GetMinChannels();
@@ -437,7 +440,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     float old_tilt_angle = 0.0f;
     uint32_t old_ms = 0;
 
-    PanTiltState &st = panTiltStates[preview->GetName().ToStdString()];
+    PanTiltState &st = panTiltStates[preview->getName()];
     if (active) {
         old_ms = st.ms;
         old_pan_angle = st.pan_angle;

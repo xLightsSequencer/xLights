@@ -34,6 +34,7 @@ fi
 
 CORE_DIRS=(
     "xLights/discovery"
+    "xLights/graphics"
     "xLights/render"
     "xLights/effects"
     "xLights/models"
@@ -62,6 +63,9 @@ is_forbidden_include() {
     if [[ "$include_path" == ui/* || "$include_path" == */ui/* ]]; then
         return 0
     fi
+    if [[ "$include_path" == wx/* ]]; then
+        return 0
+    fi
     return 1
 }
 
@@ -71,7 +75,7 @@ while IFS= read -r entry; do
     line_num="${rest%%:*}"
     line_text="${rest#*:}"
 
-    include_path="$(printf '%s' "$line_text" | sed -E 's/^[[:space:]]*#include[[:space:]]*"([^"]+)".*/\1/')"
+    include_path="$(printf '%s' "$line_text" | sed -E 's/^[[:space:]]*#include[[:space:]]*[<"]([^">]+)[">].*/\1/')"
 
     if ! is_forbidden_include "$include_path"; then
         continue
@@ -84,7 +88,7 @@ while IFS= read -r entry; do
     else
         BLOCKING+=("${file_path}:${line_num} -> ${include_path}")
     fi
-done < <(rg -n --no-heading --color never '^\s*#include\s*"[^"]+"' "${CORE_DIRS[@]}" -g '*.{h,cpp}')
+done < <(rg -n --no-heading --color never '^\s*#include\s*(<wx/[^>]+>|"[^"]+")' "${CORE_DIRS[@]}" -g '*.{h,cpp}')
 
 echo "Core include boundary check"
 echo "Mode: ${MODE}"

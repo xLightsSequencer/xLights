@@ -14,7 +14,7 @@
 #include "TerrainScreenLocation.h"
 #include <mutex>
 
-class ModelPreview;
+class IModelPreview;
 class xlTexture;
 class xlVertexAccumulator;
 class xlVertexTextureAccumulator;
@@ -28,7 +28,7 @@ public:
     virtual void InitModel() override;
 
 
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
 
     void SetImageFile(const std::string & imageFile);

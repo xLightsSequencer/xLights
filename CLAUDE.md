@@ -73,6 +73,32 @@ Adding `-configuration Debug` builds only for the native architecture in Debug m
 - **Discovery core**: `xLights/discovery/` — shared controller/output discovery data structures and discovery API used by core layers.
 - **SequenceMedia** (`sequencer/SequenceMedia.cpp`): Manages image caching and embedding for sequences. Images can be embedded in .xsq files or referenced externally. Uses `FixFile()` to resolve relative paths.
 
+### Core vs UI Layer Architecture
+
+The codebase is being refactored to separate wx-free core logic from wxWidgets UI code. The goal is a platform-neutral core usable without wx (e.g., for an iPad app).
+
+**Core packages** (enforced by `ci_scripts/check_core_include_boundaries.sh`): `discovery/`, `graphics/`, `render/`, `effects/`, `models/`, `outputs/`, `controllers/`, `utils/`. These directories **must not** include `ui/` headers, `xLightsMain.h`, or `xLightsApp.h` in their public headers or implementation files. New violations are blocked in strict mode; approved exceptions live in `ci_scripts/include_policy_allowlist.txt`.
+
+**`xLights/graphics/`** — wx-free core graphics abstraction layer:
+- `xlGraphicsContext.h` — abstract GPU context interface (no wx types; no window pointer; use `setContextualValue`/`getContextualValue` for passing context like `IModelPreview*`)
+- `xlGraphicsAccumulators.h` — geometry/vertex accumulator interfaces
+- `IModelPreview.h` — wx-free pure-virtual interface for model preview (used by models/ and effects/)
+- `xlFontInfo.h` — font metadata using `xlImage` (no wxImage in public API)
+- `xlImage.h` — wx-free RGBA pixel class (see also `utils/xlImage.h`)
+- `xlMesh.h/.cpp` — 3D mesh loading (std::filesystem, no wx)
+
+**`xLights/ui/graphics/`** — wx-dependent canvas implementations (NOT core):
+- `xlGraphicsBase.h` — selects Metal vs OpenGL canvas at compile time; defines `GRAPHICS_BASE_CLASS`
+- `opengl/xlGLCanvas.h/.cpp` — OpenGL canvas (wxGLCanvas subclass)
+- `opengl/xlOGL3GraphicsContext.h/.cpp` — OpenGL graphics context implementation
+- `metal/xlMetalCanvas.h/.mm` — Metal canvas (macOS)
+- `metal/xlMetalGraphicsContext.h/.mm` — Metal graphics context implementation
+
+**Include conventions:**
+- Core files (`graphics/`, `models/`, etc.) include `graphics/IModelPreview.h` — never `ui/layout/ModelPreview.h`
+- Canvas/UI files include `ui/graphics/xlGraphicsBase.h` — never `graphics/xlGraphicsBase.h` (that forwarder was removed)
+- wx↔core conversion helpers (e.g., `wxImageToXlImage()`, `wxImagesToXlImages()`) live in `ui/wxUtilities.h`
+
 ### Key Patterns
 - **Settings/SettingsMap**: Effects store settings as string key-value pairs (e.g., `E_TEXTCTRL_Pictures_Filename`). Prefix conventions: `E_` for effect settings, `T_` for transitions, `B_` for buffer settings, `C_` for color.
 - **`adjustSettings()`**: Called on each effect when loading sequences to migrate old settings to current format. NOT called for newly created effects (e.g., drag-and-drop).

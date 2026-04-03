@@ -16,13 +16,9 @@
 #include <windows.h>
 #endif
 #include <GL/gl.h>
-#ifdef _MSC_VER
-#include "graphics\opengl\GL\glext.h"
-#else
 #include <GL/glext.h>
-#endif
 
-#include "graphics/opengl/xlGLCanvas.h"
+#include "ui/graphics/opengl/xlGLCanvas.h"
 
 #include <memory>
 #include <iostream>
@@ -101,7 +97,7 @@ static bool canUseFramebufferObjects()
 
 #include "UtilFunctions.h"
 #include "OpenGLShaders.h"
-#include "graphics/opengl/DrawGLUtils.h"
+#include "ui/graphics/opengl/DrawGLUtils.h"
 #include <log.h>
 
 #include "utils/TraceLog.h"

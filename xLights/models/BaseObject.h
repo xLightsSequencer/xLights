@@ -19,7 +19,7 @@
 
 class RenderContext;
 class ModelScreenLocation;
-class ModelPreview;
+class IModelPreview;
 
 class BaseObject
 {
@@ -36,7 +36,7 @@ public:
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
-    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects);
+    virtual glm::vec3 MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects);
     virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects);
     void SelectHandle(int handle);
     void Lock(bool lock);
@@ -96,7 +96,7 @@ public:
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
     bool Scale(const glm::vec3& factor);
 
-    [[nodiscard]] bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
+    [[nodiscard]] bool IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2);
 
     virtual void Accept(BaseObjectVisitor &visitor) const {};
 

@@ -11,7 +11,7 @@
 #include "StarModel.h"
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <math.h>

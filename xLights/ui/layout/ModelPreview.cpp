@@ -1176,6 +1176,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
     if (currentContext == nullptr) {
         return false;
     }
+    currentContext->setContextualValue("modelPreview", static_cast<IModelPreview*>(this));
     if (grid2d && (!grid2dValid || mWindowResized)) {
         delete grid2d;
         grid2d = nullptr;
@@ -1234,15 +1235,16 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                 spdlog::debug("Loading background image file {} for preview {}.",
                                   mBackgroundImage.ToStdString(),
                                   GetName().ToStdString());
-                wxImage image(mBackgroundImage);
-                if (image.IsOk()) {
+                wxImage wxImg(mBackgroundImage);
+                if (wxImg.IsOk()) {
                     int orientation = GetExifOrientation(mBackgroundImage);
                     if (orientation != 1) {
-                        image = ApplyOrientation(image, orientation);
+                        wxImg = ApplyOrientation(wxImg, orientation);
                         spdlog::debug("    Applied EXIF orientation {} to background image.", orientation);
                     }
-                    backgroundSize.Set(image.GetWidth(), image.GetHeight());
-                    background = currentContext->createTexture(image, mBackgroundImage, true);
+                    backgroundSize.Set(wxImg.GetWidth(), wxImg.GetHeight());
+                    xlImage image = wxImageToXlImage(wxImg);
+                    background = currentContext->createTexture(image, mBackgroundImage.ToStdString(), true);
                     spdlog::debug("    Loaded.");
                 } else {
                     spdlog::debug("    Failed.");

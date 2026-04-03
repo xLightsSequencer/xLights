@@ -541,7 +541,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     is_3d = config->ReadBool("LayoutMode3D", false);
 
     CheckBox_3D->SetValue(is_3d);
-    xlights->GetHousePreview()->Set3D(is_3d);
+    static_cast<ModelPreview*>(xlights->GetHousePreview())->Set3D(is_3d);
 
     ChoiceLayoutGroups->Enable();
     modelPreview->Set3D(is_3d);

@@ -12,7 +12,7 @@
 
 #include "wx/wx.h"
 
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 #include "render/Effect.h"
 
 class Model;  // forward declaration

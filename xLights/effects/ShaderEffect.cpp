@@ -28,11 +28,7 @@
 
 #ifndef __APPLE__
     #include <GL/gl.h>
-    #ifdef _MSC_VER
-        #include "graphics\opengl\GL\glext.h"
-    #else
-        #include <GL/glext.h>
-    #endif
+    #include <GL/glext.h>
 
     #ifdef _WIN32
         extern PFNGLACTIVETEXTUREPROC glActiveTexture;
@@ -92,7 +88,7 @@
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "graphics/opengl/DrawGLUtils.h"
+#include "ui/graphics/opengl/DrawGLUtils.h"
 #include <nlohmann/json.hpp>
 
 #include <regex>

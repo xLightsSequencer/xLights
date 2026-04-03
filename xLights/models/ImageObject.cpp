@@ -13,7 +13,9 @@
 #include "ImageObject.h"
 #include "../utils/xlImage.h"
 #include "UtilFunctions.h"
-#include "ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 
@@ -50,7 +52,7 @@ void ImageObject::ClearImages() {
     _images.clear();
 }
 
-bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+bool ImageObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if( !IsActive() ) { return true; }
 
     
@@ -58,16 +60,16 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
-    if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
+    if (_images.find(preview->getName()) == _images.end()) {
         if (FileExists(_imageFile)) {
             spdlog::debug("Loading image model {} file {} for preview {}.",
                 GetName(),
                 _imageFile,
-                preview->GetName().ToStdString());
+                preview->getName());
             xlImage image;
             if (image.LoadFromFile(_imageFile)) {
                 xlTexture *t = ctx->createTexture(image, GetName(), true);
-                _images[preview->GetName().ToStdString()] = t;
+                _images[preview->getName()] = t;
                 width = image.GetWidth();
                 height = image.GetHeight();
                 screenLocation.SetRenderSize(width, height, 10.0f);
@@ -101,7 +103,7 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
     GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);
 
     if (exists) {
-        xlTexture* image = _images[preview->GetName().ToStdString()];
+        xlTexture* image = _images[preview->getName()];
         xlGraphicsProgram *program = transparency == 0 ? solid : transparent;
         xlVertexTextureAccumulator *va = ctx->createVertexTextureAccumulator();
         

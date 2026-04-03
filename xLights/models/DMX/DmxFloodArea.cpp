@@ -9,7 +9,10 @@
  **************************************************************/
 
 #include "DmxFloodArea.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "UtilFunctions.h"
 #include "../../xLightsVersion.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"

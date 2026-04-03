@@ -23,7 +23,10 @@
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
 #include "../ModelScreenLocation.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
 #include "UtilFunctions.h"
@@ -160,7 +163,7 @@ void DmxMovingHead::InitModel() {
     }
 }
 
-void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxMovingHead::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                          xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                          const xlColor* c, bool allowSelected, bool wiring,
                                          bool highlightFirst, int highlightpixel,
@@ -213,7 +216,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     }
 }
 
-void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxMovingHead::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -230,7 +233,7 @@ void DmxMovingHead::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
         float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
         if (GetModelScreenLocation().RenderDp > 1) {
@@ -301,7 +304,7 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
     return res;
 }
 
-void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
+void DmxMovingHead::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
     if (pan_motor->GetChannelCoarse() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
@@ -373,7 +376,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     float old_tilt_angle = 0.0f;
     uint32_t old_ms = 0;
 
-    PanTiltState &st = panTiltStates[preview->GetName().ToStdString()];
+    PanTiltState &st = panTiltStates[preview->getName()];
     if (active) {
         old_ms = st.ms;
         old_pan_angle = st.pan_angle;

@@ -102,6 +102,15 @@ wxImage xlImageToWxImage(const xlImage& img) {
     return result;
 }
 
+std::vector<xlImage> wxImagesToXlImages(const std::vector<wxImage>& images) {
+    std::vector<xlImage> result;
+    result.reserve(images.size());
+    for (const auto& img : images) {
+        result.push_back(wxImageToXlImage(img));
+    }
+    return result;
+}
+
 void DisplayError(const std::string& err, wxWindow* win) {
     spdlog::error("DisplayError: {}", err);
     wxMessageBox(err, "Error", wxICON_ERROR | wxOK, win);

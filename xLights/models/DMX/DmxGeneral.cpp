@@ -10,7 +10,10 @@
 
 #include "DmxGeneral.h"
 #include "../ModelScreenLocation.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
 #include "UtilFunctions.h"
@@ -35,7 +38,7 @@ void DmxGeneral::InitModel()
     screenLocation.SetRenderSize(1, 1, 1);
 }
 
-void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
+void DmxGeneral::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
     size_t nodeCount = Nodes.size();
 
@@ -135,7 +138,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     });
 }
 
-void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxGeneral::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                          xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                          const xlColor* c, bool allowSelected, bool wiring,
                                          bool highlightFirst, int highlightpixel,
@@ -189,7 +192,7 @@ void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
     }
 }
 
-void DmxGeneral::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxGeneral::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -206,7 +209,7 @@ void DmxGeneral::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
         float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
         if (GetModelScreenLocation().RenderDp > 1) {

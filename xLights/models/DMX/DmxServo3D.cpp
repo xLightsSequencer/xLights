@@ -17,7 +17,10 @@
 #include "DmxServo3D.h"
 #include "Mesh.h"
 #include "Servo.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../xLightsVersion.h"
 #include "../../render/UICallbacks.h"
 #include "UtilFunctions.h"
@@ -201,7 +204,7 @@ void DmxServo3d::InitModel()
     update_node_names = false;
 }
 
-void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxServo3d::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                       xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                       const xlColor* c, bool allowSelected, bool wiring,
                                       bool highlightFirst, int highlightpixel,
@@ -252,7 +255,7 @@ void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
     }
 }
 
-void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxServo3d::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -269,7 +272,7 @@ void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95f / GetModelScreenLocation().RenderHt;
 
@@ -334,7 +337,7 @@ std::list<std::string> DmxServo3d::CheckModelSettings()
     return res;
 }
 
-void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
+void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
 {
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);

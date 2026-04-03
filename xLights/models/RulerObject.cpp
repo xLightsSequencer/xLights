@@ -10,7 +10,9 @@
 
 #include <format>
 #include "RulerObject.h"
-#include "ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "Model.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
@@ -38,7 +40,7 @@ void RulerObject::InitModel() {
 }
 
 
-bool RulerObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+bool RulerObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
     if (!IsActive()) { return true; }

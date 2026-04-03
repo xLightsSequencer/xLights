@@ -31,6 +31,9 @@ public:
     // Takes ownership of rgbaData (must be allocated with new[])
     xlImage(int width, int height, uint8_t* rgbaData) : _data(rgbaData), _width(width), _height(height) {}
 
+    // Construct from XPM data (const char* const* as produced by .xpm includes)
+    explicit xlImage(const char* const* xpmData);
+
     xlImage(const xlImage& other) : _width(other._width), _height(other._height) {
         if (other._data && _width > 0 && _height > 0) {
             size_t sz = static_cast<size_t>(_width) * _height * 4;

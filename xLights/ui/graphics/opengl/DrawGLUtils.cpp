@@ -22,11 +22,7 @@
     #include "OpenGL/gl.h"
 #else
  #include <GL/gl.h>
- #ifdef _MSC_VER
- #include "GL\glext.h"
- #else
  #include <GL/glext.h>
- #endif
 #endif
 
 

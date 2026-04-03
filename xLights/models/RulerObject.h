@@ -13,7 +13,7 @@
 #include "ViewObject.h"
 #include "TwoPointScreenLocation.h"
 
-class ModelPreview;
+class IModelPreview;
 
 #define RULER_UNITS_INCHES 5
 #define RULER_UNITS_FEET 4
@@ -32,7 +32,7 @@ public:
 
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
-    [[nodiscard]] virtual bool Draw(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, xlGraphicsProgram* transparent, bool allowSelected = false) override;
+    [[nodiscard]] virtual bool Draw(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, xlGraphicsProgram* transparent, bool allowSelected = false) override;
 
 	[[nodiscard]] static RulerObject* GetRuler() {
         return __rulerObject;

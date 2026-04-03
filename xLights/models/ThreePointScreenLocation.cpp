@@ -16,7 +16,9 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
@@ -40,7 +42,7 @@ ThreePointScreenLocation::ThreePointScreenLocation()
 ThreePointScreenLocation::~ThreePointScreenLocation() {
 }
 
-CursorType ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if( preview->Is3D() ) {
@@ -139,7 +141,7 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     draw_3d = is_3d;
 }
 
-bool ThreePointScreenLocation::IsContained(ModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
+bool ThreePointScreenLocation::IsContained(IModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
     int xs = x1_ < x2_ ? x1_ : x2_;
     int xf = x1_ > x2_ ? x1_ : x2_;
     int ys = y1_ < y2_ ? y1_ : y2_;
@@ -337,7 +339,7 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
     DrawBoundingBoxLines(Box3dColor, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, *vac);
 }
 
-int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int ThreePointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -413,7 +415,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
     return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
 }
 
-int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int ThreePointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
 

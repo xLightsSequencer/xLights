@@ -18,7 +18,9 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include "RulerObject.h"
 #include "../ui/wxUtilities.h"
@@ -137,7 +139,7 @@ void BoxedScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) const {
 }
 
 
-bool BoxedScreenLocation::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const {
+bool BoxedScreenLocation::IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const {
     int xs = x1<x2?x1:x2;
     int xf = x1>x2?x1:x2;
     int ys = y1<y2?y1:y2;
@@ -180,7 +182,7 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
     return return_value;
 }
 
-CursorType BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
+CursorType BoxedScreenLocation::CheckIfOverHandles(IModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
     assert(!preview->Is3D());
@@ -243,7 +245,7 @@ CursorType BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &h
     }
 }
 
-CursorType BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if (preview->Is3D()) {
@@ -675,7 +677,7 @@ bool BoxedScreenLocation::Scale(const glm::vec3& factor) {
     return true;
 }
 
-int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
+int BoxedScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
 
     if (latch) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -835,7 +837,7 @@ int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, g
 }
         
 
-int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int BoxedScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -936,7 +938,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     return MODEL_UNCHANGED;
 }
 
-glm::vec2 BoxedScreenLocation::GetScreenOffset(ModelPreview* preview) const
+glm::vec2 BoxedScreenLocation::GetScreenOffset(IModelPreview* preview) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
                                                     preview->getHeight(),

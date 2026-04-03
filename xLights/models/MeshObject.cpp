@@ -14,7 +14,9 @@
 
 #include "MeshObject.h"
 #include "UtilFunctions.h"
-#include "ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 
@@ -214,7 +216,7 @@ void MeshObject::loadObject(xlGraphicsContext *ctx)
     }
 }
 
-bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+bool MeshObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if (!IsActive()) { return true; }
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);

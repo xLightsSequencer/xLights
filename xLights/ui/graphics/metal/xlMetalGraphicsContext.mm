@@ -9,9 +9,9 @@
 #include "xlMetalGraphicsContext.h"
 
 #include "Shaders/SIMDMathUtilities.h"
-#include "../xlMesh.h"
+#include "../../../graphics/xlMesh.h"
 
-xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : xlGraphicsContext(c),  canvas(c), target(t) {
+xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : canvas(c), target(t) {
     id<MTLTexture> localTarget = t;
     if (target == nil) {
         id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
@@ -1061,53 +1061,6 @@ xlVertexTextureAccumulator *xlMetalGraphicsContext::createVertexTextureAccumulat
     return new xlMetalVertexTextureAccumulator();
 }
 
-xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) {
-    std::vector<wxImage> images;
-    for (auto &a : bitmaps) {
-        images.push_back(a.ConvertToImage());
-    }
-    return createTextureMipMaps(images, name);
-}
-xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) {
-    xlMetalTexture *txt = new xlMetalTexture();
-    txt->SetName(name);
-
-    @autoreleasepool {
-        MTLTextureDescriptor * desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                                        width:images[0].GetWidth()
-                                                                                        height:images[0].GetHeight()
-                                                                                        mipmapped:true];
-        txt->texture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
-        txt->textureSize = MTLSizeMake(images[0].GetWidth(), images[0].GetHeight(), 1);
-
-        int levels = [txt->texture mipmapLevelCount];
-        wxImage img;
-        uint8_t *bytes = (uint8_t *)malloc(images[0].GetWidth() * images[0].GetHeight() * 4);
-        for (int x = 0; x < levels; x++) {
-            if (x < images.size()) {
-                img = images[x];
-            } else {
-                img = img.Scale(img.GetWidth() / 2, img.GetHeight() / 2, wxIMAGE_QUALITY_HIGH);
-            }
-            getImageBytes(img, bytes);
-
-            const uint32_t w = img.GetWidth();
-            const uint32_t h = img.GetHeight();
-            int rlen = w * 4;
-            MTLRegion region = {0, 0, 0, w, h , 1};
-            [txt->texture replaceRegion:region mipmapLevel:x withBytes:bytes bytesPerRow:rlen];
-        }
-        free(bytes);
-        txt->Finalize();
-    }
-    return txt;
-}
-xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, bool pvt, const std::string &name) {
-   return new xlMetalTexture(image, name, pvt);
-}
-xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, const std::string &name, bool finalize) {
-    return createTexture(image, finalize, name);
-}
 xlTexture *xlMetalGraphicsContext::createTexture(const xlImage &image, bool pvt, const std::string &name) {
     return new xlMetalTexture(image, name, pvt);
 }

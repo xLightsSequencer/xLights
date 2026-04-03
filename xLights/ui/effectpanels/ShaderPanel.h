@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "../../graphics/opengl/xlGLCanvas.h"
+#include "../graphics/opengl/xlGLCanvas.h"
 #include "ui/shared/controls/BulkEditControls.h"
 #include "EffectPanelUtils.h"
 

@@ -18,7 +18,9 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
@@ -97,7 +99,7 @@ void TwoPointScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) cons
 }
 
 
-bool TwoPointScreenLocation::IsContained(ModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
+bool TwoPointScreenLocation::IsContained(IModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
     int xs = x1_ < x2_ ? x1_ : x2_;
     int xf = x1_ > x2_ ? x1_ : x2_;
     int ys = y1_ < y2_ ? y1_ : y2_;
@@ -142,7 +144,7 @@ bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direc
     return return_value;
 }
 
-CursorType TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
+CursorType TwoPointScreenLocation::CheckIfOverHandles(IModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
     assert(!preview->Is3D());
@@ -446,7 +448,7 @@ void TwoPointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bool
     DrawBoundingBoxLines(Box3dColor, start, end, mat, *vac);
 }
 
-int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int TwoPointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (latch) {
         saved_angle = 0.0f;
@@ -752,7 +754,7 @@ int TwoPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot
     return MODEL_UPDATE_RGBEFFECTS;
 }
 
-int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int TwoPointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -803,7 +805,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
     return MODEL_UPDATE_RGBEFFECTS;
 }
 
-CursorType TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if( preview->Is3D() ) {
@@ -944,7 +946,7 @@ void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPt
     aabb_max = glm::vec3(RenderWi * scalex, BB_OFF, BB_OFF);
 }
 
-glm::vec2 TwoPointScreenLocation::GetScreenOffset(ModelPreview* preview) const
+glm::vec2 TwoPointScreenLocation::GetScreenOffset(IModelPreview* preview) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
         preview->getHeight(),

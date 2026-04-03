@@ -38,7 +38,7 @@ void BaseObject::SetLayoutGroup(const std::string &grp, bool ignore_changes) {
     AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
 }
 
-glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects)
+glm::vec3 BaseObject::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects)
 {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
     int i = GetBaseObjectScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
@@ -296,7 +296,7 @@ bool BaseObject::Scale(const glm::vec3& factor)
     return return_value;
 }
 
-bool BaseObject::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
+bool BaseObject::IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) {
     return  GetBaseObjectScreenLocation().IsContained(preview, x1, y1, x2, y2);
 }
 

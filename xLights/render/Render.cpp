@@ -22,12 +22,13 @@
 
 #include "xLightsMain.h"
 #include "SequenceFile.h"
-#include "ui/sequencer/RenderCommandEvent.h"
 #include "effects/RenderableEffect.h"
-#include "../ui/diagnostics/RenderProgressDialog.h"
+#include "IRenderJobCallbacks.h"
+#include "IRenderJobStatus.h"
+#include "IRenderProgressSink.h"
+#include "RenderProgressInfo.h"
 #include "RenderUtils.h"
 #include "models/ModelGroup.h"
-#include "ui/sequencer/MainSequencer.h"
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
 #include "Parallel.h"
@@ -35,8 +36,7 @@
 #include "GPURenderUtils.h"
 
 #include <log.h>
-
-#define END_OF_RENDER_FRAME INT_MAX
+// END_OF_RENDER_FRAME is defined in RenderProgressInfo.h
 
 
 class EffectLayerInfo {
@@ -193,6 +193,19 @@ private:
     const int finalFrame;
 };
 
+void RenderProgressInfo::CleanupJobs() {
+    for (int i = 0; i < numRows; ++i) {
+        delete jobs[i];
+        delete aggregators[i];
+    }
+    delete[] jobs;
+    jobs = nullptr;
+    delete[] aggregators;
+    aggregators = nullptr;
+    delete progressSink;
+    progressSink = nullptr;
+}
+
 class SNPair {
 public:
     SNPair(int s, int n) : strand(s), node(n) {}
@@ -218,20 +231,20 @@ public:
 };
 
 
-class RenderJob: public Job, public NextRenderer {
+class RenderJob: public Job, public NextRenderer, public IRenderJobStatus {
 public:
-    RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe)
-        : Job(), NextRenderer(), rowToRender(row), xLights(xframe), seqData(&data),
+    RenderJob(ModelElement *row, SequenceData &data, RenderContext *ctx, IRenderJobCallbacks *callbacks)
+        : Job(), NextRenderer(), rowToRender(row), _ctx(ctx), _callbacks(callbacks), seqData(&data),
             supportsModelBlending(false), statusMap(nullptr), m_logger(spdlog::get("render")),
             currentFrame(0), abort(false)
     {
         name = "";
         if (row != nullptr) {
             name = row->GetModelName();
-            mainBuffer = new PixelBufferClass(xframe);
+            mainBuffer = new PixelBufferClass(_ctx);
             numLayers = rowToRender->GetEffectLayerCount();
 
-            if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers)) {
+            if (_ctx->InitPixelBuffer(name, *mainBuffer, numLayers)) {
                 const Model *model = mainBuffer->GetModel();
                 if (DisplayAsType::ModelGroup == model->GetDisplayAs()) {
                     //for (int l = 0; l < numLayers; ++l) {
@@ -270,7 +283,7 @@ public:
                             if (ste->GetStrand() < model->GetNumStrands()) {
                                 subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
                                 subModelInfos.back()->element = se;
-                                subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe));
+                                subModelInfos.back()->buffer.reset(new PixelBufferClass(_ctx));
                                 subModelInfos.back()->strand = ste->GetStrand();
                                 subModelInfos.back()->submodel = subModelInfos.size() -1;
                                 subModelInfos.back()->buffer->InitStrandBuffer(*model, ste->GetStrand(), data.FrameTime(), se->GetEffectLayerCount());
@@ -281,7 +294,7 @@ public:
                                 subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
                                 subModelInfos.back()->element = se;
                                 subModelInfos.back()->submodel = subModelInfos.size() -1;
-                                subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe));
+                                subModelInfos.back()->buffer.reset(new PixelBufferClass(_ctx));
                                 subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime());
                             }
                         }
@@ -293,7 +306,7 @@ public:
                                 if (n < model->GetStrandLength(ste->GetStrand())) {
                                     EffectLayer *nl = ste->GetNodeLayer(n);
                                     if (nl -> GetEffectCount() > 0) {
-                                        nodeBuffers[SNPair(ste->GetStrand(), n)].reset(new PixelBufferClass(xframe));
+                                        nodeBuffers[SNPair(ste->GetStrand(), n)].reset(new PixelBufferClass(_ctx));
                                         nodeBuffers[SNPair(ste->GetStrand(), n)]->InitNodeBuffer(*model, ste->GetStrand(), n, data.FrameTime());
                                     }
                                 }
@@ -322,13 +335,13 @@ public:
         }
     }
 
-    void SetProgressCallback(std::function<void(int, const std::string&)> cb) { progressCallback = std::move(cb); }
-    void UpdateProgress(int value, const std::string& tooltip = {}) const {
+    void SetProgressCallback(std::function<void(int, const std::string&)> cb) override { progressCallback = std::move(cb); }
+    void UpdateProgress(int value, const std::string& tooltip = {}) override {
         if (progressCallback) progressCallback(value, tooltip);
     }
-    int GetCurrentFrame() const { return currentFrame;}
-    int GetEndFrame() const { return endFrame;}
-    int GetStartFrame() const { return startFrame;}
+    int GetCurrentFrame() const override { return currentFrame;}
+    int GetEndFrame() const override { return endFrame;}
+    int GetStartFrame() const override { return startFrame;}
 
     const std::string GetName() const override {
         return name;
@@ -365,7 +378,7 @@ public:
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
-    std::string PrintStatusMap() {
+    std::string PrintStatusMap() const {
         if (statusMap == nullptr) return "";
         return statusMap->AsString();
     }
@@ -409,11 +422,11 @@ public:
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
-    std::string GetStatus() override {
+    std::string GetStatus() const override {
         return GetStatusString();
     }
 
-    std::string GetStatusForUser()
+    std::string GetStatusForUser() override
     {
         int lastIdx = 0;
         int submodel = -1;
@@ -437,7 +450,7 @@ public:
         return "";
     }
 
-    std::string GetStatusString() {
+    std::string GetStatusString() const override {
         int frame = statusFrame;
         int layer = statusLayer;
         int strand = statusStrand;
@@ -487,7 +500,7 @@ public:
 
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
-        sb->init(xLights->GetModel(mainBuffer->GetModelName())->GetActChanCount(), seqData->NumFrames(), seqData->FrameTime(), false);
+        sb->init(_ctx->GetModel(mainBuffer->GetModelName())->GetActChanCount(), seqData->NumFrames(), seqData->FrameTime(), false);
         seqData = sb;
         return sb;
     }
@@ -703,7 +716,7 @@ public:
                     buffer->UnMergeBuffersForLayer(layer);
                 }
 
-                info.validLayers[layer] = xLights->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
+                info.validLayers[layer] = _callbacks->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
                 effectsToUpdate |= info.validLayers[layer];
                 info.effectStates[layer] = b;
 
@@ -887,7 +900,7 @@ public:
                         }
 
                         SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
-                        if (xLights->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
+                        if (_callbacks->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                             SetCalOutputStatus(frame, -1, strand, inode);
                             buffer->HandleLayerBlurZoom(frame, 0);
                             buffer->HandleLayerTransitions(frame, 0);
@@ -926,10 +939,10 @@ public:
             //let the next know we're done
             SetGenericStatus("{}: Notifying next renderer of final frame", 0, true);
             FrameDone(END_OF_RENDER_FRAME);
-            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering \"" + rowToRender->GetModelName() + "\""), 0); // wxString needed for CallAfter
+            _callbacks->OnRenderJobComplete(rowToRender->GetModelName());
             SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
         } else {
-            xLights->CallAfter(&xLightsFrame::RenderDone);
+            _callbacks->OnAllRenderJobsComplete();
         }
         rowToRender->CleanupAfterRender();
         currentFrame = END_OF_RENDER_FRAME;
@@ -937,7 +950,7 @@ public:
         m_logger->debug("Rendering thread exiting.");
 	}
 
-    void AbortRender() {
+    void AbortRender() override {
         abort = true;
     }
 
@@ -1026,7 +1039,8 @@ private:
     int numLayers;
     std::atomic_int startFrame;
     std::atomic_int endFrame;
-    xLightsFrame *xLights;
+    RenderContext *_ctx;
+    IRenderJobCallbacks *_callbacks;
     SequenceData *seqData;
     std::vector<bool> rangeRestriction;
     bool supportsModelBlending;
@@ -1053,23 +1067,7 @@ private:
 };
 
 
-void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
-    if (evt.deleted) {
-        selectedEffect = 0;
-    }
-    if (evt.model == "") {
-        if( (evt.start != -1) && (evt.end != -1) ) {
-            RenderTimeSlice(evt.start, evt.end, evt.clear);
-        } else {
-            //render all dirty models
-            if (!_suspendRender)
-                RenderDirtyModels();
-        }
-    } else {
-        if (!_suspendRender)
-            RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
-    }
-}
+// RenderRange — moved to RenderUI.cpp (uses RenderCommandEvent wx type)
 
 void xLightsFrame::RenderMainThreadEffects() {
     std::unique_lock<std::mutex>  lock(renderEventLock);
@@ -1100,68 +1098,10 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     ev->signal.notify_all();
 }
 
-class RenderProgressInfo {
-public:
-    RenderProgressInfo(std::function<void(bool)>&& cb) : callback(cb)
-    {
-        numRows = 0;
-        startFrame = 0;
-        endFrame = 0;
-        jobs = nullptr;
-        aggregators = nullptr;
-        renderProgressDialog = nullptr;
-    };
-    std::function<void(bool)> callback;
-    int numRows;
-    int startFrame;
-    int endFrame;
-    RenderJob **jobs;
-    AggregatorRenderer **aggregators;
-    RenderProgressDialog *renderProgressDialog;
-    std::list<Model *> restriction;
-};
+// RenderProgressInfo is defined in RenderProgressInfo.h (included above).
+// It was moved to a header so RenderUI.cpp can also access it.
 
-void xLightsFrame::LogRenderStatus()
-{
-    
-    spdlog::debug("Logging render status ***************");
-    spdlog::debug("Render tree size. {} entries.", renderTree.data.size());
-    spdlog::debug("Render Thread status:\n{}", (const char *)GetThreadStatusReport().c_str());
-    for (const auto& it : renderProgressInfo) {
-        int frames = it->endFrame - it->startFrame + 1;
-        spdlog::debug("Render progress rows {}, start frame {}, end frame {}, frames {}.", it->numRows, it->startFrame, it->endFrame, frames);
-        for (int i = 0; i < it->numRows; i++) {
-            if (it->jobs[i] != nullptr) {
-                auto job = it->jobs[i];
-                int curFrame = job->GetCurrentFrame();
-                if (curFrame > it->endFrame || curFrame == END_OF_RENDER_FRAME) {
-                    curFrame = it->endFrame;
-                }
-
-                spdlog::debug("    Progress {} - {}.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
-                std::string su = job->GetStatusForUser();
-                if (!su.empty()) {
-                    spdlog::debug("             {}.", (const char *)su.c_str());
-                }
-                su = job->GetStatus();
-                if (!su.empty()) {
-                    spdlog::debug("             {}.", (const char *)su.c_str());
-                }
-
-                auto row = job->GetModelElement();
-                if (row != nullptr) {
-                    bool blocked = job->GetStatusString().starts_with("Initializing rendering thread");
-                    if (blocked || row->GetWaitCount()) {
-                        spdlog::debug("             Element {}, Blocked {}, Wait Count {}.",
-                                          (const char *)row->GetModelName().c_str(), blocked,
-                                          row->GetWaitCount());
-                    }
-                }
-            }
-        }
-    }
-    spdlog::debug("*************************************");
-}
+// LogRenderStatus — moved to RenderUI.cpp (needs access to RenderProgressInfo)
 
 static bool HasEffects(ModelElement *me) {
     if (me->HasEffects()) {
@@ -1184,116 +1124,8 @@ static bool HasEffects(ModelElement *me) {
     return false;
 }
 
-void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
-    if (renderProgressInfo.empty()) {
-        return;
-    }
-    for (auto it : renderProgressInfo) {
-        if (it->renderProgressDialog) {
-            it->renderProgressDialog->Show();
-            return;
-        }
-    }
-}
-
-void xLightsFrame::OnRenderStatusTimerTrigger(wxTimerEvent& event) {
-    UpdateRenderStatus();
-}
-
-void xLightsFrame::UpdateRenderStatus() {
-    if (renderProgressInfo.empty()) {
-        RenderStatusTimer.Stop();
-        return;
-    }
-
-    RenderMainThreadEffects();
-
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
-        int countModels = 0;
-        int countFrames = 0;
-
-        bool done = true;
-        RenderProgressInfo *rpi = *it;
-        bool shown = rpi->renderProgressDialog == nullptr ? false : rpi->renderProgressDialog->IsShown();
-
-        int frames = rpi->endFrame - rpi->startFrame + 1;
-        if( frames <= 0 ) frames = 1;
-        for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
-
-            if (rpi->jobs[row]) {
-                int i = rpi->jobs[row]->GetCurrentFrame();
-                if (i > rpi->jobs[row]->GetEndFrame()) {
-                    i = END_OF_RENDER_FRAME;
-                }
-                if (i != END_OF_RENDER_FRAME) {
-                    done = false;
-                }
-                if (rpi->jobs[row]->GetEndFrame() > rpi->endFrame) {
-                    frames += rpi->jobs[row]->GetEndFrame() - rpi->endFrame;
-                }
-                if (rpi->jobs[row]->GetStartFrame() < rpi->startFrame) {
-                    frames += rpi->startFrame - rpi->jobs[row]->GetStartFrame();
-                }
-                ++countModels;
-                if (i == END_OF_RENDER_FRAME) {
-                    countFrames += rpi->jobs[row]->GetEndFrame() - rpi->jobs[row]->GetStartFrame() + 1;
-                    if (shown) {
-                        rpi->jobs[row]->UpdateProgress(100);
-                    }
-                } else {
-                    i -= rpi->jobs[row]->GetStartFrame();
-                    if (shown) {
-                        int val = (i > rpi->endFrame) ? 100 : (100 * i)/frames;
-                        rpi->jobs[row]->UpdateProgress(val, rpi->jobs[row]->GetStatusForUser());
-                    }
-                    countFrames += i;
-                }
-            }
-        }
-        if (countFrames > 0 && countModels > 0) {
-            int pct = (countFrames * 80) / (countModels * frames);
-            static int lastVal = 0;
-            if (lastVal != pct) {
-                if (ProgressBar->GetValue() != (10 + pct)) {
-                    ProgressBar->SetValue(10 + pct);
-                    _appProgress->SetValue(10 + pct);
-                }
-                lastVal = pct;
-            }
-        }
-
-        if (done) {
-            if (IsRenderBell() && !_renderMode && mRendering) {
-                wxBell();
-            }
-            for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
-                if (rpi->jobs[row]) {
-                    delete rpi->jobs[row];
-                }
-                delete rpi->aggregators[row];
-            }
-            if (rpi->renderProgressDialog) {
-                delete rpi->renderProgressDialog;
-                rpi->renderProgressDialog = nullptr;
-            }
-            _appProgress->SetValue(0);
-            _appProgress->Reset();
-            RenderDone();
-            delete []rpi->jobs;
-            delete []rpi->aggregators;
-            rpi->callback(abortedRenderJobs > 0);
-            delete rpi;
-            rpi = nullptr;
-            it = renderProgressInfo.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
-void xLightsFrame::RenderDone() {
-    mainSequencer->PanelEffectGrid->Refresh();
-}
+// OnProgressBarDoubleClick, OnRenderStatusTimerTrigger, UpdateRenderStatus,
+// RenderDone — all moved to RenderUI.cpp (wx UI handlers / progress-bar updates).
 
 class RenderTreeData {
 public:
@@ -1407,6 +1239,14 @@ void xLightsFrame::RenderTree::Print() {
     logger_render->debug("========== END RENDER TREE");
 }
 
+std::list<Model*> xLightsFrame::RenderTree::GetModels() const {
+    std::list<Model*> models;
+    for (const auto& it : data) {
+        models.push_back(it->model);
+    }
+    return models;
+}
+
 void xLightsFrame::BuildRenderTree() {
     unsigned int curChangeCount = _sequenceElements.GetMasterViewChangeCount() + modelsChangeCount;
     if (renderTree.renderTreeChangeCount != curChangeCount) {
@@ -1435,12 +1275,11 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                           const std::list<Model*> models,
                           const std::list<Model *> &restrictToModels,
                           int startFrame, int endFrame,
-                          bool progressDialog, bool clear,
+                          std::unique_ptr<IRenderProgressSink> sink, bool clear,
                           std::function<void(bool)>&& callback)
 {
     abortedRenderJobs = 0;
 
-    
     auto logger_render = spdlog::get("render");
     if (startFrame < 0) {
         startFrame = 0;
@@ -1483,7 +1322,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                 bool hasEffects = HasEffects(me);
                 bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
                 if (hasEffects || (isRestricted && clear)) {
-                    RenderJob *job = new RenderJob(me, seqData, this);
+                    RenderJob *job = new RenderJob(me, seqData, this, this);
 
                     if (job == nullptr) {
                         logger_render->critical("xLightsFrame::Render job is nullptr ... this is going to crash.");
@@ -1528,10 +1367,6 @@ void xLightsFrame::Render(SequenceElements& seqElements,
     logger_render->debug("Aggregators created.");
 
     channelMaps.clear();
-    RenderProgressDialog *renderProgressDialog = nullptr;
-    if (progressDialog) {
-        renderProgressDialog = new RenderProgressDialog(this);
-    }
     unsigned int count = 0;
     if (clear) {
         for (int f = startFrame; f <= endFrame; f++) {
@@ -1552,21 +1387,8 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                 jobPool.PushJob(jobs[row]);
                 ++count;
             }
-            if (progressDialog) {
-                wxStaticText *label = new wxStaticText(renderProgressDialog->scrolledWindow, wxID_ANY, jobs[row]->GetName());
-                renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
-                wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 100);
-                g->SetValue(0);
-                g->SetMinSize(wxSize(200, -1));
-                renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
-                jobs[row]->SetProgressCallback([g](int value, const std::string& tooltip) {
-                    if (g->GetValue() != value) {
-                        g->SetValue(value);
-                        if (!tooltip.empty()) {
-                            g->SetToolTip(tooltip);
-                        }
-                    }
-                });
+            if (sink) {
+                sink->SetupJobProgress(jobs[row]);
             }
         }
     }
@@ -1582,28 +1404,34 @@ void xLightsFrame::Render(SequenceElements& seqElements,
     logger_render->debug("Job pool new size {}.", (int)jobPool.size());
 
     if (count) {
-        if (progressDialog) {
-            renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
-            renderProgressDialog->scrolledWindow->FitInside();
-            renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
+        if (sink) {
+            sink->OnRenderSetupComplete();
         }
+
+        // Copy RenderJob* array into IRenderJobStatus* array for RenderProgressInfo
+        // (RenderProgressInfo only needs the status interface for progress/cleanup).
+        IRenderJobStatus **statusJobs = new IRenderJobStatus*[numRows];
+        for (int i = 0; i < numRows; ++i) {
+            statusJobs[i] = jobs[i]; // implicit upcast
+        }
+        delete[] jobs;
 
         RenderProgressInfo *pi = new RenderProgressInfo(std::move(callback));
         pi->numRows = numRows;
         pi->startFrame = startFrame;
         pi->endFrame = endFrame;
-        pi->jobs = jobs;
-        pi->renderProgressDialog = renderProgressDialog;
+        pi->jobs = statusJobs;
+        pi->progressSink = sink.release(); // RenderProgressInfo takes ownership
         pi->restriction = restrictToModels;
         pi->aggregators = aggregators;
 
         renderProgressInfo.push_back(pi);
         RenderStatusTimer.Start(100, false);
     } else {
+        delete[] jobs;
+        delete[] aggregators;
         callback(abortedRenderJobs > 0);
-        if (progressDialog) {
-            delete renderProgressDialog;
-        }
+        // sink auto-deleted by unique_ptr
     }
 }
 
@@ -1704,7 +1532,7 @@ void xLightsFrame::RenderDirtyModels() {
     if (endframe < startframe) {
         return;
     }
-    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, false, true, [] (bool) {});
+    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, nullptr, true, [] (bool) {});
 }
 
 bool xLightsFrame::AbortRender(int maxTimeMS)
@@ -1766,59 +1594,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
     return renderProgressInfo.empty();
 }
 
-void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
-
-    
-
-    BuildRenderTree();
-    if (renderTree.data.empty()) {
-        //nothing to do....
-        callback(false);
-        return;
-    }
-
-    spdlog::debug("Render tree built. {} entries.", renderTree.data.size());
-
-    const int numRows = _sequenceElements.GetElementCount();
-    if (numRows == 0) {
-        callback(false);
-        return;
-    }
-    std::list<Model *> models;
-    for (const auto& it : renderTree.data) {
-        models.push_back(it->model);
-    }
-    for (auto it : renderProgressInfo) {
-        //we're going to render EVERYTHING, abort whatever is rendering
-        for (size_t row = 0; row < (size_t)it->numRows; ++row) {
-            if (it->jobs[row]) {
-               it->jobs[row]->AbortRender();
-            }
-        }
-    }
-    std::list<Model*> restricts;
-
-    spdlog::debug("Rendering {} models {} frames.", models.size(), _seqData.NumFrames());
-
-
-#ifdef DOTIMING
-    auto sw = std::chrono::steady_clock::now();
-    Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw, callback] {
-        printf("%s  Render 1:  %lld ms\n", (const char *)xlightsFilename.c_str(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count());
-        auto sw2 = std::chrono::steady_clock::now();
-        Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw2, callback] {
-            printf("%s  Render 2:  %lld ms\n", (const char *)xlightsFilename.c_str(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw2).count());
-            auto sw3 = std::chrono::steady_clock::now();
-            Render(_sequenceElements, _seqData, models, restricts, 0, SeqData.NumFrames() - 1, true, false, [sw3, callback] {
-                printf("%s  Render 3:  %lld ms\n", (const char *)xlightsFilename.c_str(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw3).count());
-                callback(abortedRenderJobs > 0);
-            } );
-        });
-    });
-#else
-    Render(_sequenceElements, _seqData, models, restricts, 0, _seqData.NumFrames() - 1, true, false, std::move(callback));
-#endif
-}
+// RenderGridToSeqData — moved to RenderUI.cpp (creates WxRenderProgressSink)
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
 
@@ -1884,78 +1660,16 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
             spdlog::debug("Rendering {} models {} frames.", m.size(), endframe - startframe + 1);
 
-            Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, false, true, [] (bool) {});
+            Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, nullptr, true, [] (bool) {});
         }
     }
 }
 
-void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
+// RenderTimeSlice — defined in RenderUI.cpp (wx: ProgressBar, EnableSequenceControls, CallAfter)
 
-    
-
-    BuildRenderTree();
-    spdlog::debug("Render tree built for time slice {}ms-{}ms. {} entries.",
-        startms,
-        endms,
-        renderTree.data.size());
-
-    if (renderTree.data.empty()) {
-        //nothing to do....
-        return;
-    }
-    const int numRows = _sequenceElements.GetElementCount();
-    if (numRows == 0) {
-        return;
-    }
-    std::list<Model *> models;
-    std::list<Model *> restricts;
-    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
-        models.push_back((*it)->model);
-    }
-    if (startms < 0) {
-        startms = 0;
-    }
-    if (endms < 0) {
-        endms = 0;
-    }
-    int startframe = startms / _seqData.FrameTime() - 1;
-    if (startframe < 0) {
-        startframe = 0;
-    }
-    int endframe = endms / _seqData.FrameTime() + 1;
-    if (endframe >= (int)_seqData.NumFrames()) {
-        endframe = _seqData.NumFrames() - 1;
-    }
-    if (endframe < startframe) {
-        return;
-    }
-
-    EnableSequenceControls(false);
-    mRendering = true;
-    ProgressBar->Show();
-    GaugeSizer->Layout();
-    SetStatusText(_("Rendering all layers for time slice"));
-    ProgressBar->SetValue(0);
-    _appProgress->SetValue(0);
-    _appProgress->Reset();
-    auto sw = std::chrono::steady_clock::now(); // start a stopwatch timer
-    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] (bool aborted) {
-
-        spdlog::info("   Effects done.");
-        ProgressBar->SetValue(100);
-        float elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
-        std::string displayBuff = std::format("Rendered in {:7.3f} seconds", elapsedTime);
-        CallAfter(&xLightsFrame::SetStatusText, wxString(displayBuff), 0);
-        mRendering = false;
-        EnableSequenceControls(true);
-        ProgressBar->Hide();
-        _appProgress->SetValue(0);
-        _appProgress->Reset();
-        GaugeSizer->Layout();
-    });
-}
-
-bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame, const std::string& model, const std::string& fn, const std::string& fmt, bool doRender)
+bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
+                                  const std::string& model, const std::string& fn,
+                                  const std::string& fmt, bool doRender)
 {
     if (endFrame == 0)
         endFrame = _seqData.NumFrames();
@@ -1986,11 +1700,10 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     SetStatusText(std::format("Starting Export for {} - {}", format, Out3));
     wxYield();
 
-    NextRenderer wait;
     Element* el = _sequenceElements.GetElement(model);
     if (el == nullptr)
         return false;
-    RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this);
+    RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, this);
     assert(job != nullptr);
     SequenceData* data = job->createExportBuffer();
     assert(data != nullptr);
@@ -1998,26 +1711,19 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
 
     if (doRender) {
         RenderAll();
-        // Render all to capture any effects at the group levels
-        // wait to complete
+        // Wait for any in-progress render to complete
         while (mRendering) {
             wxYield();
         }
     }
     Model* m2 = GetModel(model);
     // firstChan is the absolute 0-based channel of node 0; subtract it from nstart
-    // so that node data is packed at the start of the export buffer (index 0),
-    // matching what RenderModelOnImage/FillImage expect when reading from framedata[0].
-    // Previously RenderJob accepted a zero-based offset parameter that did this
-    // implicitly; now we must do it explicitly here.
+    // so that node data is packed at the start of the export buffer (index 0).
     int firstChan = m2->NodeStartChannel(0);
     for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
         for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
-            //chan in main buffer
             int ostart = m2->NodeStartChannel(x);
-            //chan in export buffer, relative to model start so data begins at index 0
             int nstart = ostart - firstChan;
-            //copy to render buffer for export
             job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
             job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
         }
@@ -2129,7 +1835,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
         if (m == nullptr) {
             // this could be a strand or node
-            m = GetSequenceElements().GetXLightsFrame()->GetModel(buffer.GetModelName());
+            m = GetModel(buffer.GetModelName());
         }
 
         if (m != nullptr) {

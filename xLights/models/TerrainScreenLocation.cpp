@@ -249,7 +249,7 @@ CursorType TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
     return return_value;
 }
 
-int TerrainScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int TerrainScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
 

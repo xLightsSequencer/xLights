@@ -116,7 +116,7 @@
 #include "effects/RenderableEffect.h"
 #include "effects/ShaderEffect.h"
 #include "effects/StateEffect.h"
-#include "graphics/opengl/xlGLCanvas.h"
+#include "ui/graphics/opengl/xlGLCanvas.h"
 #include "models/ModelGroup.h"
 #include "models/RulerObject.h"
 #include "models/SubModel.h"
@@ -8736,7 +8736,7 @@ bool xLightsFrame::IsPaneDocked(wxWindow* window) const
     return m_mgr->GetPane(window).IsDocked();
 }
 
-ModelPreview* xLightsFrame::GetHousePreview() const
+IModelPreview* xLightsFrame::GetHousePreview() const
 {
     return _housePreviewPanel->GetModelPreview();
 }

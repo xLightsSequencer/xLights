@@ -15,7 +15,7 @@
 
 class xLightsFrame;
 
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 
 #if defined(XL_DRAWING_WITH_OPENGL)
 #define xLightsAppBaseClass xlGLBaseApp

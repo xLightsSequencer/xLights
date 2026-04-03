@@ -13,6 +13,7 @@
 #include "../../../xLightsApp.h"
 #include "../../../xLightsMain.h"
 #include "ui/ValueCurveButton.h"
+#include "../../wxUtilities.h"
 
 #include <log.h>
 
@@ -561,7 +562,7 @@ void xlGridCanvasMorph::CreateCornerTextures(xlGraphicsContext *ctx)
         }
     }
     for (int i = 0; i < 6; i++) {
-        mCornerTextures[i] = ctx->createTextureMipMaps(CORNER_IMAGES[i], "MorphCorner" + std::to_string(i));
+        mCornerTextures[i] = ctx->createTextureMipMaps(wxImagesToXlImages(CORNER_IMAGES[i]), "MorphCorner" + std::to_string(i));
     }
 }
 void xlGridCanvasMorph::render(wxPaintEvent& event)

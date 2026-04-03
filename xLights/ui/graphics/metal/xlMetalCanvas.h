@@ -2,7 +2,7 @@
 
 
 #include "osxUtils/wxMetalCanvas.hpp"
-#include "../xlGraphicsContext.h"
+#include "../../../graphics/xlGraphicsContext.h"
 
 class MSAATextureInfo;
 class DepthTextureInfo;

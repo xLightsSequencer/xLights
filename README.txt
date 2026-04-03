@@ -12,7 +12,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
-    -change (dkulp)             Migrate output runtime sockets from wxDatagramSocket/wxIPV4address to SocketAbstraction UDPSocket    
+    -change (dkulp)             Migrate output runtime sockets from wxDatagramSocket/wxIPV4address to SocketAbstraction UDPSocket
+    -change (dkulp)             Refactor Render.cpp: split UI-coupled code into RenderUI.cpp behind abstract
+                                    interfaces (IRenderJobCallbacks, IRenderJobStatus, IRenderProgressSink)
+                                    to decouple the render engine from wxWidgets
+    -change (dkulp)             Extract IModelPreview interface from ModelPreview; models/ and DMX/ now use
+                                    IModelPreview* instead of ModelPreview*, removing the ui/layout dependency
+                                    from the core models layer
+    -change (dkulp)             Reorganize graphics/ as a wx-free core package: move IModelPreview to
+                                    graphics/, remove wx types from xlGraphicsContext/xlFontInfo headers,
+                                    move canvas implementations (xlGLCanvas, xlMetalCanvas, OGL3/Metal contexts)
+                                    to ui/graphics/ with backwards-compatible forwarders in graphics/
 2026.04  April 2, 2026
     -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
                                     and media manager. Animated GIFs/WebP cycle through all frames, videos

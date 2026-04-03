@@ -14,7 +14,7 @@
 #include <log.h>
 
 #include "DrawGLUtils.h"
-#include "../xlMesh.h"
+#include "../../../graphics/xlMesh.h"
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -29,12 +29,10 @@
 
 #ifndef __WXMAC__
 #include <GL/gl.h>
-#ifdef _MSC_VER
-#include "GL\glext.h"
-#else
+#ifndef _MSC_VER
 #include <GL/glx.h>
-#include <GL/glext.h>
 #endif
+#include <GL/glext.h>
 
 PFNGLUSEPROGRAMPROC glUseProgram;
 PFNGLCREATESHADERPROC glCreateShader;
@@ -679,9 +677,7 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
 class xlGLTexture : public xlTexture {
 public:
     xlGLTexture(bool cp) : xlTexture(), coreProfile(cp) {}
-    xlGLTexture(const wxImage &i, bool cp) : xlTexture(), coreProfile(cp)  {
-        LoadImage(i);
-    }
+
     xlGLTexture(const xlImage &i, bool cp) : xlTexture(), coreProfile(cp) {
         LoadImage(i);
     }
@@ -738,73 +734,7 @@ public:
             LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data ) );
         }
         LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, 0 ) );
-    }
-    void LoadImage(wxImage image) {
-        if (!coreProfile) {
-            LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
-        }
-        int maxSize = 0;
-        LOG_GL_ERRORV(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
-        LOG_GL_ERRORV(glGenTextures( 1, &_texId ));
-        LOG_GL_ERRORV(glBindTexture( GL_TEXTURE_2D, _texId ));
-
-        width = image.GetWidth();
-        height = image.GetHeight();
-
-        LOG_GL_ERRORV(glPixelStorei(GL_UNPACK_ALIGNMENT,  1 ));
-
-        if (width > maxSize || height > maxSize) {
-            int newWid = std::min(width, maxSize);
-            int newHi = std::min(height, maxSize);
-
-            image = image.Rescale(newWid, newHi, wxIMAGE_QUALITY_HIGH);
-        }
-        width = image.GetWidth();
-        height = image.GetHeight();
-
-        // note: must make a local copy before passing the data to OpenGL, as GetData() returns RGB
-        // and we want the Alpha channel if it's present.
-        GLubyte *bitmapData = image.GetData();
-        GLubyte *alphaData = image.GetAlpha();
-
-        alpha = image.HasAlpha();
-        int bytesPerPixel = image.HasAlpha() ?  4 : 3;
-
-        int imageSize = width * height * bytesPerPixel;
-        GLubyte *imageData = new GLubyte[imageSize];
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                imageData[(x + y * width) * bytesPerPixel] = bitmapData[(x + y * width) * 3];
-                imageData[(x + y * width) * bytesPerPixel + 1] = bitmapData[(x + y * width) * 3 + 1];
-                imageData[(x + y * width) * bytesPerPixel + 2] = bitmapData[(x + y * width) * 3 + 2];
-                if (bytesPerPixel==4) {
-                    imageData[(x + y * width) * bytesPerPixel + 3] = alphaData[x + y * width];
-                }
-            }
-        }
-
-        // if yes, everything is fine
-        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     alpha ? GL_RGBA : GL_RGB,
-                     width,
-                     height,
-                     0,
-                     alpha ?  GL_RGBA : GL_RGB,
-                     GL_UNSIGNED_BYTE,
-                     imageData));
-
-        delete [] imageData;
-        // set texture parameters as you wish
-        LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)); // GL_LINEAR
-        LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)); // GL_LINEAR
-        LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        if (!coreProfile) {
-            LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
-        }
-    }
+    }    
 
     void LoadImage(const xlImage &image) {
         if (!coreProfile) {
@@ -860,7 +790,7 @@ public:
     bool coreProfile = true;
 };
 
-xlOGL3GraphicsContext::xlOGL3GraphicsContext(xlGLCanvas *c) : xlGraphicsContext(c), canvas(c) {
+xlOGL3GraphicsContext::xlOGL3GraphicsContext(xlGLCanvas *c) : canvas(c) {
 }
 xlOGL3GraphicsContext::~xlOGL3GraphicsContext() {}
 
@@ -1215,71 +1145,48 @@ xlVertexTextureAccumulator *xlOGL3GraphicsContext::createVertexTextureAccumulato
     return new xlOGL3VertexTextureAccumulator();
 }
 
-static void addMipMap(const wxImage& l_Image, int& level) {
-    if (l_Image.IsOk() == true) {
-        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-            0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData()));
-        int err = glGetError();
-        if (err == GL_NO_ERROR) {
-            level++;
-        } else {
-            auto logger = spdlog::get("opengl");
-            logger->error("Error glTexImage2D: {}", err);
-        }
-    }
-}
-static void CreateOrUpdateTexture(const wxBitmap &bmp48,
-                                  const wxBitmap &bmp32,
-                                  const wxBitmap &bmp16,
-                                  GLuint *texture) {
-    int level = 0;
-    LOG_GL_ERRORV(glGenTextures(1,texture));
-    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, *texture));
-    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
-
-    addMipMap(bmp48.ConvertToImage(), level);
-    addMipMap(bmp32.ConvertToImage(), level);
-    addMipMap(bmp16.ConvertToImage(), level);
-    int w = bmp16.GetScaledWidth() / 2;
-    while (w > 0) {
-        addMipMap(bmp16.ConvertToImage().Rescale(w, w, wxIMAGE_QUALITY_HIGH), level);
-        w = w / 2;
-    }
-}
-xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) {
+xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) {
     xlGLTexture *t = new xlGLTexture(canvas->IsCoreProfile());
     t->SetName(name);
-    GLuint tid = 0;
-    CreateOrUpdateTexture(bitmaps[0], bitmaps[1], bitmaps[2], &tid);
-    t->_texId = tid;
-    return t;
-}
-xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) {
-    xlGLTexture *t = new xlGLTexture(canvas->IsCoreProfile());
-    t->SetName(name);
-    GLuint tid = 0;
-    CreateOrUpdateTexture(wxBitmap(images[0]), wxBitmap(images[1]), wxBitmap(images[2]), &tid);
-    t->_texId = tid;
+    t->alpha = true;
     t->width = images[0].GetWidth();
     t->height = images[0].GetHeight();
-    return t;
-}
-xlTexture *xlOGL3GraphicsContext::createTexture(const wxImage &image, const std::string &name, bool finalize) {
-    xlTexture *t = new xlGLTexture(image, canvas->IsCoreProfile());
-    if (!name.empty()) {
-        t->SetName(name);
+
+    if (!canvas->IsCoreProfile()) {
+        LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
     }
-    if (finalize) {
-        t->Finalize();
+    LOG_GL_ERRORV(glGenTextures(1, &t->_texId));
+    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, t->_texId));
+    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
+    LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+
+    int level = 0;
+    xlImage img;
+    // Upload provided images as mip levels, then generate smaller levels by downscaling
+    int w = t->width;
+    int h = t->height;
+    while (w > 0 && h > 0) {
+        if (level < (int)images.size()) {
+            img = images[level];
+        } else {
+            xlImage scaled = img.Copy();
+            scaled.Rescale(w, h);
+            img = std::move(scaled);
+        }
+        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA,
+                                   img.GetWidth(), img.GetHeight(),
+                                   0, GL_RGBA, GL_UNSIGNED_BYTE, img.GetData()));
+        ++level;
+        w /= 2;
+        h /= 2;
     }
-    return t;
-}
-xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) {
-    // For xlImage mip maps, create from the first image and ignore the rest for now
-    // (mip map generation from xlImage can be enhanced later)
-    xlGLTexture *t = new xlGLTexture(images[0], canvas->IsCoreProfile());
-    t->SetName(name);
+
+    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+    if (!canvas->IsCoreProfile()) {
+        LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+    }
     return t;
 }
 xlTexture *xlOGL3GraphicsContext::createTexture(const xlImage &image, const std::string &name, bool finalize) {

@@ -880,7 +880,7 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     // (which may contain an unrelated main-sequence render that won't finish here).
     std::atomic<bool> renderComplete{false};
     Render(seqElements, seqData, { matrixModel }, { matrixModel },
-           0, numFrames - 1, false, true, [&renderComplete](bool) { renderComplete = true; });
+           0, numFrames - 1, nullptr, true, [&renderComplete](bool) { renderComplete = true; });
 
     while (!renderComplete) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -1318,7 +1318,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 DoASAPWork();
                 Render(_presetSequenceElements, _presetSequenceData,
                        { _presetModel }, { _presetModel },
-                       0, frames - 1, false, true, [](bool) {});
+                       0, frames - 1, nullptr, true, [](bool) {});
                 while (!renderProgressInfo.empty()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     RenderMainThreadEffects();

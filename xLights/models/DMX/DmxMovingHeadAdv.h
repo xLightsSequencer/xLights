@@ -25,12 +25,12 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         DmxMovingHeadAdv(const ModelManager& manager);
         virtual ~DmxMovingHeadAdv();
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+        virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                           xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                           const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                           bool highlightFirst = false, int highlightpixel = 0,
                                           float *boundingBox = nullptr) override;
-        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
 
         virtual std::list<std::string> CheckModelSettings() override;
 
@@ -57,7 +57,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
     protected:
         virtual void InitModel() override;
 
-        void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active, const xlColor *c);
+        void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active, const xlColor *c);
 
         void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open, float beam_offset);
 

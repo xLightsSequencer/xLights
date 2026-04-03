@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsAccumulators.h"
 
 struct AVFrame;

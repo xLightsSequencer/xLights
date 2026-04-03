@@ -20,7 +20,10 @@
 #include "Mesh.h"
 #include "Servo.h"
 #include "DmxColorAbilityRGB.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
@@ -260,7 +263,7 @@ float DmxSkull::GetServoPos(Servo* _servo, bool active)
     return servo_pos;
 }
 
-void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxSkull::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                     xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                     const xlColor* c, bool allowSelected, bool wiring,
                                     bool highlightFirst, int highlightpixel,
@@ -315,7 +318,7 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
     }
 }
 
-void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxSkull::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -332,7 +335,7 @@ void DmxSkull::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95f / GetModelScreenLocation().RenderHt;
 
@@ -412,7 +415,7 @@ std::list<std::string> DmxSkull::CheckModelSettings()
     return res;
 }
 
-void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
+void DmxSkull::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
     size_t NodeCount = Nodes.size();
 

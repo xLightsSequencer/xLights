@@ -17,8 +17,10 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
+#include "../ui/layout/ViewpointMgr.h"
 #include "Shapes.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
@@ -275,7 +277,7 @@ float ModelScreenLocation::GetRectHandleWidth(float zoom, int scale) const
     return std::max(RECT_HANDLE_WIDTH, RECT_HANDLE_WIDTH * zoom * rs);
 }
 
-ModelScreenLocation::MSLPLANE ModelScreenLocation::GetBestIntersection( ModelScreenLocation::MSLPLANE prefer, bool& rotate, ModelPreview* preview )
+ModelScreenLocation::MSLPLANE ModelScreenLocation::GetBestIntersection( ModelScreenLocation::MSLPLANE prefer, bool& rotate, IModelPreview* preview )
 {
     MSLPLANE best_plane {MSLPLANE::XZ_PLANE};
 
@@ -319,7 +321,7 @@ ModelScreenLocation::MSLPLANE ModelScreenLocation::GetBestIntersection( ModelScr
     return best_plane;
 }
 
-void ModelScreenLocation::FindPlaneIntersection( int x, int y, ModelPreview* preview )
+void ModelScreenLocation::FindPlaneIntersection( int x, int y, IModelPreview* preview )
 {
     bool rotate {false};
     active_plane = MSLPLANE::XY_PLANE;  // 2D will always use the X/Y plane
@@ -613,7 +615,7 @@ void ModelScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) 
     }
 }
 
-glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz) const
+glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, IModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
         screenheight,
@@ -648,7 +650,7 @@ void ModelScreenLocation::SetDefaultMatrices() const
     ModelMatrix = TranslateMatrix;
 }
 
-bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
+bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mouseY, bool latch) {
 
     
     float zoom = preview->GetCameraZoomForHandles();

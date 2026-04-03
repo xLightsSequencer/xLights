@@ -27,7 +27,7 @@
 #include "ui/sequencer/NewTimingDialog.h"
 #include "ui/sequencer/VAMPPluginDialog.h"
 #include "UtilFunctions.h"
-#include "graphics/opengl/xlGLCanvas.h"
+#include "ui/graphics/opengl/xlGLCanvas.h"
 #include "ui/sequencer/MetronomeLabelDialog.h"
 
 #include <log.h>

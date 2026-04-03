@@ -13,7 +13,7 @@
 #include "ViewObject.h"
 #include "BoxedScreenLocation.h"
 
-class ModelPreview;
+class IModelPreview;
 class xlVertexColorAccumulator;
 
 class GridlinesObject : public ObjectWithScreenLocation<BoxedScreenLocation>
@@ -25,7 +25,7 @@ public:
     virtual void InitModel() override;
 
 
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
     void SetGridLineSpacing(int val) { line_spacing = val; }
     void SetGridWidth(int val) { width = val; }

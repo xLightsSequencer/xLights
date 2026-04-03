@@ -13,7 +13,10 @@
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "UtilFunctions.h"
 #include "../../xLightsVersion.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
@@ -51,7 +54,7 @@ void DmxFloodlight::DrawModel(xlVertexColorAccumulator* vac, xlColor& center, xl
     vac->AddCircleAsTriangles(0, 0, 0, 0.5, center, edge, beam_length);
 }
 
-void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxFloodlight::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                          xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
                                          const xlColor* c, bool allowSelected, bool wiring,
                                          bool highlightFirst, int highlightpixel,
@@ -114,7 +117,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     }
 }
 
-void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxFloodlight::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -143,7 +146,7 @@ void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
         int end = vac->getCount();
 
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
 

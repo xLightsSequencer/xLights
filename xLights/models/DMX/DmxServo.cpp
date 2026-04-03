@@ -18,13 +18,16 @@
 #include "DmxImage.h"
 #include "Servo.h"
 
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../xLightsVersion.h"
 #include "../../render/UICallbacks.h"
 #include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 #include <log.h>
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
 
 static const int SUPPORTED_SERVOS = 24;
 
@@ -146,7 +149,7 @@ void DmxServo::InitModel()
     update_node_names = false;
 }
 
-void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxServo::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                     xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
                                     const xlColor* c, bool allowSelected, bool wiring,
                                     bool highlightFirst, int highlightpixel,
@@ -188,7 +191,7 @@ void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
     }
 }
 
-void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxServo::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -205,7 +208,7 @@ void DmxServo::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
 
@@ -262,7 +265,7 @@ std::list<std::string> DmxServo::CheckModelSettings()
     return res;
 }
 
-void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* program, const xlColor* c, bool active)
+void DmxServo::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* program, const xlColor* c, bool active)
 {
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);

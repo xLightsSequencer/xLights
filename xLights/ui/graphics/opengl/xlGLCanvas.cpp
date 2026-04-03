@@ -18,11 +18,10 @@
 #ifndef __WXMAC__
 #ifdef _MSC_VER
 #include "GL\gl.h"
-#include "GL\glext.h"
 #else
     #include <GL/gl.h>
-    #include <GL/glext.h>
 #endif
+#include <GL/glext.h>
 
 extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
 extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
@@ -56,7 +55,7 @@ static bool hasOpenGL3FramebufferObjects()
 #include "OpenGL/gl3.h"
 #define __gl_h_
 
-#include "GL/glext.h"
+#include <GL/glext.h>
 static bool hasOpenGL3FramebufferObjects()
 {
     return true;
@@ -74,7 +73,7 @@ BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
     EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
-#include "../xlMesh.h"
+#include "../../../graphics/xlMesh.h"
 #include "DrawGLUtils.h"
 
 

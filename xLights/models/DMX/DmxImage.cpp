@@ -15,7 +15,9 @@
 #include "../../utils/xlImage.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "../../ui/layout/ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 
 #include <log.h>
 
@@ -57,7 +59,7 @@ void DmxImage::Init(BaseObject* base)
     }
 }
 
-void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *pg,
+void DmxImage::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *pg,
                     glm::mat4 &motion_matrix,
                     int transparency, float brightness, bool only_image,
                     float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot)
@@ -65,16 +67,16 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
     bool exists = false;
     
 
-    if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
+    if (_images.find(preview->getName()) == _images.end()) {
         if (FileExists(_imageFile)) {
             spdlog::debug("Loading image model {} file {} for preview {}.",
                 (const char*)base->GetName().c_str(),
                 (const char*)_imageFile.c_str(),
-                (const char*)preview->GetName().c_str());
+                preview->getName().c_str());
             xlImage img;
             if (img.LoadFromFile(_imageFile)) {
                 xlTexture *t = preview->getCurrentGraphicsContext()->createTexture(img, _imageFile, true);
-                _images[preview->GetName().ToStdString()] = t;
+                _images[preview->getName()] = t;
                 width = img.GetWidth();
                 height = img.GetHeight();
                 exists = true;
@@ -87,7 +89,7 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
 
 
     if (exists) {
-        xlTexture* image = _images[preview->GetName().ToStdString()];
+        xlTexture* image = _images[preview->getName()];
 
         glm::mat4 Identity = glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));

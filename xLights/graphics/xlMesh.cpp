@@ -7,8 +7,6 @@
 #include <filesystem>
 #include <algorithm>
 
-#include <wx/filename.h>
-
 #include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "../utils/xlImage.h"
@@ -16,13 +14,14 @@
 #include <log.h>
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : filename(f), graphicsContext(ctx) {
-    
+
     objectsLoaded = false;
-    wxFileName fn(filename);
-    
+    std::filesystem::path fp(filename);
+    std::string dirPath = fp.parent_path().string();
+
     tinyobj::ObjReaderConfig reader_config;
     reader_config.triangulate = true;
-    reader_config.mtl_search_path = fn.GetPath();  // Path to material files
+    reader_config.mtl_search_path = dirPath;  // Path to material files
 
     if (!objects.ParseFromFile(filename, reader_config)) {
         if (!objects.Error().empty()) {
@@ -34,8 +33,8 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : filename(f), grap
         spdlog::warn("TinyObjReader: {}", objects.Warning().c_str());
     }
     objectsLoaded = true;
-    
-    
+
+
     materials.resize(objects.GetMaterials().size());
     int idx = 0;
     for (auto &m : objects.GetMaterials()) {
@@ -46,16 +45,17 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : filename(f), grap
         materials[idx].name = m.name;
         materials[idx].color.Set((uint8_t)red, (uint8_t)green, (uint8_t)blue, (uint8_t)dissolve);
         if (m.diffuse_texname != "") {
-            wxString texName = m.diffuse_texname;
+            std::string texName = m.diffuse_texname;
             if (!FileExists(texName)) {
-                texName = fn.GetPath() + fn.GetPathSeparator() + m.diffuse_texname;
+                texName = dirPath + "/" + m.diffuse_texname;
             }
             if (!FileExists(texName)) {
                 texName = m.diffuse_texname;
-                if (texName.Contains(("/"))) {
-                    texName = texName.substr(texName.Last('/') + 1);
+                size_t slashPos = texName.find_last_of('/');
+                if (slashPos != std::string::npos) {
+                    texName = texName.substr(slashPos + 1);
                 }
-                texName = fn.GetPath() + fn.GetPathSeparator() + texName;
+                texName = dirPath + "/" + texName;
             }
             if (FileExists(texName)) {
                 ObtainAccessToURL(texName);

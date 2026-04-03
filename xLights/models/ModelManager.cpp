@@ -46,7 +46,7 @@
 #include "WreathModel.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/XmlDeserializingModelFactory.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
 #include "Pixels.h"
 #include "../controllers/ControllerCaps.h"
 #include "../render/Element.h"

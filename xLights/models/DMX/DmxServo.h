@@ -20,12 +20,12 @@ public:
     DmxServo(const ModelManager &manager);
     virtual ~DmxServo();
 
-    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+    virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                       bool highlightFirst = false, int highlightpixel = 0,
                                       float *boundingBox = nullptr) override;
-    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+    virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
 
     virtual std::list<std::string> CheckModelSettings() override;
 
@@ -57,7 +57,7 @@ protected:
     virtual void InitModel() override;
     void Clear();
 
-    void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active);
+    void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active);
 
     int transparency {0};
     float brightness {100};

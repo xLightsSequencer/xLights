@@ -29,13 +29,13 @@ public:
         EYE_LR
     };
 
-    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+    virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                   xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                   const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                   bool highlightFirst = false, int highlightpixel = 0,
                                   float *boundingBox = nullptr) override;
-    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
-    void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
+    virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
+    void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
 
 
     bool Is16Bit() const { return _16bit; }

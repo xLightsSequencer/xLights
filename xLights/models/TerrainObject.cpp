@@ -10,7 +10,9 @@
 
 #include <vector>
 #include "TerrainObject.h"
-#include "ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "Model.h"
 #include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
@@ -69,7 +71,7 @@ void TerrainObject::ClearImages() {
     _images.clear();
 }
 
-bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+bool TerrainObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if (!IsActive()) { return true; }
 
     
@@ -82,16 +84,16 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     int num_points_deep = screenLocation.GetNumPointsDeep();
     int num_points = screenLocation.GetNumPoints();
 
-    if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
+    if (_images.find(preview->getName()) == _images.end()) {
         if (FileExists(_imageFile)) {
             spdlog::debug("Loading image model {} file {} for preview {}.",
                 GetName(),
                 _imageFile,
-                preview->GetName().ToStdString());
+                preview->getName());
             xlImage image;
             if (image.LoadFromFile(_imageFile) && image.IsOk()) {
                 xlTexture *t = ctx->createTexture(image, GetName(), true);
-                _images[preview->GetName().ToStdString()] = t;
+                _images[preview->getName()] = t;
                 img_width = image.GetWidth();
                 img_height = image.GetHeight();
                 screenLocation.SetRenderSize(width, height, 10.0f);
@@ -209,7 +211,7 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
         });
     }
     if (texture) {
-        xlTexture *image = _images[preview->GetName().ToStdString()];
+        xlTexture *image = _images[preview->getName()];
         if (transparency == 0) {
             solid->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->drawTexture(texture, image, brightness, 255, 0, texture->getCount());

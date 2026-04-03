@@ -91,6 +91,8 @@
 #include "outputs/ZCPP.h"
 #include "models/OutputModelManager.h"
 #include "render/RenderContext.h"
+#include "render/IRenderJobCallbacks.h"
+#include "render/IRenderProgressSink.h"
 #include "render/UICallbacks.h"
 #include "models/Model.h"
 #include "render/SequencePackage.h"
@@ -130,6 +132,7 @@ class PerspectivesPanel;
 class TopEffectsPanel;
 class MainSequencer;
 class ModelPreview;
+class IModelPreview;
 class ZCPPOutput;
 class UDControllerPort;
 class Model;
@@ -242,7 +245,6 @@ class RenderEvent;
 class wxDebugReportCompress;
 class BufferPanel;
 class LayoutPanel;
-class RenderProgressDialog;
 class RenderProgressInfo;
 class wxLed;
 
@@ -304,7 +306,7 @@ private:
     int id;
 };
 
-class xLightsFrame: public xlFrame, public RenderContext, public UICallbacks
+class xLightsFrame: public xlFrame, public RenderContext, public UICallbacks, public IRenderJobCallbacks
 {
 public:
 
@@ -1595,7 +1597,7 @@ public:
     std::string BuildEffectsXml();
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
-    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount);
+    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount) override;
     Model *GetModel(const std::string& name) const override;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
@@ -1605,7 +1607,11 @@ public:
     void LogRenderStatus();
     bool RenderEffectFromMap(bool suppress, Effect *effect, int layer, int period, SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
-                             bool bgThread = false, RenderEvent *event = nullptr);
+                             bool bgThread = false, RenderEvent *event = nullptr) override;
+
+    // IRenderJobCallbacks implementation
+    void OnRenderJobComplete(const std::string& modelName) override;
+    void OnAllRenderJobsComplete() override;
     void RenderMainThreadEffects() override;
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
@@ -1616,7 +1622,7 @@ public:
                 const std::list<Model*> models,
                 const std::list<Model *> &restrictToModels,
                 int startFrame, int endFrame,
-                bool progressDialog, bool clear,
+                std::unique_ptr<IRenderProgressSink> sink, bool clear,
                 std::function<void(bool)>&& callback);
     void BuildRenderTree();
 
@@ -1748,6 +1754,9 @@ private:
         void Clear();
         void Add(Model *el);
         void Print();
+        // Returns the ordered list of models from the render tree.
+        // Defined in Render.cpp where RenderTreeData is fully declared.
+        std::list<Model*> GetModels() const;
 
         unsigned int renderTreeChangeCount;
         std::list<RenderTreeData*> data;
@@ -1825,7 +1834,7 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
-    ModelPreview* GetHousePreview() const;
+    IModelPreview* GetHousePreview() const;
     void RenderLayout();
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }
     EffectsPanel* GetEffectsPanel() const { return EffectsPanel1; }

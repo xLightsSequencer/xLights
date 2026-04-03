@@ -15,7 +15,7 @@
 #include <vector>
 #include <string>
 
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsContext.h"
 
 #include "AudioManager.h"

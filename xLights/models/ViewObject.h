@@ -14,7 +14,7 @@
 #include "ModelScreenLocation.h"
 #include "ViewObjectManager.h"
 
-class ModelPreview;
+class IModelPreview;
 class xlGraphicsProgram;
 class xlGraphicsContext;
 
@@ -39,7 +39,7 @@ public:
     virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
 
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) { return false; }
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) { return false; }
 
     const ObjectManager& GetObjectManager() const { return objectManager; }
 

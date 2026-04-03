@@ -13,7 +13,9 @@
 #include "PolyPointScreenLocation.h"
 
 
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "Shapes.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
@@ -222,7 +224,7 @@ void PolyPointScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) con
     ctx->SetModelMatrix(main_matrix);
 }
 
-bool PolyPointScreenLocation::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const
+bool PolyPointScreenLocation::IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const
 {
     int sx1 = std::min(x1, x2);
     int sx2 = std::max(x1, x2);
@@ -460,7 +462,7 @@ CursorType PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, 
     return return_value;
 }
 
-CursorType PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int& handle, int x, int y) const
+CursorType PolyPointScreenLocation::CheckIfOverHandles(IModelPreview* preview, int& handle, int x, int y) const
 {
     assert(!preview->Is3D());
 
@@ -1054,7 +1056,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     return true;
 }
 
-int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int PolyPointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
     std::unique_lock<std::mutex> locker(_mutex);
@@ -1361,7 +1363,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
     return MODEL_UNCHANGED;
 }
 
-int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int PolyPointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -1486,7 +1488,7 @@ void PolyPointScreenLocation::SelectSegment(int segment) {
     }
 }
 
-void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
+void PolyPointScreenLocation::AddHandle(IModelPreview* preview, int mouseX, int mouseY) {
     std::unique_lock<std::mutex> locker(_mutex);
 
     glm::vec3 ray_origin;
@@ -1628,7 +1630,7 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
     selected_segment = -1;
 }
 
-CursorType PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     float zoom = 1.0;
     int scale = 1;
     if (preview != nullptr) {
@@ -1800,7 +1802,7 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
     }
 }
 
-glm::vec2 PolyPointScreenLocation::GetScreenOffset(ModelPreview* preview) const
+glm::vec2 PolyPointScreenLocation::GetScreenOffset(IModelPreview* preview) const
 {
     float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
     float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;

@@ -14,7 +14,7 @@
 #include "ViewObject.h"
 #include "BoxedScreenLocation.h"
 
-class ModelPreview;
+class IModelPreview;
 class xlMesh;
 
 class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
@@ -28,7 +28,7 @@ public:
     virtual void InitModel() override;
 
 
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
     virtual std::list<std::string> GetFileReferences() override;
     virtual bool CleanupFileLocations(RenderContext* ctx) override;

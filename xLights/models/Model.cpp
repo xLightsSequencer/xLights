@@ -28,7 +28,7 @@
 #include "Color.h"
 #include "../render/DimmingCurve.h"
 #include "utils/ExternalHooks.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
 #include "Pixels.h"
 #include "UtilFunctions.h"
 #include "../controllers/ControllerCaps.h"
@@ -621,7 +621,7 @@ void Model::AddModelGroups(pugi::xml_node n, int w, int h, const std::string& na
     modelManager.GetXLightsFrame()->AllModels.AddModelGroups(n, w, h, name, merge, ask);
 }
 
-void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
+void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, IModelPreview* modelPreview, const std::string& layoutGroup) {
     
 
     int x = GetHcenterPos();
@@ -1912,7 +1912,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         float maxY = -1000000.0;
         float minY = 1000000.0;
 
-        ModelPreview* modelPreview = nullptr;
+        IModelPreview* modelPreview = nullptr;
         PreviewCamera* pcamera = nullptr;
         if (xLightsApp::GetFrame() != nullptr) {
             modelPreview = xLightsApp::GetFrame()->GetHousePreview();
@@ -2907,12 +2907,12 @@ void Model::CopyBufCoord2ScreenCoord()
     GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt, GetModelScreenLocation().GetRenderDp());
 }
 
-bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction)
+bool Model::HitTest(IModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction)
 {
     return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }
 
-CursorType Model::InitializeLocation(int& handle, int x, int y, ModelPreview* preview)
+CursorType Model::InitializeLocation(int& handle, int x, int y, IModelPreview* preview)
 {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }
@@ -2947,7 +2947,7 @@ void Model::ApplyTransparency(xlColor& color, int transparency, int blackTranspa
     color.alpha = colorAlpha;
 }
 
-void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
+void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
                                  const xlColor* c, bool allowSelected, bool wiring, bool highlightFirst, int highlightpixel,
                                  float* boundingBox)
 {
@@ -3095,7 +3095,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
             if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                 ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
             } else {
-                ModelPreview* preview = (ModelPreview*)ctx->getWindow();
+                IModelPreview* preview = static_cast<IModelPreview*>(ctx->getContextualValue("modelPreview"));
                 float pointSize = preview->calcPixelSize(pixelSize);
                 ctx->drawPoints(cache->vica, pointSize, _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, 0, cache->vica->getCount());
             }
@@ -3182,9 +3182,10 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
     }
 }
 
-float Model::GetPreviewDimScale(ModelPreview* preview, int& w, int& h)
+float Model::GetPreviewDimScale(IModelPreview* preview, int& w, int& h)
 {
-    preview->GetSize(&w, &h);
+    w = preview->getWidth();
+    h = preview->getHeight();
     float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
     float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
     float scale = scaleY < scaleX ? scaleY : scaleX;
@@ -3210,7 +3211,7 @@ void Model::GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordSt
     sx = (sx * scale) + (w / 2);
 }
 
-std::string Model::GetNodeNear(ModelPreview* preview, xlPoint pt, bool flip)
+std::string Model::GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip)
 {
     int w, h;
     float scale = GetPreviewDimScale(preview, w, h);
@@ -3248,7 +3249,7 @@ std::string Model::GetNodeNear(ModelPreview* preview, xlPoint pt, bool flip)
     return "";
 }
 
-bool Model::GetScreenLocations(ModelPreview* preview, std::map<int, std::pair<float, float>>& coords)
+bool Model::GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<float, float>>& coords)
 {
     int w, h;
     float scale = GetPreviewDimScale(preview, w, h);
@@ -3268,7 +3269,7 @@ bool Model::GetScreenLocations(ModelPreview* preview, std::map<int, std::pair<fl
     return true;
 }
 
-std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, xlPoint start, xlPoint end)
+std::vector<int> Model::GetNodesInBoundingBox(IModelPreview* preview, xlPoint start, xlPoint end)
 {
     int w, h;
     float scale = GetPreviewDimScale(preview, w, h);
@@ -3318,7 +3319,7 @@ bool Model::IsMultiCoordsPerNode() const
     return false;
 }
 
-void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -3452,7 +3453,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                                 if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                                     ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                                 } else {
-                                    ModelPreview* preview = (ModelPreview*)ctx->getWindow();
+                                    IModelPreview* preview = static_cast<IModelPreview*>(ctx->getContextualValue("modelPreview"));
                                     float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
                                     ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, startVertex, count - startVertex);
                                 }
@@ -3481,7 +3482,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                     if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                         ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                     } else {
-                        ModelPreview* preview = (ModelPreview*)ctx->getWindow();
+                        IModelPreview* preview = static_cast<IModelPreview*>(ctx->getContextualValue("modelPreview"));
                         float pointSize = preview->calcPixelSize(lastPixelSize * pointScale);
                         ctx->drawPoints(cache->vica, pointSize, lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, startVertex, count - startVertex);
                     }
@@ -3538,7 +3539,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
 }
 
-glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects)
+glm::vec3 Model::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects)
 {
     if (GetModelScreenLocation().IsLocked() || IsFromBase())
         return GetModelScreenLocation().GetHandlePosition(handle);
@@ -3584,7 +3585,7 @@ void Model::SetCurve(int segment, bool create)
     return GetModelScreenLocation().SetCurve(segment, create);
 }
 
-void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY)
+void Model::AddHandle(IModelPreview* preview, int mouseX, int mouseY)
 {
     GetModelScreenLocation().AddHandle(preview, mouseX, mouseY);
 }
@@ -3642,7 +3643,7 @@ std::string Model::GetDimension() const
     return GetModelScreenLocation().GetDimension();
 }
 
-Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const {
+Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, IModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const {
 
     
 

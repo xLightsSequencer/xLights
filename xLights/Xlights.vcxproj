@@ -529,9 +529,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="render\FSEQFile.cpp" />
     <ClCompile Include="ui\sequencer\GenerateLyricsDialog.cpp" />
     <ClCompile Include="render\GPURenderUtils.cpp" />
-    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
-    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
-    <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp" />
+    <ClCompile Include="ui\graphics\opengl\DrawGLUtils.cpp" />
+    <ClCompile Include="ui\graphics\opengl\xlGLCanvas.cpp" />
+    <ClCompile Include="ui\graphics\opengl\xlOGL3GraphicsContext.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="graphics\xlMesh.cpp" />
@@ -1137,11 +1137,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="render\FontManager.h" />
     <ClInclude Include="render\FSEQFile.h" />
     <ClInclude Include="ui\sequencer\GenerateLyricsDialog.h" />
-    <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
-    <ClInclude Include="graphics\opengl\GL\glext.h" />
-    <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
-    <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
-    <ClInclude Include="graphics\opengl\xlOGL3GraphicsContext.h" />
+    <ClInclude Include="ui\graphics\opengl\DrawGLUtils.h" />
+    <ClInclude Include="ui\graphics\opengl\xlGLCanvas.h" />
+    <ClInclude Include="ui\graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="ui\graphics\opengl\xlOGL3GraphicsContext.h" />
     <ClInclude Include="graphics\tiny_obj_loader.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="graphics\xlGraphicsAccumulators.h" />
@@ -1369,6 +1368,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui/model/ModelFaceDialog.h" />
     <ClInclude Include="ui/layout/ModelGroupPanel.h" />
     <ClInclude Include="ui/layout/ModelPreview.h" />
+    <ClInclude Include="graphics\IModelPreview.h" />
     <ClInclude Include="ui/model/ModelStateDialog.h" />
     <ClInclude Include="models\ArchesModel.h" />
     <ClInclude Include="models\CandyCaneModel.h" />

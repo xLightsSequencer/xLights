@@ -41,6 +41,7 @@ xlColor wxColourToXlColor(const wxColour& c);
 // wx<->xlImage conversions (implementations in wxUtilities.cpp)
 xlImage wxImageToXlImage(const wxImage& img);
 wxImage xlImageToWxImage(const xlImage& img);
+std::vector<xlImage> wxImagesToXlImages(const std::vector<wxImage>& images);
 
 // UI events used by effect panels (moved from render/Effect.h to keep render core wx-free)
 wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);

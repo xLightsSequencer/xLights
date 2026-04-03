@@ -17,6 +17,7 @@ class AudioManager;
 class EffectManager;
 class Model;
 class OutputModelManager;
+class PixelBufferClass;
 class SequenceElements;
 class TimingElement;
 class UICallbacks;
@@ -49,6 +50,9 @@ public:
 
     // ---- model access ----
     virtual Model* GetModel(const std::string& name) const = 0;
+
+    // ---- pixel buffer ----
+    virtual bool InitPixelBuffer(const std::string& modelName, PixelBufferClass& buffer, int layerCount) = 0;
 
     // ---- managers ----
     virtual EffectManager& GetEffectManager() = 0;

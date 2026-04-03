@@ -35,7 +35,7 @@ class BaseSerializingVisitor;
 
 class DimmingCurve;
 #include <pugixml.hpp>
-class ModelPreview;
+class IModelPreview;
 class ModelScreenLocation;
 class ModelManager;
 class SubModel;
@@ -158,7 +158,7 @@ public:
     std::string SerialiseFace() const;
     std::string SerialiseState() const;
     void AddModelGroups(pugi::xml_node n, int w, int h, const std::string& name, bool& merge, bool& ask);
-    void ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
+    void ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, IModelPreview* modelPreview, const std::string& layoutGroup);
 
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
@@ -210,7 +210,7 @@ public:
     }
     
     void AddSubmodel(SubModel* sm);
-    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const;
+    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, IModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const;
 
     [[nodiscard]] std::string SerialiseSubmodel() const;
     [[nodiscard]] virtual std::string CreateBufferAsSubmodel() const;
@@ -466,40 +466,40 @@ public:
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;
 
-    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+    virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                       bool highlightFirst = false, int highlightpixel = 0,
                                       float *boundingBox = nullptr);
-    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
+    virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize);
 
 
 
     virtual int NodeRenderOrder() { return 0; }
-    float GetPreviewDimScale(ModelPreview* preview, int& w, int& h);
+    float GetPreviewDimScale(IModelPreview* preview, int& w, int& h);
     void GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale);
-    bool GetScreenLocations(ModelPreview *preview, std::map<int, std::pair<float, float>>& coords);
-    std::string GetNodeNear(ModelPreview* preview, xlPoint pt, bool flip);
-    std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, xlPoint start, xlPoint end);
+    bool GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<float, float>>& coords);
+    std::string GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip);
+    std::vector<int> GetNodesInBoundingBox(IModelPreview* preview, xlPoint start, xlPoint end);
     bool IsMultiCoordsPerNode() const;
 
     virtual bool CleanupFileLocations(RenderContext* ctx) override;
     void AddASAPWork(uint32_t work, const std::string& from) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
-    glm::vec3 MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
+    glm::vec3 MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
     int GetSelectedHandle();
     int GetNumHandles();
     int GetSelectedSegment();
     bool SupportsCurves();
     bool HasCurve(int segment);
     void SetCurve(int segment, bool create);
-    void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
+    void AddHandle(IModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle, float zoom, int scale);
     virtual void DeleteHandle(int handle);
 
     bool HasState(std::string const& state) const;
 
-    bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
+    bool HitTest(IModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType() const { return StringType; }
     void SetStringType(std::string const& st) { StringType = st; }
 
@@ -508,7 +508,7 @@ public:
     virtual int MapPhysicalStringToLogicalString(int string) const;
     virtual int GetLightsPerNode() const { return 1; }
     virtual int GetStrandsPerString() const { return 1; }
-    CursorType InitializeLocation(int& handle, int x, int y, ModelPreview* preview);
+    CursorType InitializeLocation(int& handle, int x, int y, IModelPreview* preview);
 
     int32_t NodeStartChannel(size_t nodenum) const;
     int32_t NodeEndChannel(size_t nodenum) const;

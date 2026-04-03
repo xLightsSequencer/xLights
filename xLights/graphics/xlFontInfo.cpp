@@ -40,7 +40,7 @@ xlFontInfo::~xlFontInfo() {
 }
 
 bool xlFontInfo::valid() const {
-    return image.IsOk();
+    return image.IsOk();  // xlImage::IsOk()
 }
 
 bool xlFontInfo::init(int size) {
@@ -73,22 +73,22 @@ bool xlFontInfo::load(const FontInfoStruct &fi) {
     maxH = fi.maxH;
     maxD = fi.maxD;
     widths = fi.widths;
-    image = wxImage(fi.data);
-    if (!image.IsOk()) {
+
+    // Load XPM data directly into xlImage
+    xlImage xpmImg(fi.data);
+    if (!xpmImg.IsOk()) {
         return false;
     }
-    image.InitAlpha();
 
-    for (int x = 0; x < image.GetWidth(); x++) {
-        for (int y = 0; y < image.GetHeight(); y++) {
-            int alpha = image.GetRed(x, y);
-            if (alpha) {
-                image.SetRGB(x, y, 0, 0, 0);
-                image.SetAlpha(x, y, alpha);
-            } else {
-                image.SetRGB(x, y, 0, 0, 0);
-                image.SetAlpha(x, y, 0);
-            }
+    int w = xpmImg.GetWidth();
+    int h = xpmImg.GetHeight();
+
+    // Process: use red channel as alpha mask, set all pixels to black
+    image.Create(w, h);
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            uint8_t alpha = xpmImg.GetRed(x, y);
+            image.SetRGBA(x, y, 0, 0, 0, alpha);
         }
     }
     return image.IsOk();

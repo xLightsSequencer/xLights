@@ -3,7 +3,7 @@
 #include <stack>
 
 
-#include "../xlGraphicsContext.h"
+#include "../../../graphics/xlGraphicsContext.h"
 #include "xlMetalCanvas.h"
 
 #include "Shaders/MetalShaderTypes.h"
@@ -19,9 +19,6 @@ public:
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override;
     virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override;
     virtual xlVertexIndexedColorAccumulator *createVertexIndexedColorAccumulator() override;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) override;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) override;
-    virtual xlTexture *createTexture(const wxImage &image, const std::string &name, bool finalize = false) override;
     virtual xlTexture *createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) override;
     virtual xlTexture *createTexture(const xlImage &image, const std::string &name, bool finalize = false) override;
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) override;
@@ -103,7 +100,6 @@ protected:
     xlGraphicsContext* drawPrimitive(MTLPrimitiveType type, xlVertexColorAccumulator *vac, int start, int count);
     xlGraphicsContext* drawPrimitive(MTLPrimitiveType type, xlVertexIndexedColorAccumulator *vac, int start, int count);
     
-    xlTexture *createTexture(const wxImage &image, bool pvt, const std::string &n);
     xlTexture *createTexture(const xlImage &image, bool pvt, const std::string &n);
     void setPointSize(float ps, bool smoothPoints);
 

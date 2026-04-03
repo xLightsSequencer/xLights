@@ -732,11 +732,11 @@
     <ClCompile Include="ui/layout/LORPreview.cpp" />
     <ClCompile Include="ui/import-export/ExportSettings.cpp" />
     <ClCompile Include="render\GPURenderUtils.cpp" />
-    <ClCompile Include="graphics\opengl\DrawGLUtils.cpp">
-      <Filter>graphics\opengl</Filter>
+    <ClCompile Include="ui\graphics\opengl\DrawGLUtils.cpp">
+      <Filter>ui\graphics\opengl</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\opengl\xlGLCanvas.cpp">
-      <Filter>graphics\opengl</Filter>
+    <ClCompile Include="ui\graphics\opengl\xlGLCanvas.cpp">
+      <Filter>ui\graphics\opengl</Filter>
     </ClCompile>
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp">
       <Filter>graphics</Filter>
@@ -986,8 +986,8 @@
     <ClCompile Include="effects\GuitarEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp">
-      <Filter>graphics\opengl</Filter>
+    <ClCompile Include="ui\graphics\opengl\xlOGL3GraphicsContext.cpp">
+      <Filter>ui\graphics\opengl</Filter>
     </ClCompile>
     <ClCompile Include="ui/sequencer/MetronomeLabelDialog.cpp" />
     <ClCompile Include="utils\CurlManager.cpp">
@@ -1486,6 +1486,7 @@
     <ClInclude Include="ui\import-export\LorConvertDialog.h" />
     <ClInclude Include="ui\sequencer\LyricsDialog.h" />
     <ClInclude Include="ui/layout/ModelPreview.h" />
+    <ClInclude Include="graphics\IModelPreview.h" />
     <ClInclude Include="models\Shapes.h" />
     <ClInclude Include="MusicXML.h" />
     <ClInclude Include="ui/sequencer/NewTimingDialog.h" />
@@ -2290,11 +2291,8 @@
     <ClInclude Include="effects\GuitarEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\opengl\xlOGL3GraphicsContext.h">
-      <Filter>graphics\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\opengl\GL\glext.h">
-      <Filter>graphics\opengl\GL</Filter>
+    <ClInclude Include="ui\graphics\opengl\xlOGL3GraphicsContext.h">
+      <Filter>ui\graphics\opengl</Filter>
     </ClInclude>
     <ClInclude Include="ui/sequencer/MetronomeLabelDialog.h" />
     <ClInclude Include="utils\CurlManager.h">

@@ -25,12 +25,12 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
     
-        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+        virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                           xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                           const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                           bool highlightFirst = false, int highlightpixel = 0,
                                           float *boundingBox = nullptr) override;
-        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
     
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return false; }

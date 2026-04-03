@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "wx/wx.h"
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 #include "render/DimmingCurve.h"
 
 class DimmingCurvePanel : public GRAPHICS_BASE_CLASS

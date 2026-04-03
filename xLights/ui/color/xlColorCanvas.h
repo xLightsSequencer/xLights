@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "wx/wx.h"
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 #include "Color.h"
 #include "ui/wxUtilities.h"
 

@@ -14,8 +14,9 @@
 
 #include <wx/wx.h>
 
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsAccumulators.h"
+#include "graphics/IModelPreview.h"
 
 #include "Color.h"
 #include "ui/layout/ViewpointMgr.h"
@@ -38,7 +39,7 @@ class LayoutGroup;
 class xLightsFrame;
 class xlVertex3Accumulator;
 
-class ModelPreview : public GRAPHICS_BASE_CLASS
+class ModelPreview : public GRAPHICS_BASE_CLASS, public IModelPreview
 {
     int _cameraView_last_offsetx = 0;
     int _cameraView_last_offsety = 0;
@@ -61,17 +62,22 @@ public:
                  bool showFirstPixel = false);
 	virtual ~ModelPreview();
 
+    // IModelPreview overrides — resolve ambiguity with GRAPHICS_BASE_CLASS base methods
+    int getWidth() const override { return GRAPHICS_BASE_CLASS::getWidth(); }
+    int getHeight() const override { return GRAPHICS_BASE_CLASS::getHeight(); }
+    std::string getName() const override { return wxWindow::GetName().ToStdString(); }
+
     // Public Methods
 	void InitializePreview(wxString img,int brightness,int alpha, bool center2d0);
-    bool StartDrawing(wxDouble pointSize, bool fromPaint = false);
+    bool StartDrawing(double pointSize, bool fromPaint = false) override;
     void SetPointSize(wxDouble pointSize);
     void Reset();
-    void EndDrawing(bool swapBuffers=true);
+    void EndDrawing(bool swapBuffers=true) override;
 	void SetCanvasSize(int width,int height);
     void SetVirtualCanvasSize(int width, int height);
-    void GetVirtualCanvasSize(int &w, int& h) const { w = virtualWidth; h = virtualHeight; }
-    int GetVirtualCanvasHeight() const  { return virtualHeight; }
-    int GetVirtualCanvasWidth() const { return virtualWidth; }
+    void GetVirtualCanvasSize(int &w, int& h) const override { w = virtualWidth; h = virtualHeight; }
+    int GetVirtualCanvasHeight() const override { return virtualHeight; }
+    int GetVirtualCanvasWidth() const override { return virtualWidth; }
 	void SetbackgroundImage(wxString image);
     const wxString &GetBackgroundImage() const { return mBackgroundImage;}
 	void SetBackgroundBrightness(int brightness, int alpha);
@@ -84,8 +90,8 @@ public:
 	void SetCameraView(int camerax, int cameray, bool latch, bool reset = false);
 	void SetCameraPos(int camerax, int cameray, bool latch, bool reset = false);
     void SetZoomDelta(float delta);
-    float GetCameraZoomForHandles() const;
-    int GetHandleScale() const;
+    float GetCameraZoomForHandles() const override;
+    int GetHandleScale() const override;
 
     void DrawGroupCentre(float x, float y);
     void SetCenterOffset(ModelGroup* mg, int x, int y);
@@ -94,7 +100,7 @@ public:
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
-    double calcPixelSize(double i);
+    double calcPixelSize(double i) override;
 
     void SetModel(const Model* model, bool wiring = false, bool highlightFirst = false);
     void SetActiveLayoutGroup(const std::string &grp = "Default") {
@@ -116,13 +122,13 @@ public:
     bool GetActive() const;
     float GetZoom() const { return (is3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
     double GetCurrentScaleFactor() const { return std::max((float)virtualWidth / (float)mWindowWidth, (float)virtualHeight / (float)mWindowHeight); }
-    float GetCameraRotationX() const { return (is3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
-    float GetCameraRotationY() const { return (is3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
+    float GetCameraRotationX() const override { return (is3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
+    float GetCameraRotationY() const override { return (is3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
     void SetPan(float deltax, float deltay, float deltaz);
     void Set3D(bool value) { is3d = value; }
-    bool Is3D() const { return is3d; }
-    glm::mat4& GetProjViewMatrix() { return ProjViewMatrix; }
-    glm::mat4& GetProjMatrix() { return ProjMatrix; }
+    bool Is3D() const override { return is3d; }
+    glm::mat4& GetProjViewMatrix() override { return ProjViewMatrix; }
+    glm::mat4& GetProjMatrix() override { return ProjMatrix; }
 
 
     void SaveCurrentCameraPosition();
@@ -136,7 +142,7 @@ public:
     void SetDisplay2DGrid(bool grid, long gridSpacing) { _displayGrid = grid; _displayGridSpacing = gridSpacing; grid2dValid=false; }
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; grid2dValid=false; }
 
-    bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
+    bool IsNoCurrentModel() override { return currentModel == "&---none---&"; }
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 
@@ -147,10 +153,10 @@ public:
     virtual bool RequiresDepthBuffer() const override { return true; }
 
     void setCurrentFrameTime(uint32_t ft) { currentFrameTime = ft; }
-    uint32_t getCurrentFrameTime() const { return currentFrameTime; }
-    xlGraphicsContext *getCurrentGraphicsContext() { return currentContext; }
-    xlGraphicsProgram *getCurrentSolidProgram() { return solidProgram; }
-    xlGraphicsProgram *getCurrentTransparentProgram() { return transparentProgram; }
+    uint32_t getCurrentFrameTime() const override { return currentFrameTime; }
+    xlGraphicsContext *getCurrentGraphicsContext() override { return currentContext; }
+    xlGraphicsProgram *getCurrentSolidProgram() override { return solidProgram; }
+    xlGraphicsProgram *getCurrentTransparentProgram() override { return transparentProgram; }
     
     
     void OnMotion3DEvent(Motion3DEvent &event);

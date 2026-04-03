@@ -15,7 +15,7 @@
 #include "ImageModel.h"
 #include "../utils/xlImage.h"
 #include "ModelScreenLocation.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../graphics/IModelPreview.h"
 #include "../render/RenderBuffer.h"
 #include "../render/RenderContext.h"
 #include "UtilFunctions.h"
@@ -102,7 +102,7 @@ void ImageModel::ClearImageCache() {
     _images.clear();
 }
 
-void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void ImageModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     bool mustEnd = false;
     xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
@@ -117,12 +117,12 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         GetModelScreenLocation().PrepareToDraw(false, false);
 
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
 
         bool drawColor = (StringType.rfind("Single Color", 0) != 0 && StringType != "Node Single Color");
 
-        xlTexture *texture = _images[preview->GetName().ToStdString()];
-        xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
+        xlTexture *texture = _images[preview->getName()];
+        xlTexture* textureColorOverlay = _images[preview->getName() + "_color_overlay"];
         if (texture == nullptr && FileExists(_imageFile)) {
             xlImage img;
             if (img.LoadFromFile(_imageFile)) {
@@ -249,7 +249,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+void ImageModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
                                       const xlColor* color, bool allowSelected, bool wiring,
                                       bool highlightFirst, int highlightpixel,
@@ -261,8 +261,8 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
 
     bool drawColor = !allowSelected && StringType.rfind("Single Color",0) != 0 && StringType != "Node Single Color";
 
-    xlTexture *texture = _images[preview->GetName().ToStdString()];
-    xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
+    xlTexture *texture = _images[preview->getName()];
+    xlTexture* textureColorOverlay = _images[preview->getName() + "_color_overlay"];
     if (texture == nullptr && FileExists(_imageFile)) {
         xlImage img;
         if (img.LoadFromFile(_imageFile)) {
@@ -296,7 +296,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             height = img.GetHeight();
             hasAlpha = true; // xlImage always has alpha
             texture = ctx->createTexture(img, GetName(), true);
-            _images[preview->GetName().ToStdString()] = texture;
+            _images[preview->getName()] = texture;
 
             // Modify image for color overlay
             if (drawColor) {
@@ -310,7 +310,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                 }
             }
             textureColorOverlay = ctx->createTexture(img, GetName() + "_color_overlay", true);
-            _images[preview->GetName().ToStdString() + "_color_overlay"] = textureColorOverlay;
+            _images[preview->getName() + "_color_overlay"] = textureColorOverlay;
         }
     }
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes

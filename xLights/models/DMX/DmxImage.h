@@ -15,7 +15,7 @@
 #include <glm/glm.hpp>
 
 class BaseObject;
-class ModelPreview;
+class IModelPreview;
 
 class DmxImage
 {
@@ -28,7 +28,7 @@ public:
     void Init(BaseObject* base);
     bool GetExists() { return obj_exists; }
 
-    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *pg,
+    void Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *pg,
               glm::mat4 &motion_matrix,
               int transparency, float brightness, bool only_image,
               float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot);

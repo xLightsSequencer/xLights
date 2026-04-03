@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "wx/glcanvas.h"
-#include "../xlGraphicsContext.h"
+#include "../../../graphics/xlGraphicsContext.h"
 
 #include <log.h>
 

@@ -42,7 +42,7 @@
 #define HANDLE_CP0     0x0400000
 #define HANDLE_CP1     0x0800000
 
-class ModelPreview;
+class IModelPreview;
 class PreviewCamera;
 
 #include <shared_mutex>
@@ -103,10 +103,10 @@ protected:
     virtual void ApplyModelViewMatrices(xlGraphicsContext *ctx) const = 0;
 
     virtual std::string GetDimension(float factor = 1.0) const = 0;
-    virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const = 0;
+    virtual bool IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const = 0;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
-    virtual CursorType CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
+    virtual CursorType CheckIfOverHandles(IModelPreview* preview, int &handle, int x, int y) const = 0;
     virtual CursorType CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
 
     //new drawing code
@@ -115,8 +115,8 @@ protected:
     void DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *program, float zoom, int scale) const;
 
     
-    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
-    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
+    virtual int MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
+    virtual int MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
     virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) = 0;
     virtual void MouseDown(bool value) { mouse_down = value; }
 
@@ -131,10 +131,10 @@ protected:
     virtual bool SupportsCurves() const {return false;}
     virtual bool HasCurve(int segment) const {return false;}
     virtual void SetCurve(int segment, bool create = true) {}
-    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) {}
+    virtual void AddHandle(IModelPreview* preview, int mouseX, int mouseY) {}
     virtual void InsertHandle(int after_handle, float zoom, int scale) {}
     virtual void DeleteHandle(int handle) {}
-    virtual CursorType InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
+    virtual CursorType InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
     virtual void UpdateBoundingBox(float width, float height, float depth);
 
@@ -144,8 +144,8 @@ protected:
     virtual void SetPosition(float posx, float posy) = 0;
     virtual void AddOffset(float deltax, float deltay, float deltaz);
 
-    virtual glm::vec2 GetScreenOffset(ModelPreview* preview) const = 0;
-    virtual glm::vec2 GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview, PreviewCamera* camera, float &sx, float &sy, float &sz) const;
+    virtual glm::vec2 GetScreenOffset(IModelPreview* preview) const = 0;
+    virtual glm::vec2 GetScreenPosition(int screenwidth, int screenheight, IModelPreview* preview, PreviewCamera* camera, float &sx, float &sy, float &sz) const;
     virtual float GetHcenterPos() const = 0;
     virtual float GetVcenterPos() const = 0;
     virtual float GetDcenterPos() const = 0;
@@ -236,7 +236,7 @@ protected:
     }
     virtual void SetAxisTool(MSLTOOL mode) { axis_tool = mode; }
     MSLTOOL GetAxisTool() const { return axis_tool; }
-    bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
+    bool DragHandle(IModelPreview* preview, int mouseX, int mouseY, bool latch);
     void TranslateVector(glm::vec3& point) const;
     virtual int GetDefaultHandle() const { return CENTER_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const { return MSLTOOL::TOOL_TRANSLATE; }
@@ -251,7 +251,7 @@ protected:
     MSLPLANE GetPreferredSelectionPlane() { return preferred_selection_plane; }
     void SetPreferredSelectionPlane( MSLPLANE plane ) { preferred_selection_plane = plane; }
     void SetActivePlane( MSLPLANE plane ) { active_plane = plane; }
-    void FindPlaneIntersection( int x, int y, ModelPreview* preview );
+    void FindPlaneIntersection( int x, int y, IModelPreview* preview );
     void CreateWithDepth(bool b) {
         createWithDepth = b;
     }
@@ -291,7 +291,7 @@ protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
     virtual CursorType CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
-    MSLPLANE GetBestIntersection( MSLPLANE prefer, bool& rotate, ModelPreview* preview );
+    MSLPLANE GetBestIntersection( MSLPLANE prefer, bool& rotate, IModelPreview* preview );
 
     mutable float worldPos_x = 0.0f;
     mutable float worldPos_y = 0.0f;

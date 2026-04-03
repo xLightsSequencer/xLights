@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "xlGridCanvas.h"
-#include "graphics/xlGraphicsBase.h"
+#include "ui/graphics/xlGraphicsBase.h"
 #include "models/Model.h"
 
 BEGIN_EVENT_TABLE(xlGridCanvas, GRAPHICS_BASE_CLASS)
