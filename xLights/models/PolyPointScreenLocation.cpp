@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <cmath>
 #include <format>
 #include "PolyPointScreenLocation.h"
 
@@ -98,17 +99,17 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create)
 
 void PolyPointScreenLocation::Init()
 {
-    if (isnan(worldPos_x)) worldPos_x = 0.0;
-    if (isnan(worldPos_y)) worldPos_y = 0.0;
-    if (isnan(worldPos_z)) worldPos_z = 0.0;
+    if (std::isnan(worldPos_x)) worldPos_x = 0.0;
+    if (std::isnan(worldPos_y)) worldPos_y = 0.0;
+    if (std::isnan(worldPos_z)) worldPos_z = 0.0;
 
-    if (scalex <= 0 || std::isinf(scalex) || isnan(scalex)) {
+    if (scalex <= 0 || std::isinf(scalex) || std::isnan(scalex)) {
         scalex = 1.0f;
     }
-    if (scaley <= 0 || std::isinf(scaley) || isnan(scaley)) {
+    if (scaley <= 0 || std::isinf(scaley) || std::isnan(scaley)) {
         scaley = 1.0f;
     }
-    if (scalez <= 0 || std::isinf(scalez) || isnan(scalez)) {
+    if (scalez <= 0 || std::isinf(scalez) || std::isnan(scalez)) {
         scalez = 1.0f;
     }
 
@@ -1076,9 +1077,9 @@ int PolyPointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bo
             if (scalex == 0) scalex = 0.001f;
             if (scaley == 0) scaley = 0.001f;
             if (scalez == 0) scalez = 0.001f;
-            if (isnan(scalex)) scalex = 1.0f;
-            if (isnan(scaley)) scaley = 1.0f;
-            if (isnan(scalez)) scalez = 1.0f;
+            if (std::isnan(scalex)) scalex = 1.0f;
+            if (std::isnan(scaley)) scaley = 1.0f;
+            if (std::isnan(scalez)) scalez = 1.0f;
 
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
@@ -1154,8 +1155,8 @@ int PolyPointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bo
 
             if (scalex == 0) scalex = 0.001f;
             if (scaley == 0) scaley = 0.001f;
-            if (isnan(scalex)) scalex = 1.0f;
-            if (isnan(scaley)) scaley = 1.0f;
+            if (std::isnan(scalex)) scalex = 1.0f;
+            if (std::isnan(scaley)) scaley = 1.0f;
 
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
@@ -1384,8 +1385,8 @@ int PolyPointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool
 
     if (scalex == 0) scalex = 0.001f;
     if (scaley == 0) scaley = 0.001f;
-    if (isnan(scalex)) scalex = 1.0f;
-    if (isnan(scaley)) scaley = 1.0f;
+    if (std::isnan(scalex)) scalex = 1.0f;
+    if (std::isnan(scaley)) scaley = 1.0f;
 
     float newx = (ray_origin.x - worldPos_x) / scalex;
     float newy = (ray_origin.y - worldPos_y) / scaley;
