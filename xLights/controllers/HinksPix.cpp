@@ -238,7 +238,7 @@ void HinksSmartOutput::Dump() const {
 void HinksSmartOutput::SetConfig(const std::string& data) {
     const auto config = Split(data, ',');
     if (config.size() != 6) {
-        spdlog::error("Invalid config data '{}'", (const char*)data.c_str());
+        spdlog::error("Invalid config data '{}'", data);
         return;
     }
     try {
@@ -250,7 +250,7 @@ void HinksSmartOutput::SetConfig(const std::string& data) {
         portStartPixel[3] = std::stoi(config[5]);
     }
     catch (const std::exception& e) {
-        spdlog::error("Exception parsing config data '{}': {}", (const char*)data.c_str(), e.what());
+        spdlog::error("Exception parsing config data '{}': {}", data, e.what());
     }
 }
 
@@ -451,7 +451,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         //post data
         auto const ret = GetJSONControllerData(GetJSONPostURL(), data.dump());
         if (ret.find("\"OK\"") == std::string::npos) {
-            spdlog::error("Failed Return {}", (const char*)ret.c_str());
+            spdlog::error("Failed Return {}", ret);
             return false;
         }
     }
@@ -555,7 +555,7 @@ bool HinksPix::UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> c
 
 bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const
 {
-    spdlog::debug("HinksPix Inputs Upload: Uploading to {}", (const char*)_ip.c_str());
+    spdlog::debug("HinksPix Inputs Upload: Uploading to {}", _ip);
 
     auto const data = GetControllerData(902);
     if (data.empty()) {
@@ -666,7 +666,7 @@ void HinksPix::UploadPixelOutputsEasyLights(bool& worked)
     //Expansion Board "row" 'setting' commands are 3041, 3042, 3043 for expansion 1,2,3
     auto const pixelRet = GetControllerData(3041, requestString);
     if (pixelRet != "done") {
-        spdlog::error("{} Return {}", 3041, (const char*)pixelRet.c_str());
+        spdlog::error("{} Return {}", 3041, pixelRet);
         worked = false;
     }
 }
@@ -697,7 +697,7 @@ void HinksPix::UploadExpansionBoardData(int expansion, int startport, int length
 
     auto const ret = GetJSONControllerData(GetJSONPostURL(), data.dump());
     if (ret.find("\"OK\"") == std::string::npos) {
-        spdlog::error("Failed Return {}", (const char*)ret.c_str());
+        spdlog::error("Failed Return {}", ret);
         worked = false;
     }
 }
@@ -856,7 +856,7 @@ void HinksPix::UploadSmartReceiverData(int expan, int bank, std::vector<HinksSma
 
     auto const ret = GetJSONControllerData(GetJSONPostURL(), data.dump());
     if (ret.find("\"OK\"") == std::string::npos) {
-        spdlog::error("Failed Return {}", (const char*)ret.c_str());
+        spdlog::error("Failed Return {}", ret);
         worked = false;
     }
 }
@@ -963,9 +963,9 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
         CURLcode r = curl_easy_perform(_curl);
 
         if (r != CURLE_OK) {
-            spdlog::error("Failure to access {}: {}.", (const char*)url.c_str(), curl_easy_strerror(r));
+            spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));
         } else {
-            spdlog::debug("'{}'.", (const char*)response_string.c_str());
+            spdlog::debug("'{}'.", response_string);
             res = response_string;
         }
 
@@ -1458,7 +1458,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             const std::string serialRequest = _serialOutput->BuildCommandEasyLights(mode);
             auto const serRet = GetControllerData(4908, serialRequest);
             if (serRet != "done") {
-                spdlog::error("4908 Return {}", (const char*)serRet.c_str());
+                spdlog::error("4908 Return {}", serRet);
                 worked = false;
             }
         }
@@ -1482,7 +1482,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             const std::string serialRequest = _serialOutput->BuildCommand();
             auto const ret = GetJSONControllerData(GetJSONPostURL(), serialRequest);
             if (ret.find("\"OK\"") == std::string::npos) {
-                spdlog::error("Failed Return {}", (const char*)ret.c_str());
+                spdlog::error("Failed Return {}", ret);
                 worked = false;
             }
         }
@@ -1528,7 +1528,7 @@ std::string HinksPix::GetControllerRowData(int rowIndex, const std::string& url,
     std::string res;
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
-    spdlog::debug("Making request to HinksPix '{}'.", (const char*)url.c_str());
+    spdlog::debug("Making request to HinksPix '{}'.", url);
 
     //CURL* curl = curl_easy_init();
     struct curl_slist* list = NULL;
@@ -1626,7 +1626,7 @@ bool HinksPix::UploadFileToController(const std::string& localpathname, const st
 
     sockets::TCPSocket sock;
     if (!sock.Connect(_ip, 80, "", false)) {
-        spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
+        spdlog::error("Could not connect to {}", _ip);
         return false;
     }
 
@@ -1672,7 +1672,7 @@ bool HinksPix::UploadFileToController(const std::string& localpathname, const st
     ReadLineFromSocket(&sock, line, 5000);
     if (line.find("|FOK") == std::string::npos) {
         fclose(f);
-        spdlog::error("Failed to Write {}", (const char*)line.c_str());
+        spdlog::error("Failed to Write {}", line);
         sock.Close();
         return false;
     }
@@ -1724,11 +1724,11 @@ bool HinksPix::UploadFileToController(const std::string& localpathname, const st
 
             ReadLineFromSocket(&sock, line, 5000);
             if (line.find("|FOK") == std::string::npos) {
-                spdlog::error("Failed to Write {}", (const char*)line.c_str());
+                spdlog::error("Failed to Write {}", line);
                 sock.Close();
                 return false;
             } else {
-                spdlog::debug("File {} uploaded successfully", (const char*)remotepathname.c_str());
+                spdlog::debug("File {} uploaded successfully", remotepathname);
             } 
             sock.Close();
             return true;
@@ -1762,7 +1762,7 @@ bool HinksPix::UploadTimeToController() const {
 
     sockets::TCPSocket sock;
     if (!sock.Connect(_ip, 80, "", false)) {
-        spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
+        spdlog::error("Could not connect to {}", _ip);
         return false;
     }
     const auto now = std::chrono::system_clock::now();
@@ -1808,7 +1808,7 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
 
     sockets::TCPSocket sock;
     if (!sock.Connect(_ip, 80, "", false)) {
-        spdlog::error("Could not connect to {}", (const char*)_ip.c_str());
+        spdlog::error("Could not connect to {}", _ip);
         return false;
     }
 
@@ -1829,7 +1829,7 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
     std::string line;
     ReadLineFromSocket(&sock, line, 5000);
     if (line.find("|FOK") == std::string::npos) {
-        spdlog::error("Failed to Send {}", (const char*)line.c_str());
+        spdlog::error("Failed to Send {}", line);
         sock.Close();
         return false;
     }
