@@ -262,7 +262,7 @@ int TerrainScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool
             if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
             if (scaley == 0) scaley = 0.001f;
-            if (isnan(scaley)) scaley = 1.0f;
+            if (std::isnan(scaley)) scaley = 1.0f;
 
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
 
