@@ -101,7 +101,10 @@ public:
                     _xmodelLink = wxURI(l.text().get());
                 }
                 else if (nn == "imagefile") {
-                    _images.push_back(wxURI(l.text().get()));
+                    wxURI uri(l.text().get());
+                    if (!uri.BuildURI().empty()) {
+                        _images.push_back(uri);
+                    }
                 }
                 else {
                     spdlog::warn("MModelWiring: Error processing vendor xml: {} ", (const char*)nn.c_str());
@@ -295,7 +298,10 @@ public:
                     _webpage = wxURI(l.text().get());
                 }
                 else if (nn == "imagefile") {
-                    _images.push_back(wxURI(l.text().get()));
+                    wxURI uri(l.text().get());
+                    if (!uri.BuildURI().empty()) {
+                        _images.push_back(uri);
+                    }
                 }
                 else if (nn == "wiring") {
                     // dont handle this until we have processed all the other properties
@@ -533,8 +539,7 @@ public:
                 std::string nn = ::Lower(l.name());
                 if (nn == "category") {
                     _categories.push_back(new MVendorCategory(l, nullptr, this));
-                }
-                else {
+                } else if (!nn.empty()) {
                     spdlog::warn("MVendor: Error processing vendor categories xml: {} ", nn);
                     wxASSERT(false);
                 }
@@ -1611,12 +1616,18 @@ void VendorModelDialog::LoadModelImage(std::list<wxFileName> imageFiles, int ima
     }
 
     if (FileExists(*it)) {
-        if (animation.LoadFile(it->GetFullPath(), wxANIMATION_TYPE_GIF)) {
-            StaticBitmap_ModelImage->Hide();
-            AnimationCtrl1->Show();
-            AnimationCtrl1->SetAnimation(animation);
-            AnimationCtrl1->Play();
-        } else {
+        wxString ext = it->GetExt().Lower();
+        bool isAnimation = false;
+        if (ext != "jpg" && ext != "jpeg" && ext != "png" && ext != "bmp") {
+            if (animation.LoadFile(it->GetFullPath(), wxANIMATION_TYPE_GIF)) {
+                isAnimation = true;
+                StaticBitmap_ModelImage->Hide();
+                AnimationCtrl1->Show();
+                AnimationCtrl1->SetAnimation(animation);
+                AnimationCtrl1->Play();
+            }
+        }
+        if (!isAnimation) {
             _modelImage.LoadFile(it->GetFullPath());
             if (_modelImage.IsOk()) {
                 StaticBitmap_ModelImage->Show();

@@ -368,6 +368,9 @@ int CachedFileDownloader::size() {
 
 std::string CachedFileDownloader::GetFile(const std::string& url, CACHEFOR cacheFor, const std::string& forceType, std::function<bool(int)> progressCallback, int low, int high, bool keepProgress)
 {
+    if (url.empty()) {
+        return "";
+    }
 
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (!Initialize())
