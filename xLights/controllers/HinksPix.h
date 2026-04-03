@@ -24,7 +24,7 @@
 
 #include "BaseController.h"
 #include "ControllerUploadData.h"
-#include "UtilClasses.h"
+//#include "UtilClasses.h"
 
 #include <curl/curl.h>
 
@@ -34,77 +34,56 @@ class ControllerEthernet;
 struct HinksPixOutput {
     HinksPixOutput(int output_ ,int defaultBrightness_) :
         output(output_),
-        universe(1),
-        startChannel(1),
-        pixels(0),
-        direction(0),
-        protocol(0),
-        nullPixel(0),
-        colorOrder(0),
-        brightness(defaultBrightness_),
-        gamma(1),
-        used(false),
-        controllerStartChannel(1),
-        controllerEndChannel(0){};
+        brightness(defaultBrightness_) {};
     const int output;
-    int universe;
-    int startChannel;
-    int pixels;
-    int direction;
-    int protocol;
-    int nullPixel;
-    int colorOrder;
-    int brightness;
-    int gamma;
-    bool used;
+    int universe{ 1 };
+    int startChannel{ 1 };
+    int pixels{ 0 };
+    int direction{ 0 };
+    int protocol{ 0 };
+    int nullPixel{ 0 };
+    int colorOrder{ 0 };
+    int brightness{100};
+    int gamma{ 1 };
+    bool used{ false };
 
-    int getControllerStartChannel() const { return controllerStartChannel; }
-    int getControllerEndChannel() const { return controllerEndChannel; }
+    [[nodiscard]] int getControllerStartChannel() const { return controllerStartChannel; }
+    [[nodiscard]] int getControllerEndChannel() const { return controllerEndChannel; }
     void setControllerChannels(const int startChan);
 
     void Dump() const;
     void SetConfig(const std::string& data);
-    std::string BuildCommand() const;
-    std::string BuildCommandEasyLights() const;
+    [[nodiscard]] nlohmann::json BuildCommand() const;
+    [[nodiscard]] std::string BuildCommandEasyLights() const;
 
 private:
-    int controllerStartChannel;
-    int controllerEndChannel;
+    int controllerStartChannel{ 1 };
+    int controllerEndChannel{ 0 };
 };
 
 struct HinksPixSerial {
-    HinksPixSerial() :
-        e131Universe(1),
-        e131StartChannel(1),
-        e131NumOfChan(512),
-        e131Enabled(false),
-        ddpDMXStartChannel(1),
-        ddpDMXNumOfChan(512),
-        ddpDMXEnabled(false),
-        upload(false){};
-    int e131Universe;
-    int e131StartChannel;
-    int e131NumOfChan;
-    bool e131Enabled;
-    int ddpDMXStartChannel;
-    int ddpDMXNumOfChan;
-    bool ddpDMXEnabled;
-    bool upload;
+    HinksPixSerial() = default;
+    int e131Universe{ 1 };
+    int e131StartChannel{ 1 };
+    int e131NumOfChan{ 512 };
+    bool e131Enabled{ false };
+    int ddpDMXStartChannel{ 1 };
+    int ddpDMXNumOfChan{ 512 };
+    bool ddpDMXEnabled{ false };
+    bool upload{ false };
     void Dump() const;
     void SetConfig(nlohmann::json const& data);
 
-    std::string BuildCommand() const;
-    std::string BuildCommandEasyLights(int mode) const;
+    [[nodiscard]] nlohmann::json BuildCommand() const;
+    [[nodiscard]] std::string BuildCommandEasyLights(int mode) const;
 };
 
 struct HinksSmartOutput {
     HinksSmartOutput(int id_) :
-        id(id_), 
-        type(0), 
-        portStartPixel{ 0, 0, 0, 0 } {};
-    int id;
-    int type;
-    std::array<int, 4> portStartPixel;
+        id(id_) {};
+    int id{ 0 };
+    int type{ 0 };
+    std::array<int, 4> portStartPixel{ 0, 0, 0, 0 };
 
     bool operator==(const HinksSmartOutput& rhs) const {
         return id == rhs.id;
@@ -112,27 +91,24 @@ struct HinksSmartOutput {
 
     void Dump() const;
     void SetConfig(const std::string& data);
-    std::string BuildCommand() const;
+    [[nodiscard]] nlohmann::json BuildCommand() const;
 };
 
 struct HinksPixInputUniverse {
     HinksPixInputUniverse(int universe_, int numOfChan_) :
-        index(-1),
         universe(universe_),
-        numOfChan(numOfChan_),
-        hinksPixStartChannel(1){};
-    int index;
-    int universe;
-    int numOfChan;
-    int32_t hinksPixStartChannel;
+        numOfChan(numOfChan_){};
 
+    int index{ -1 };
+    int universe{ 1 };
+    int numOfChan{ 0 };
+    int32_t hinksPixStartChannel{ 1 };
     bool operator==(const HinksPixInputUniverse& rhs) const {
         return universe == rhs.universe;
     }
-
     void Dump() const;
-    std::string BuildCommand() const;
-    std::string BuildCommandEasyLights() const;
+    [[nodiscard]] nlohmann::json BuildCommand() const;
+    [[nodiscard]] std::string BuildCommandEasyLights() const;
 };
 
 struct HinksPixFileData {
@@ -150,7 +126,7 @@ public:
     int32_t NewEnd;
     int32_t NumChans;
     int32_t Port;
-    bool InActive;
+    bool InActive{ false };
 };
 
 class HinksPix : public BaseController
@@ -168,7 +144,7 @@ class HinksPix : public BaseController
     };
 
 #pragma region Member Variables
-    EXPType _EXP_Outputs[EXP_PORTS];
+    EXPType _EXP_Outputs[EXP_PORTS]{ EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present };
     std::string _controllerType;
     CURL* _curl { nullptr };
     int _numberOfUniverses{ 0 };
@@ -181,29 +157,29 @@ class HinksPix : public BaseController
 #pragma endregion
 
 #pragma region Encode and Decode
-    int EncodeColorOrder(const std::string& colorOrder) const;
-    int EncodeDirection(const std::string& direction) const;
-    int EncodeStringPortProtocol(const std::string& protocol) const;
-    int EncodeBrightness(int brightness) const;
-    int EncodeGamma(int gamma) const;
-    EXPType DecodeExpansionType(const std::string& type) const;
+    [[nodiscard]] int EncodeColorOrder(const std::string& colorOrder) const;
+    [[nodiscard]] int EncodeDirection(const std::string& direction) const;
+    [[nodiscard]] int EncodeStringPortProtocol(const std::string& protocol) const;
+    [[nodiscard]] int EncodeBrightness(int brightness) const;
+    [[nodiscard]] int EncodeGamma(int gamma) const;
+    [[nodiscard]] EXPType DecodeExpansionType(const std::string& type) const;
 #pragma endregion
 
 #pragma region Private Functions
     bool InitControllerOutputData(bool fullControl, int defaultBrightness);
     void InitExpansionBoardData(int expansion, int startport, int length);
-    std::unique_ptr<HinksPixSerial> InitSerialData(bool fullControl);
+    [[nodiscard]] std::unique_ptr<HinksPixSerial> InitSerialData(bool fullControl);
 
-    bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
-    bool UploadUnPack(bool &worked, Controller *controller, std::vector<UnPack *> const &UPA, bool dirty) const;
+    [[nodiscard]] bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    [[nodiscard]] bool UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> const& UPA, bool dirty) const;
     
-    bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    [[nodiscard]] bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     void UploadPixelOutputsEasyLights(bool& worked);
-    std::string GetControllerE131Data(int rowIndex) const;
-    std::string GetControllerData(int rowIndex, const std::string& data = std::string()) const;
-    std::string GetControllerRowData(int rowIndex, const std::string& url, const std::string& data) const;
-    std::map<std::string, std::string> StringToMap(const std::string& text) const;
-    
+    [[nodiscard]] std::string GetControllerE131Data(int rowIndex) const;
+    [[nodiscard]] std::string GetControllerData(int rowIndex, std::string const& data = std::string()) const;
+    [[nodiscard]] std::string GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const;
+    [[nodiscard]] std::map<std::string, std::string> StringToMap(std::string const& text) const;
+
     void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, int32_t hinkstartChan) const;
     void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const;
     void UploadPixelOutputs(bool& worked) const;
@@ -213,12 +189,11 @@ class HinksPix : public BaseController
     void UploadSmartReceiverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked) const;
     void CalculateSmartReceivers(UDControllerPort* stringData);
 
-    std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
-    bool GetControllerDataJSON(const std::string& url, nlohmann::json& val, std::string const& data) const;
+    [[nodiscard]] std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
+    [[nodiscard]] bool GetControllerDataJSON(const std::string& url, nlohmann::json& val, std::string const& data) const;
     void PostToControllerNoResponse(std::string const& url, std::string const& data) const;
-    bool CheckPixelOutputs(std::string & message);
-    bool CheckSmartReceivers(std::string & message);
-
+    [[nodiscard]] bool CheckPixelOutputs(std::string& message);
+    [[nodiscard]] bool CheckSmartReceivers(std::string& message);
 
     static const std::string GetJSONPostURL() { return "/Xlights_PostData.cgi"; };
     static const std::string GetJSONInfoURL() { return "/XLights_BoardInfo.cgi"; };
@@ -231,8 +206,7 @@ class HinksPix : public BaseController
 #pragma endregion
 
 public:
-
-    bool IsUnPackSupported_Hinks(ControllerEthernet *controller);
+    [[nodiscard]] bool IsUnPackSupported_Hinks(ControllerEthernet* controller) const;
 
 #pragma region Constructors and Destructors
     HinksPix(const std::string& ip, const std::string& fppProxy);
