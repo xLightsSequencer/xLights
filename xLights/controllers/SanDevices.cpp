@@ -1247,7 +1247,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     }
 
     if (upload) {
-        SDGetURL(request.ToStdString());
+        SDGetURL(request);
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
     upload = true;
@@ -1300,10 +1300,10 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     }
 
     if (IsFirmware5()) {
-        SDGetURL(requestUnvSize.ToStdString());
+        SDGetURL(requestUnvSize);
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     }
-    bool const passed = not SDGetURL(request.ToStdString()).empty();
+    bool const passed = not SDGetURL(request).empty();
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     return passed;
 }
