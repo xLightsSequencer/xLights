@@ -785,24 +785,32 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 
 bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
 {
+    if (_purged || buffer == nullptr) return false;
+
     std::string mname = GetModelName(buffer);
     if (_frameSize.find(mname) == _frameSize.end()) {
         spdlog::get("render")->info("RenderCache::GetFrame on model " + mname + " failed due to number of frames difference.");
         return false;
     }
 
-    auto modelFrames = _frames[mname];
+    auto framesIt = _frames.find(mname);
+    if (framesIt == _frames.end()) {
+        return false;
+    }
+    auto const& modelFrames = framesIt->second;
     if ((size_t)_frameSize.at(mname) != (sizeof(xlColor) * buffer->GetPixelCount())) {
         spdlog::get("render")->info("RenderCache::GetFrame on model " + mname + " failed due to frame size difference.");
         return false;
     }
 
     int frame = buffer->curPeriod - buffer->curEffStartPer;
-    if ((size_t)frame < modelFrames.size() && modelFrames[frame]) {
+    if (frame >= 0 && (size_t)frame < modelFrames.size() && modelFrames[frame]) {
         // its in memory ... read it from there
         unsigned char* pc = modelFrames[frame];
-        memcpy(static_cast<void*>(buffer->GetPixels()), pc, _frameSize.at(mname));
-        return true;
+        if (buffer->GetPixels() != nullptr) {
+            memcpy(static_cast<void*>(buffer->GetPixels()), pc, _frameSize.at(mname));
+            return true;
+        }
     }
     return false;
 }
@@ -883,10 +891,14 @@ void RenderCacheItem::Save()
 
 bool RenderCacheItem::IsDone(RenderBuffer* buffer) const
 {
+    if (_purged || buffer == nullptr) return false;
     int frame = buffer->curPeriod - buffer->curEffStartPer;
     std::string mname = GetModelName(buffer);
-    auto modelFrames = _frames.at(mname);
-    return modelFrames[frame];
+    auto it = _frames.find(mname);
+    if (it == _frames.end()) return false;
+    auto const& modelFrames = it->second;
+    if (frame < 0 || (size_t)frame >= modelFrames.size()) return false;
+    return modelFrames[frame] != nullptr;
 }
 
 RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& filename) : _renderCache(renderCache)
@@ -960,15 +972,29 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
                 _mmap = nullptr;
                 _mmapSize = 0;
             } else {
-                size_t cur = _firstFrameOffset;
+                // validate that the file is large enough for all frame data
+                size_t expectedSize = _firstFrameOffset;
                 for (auto& itm : _frames) {
-                    for (int i = 0; i < (int)itm.second.size(); i++) {
-                        itm.second[i] = &_mmap[cur];
-                        cur += _frameSize.at(itm.first);
-                    }
+                    expectedSize += itm.second.size() * _frameSize.at(itm.first);
                 }
-                std::fclose(fp);
-                return;
+                if (_mmapSize < expectedSize) {
+                    spdlog::get("render")->warn("Cache file {} is truncated (expected {} bytes, got {}). Skipping mmap.",
+                        filename, expectedSize, _mmapSize);
+                    munmap(_mmap, _mmapSize);
+                    _mmap = nullptr;
+                    _mmapSize = 0;
+                    // fall through to fread path
+                } else {
+                    size_t cur = _firstFrameOffset;
+                    for (auto& itm : _frames) {
+                        for (int i = 0; i < (int)itm.second.size(); i++) {
+                            itm.second[i] = &_mmap[cur];
+                            cur += _frameSize.at(itm.first);
+                        }
+                    }
+                    std::fclose(fp);
+                    return;
+                }
             }
         }
 #endif
@@ -1023,6 +1049,17 @@ void RenderCacheItem::remmap() {
         _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, fileno(fp), 0);
         std::fclose(fp);
         if (_mmap == MAP_FAILED) {
+            _mmap = nullptr;
+            _mmapSize = 0;
+            return;
+        }
+        // validate file is large enough for all frame data
+        size_t expectedSize = _firstFrameOffset;
+        for (auto& itm : _frames) {
+            expectedSize += itm.second.size() * _frameSize.at(itm.first);
+        }
+        if (_mmapSize < expectedSize) {
+            munmap(_mmap, _mmapSize);
             _mmap = nullptr;
             _mmapSize = 0;
             return;
