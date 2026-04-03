@@ -786,9 +786,10 @@ NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const
     wxImage disImage = image.ConvertToDisabled();
     wxImage presImage = image.ConvertToDisabled(128);
 
-    wxImage img24 = image.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
-    wxImage disImg24 = disImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
-    wxImage presImg24 = presImage.Scale(24, 24, RESCALE_MODEL_BUTTON_QUALITY);
+   int iconSize = PreviewGLPanel->FromDIP(24);
+    wxImage img24 = image.Scale(iconSize, iconSize, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage disImg24 = disImage.Scale(iconSize, iconSize, RESCALE_MODEL_BUTTON_QUALITY);
+    wxImage presImg24 = presImage.Scale(iconSize, iconSize, RESCALE_MODEL_BUTTON_QUALITY);
 
     wxBitmapBundle bmp = wxBitmapBundle::FromBitmaps(img24, image);
     wxBitmapBundle disBmp = wxBitmapBundle::FromBitmaps(disImg24, disImage);
