@@ -9,8 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/msgdlg.h>
-
 #include <cassert>
 
 #include "ControllerUploadData.h"

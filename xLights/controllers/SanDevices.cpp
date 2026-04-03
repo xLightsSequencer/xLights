@@ -9,7 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
 
 #include "SanDevices.h"
 #include "../models/Model.h"
@@ -365,7 +364,7 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
     _universes.clear();
 
     int fieldStart = 65; // char of 'A'
-    const wxString p(page);
+    const std::string p(page);
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
         // extract the universes
@@ -391,7 +390,7 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
     _universes.clear();
 
     int fieldStart = 65; // char of 'A'
-    const wxString p(page);
+    const std::string p(page);
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
         // extract the universes
@@ -532,7 +531,7 @@ bool SanDevices::ExtractBoolFromPage(const std::string& page, const std::string&
 
 SanDevicesProtocol* SanDevices::ExtractProtocalDataV5(const std::string& page, int group) {
 
-    const wxString p(page);
+    const std::string p(page);
     int start = p.find("Output Group Configuration:");
 
     const std::string tofind = "<td>" + std::format("{}-1 thru {}-4", group, group) + "</td>";
@@ -550,7 +549,7 @@ SanDevicesProtocol* SanDevices::ExtractProtocalDataV5(const std::string& page, i
 
 SanDevicesOutput* SanDevices::ExtractOutputDataV5(const std::string& page, int group, int port) {
 
-    const wxString p(page);
+    const std::string p(page);
     std::string tofind;
 
     if (IsE682()) {
@@ -587,7 +586,7 @@ SanDevicesOutput* SanDevices::ExtractOutputDataV5(const std::string& page, int g
 
 SanDevicesOutputV4* SanDevices::ExtractOutputDataV4(const std::string& page, int group) {
 
-    const wxString p(page);
+    const std::string p(page);
     int start = p.find("Output Configuration:");
 
     std::string tofind;
@@ -834,7 +833,7 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
     const int controlPort = EncodeControllerPortV5(outputData->group, outputData->output);
 
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    const wxString request = wxString::Format("/%c?A=%d%s&Z=%c&G=%d%s%s&B=%i%s&I=%i&J=%i&D=%c",
+    const std::string request = std::format("/%c?A=%d%s&Z=%c&G=%d%s%s&B=%i%s&I=%i&J=%i&D=%c",
         controlPort + 'J',
         outputData->pixels,
         colorOrder,
@@ -854,7 +853,7 @@ std::string SanDevices::GenerateProtocolURLV5(SanDevicesProtocol* protocolData) 
 
     //K?E=A&K=A
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    const wxString request = wxString::Format("/%c?E=%c&K=%c",
+    const std::string request = std::format("/%c?E=%c&K=%c",
         protocolData->getGroup() + 'J',
         protocolData->getProtocol(),
         protocolData->getTiming());
@@ -910,7 +909,7 @@ std::string SanDevices::GenerateOutputURLV4(SanDevicesOutputV4* outputData) {
 
     //e682 v4
     //http://192.168.1.206/4?A=2&B=B&C=100&D=1&E=0&F=A&G=1&L=0&M=0&N=0&O=0&P=0
-    const wxString request = wxString::Format("/%d?%sB=%c&C=%d&D=%i&E=%i&F=%c&G=%d%s&L=%i%s",
+    const std::string request = std::format("/%d?%sB=%c&C=%d&D=%i&E=%i&F=%c&G=%d%s&L=%i%s",
         outputData->group + 3,
         output,
         outputData->protocol,
@@ -1200,7 +1199,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     }
 
     // set the right input type
-    wxString request = "/";
+    std::string request = "/";
     if (IsFirmware5()) {
         request += "B?";
     }
@@ -1222,8 +1221,8 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
         //"&I=" + ExtractFromPage(page, "I", "inputText");
         //I=+++++++++++++++++
         t += 65; //convert int to char
-        const wxString currentReceiveMode = ExtractFromPage(page, "E", "select");
-        const wxString newReceiveMode = wxString::Format("%c", t);
+        const std::string currentReceiveMode = ExtractFromPage(page, "E", "select");
+        const std::string newReceiveMode = std::format("{:c}", t);
         if (currentReceiveMode == newReceiveMode) {
             upload = false;
         }
@@ -1254,7 +1253,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     upload = true;
 
     request = "";
-    wxString requestUnvSize = "/I?";
+    std::string requestUnvSize = "/I?";
     int output { 65 };
 
     for (const auto& it : outputs)
@@ -1276,7 +1275,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
                 ui->ShowMessage(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()), "Error");
                 return false;
             }
-            requestUnvSize += wxString::Format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
+            requestUnvSize += std::format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
         }
         else {
             if (it->GetChannels() != 510) {
@@ -1284,7 +1283,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
                 return false;
             }
         }
-        request += wxString::Format("%c=%i", output++, it->GetUniverse());
+        request += std::format("%c=%i", output++, it->GetUniverse());
     }
 
     if (0 == t) { //multicast

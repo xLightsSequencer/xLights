@@ -22,7 +22,6 @@
 
 #include <curl/curl.h>
 
-#include <wx/msgdlg.h>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/wfstream.h>
