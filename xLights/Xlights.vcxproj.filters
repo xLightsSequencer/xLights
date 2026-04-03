@@ -2812,6 +2812,9 @@
     <ClInclude Include="models\DMX\DmxMotorBase.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="effects\ispc\BarsFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
     <ClInclude Include="effects\ispc\ButterflyFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -3040,6 +3043,9 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="effects\ispc\BarsFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
     <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>

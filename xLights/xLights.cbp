@@ -886,6 +886,10 @@
 		<Unit filename="ui/effectpanels/assist/xlGridCanvasMorph.h" />
 		<Unit filename="ui/effectpanels/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="ui/effectpanels/assist/xlGridCanvasPictures.h" />
+		<Unit filename="effects/ispc/BarsFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="effects/ispc/BarsFunctions.ispc.h" />
 		<Unit filename="effects/ispc/ButterflyFunctions.ispc">
 			<Option link="1" />
 		</Unit>
