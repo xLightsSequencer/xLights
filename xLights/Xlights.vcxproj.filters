@@ -100,6 +100,7 @@
     <ClCompile Include="ui/sequencer/TopEffectsPanel.cpp" />
     <ClCompile Include="ui/app-shell/UpdaterDialog.cpp" />
     <ClCompile Include="render\ValueCurve.cpp" />
+    <ClCompile Include="render\ValueCurveConsts.cpp" />
     <ClCompile Include="ui\ValueCurveButton.cpp" />
     <ClCompile Include="ui\ValueCurveDialog.cpp" />
     <ClCompile Include="ui\sequencer\VAMPPluginDialog.cpp" />
@@ -1531,6 +1532,7 @@
     <ClInclude Include="ui/app-shell/UpdaterDialog.h" />
     <ClInclude Include="utils\UtilClasses.h" />
     <ClInclude Include="render\ValueCurve.h" />
+    <ClInclude Include="render\ValueCurveConsts.h" />
     <ClInclude Include="ui\ValueCurveButton.h" />
     <ClInclude Include="ui\ValueCurveDialog.h" />
     <ClInclude Include="ui\sequencer\VAMPPluginDialog.h" />

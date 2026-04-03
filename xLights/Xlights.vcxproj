@@ -945,6 +945,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="utils\UtilClasses.cpp" />
     <ClCompile Include="utils\UtilFunctions.cpp" />
     <ClCompile Include="render\ValueCurve.cpp" />
+    <ClCompile Include="render\ValueCurveConsts.cpp" />
     <ClCompile Include="ui\ValueCurveButton.cpp" />
     <ClCompile Include="ui\ValueCurveDialog.cpp" />
     <ClCompile Include="ui\ValueCurveRendering.cpp" />
@@ -1512,6 +1513,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="utils\UtilClasses.h" />
     <ClInclude Include="utils\UtilFunctions.h" />
     <ClInclude Include="render\ValueCurve.h" />
+    <ClInclude Include="render\ValueCurveConsts.h" />
     <ClInclude Include="ui\ValueCurveButton.h" />
     <ClInclude Include="ui\ValueCurveDialog.h" />
     <ClInclude Include="ui\ValueCurveRendering.h" />

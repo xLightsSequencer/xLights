@@ -11,6 +11,7 @@
 #include "AudioManager.h"
 #include "DimmingCurve.h"
 #include "PixelBuffer.h"
+#include "ValueCurveConsts.h"
 #include "UtilClasses.h"
 #include "models/ModelGroup.h"
 #include "models/ModelManager.h"

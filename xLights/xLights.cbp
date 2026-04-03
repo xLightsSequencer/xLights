@@ -478,6 +478,8 @@
 		<Unit filename="import_export/VSAFile.h" />
 		<Unit filename="render/ValueCurve.cpp" />
 		<Unit filename="render/ValueCurve.h" />
+		<Unit filename="render/ValueCurveConsts.cpp" />
+		<Unit filename="render/ValueCurveConsts.h" />
 		<Unit filename="ui/ValueCurveButton.cpp" />
 		<Unit filename="ui/ValueCurveButton.h" />
 		<Unit filename="ui/ValueCurveDialog.cpp" />

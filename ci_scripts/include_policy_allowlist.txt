@@ -59,9 +59,6 @@ xLights/controllers/WLED.cpp|../ui/wxUtilities.h
 xLights/controllers/WLED.cpp|wx/msgdlg.h
 xLights/controllers/WLED.cpp|wx/progdlg.h
 xLights/effects/OpenGLShaders.cpp|ui/graphics/opengl/xlGLCanvas.h
-xLights/effects/RenderableEffect.cpp|ui/color/ColorPanel.h
-xLights/effects/RenderableEffect.cpp|ui/sequencer/BufferPanel.h
-xLights/effects/RenderableEffect.cpp|ui/sequencer/TimingPanel.h
 xLights/effects/ShaderEffect.cpp|../ui/effectpanels/ShaderPanel.h
 xLights/effects/ShaderEffect.cpp|../xLightsApp.h
 xLights/effects/ShaderEffect.cpp|../xLightsMain.h

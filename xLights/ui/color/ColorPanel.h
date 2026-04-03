@@ -36,20 +36,7 @@
 #include "osxUtils/TouchBars.h"
 #endif
 
-#define COLORPANEL_BRIGHTNESS_MIN 0
-#define COLORPANEL_BRIGHTNESS_MAX 400
-
-#define COLORPANEL_SPARKLE_MIN 0
-#define COLORPANEL_SPARKLE_MAX 200
-
-#define COLORPANEL_VALUE_MIN -100
-#define COLORPANEL_VALUE_MAX 100
-
-#define COLORPANEL_HUE_MIN -100
-#define COLORPANEL_HUE_MAX 100
-
-#define COLORPANEL_SATURATION_MIN -100
-#define COLORPANEL_SATURATION_MAX 100
+#include "render/ValueCurveConsts.h"
 
 class ColourList;
 class ColorCurveButton;
@@ -81,42 +68,9 @@ public:
 
         void SetDefaultPalette();
 
-		static double GetSettingVCMin(const std::string& name)
-        {
-            if (name == "C_VALUECURVE_Brightness")
-                return COLORPANEL_BRIGHTNESS_MIN;
-            if (name == "C_VALUECURVE_SparkleFrequency")
-                return COLORPANEL_SPARKLE_MIN;
-            if (name == "C_VALUECURVE_Color_ValueAdjust")
-                return COLORPANEL_VALUE_MIN;
-            if (name == "C_VALUECURVE_Color_HueAdjust")
-                return COLORPANEL_HUE_MIN;
-            if (name == "C_VALUECURVE_Color_SaturationAdjust")
-                return COLORPANEL_SATURATION_MIN;
-            wxASSERT(false);
-            return 0;
-        }
-
-        static double GetSettingVCMax(const std::string& name)
-        {
-            if (name == "C_VALUECURVE_Brightness")
-                return COLORPANEL_BRIGHTNESS_MAX;
-            if (name == "C_VALUECURVE_SparkleFrequency")
-                return COLORPANEL_SPARKLE_MAX;
-            if (name == "C_VALUECURVE_Color_ValueAdjust")
-                return COLORPANEL_VALUE_MAX;
-            if (name == "C_VALUECURVE_Color_HueAdjust")
-                return COLORPANEL_HUE_MAX;
-            if (name == "C_VALUECURVE_Color_SaturationAdjust")
-                return COLORPANEL_SATURATION_MAX;
-            wxASSERT(false);
-            return 100;
-        }
-
-		static int GetSettingVCDivisor(const std::string& name)
-        {
-            return 1;
-        }
+		static double GetSettingVCMin(const std::string& name) { return ValueCurveConsts::GetColorSettingVCMin(name); }
+        static double GetSettingVCMax(const std::string& name) { return ValueCurveConsts::GetColorSettingVCMax(name); }
+		static int GetSettingVCDivisor(const std::string& name) { return ValueCurveConsts::GetColorSettingVCDivisor(name); }
 
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
         ColorPanelTouchBar *SetupTouchBar(xlTouchBarSupport &tbs);

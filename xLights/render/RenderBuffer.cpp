@@ -25,6 +25,7 @@
 #include "PixelBuffer.h"
 #include "DimmingCurve.h"
 #include "UtilFunctions.h"
+#include "ValueCurveConsts.h"
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
 #include "GPURenderUtils.h"

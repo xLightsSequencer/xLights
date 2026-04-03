@@ -20,9 +20,7 @@
 #include "UtilFunctions.h"
 #include "EffectManager.h"
 
-#include "ui/sequencer/BufferPanel.h"
-#include "ui/color/ColorPanel.h"
-#include "ui/sequencer/TimingPanel.h"
+#include "../render/ValueCurveConsts.h"
 #include "../render/RenderContext.h"
 #include "../models/SubModel.h"
 
@@ -263,24 +261,24 @@ std::string RenderableEffect::UpgradeValueCurve(EffectManager* effectManager, co
                     doit = true;
                 }
             } else if (StartsWith(name, "C_VALUECURVE")) {
-                if (ColorPanel::GetSettingVCDivisor(name) != 0xFFFF) {
-                    min = ColorPanel::GetSettingVCMin(name);
-                    max = ColorPanel::GetSettingVCMax(name);
-                    div = ColorPanel::GetSettingVCDivisor(name);
+                if (ValueCurveConsts::GetColorSettingVCDivisor(name) != 0xFFFF) {
+                    min = ValueCurveConsts::GetColorSettingVCMin(name);
+                    max = ValueCurveConsts::GetColorSettingVCMax(name);
+                    div = ValueCurveConsts::GetColorSettingVCDivisor(name);
                     doit = true;
                 }
             } else if (StartsWith(name, "T_VALUECURVE")) {
-                if (TimingPanel::GetSettingVCDivisor(name) != 0xFFFF) {
-                    min = TimingPanel::GetSettingVCMin(name);
-                    max = TimingPanel::GetSettingVCMax(name);
-                    div = TimingPanel::GetSettingVCDivisor(name);
+                if (ValueCurveConsts::GetTimingSettingVCDivisor(name) != 0xFFFF) {
+                    min = ValueCurveConsts::GetTimingSettingVCMin(name);
+                    max = ValueCurveConsts::GetTimingSettingVCMax(name);
+                    div = ValueCurveConsts::GetTimingSettingVCDivisor(name);
                     doit = true;
                 }
             } else if (StartsWith(name, "B_VALUECURVE")) {
-                if (BufferPanel::GetSettingVCDivisor(name) != 0xFFFF) {
-                    min = BufferPanel::GetSettingVCMin(name);
-                    max = BufferPanel::GetSettingVCMax(name);
-                    div = BufferPanel::GetSettingVCDivisor(name);
+                if (ValueCurveConsts::GetBufferSettingVCDivisor(name) != 0xFFFF) {
+                    min = ValueCurveConsts::GetBufferSettingVCMin(name);
+                    max = ValueCurveConsts::GetBufferSettingVCMax(name);
+                    div = ValueCurveConsts::GetBufferSettingVCDivisor(name);
                     doit = true;
                 }
             }
