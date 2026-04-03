@@ -5989,7 +5989,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         if (mg != nullptr) {
             for (const auto& it2 : mg->ModelNames()) {
                 auto m = AllModels[it2];
-                if (m->IsDMXModel()) {
+                if (m != nullptr && m->IsDMXModel()) {
                     modelGroupsWithDMXModels.push_back(mg);
                     break;
                 }
@@ -6016,7 +6016,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         int numchannels = -1;
         for (const auto& it2 : it->ModelNames()) {
             auto m = AllModels[it2];
-            if (!m->IsDMXModel()) {
+            if (m == nullptr || !m->IsDMXModel()) {
                 wxString msg = wxString::Format("    WARN: Model group '%s' contains a mix of DMX and non DMX models. This is not likely to work as expected.", (const char*)it->Name().c_str());
                 LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "groupdmx", errcount, warncount);
                 break;
