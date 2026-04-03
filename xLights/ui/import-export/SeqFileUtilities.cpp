@@ -583,6 +583,8 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         // if we loaded the fseq but not the xml then we need to populate views
         if (!CurrentSeqXmlFile->IsOpen()) {
+            // SeqLoadXlightsFile/LoadSequencer was never called, so _viewsManager may not be set
+            _sequenceElements.SetViewsManager(GetViewsManager());
             std::string new_timing = "New Timing";
             CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
             _sequenceElements.AddTimingToAllViews(new_timing);
