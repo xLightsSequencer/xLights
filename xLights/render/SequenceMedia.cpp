@@ -125,8 +125,10 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<xlIm
         _frameTimes[x] = ft;
         _totalTime += ft;
     }
-    _imageWidth = imgs[0].GetWidth();
-    _imageHeight = imgs[0].GetHeight();
+    if (!imgs.empty()) {
+        _imageWidth = imgs[0].GetWidth();
+        _imageHeight = imgs[0].GetHeight();
+    }
     _loadingDone = true;
 }
 ImageCacheEntry::~ImageCacheEntry()
@@ -554,7 +556,7 @@ void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTim
         fname = BasePicture + std::to_string(cur++) + extension;
     }
 
-    {
+    if (!images.empty()) {
         std::unique_lock lock(_cacheMutex);
         if (_imageCache.find(filepath) == _imageCache.end()) {
             auto np = std::make_shared<ImageCacheEntry>(filepath, images, msFrameTime);

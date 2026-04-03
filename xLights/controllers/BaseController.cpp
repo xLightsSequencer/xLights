@@ -66,8 +66,9 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     }
     auto proxy = controller->GetFPPProxy();
     std::string flip = "";
-    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
-        flip = dynamic_cast<ControllerEthernet*>(controller)->GetFirstOutput()->GetForceLocalIPToUse();
+    auto* ethController = dynamic_cast<ControllerEthernet*>(controller);
+    if (ethController != nullptr && ethController->GetOutputCount() > 0) {
+        flip = ethController->GetFirstOutput()->GetForceLocalIPToUse();
     }
     
     std::string driver = caps->GetConfigDriver();
