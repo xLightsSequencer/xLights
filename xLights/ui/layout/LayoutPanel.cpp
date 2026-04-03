@@ -3953,24 +3953,33 @@ void LayoutPanel::FinalizeModel()
                 modelPreview->SetAdditionalModel(oldam);
             }
 
-            // we get rid of additional model here
-            if (prog != nullptr)
-            {
-                delete prog;
-            }
-
             if (cancelled || _newModel == nullptr) {
+                // Clear the additional model BEFORE deleting the progress dialog,
+                // since deleting the dialog can pump events that would try to render
+                // the model we are about to delete
+                modelPreview->SetAdditionalModel(nullptr);
+
+                // Now safe to delete the progress dialog
+                if (prog != nullptr) {
+                    delete prog;
+                }
+
                 _lastXlightsModel = "";
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Downloading or importing cancelled.");
                 xlights->GetOutputModelManager()->ClearSelectedModel();
-                modelPreview->SetAdditionalModel(nullptr);
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Additional model cleared.");
-                if (_newModel != nullptr)
-                {
+                if (_newModel != nullptr) {
+                    if (highlightedBaseObject == _newModel) {
+                        highlightedBaseObject = nullptr;
+                    }
+                    if (selectedBaseObject == _newModel) {
+                        selectedBaseObject = nullptr;
+                    }
                     xlights->AddTraceMessage("LayoutPanel::FinalizeModel About to delete newModel.");
-                    delete _newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
-                    xlights->AddTraceMessage("LayoutPanel::FinalizeModel newModel successfully deleted.");
+                    auto* modelToDelete = _newModel;
                     _newModel = nullptr;
+                    delete modelToDelete;
+                    xlights->AddTraceMessage("LayoutPanel::FinalizeModel newModel successfully deleted.");
                 }
                 xlights->AddTraceMessage("LayoutPanel::Model deleted.");
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
@@ -3979,6 +3988,11 @@ void LayoutPanel::FinalizeModel()
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
                 return;
+            }
+
+            // we get rid of progress dialog here (non-cancel path)
+            if (prog != nullptr) {
+                delete prog;
             }
 
             if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine)
