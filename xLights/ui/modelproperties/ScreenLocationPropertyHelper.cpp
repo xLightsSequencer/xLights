@@ -27,48 +27,48 @@
 // ========== BoxedScreenLocation ==========
 
 void ScreenLocationPropertyHelper::AddSizeLocationProperties(const BoxedScreenLocation& loc, wxPropertyGridInterface* grid) {
-    wxPGProperty* prop = grid->Append(new wxBoolProperty("Locked", "Locked", loc._locked));
+    wxPGProperty* prop = grid->Append(new wxBoolProperty("Locked", "Locked", loc.IsLocked()));
     prop->SetAttribute("UseCheckbox", 1);
-    prop = grid->Append(new wxFloatProperty("X", "ModelX", loc.worldPos_x));
+    prop = grid->Append(new wxFloatProperty("X", "ModelX", loc.GetWorldPos_X()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxRED);
-    prop = grid->Append(new wxFloatProperty("Y", "ModelY", loc.worldPos_y));
+    prop = grid->Append(new wxFloatProperty("Y", "ModelY", loc.GetWorldPos_Y()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = grid->Append(new wxFloatProperty("Z", "ModelZ", loc.worldPos_z));
+    prop = grid->Append(new wxFloatProperty("Z", "ModelZ", loc.GetWorldPos_Z()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(BlueOrLightBlue());
-    prop = grid->Append(new wxFloatProperty("ScaleX", "ScaleX", loc.scalex));
+    prop = grid->Append(new wxFloatProperty("ScaleX", "ScaleX", loc.GetScaleX()));
     prop->SetAttribute("Precision", 3);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("ScaleY", "ScaleY", loc.scaley));
+    prop = grid->Append(new wxFloatProperty("ScaleY", "ScaleY", loc.GetScaleY()));
     prop->SetAttribute("Precision", 3);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("ScaleZ", "ScaleZ", loc.scalez));
+    prop = grid->Append(new wxFloatProperty("ScaleZ", "ScaleZ", loc.GetScaleZ()));
     prop->SetAttribute("Precision", 3);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("RotateX", "RotateX", loc.rotatex));
+    prop = grid->Append(new wxFloatProperty("RotateX", "RotateX", loc.GetRotateX()));
     prop->SetAttribute("Min", "-180");
     prop->SetAttribute("Max", "180");
     prop->SetAttribute("Precision", 8);
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("RotateY", "RotateY", loc.rotatey));
+    prop = grid->Append(new wxFloatProperty("RotateY", "RotateY", loc.GetRotateY()));
     prop->SetAttribute("Min", "-180");
     prop->SetAttribute("Max", "180");
     prop->SetAttribute("Precision", 8);
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("RotateZ", "RotateZ", loc.rotatez));
+    prop = grid->Append(new wxFloatProperty("RotateZ", "RotateZ", loc.GetRotateZ()));
     prop->SetAttribute("Min", "-180");
     prop->SetAttribute("Max", "180");
     prop->SetAttribute("Precision", 8);
@@ -83,7 +83,7 @@ void ScreenLocationPropertyHelper::AddDimensionProperties(const BoxedScreenLocat
     prop = grid->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", loc.GetRealHeight()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Min", 0.01);
-    if (loc.supportsZScaling) {
+    if (loc.GetSupportsZScaling()) {
         prop = grid->Append(new wxFloatProperty(wxString::Format("Depth (%s)", RulerObject::GetUnitDescription()), "RealDepth", loc.GetRealDepth()));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Min", 0.01);
@@ -92,116 +92,116 @@ void ScreenLocationPropertyHelper::AddDimensionProperties(const BoxedScreenLocat
 
 int ScreenLocationPropertyHelper::OnPropertyGridChange(BoxedScreenLocation& loc, wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if (!loc._locked && "ScaleX" == name) {
-        loc.scalex = event.GetValue().GetDouble();
+    if (!loc.IsLocked() && "ScaleX" == name) {
+        loc.SetScaleX(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ScaleX" == name) {
+    else if (loc.IsLocked() && "ScaleX" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ScaleY" == name) {
-        loc.scaley = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "ScaleY" == name) {
+        loc.SetScaleY(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ScaleY" == name) {
+    else if (loc.IsLocked() && "ScaleY" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ScaleZ" == name) {
-        loc.scalez = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "ScaleZ" == name) {
+        loc.SetScaleZ(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ScaleZ" == name) {
+    else if (loc.IsLocked() && "ScaleZ" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelX" == name) {
-        loc.worldPos_x = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "ModelX" == name) {
+        loc.SetWorldPos_X(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
         return 0;
     }
-    else if (loc._locked && "ModelX" == name) {
+    else if (loc.IsLocked() && "ModelX" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelY" == name) {
-        loc.worldPos_y = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "ModelY" == name) {
+        loc.SetWorldPos_Y(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
         return 0;
     }
-    else if (loc._locked && "ModelY" == name) {
+    else if (loc.IsLocked() && "ModelY" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelZ" == name) {
-        loc.worldPos_z = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "ModelZ" == name) {
+        loc.SetWorldPos_Z(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
         return 0;
     }
-    else if (loc._locked && "ModelZ" == name) {
+    else if (loc.IsLocked() && "ModelZ" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RotateX" == name) {
-        loc.rotatex = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "RotateX" == name) {
+        loc.SetRotateX(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
         return 0;
     }
-    else if (loc._locked && "RotateX" == name) {
+    else if (loc.IsLocked() && "RotateX" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RotateY" == name) {
-        loc.rotatey = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "RotateY" == name) {
+        loc.SetRotateY(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
         return 0;
     }
-    else if (loc._locked && "RotateY" == name) {
+    else if (loc.IsLocked() && "RotateY" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RotateZ" == name) {
-        loc.rotatez = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "RotateZ" == name) {
+        loc.SetRotateZ(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
         return 0;
     }
-    else if (loc._locked && "RotateZ" == name) {
+    else if (loc.IsLocked() && "RotateZ" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RealWidth" == name) {
+    else if (!loc.IsLocked() && "RealWidth" == name) {
         loc.SetMWidth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "RealWidth" == name) {
+    else if (loc.IsLocked() && "RealWidth" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RealHeight" == name) {
+    else if (!loc.IsLocked() && "RealHeight" == name) {
         loc.SetMHeight(RulerObject::UnMeasure(event.GetValue().GetDouble()));
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "RealHeight" == name) {
+    else if (loc.IsLocked() && "RealHeight" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RealDepth" == name) {
+    else if (!loc.IsLocked() && "RealDepth" == name) {
         loc.SetMDepth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "RealDepth" == name) {
+    else if (loc.IsLocked() && "RealDepth" == name) {
         event.Veto();
         return 0;
     }
     else if ("Locked" == name) {
-        loc._locked = event.GetValue().GetBool();
+        loc.SetLocked(event.GetValue().GetBool());
         loc.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
                         OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::Locked");
         return 0;
@@ -212,49 +212,49 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(BoxedScreenLocation& loc,
 // ========== TwoPointScreenLocation ==========
 
 void ScreenLocationPropertyHelper::AddSizeLocationProperties(const TwoPointScreenLocation& loc, wxPropertyGridInterface* grid) {
-    wxPGProperty* prop = grid->Append(new wxBoolProperty("Locked", "Locked", loc._locked));
+    wxPGProperty* prop = grid->Append(new wxBoolProperty("Locked", "Locked", loc.IsLocked()));
     prop->SetAttribute("UseCheckbox", 1);
-    prop = grid->Append(new wxFloatProperty("WorldX", "WorldX", loc.worldPos_x));
+    prop = grid->Append(new wxFloatProperty("WorldX", "WorldX", loc.GetWorldPos_X()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("WorldY", "WorldY", loc.worldPos_y));
+    prop = grid->Append(new wxFloatProperty("WorldY", "WorldY", loc.GetWorldPos_Y()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("WorldZ", "WorldZ", loc.worldPos_z));
+    prop = grid->Append(new wxFloatProperty("WorldZ", "WorldZ", loc.GetWorldPos_Z()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
 
     prop->SetAttribute("UseCheckbox", 1);
-    prop = grid->Append(new wxFloatProperty("X1", "ModelX1", loc.worldPos_x));
+    prop = grid->Append(new wxFloatProperty("X1", "ModelX1", loc.GetWorldPos_X()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = grid->Append(new wxFloatProperty("Y1", "ModelY1", loc.worldPos_y));
+    prop = grid->Append(new wxFloatProperty("Y1", "ModelY1", loc.GetWorldPos_Y()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = grid->Append(new wxFloatProperty("Z1", "ModelZ1", loc.worldPos_z));
+    prop = grid->Append(new wxFloatProperty("Z1", "ModelZ1", loc.GetWorldPos_Z()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
 
-    prop = grid->Append(new wxFloatProperty("X2", "ModelX2", loc.x2 + loc.worldPos_x));
+    prop = grid->Append(new wxFloatProperty("X2", "ModelX2", loc.GetX2() + loc.GetWorldPos_X()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(BlueOrLightBlue());
-    prop = grid->Append(new wxFloatProperty("Y2", "ModelY2", loc.y2 + loc.worldPos_y));
+    prop = grid->Append(new wxFloatProperty("Y2", "ModelY2", loc.GetY2() + loc.GetWorldPos_Y()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(BlueOrLightBlue());
-    prop = grid->Append(new wxFloatProperty("Z2", "ModelZ2", loc.z2 + loc.worldPos_z));
+    prop = grid->Append(new wxFloatProperty("Z2", "ModelZ2", loc.GetZ2() + loc.GetWorldPos_Z()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
@@ -262,114 +262,117 @@ void ScreenLocationPropertyHelper::AddSizeLocationProperties(const TwoPointScree
 }
 
 void ScreenLocationPropertyHelper::AddDimensionProperties(const TwoPointScreenLocation& loc, wxPropertyGridInterface* grid, float factor) {
-    wxPGProperty* prop = grid->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(loc.origin, loc.point2)));
+    wxPGProperty* prop = grid->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(loc.GetPoint1(), loc.GetPoint2())));
     prop->SetAttribute("Precision", 2);
 }
 
 int ScreenLocationPropertyHelper::OnPropertyGridChange(TwoPointScreenLocation& loc, wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if (!loc._locked && "WorldX" == name) {
-        loc.worldPos_x = event.GetValue().GetDouble();
+    if (!loc.IsLocked() && "WorldX" == name) {
+        loc.SetWorldPos_X(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::WorldX");
         return 0;
     }
-    else if (loc._locked && "WorldX" == name) {
+    else if (loc.IsLocked() && "WorldX" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "WorldY" == name) {
-        loc.worldPos_y = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "WorldY" == name) {
+        loc.SetWorldPos_Y(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::WorldY");
         return 0;
     }
-    else if (loc._locked && "WorldY" == name) {
+    else if (loc.IsLocked() && "WorldY" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "WorldZ" == name) {
-        loc.worldPos_z = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "WorldZ" == name) {
+        loc.SetWorldPos_Z(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::WorldZ");
         return 0;
     }
-    else if (loc._locked && "WorldZ" == name) {
+    else if (loc.IsLocked() && "WorldZ" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelX1" == name) {
-        float old_world_x = loc.worldPos_x;
-        loc.worldPos_x = event.GetValue().GetDouble();
-        loc.x2 += old_world_x - loc.worldPos_x;
+    else if (!loc.IsLocked() && "ModelX1" == name) {
+        float new_x = event.GetValue().GetDouble();
+        float old_world_x = loc.GetWorldPos_X();
+        loc.SetWorldPos_X(new_x);
+        loc.SetX2(loc.GetX2() + old_world_x - new_x);
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelX1");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ModelX1" == name) {
+    else if (loc.IsLocked() && "ModelX1" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelY1" == name) {
-        float old_world_y = loc.worldPos_y;
-        loc.worldPos_y = event.GetValue().GetDouble();
-        loc.y2 += old_world_y - loc.worldPos_y;
+    else if (!loc.IsLocked() && "ModelY1" == name) {
+        float new_y = event.GetValue().GetDouble();
+        float old_world_y = loc.GetWorldPos_Y();
+        loc.SetWorldPos_Y(new_y);
+        loc.SetY2(loc.GetY2() + old_world_y - new_y);
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelY1");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ModelY1" == name) {
+    else if (loc.IsLocked() && "ModelY1" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelZ1" == name) {
-        float old_world_z = loc.worldPos_z;
-        loc.worldPos_z = event.GetValue().GetDouble();
-        loc.z2 += old_world_z - loc.worldPos_z;
+    else if (!loc.IsLocked() && "ModelZ1" == name) {
+        float new_z = event.GetValue().GetDouble();
+        float old_world_z = loc.GetWorldPos_Z();
+        loc.SetWorldPos_Z(new_z);
+        loc.SetZ2(loc.GetZ2() + old_world_z - new_z);
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ1");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ModelZ1" == name) {
+    else if (loc.IsLocked() && "ModelZ1" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelX2" == name) {
-        loc.x2 = event.GetValue().GetDouble() - loc.worldPos_x;
+    else if (!loc.IsLocked() && "ModelX2" == name) {
+        loc.SetX2(event.GetValue().GetDouble() - loc.GetWorldPos_X());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelX2");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ModelX2" == name) {
+    else if (loc.IsLocked() && "ModelX2" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelY2" == name) {
-        loc.y2 = event.GetValue().GetDouble() - loc.worldPos_y;
+    else if (!loc.IsLocked() && "ModelY2" == name) {
+        loc.SetY2(event.GetValue().GetDouble() - loc.GetWorldPos_Y());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelY2");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ModelY2" == name) {
+    else if (loc.IsLocked() && "ModelY2" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelZ2" == name) {
-        loc.z2 = event.GetValue().GetDouble() - loc.worldPos_z;
+    else if (!loc.IsLocked() && "ModelZ2" == name) {
+        loc.SetZ2(event.GetValue().GetDouble() - loc.GetWorldPos_Z());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ2");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "ModelZ2" == name) {
+    else if (loc.IsLocked() && "ModelZ2" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RealLength" == name) {
-        auto origLen = RulerObject::UnMeasure(RulerObject::Measure(loc.origin, loc.point2));
+    else if (!loc.IsLocked() && "RealLength" == name) {
+        auto origLen = RulerObject::UnMeasure(RulerObject::Measure(loc.GetPoint1(), loc.GetPoint2()));
         auto len = RulerObject::UnMeasure(event.GetValue().GetDouble());
-        loc.x2 = (loc.x2 * len) / origLen;
-        loc.y2 = (loc.y2 * len) / origLen;
-        loc.z2 = (loc.z2 * len) / origLen;
+        loc.SetX2((loc.GetX2() * len) / origLen);
+        loc.SetY2((loc.GetY2() * len) / origLen);
+        loc.SetZ2((loc.GetZ2() * len) / origLen);
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
-    else if (loc._locked && "RealLength" == name) {
+    else if (loc.IsLocked() && "RealLength" == name) {
         event.Veto();
         return 0;
     }
     else if ("Locked" == name) {
-        loc._locked = event.GetValue().GetBool();
+        loc.SetLocked(event.GetValue().GetBool());
         loc.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
                         OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::Locked");
         return 0;
@@ -381,17 +384,17 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(TwoPointScreenLocation& l
 
 void ScreenLocationPropertyHelper::AddSizeLocationProperties(const ThreePointScreenLocation& loc, wxPropertyGridInterface* grid) {
     AddSizeLocationProperties(static_cast<const TwoPointScreenLocation&>(loc), grid);
-    wxPGProperty* prop = grid->Append(new wxFloatProperty("Height", "ModelHeight", loc.height));
+    wxPGProperty* prop = grid->Append(new wxFloatProperty("Height", "ModelHeight", loc.GetHeight()));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
-    if (loc.supportsShear) {
-        prop = grid->Append(new wxFloatProperty("Shear", "ModelShear", loc.shear));
+    if (loc.GetSupportsShear()) {
+        prop = grid->Append(new wxFloatProperty("Shear", "ModelShear", loc.GetShear()));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.1);
         prop->SetEditor("SpinCtrl");
     }
-    prop = grid->Append(new wxFloatProperty("RotateX", "RotateX", loc.rotatex));
+    prop = grid->Append(new wxFloatProperty("RotateX", "RotateX", loc.GetRotateX()));
     prop->SetAttribute("Min", "-180");
     prop->SetAttribute("Max", "180");
     prop->SetAttribute("Precision", 8);
@@ -401,9 +404,9 @@ void ScreenLocationPropertyHelper::AddSizeLocationProperties(const ThreePointScr
 
 void ScreenLocationPropertyHelper::AddDimensionProperties(const ThreePointScreenLocation& loc, wxPropertyGridInterface* grid, float factor) {
     AddDimensionProperties(static_cast<const TwoPointScreenLocation&>(loc), grid, 1.0);
-    float width = RulerObject::Measure(loc.origin, loc.point2);
+    float width = RulerObject::Measure(loc.GetPoint1(), loc.GetPoint2());
     wxPGProperty* prop = grid->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight",
-                                                           (width * loc.height) / 2.0 * factor));
+                                                           (width * loc.GetHeight()) / 2.0 * factor));
     prop->ChangeFlag(wxPGFlags::ReadOnly, true);
     prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -411,37 +414,37 @@ void ScreenLocationPropertyHelper::AddDimensionProperties(const ThreePointScreen
 
 int ScreenLocationPropertyHelper::OnPropertyGridChange(ThreePointScreenLocation& loc, wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     wxString name = event.GetPropertyName();
-    if (!loc._locked && "ModelHeight" == name) {
-        loc.height = event.GetValue().GetDouble();
-        if (std::abs(loc.height) < 0.01f) {
-            if (loc.height < 0.0f) {
-                loc.height = -0.01f;
+    if (!loc.IsLocked() && "ModelHeight" == name) {
+        loc.SetHeight(event.GetValue().GetDouble());
+        if (std::abs(loc.GetHeight()) < 0.01f) {
+            if (loc.GetHeight() < 0.0f) {
+                loc.SetHeight(-0.01f);
             } else {
-                loc.height = 0.01f;
+                loc.SetHeight(0.01f);
             }
         }
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
         return 0;
     }
-    else if (loc._locked && "ModelHeight" == name) {
+    else if (loc.IsLocked() && "ModelHeight" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "ModelShear" == name) {
-        loc.shear = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "ModelShear" == name) {
+        loc.SetShear(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
         return 0;
     }
-    else if (loc._locked && "ModelShear" == name) {
+    else if (loc.IsLocked() && "ModelShear" == name) {
         event.Veto();
         return 0;
     }
-    else if (!loc._locked && "RotateX" == name) {
-        loc.rotatex = event.GetValue().GetDouble();
+    else if (!loc.IsLocked() && "RotateX" == name) {
+        loc.SetRotateX(event.GetValue().GetDouble());
         loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
         return 0;
     }
-    else if (loc._locked && "RotateX" == name) {
+    else if (loc.IsLocked() && "RotateX" == name) {
         event.Veto();
         return 0;
     }
@@ -451,36 +454,39 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(ThreePointScreenLocation&
 // ========== PolyPointScreenLocation ==========
 
 void ScreenLocationPropertyHelper::AddSizeLocationProperties(const PolyPointScreenLocation& loc, wxPropertyGridInterface* grid) {
-    wxPGProperty* prop = grid->Append(new wxBoolProperty("Locked", "Locked", loc._locked));
+    wxPGProperty* prop = grid->Append(new wxBoolProperty("Locked", "Locked", loc.IsLocked()));
     prop->SetAttribute("UseCheckbox", 1);
-    prop = grid->Append(new wxFloatProperty("X1", "ModelX1", loc.mPos[0].x + loc.worldPos_x));
+    auto worldPos = loc.GetWorldPosition();
+    auto p0 = loc.GetPoint(0);
+    prop = grid->Append(new wxFloatProperty("X1", "ModelX1", p0.x + worldPos.x));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = grid->Append(new wxFloatProperty("Y1", "ModelY1", loc.mPos[0].y + loc.worldPos_y));
+    prop = grid->Append(new wxFloatProperty("Y1", "ModelY1", p0.y + worldPos.y));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = grid->Append(new wxFloatProperty("Z1", "ModelZ1", loc.mPos[0].z + loc.worldPos_z));
+    prop = grid->Append(new wxFloatProperty("Z1", "ModelZ1", p0.z + worldPos.z));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
 
-    for (int i = 1; i < loc.num_points; ++i) {
-        prop = grid->Append(new wxFloatProperty(wxString::Format("X%d", i + 1), wxString::Format("ModelX%d", i + 1), loc.mPos[i].x + loc.worldPos_x));
+    for (int i = 1; i < loc.GetNumPoints(); ++i) {
+        auto pt = loc.GetPoint(i);
+        prop = grid->Append(new wxFloatProperty(wxString::Format("X%d", i + 1), wxString::Format("ModelX%d", i + 1), pt.x + worldPos.x));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
         prop->SetTextColour(BlueOrLightBlue());
-        prop = grid->Append(new wxFloatProperty(wxString::Format("Y%d", i + 1), wxString::Format("ModelY%d", i + 1), loc.mPos[i].y + loc.worldPos_y));
+        prop = grid->Append(new wxFloatProperty(wxString::Format("Y%d", i + 1), wxString::Format("ModelY%d", i + 1), pt.y + worldPos.y));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
         prop->SetTextColour(BlueOrLightBlue());
-        prop = grid->Append(new wxFloatProperty(wxString::Format("Z%d", i + 1), wxString::Format("ModelZ%d", i + 1), loc.mPos[i].z + loc.worldPos_z));
+        prop = grid->Append(new wxFloatProperty(wxString::Format("Z%d", i + 1), wxString::Format("ModelZ%d", i + 1), pt.z + worldPos.z));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
@@ -490,20 +496,22 @@ void ScreenLocationPropertyHelper::AddSizeLocationProperties(const PolyPointScre
 
 void ScreenLocationPropertyHelper::AddDimensionProperties(const PolyPointScreenLocation& loc, wxPropertyGridInterface* grid, float factor) {
     float len = 0;
-    auto last = loc.mPos[0].AsVector();
-    for (int i = 1; i < (int)loc.mPos.size(); i++) {
-        len += RulerObject::Measure(last, loc.mPos[i].AsVector());
-        last = loc.mPos[i].AsVector();
+    auto last = loc.GetPoint(0);
+    for (int i = 1; i < loc.GetNumPoints(); i++) {
+        auto p = loc.GetPoint(i);
+        len += RulerObject::Measure(last, p);
+        last = p;
     }
     wxPGProperty* prop = grid->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", len));
     prop->ChangeFlag(wxPGFlags::ReadOnly, true);
     prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
-    last = loc.mPos[0].AsVector();
-    for (int i = 1; i < (int)loc.mPos.size(); i++) {
-        len = RulerObject::Measure(last, loc.mPos[i].AsVector());
-        last = loc.mPos[i].AsVector();
+    last = loc.GetPoint(0);
+    for (int i = 1; i < loc.GetNumPoints(); i++) {
+        auto p = loc.GetPoint(i);
+        len = RulerObject::Measure(last, p);
+        last = p;
 
         auto seg = wxString::Format("Segment %d (%s)", i, RulerObject::GetUnitDescription());
         prop = grid->Append(new wxFloatProperty(seg, "REAL" + seg, len));
@@ -514,24 +522,27 @@ void ScreenLocationPropertyHelper::AddDimensionProperties(const PolyPointScreenL
 int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& loc, wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     if (StartsWith(name, "REALSegment ")) {
-        if (loc._locked) {
+        if (loc.IsLocked()) {
             event.Veto();
             return 0;
         } else {
             auto o = name.find(" ", 12);
             wxASSERT(o != std::string::npos);
 
-            loc.selected_handle = wxAtoi(name.substr(12, o - 12)) - 1;
+            loc.SetSelectedHandle(wxAtoi(name.substr(12, o - 12)) - 1);
 
-            wxASSERT(loc.selected_handle + 1 < (int)loc.mPos.size());
+            wxASSERT(loc.GetSelectedHandle() + 1 < (int)loc.GetNumPoints());
 
-            float oldLen = 0.0f;
-            oldLen = RulerObject::UnMeasure(RulerObject::Measure(loc.mPos[loc.selected_handle].AsVector(), loc.mPos[loc.selected_handle + 1].AsVector()));
+            int h = loc.GetSelectedHandle();
+            auto p1 = loc.GetPoint(h);
+            auto p2 = loc.GetPoint(h + 1);
+            float oldLen = RulerObject::UnMeasure(RulerObject::Measure(p1, p2));
             float len = RulerObject::UnMeasure(event.GetValue().GetDouble());
 
-            float dx = (loc.mPos[loc.selected_handle + 1].x - loc.mPos[loc.selected_handle].x) * len / oldLen - (loc.mPos[loc.selected_handle + 1].x - loc.mPos[loc.selected_handle].x);
-            float dy = (loc.mPos[loc.selected_handle + 1].y - loc.mPos[loc.selected_handle].y) * len / oldLen - (loc.mPos[loc.selected_handle + 1].y - loc.mPos[loc.selected_handle].y);
-            float dz = (loc.mPos[loc.selected_handle + 1].z - loc.mPos[loc.selected_handle].z) * len / oldLen - (loc.mPos[loc.selected_handle + 1].z - loc.mPos[loc.selected_handle].z);
+            auto diff = p2 - p1;
+            float dx = diff.x * len / oldLen - diff.x;
+            float dy = diff.y * len / oldLen - diff.y;
+            float dz = diff.z * len / oldLen - diff.z;
 
             if (isnan(dx))
                 dx = 1.0f;
@@ -540,10 +551,9 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
             if (isnan(dz))
                 dz = 1.0f;
 
-            for (auto i = loc.selected_handle + 1; i < (int)loc.mPos.size(); i++) {
-                loc.mPos[i].x += dx;
-                loc.mPos[i].y += dy;
-                loc.mPos[i].z += dz;
+            for (int i = h + 1; i < loc.GetNumPoints(); i++) {
+                auto pt = loc.GetPoint(i);
+                loc.SetPoint(i, pt + glm::vec3(dx, dy, dz));
             }
 
             loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
@@ -551,38 +561,41 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
         }
     }
     else if (name.length() > 6) {
-        loc.selected_handle = wxAtoi(name.substr(6, name.length() - 6)) - 1;
-        loc.selected_segment = -1;
-        if (!loc._locked && name.find("ModelX") != std::string::npos) {
-            loc.mPos[loc.selected_handle].x = event.GetValue().GetDouble() - loc.worldPos_x;
+        int h = wxAtoi(name.substr(6, name.length() - 6)) - 1;
+        loc.SetSelectedHandle(h);
+        loc.SetSelectedSegment(-1);
+        auto worldPos = loc.GetWorldPosition();
+        auto pt = loc.GetPoint(h);
+        if (!loc.IsLocked() && name.find("ModelX") != std::string::npos) {
+            loc.SetPoint(h, glm::vec3(event.GetValue().GetDouble() - worldPos.x, pt.y, pt.z));
             loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
             return 0;
         }
-        else if (loc._locked && name.find("ModelX") != std::string::npos) {
+        else if (loc.IsLocked() && name.find("ModelX") != std::string::npos) {
             event.Veto();
             return 0;
         }
-        else if (!loc._locked && name.find("ModelY") != std::string::npos) {
-            loc.mPos[loc.selected_handle].y = event.GetValue().GetDouble() - loc.worldPos_y;
+        else if (!loc.IsLocked() && name.find("ModelY") != std::string::npos) {
+            loc.SetPoint(h, glm::vec3(pt.x, event.GetValue().GetDouble() - worldPos.y, pt.z));
             loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
             return 0;
         }
-        else if (loc._locked && name.find("ModelY") != std::string::npos) {
+        else if (loc.IsLocked() && name.find("ModelY") != std::string::npos) {
             event.Veto();
             return 0;
         }
-        else if (!loc._locked && name.find("ModelZ") != std::string::npos) {
-            loc.mPos[loc.selected_handle].z = event.GetValue().GetDouble() - loc.worldPos_z;
+        else if (!loc.IsLocked() && name.find("ModelZ") != std::string::npos) {
+            loc.SetPoint(h, glm::vec3(pt.x, pt.y, event.GetValue().GetDouble() - worldPos.z));
             loc.AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
             return 0;
         }
-        else if (loc._locked && name.find("ModelZ") != std::string::npos) {
+        else if (loc.IsLocked() && name.find("ModelZ") != std::string::npos) {
             event.Veto();
             return 0;
         }
     }
     else if ("Locked" == name) {
-        loc._locked = event.GetValue().GetBool();
+        loc.SetLocked(event.GetValue().GetBool());
         loc.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
                         OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
         return 0;

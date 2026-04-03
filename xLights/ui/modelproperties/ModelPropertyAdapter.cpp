@@ -948,7 +948,7 @@ void ModelPropertyAdapter::ColourClashingChains(wxPGProperty* p) {
 
     std::string tip;
     if (_model.GetControllerName() != "" && _model._controller != 0 && _model.GetControllerProtocol() != "" && _model.GetControllerPort() != 0 && p->IsEnabled()) {
-        if (!_model.modelManager.IsValidControllerModelChain(&_model, tip)) {
+        if (!_model.GetModelManager().IsValidControllerModelChain(&_model, tip)) {
             p->SetHelpString(tip);
             p->SetBackgroundColour(*wxRED);
         } else {
@@ -977,13 +977,13 @@ void ModelPropertyAdapter::AdjustStringProperties(wxPropertyGridInterface* grid,
                 if (sp != nullptr) {
                     grid->DeleteProperty(sp);
                 }
-                _model._indivStartChannels.pop_back();
+                _model.PopIndivStartChannel();
             }
             while (count < newNum) {
                 wxString nm = _model.StartChanAttrName(count);
                 std::string val = _model.ComputeStringStartChannel(count);
                 _model.SetIndividualStartChannel(count, val);
-                grid->AppendIn(p, new StartChannelProperty(&_model, count, nm, nm, val, _model.modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+                grid->AppendIn(p, new StartChannelProperty(&_model, count, nm, nm, val, _model.GetModelManager().GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
                 p->Enable(_model.GetControllerName() == "" || _model._controller == 0);
                 count++;
             }
@@ -1062,43 +1062,41 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
 
     auto caps = _model.GetControllerCaps();
 
-    _model.modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? std::to_string(event.GetValue().GetLong()) : "N/A"));
+    _model.GetModelManager().GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? std::to_string(event.GetValue().GetLong()) : "N/A"));
 
     if (HandleLayerSizePropertyChange(grid, event)) {
         return 0;
     }
 
     if (event.GetPropertyName() == "ModelPixelSize") {
-        _model.pixelSize = event.GetValue().GetLong();
+        _model.SetPixelSize(event.GetValue().GetLong());
         _model.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelSize");
         _model.IncrementChangeCount();
         return 0;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
-        _model._pixelStyle = (Model::PIXEL_STYLE)event.GetValue().GetLong();
+        _model.SetPixelStyle((Model::PIXEL_STYLE)event.GetValue().GetLong());
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelStyle");
         return 0;
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
-        _model.transparency = event.GetValue().GetLong();
+        _model.SetTransparency(event.GetValue().GetLong());
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelTransparency");
         return 0;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
-        _model.blackTransparency = event.GetValue().GetLong();
+        _model.SetBlackTransparency(event.GetValue().GetLong());
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
         return 0;
     } else if (event.GetPropertyName() == "LowDefinition") {
-        _model._lowDefFactor = event.GetValue().GetLong();
+        _model.SetLowDefFactor(event.GetValue().GetLong());
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Model::OnPropertyGridChange::LowDefinition");
         return 0;
     } else if (event.GetPropertyName() == "ModelTagColour") {
         wxColour wxc;
         wxc << event.GetProperty()->GetValue();
-        _model._modelTagColour = wxColourToXlColor(wxc);
-        _model._modelTagColourValid = true;
-        _model._modelTagColourString = std::string(_model._modelTagColour);
+        _model.SetModelTagColour(wxColourToXlColor(wxc));
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelTagColour");
         return 0;
@@ -1119,7 +1117,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         }
         _model.SetModelChain(modelChain);
         if (modelChain != "") {
-            _model._hasIndivChans = false;
+            _model.SetHasIndividualStartChannels(false);
             AdjustStringProperties(grid, _model.GetNumStrings());
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(_model.ModelStartChannel);
@@ -1156,7 +1154,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         if (_model.GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()]) {
             _model.SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
             if (_model.GetControllerPort() != 0 && _model.IsPixelProtocol()) {
-                _model.SetModelChain(">" + _model.modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], _model.GetControllerPort(), _model.GetName(), _model.GetControllerProtocol()));
+                _model.SetModelChain(">" + _model.GetModelManager().GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], _model.GetControllerPort(), _model.GetName(), _model.GetControllerProtocol()));
             } else {
                 _model.SetModelChain("");
             }
@@ -1170,7 +1168,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
             }
         } else {
-            _model._hasIndivChans = false;
+            _model.SetHasIndividualStartChannels(false);
             AdjustStringProperties(grid, _model.GetNumStrings());
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(_model.ModelStartChannel);
@@ -1219,7 +1217,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
                     grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(_model.ModelStartChannel);
                 }
                 if (_model.IsPixelProtocol()) {
-                    _model.SetModelChain(">" + _model.modelManager.GetLastModelOnPort(_model.GetControllerName(), event.GetValue().GetLong(), _model.GetName(), _model.GetControllerProtocol()));
+                    _model.SetModelChain(">" + _model.GetModelManager().GetLastModelOnPort(_model.GetControllerName(), event.GetValue().GetLong(), _model.GetName(), _model.GetControllerProtocol()));
                 } else {
                     _model.SetModelChain("Beginning");
                 }
@@ -1298,8 +1296,8 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         std::string newProtocol = _model.GetControllerProtocol();
 
         if (!IsPixelProtocol(newProtocol)) {
-            if (_model._controllerConnection.GetDMXChannel() == -1) {
-                _model._controllerConnection.SetDMXChannel(1);
+            if (_model.GetControllerDMXChannel() == -1) {
+                _model.SetControllerDMXChannel(1);
             }
         }
         if (
@@ -1473,7 +1471,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         }
         _model.IncrementChangeCount();
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-        wxPostEvent(_model.modelManager.GetXLightsFrame(), eventForceRefresh);
+        wxPostEvent(_model.GetModelManager().GetXLightsFrame(), eventForceRefresh);
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                     OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                     OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::SubModels");
@@ -1559,7 +1557,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
 
         _model.SetStartChannel(val);
         _model.SetControllerName("");
-        if (_model._hasIndivChans) {
+        if (_model.HasIndividualStartChannels()) {
             _model.SetIndividualStartChannel(0, val);
         }
         _model.IncrementChangeCount();
@@ -1570,14 +1568,14 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         int c = _model.GetNumStrings();
-        _model._hasIndivChans = event.GetValue().GetBool();
-        if (_model._hasIndivChans) {
-            _model._indivStartChannels.resize(c);
+        _model.SetHasIndividualStartChannels(event.GetValue().GetBool());
+        if (_model.HasIndividualStartChannels()) {
+            _model.ResizeIndivStartChannels(c);
             for (int x = 0; x < c; ++x) {
                 _model.SetIndividualStartChannel(x, _model.ComputeStringStartChannel(x));
             }
         } else {
-            _model._indivStartChannels.clear();
+            _model.ClearIndivStartChannels();
         }
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -1599,8 +1597,8 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         int s = ExtractTrailingInt(text);
         if (s < 1) s = 1;
         if (s > _model.GetNumStrings()) s = _model.GetNumStrings();
-        if (s >= 1 && (s - 1) < (int)_model._indivStartChannels.size()) {
-            _model._indivStartChannels[s-1] = val;
+        if (s >= 1 && (s - 1) < (int)_model.IndivStartChannelCount()) {
+            _model.SetIndividualStartChannel(s-1, val.ToStdString());
         }
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |

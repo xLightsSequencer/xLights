@@ -94,8 +94,6 @@ public:
     glm::vec3 GetPoint1() const { return origin; }
     glm::vec3 GetPoint2() const { return point2; }
 
-    friend class ScreenLocationPropertyHelper;
-
 protected:
     float x2 = 0.0f;
     float y2 = 0.0f;

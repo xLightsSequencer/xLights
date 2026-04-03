@@ -196,7 +196,22 @@ protected:
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     void AdjustRenderSize(float NewWi, float NewHt, float NewDp);
     bool IsLocked() const { return _locked; }
+    void SetLocked(bool value) { _locked = value; }
     void Lock(bool value = true) { _locked = value; }
+    float GetWorldPos_X() const { return worldPos_x; }
+    float GetWorldPos_Y() const { return worldPos_y; }
+    float GetWorldPos_Z() const { return worldPos_z; }
+    void SetWorldPos(float x, float y, float z) { worldPos_x = x; worldPos_y = y; worldPos_z = z; }
+    void SetWorldPos_X(float x) { worldPos_x = x; }
+    void SetWorldPos_Y(float y) { worldPos_y = y; }
+    void SetWorldPos_Z(float z) { worldPos_z = z; }
+    float GetRotateX() const { return rotatex; }
+    float GetRotateY() const { return rotatey; }
+    float GetRotateZ() const { return rotatez; }
+    void SetRotate(float x, float y, float z) { rotatex = x; rotatey = y; rotatez = z; }
+    void SetRotateX(float x) { rotatex = x; }
+    void SetRotateY(float y) { rotatey = y; }
+    void SetRotateZ(float z) { rotatez = z; }
     float GetRenderHt() const { return RenderHt; }
     float GetRenderWi() const { return RenderWi; }
     float GetRenderDp() const { return RenderDp; }
@@ -284,8 +299,6 @@ protected:
     virtual glm::vec3 GetHandlePosition(int handle) const;
     glm::vec3 GetRotationAngles() const { return angles; }
     glm::mat4 GetModelMatrix() const { return ModelMatrix; }
-
-    friend class ScreenLocationPropertyHelper;
 
 protected:
     ModelScreenLocation(int points);

@@ -77,6 +77,18 @@ public:
     void SetScaleZ(float z) {
         scalez = z;
     }
+    float GetScaleX() const {
+        return scalex;
+    }
+    void SetScaleX(float x) {
+        scalex = x;
+    }
+    float GetScaleY() const {
+        return scaley;
+    }
+    void SetScaleY(float y) {
+        scaley = y;
+    }
     float GetScaleZ() const {
         return scalez;
     }
@@ -117,8 +129,8 @@ public:
         return rotatez;
     }
 
-    float GetScaleX() { return scalex; }
-    float GetScaleY() { return scaley; }
+    bool GetSupportsZScaling() const { return supportsZScaling; }
+    void SetSupportsZScaling(bool b) { supportsZScaling = b; }
 
     virtual int GetDefaultHandle() const override { return CENTER_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_SCALE; }

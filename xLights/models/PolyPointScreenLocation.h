@@ -20,8 +20,7 @@ public:
 
     friend class MultiPointModel;
     friend class PolyLineModel;
-    friend class ScreenLocationPropertyHelper;
-    
+
     virtual void Init() override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
@@ -98,6 +97,11 @@ public:
 
     int GetNumPoints() const { return num_points; }
     void SetNumPoints(int points) { num_points = points; }
+    void SetSelectedHandle(int h) { selected_handle = h; }
+    void SetSelectedSegment(int s) { selected_segment = s; }
+    glm::vec3 GetPoint(int i) const { return glm::vec3(mPos[i].x, mPos[i].y, mPos[i].z); }
+    void SetPoint(int i, float x, float y, float z) { mPos[i].x = x; mPos[i].y = y; mPos[i].z = z; }
+    void SetPoint(int i, const glm::vec3& p) { mPos[i].x = p.x; mPos[i].y = p.y; mPos[i].z = p.z; }
     void SetDataFromString(const std::string& point_data);
     void SetCurveDataFromString(const std::string& cpoint_data);
     std::string GetPointDataAsString() const;

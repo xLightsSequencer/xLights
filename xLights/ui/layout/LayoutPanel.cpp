@@ -1395,8 +1395,8 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     }
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
-                                                         LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->DisplayAs), LayoutUtils::GroupMode::Closed),
-                                                         LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->DisplayAs), LayoutUtils::GroupMode::Opened),
+                                                         LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->GetDisplayAs()), LayoutUtils::GroupMode::Closed),
+                                                         LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->GetDisplayAs()), LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
 
     if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
@@ -1588,16 +1588,16 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                             // m->GroupSelected = true;
                             // m->Highlighted = true;
                         }
-                        if (m->DisplayAs == DisplayAsType::SubModel) {
+                        if (m->GetDisplayAs() == DisplayAsType::SubModel) {
                             if (mark_selected) {
                               //  prev_models.push_back(m);  // setting this causes exception when prev_models render finds a submodel
                             }
                         }
-                        else if (m->DisplayAs == DisplayAsType::ModelGroup) {
+                        else if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                             ModelGroup *mg = (ModelGroup*)m;
                             if (mark_selected) {
                                 for (const auto& it3 : mg->Models()) {
-                                    if (it3->DisplayAs != DisplayAsType::ModelGroup) {
+                                    if (it3->GetDisplayAs() != DisplayAsType::ModelGroup) {
                                         if (selectedBaseObject == nullptr)
                                         {
                                             SelectModel(it3, false);
@@ -1923,7 +1923,7 @@ void LayoutPanel::BulkEditPixelStyle() {
     int style = 3;
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
-            style = std::min(model->transparency, style);
+            style = std::min(model->GetTransparency(), style);
         }
     }
 
@@ -1954,7 +1954,7 @@ void LayoutPanel::BulkEditTransparency() {
     int trans = 100;
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
-            trans = std::min(model->transparency, trans);
+            trans = std::min(model->GetTransparency(), trans);
         }
     }
     wxNumberEntryDialog dlg(this, "Choose the transparency",  "Transparency:", "Transparency", trans, 0, 100);
@@ -1981,7 +1981,7 @@ void LayoutPanel::BulkEditBlackTranparency() {
     int trans = 100;
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
-            trans = std::min(model->blackTransparency, trans);
+            trans = std::min(model->GetBlackTransparency(), trans);
         }
     }
     wxNumberEntryDialog dlg(this, "Choose the black transparency",  "Black Transparency:", "Black Transparency", trans, 0, 100);
@@ -3473,7 +3473,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m->AddHandle(modelPreview, event.GetX(), event.GetY());
         PolyLineModel* poly = dynamic_cast<PolyLineModel*>(m);
         poly->AddHandle();
-        m->InitModel();
+        m->Reinitialize();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                       OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                                       OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
@@ -5323,7 +5323,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         int handle = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(handle + 0x8000));
         md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
-        md->InitModel();
+        md->Reinitialize();
         // SetupPropGrid(md);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                       OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
@@ -5337,7 +5337,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             md->DeleteHandle(selected_handle);
             md->SelectHandle(-1);
             md->GetModelScreenLocation().SelectSegment(-1);
-            md->InitModel();
+            md->Reinitialize();
             // SetupPropGrid(md);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                           OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
@@ -5349,7 +5349,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x2000));
         md->SetCurve(seg, true);
-        md->InitModel();
+        md->Reinitialize();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
     } else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
@@ -5358,7 +5358,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x1000));
         md->SetCurve(seg, false);
-        md->InitModel();
+        md->Reinitialize();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
     } else if (event.GetId() == ID_PREVIEW_MODEL_SET_SEGMENTS) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
@@ -5372,7 +5372,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (dlg.ShowModal() == wxID_OK) {
             int size = (int)std::strtol(dlg.GetValue().ToStdString().c_str(), nullptr, 10);
             pmd->SetSegmentSize(seg, size);
-            md->InitModel();
+            md->Reinitialize();
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
         }
     } else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT) {
@@ -7855,7 +7855,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         int handle = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(handle + 0x8000));
         md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
-        md->InitModel();
+        md->Reinitialize();
         //SetupPropGrid(md);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                       OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
@@ -7869,7 +7869,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             md->DeleteHandle(selected_handle);
             md->SelectHandle(-1);
             md->GetModelScreenLocation().SelectSegment(-1);
-            md->InitModel();
+            md->Reinitialize();
             //SetupPropGrid(md);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                           OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
@@ -7881,7 +7881,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x2000));
         md->SetCurve(seg, true);
-        md->InitModel();
+        md->Reinitialize();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
     } else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
@@ -7890,7 +7890,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x1000));
         md->SetCurve(seg, false);
-        md->InitModel();
+        md->Reinitialize();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
     } else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM) {
         if (editing_models) {

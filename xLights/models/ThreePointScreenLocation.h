@@ -62,7 +62,11 @@ public:
     virtual void SetActiveAxis(MSLAXIS axis) override;
     virtual bool IsXYTransHandle() const override { return active_handle == SHEAR_HANDLE; }
 
-    friend class ScreenLocationPropertyHelper;
+    float GetHeight() const { return height; }
+    void SetHeight(float h) { height = h; }
+    float GetShear() const { return shear; }
+    void SetShear(float s) { shear = s; }
+    bool GetSupportsShear() const { return supportsShear; }
 
 private:
     bool modelHandleHeight = false;
