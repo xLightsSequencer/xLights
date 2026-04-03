@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#define MAX_ISPC_BARS_COLORS 8
+
 #include "BarsEffect.h"
 
 #include "../render/RenderBuffer.h"
