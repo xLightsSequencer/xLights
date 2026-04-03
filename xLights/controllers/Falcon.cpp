@@ -9,10 +9,11 @@
  **************************************************************/
 
 #include "Falcon.h"
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
+#include "../render/UICallbacks.h"
 #include <regex>
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
@@ -25,7 +26,7 @@
 
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/string_utils.h"
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/DDPOutput.h"
 
@@ -795,18 +796,17 @@ int Falcon::V4_GetRebootSecs() {
     }
 }
 
-void Falcon::V4_WaitForReboot(const std::string& name, wxWindow* parent) {
-    std::unique_ptr<wxProgressDialog> progress;
-    progress.reset(new wxProgressDialog(ToWXString(std::format("Rebooting controller '{}' ...", name)), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
-    progress->Show();
+void Falcon::V4_WaitForReboot(const std::string& name, UICallbacks* ui) {
+    auto progressTk = ui->BeginProgress(std::format("Rebooting controller '{}' ...", name), 100);
 
     for (int i = 0; i < 100; i++) {
-        progress->Update(i);
+        ui->UpdateProgress(progressTk, i);
         std::this_thread::sleep_for(std::chrono::milliseconds(V4_GetRebootSecs() * 1000 / 100));
     }
+    ui->EndProgress(progressTk);
 }
 
-bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
+bool Falcon::V4_SetInputMode(Controller* controller, UICallbacks* ui) {
     
 
     if (_v4status["O"].get<int>() == V4_CONTROLLERMODE_FPPMASTER ||
@@ -818,7 +818,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
             spdlog::debug("Controller in Player/Master/Remote mode. Setting controller start channel: {}", sc);
             if (Falcon::V4_SendBoardMode(_v4status["B"].get<int>(), _v4status["O"].get<int>(), sc, reboot)) {
                 if (reboot) {
-                    V4_WaitForReboot(controller->GetName(), parent);
+                    V4_WaitForReboot(controller->GetName(), ui);
                 }
                 return true;
             } else {
@@ -842,7 +842,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
             bool reboot = false;
             if (Falcon::V4_SendBoardMode(_v4status["B"].get<int>(), V4_CONTROLLERMODE_DDP, ddpStart, reboot)) {
                 if (reboot) {
-                    V4_WaitForReboot(controller->GetName(), parent);
+                    V4_WaitForReboot(controller->GetName(), ui);
                 }
                 return true;
             }
@@ -855,7 +855,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
             bool reboot = false;
             if (Falcon::V4_SendBoardMode(_v4status["B"].get<int>(), V4_CONTROLLERMODE_E131_ARTNET, sc, reboot)) {
                 if (reboot) {
-                    V4_WaitForReboot(controller->GetName(), parent);
+                    V4_WaitForReboot(controller->GetName(), ui);
                 }
                 if (!V4_GetStatus(_v4status)) {
                     spdlog::error("Failed to retrieve status after setting board mode.");
@@ -871,10 +871,10 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
     return true;
 }
 
-bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent) {
+bool Falcon::V4_SetInputUniverses(Controller* controller, UICallbacks* ui) {
     
 
-    if (!V4_SetInputMode(controller, parent)) {
+    if (!V4_SetInputMode(controller, ui)) {
         return false;
     }
 
@@ -886,7 +886,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent) {
         auto outputs = controller->GetOutputs();
 
         if (outputs.size() > 192) {
-            DisplayError(std::format("Attempt to upload {} universes to falcon v4 controller but only 192 are supported.", outputs.size()));
+            ui->ShowMessage(std::format("Attempt to upload {} universes to falcon v4 controller but only 192 are supported.", outputs.size()), "Error");
             return false;
         }
 
@@ -1241,23 +1241,22 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
     return success;
 }
 
-bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress) {
+bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui, bool doProgress) {
     
     spdlog::debug("Falcon Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
     bool success = true;
 
-    std::unique_ptr<wxProgressDialog> progress;
+    UICallbacks::ProgressToken progressTk = UICallbacks::INVALID_PROGRESS;
     if (doProgress) {
-        progress.reset(new wxProgressDialog("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
-        progress->Show();
+        progressTk = ui->BeginProgress("Uploading ...", 100);
     }
 
     int defaultBrightness = V4_ValidBrightness(controller->GetDefaultBrightnessUnderFullControl());
     int defaultGamma = V4_ValidGamma(controller->GetDefaultGammaUnderFullControl() * 10);
 
     if (doProgress) {
-        progress->Update(0, "Scanning models");
+        ui->UpdateProgress(progressTk, 0, "Scanning models");
     }
     spdlog::info("Scanning models.");
 
@@ -1277,17 +1276,19 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     cud.Dump();
 
     if (cud.GetMaxPixelPort() > 0 && caps->GetMaxPixelPort() > 0 && UDController::IsError(check)) {
-        DisplayError("Not uploaded due to errors.\n" + check);
+        ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
         check = "";
         if (doProgress) {
-            progress->Update(100, "Aborting.");
+            ui->UpdateProgress(progressTk, 100, "Aborting.");
+            ui->EndProgress(progressTk);
         }
         return false;
     }
 
-    if (!V4_SetInputMode(controller, parent)) {
+    if (!V4_SetInputMode(controller, ui)) {
         if (doProgress) {
-            progress->Update(100, "Aborting.");
+            ui->UpdateProgress(progressTk, 100, "Aborting.");
+            ui->EndProgress(progressTk);
         }
         return false;
     }
@@ -1298,21 +1299,23 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     if (!fullcontrol) {
         if (_v4status["B"].get<int>() != (int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "99").c_str(), nullptr, 10)) {
             spdlog::debug("Current board mode: {}. desired board mode: {}", _v4status["B"].get<int>(), (int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "0").c_str(), nullptr, 10));
-            DisplayError("Falcon Outputs Upload: Board is currently set to the wrong mode. Please correct it.", parent);
+            ui->ShowMessage("Falcon Outputs Upload: Board is currently set to the wrong mode. Please correct it.", "Error");
             if (doProgress) {
-                progress->Update(100, "Aborting.");
+                ui->UpdateProgress(progressTk, 100, "Aborting.");
+                ui->EndProgress(progressTk);
             }
             return false;
         }
 
         if (doProgress) {
-            progress->Update(40, "Rerieving strings.");
+            ui->UpdateProgress(progressTk, 40, "Retrieving strings.");
         }
 
         if (!V4_GetStrings(falconStrings)) {
-            DisplayError("Falcon Outputs Upload: Failed to retrieve current string configuration.", parent);
+            ui->ShowMessage("Falcon Outputs Upload: Failed to retrieve current string configuration.", "Error");
             if (doProgress) {
-                progress->Update(100, "Aborting.");
+                ui->UpdateProgress(progressTk, 100, "Aborting.");
+                ui->EndProgress(progressTk);
             }
             return false;
         }
@@ -1334,9 +1337,10 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 if (controller->GetProtocol() == OUTPUT_ARTNET || controller->GetProtocol() == OUTPUT_E131) {
                     if (inputs.size() != 1) {
                         spdlog::debug("Board has {} inputs where it should just have 1.", inputs.size());
-                        DisplayError("Falcon inputs not as expected. Upload inputs to correct.", parent);
+                        ui->ShowMessage("Falcon inputs not as expected. Upload inputs to correct.", "Error");
                         if (doProgress) {
-                            progress->Update(100, "Aborting.");
+                            ui->UpdateProgress(progressTk, 100, "Aborting.");
+                            ui->EndProgress(progressTk);
                         }
                         return false;
                     }
@@ -1349,9 +1353,10 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                         spdlog::debug("Board has inputs {}:{}:{}:{} while xlights has {}:{}:{}:{}. These need to match.",
                                           inputs[0].universe, inputs[0].universeCount, inputs[0].channels, inputs[0].protocol == 1 ? OUTPUT_ARTNET : OUTPUT_E131,
                                           controller->GetOutput(0)->GetUniverse(), controller->GetOutputCount(), controller->GetOutput(0)->GetChannels(), (const char*)controller->GetProtocol().c_str());
-                        DisplayError("Falcon inputs not as expected. Upload inputs to correct.", parent);
+                        ui->ShowMessage("Falcon inputs not as expected. Upload inputs to correct.", "Error");
                         if (doProgress) {
-                            progress->Update(100, "Aborting.");
+                            ui->UpdateProgress(progressTk, 100, "Aborting.");
+                            ui->EndProgress(progressTk);
                         }
                         return false;
                     }
@@ -1360,31 +1365,33 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         }
 
         if (doProgress) {
-            progress->Update(40, "Ensuring board configuration is correct.");
+            ui->UpdateProgress(progressTk, 40, "Ensuring board configuration is correct.");
         }
 
         if (_v4status["B"].get<int>() != (int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "0").c_str(), nullptr, 10)) {
             // we need to change the board mode - controller mode and start channel should be already set
             bool reboot = false;
             if (!V4_SendBoardMode((int)std::strtol(caps->GetCustomPropertyByPath("v4BoardMode", "0").c_str(), nullptr, 10), _v4status["O"].get<int>(), _v4status["ps"].get<int>() + 1, reboot)) {
-                DisplayError("Falcon Outputs Upload: Failed to set board mode.", parent);
+                ui->ShowMessage("Falcon Outputs Upload: Failed to set board mode.", "Error");
                 if (doProgress) {
-                    progress->Update(100, "Aborting.");
+                    ui->UpdateProgress(progressTk, 100, "Aborting.");
+                    ui->EndProgress(progressTk);
                 }
                 return false;
             }
             if (reboot) {
-                V4_WaitForReboot(controller->GetName(), parent);
+                V4_WaitForReboot(controller->GetName(), ui);
             }
 
             // just give the falcon a second to gather its thoughts
-            wxSleep(1);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
 
             // this just makes sure our status is up to date
             if (!V4_GetStatus(_v4status)) {
-                DisplayError("Falcon Outputs Upload: Failed to retrieve current configuration.", parent);
+                ui->ShowMessage("Falcon Outputs Upload: Failed to retrieve current configuration.", "Error");
                 if (doProgress) {
-                    progress->Update(100, "Aborting.");
+                    ui->UpdateProgress(progressTk, 100, "Aborting.");
+                    ui->EndProgress(progressTk);
                 }
                 return false;
             }
@@ -1392,7 +1399,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     }
 
     if (doProgress) {
-        progress->Update(50, "Reworking pixel ports.");
+        ui->UpdateProgress(progressTk, 50, "Reworking pixel ports.");
     }
 
     bool oneBased = false;
@@ -1405,9 +1412,10 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     std::vector<FALCON_V4_STRING> uploadStrings;
     std::string error;
     if (!V4_PopulateStrings(uploadStrings, falconStrings, cud, caps, defaultBrightness, error, oneBased, controller->GetStartChannel(), fullcontrol, defaultGamma)) {
-        DisplayError("Falcon Outputs Upload: Problem constructing strings for upload:\n" + error, parent);
+        ui->ShowMessage("Falcon Outputs Upload: Problem constructing strings for upload:\n" + error, "Error");
         if (doProgress) {
-            progress->Update(100, "Aborting.");
+            ui->UpdateProgress(progressTk, 100, "Aborting.");
+            ui->EndProgress(progressTk);
         }
         return false;
     }
@@ -1416,25 +1424,26 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     V4_DumpStrings(uploadStrings);
 
     if (doProgress) {
-        progress->Update(70, "Uploading pixel ports.");
+        ui->UpdateProgress(progressTk, 70, "Uploading pixel ports.");
     }
 
     bool reboot = false;
     if (!V4_SendOutputs(uploadStrings, _v4status["A"].get<int>(), cud.GetFirstOutput()->GetStartChannel(), reboot)) {
-        DisplayError("Falcon Outputs Upload: Problem uploading string configuration.", parent);
+        ui->ShowMessage("Falcon Outputs Upload: Problem uploading string configuration.", "Error");
         if (doProgress) {
-            progress->Update(100, "Aborting.");
+            ui->UpdateProgress(progressTk, 100, "Aborting.");
+            ui->EndProgress(progressTk);
         }
         return false;
     }
 
     if (cud.HasSerialPort(1)) {
         if (doProgress) {
-            progress->Update(80, "Uploading serial ports.");
+            ui->UpdateProgress(progressTk, 80, "Uploading serial ports.");
         }
 
         // just give the falcon a second to gather its thoughts
-        wxSleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
 
         auto sp = cud.GetControllerSerialPort(1);
 
@@ -1459,20 +1468,22 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         V4_GetStartChannel(sp->GetUniverse(), sp->GetUniverseStartChannel(), sp->GetStartChannel(), universe, startChannel, oneBased, controller->GetStartChannel());
 
         if (!V4_SetSerialConfig(Lower(sp->GetProtocol()) == "dmx" ? 0 : 1, universe, startChannel, rate)) {
-            DisplayError("Falcon Outputs Upload: Problem uploading serial port configuration.", parent);
+            ui->ShowMessage("Falcon Outputs Upload: Problem uploading serial port configuration.", "Error");
             if (doProgress) {
-                progress->Update(100, "Aborting.");
+                ui->UpdateProgress(progressTk, 100, "Aborting.");
+                ui->EndProgress(progressTk);
             }
             return false;
         }
     }
 
     if (check != "") {
-        DisplayWarning("Upload warnings:\n" + check);
+        ui->ShowMessage("Upload warnings:\n" + check, "Warning");
     }
 
     if (doProgress){
-        progress->Update(100, "Done.");
+        ui->UpdateProgress(progressTk, 100, "Done.");
+        ui->EndProgress(progressTk);
     }
     spdlog::info("Falcon upload done.");
 
@@ -1896,9 +1907,9 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
     }
 }
 
-std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent) {
+std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, UICallbacks* ui) {
     if (output > caps->GetMaxSerialPort()) {
-        DisplayError(std::format("Falcon {} only supports {} outputs. Attempt to upload to output {}.", GetModel(), caps->GetMaxSerialPort(), output), parent);
+        ui->ShowMessage(std::format("Falcon {} only supports {} outputs. Attempt to upload to output {}.", GetModel(), caps->GetMaxSerialPort(), output), "Error");
         return "";
     }
 
@@ -1915,7 +1926,7 @@ std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputM
                                output - 1, o->GetUniverse(),
                                output - 1, (int)sc);
         } else {
-            DisplayError(std::format("Error uploading serial output to falcon. {} does not map to a universe.", portstart));
+            ui->ShowMessage(std::format("Error uploading serial output to falcon. {} does not map to a universe.", portstart), "Error");
         }
     }
 
@@ -2350,19 +2361,19 @@ std::string Falcon::GetMode() {
 }
 
 #ifndef DISCOVERYONLY
-bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    SetInputUniverses(controller, parent);
-    SetOutputs(allmodels, outputManager, controller, parent, false);
+bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
+    SetInputUniverses(controller, ui);
+    SetOutputs(allmodels, outputManager, controller, ui, false);
     return true;
 }
 
 bool Falcon::V4_ValidateWAV(const std::string& media) {
     
 
-    wxFile f;
-    if (f.Open(media)) {
+    std::ifstream f(media, std::ios::binary);
+    if (f.is_open()) {
         uint8_t buffer[36];
-        if (f.Read(&buffer, sizeof(buffer)) == sizeof(buffer)) {
+        if (f.read(reinterpret_cast<char*>(buffer), sizeof(buffer)) && f.gcount() == sizeof(buffer)) {
             // is it a WAV file
             if (buffer[0] != 82 || buffer[1] != 73 || buffer[2] != 70 || buffer[3] != 70) {
                 spdlog::error("WAV file token missing.");
@@ -2422,11 +2433,10 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
     spdlog::debug("Uploading to URL: {}", (const char*)url.c_str());
 
     if (media != "") {
-        wxFileName fn(media);
-        std::string origfile = fn.GetFullName() /*.Lower()*/.ToStdString();
-        bool ismp3 = fn.GetExt().Lower() == "mp3";
-        fn.SetExt("wav");
-        std::string wavfile = fn.GetFullName() /*.Lower()*/.ToStdString();
+        std::filesystem::path fn(media);
+        std::string origfile = fn.filename().string();
+        bool ismp3 = Lower(fn.extension().string()) == ".mp3";
+        std::string wavfile = (fn.stem().string() + ".wav");
         auto lwavfile = Lower(wavfile);
 
         // check to see if controller has the media file
@@ -2447,7 +2457,7 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
             if (!ismp3) {
                 if (!V4_ValidateWAV(media)) {
                     skip = true;
-                    wxMessageBox("WAV file not valid: " + media + " : Skipping.");
+                    spdlog::warn("WAV file not valid: {} : Skipping.", media);
                 }
             }
 
@@ -2458,18 +2468,18 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
                     if (ismp3) {
                         if (progress != nullptr)
                             progress(0, "Converting to WAV file.");
-                        wxSleep(1);
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
                         int p = 0;
                         while (p != 100) {
                             p = V4_GetConversionProgress();
                             if (progress != nullptr)
                                 progress(p * 10, "Converting to WAV file.");
                             if (p != 100)
-                                wxSleep(5);
+                                std::this_thread::sleep_for(std::chrono::seconds(5));
                         }
                     } else {
                         while (V4_IsFileUploading()) {
-                            wxSleep(1);
+                            std::this_thread::sleep_for(std::chrono::seconds(1));
                         }
                     }
                 }
@@ -2479,26 +2489,26 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
 
     // upload the fseq
     {
-        wxFileName fn(file);
-        res = res && CurlManager::HTTPUploadFile(url, seq, fn.GetFullName() /*.Lower()*/.ToStdString(), progress);
+        std::filesystem::path fn(file);
+        res = res && CurlManager::HTTPUploadFile(url, seq, fn.filename().string(), progress);
 
         if (res) {
             while (V4_IsFileUploading()) {
-                wxSleep(1);
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
     }
     return res;
 }
 
-bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
+bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     if (!ValidateBoard(controller)) {
-        DisplayError("Falcon Inputs Upload: Board version does not match your controller settings.", parent);
+        ui->ShowMessage("Falcon Inputs Upload: Board version does not match your controller settings.", "Error");
         return false;
     }
 
     if (_versionnum == 4 || _versionnum == 5) {
-        return V4_SetInputUniverses(controller, parent);
+        return V4_SetInputUniverses(controller, ui);
     }
 
     std::string request;
@@ -2531,7 +2541,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     if (outputs.size() > 0 && outputs.front()->GetType() == OUTPUT_DDP) {
         if (!IsFirmwareEqualOrGreaterThan(2, 58)) {
-            DisplayError("Attempt to set controller to DDP mode but firmware installed does not support DDP. Install 2.58 or higher.");
+            ui->ShowMessage("Attempt to set controller to DDP mode but firmware installed does not support DDP. Install 2.58 or higher.", "Error");
             return false;
         }
 
@@ -2543,20 +2553,19 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         std::string response = PutURL("/index.htm", request);
 
         if ((cm & 0xFE) != 64) {
-            std::unique_ptr<wxProgressDialog> progress;
-            progress.reset(new wxProgressDialog(ToWXString(std::format("Rebooting controller '{}' ...", controller->GetName())), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
-            progress->Show();
+            auto progressTk = ui->BeginProgress(std::format("Rebooting controller '{}' ...", controller->GetName()), 100);
 
             for (int i = 0; i < 100; i++) {
-                progress->Update(i);
+                ui->UpdateProgress(progressTk, i);
                 std::this_thread::sleep_for(std::chrono::milliseconds(20000 / 100));
             }
+            ui->EndProgress(progressTk);
         }
 
         return (response != "");
     } else {
         if (outputs.size() > 96) {
-            DisplayError(std::format("Attempt to upload {} universes to falcon controller but only 96 are supported.", outputs.size()));
+            ui->ShowMessage(std::format("Attempt to upload {} universes to falcon controller but only 96 are supported.", outputs.size()), "Error");
             return false;
         }
 
@@ -2565,14 +2574,13 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
             request = "c=0";
             std::string response = PutURL("/index.htm", request);
 
-            std::unique_ptr<wxProgressDialog> progress;
-            progress.reset(new wxProgressDialog(ToWXString(std::format("Rebooting controller '{}' ...", controller->GetName())), "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
-            progress->Show();
+            auto progressTk = ui->BeginProgress(std::format("Rebooting controller '{}' ...", controller->GetName()), 100);
 
             for (int i = 0; i < 100; i++) {
-                progress->Update(i);
+                ui->UpdateProgress(progressTk, i);
                 std::this_thread::sleep_for(std::chrono::milliseconds(20000 / 100));
             }
+            ui->EndProgress(progressTk);
         }
 
         for (const auto& it : outputs) {
@@ -2596,8 +2604,8 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
     }
 }
 
-bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    return SetOutputs(allmodels, outputManager, controller, parent, true);
+bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
+    return SetOutputs(allmodels, outputManager, controller, ui, true);
 }
 
 bool Falcon::ValidateBoard(Controller* controller) {
@@ -2625,23 +2633,22 @@ bool Falcon::ValidateBoard(Controller* controller) {
     return valid;
 }
 
-bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress) {
+bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui, bool doProgress) {
     
     // ResetStringOutputs(); // this shouldnt be used normally
 
     if (!ValidateBoard(controller)) {
-        DisplayError("Falcon Outputs Upload: Board version does not match your controller settings.", parent);
+        ui->ShowMessage("Falcon Outputs Upload: Board version does not match your controller settings.", "Error");
         return false;
     }
 
     if (_versionnum == 4 || _versionnum == 5) {
-        return V4_SetOutputs(allmodels, outputManager, controller, parent, doProgress);
+        return V4_SetOutputs(allmodels, outputManager, controller, ui, doProgress);
     }
 
-    std::unique_ptr<wxProgressDialog> progress;
+    UICallbacks::ProgressToken progressTk = UICallbacks::INVALID_PROGRESS;
     if (doProgress) {
-        progress.reset(new wxProgressDialog("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE));
-        progress->Show();
+        progressTk = ui->BeginProgress("Uploading ...", 100);
     }
 
     int const defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
@@ -2650,7 +2657,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     spdlog::debug("Falcon Outputs Upload: Uploading to {} Brightness={} Gamma={:.1f}", (const char*)_ip.c_str(), defaultBrightness, defaultGamma);
 
     if (doProgress) {
-        progress->Update(0, "Scanning models");
+        ui->UpdateProgress(progressTk, 0, "Scanning models");
     }
     spdlog::info("Scanning models.");
 
@@ -2694,16 +2701,17 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     if (!fullcontrol) {
         if (doProgress) {
-            progress->Update(10, "Retrieving string configuration from Falcon.");
+            ui->UpdateProgress(progressTk, 10, "Retrieving string configuration from Falcon.");
         }
         spdlog::info("Retrieving string configuration from Falcon.");
 
         // get the current config before I start
         std::string const strings = GetURL("/strings.xml");
         if (strings == "") {
-            DisplayError("Error occured trying to upload to Falcon. strings.xml could not be retrieved.", parent);
+            ui->ShowMessage("Error occured trying to upload to Falcon. strings.xml could not be retrieved.", "Error");
             if (doProgress) {
-                progress->Update(100, "Aborting.");
+                ui->UpdateProgress(progressTk, 100, "Aborting.");
+                ui->EndProgress(progressTk);
             }
             return false;
         }
@@ -2712,15 +2720,16 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         pugi::xml_parse_result stringsResult = stringsDoc.load_string(strings.c_str());
 
         if (!stringsResult) {
-            DisplayError("Falcon Outputs Upload: Could not parse Falcon strings.xml.", parent);
+            ui->ShowMessage("Falcon Outputs Upload: Could not parse Falcon strings.xml.", "Error");
             if (doProgress) {
-                progress->Update(100, "Aborting.");
+                ui->UpdateProgress(progressTk, 100, "Aborting.");
+                ui->EndProgress(progressTk);
             }
             return false;
         }
 
         if (doProgress){
-            progress->Update(40, "Processing current configuration data.");
+            ui->UpdateProgress(progressTk, 40, "Processing current configuration data.");
         }
         spdlog::info("Processing current configuration data.");
 
@@ -2769,7 +2778,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     spdlog::info("Falcon pixel split: Main = {}, Expansion1 = {}, Expansion2 = {}", mainPixels, daughter1Pixels, daughter2Pixels);
 
     if (doProgress) {
-        progress->Update(50, "Configuring string ports.");
+        ui->UpdateProgress(progressTk, 50, "Configuring string ports.");
     }
     spdlog::info("Configuring string ports.");
 
@@ -2971,8 +2980,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
         if (maxDaughter1 > 0) {
             if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2) {
-                DisplayError(std::format("Falcon Outputs Upload: {} V2 Controller only supports 340/340 pixel split with expansion board. ({}/{})",
-                                       _ip, maxMain, maxDaughter1));
+                ui->ShowMessage(std::format("Falcon Outputs Upload: {} V2 Controller only supports 340/340 pixel split with expansion board. ({}/{})",
+                                       _ip, maxMain, maxDaughter1), "Error");
                 success = false;
             }
 
@@ -2980,8 +2989,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             maxDaughter1 = maxPixels / 2;
 
             if (maxDaughter2 > 0) {
-                DisplayError(std::format("Falcon Outputs Upload: {} V2 Controller only supports one expansion board.",
-                                       _ip));
+                ui->ShowMessage(std::format("Falcon Outputs Upload: {} V2 Controller only supports one expansion board.",
+                                       _ip), "Error");
                 success = false;
                 maxDaughter2 = 0;
             }
@@ -3090,11 +3099,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     if (success && stringData.size() > 0) {
         if (doProgress) {
-            progress->Update(60, "Uploading string ports.");
+            ui->UpdateProgress(progressTk, 60, "Uploading string ports.");
         }
 
         if (check != "") {
-            DisplayWarning("Upload warnings:\n" + check);
+            ui->ShowMessage("Upload warnings:\n" + check, "Warning");
             check = ""; // to suppress double display
         }
 
@@ -3111,7 +3120,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse, defaultBrightness, firstchanneloncontroller, defaultGamma);
     } else {
         if (stringData.size() > 0 && caps->GetMaxPixelPort() > 0 && UDController::IsError(check)) {
-            DisplayError("Not uploaded due to errors.\n" + check);
+            ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
             check = "";
         }
     }
@@ -3124,11 +3133,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     if (success && cud.GetMaxSerialPort() > 0) {
         if (doProgress) {
-            progress->Update(90, "Uploading serial ports.");
+            ui->UpdateProgress(progressTk, 90, "Uploading serial ports.");
         }
 
         if (check != "") {
-            DisplayWarning("Upload warnings:\n" + check);
+            ui->ShowMessage("Upload warnings:\n" + check, "Warning");
         }
 
         bool sendSerial = false;
@@ -3155,7 +3164,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 spdlog::info("Serial Port {} Protocol {} Start Channel {}.", sp, (const char*)port->GetProtocol().c_str(), sc);
 
                 uri += "&";
-                uri += GetSerialOutputURI(caps, port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, parent);
+                uri += GetSerialOutputURI(caps, port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, ui);
             }
         }
 
@@ -3164,18 +3173,19 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
     } else {
         if (caps->GetMaxSerialPort() > 0 && UDController::IsError(check)) {
-            DisplayError("Not uploaded due to errors.\n" + check);
+            ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
             check = "";
         }
     }
 
     if (!success && check != "") {
-        DisplayError("Not uploaded due to errors.\n" + check);
+        ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
         check = "";
     }
 
     if (doProgress) {
-        progress->Update(100, "Done.");
+        ui->UpdateProgress(progressTk, 100, "Done.");
+        ui->EndProgress(progressTk);
     }
     spdlog::info("Falcon upload done.");
 

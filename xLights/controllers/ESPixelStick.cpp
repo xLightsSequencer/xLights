@@ -15,8 +15,10 @@
 #include "../outputs/DDPOutput.h"
 #include "../models/ModelManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
 #include "ControllerCaps.h"
+#include "../render/UICallbacks.h"
 #include "../outputs/ControllerEthernet.h"
 
 #include <chrono>
@@ -341,7 +343,7 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
 #pragma endregion
 
 #pragma region Getters and Setters
-bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
+bool ESPixelStick::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     
     if (_version.size() > 0 && _version[0] == '4') {
         //only needed on V4.   V3 will upload inputs with outputs
@@ -403,7 +405,7 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
                 DDPOutput* ddp = dynamic_cast<DDPOutput*>(outputs.front());
                 if (ddp) {
                     if (ddp->IsKeepChannelNumbers()) {
-                        DisplayError("The DDP 'Keep Channel Numbers' option is not supported with ESPixelStick. Please disable.");
+                        ui->ShowMessage("The DDP 'Keep Channel Numbers' option is not supported with ESPixelStick. Please disable.", "Error");
                         return false;
                     }
                 }
@@ -419,16 +421,16 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
     return true;
 }
 
-bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    SetInputUniverses(controller, parent);
-    return SetOutputs(allmodels, outputManager, controller, parent);
+bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
+    SetInputUniverses(controller, ui);
+    return SetOutputs(allmodels, outputManager, controller, ui);
 }
 
-bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
     if (!_version.empty() && _version[0] == '4') {
-        return SetOutputsV4(allmodels, outputManager, controller, parent);
+        return SetOutputsV4(allmodels, outputManager, controller, ui);
     }
-    return SetOutputsV3(allmodels, outputManager, controller, parent);
+    return SetOutputsV3(allmodels, outputManager, controller, ui);
 }
 
 bool EspsV4Protocol::GetSetting(std::string const& Name, std::string& value) {
@@ -724,7 +726,7 @@ bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
 
 } // ParseV4Config
 
-bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
     spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", _ip);
 
@@ -751,7 +753,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
         {
             // no valid config present
             std::string const msg = "ESPixelStick Outputs Upload: Could not parse config from ESPixelstick";
-            DisplayError(msg);
+            ui->ShowMessage(msg, "Error");
             success = false;
             break;
         }
@@ -782,7 +784,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             {
                 // not a supported protocol. Use disabled
                 CurrentEspsPort.Disable();
-                DisplayError("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4");
+                ui->ShowMessage("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4", "Error");
                 continue;
             }
 
@@ -813,7 +815,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     // unsupported color order
                     CurrentEspsPort.Disable();
                     std::string const msg = "ESPixelStick Outputs Upload: Color Order '" + colorOrder + "' not supported by ESPS V4";
-                    DisplayError(msg);
+                    ui->ShowMessage(msg, "Error");
                     return false;
                 }
 
@@ -866,7 +868,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             {
                 // not a supported protocol. Use disabled
                 CurrentEspsPort.Disable();
-                DisplayError("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4");
+                ui->ShowMessage("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4", "Error");
                 continue;
             }
 
@@ -912,7 +914,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
     return success;
 }
 
-bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
     
     spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", _ip);
 
@@ -929,7 +931,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
     try {
         if (success && cud.GetMaxPixelPort() > 0) {
             if (!check.empty()) {
-                DisplayWarning("Upload warnings:\n" + check);
+                ui->ShowMessage("Upload warnings:\n" + check, "Warning");
             }
 
             UDControllerPort* port = cud.GetControllerPixelPort(1);
@@ -937,7 +939,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
             _wsClient.Send("G1");
             std::string config = GetWSResponse();
             if (config.empty()) {
-                DisplayError("Failed to get Data from ESPixelStick");
+                ui->ShowMessage("Failed to get Data from ESPixelStick", "Error");
                 return false;
             }
             config = config.substr(2);
@@ -1001,7 +1003,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
             }
             GetWSResponse();
         } else {
-            DisplayError("Not uploaded due to errors.\n" + check);
+            ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
         }
     } catch (const nlohmann::json::exception& ex) {
         spdlog::error(std::string("SetOutputsV3: ERROR: Could not parse json: ") + ex.what());

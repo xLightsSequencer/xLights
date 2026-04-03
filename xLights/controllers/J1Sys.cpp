@@ -11,7 +11,8 @@
 
 #include "J1Sys.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
@@ -20,11 +21,12 @@
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
 
-#include <wx/msgdlg.h>
 #include <regex>
 
-#include <cassert>
+#include "../render/UICallbacks.h"
 
+#include <cassert>
+#include <cstdlib>
 #include <format>
 #include <log.h>
 
@@ -106,7 +108,7 @@ int J1Sys::DecodeProtocolSpeed(std::string protocol) const {
 #pragma endregion
 
 #pragma region String Port Handling
-std::string J1Sys::BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels, wxWindow* parent) const {
+std::string J1Sys::BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels) const {
 
     
 
@@ -191,7 +193,7 @@ int J1Sys::GetBankSize() const {
 #pragma endregion
 
 #pragma region Serial Port Handling
-std::string J1Sys::BuildSerialPort(bool active, int port, char protocol, int speed, int universe, wxWindow* parent) const {
+std::string J1Sys::BuildSerialPort(bool active, int port, char protocol, int speed, int universe) const {
 
     
 
@@ -326,7 +328,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
     }
     else if (_outputs == 12) {
         int maxUniverses = 12;
-        if (_model != J1SYS_MODEL_P12R && wxAtof(_version) >= 3.4)
+        if (_model != J1SYS_MODEL_P12R && std::strtod(_version.c_str(), nullptr) >= 3.4)
         {
             maxUniverses = 26;
         }
@@ -356,7 +358,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
     return false;
 }
 
-bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
     if (!SetInputUniverses(controller, outputManager)) {
         return false;
@@ -406,7 +408,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                         int channels = m->Channels();
                         while (channels > 0) {
                             if (output >= bankStart + GetBankSize()) {
-                                DisplayError("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".");
+                                ui->ShowMessage("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".", "Error");
                                 spdlog::debug("Erroneous config:");
                                 DumpConfig(j1SysOutputs);
                                 return false;
@@ -439,7 +441,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                         int channels = m->Channels();
                         while (channels > 0) {
                             if (output >= bankStart + GetBankSize()) {
-                                DisplayError("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".");
+                                ui->ShowMessage("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".", "Error");
                                 spdlog::debug("Erroneous config:");
                                 DumpConfig(j1SysOutputs);
                                 return false;
@@ -498,7 +500,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
         std::string requestString;
         for (const auto& j : j1SysOutputs) {
             if (requestString != "") requestString += "&";
-            requestString += BuildStringPort(j.active, j.port, j.protocol, j.speed, j.startChannel, j.universe, j.pixels, parent);
+            requestString += BuildStringPort(j.active, j.port, j.protocol, j.speed, j.startChannel, j.universe, j.pixels);
         }
 
         if (requestString != "") {
@@ -532,16 +534,16 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                 auto o2 = outputManager->GetOutput(port->GetEndChannel(), sc2);
 
                 if (o != o2) {
-                    DisplayError("Controller " + _ip + " serial port " + std::to_string(sp) + " requires more than 1 universe.");
+                    ui->ShowMessage("Controller " + _ip + " serial port " + std::to_string(sp) + " requires more than 1 universe.", "Error");
                     spdlog::debug("Erroneous config:");
                     DumpConfig(j1SysOutputs);
                     return false;
                 }
 
                 if (sc != 1) {
-                    DisplayError("Controller " + _ip + " serial port " + std::to_string(sp) + " does not start on channel 1 of universe " +
+                    ui->ShowMessage("Controller " + _ip + " serial port " + std::to_string(sp) + " does not start on channel 1 of universe " +
                         std::to_string(port->GetUniverse()) + ". It starts at " +
-                        std::to_string(port->GetStartChannel()) + ".");
+                        std::to_string(port->GetStartChannel()) + ".", "Error");
                     spdlog::debug("Erroneous config:");
                     DumpConfig(j1SysOutputs);
                     return false;
@@ -557,7 +559,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
         for (const auto& j : j1SysOutputs) {
             if (requestString != "")
                 requestString += "&";
-            requestString += BuildSerialPort(j.active, j.port + 1, j.protocol, j.speed, j.universe, parent);
+            requestString += BuildSerialPort(j.active, j.port + 1, j.protocol, j.speed, j.universe);
         }
 
         if (requestString != "") {

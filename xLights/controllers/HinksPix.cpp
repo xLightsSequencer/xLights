@@ -11,7 +11,8 @@
 #include "HinksPix.h"
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
 #include "../outputs/ControllerEthernet.h"
@@ -21,8 +22,8 @@
 
 #include <cassert>
 #include <chrono>
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
+
+#include "../render/UICallbacks.h"
 
 #ifdef _MSC_VER
 #include <stdio.h>
@@ -1207,7 +1208,7 @@ struct less_than_key
 
 
 #pragma region Getters and Setters
-bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, wxWindow* parent) {
+bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, UICallbacks* ui) {
     ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
         DisplayError(std::format("{} is not a HinksPix controller.", c->GetName()));
@@ -1234,8 +1235,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
+    auto progressTk = ui->BeginProgress("Uploading ...", 100);
 
     
     spdlog::debug("HinksPix Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
@@ -1257,13 +1257,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         mode = 1;
 
         if (controller->IsUniversePerString()) {
-            DisplayError("HinksPix Upload Error:\nUniverse Per String not allows with DDP Output", parent);
-            progress.Update(100, "Aborting.");
+            ui->ShowMessage("HinksPix Upload Error:\nUniverse Per String not allows with DDP Output", "Error");
+            ui->UpdateProgress(progressTk, 100, "Aborting.");
+            ui->EndProgress(progressTk);
             return false;
         }
     }
 
-    progress.Update(0, "Scanning models");
+    ui->UpdateProgress(progressTk,0, "Scanning models");
     spdlog::info("Scanning models.");
 
     std::string check;
@@ -1276,8 +1277,9 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     cud.Dump();
     if (!success) {
-        DisplayError("HinksPix Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("HinksPix Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
@@ -1287,12 +1289,12 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     bool worked = true;
 
     spdlog::info("Initializing Pixel Output Information.");
-    progress.Update(5, "Initializing Pixel Output Information.");
+    ui->UpdateProgress(progressTk,5, "Initializing Pixel Output Information.");
 
     InitControllerOutputData(fullControl, defaultBrightness);
 
     spdlog::info("Calculating Universe Start Channel Mappings.");
-    progress.Update(10, "Calculating Universe Start Channel Mappings.");
+    ui->UpdateProgress(progressTk,10, "Calculating Universe Start Channel Mappings.");
     std::vector<HinksPixInputUniverse> inputUniverses;
 
     for (auto const& it : outputs) {
@@ -1316,7 +1318,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Figuring Out Pixel Output Information.");
-    progress.Update(15, "Figuring Out Pixel Output Information.");
+    ui->UpdateProgress(progressTk,15, "Figuring Out Pixel Output Information.");
     int32_t hinkstartChan = 1;
     int univIdx = 1;
     //loop to setup string outputs
@@ -1420,21 +1422,23 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Checking Pixel Output and SmartReceivers Information.");
-    progress.Update(20, "Checking Pixel Output and SmartReceivers Information.");
+    ui->UpdateProgress(progressTk,20, "Checking Pixel Output and SmartReceivers Information.");
 
     if (!CheckPixelOutputs(check)) {
-        DisplayError("HinksPix Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("HinksPix Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
     if (!CheckSmartReceivers(check)) {
-        DisplayError("HinksPix Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("HinksPix Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
     spdlog::info("Figuring Out DMX Output Information.");
-    progress.Update(25, "Figuring Out DMX Output Information.");
+    ui->UpdateProgress(progressTk,25, "Figuring Out DMX Output Information.");
 
     if (cud.HasSerialPort(1)) {
         UDControllerPort* portData = cud.GetControllerSerialPort(1);
@@ -1442,15 +1446,15 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading Input Universes Information.");
-    progress.Update(30, "Uploading Input Universes Information.");
+    ui->UpdateProgress(progressTk,30, "Uploading Input Universes Information.");
     worked &= UploadInputUniverses(controller, inputUniverses);
 
     spdlog::info("Uploading SmartReceivers Information.");
-    progress.Update(60, "Uploading SmartReceivers Information.");
+    ui->UpdateProgress(progressTk,60, "Uploading SmartReceivers Information.");
     UploadSmartReceivers(worked);
 
     spdlog::info("Uploading String Output Information.");
-    progress.Update(70, "Uploading String Output Information.");
+    ui->UpdateProgress(progressTk,70, "Uploading String Output Information.");
     if (_controllerType == "E") {
         UploadPixelOutputsEasyLights(worked);
     }
@@ -1459,7 +1463,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading DMX Output Information.");
-    progress.Update(80, "Uploading DMX Output Information.");
+    ui->UpdateProgress(progressTk,80, "Uploading DMX Output Information.");
     _serialOutput->Dump();
 
     if (_controllerType == "E") {
@@ -1475,7 +1479,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         if(IsUnPackSupported_Hinks(controller))
         {
             spdlog::info("Uploading UnPack Information.");
-            progress.Update(30, "Uploading UnPack Information.");
+            ui->UpdateProgress(progressTk,30, "Uploading UnPack Information.");
             UploadUnPack(worked, controller, UPA, dirty);
         }
 
@@ -1487,7 +1491,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
         //reboot
         spdlog::info("Rebooting Controller.");
-        progress.Update(90, "Rebooting Controller.");
+        ui->UpdateProgress(progressTk,90, "Rebooting Controller.");
         auto const resetres = GetControllerData(1111);
         if (resetres != "done") {
             worked = false;
@@ -1506,7 +1510,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         if(IsUnPackSupported_Hinks(controller))
         {
             spdlog::info("Uploading UnPack Information.");
-            progress.Update(30, "Uploading UnPack Information.");
+            ui->UpdateProgress(progressTk,30, "Uploading UnPack Information.");
             UploadUnPack(worked, controller, UPA, dirty);
         }
 
@@ -1517,13 +1521,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
         //reboot
         spdlog::info("Rebooting Controller.");
-        progress.Update(90, "Rebooting Controller.");
+        ui->UpdateProgress(progressTk,90, "Rebooting Controller.");
         SendRebootController(worked);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         SendRebootController(worked);
     }
 
-    progress.Update(100, "Done.");
+    ui->UpdateProgress(progressTk, 100, "Done.");
+    ui->EndProgress(progressTk);
     return worked;
 }
 #pragma endregion

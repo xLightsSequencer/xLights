@@ -78,7 +78,7 @@ public:
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
     [[nodiscard]] int32_t SetInputUniverses(nlohmann::json& data, Controller* controller);
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     [[nodiscard]] bool UsesHTTP() const override { return true; }
 

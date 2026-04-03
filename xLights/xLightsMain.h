@@ -1539,6 +1539,9 @@ public:
                          const std::string& caption,
                          long defaultValue,
                          long min, long max) const override;
+    std::string PromptForText(const std::string& message,
+                              const std::string& caption,
+                              const std::string& defaultValue = "") const override;
     ProgressToken BeginProgress(const std::string& message,
                                 int maximum = 100) override;
     void UpdateProgress(ProgressToken token, int value,

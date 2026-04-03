@@ -28,7 +28,6 @@ class Model;
 class ModelManager;
 class OutputManager;
 class Output;
-class wxWindow;
 class Controller;
 class ControllerCaps;
 

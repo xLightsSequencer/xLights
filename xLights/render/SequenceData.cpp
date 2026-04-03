@@ -16,7 +16,7 @@
 #include "utils/Base64.h"
 #include "render/SequenceData.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "utils/DisplayMessages.h"
 
 const unsigned char SequenceData::FrameData::_constzero = 0;
 

@@ -668,11 +668,11 @@ bool xLightsApp::OnInit()
 
         if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !info.empty() && readOnlyZipFile == "")
         {
-            DisplayInfo(info); //give positive feedback*/
+            wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK); // pre-frame: callback not yet registered
         }
         break;
     default:
-        DisplayError(_("Unrecognized command line parameters"));
+        wxMessageBox(_("Unrecognized command line parameters"), "Error", wxICON_ERROR | wxOK); // pre-frame: callback not yet registered
         return false;
     }
 

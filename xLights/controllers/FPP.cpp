@@ -38,6 +38,7 @@
 #include <wx/debugrpt.h>
 
 #include "FPP.h"
+#include "../render/UICallbacks.h"
 #include "../models/CustomModel.h"
 #include "../models/Model.h"
 #include "../models/MatrixModel.h"
@@ -52,6 +53,7 @@
 #include "../outputs/ControllerSerial.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
+#include "../utils/string_utils.h"
 #include "../xLightsVersion.h"
 #include "Parallel.h"
 #include "ControllerCaps.h"
@@ -124,7 +126,7 @@ static std::string ReadConfigString(wxConfigBase* config, const char* key, const
     return ToUTF8(value);
 }
 
-FPP::FPP(const std::string& ad) : BaseController(ad, ""), ipAddress(ad), majorVersion(0), minorVersion(0), patchVersion(0), fppType(FPP_TYPE::FPP), parent(nullptr), outputFile(nullptr) {
+FPP::FPP(const std::string& ad) : BaseController(ad, ""), ipAddress(ad), majorVersion(0), minorVersion(0), patchVersion(0), fppType(FPP_TYPE::FPP), _ui(nullptr), outputFile(nullptr) {
         
     if (ip_utils::IsValidHostname(ipAddress)) {
         hostName = ipAddress;
@@ -136,7 +138,7 @@ FPP::FPP(const std::string& ad) : BaseController(ad, ""), ipAddress(ad), majorVe
 
 FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_) :
     BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0),
-    pixelControllerType(model_), fppType(FPP_TYPE::FPP), parent(nullptr), outputFile(nullptr)
+    pixelControllerType(model_), fppType(FPP_TYPE::FPP), _ui(nullptr), outputFile(nullptr)
 {
     ipAddress = ip_;
     if (ip_utils::IsValidHostname(ipAddress)) {
@@ -150,7 +152,7 @@ FPP::FPP(const FPP &c)
     : hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion),
     ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password),
-    fppType(c.fppType), parent(nullptr), capeInfo(c.capeInfo), outputFile(nullptr) {
+    fppType(c.fppType), _ui(nullptr), capeInfo(c.capeInfo), outputFile(nullptr) {
 
 }
 
@@ -1931,7 +1933,7 @@ std::string FPP::GetModel(const std::string& type)
 }
 
 #ifndef DISCOVERYONLY
-bool FPP::SetInputUniverses(Controller* controller, wxWindow* parentWin) {
+bool FPP::SetInputUniverses(Controller* controller, UICallbacks* uiWin) {
 
     wxConfigBase* config = wxConfigBase::Get();
     std::string fip = ReadConfigString(config, "xLightsPiIP", "");
@@ -1961,27 +1963,23 @@ bool FPP::SetInputUniverses(Controller* controller, wxWindow* parentWin) {
             password = "raspberry";
         } else if (username == "fpp") {
             password = "falcon";
-        } else {
-            wxTextEntryDialog ted(parentWin, ToWXString(std::format("Enter password for {}", username)), "Password", controller->GetIP());
-            if (ted.ShowModal() == wxID_OK) {
-                password = ToUTF8(ted.GetValue());
-            }
+        } else if (uiWin) {
+            // Note: If uiWin is null (headless mode), no password prompt is shown. Password will default to empty.
+            password = uiWin->PromptForText(std::format("Enter password for {}", username), "Password", "");
         }
-    } else {
-        wxTextEntryDialog ted(parentWin, ToWXString(std::format("Enter password for {}", username)), "Password", controller->GetIP());
-        if (ted.ShowModal() == wxID_OK) {
-            password = ToUTF8(ted.GetValue());
-        }
+    } else if (uiWin) {
+        // Note: If uiWin is null (headless mode), no password prompt is shown. Password will default to empty.
+        password = uiWin->PromptForText(std::format("Enter password for {}", username), "Password", "");
     }
 
-    parent = parentWin;
+    _ui = uiWin;
 
     return (AuthenticateAndUpdateVersions() && !SetInputUniversesBridge(controller));
 }
 
-bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
-    parent = parent;
+    _ui = ui;
     return AuthenticateAndUpdateVersions()
         && !UploadPanelOutputs(allmodels, outputManager, controller)
         && !UploadVirtualMatrixOutputs(allmodels, outputManager, controller)
@@ -1991,8 +1989,8 @@ bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Cont
         && !Restart("");
 }
 
-bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    parent = parent;
+bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
+    _ui = ui;
     bool b = AuthenticateAndUpdateVersions();
     if (!b) return b;
     UploadPanelOutputs(allmodels, outputManager, controller);
@@ -2383,7 +2381,8 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
         }
         if (!found) {
             std::string msg = "Could not detect a pinout for " + rules->GetID() + " for controller type " + rules->GetModel() + ".  Configuration will not work.  Verify controller type/model/variant.  Continue?";
-            if (wxMessageBox(ToWXString(msg), "Confirm", wxYES_NO, parent) != wxYES) {
+            // Note: If _ui is null (headless mode), this check is skipped and we continue with the configuration
+            if (_ui && !_ui->PromptYesNo(msg, "Confirm")) {
                 return false;
             }
         }
@@ -2391,7 +2390,8 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
     if (origMod != "" && rules->GetModel() != origMod) {
         std::string msg = "Configured controller type " + rules->GetModel() + " for " + ipAddress + " is not compatible with type already configured: "
             + origMod + ".   Continue?";
-        if (wxMessageBox(ToWXString(msg), "Confirm", wxYES_NO, parent) != wxYES) {
+        // Note: If _ui is null (headless mode), this check is skipped and we continue with the configuration
+        if (_ui && !_ui->PromptYesNo(msg, "Confirm")) {
             return false;
         }
     }
@@ -4286,7 +4286,7 @@ static void waitForCurlsComplete(Discovery *discovery) {
     }
 }
 
-std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
+std::list<FPP*> FPP::GetInstances(UICallbacks* ui, OutputManager* outputManager)
 {
     std::list<FPP*> instances;
 
@@ -4332,7 +4332,9 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     startAddresses.sort();
     startAddresses.unique();
 
-    wxDiscoveryDelegate delegate(frame);
+    // TODO: wxDiscoveryDelegate needs a wxWindow* for dialog parenting, but we only have UICallbacks* here.
+    // Passing nullptr means auth dialogs won't be parented to the main frame.
+    wxDiscoveryDelegate delegate(nullptr);
     Discovery *discovery = new Discovery(outputManager, &delegate);
     FPP::PrepareDiscovery(*discovery, startAddresses);
     discovery->Discover();

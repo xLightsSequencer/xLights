@@ -25,7 +25,7 @@
 #include "GenericSerialOutput.h"
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/DisplayMessages.h"
 
 #include "serial.h"
 

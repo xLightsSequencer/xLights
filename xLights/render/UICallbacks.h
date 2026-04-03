@@ -50,6 +50,12 @@ public:
                                  long defaultValue,
                                  long min, long max) const = 0;
 
+    // ---- text input ----
+    // Returns the entered text, or |defaultValue| if cancelled.
+    virtual std::string PromptForText(const std::string& message,
+                                      const std::string& caption,
+                                      const std::string& defaultValue = "") const = 0;
+
     // ---- progress reporting ----
     // Begin a progress operation.  Returns a token that the caller passes
     // to UpdateProgress / EndProgress.  |maximum| is the upper bound of

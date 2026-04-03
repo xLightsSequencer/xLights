@@ -53,7 +53,7 @@ ILightThat::~ILightThat()
 #pragma endregion
 
 #pragma region Getters and Setters
-bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
     
     spdlog::debug("ILightThat Outputs Upload: Uploading to {}", (const char*)_ip.c_str());

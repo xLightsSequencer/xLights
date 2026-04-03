@@ -9,9 +9,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
 #include <regex>
+
+#include "../render/UICallbacks.h"
 
 #include <cassert>
 
@@ -23,7 +23,7 @@
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/string_utils.h"
 
 #include <log.h>
 
@@ -586,7 +586,7 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
         struct curl_slist* headers = NULL;
-        headers = curl_slist_append(headers, _("content-type: application/x-www-form-urlencoded").c_str());
+        headers = curl_slist_append(headers, "content-type: application/x-www-form-urlencoded");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)request.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)request.c_str());
@@ -612,14 +612,13 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
 #pragma endregion
 
 #pragma region Getters and Setters
-bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
-    
+    auto progressTk = ui->BeginProgress("Uploading ...", 100);
+
     spdlog::debug("AlphaPix Outputs Upload: Uploading to {}", _ip);
 
-    progress.Update(0, "Scanning models");
+    ui->UpdateProgress(progressTk, 0, "Scanning models");
     spdlog::info("Scanning models.");
 
     std::string check;
@@ -633,16 +632,18 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     cud.Dump();
     if (!success) {
-        DisplayError("AlphaPix Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("AlphaPix Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
     //get current config Page
     const std::string page = _page;
 
     if (page.empty()) {
-        DisplayError("AlphaPix Upload Error:\nWebpage was empty", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("AlphaPix Upload Error:\nWebpage was empty", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
@@ -651,13 +652,14 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     _connected = ParseWebpage(_page, controllerData);
     if (!_connected) {
-        DisplayError("Unable to Parse Main Webpage.", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("Unable to Parse Main Webpage.", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
     spdlog::info("Figuring Out Pixel Output Information.");
-    progress.Update(10, "Figuring Out Pixel Output Information.");
+    ui->UpdateProgress(progressTk,10, "Figuring Out Pixel Output Information.");
 
     bool uploadColor = false;
     std::vector<int> colorOrder;
@@ -677,14 +679,14 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading String Output Information.");
-    progress.Update(20, "Uploading String Output Information.");
+    ui->UpdateProgress(progressTk,20, "Uploading String Output Information.");
     if (_modelnum == 48)
         UploadFlexPixelOutputs(worked);
     else
         UploadPixelOutputs(worked);
 
     spdlog::info("Figuring Out DMX Output Information.");
-    progress.Update(30, "Figuring Out DMX Output Information.");
+    ui->UpdateProgress(progressTk,30, "Figuring Out DMX Output Information.");
     for (int port = 1; port <= GetNumberOfSerial(); port++) {
         if (cud.HasSerialPort(port)) {
             UDControllerPort* portData = cud.GetControllerSerialPort(port);
@@ -694,7 +696,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading DMX Output Information.");
-    progress.Update(40, "Uploading DMX Output Information.");
+    ui->UpdateProgress(progressTk,40, "Uploading DMX Output Information.");
     for (const auto& serial : _serialOutputs) {
         serial->Dump();
         if (serial->upload) {
@@ -717,7 +719,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading Protocol Type.");
-    progress.Update(50, "Uploading Protocol Type.");
+    ui->UpdateProgress(progressTk,50, "Uploading Protocol Type.");
     const int newProtocol = EncodeStringPortProtocol(pixelType);
     if (newProtocol != -1 && controllerData.protocol != newProtocol) {
         const std::string res = APPutURL(GetProtocolURL(), std::format("IC={}", newProtocol));
@@ -727,7 +729,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading Color Order.");
-    progress.Update(60, "Uploading Color Order.");
+    ui->UpdateProgress(progressTk,60, "Uploading Color Order.");
 
     if (uploadColor) {
         std::sort(colorOrder.begin(), colorOrder.end());
@@ -762,7 +764,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading Output Description.");
-    progress.Update(70, "Uploading Output Description.");
+    ui->UpdateProgress(progressTk,70, "Uploading Output Description.");
     const std::string outName = SafeDescription(controller->GetName());
     if (!outName.empty() && controllerData.name != outName) {
         const std::string res = APPutURL(GetNameURL(), "name=" + outName);
@@ -784,7 +786,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     spdlog::info("Uploading Output Type.");
-    progress.Update(80, "Updating Output Type.");
+    ui->UpdateProgress(progressTk,80, "Updating Output Type.");
     if (!requestInputString.empty()) {
         const std::string res = APPutURL(GetInputTypeURL(), requestInputString);
         if (res.empty())
@@ -796,6 +798,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     if(!worked)
         spdlog::error("Error Uploading to AlphaPix controller, Page HTML:{}.", (const char*)_page.c_str());
 
+    ui->EndProgress(progressTk);
     return worked;
 }
 

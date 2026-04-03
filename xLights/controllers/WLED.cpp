@@ -9,9 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
-
 #include "WLED.h"
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
@@ -21,7 +18,9 @@
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
+#include "../render/UICallbacks.h"
 
 #include <curl/curl.h>
 
@@ -412,10 +411,9 @@ const uint8_t WLED::GetOutputPin(int port, ControllerCaps* caps) {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
+    auto progressTk = ui->BeginProgress("Uploading ...", 100);
 
     spdlog::debug("WLED Outputs Upload: Uploading to {}", _ip);
 
@@ -423,19 +421,21 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     //2105200 added per string null pixel to GUI but older builds have it in the JSON
     if (_vid < 2105110) {
         spdlog::error("Build 2105110 or newer of WLED Is Required, '{}' is Installed .", _vid);
-        DisplayError("WLED Upload Error:\nWLED 0.13b5 or newer is required", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("WLED Upload Error:\nWLED 0.13b5 or newer is required", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
     if (_vid < 2203190 && _vid > 2112080) {
         spdlog::error("WLED Build 2112080 to 2203190 are broken, '{}' is Installed .", _vid);
-        DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13.2, WLED 0.13 beta6 or beta5 for the upload to work correctly", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13.2, WLED 0.13 beta6 or beta5 for the upload to work correctly", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
-    progress.Update(0, "Scanning models");
+    ui->UpdateProgress(progressTk, 0, "Scanning models");
     spdlog::info("Scanning models.");
 
     std::string check;
@@ -450,8 +450,9 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     cud.Dump();
 
     if (!success) {
-        DisplayError("WLED Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("WLED Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
@@ -468,37 +469,41 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     {
         val = nlohmann::json::parse(page);
     }
-    catch (nlohmann::json::parse_error const& e) 
+    catch (nlohmann::json::parse_error const& e)
     {
         spdlog::error(e.what());
-        DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("WLED Upload Error:\n JSON Parse Error", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
     catch (nlohmann::json::exception& e)
     {
         spdlog::error(e.what());
-        DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("WLED Upload Error:\n JSON Parse Error", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
-    catch (std::exception& e) 
+    catch (std::exception& e)
     {
         spdlog::error(e.what());
-        DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("WLED Upload Error:\n JSON Parse Error", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
     bool worked = ParseOutputJSON(val, maxPort, caps, fullControl);
     if (!worked) {
-        DisplayError("Unable to Parse JSON.", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("Unable to Parse JSON.", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
     spdlog::info("Figuring Out Pixel Output Information.");
-    progress.Update(20, "Figuring Out Pixel Output Information.");
+    ui->UpdateProgress(progressTk, 20, "Figuring Out Pixel Output Information.");
 
     //loop to setup string outputs
     int totalCount { 0 };
@@ -516,7 +521,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     }
 
     spdlog::info("Updating String Output Information.");
-    progress.Update(40, "Updating String Output Information.");
+    ui->UpdateProgress(progressTk, 40, "Updating String Output Information.");
 
     UpdatePixelOutputs(worked, totalCount, val);
 
@@ -525,10 +530,11 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     }
 
     spdlog::info("Updating Input Information.");
-    progress.Update(50, "Updating Input Information.");
+    ui->UpdateProgress(progressTk, 50, "Updating Input Information.");
     worked = SetupInput(controller, val, rgbw);
     if (!worked) {
-        progress.Update(100, "Aborting.");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
@@ -537,7 +543,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     }
 
     spdlog::info("Uploading JSON to WLED.");
-    progress.Update(70, "Uploading JSON to WLED.");
+    ui->UpdateProgress(progressTk, 70, "Uploading JSON to WLED.");
 
     //reboot
     val["rb"] = true;
@@ -550,7 +556,8 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     }
 
     spdlog::info("WLED Outputs Upload Done.");
-    progress.Update(100, "Done.");
+    ui->UpdateProgress(progressTk, 100, "Done.");
+    ui->EndProgress(progressTk);
     return worked;
 }
 #pragma endregion

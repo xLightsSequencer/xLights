@@ -19,7 +19,7 @@
 #include "render/SequencePackage.h"
 #include "xLightsMain.h"
 #include "utils/ExternalHooks.h"
-#include "ui/wxUtilities.h"
+#include "../ui/wxUtilities.h"
 
 #include <log.h>
 

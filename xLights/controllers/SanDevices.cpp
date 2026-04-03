@@ -9,6 +9,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <wx/string.h>
+
 #include "SanDevices.h"
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
@@ -17,11 +19,12 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/string_utils.h"
+#include "../utils/DisplayMessages.h"
 
-#include <wx/msgdlg.h>
+#include "../render/UICallbacks.h"
+
 #include <regex>
-#include <wx/progdlg.h>
 
 #include <cassert>
 #include <chrono>
@@ -84,17 +87,16 @@ void SanDevicesOutputV4::Dump() const {
 
 
 #pragma region Private Functions
-bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
-    
+    auto progressTk = ui->BeginProgress("Uploading ...", 100);
+
     spdlog::debug("SanDevices Outputs Upload: Uploading to {}", _ip);
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
-    progress.Update(0, "Scanning models");
+    ui->UpdateProgress(progressTk, 0, "Scanning models");
     spdlog::info("Scanning models.");
 
     std::string check;
@@ -109,8 +111,9 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     cud.Dump();
 
     if (!success) {
-        DisplayError("SanDevices Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("SanDevices Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
@@ -118,20 +121,22 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     const std::string page = _page;
 
     if (page.empty()) {
+        ui->EndProgress(progressTk);
         return false;
     }
 
-    progress.Update(30, "Reading Protocol Data from Controller.");
+    ui->UpdateProgress(progressTk, 30, "Reading Protocol Data from Controller.");
     spdlog::info("Reading Protocol Data from Controller.");
 
     _connected = ParseV4Webpage(_page);
     if (!_connected) {
-        DisplayError("Unable to Parse Webpage.", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("Unable to Parse Webpage.", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
-    progress.Update(50, "Figuring Out Protocol and Output Information.");
+    ui->UpdateProgress(progressTk, 50, "Figuring Out Protocol and Output Information.");
     spdlog::info("Figuring Out Protocol and Output Information.");
     const int totalOutputGroups = GetNumberOfOutputGroups();
     const int outputPerGroups = GetOutputsPerGroup();
@@ -153,12 +158,14 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
 
                 if (newPort->protocol != protocol) {
                     spdlog::warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
-                    wxMessageBox(wxString::Format("All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
+                    ui->ShowMessage(std::format("All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->EndProgress(progressTk);
                     return false;
                 }
                 if (newPort->pixels != port->Pixels()) {
                     spdlog::warn("SanDevices Outputs Upload: All The Pixel Lengths must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
-                    wxMessageBox(wxString::Format("All The Pixel Lengths must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
+                    ui->ShowMessage(std::format("All The Pixel Lengths must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->EndProgress(progressTk);
                     return false;
                 }
                 UpdateSubPortDataV4(newPort, j, port);
@@ -173,7 +180,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     spdlog::info("Sending Output Data to Controller.");
     //spam the controller with web requests
     for (const auto& outputD : _outputDataV4) {
-        progress.Update(p, "Sending Output Data to Controller.");
+        ui->UpdateProgress(progressTk, p, "Sending Output Data to Controller.");
         outputD->Dump();
         if (outputD->upload) {
             const std::string url = GenerateOutputURLV4(outputD);
@@ -182,22 +189,22 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
         }
         p += 10;
     }
+    ui->EndProgress(progressTk);
     return true;
 }
 
-bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
+    auto progressTk = ui->BeginProgress("Uploading ...", 100);
 
     //bool success = true;
-    
+
     spdlog::debug("SanDevices Outputs Upload: Uploading to {}", _ip);
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
-    progress.Update(0, "Scanning models");
+    ui->UpdateProgress(progressTk, 0, "Scanning models");
     spdlog::info("Scanning models.");
 
     std::string check;
@@ -211,22 +218,27 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
 
     cud.Dump();
     if (!success) {
-        DisplayError("SanDevices Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("SanDevices Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
     //get current config Page
     const std::string page = _page;
 
-    if (page.empty()) { return false; }
+    if (page.empty()) {
+        ui->EndProgress(progressTk);
+        return false;
+    }
 
-    progress.Update(10, "Reading Protocol Data from Controller.");
+    ui->UpdateProgress(progressTk, 10, "Reading Protocol Data from Controller.");
     spdlog::info("Reading Protocol Data from Controller.");
 
     _connected = ParseV5MainWebpage(_page);
     if (!_connected) {
-        DisplayError("Unable to Parse Main Webpage.", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("Unable to Parse Main Webpage.", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
@@ -240,7 +252,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
             return cud.GetControllerPixelPort(output);
         };
 
-    progress.Update(20, "Figuring Out Protocol Information.");
+    ui->UpdateProgress(progressTk, 20, "Figuring Out Protocol Information.");
     spdlog::info("Figuring Out Protocol Information.");
     //loop to setup protocol setting
     for (int i = 1; i <= totalOutputGroups; i++) {
@@ -250,7 +262,8 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
             if (cud.HasPixelPort(outputNumber) || cud.HasSerialPort(outputNumber)) {
                 if (cud.HasPixelPort(outputNumber) && cud.HasSerialPort(outputNumber)) {
                     spdlog::warn("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port {}-1 to {}-4", i, i);
-                    wxMessageBox(wxString::Format("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port %d-1 to %d-4", i, i));
+                    ui->ShowMessage(std::format("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->EndProgress(progressTk);
                     return false;
                 }
 
@@ -263,7 +276,8 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
                 if (newPort->getProtocol() != firstPort->getProtocol()) {
                     delete newPort;
                     spdlog::warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
-                    wxMessageBox(wxString::Format("All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
+                    ui->ShowMessage(std::format("All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->EndProgress(progressTk);
                     return false;
                 }
                 delete newPort;
@@ -274,7 +288,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
         }
     }
 
-    progress.Update(30, "Sending Protocol Data to Controller.");
+    ui->UpdateProgress(progressTk, 30, "Sending Protocol Data to Controller.");
     spdlog::info("Sending Protocol Data to Controller.");
 
     for (const auto& proro : _protocolData) {
@@ -286,7 +300,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
         }
     }
 
-    progress.Update(50, "Getting Output Data from Controller.");
+    ui->UpdateProgress(progressTk, 50, "Getting Output Data from Controller.");
     spdlog::info("Getting Output Data from Controller.");
 
     const std::string page2 = SDGetURL("/H?");
@@ -294,18 +308,20 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
 
     if (page2.empty()) {
         spdlog::error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
-        wxMessageBox("Error occurred trying to upload to SanDevices.", "Error", wxOK, parent);
+        ui->ShowMessage("Error occurred trying to upload to SanDevices.", "Error");
+        ui->EndProgress(progressTk);
         return false;
     }
 
     _connected = ParseV5OutputWebpage(page2);
     if (!_connected) {
-        DisplayError("Unable to Parse Main Webpage.", parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("Unable to Parse Main Webpage.", "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
-    progress.Update(60, "Figuring Out Output Information.");
+    ui->UpdateProgress(progressTk, 60, "Figuring Out Output Information.");
     spdlog::info("Figuring Out Output Information.");
     //loop to setup string outputs
     for (int i = 1; i <= totalOutputGroups; i++) {
@@ -331,7 +347,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     //spam the controller with web requests
     for (const auto& outputD : _outputData) {
         p += 2;
-        progress.Update(p, "Sending Output Data to Controller.");
+        ui->UpdateProgress(progressTk, p, "Sending Output Data to Controller.");
         outputD->Dump();
         if (outputD->upload) {
             const std::string url = GenerateOutputURLV5(outputD);
@@ -339,6 +355,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
             std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
     }
+    ui->EndProgress(progressTk);
     return true;
 }
 
@@ -416,7 +433,7 @@ std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
 
     if (res.empty()) {
         spdlog::error("Unable to connect to SanDevices {} '{}'.", _ip, url);
-        wxMessageBox("Unable to connect!");
+        DisplayError(std::format("Unable to connect to SanDevices {}.", _ip));
     } else if (logresult) {
         spdlog::debug("Response from SanDevices '{}'.", res);
     }
@@ -1134,7 +1151,7 @@ SanDevices::~SanDevices() {
 #pragma endregion
 
 #pragma region Getters and Setters
-bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
+bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     
     const std::string page = _page;
 
@@ -1154,7 +1171,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
     std::list<Output*> outputs = controller->GetOutputs();
 
     if (outputs.size() > 12) {
-        DisplayError(std::format("Attempt to upload {} universes to SanDevices controller but only 12 are supported.", outputs.size()));
+        ui->ShowMessage(std::format("Attempt to upload {} universes to SanDevices controller but only 12 are supported.", outputs.size()), "Error");
         return false;
     }
 
@@ -1178,7 +1195,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
     }
 
     if ((t == 2 || t == 0) && outputs.size() > 7) {
-        DisplayError(std::format("Attempt to upload {} universes to SanDevices controller but only 7 are supported in Multicast/Artnet Mode.", outputs.size()));
+        ui->ShowMessage(std::format("Attempt to upload {} universes to SanDevices controller but only 7 are supported in Multicast/Artnet Mode.", outputs.size()), "Error");
         return false;
     }
 
@@ -1256,14 +1273,14 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
         }
         if (IsFirmware5()) {
             if (it->GetChannels() != 510 && it->GetChannels() != 512) {
-                DisplayError(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()));
+                ui->ShowMessage(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()), "Error");
                 return false;
             }
             requestUnvSize += wxString::Format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
         }
         else {
             if (it->GetChannels() != 510) {
-                DisplayError(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510 is supported in Firmware 4.", it->GetChannels()));
+                ui->ShowMessage(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510 is supported in Firmware 4.", it->GetChannels()), "Error");
                 return false;
             }
         }
@@ -1292,14 +1309,14 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
     return passed;
 }
 
-bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
 
     if (IsFirmware5()) {
-        return SetOutputsV5(allmodels, outputManager, controller, parent);
+        return SetOutputsV5(allmodels, outputManager, controller, ui);
     }
 
     if (IsFirmware4()) {
-        return SetOutputsV4(allmodels, outputManager, controller, parent);
+        return SetOutputsV4(allmodels, outputManager, controller, ui);
     }
     assert(false);
     return false;

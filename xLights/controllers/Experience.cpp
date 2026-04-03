@@ -8,12 +8,14 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <filesystem>
 #include <unordered_set>
 
 #include "Experience.h"
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
 #include "../outputs/ControllerEthernet.h"
@@ -23,9 +25,9 @@
 
 #include "../utils/CurlManager.h"
 
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
 #include <regex>
+
+#include "../render/UICallbacks.h"
 
 #include <log.h>
 
@@ -55,8 +57,8 @@ bool Experience::UploadSequence(std::string const& seq, std::string const& file,
     std::string const url = "http://" + baseIP + _baseUrl + "/upload";
     spdlog::debug("Uploading to URL: {}", url);
 
-    wxFileName fn(file);
-    return CurlManager::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
+    std::filesystem::path fn(file);
+    return CurlManager::HTTPUploadFile(url, seq, fn.filename().string(), progress);
 }
 bool Experience::DecodeFirmwareInformation(std::string const& firmware) {
     static std::regex firmware_regex(R"(v(\d+)\.(\d+)\.(\d+)?(?:\-(\d+)))", std::regex::icase);
@@ -258,18 +260,17 @@ int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controll
     return startChannel;
 }
 
-bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, wxWindow* parent) {
+bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, UICallbacks* ui) {
     ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
-        DisplayError(std::format("{} is not a Experience controller.", c->GetName()));
+        ui->ShowMessage(std::format("{} is not a Experience controller.", c->GetName()), "Error");
         return false;
     }
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
+    auto progressTk = ui->BeginProgress("Uploading ...", 100);
     spdlog::debug("Experience Outputs Upload: Uploading to {}", _ip);
 
-    progress.Update(0, "Scanning models");
+    ui->UpdateProgress(progressTk, 0, "Scanning models");
     spdlog::info("Scanning models.");
 
     std::string check;
@@ -283,8 +284,9 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
     cud.Dump();
     if (!success) {
-        DisplayError("Experience Upload Error:\n" + check, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("Experience Upload Error:\n" + check, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
@@ -294,7 +296,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
     bool const has_eFuses = _has_efuses || Lower(rules->GetCustomPropertyByPath("eFuses", "false")) == "true";
     spdlog::info("Initializing Pixel Output Information.");
-    progress.Update(10, "Initializing Pixel Output Information.");
+    ui->UpdateProgress(progressTk,10, "Initializing Pixel Output Information.");
 
     nlohmann::json stringData;
 
@@ -305,7 +307,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     }
 
     spdlog::info("Initializing Universe Input Information.");
-    progress.Update(20, "Initializing Universe Input Information.");
+    ui->UpdateProgress(progressTk,20, "Initializing Universe Input Information.");
     int32_t const startChannel = SetInputUniverses(stringData, controller);
 
     if (-1 == startChannel) {
@@ -317,7 +319,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     std::string unsupportedMessage;
 
     spdlog::info("Figuring Out Pixel Output Information.");
-    progress.Update(30, "Figuring Out Pixel Output Information.");
+    ui->UpdateProgress(progressTk,30, "Figuring Out Pixel Output Information.");
     //loop to setup string outputs
     for (int p = 1; p <= GetNumberOfPixelOutputs(); p++) {
         nlohmann::json port;
@@ -491,13 +493,14 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     }
 
     if (unsupportedFeatures) {
-        DisplayError("Experience Upload Error:\n" + unsupportedMessage, parent);
-        progress.Update(100, "Aborting.");
+        ui->ShowMessage("Experience Upload Error:\n" + unsupportedMessage, "Error");
+        ui->UpdateProgress(progressTk, 100, "Aborting.");
+        ui->EndProgress(progressTk);
         return false;
     }
 
     spdlog::info("Figuring Out DMX Output Information.");
-    progress.Update(50, "Figuring Out DMX Output Information.");
+    ui->UpdateProgress(progressTk,50, "Figuring Out DMX Output Information.");
 
     for (int sp = 1; sp <= GetNumberOfSerial(); sp++) {
         nlohmann::json sport;
@@ -526,10 +529,11 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     }
 
     spdlog::info("Uploading Output Information.");
-    progress.Update(70, "Uploading String Output Information.");
+    ui->UpdateProgress(progressTk,70, "Uploading String Output Information.");
 
     PostJSONToURL(GetConfigURL(), stringData);
-    progress.Update(100, "Done.");
+    ui->UpdateProgress(progressTk, 100, "Done.");
+    ui->EndProgress(progressTk);
     return true;
 }
 #pragma endregion

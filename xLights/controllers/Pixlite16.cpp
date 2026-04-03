@@ -11,14 +11,12 @@
 
 #include <nlohmann/json.hpp>
 
-#include <wx/msgdlg.h>
-
 #include "Pixlite16.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "ControllerUploadData.h"
+#include "../render/UICallbacks.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "discovery/Discovery.h"
@@ -1671,7 +1669,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* /*parent*/)
+bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
@@ -1803,7 +1801,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     if (success) {
         if (check != "") {
-            DisplayWarning("Upload warnings:\n" + check);
+            ui->ShowMessage("Upload warnings:\n" + check, "Warning");
         }
 
         DumpConfiguration(_config);
@@ -1811,7 +1809,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         return SendConfig(false);
     }
 
-    DisplayError("Not uploaded due to errors.\n" + check);
+    ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
 
     return false;
 }

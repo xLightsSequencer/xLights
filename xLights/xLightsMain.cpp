@@ -64,6 +64,7 @@
 #include "render/SequenceMedia.h"
 #include "ui/wxUtilities.h"
 #include "ui/wxTextDrawingContext.h"
+#include "utils/DisplayMessages.h"
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include <wx/gifdecod.h>
@@ -632,6 +633,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     OutputManager::SetConfirmCallback([](const std::string& message, const std::string& title) -> bool {
         return wxMessageBox(message, title, wxICON_QUESTION | wxYES_NO) == wxYES;
+    });
+
+    RegisterDisplayCallback([](DisplayMessageLevel level, const std::string& msg) {
+        switch (level) {
+        case DisplayMessageLevel::Error:
+            wxMessageBox(msg, "Error", wxICON_ERROR | wxOK);
+            break;
+        case DisplayMessageLevel::Warning:
+            wxMessageBox(msg, "Warning", wxICON_WARNING | wxOK);
+            break;
+        case DisplayMessageLevel::Info:
+            wxMessageBox(msg, "Information", wxICON_INFORMATION | wxOK);
+            break;
+        }
     });
 
     ValueCurve::SetSequenceElements(&_sequenceElements);
@@ -2539,9 +2554,19 @@ long xLightsFrame::PromptForNumber(const std::string& message,
     return wxGetNumberFromUser(message, "", caption, defaultValue, min, max);
 }
 
+std::string xLightsFrame::PromptForText(const std::string& message,
+                                        const std::string& caption,
+                                        const std::string& defaultValue) const {
+    wxTextEntryDialog ted(const_cast<xLightsFrame*>(this), message, caption, defaultValue);
+    if (ted.ShowModal() == wxID_OK) {
+        return ted.GetValue().ToStdString();
+    }
+    return defaultValue;
+}
+
 UICallbacks::ProgressToken xLightsFrame::BeginProgress(const std::string& message,
                                                        int maximum) {
-    auto* dlg = new wxProgressDialog(message, "", maximum, nullptr,
+    auto* dlg = new wxProgressDialog(message, "", maximum, this,
                                      wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     ProgressToken token = _nextProgressToken++;
     _progressDialogs[token] = dlg;

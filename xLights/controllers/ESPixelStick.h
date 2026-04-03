@@ -94,8 +94,8 @@ private:
     bool SetHttpConfig(std::string const& filename, std::string const& key, nlohmann::json const& Data);
     bool SetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json const& Data);
 
-    bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
-    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
+    bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui);
+    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui);
 
     bool ParseV4Config(nlohmann::json& outputConfig);
     std::string GetWSResponse();
@@ -110,9 +110,9 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
-    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
+    virtual bool SetInputUniverses(Controller* controller, UICallbacks* ui) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
 
     virtual bool UsesHTTP() const override { return false; }

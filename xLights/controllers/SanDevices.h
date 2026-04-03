@@ -132,8 +132,8 @@ class SanDevices : public BaseController
     #pragma endregion
 
     #pragma region Private Functions
-    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
-    bool SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
+    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui);
+    bool SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui);
     bool ParseV4Webpage(const std::string& page);
     bool ParseV5MainWebpage(const std::string& page);
     bool ParseV5OutputWebpage(const std::string& page);
@@ -180,8 +180,8 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(Controller* controller, UICallbacks* ui) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
     virtual bool needsHTTP_0_9() const override { return true; }

@@ -29,6 +29,7 @@
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "../ui/wxUtilities.h"
+#include "string_utils.h"
 #include "../../dependencies/md5/md5.h"
 #include "../kiss_fft/tools/kiss_fftr.h"
 

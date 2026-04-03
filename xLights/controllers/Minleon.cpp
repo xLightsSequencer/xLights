@@ -10,9 +10,9 @@
  **************************************************************/
 
 #include "Minleon.h"
-#include <wx/msgdlg.h>
 #include <regex>
-#include <wx/progdlg.h>
+
+#include "../render/UICallbacks.h"
 
 #include <cassert>
 
@@ -27,7 +27,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "../utils/string_utils.h"
 
 #include <format>
 #include <log.h>
@@ -817,17 +817,16 @@ std::string Minleon::ParseNDBHTML(const std::string& html, uint8_t index)
 #pragma endregion
 
 #pragma region Getters and Setters
-bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
 
     //ResetStringOutputs(); // this shouldnt be used normally
 
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
+    auto progressTk = ui->BeginProgress("Uploading ...", 100);
 
     
     spdlog::debug("Minleon Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
-    progress.Update(0, "Scanning models");
+    ui->UpdateProgress(progressTk,0, "Scanning models");
     spdlog::info("Scanning models.");
 
     std::string check;
@@ -963,15 +962,15 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
             spdlog::debug("Minleon port data prepared.");
             DumpStringData(_stringPorts, _startUniverse);
 
-            progress.Update(10, "Port data prepared.");
+            ui->UpdateProgress(progressTk,10, "Port data prepared.");
         }
     }
 
     if (success && cud.GetMaxPixelPort() > 0) {
-        progress.Update(60, "Uploading string ports.");
+        ui->UpdateProgress(progressTk,60, "Uploading string ports.");
 
         if (check != "") {
-            DisplayWarning("Upload warnings:\n" + check);
+            ui->ShowMessage("Upload warnings:\n" + check, "Warning");
             check = ""; // to suppress double display
         }
 
@@ -980,12 +979,13 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
     }
     else {
         if (cud.GetMaxPixelPort() > 0 && (caps == nullptr || caps->GetMaxPixelPort() > 0) && check != "") {
-            DisplayError("Not uploaded due to errors.\n" + check);
+            ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
             check = "";
         }
     }
 
-    progress.Update(100, "Done.");
+    ui->UpdateProgress(progressTk, 100, "Done.");
+    ui->EndProgress(progressTk);
     spdlog::info("Minleon upload done.");
 
     return success;

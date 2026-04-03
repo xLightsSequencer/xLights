@@ -210,7 +210,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Pulse("Discovering FPP Instances");
     prgs.Show();
 
-    instances = FPP::GetInstances(this, outputManager);
+    instances = FPP::GetInstances(static_cast<xLightsFrame*>(GetParent()), outputManager);
 
     wxPanel *p1 = AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     p1->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::UploadPopupMenu, nullptr, this);
@@ -1122,7 +1122,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     FPPUploadProgressDialog prgs(this);
     row = 0;
     for (const auto& inst : instances) {
-        inst->parent = this;
+        inst->_ui = static_cast<xLightsFrame*>(GetParent());
         // not in discovery so we can increase the timeouts to make sure things get transferred
         inst->defaultConnectTimeout = 5000;
         inst->messages.clear();
@@ -1233,7 +1233,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 inst->Restart(true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
-                bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), this);
+                bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame);
                 delete bc;
             }
         }
@@ -1705,7 +1705,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 
     std::string fppConnectIP = "";
     prgs.Show();
-    std::list<FPP*> newInstances = FPP::GetInstances(this, _outputManager);
+    std::list<FPP*> newInstances = FPP::GetInstances(static_cast<xLightsFrame*>(GetParent()), _outputManager);
     
     for (FPP* fpp : newInstances) {
         bool found = false;

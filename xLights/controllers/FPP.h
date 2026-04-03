@@ -16,7 +16,7 @@
 
 class FSEQFile;
 typedef void CURL;
-class wxWindow;
+class UICallbacks;
 class wxGauge;
 class FPPUploadProgressDialog;
 class Discovery;
@@ -37,7 +37,7 @@ class FPP : public BaseController
 {
     public:
     FPP() :
-            BaseController("", ""), majorVersion(0), minorVersion(0), fppType(FPP_TYPE::FPP), parent(nullptr), outputFile(nullptr) {}
+            BaseController("", ""), majorVersion(0), minorVersion(0), fppType(FPP_TYPE::FPP), _ui(nullptr), outputFile(nullptr) {}
     FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_);
     FPP(const std::string &address);
     FPP(const FPP &c);
@@ -75,7 +75,7 @@ class FPP : public BaseController
     bool upload;
     bool canZipUpload = false;
 
-    wxWindow *parent = nullptr;
+    UICallbacks *_ui = nullptr;
     void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
     bool updateProgress(int val, bool yield);
 
@@ -150,7 +150,7 @@ class FPP : public BaseController
     static bool ValidateProxy(const std::string& to, const std::string& via);
 
     static void TypeIDtoControllerType(int typeId, FPP* inst);
-    static std::list<FPP*> GetInstances(wxWindow* frame, OutputManager* outputManager);
+    static std::list<FPP*> GetInstances(UICallbacks* ui, OutputManager* outputManager);
 
     static ReceiverType DecodeReceiverType(const std::string& type, bool supportsV5);
     static ReceiverType DecodeReceiverType(int type, bool supportsV5);
@@ -169,9 +169,9 @@ class FPP : public BaseController
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(Controller* controller, UICallbacks* ui) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
 #pragma endregion
