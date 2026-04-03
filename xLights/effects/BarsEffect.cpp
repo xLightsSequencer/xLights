@@ -20,6 +20,9 @@
 #include "../../include/bars-48.xpm"
 #include "../../include/bars-64.xpm"
 
+#include "ispc/BarsFunctions.ispc.h"
+#include "Parallel.h"
+
 BarsEffect::BarsEffect(int i) :
     RenderableEffect(i, "Bars", bars_16, bars_24, bars_32, bars_48, bars_64)
 {
@@ -93,6 +96,134 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
 
 void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    do {
+        // ISPC-accelerated path. Custom Horz/Vert need spatial data — skip ISPC.
+        const std::string& ispcDirStr = SettingsMap["CHOICE_Bars_Direction"];
+        int ispcDir = -1;
+        if      (ispcDirStr == "up")              ispcDir = 0;
+        else if (ispcDirStr == "down")            ispcDir = 1;
+        else if (ispcDirStr == "expand")          ispcDir = 2;
+        else if (ispcDirStr == "compress")        ispcDir = 3;
+        else if (ispcDirStr == "Left")            ispcDir = 4;
+        else if (ispcDirStr == "Right")           ispcDir = 5;
+        else if (ispcDirStr == "H-expand")        ispcDir = 6;
+        else if (ispcDirStr == "H-compress")      ispcDir = 7;
+        else if (ispcDirStr == "Alternate Up")    ispcDir = 8;
+        else if (ispcDirStr == "Alternate Down")  ispcDir = 9;
+        else if (ispcDirStr == "Alternate Left")  ispcDir = 10;
+        else if (ispcDirStr == "Alternate Right") ispcDir = 11;
+        else break; // Custom Horz / Custom Vert — fall through to CPU
+
+        float ispcOffset = buffer.GetEffectTimeIntervalPosition();
+        int ispcPaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, ispcOffset, BARCOUNT_MIN, BARCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+        double ispcCycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, ispcOffset, BARCYCLES_MIN, BARCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
+        double ispcPosition = buffer.GetEffectTimeIntervalPosition(ispcCycles);
+        double ispcCenter = GetValueCurveDouble("Bars_Center", 0, SettingsMap, ispcPosition, BARCENTER_MIN, BARCENTER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+        bool ispcHighlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
+        bool ispcUseFCFH   = ispcHighlight && SettingsMap.GetBool("CHECKBOX_Bars_UseFirstColorForHighlight", false);
+        bool ispcShow3D    = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);
+        bool ispcGradient  = SettingsMap.GetBool("CHECKBOX_Bars_Gradient", false);
+
+        size_t ispcColorcnt = buffer.GetColorCount();
+        if (ispcColorcnt == 0) ispcColorcnt = 1;
+        if (ispcHighlight && ispcUseFCFH) {
+            if (ispcColorcnt == 1)
+                ispcUseFCFH = false;
+            else
+                ispcColorcnt -= 1;
+        }
+
+        bool hasSpatial = false;
+        for (size_t i = 0; i < ispcColorcnt && !hasSpatial; i++)
+            hasSpatial = buffer.palette.IsSpatial(i);
+        if (hasSpatial) break;
+
+        if ((int)ispcColorcnt > MAX_ISPC_BARS_COLORS) break;
+
+        int ispcBarCount = ispcPaletteRepeat * (int)ispcColorcnt;
+        if (ispcBarCount < 1) ispcBarCount = 1;
+
+        ispc::BarsData bdata;
+        bdata.width      = buffer.BufferWi;
+        bdata.height     = buffer.BufferHt;
+        bdata.colorCount = (int)ispcColorcnt;
+        bdata.highlight  = ispcHighlight ? 1 : 0;
+        bdata.show3D     = ispcShow3D    ? 1 : 0;
+        bdata.gradient   = ispcGradient  ? 1 : 0;
+        bdata.allowAlpha = buffer.allowAlpha ? 1 : 0;
+        bdata.useFirstColorForHighlight = ispcUseFCFH ? 1 : 0;
+
+        if (ispcUseFCFH) {
+            xlColor hc;
+            buffer.palette.GetColor(0, hc);
+            bdata.highlightColor.v[0] = hc.red;
+            bdata.highlightColor.v[1] = hc.green;
+            bdata.highlightColor.v[2] = hc.blue;
+            bdata.highlightColor.v[3] = hc.alpha;
+        } else {
+            bdata.highlightColor.v[0] = 255;
+            bdata.highlightColor.v[1] = 255;
+            bdata.highlightColor.v[2] = 255;
+            bdata.highlightColor.v[3] = 255;
+        }
+
+        int ispcColorOffset = ispcUseFCFH ? 1 : 0;
+        for (int i = 0; i < (int)ispcColorcnt; i++) {
+            xlColor c;
+            buffer.palette.GetColor(i + ispcColorOffset, c);
+            bdata.colorsAsRGBA[i].v[0] = c.red;
+            bdata.colorsAsRGBA[i].v[1] = c.green;
+            bdata.colorsAsRGBA[i].v[2] = c.blue;
+            bdata.colorsAsRGBA[i].v[3] = c.alpha;
+            HSVValue hsv = c.asHSV();
+            bdata.colorsH[i] = (float)hsv.hue;
+            bdata.colorsS[i] = (float)hsv.saturation;
+            bdata.colorsV[i] = (float)hsv.value;
+        }
+
+        if (ispcDir < 4 || ispcDir == 8 || ispcDir == 9) {
+            int barHt = (int)std::ceil((float)buffer.BufferHt / (float)ispcBarCount);
+            if (barHt < 1) barHt = 1;
+            int blockHt = (int)ispcColorcnt * barHt;
+            if (blockHt < 1) blockHt = 1;
+            int f_offset = (int)(ispcPosition * blockHt);
+            if (ispcDir == 8 || ispcDir == 9)
+                f_offset = (int)(floor(ispcPosition * ispcBarCount) * barHt);
+            int mappedDir = (ispcDir > 4) ? ispcDir - 8 : ispcDir;
+            bdata.direction = mappedDir;
+            bdata.barSize   = barHt;
+            bdata.blockSize = blockHt;
+            bdata.f_offset  = f_offset;
+            bdata.newCenter = buffer.BufferHt * (100 + (int)ispcCenter) / 200;
+        } else {
+            int barWi = (int)std::ceil((float)buffer.BufferWi / (float)ispcBarCount);
+            if (barWi < 1) barWi = 1;
+            int blockWi = (int)ispcColorcnt * barWi;
+            if (blockWi < 1) blockWi = 1;
+            int f_offset = (int)(ispcPosition * blockWi);
+            if (ispcDir > 9)
+                f_offset = (int)(floor(ispcPosition * ispcBarCount) * barWi);
+            int mappedDir = (ispcDir > 9) ? ispcDir - 6 : ispcDir;
+            bdata.direction = mappedDir;
+            bdata.barSize   = barWi;
+            bdata.blockSize = blockWi;
+            bdata.f_offset  = f_offset;
+            bdata.newCenter = buffer.BufferWi * (100 + (int)ispcCenter) / 200;
+        }
+
+        int max = buffer.BufferWi * buffer.BufferHt;
+        constexpr int bfBlockSize = 4096;
+        int blocks = max / bfBlockSize + 1;
+        parallel_for(0, blocks, [&bdata, &buffer, max](int y) {
+            int start = y * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > max) end = max;
+            ispc::BarsEffectISPC(&bdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+        });
+        return;
+    } while (false);
+
     float offset = buffer.GetEffectTimeIntervalPosition();
     int paletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, BARCYCLES_MIN, BARCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
