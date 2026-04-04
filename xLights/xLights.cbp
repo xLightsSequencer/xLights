@@ -396,7 +396,7 @@
 		<Unit filename="render/Render.cpp" />
 		<Unit filename="render/ViewpointMgr.cpp" />
 		<Unit filename="render/ViewpointMgr.h" />
-		<Unit filename="render/RenderUI.cpp" />
+		<Unit filename="ui/render/RenderUI.cpp" />
 		<Unit filename="render/RenderBuffer.cpp" />
 		<Unit filename="render/RenderBuffer.h" />
 		<Unit filename="render/RenderCache.cpp" />
@@ -436,8 +436,8 @@
 		<Unit filename="ui/media/SequenceVideoPanel.h" />
 		<Unit filename="ui/media/SequenceVideoPreview.cpp" />
 		<Unit filename="ui/media/SequenceVideoPreview.h" />
-		<Unit filename="ui/sequencer/SequenceViewManager.cpp" />
-		<Unit filename="ui/sequencer/SequenceViewManager.h" />
+		<Unit filename="render/SequenceViewManager.cpp" />
+		<Unit filename="render/SequenceViewManager.h" />
 		<Unit filename="ui/model/SevenSegmentDialog.cpp" />
 		<Unit filename="ui/model/SevenSegmentDialog.h" />
 		<Unit filename="ui/effects/ShaderDownloadDialog.cpp" />

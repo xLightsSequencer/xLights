@@ -8,12 +8,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "ui/sequencer/SequenceViewManager.h"
-#include <wx/wx.h>
+#include "render/SequenceViewManager.h"
+
+#include <cassert>
+
 #include "models/ModelManager.h"
 #include "models/Model.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
 #include <log.h>
@@ -46,10 +47,10 @@ void SequenceView::SetModels(const std::string& models)
 
 	if (models == "") return;
 
-	auto ms = wxSplit(models, ',');
-	for (auto& m : ms)
+	auto ms = Split(models, ',', true);
+	for (const auto& m : ms)
 	{
-		_modelNames.push_back(m.Trim(true).Trim(false).ToStdString());
+		_modelNames.push_back(m);
 	}
 }
 
@@ -204,7 +205,7 @@ SequenceViewManager::~SequenceViewManager()
 
 void SequenceViewManager::Load(pugi::xml_node node, int selectedView)
 {
-	wxASSERT(_modelManager != nullptr);
+	assert(_modelManager != nullptr);
 
 	_selectedView = selectedView;
 
@@ -243,7 +244,7 @@ void SequenceViewManager::Save(BaseSerializingVisitor& visitor) const
 
 SequenceView* SequenceViewManager::AddView(const std::string& name)
 {
-	wxASSERT(_modelManager != nullptr);
+	assert(_modelManager != nullptr);
 
 	AddMasterView();
 
@@ -377,15 +378,15 @@ void SequenceViewManager::SetSelectedView(int view)
 	}
 }
 
-wxArrayString SequenceViewManager::GetViewList(bool skipMaster)
+std::vector<std::string> SequenceViewManager::GetViewList(bool skipMaster)
 {
-	wxArrayString strViews;
+	std::vector<std::string> strViews;
 	auto views = GetViews();
 	for (auto it = views.begin(); it != views.end(); ++it) {
 		if ((*it)->GetName() == "Master View"  && skipMaster) {
 			continue;
 		}
-		strViews.Add((*it)->GetName());
+		strViews.push_back((*it)->GetName());
 	}
 
 	return strViews;

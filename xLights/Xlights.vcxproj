@@ -889,7 +889,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui/sequencer/RenameTextDialog.cpp" />
     <ClCompile Include="render\Render.cpp" />
     <ClCompile Include="render\ViewpointMgr.cpp" />
-    <ClCompile Include="render\RenderUI.cpp" />
+    <ClCompile Include="ui\render\RenderUI.cpp" />
     <ClCompile Include="render\RenderBuffer.cpp" />
     <ClCompile Include="render\RenderCache.cpp" />
     <ClCompile Include="ui/sequencer/RenderCommandEvent.cpp" />
@@ -925,7 +925,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\sequencer\Waveform.cpp" />
     <ClCompile Include="ui/media/SequenceVideoPanel.cpp" />
     <ClCompile Include="ui/media/SequenceVideoPreview.cpp" />
-    <ClCompile Include="ui/sequencer/SequenceViewManager.cpp" />
+    <ClCompile Include="render/SequenceViewManager.cpp" />
     <ClCompile Include="ui/model/SevenSegmentDialog.cpp" />
     <ClCompile Include="ui/effects/ShaderDownloadDialog.cpp" />
     <ClCompile Include="ui/app-shell/SplashDialog.cpp" />
@@ -1494,7 +1494,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui\sequencer\Waveform.h" />
     <ClInclude Include="ui/media/SequenceVideoPanel.h" />
     <ClInclude Include="ui/media/SequenceVideoPreview.h" />
-    <ClInclude Include="ui/sequencer/SequenceViewManager.h" />
+    <ClInclude Include="render/SequenceViewManager.h" />
     <ClInclude Include="ui/model/SevenSegmentDialog.h" />
     <ClInclude Include="ui/effects/ShaderDownloadDialog.h" />
     <ClInclude Include="utils/SpecialOptions.h" />

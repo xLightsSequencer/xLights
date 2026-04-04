@@ -30,7 +30,6 @@
 #include "UICallbacks.h"
 #include "AudioManager.h"
 #include "../xLightsMain.h"
-#include "ui/media/JukeboxPanel.h"
 #include "../ui/shared/dialogs/OptionChooser.h"
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"
@@ -1415,9 +1414,8 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
     }
 
     // Jukebox
-    xLightsFrame* frame = xLightsFrame::GetFrame();
-    if (frame && frame->GetJukeboxPanel()) {
-        frame->GetJukeboxPanel()->Save(root);
+    if (!_jukeboxButtons.empty()) {
+        SaveJukeboxButtons(root, _jukeboxButtons);
     }
 
     return true;

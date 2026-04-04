@@ -25,8 +25,8 @@
 #include "UtilFunctions.h"
 #include "../utils/DisplayMessages.h"
 #include "../utils/string_utils.h"
-#include "ui/sequencer/SequenceViewManager.h"
-#include "ui/media/JukeboxPanel.h"
+#include "render/SequenceViewManager.h"
+#include "JukeboxButtonData.h"
 #include "../utils/TraceLog.h"
 
 #include <log.h>
@@ -780,9 +780,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
         } else if (ename == "SequenceMedia") {
             mSequenceMedia.LoadFromXml(e);
         } else if (ename == "Jukebox") {
-            if (auto* frame = GetXLightsFrame()) {
-                frame->GetJukeboxPanel()->Load(e);
-            }
+            LoadJukeboxButtons(e, xml_file.GetJukeboxButtons());
         } else if (ename == "ElementEffects") {
             // Count effects for progress
             int count = 0;

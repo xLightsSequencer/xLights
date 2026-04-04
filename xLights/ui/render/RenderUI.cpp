@@ -11,16 +11,16 @@
 // UI event handlers and UI-coupled render orchestration — separated from the
 // platform-neutral render engine in Render.cpp.
 
-#include "xLightsMain.h"
-#include "IRenderProgressSink.h"
-#include "RenderProgressInfo.h"
-#include "ui/sequencer/RenderCommandEvent.h"
-#include "ui/sequencer/MainSequencer.h"
-#include "../ui/diagnostics/RenderProgressDialog.h"
-#include "ui/import-export/SeqExportDialog.h"
-#include "utils/ExternalHooks.h"
-#include "UtilFunctions.h"
-#include "models/ModelGroup.h"
+#include "../../xLightsMain.h"
+#include "../../render/IRenderProgressSink.h"
+#include "../../render/RenderProgressInfo.h"
+#include "../sequencer/RenderCommandEvent.h"
+#include "../sequencer/MainSequencer.h"
+#include "../diagnostics/RenderProgressDialog.h"
+#include "../import-export/SeqExportDialog.h"
+#include "../../utils/ExternalHooks.h"
+#include "../../utils/UtilFunctions.h"
+#include "../../models/ModelGroup.h"
 
 #include <log.h>
 

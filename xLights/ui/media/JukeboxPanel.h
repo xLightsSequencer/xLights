@@ -16,10 +16,10 @@
 //*)
 
 #include <map>
+#include "render/JukeboxButtonData.h"
 
 class ButtonControl;
 class MainSequencer;
-namespace pugi { class xml_node; }
 
 class ButtonControl
 {
@@ -62,8 +62,8 @@ class JukeboxPanel: public wxPanel
 
 		JukeboxPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~JukeboxPanel();
-        void Save(pugi::xml_node& parent) const;
-        void Load(const pugi::xml_node& node);
+        void SyncFromData(const JukeboxButtonMap& data);
+        void SyncToData(JukeboxButtonMap& data) const;
         void PlayItem(int item);
         wxString GetTooltips() const;
         wxString GetTooltipsJSON() const;

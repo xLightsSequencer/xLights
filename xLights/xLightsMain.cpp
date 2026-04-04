@@ -4474,6 +4474,10 @@ bool xLightsFrame::SaveWorking()
     std::string origPath = CurrentSeqXmlFile->GetFullPath();
     CurrentSeqXmlFile->SetFullPath(tmp.ToStdString());
 
+    // Sync jukebox UI state to sequence data before saving
+    if (GetJukeboxPanel()) {
+        GetJukeboxPanel()->SyncToData(CurrentSeqXmlFile->GetJukeboxButtons());
+    }
     bool b = CurrentSeqXmlFile->Save(_sequenceElements);
     if (!b) {
         wxMessageDialog msgDlg(this, "Error Saving Sequence to " + tmp,
@@ -10041,7 +10045,7 @@ void xLightsFrame::SetDefaultSeqView(const wxString& view)
     UpdateControllerSave();
 }
 
-wxArrayString xLightsFrame::GetSequenceViews()
+std::vector<std::string> xLightsFrame::GetSequenceViews()
 {
     return _sequenceViewManager.GetViewList();
 }

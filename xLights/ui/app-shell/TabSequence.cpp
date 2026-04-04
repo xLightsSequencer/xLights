@@ -19,12 +19,13 @@
 #include <pugixml.hpp>
 
 #include "xLightsMain.h"
+#include "ui/media/JukeboxPanel.h"
 #include "ui/sequencer/SeqSettingsDialog.h"
 #include "render/SequenceFile.h"
 #include "effects/RenderableEffect.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
-#include "ui/sequencer/SequenceViewManager.h"
+#include "render/SequenceViewManager.h"
 #include "ui/layout/LayoutPanel.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
@@ -1563,6 +1564,10 @@ void xLightsFrame::SaveSequence()
         CurrentSeqXmlFile->SetExt("xsq");
     } else if (wxString(CurrentSeqXmlFile->GetExt()).Lower() == "xbkp") {
         CurrentSeqXmlFile->SetExt("xsq");
+    }
+    // Sync jukebox UI state to sequence data before saving
+    if (GetJukeboxPanel()) {
+        GetJukeboxPanel()->SyncToData(CurrentSeqXmlFile->GetJukeboxButtons());
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     spdlog::info("Saving XSQ file.");

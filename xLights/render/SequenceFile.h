@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "DataLayer.h"
+#include "JukeboxButtonData.h"
 #include "../import_export/Vixen3.h"
 #include "pugixml.hpp"
 
@@ -161,6 +162,10 @@ public:
     bool supportsModelBlending() const { return supports_model_blending; }
     void setSupportsModelBlending(bool b) { supports_model_blending = b; }
 
+    // Jukebox button data (sequence-owned, UI syncs from here)
+    JukeboxButtonMap& GetJukeboxButtons() { return _jukeboxButtons; }
+    const JukeboxButtonMap& GetJukeboxButtons() const { return _jukeboxButtons; }
+
     int GetLastView() const { return mLastView; }
 
     // static methods
@@ -184,6 +189,7 @@ private:
     bool sequence_loaded = false;
     DataLayerSet mDataLayers;
     AudioManager* audio = nullptr;
+    JukeboxButtonMap _jukeboxButtons;
 
     void CreateNew();
     std::optional<pugi::xml_document> LoadSequence(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath);

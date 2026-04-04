@@ -67,8 +67,8 @@
     <ClCompile Include="render\Render.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="render\RenderUI.cpp">
-      <Filter>render</Filter>
+    <ClCompile Include="ui\render\RenderUI.cpp">
+      <Filter>ui\render</Filter>
     </ClCompile>
     <ClCompile Include="render\RenderBuffer.cpp">
       <Filter>render</Filter>
@@ -84,7 +84,7 @@
     <ClCompile Include="ui/import-export/SeqFileUtilities.cpp" />
     <ClCompile Include="ui/sequencer/SeqSettingsDialog.cpp" />
     <ClCompile Include="render/SequenceData.cpp" />
-    <ClCompile Include="ui/sequencer/SequenceViewManager.cpp" />
+    <ClCompile Include="render/SequenceViewManager.cpp" />
     <ClCompile Include="ui/model/SevenSegmentDialog.cpp" />
     <ClCompile Include="ui/app-shell/SplashDialog.cpp" />
     <ClCompile Include="ui/model/StartChannelDialog.cpp" />
@@ -1521,7 +1521,7 @@
     <ClInclude Include="ui\import-export\SeqExportDialog.h" />
     <ClInclude Include="ui/sequencer/SeqSettingsDialog.h" />
     <ClInclude Include="render/SequenceData.h" />
-    <ClInclude Include="ui/sequencer/SequenceViewManager.h" />
+    <ClInclude Include="render/SequenceViewManager.h" />
     <ClInclude Include="ui/model/SevenSegmentDialog.h" />
     <ClInclude Include="ui/app-shell/SplashDialog.h" />
     <ClInclude Include="ui/model/StartChannelDialog.h" />

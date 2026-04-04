@@ -155,17 +155,7 @@ JukeboxPanel::~JukeboxPanel()
     }
 }
 
-// --- pugixml implementations ---
-
-void JukeboxPanel::Save(pugi::xml_node& parent) const
-{
-    auto res = parent.append_child("Jukebox");
-    for (const auto& it : _buttons) {
-        it.second->Save(res);
-    }
-}
-
-void JukeboxPanel::Load(const pugi::xml_node& node)
+void JukeboxPanel::SyncFromData(const JukeboxButtonMap& data)
 {
     for (const auto& it : _buttons) {
         SetButtonTooltip(it.second->_number, "");
@@ -173,14 +163,42 @@ void JukeboxPanel::Load(const pugi::xml_node& node)
     }
     _buttons.clear();
 
-    if (strcmp(node.name(), "Jukebox") == 0) {
-        for (auto n : node.children("Button")) {
-            ButtonControl* b = new ButtonControl(n);
-            _buttons[b->_number] = b;
-            SetButtonTooltip(b->_number, b->_tooltip);
+    for (const auto& [num, btnData] : data) {
+        ButtonControl* b;
+        if (btnData->type == JukeboxButtonData::LookupType::DESCRIPTION) {
+            b = new ButtonControl(btnData->number, btnData->description, btnData->tooltip, btnData->loop);
+        } else if (btnData->type == JukeboxButtonData::LookupType::MLT) {
+            b = new ButtonControl(btnData->number, btnData->element, btnData->layer, btnData->time, btnData->tooltip, btnData->loop);
+        } else {
+            b = new ButtonControl(btnData->number);
         }
+        _buttons[b->_number] = b;
+        SetButtonTooltip(b->_number, b->_tooltip);
     }
     ValidateWindow();
+}
+
+void JukeboxPanel::SyncToData(JukeboxButtonMap& data) const
+{
+    data.clear();
+    for (const auto& [num, btn] : _buttons) {
+        auto d = std::make_unique<JukeboxButtonData>();
+        d->number = btn->_number;
+        d->description = btn->_description;
+        d->element = btn->_element;
+        d->tooltip = btn->_tooltip;
+        d->layer = btn->_layer;
+        d->time = btn->_time;
+        d->loop = btn->_loop;
+        if (btn->_type == ButtonControl::LOOKUPTYPE::LTDESCRIPTION) {
+            d->type = JukeboxButtonData::LookupType::DESCRIPTION;
+        } else if (btn->_type == ButtonControl::LOOKUPTYPE::LTMLT) {
+            d->type = JukeboxButtonData::LookupType::MLT;
+        } else {
+            d->type = JukeboxButtonData::LookupType::DISABLED;
+        }
+        data[num] = std::move(d);
+    }
 }
 
 void JukeboxPanel::SetButtonTooltip(int b, std::string tooltip)

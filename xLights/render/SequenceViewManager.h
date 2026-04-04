@@ -12,7 +12,7 @@
 
 #include <list>
 #include <string>
-#include <wx/arrstr.h>
+#include <vector>
 #include <pugixml.hpp>
 
 #include "XmlSerializer/BaseSerializingVisitor.h"
@@ -78,7 +78,7 @@ public:
 	void DeleteModel(const std::string& model);
 	void Reset();
     int GetViewCount() const { return _views.size(); }
-	wxArrayString GetViewList(bool skipMaster = true);
+	std::vector<std::string> GetViewList(bool skipMaster = true);
     void MoveViewUp(int index) const;
     void MoveViewDown(int index) const;
 

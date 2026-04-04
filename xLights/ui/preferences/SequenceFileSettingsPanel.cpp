@@ -364,7 +364,9 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
 
     ViewDefaultChoice->Clear();
     ViewDefaultChoice->Append(wxString());
-    ViewDefaultChoice->Append(frame->GetSequenceViews());
+    for (const auto& v : frame->GetSequenceViews()) {
+        ViewDefaultChoice->Append(v);
+    }
     auto const& view = ViewDefaultChoice->FindString(frame->GetDefaultSeqView());
     if (wxNOT_FOUND != view) {
         ViewDefaultChoice->SetSelection(view);

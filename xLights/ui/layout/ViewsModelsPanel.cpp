@@ -28,7 +28,7 @@
 #include "ui/layout/ViewsModelsPanel.h"
 #include "render/SequenceElements.h"
 #include "xLightsMain.h"
-#include "ui/sequencer/SequenceViewManager.h"
+#include "render/SequenceViewManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 #include "models/ModelGroup.h"

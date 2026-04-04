@@ -80,7 +80,7 @@
 #include "models/ViewObjectManager.h"
 #include "ui/shared/utils/xLightsTimer.h"
 #include "JobPool.h"
-#include "ui/sequencer/SequenceViewManager.h"
+#include "render/SequenceViewManager.h"
 #include "ui/color/ColorManager.h"
 #include "ui/effects/EffectPresetManager.h"
 #include "render/ViewpointMgr.h"
@@ -1393,7 +1393,7 @@ public:
 
     const std::string& GetDefaultSeqView() const { return _defaultSeqView; }
     void SetDefaultSeqView(const wxString& view);
-    wxArrayString GetSequenceViews();
+    std::vector<std::string> GetSequenceViews();
 
     const wxString& GetVideoExportCodec() const { return _videoExportCodec; }
     void SetVideoExportCodec(const wxString& codec);

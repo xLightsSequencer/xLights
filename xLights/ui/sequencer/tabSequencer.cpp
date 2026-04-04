@@ -57,6 +57,7 @@
 #include "ui/sequencer/SelectPanel.h"
 #include "ui/diagnostics/SearchPanel.h"
 #include "ui/layout/LayoutGroup.h"
+#include "ui/media/JukeboxPanel.h"
 #include "render/ViewpointMgr.h"
 #include "ui/layout/LayoutPanel.h"
 #include "../utils/TraceLog.h"
@@ -891,6 +892,11 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
     AddTraceMessage("loading");
     _sequenceElements.LoadSequencerFile(xml_file, doc, GetShowDirectory());
+
+    // Sync jukebox UI from sequence data
+    if (GetJukeboxPanel()) {
+        GetJukeboxPanel()->SyncFromData(xml_file.GetJukeboxButtons());
+    }
 
     spdlog::debug("Upgrading sequence");
     xml_file.AdjustEffectSettingsForVersion(_sequenceElements, this);
