@@ -8,18 +8,16 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wfstream.h>
-#include <wx/zipstrm.h>
 #include <pugixml.hpp>
-#include <wx/log.h>
-#include <wx/time.h>
-#include <wx/dir.h>
-#include <wx/progdlg.h>
+#include <fstream>
 
 #include "render/SequencePackage.h"
 #include "xLightsMain.h"
 #include "utils/ExternalHooks.h"
-#include "../ui/wxUtilities.h"
+
+extern "C" {
+#include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
+}
 
 #include <log.h>
 
@@ -29,7 +27,6 @@ static const std::string SUBFLD_VIDEOS = "Videos";
 static const std::string SUBFLD_FACES = "DownloadedFaces";
 static const std::string SUBFLD_SHADERS = "Shaders";
 static const std::string SUBFLD_GLEDIATORS = "Glediators";
-static const char PATH_SEP = wxFileName::GetPathSeparator();
 
 SeqPkgImportOptions::SeqPkgImportOptions() {};
 
@@ -68,28 +65,33 @@ void SeqPkgImportOptions::RestoreDefaults()
     }
 }
 
-SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xlights)
+SequencePackage::SequencePackage(const std::filesystem::path& fileName, xLightsFrame* xlights)
 {
     _xlights = xlights;
 
-    if (fileName.GetExt() == "zip" || fileName.GetExt() == "piz" || fileName.GetExt() == "xsqz") {
+    std::string ext = fileName.extension().string();
+    // normalize to lowercase for comparison
+    for (auto& c : ext) c = std::tolower(c);
+
+    if (ext == ".zip" || ext == ".piz" || ext == ".xsqz") {
         _xsqOnly = false;
         _pkgFile = fileName;
-        FileExists(_pkgFile, true);
-        ObtainAccessToURL(_pkgFile.GetFullPath());
+        FileExists(_pkgFile.string(), true);
+        ObtainAccessToURL(_pkgFile.string());
     } else {
         _xsqOnly = true;
         _xsqFile = fileName;
-        FileExists(_xsqFile, true);
-        ObtainAccessToURL(_xsqFile.GetFullPath());
+        FileExists(_xsqFile.string(), true);
+        ObtainAccessToURL(_xsqFile.string());
     }
 }
 
 SequencePackage::~SequencePackage()
 {
     // cleanup extracted files
-    if (!_xsqOnly && _tempDir.Exists() && !_leaveFiles) {
-        wxDir::Remove(_tempDir.GetFullPath(), wxPATH_RMDIR_RECURSIVE);
+    if (!_xsqOnly && !_tempDir.empty() && std::filesystem::exists(_tempDir) && !_leaveFiles) {
+        std::error_code ec;
+        std::filesystem::remove_all(_tempDir, ec);
     }
 }
 
@@ -104,164 +106,189 @@ void SequencePackage::InitDefaultImportOptions()
     std::string showFolder = _xlights->GetShowDirectory();
 
     // always default faces/shaders to default download folder as they tend to be reused
-    _importOptions.SetDir(MediaTargetDir::FACES_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_FACES), true);
+    _importOptions.SetDir(MediaTargetDir::FACES_DIR, (std::filesystem::path(showFolder) / SUBFLD_FACES).string(), true);
 
-    wxFileName targetXsq(_xlights->GetSeqXmlFileName());
-    wxString targetDir = targetXsq.GetPath();
+    std::filesystem::path targetXsq(_xlights->GetSeqXmlFileName().ToStdString());
+    std::string targetDir = targetXsq.parent_path().string();
 
-    wxString mediaBaseFolder;
+    std::string mediaBaseFolder;
 
-    if (targetDir.ToStdString() != showFolder) {
+    if (targetDir != showFolder) {
         // target xsq is not at the root of show folder, assume user manages show folder
         // with a subfolder per sequence as Gil noted
         mediaBaseFolder = targetDir;
     } else {
         // default images/videos/glediators into new ImportedMedia/<NameOfSrcXsq>/<MediaType>
-        mediaBaseFolder = wxString::Format("%s%c%s%c%s", showFolder, PATH_SEP, IMPORTED_MEDIA, PATH_SEP, _xsqName);
+        mediaBaseFolder = (std::filesystem::path(showFolder) / IMPORTED_MEDIA / _xsqName).string();
     }
 
     // set the defaults for media sub folders
-    _importOptions.SetDir(MediaTargetDir::GLEDIATORS_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_GLEDIATORS), true);
-    _importOptions.SetDir(MediaTargetDir::IMAGES_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_IMAGES), true);
-    _importOptions.SetDir(MediaTargetDir::SHADERS_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_SHADERS), true);
-    _importOptions.SetDir(MediaTargetDir::VIDEOS_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_VIDEOS), true);
+    _importOptions.SetDir(MediaTargetDir::GLEDIATORS_DIR, (std::filesystem::path(mediaBaseFolder) / SUBFLD_GLEDIATORS).string(), true);
+    _importOptions.SetDir(MediaTargetDir::IMAGES_DIR, (std::filesystem::path(mediaBaseFolder) / SUBFLD_IMAGES).string(), true);
+    _importOptions.SetDir(MediaTargetDir::SHADERS_DIR, (std::filesystem::path(mediaBaseFolder) / SUBFLD_SHADERS).string(), true);
+    _importOptions.SetDir(MediaTargetDir::VIDEOS_DIR, (std::filesystem::path(mediaBaseFolder) / SUBFLD_VIDEOS).string(), true);
 }
 
 void SequencePackage::Extract()
 {
-    
-
     if (_xsqOnly) {
         return;
     }
 
-    wxProgressDialog prog("Extract Package", "Extracting Sequence Package...", 100, _xlights, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    prog.Show();
+    auto progressUpdate = [this](int pct) -> bool {
+        if (_progressCb) return _progressCb(pct);
+        return false;
+    };
+    progressUpdate(0);
 
-    wxFileInputStream fis(_pkgFile.GetFullPath());
-
-    if (!fis.IsOk()) {
-        spdlog::error("Could not open the Sequence Package '{}'", (const char*)_pkgFile.GetFullName().c_str());
-        prog.Update(100);
+    unzFile uf = unzOpen(_pkgFile.string().c_str());
+    if (uf == nullptr) {
+        spdlog::error("Could not open the Sequence Package '{}'", _pkgFile.filename().string());
+        progressUpdate(100);
         return;
     }
 
-    _tempDir = wxString::Format("%s%c%s_%lld", wxFileName::GetTempDir(), wxFileName::GetPathSeparator(), _pkgFile.GetName(), wxGetUTCTimeMillis());
-    spdlog::debug("Extracting Sequence Package '{}' to '{}'", (const char*)_pkgFile.GetFullName().c_str(), (const char*)_tempDir.GetFullPath().c_str());
+    auto now = std::chrono::system_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    _tempDir = std::filesystem::temp_directory_path() / (_pkgFile.stem().string() + "_" + std::to_string(ms));
+    spdlog::debug("Extracting Sequence Package '{}' to '{}'", _pkgFile.filename().string(), _tempDir.string());
 
-    wxZipInputStream zis(fis);
-    std::unique_ptr<wxZipEntry> upZe;
-
-    if (!zis.IsOk()) {
-        spdlog::error("Could not open the zip file '{}'", (const char*)_pkgFile.GetFullName().c_str());
-        prog.Update(100);
+    unz_global_info gi;
+    if (unzGetGlobalInfo(uf, &gi) != UNZ_OK) {
+        spdlog::error("Could not read zip global info for '{}'", _pkgFile.filename().string());
+        unzClose(uf);
+        progressUpdate(100);
         return;
     }
 
-    if (zis.GetTotalEntries() == 0) {
-        spdlog::error("No entries found in zip file '{}'", (const char*)_pkgFile.GetFullName().c_str());
-        prog.Update(100);
+    if (gi.number_entry == 0) {
+        spdlog::error("No entries found in zip file '{}'", _pkgFile.filename().string());
+        unzClose(uf);
+        progressUpdate(100);
         return;
     }
 
-    // start extracting each entry
-    upZe.reset(zis.GetNextEntry());
-
-    prog.Update(10);
+    progressUpdate(10);
     int numEntryProcessed = 0;
-    int progStep = (int)(std::floor(90 / zis.GetTotalEntries()));
+    int progStep = (int)(std::floor(90.0 / gi.number_entry));
 
-    while (upZe != nullptr) {
-        wxString fnEntry = wxString::Format("%s%c%s", _tempDir.GetFullPath(), wxFileName::GetPathSeparator(), upZe->GetName());
+    int ret = unzGoToFirstFile(uf);
+    while (ret == UNZ_OK) {
+        char entryName[512];
+        unz_file_info fileInfo;
+        if (unzGetCurrentFileInfo(uf, &fileInfo, entryName, sizeof(entryName), nullptr, 0, nullptr, 0) != UNZ_OK) {
+            ret = unzGoToNextFile(uf);
+            continue;
+        }
 
-        if (fnEntry.Contains("__MACOSX")) {
-            spdlog::debug("   skipping MACOS Folder {}.", (const char*)fnEntry.c_str());
-            upZe.reset(zis.GetNextEntry());
+        std::string entryNameStr(entryName);
+        bool isDir = (!entryNameStr.empty() && entryNameStr.back() == '/') || (fileInfo.external_fa & 0x10);
+
+        std::filesystem::path fnEntry = _tempDir / entryNameStr;
+
+        if (fnEntry.string().find("__MACOSX") != std::string::npos) {
+            spdlog::debug("   skipping MACOS Folder {}.", fnEntry.string());
+            ret = unzGoToNextFile(uf);
             continue;
         }
 
 #ifdef _WIN32
         // folder with spaces at begin and end breaks temp folder paths
-        fnEntry.Replace(" " + wxString(wxFileName::GetPathSeparator()), wxFileName::GetPathSeparator());
-        fnEntry.Replace(wxString(wxFileName::GetPathSeparator()) + " ", wxFileName::GetPathSeparator());
+        std::string fnStr = fnEntry.string();
+        std::string sep(1, std::filesystem::path::preferred_separator);
+        std::string spaceSep = " " + sep;
+        std::string sepSpace = sep + " ";
+        size_t pos;
+        while ((pos = fnStr.find(spaceSep)) != std::string::npos) {
+            fnStr.replace(pos, spaceSep.size(), sep);
+        }
+        while ((pos = fnStr.find(sepSpace)) != std::string::npos) {
+            fnStr.replace(pos, sepSpace.size(), sep);
+        }
+        fnEntry = fnStr;
 #endif
 
-        wxFileName fnOutput;
-        upZe->IsDir() ? fnOutput.AssignDir(fnEntry) : fnOutput.Assign(fnEntry);
+        std::filesystem::path fnOutput = fnEntry;
 
-        spdlog::debug("   Extracting {} to {}.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
+        spdlog::debug("   Extracting {} to {}.", fnEntry.string(), fnOutput.string());
 
 #ifdef _WIN32
-        if (fnOutput.GetFullPath().length() > MAX_PATH) {
-            spdlog::warn("Target filename longer than {} chars ({}). This will likely fail. {}.", MAX_PATH, (int)fnOutput.GetFullPath().length(), (const char*) fnOutput.GetFullPath().c_str());
+        if (fnOutput.string().length() > MAX_PATH) {
+            spdlog::warn("Target filename longer than {} chars ({}). This will likely fail. {}.", MAX_PATH, (int)fnOutput.string().length(), fnOutput.string());
         }
 #endif
 
         // Create output dir in temp if needed
-        if (!wxDirExists(fnOutput.GetPath())) {
-            wxFileName::Mkdir(fnOutput.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+        std::filesystem::path parentDir = fnOutput.parent_path();
+        std::error_code ec;
+        if (!std::filesystem::exists(parentDir, ec)) {
+            std::filesystem::create_directories(parentDir, ec);
         }
 
         // handle file output
-        if (!upZe->IsDir()) {
-            if (!zis.CanRead()) {
-                spdlog::error("Could not read file from package '{}'", (const char*)upZe->GetName().c_str());
+        if (!isDir) {
+            if (unzOpenCurrentFile(uf) != UNZ_OK) {
+                spdlog::error("Could not read file from package '{}'", entryNameStr);
             } else {
-                wxFileOutputStream fos(fnOutput.GetFullPath());
+                std::ofstream fos(fnOutput, std::ios::binary);
 
-                if (!fos.IsOk()) {
-                    spdlog::error("Could not create sequence file at '{}'", (const char*)fnOutput.GetFullName().c_str());
+                if (!fos.is_open()) {
+                    spdlog::error("Could not create sequence file at '{}'", fnOutput.filename().string());
                 } else {
-                    zis.Read(fos);
-                    fos.Close();
-                    wxString ext = fnOutput.GetExt();
+                    char buf[8192];
+                    int bytesRead;
+                    while ((bytesRead = unzReadCurrentFile(uf, buf, sizeof(buf))) > 0) {
+                        fos.write(buf, bytesRead);
+                    }
+                    fos.close();
+
+                    std::string ext = fnOutput.extension().string();
+                    if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+                    std::string stem = fnOutput.stem().string();
 
                     if (ext == "xsq") {
                         _xsqFile = fnOutput;
-                        _xsqName = fnOutput.GetName();
+                        _xsqName = stem;
                     } else if (ext == "xml") {
-                        if (fnOutput.GetName() == "xlights_rgbeffects") {
+                        if (stem == "xlights_rgbeffects") {
                             pugi::xml_document rgbEffects;
-                            if (rgbEffects.load_file(fnOutput.GetFullPath().mb_str())) {
+                            if (rgbEffects.load_file(fnOutput.string().c_str())) {
                                 _rgbEffects = std::move(rgbEffects);
-                                _xlEffects = fnOutput.GetFullPath();
-                                _pkgRoot = fnOutput.GetPath();
+                                _xlEffects = fnOutput;
+                                _pkgRoot = fnOutput.parent_path();
                                 _hasRGBEffects = true;
                             }
-                        } else if (fnOutput.GetName() == "xlights_networks") {
+                        } else if (stem == "xlights_networks") {
                             _xlNetworks = fnOutput;
                         } else {
                             pugi::xml_document doc;
-                            if (doc.load_file(fnOutput.GetFullPath().mb_str())) {
+                            if (doc.load_file(fnOutput.string().c_str())) {
                                 if (std::string_view(doc.document_element().name()) == "xsequence") {
                                     _xsqFile = fnOutput;
-                                    _xsqName = fnOutput.GetName();
+                                    _xsqName = stem;
                                 }
                             }
                         }
                     } else {
                         // assume other files are media for effects, images/videos/gediators/shaders/faces/etc
-                        _media[fnOutput.GetFullName()] = fnOutput;
+                        _media[fnOutput.filename().string()] = fnOutput;
                     }
                 }
+                unzCloseCurrentFile(uf);
             }
         }
 
         numEntryProcessed++;
-        prog.Update(10 + progStep * numEntryProcessed);
+        progressUpdate(10 + progStep * numEntryProcessed);
 
-        // get next zip entry
-        upZe.reset(zis.GetNextEntry());
+        ret = unzGoToNextFile(uf);
     }
 
-    // seems silly but if we don't call this twice the dialog sticks around after
-    // this method has completed if the main app is busy, for example opening another
-    // modal dialog like Mapping Dialog
-    prog.Update(100);
-    prog.Update(100);
+    unzClose(uf);
+    progressUpdate(100);
 
-    if (!_xsqFile.IsOk() || !FileExists(_xsqFile)) {
-        spdlog::error("No sequence file found in package '{}'", (const char*)_pkgFile.GetFullName().c_str());
+    if (_xsqFile.empty() || !FileExists(_xsqFile.string())) {
+        spdlog::error("No sequence file found in package '{}'", _pkgFile.filename().string());
     } else {
         InitDefaultImportOptions();
     }
@@ -269,11 +296,12 @@ void SequencePackage::Extract()
 
 void SequencePackage::FindRGBEffectsFile()
 {
-    wxString showDir = wxPathOnly(_xsqFile.GetFullPath());
-    if( wxFile::Exists(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
+    std::filesystem::path showDir = _xsqFile.parent_path();
+    std::filesystem::path rgbEffectsPath = showDir / "xlights_rgbeffects.xml";
+    if (FileExists(rgbEffectsPath.string())) {
         pugi::xml_document rgbEffects;
-        if (rgbEffects.load_file((showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml").mb_str())) {
-            _xlEffects = showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml";
+        if (rgbEffects.load_file(rgbEffectsPath.string().c_str())) {
+            _xlEffects = rgbEffectsPath;
             _rgbEffects = std::move(rgbEffects);
             _hasRGBEffects = true;
         }
@@ -283,9 +311,9 @@ void SequencePackage::FindRGBEffectsFile()
 bool SequencePackage::IsValid() const
 {
     if (_xsqOnly) {
-        return _xsqFile.IsOk() && FileExists(_xsqFile);
+        return !_xsqFile.empty() && FileExists(_xsqFile.string());
     } else {
-        return _xsqFile.IsOk() && FileExists(_xsqFile) && _hasRGBEffects;
+        return !_xsqFile.empty() && FileExists(_xsqFile.string()) && _hasRGBEffects;
     }
 }
 
@@ -309,7 +337,7 @@ bool SequencePackage::HasMissingMedia() const
     return _missingMedia.size() > 0;
 }
 
-wxFileName& SequencePackage::GetXsqFile()
+const std::filesystem::path& SequencePackage::GetXsqFile()
 {
     return _xsqFile;
 }
@@ -321,10 +349,10 @@ pugi::xml_document& SequencePackage::GetRgbEffectsFile()
 
 std::string SequencePackage::GetTempShowFolder() const
 {
-    return wxPathOnly(_xlEffects.GetFullPath()).ToStdString();
+    return _xlEffects.parent_path().string();
 }
 std::string SequencePackage::GetTempDir() const {
-    return _tempDir.GetFullPath().ToStdString();
+    return _tempDir.string();
 }
 
 bool SequencePackage::ModelsChanged() const
@@ -347,13 +375,23 @@ std::list<std::string> SequencePackage::GetMissingMedia()
     return _missingMedia;
 }
 
+// Extract just the filename from a path, handling both / and \ separators
+static std::string ExtractFilename(const std::string& path) {
+    // Handle both Unix and DOS path separators
+    size_t pos = path.find_last_of("/\\");
+    if (pos != std::string::npos) {
+        return path.substr(pos + 1);
+    }
+    return path;
+}
+
 std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer* target)
 {
     auto settings = mappedEffect->GetSettings();
-    wxString effName = mappedEffect->GetEffectName();
+    std::string effName = mappedEffect->GetEffectName();
 
-    wxString settingEffectFile = wxEmptyString;
-    wxString targetMediaFolder = wxEmptyString;
+    std::string settingEffectFile;
+    std::string targetMediaFolder;
 
     if (effName == "Pictures") {
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
@@ -385,53 +423,48 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
         settingEffectFile = "E_FILEPICKERCTRL_Glediator_Filename";
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::GLEDIATORS_DIR);
     } else if (effName == "Faces") {
-        wxString faceName = settings["E_CHOICE_Faces_FaceDefinition"];
-        if (faceName != wxEmptyString) {
+        std::string faceName = settings["E_CHOICE_Faces_FaceDefinition"];
+        if (!faceName.empty()) {
             ImportFaceInfo(mappedEffect, target, faceName);
         }
     } else if (effName == "Shape") {
-        wxString shapePath = settings["E_FILEPICKERCTRL_SVG"];
+        std::string shapePath = settings["E_FILEPICKERCTRL_SVG"];
         if (!shapePath.empty()) {
             settingEffectFile = "E_FILEPICKERCTRL_SVG";
             targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
         }
     } else if (effName == "Ripple") {
-        wxString shapePath = settings["E_FILEPICKERCTRL_Ripple_SVG"];
+        std::string shapePath = settings["E_FILEPICKERCTRL_Ripple_SVG"];
         if (!shapePath.empty()) {
             settingEffectFile = "E_FILEPICKERCTRL_Ripple_SVG";
             targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
         }
     }
 
-    if (!settingEffectFile.IsEmpty()) {
-        wxString settingPath = settings.Get(settingEffectFile, "");
+    if (!settingEffectFile.empty()) {
+        std::string settingPath = settings.Get(settingEffectFile, "");
 
-        // normalize path so wxFileName can properly parse it, we just need
-        // it to parse properly so we can get to the real filename
-        wxFileName picFilePath;
-        if (settingPath.Contains("\\")) {
-            picFilePath = wxFileName(settingPath, wxPATH_DOS);
-        } else {
-            picFilePath = wxFileName(settingPath);
-        }
+        // extract just the filename from the path, handling both / and \ separators
+        std::string picFileName = ExtractFilename(settingPath);
 
         // import the asset if we have it, otherwise track it as missing
-        wxFileName fileToCopy = _media[picFilePath.GetFullName()];
-        
-        if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
-            wxFileName copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
+        auto it = _media.find(picFileName);
+        std::filesystem::path fileToCopy = (it != _media.end()) ? it->second : std::filesystem::path();
+
+        if (!fileToCopy.empty() && FileExists(fileToCopy.string())) {
+            std::filesystem::path copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
             settings.erase(settingEffectFile);
-            wxString newSetting = copiedAsset.GetFullPath().ToStdString();
+            std::string newSetting = copiedAsset.string();
             settings[settingEffectFile] = newSetting;
             if (effName == "Pictures") {
                 auto &tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
-                if (!tm.HasImage(newSetting.ToStdString())) {
-                    tm.GetImage(newSetting.ToStdString());
+                if (!tm.HasImage(newSetting)) {
+                    tm.GetImage(newSetting);
                 }
             }
         } else {
-            if (picFilePath != "")
-                _missingMedia.push_back(picFilePath.GetFullName().ToStdString());
+            if (!picFileName.empty())
+                _missingMedia.push_back(picFileName);
         }
     }
 
@@ -475,41 +508,36 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
                 // find faceInfo node
                 for (pugi::xml_node modelChild = modelNode.first_child(); modelChild; modelChild = modelChild.next_sibling()) {
                     if (std::string_view(modelChild.name()) == "faceInfo") {
-                        wxString name = modelChild.attribute("Name").as_string();
-                        wxString type = modelChild.attribute("Type").as_string();
+                        std::string name = modelChild.attribute("Name").as_string();
+                        std::string type = modelChild.attribute("Type").as_string();
 
                         // only import if type is matrix
                         if ((name == faceName || faceName == "Default") && type == "Matrix") {
                             std::map<std::string, std::string> faceAttributes;
 
                             for (pugi::xml_attribute attr = modelChild.first_attribute(); attr; attr = attr.next_attribute()) {
-                                wxString attrName = attr.name();
-                                wxString attrValue = attr.as_string();
+                                std::string attrName = attr.name();
+                                std::string attrValue = attr.as_string();
 
                                 // import files
-                                if (attrName.Left(5) == "Mouth" || attrName.Left(4) == "Eyes") {
-                                    if (attrValue != wxEmptyString) {
-                                        // normalize path so wxFileName can properly parse it, we just need
-                                        // it to parse properly so we can get to the real filename
-                                        wxFileName faceFile;
-                                        if (attrValue.Contains("\\")) {
-                                            faceFile = wxFileName(attrValue, wxPATH_DOS);
-                                        } else {
-                                            faceFile = wxFileName(attrValue);
-                                        }
+                                if (attrName.substr(0, 5) == "Mouth" || attrName.substr(0, 4) == "Eyes") {
+                                    if (!attrValue.empty()) {
+                                        // extract just the filename from the path
+                                        std::string faceFileName = ExtractFilename(attrValue);
 
                                         // import the asset if we have it, otherwise track it as missing
-                                        wxFileName fileToCopy = _media[faceFile.GetFullName()];
+                                        auto it = _media.find(faceFileName);
+                                        std::filesystem::path fileToCopy = (it != _media.end()) ? it->second : std::filesystem::path();
 
-                                        if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
-                                            wxFileName copiedAsset = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy);
-                                            faceAttributes[attrName.ToStdString()] = copiedAsset.GetFullPath().ToStdString();
+                                        if (!fileToCopy.empty() && FileExists(fileToCopy.string())) {
+                                            std::filesystem::path copiedAsset = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy);
+                                            faceAttributes[attrName] = copiedAsset.string();
                                         } else {
-                                            _missingMedia.push_back(fileToCopy.GetFullName().ToStdString());
+                                            _missingMedia.push_back(faceFileName);
                                         }
                                     }
                                 } else {
-                                    faceAttributes[attrName.ToStdString()] = attrValue.ToStdString();
+                                    faceAttributes[attrName] = attrValue;
                                 }
                             }
 
@@ -526,19 +554,21 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
     }
 }
 
-wxFileName SequencePackage::CopyMediaToTarget(const std::string& targetFolder, const wxFileName& mediaToCopy)
+std::filesystem::path SequencePackage::CopyMediaToTarget(const std::string& targetFolder, const std::filesystem::path& mediaToCopy)
 {
-    wxFileName targetFile = wxString::Format("%s%c%s", targetFolder, PATH_SEP, mediaToCopy.GetFullName());
+    std::filesystem::path targetFile = std::filesystem::path(targetFolder) / mediaToCopy.filename();
 
-    // Only import if file doesn't alrady exist in target folder
-    if (!FileExists(targetFile)) {
+    // Only import if file doesn't already exist in target folder
+    if (!FileExists(targetFile.string())) {
         // make sure dir exists first
-        if (!wxDirExists(targetFile.GetPath())) {
-            wxFileName::Mkdir(targetFile.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+        std::error_code ec;
+        std::filesystem::path targetDir = targetFile.parent_path();
+        if (!std::filesystem::exists(targetDir, ec)) {
+            std::filesystem::create_directories(targetDir, ec);
         }
 
         // now copy the asset
-        wxCopyFile(mediaToCopy.GetFullPath(), targetFile.GetFullPath());
+        std::filesystem::copy_file(mediaToCopy, targetFile, std::filesystem::copy_options::skip_existing, ec);
     }
 
     return targetFile;

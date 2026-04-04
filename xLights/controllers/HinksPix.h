@@ -171,7 +171,7 @@ class HinksPix : public BaseController
     [[nodiscard]] std::unique_ptr<HinksPixSerial> InitSerialData(bool fullControl);
 
     [[nodiscard]] bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
-    [[nodiscard]] bool UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> const& UPA, bool dirty) const;
+    bool UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> const& UPA, bool dirty) const;
     
     [[nodiscard]] bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     void UploadPixelOutputsEasyLights(bool& worked);

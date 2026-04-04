@@ -1,3 +1,9 @@
+// wxWidgets macOS headers reference NSOpenGLContext/NSOpenGLPixelFormat which
+// are deprecated since macOS 10.14.  Suppress globally since we use Metal.
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#endif
+
 #ifdef __cplusplus
 #ifndef NO_PCH
 

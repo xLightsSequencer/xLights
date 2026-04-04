@@ -1,22 +1,14 @@
 # Include policy allowlist
 # Format: path/to/file.cpp|relative/include/path.h  (for "..." includes)
 #         path/to/file.cpp|wx/header.h               (for <wx/...> includes)
-# Regenerated 2026-04-03 from current tree (63 entries, down from 149).
+# Regenerated 2026-04-04 from current tree (40 entries, down from 63).
 xLights/controllers/FPP.cpp|../ui/wxUtilities.h
 xLights/controllers/FPP.cpp|ui/controllers/FPPUploadProgressDialog.h
 xLights/controllers/FPP.cpp|ui/setup/DiscoveryAuthDialog.h
 xLights/controllers/FPP.cpp|wx/config.h
 xLights/controllers/FPP.cpp|wx/debugrpt.h
-xLights/controllers/FPP.cpp|wx/file.h
-xLights/controllers/FPP.cpp|wx/filename.h
 xLights/controllers/FPP.cpp|wx/gauge.h
-xLights/controllers/FPP.cpp|wx/mstream.h
-xLights/controllers/FPP.cpp|wx/progdlg.h
-xLights/controllers/FPP.cpp|wx/protocol/http.h
-xLights/controllers/FPP.cpp|wx/sckstrm.h
 xLights/controllers/FPP.cpp|wx/secretstore.h
-xLights/controllers/FPP.cpp|wx/wfstream.h
-xLights/controllers/FPP.cpp|wx/zstream.h
 xLights/effects/OpenGLShaders.cpp|ui/graphics/opengl/DrawGLUtils.h
 xLights/effects/OpenGLShaders.cpp|ui/graphics/opengl/xlGLCanvas.h
 xLights/effects/ShaderEffect.cpp|../ui/effectpanels/ShaderPanel.h
@@ -47,18 +39,6 @@ xLights/render/SequenceFile.cpp|../ui/shared/dialogs/OptionChooser.h
 xLights/render/SequenceFile.cpp|../xLightsMain.h
 xLights/render/SequenceFile.cpp|ui/media/JukeboxPanel.h
 xLights/render/SequenceMedia.cpp|../xLightsMain.h
-xLights/render/SequencePackage.cpp|../ui/wxUtilities.h
-xLights/render/SequencePackage.cpp|wx/dir.h
-xLights/render/SequencePackage.cpp|wx/log.h
-xLights/render/SequencePackage.cpp|wx/progdlg.h
-xLights/render/SequencePackage.cpp|wx/time.h
-xLights/render/SequencePackage.cpp|wx/wfstream.h
-xLights/render/SequencePackage.cpp|wx/zipstrm.h
 xLights/render/SequencePackage.cpp|xLightsMain.h
-xLights/render/SequencePackage.h|wx/filename.h
 xLights/render/WindowsHardwareVideoReader.cpp|wx/msw/ole/oleutils.h
-xLights/utils/AudioManager.cpp|../ui/wxUtilities.h
-xLights/utils/AudioManager.cpp|wx/ffile.h
-xLights/utils/AudioManager.cpp|wx/log.h
-xLights/utils/AudioManager.cpp|wx/wx.h
-xLights/utils/AudioManager.h|wx/progdlg.h
+xLights/utils/AudioManager.cpp|wx/app.h

@@ -10,7 +10,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/filename.h>
+#include <filesystem>
+#include <functional>
 #include <pugixml.hpp>
 
 #include <map>
@@ -29,6 +30,7 @@ enum class MediaTargetDir
     VIDEOS_DIR,
 };
 
+using ProgressCallback = std::function<bool(int pct)>;
 
 class SeqPkgImportOptions {
     public:
@@ -47,7 +49,7 @@ class SeqPkgImportOptions {
 
 class SequencePackage {
     public:
-        SequencePackage(const wxFileName& zipFile, xLightsFrame* xlights);
+        SequencePackage(const std::filesystem::path& zipFile, xLightsFrame* xlights);
         virtual ~SequencePackage();
         void Extract();
         void FindRGBEffectsFile();
@@ -62,34 +64,36 @@ class SequencePackage {
         }
         std::string GetTempShowFolder() const;
         SeqPkgImportOptions* GetImportOptions();
-        wxFileName& GetXsqFile();
+        const std::filesystem::path& GetXsqFile();
         pugi::xml_document& GetRgbEffectsFile();
         std::string GetTempDir() const;
 
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
-        wxFileName CopyMediaToTarget(const std::string& targetFolder, const wxFileName& mediaToCopy);
+        std::filesystem::path CopyMediaToTarget(const std::string& targetFolder, const std::filesystem::path& mediaToCopy);
         std::list<std::string> GetMissingMedia();
-    
+
         void SetSequenceElements(SequenceElements *se) { sequenceElements = se; };
+        void SetProgressCallback(ProgressCallback cb) { _progressCb = std::move(cb); }
     private:
         xLightsFrame*   _xlights;
         bool            _xsqOnly = true;
         bool            _hasRGBEffects{false};
-        wxFileName      _xsqFile;
+        std::filesystem::path _xsqFile;
         std::string     _xsqName;
-        wxFileName      _pkgFile;
-        wxFileName      _tempDir;
+        std::filesystem::path _pkgFile;
+        std::filesystem::path _tempDir;
         pugi::xml_document _rgbEffects;
-        wxFileName      _xlNetworks;
-        wxFileName _xlEffects;
-        wxFileName _pkgRoot;
+        std::filesystem::path _xlNetworks;
+        std::filesystem::path _xlEffects;
+        std::filesystem::path _pkgRoot;
         bool _leaveFiles = false;
         std::list<std::string> _missingMedia;
-        std::map<std::string, wxFileName> _media;
+        std::map<std::string, std::filesystem::path> _media;
         bool _modelsChanged = false;
         SeqPkgImportOptions _importOptions;
         SequenceElements *sequenceElements;
-    
+        ProgressCallback _progressCb;
+
         void InitDefaultImportOptions();
 };

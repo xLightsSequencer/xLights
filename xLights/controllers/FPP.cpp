@@ -22,19 +22,14 @@
 
 #include <curl/curl.h>
 
-#include <wx/file.h>
-#include <wx/filename.h>
-#include <wx/wfstream.h>
-#include <wx/sckstrm.h>
-#include <wx/zstream.h>
-#include <wx/mstream.h>
-#include <wx/protocol/http.h>
+#include <filesystem>
+#include <fstream>
+
 #include <wx/config.h>
 #include <wx/secretstore.h>
-#include <wx/progdlg.h>
 #include <wx/gauge.h>
-#include <zstd.h>
 #include <wx/debugrpt.h>
+#include <zstd.h>
 
 #include "FPP.h"
 #include "../render/UICallbacks.h"
@@ -160,9 +155,10 @@ FPP::~FPP() {
         delete outputFile;
         outputFile = nullptr;
     }
-    if (tempFileName != "") {
-        ::wxRemoveFile(tempFileName);
-        tempFileName = "";
+    if (!tempFileName.empty()) {
+        std::error_code ec;
+        std::filesystem::remove(tempFileName, ec);
+        tempFileName.clear();
     }
 }
 
@@ -170,15 +166,16 @@ struct FPPWriteData {
     FPPWriteData() : data(nullptr), dataSize(0), curPos(0), file(nullptr),
         postData(nullptr), postDataSize(0), instance(nullptr), totalWritten(0), lastDone(0), cancelled(false) {}
 
-    wxFile realFile;
-    wxMemoryBuffer memBuffPost;
-    wxMemoryBuffer memBuffPre;
+    std::ifstream realFile;
+    std::vector<uint8_t> memBuffPost;
+    std::vector<uint8_t> memBuffPre;
 
     uint8_t *data;
     size_t dataSize;
     size_t curPos;
 
-    wxFile *file;
+    std::ifstream *file;
+    size_t fileLength = 0;
 
     uint8_t *postData;
     size_t postDataSize;
@@ -215,22 +212,23 @@ struct FPPWriteData {
             }
         }
         if (file != nullptr) {
-            size_t t = file->Read(ptr, buffer_size);
-            if ((wxFileOffset)t == wxInvalidOffset) {
+            file->read(static_cast<char*>(ptr), buffer_size);
+            size_t t = file->gcount();
+            if (t == 0 && file->fail() && !file->eof()) {
                 return 0;
             }
             totalWritten += t;
 
-            if (instance) {
+            if (instance && fileLength > 0) {
                 size_t donePct = totalWritten;
                 donePct *= 1000;
-                donePct /= file->Length();
+                donePct /= fileLength;
                 if (donePct != lastDone) {
                     lastDone = donePct;
                     cancelled = instance->updateProgress(donePct, false);
                 }
             }
-            if (file->Eof()) {
+            if (file->eof()) {
                 curPos = 0;
                 data = postData;
                 dataSize = postDataSize;
@@ -758,13 +756,13 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         if (this->canZipUpload) {
             auto from = fullFileName;
             wxDebugReportCompress report;
-            report.AddFile(fullFileName, wxFileName(from).GetFullName());
+            report.AddFile(fullFileName, std::filesystem::path(from).filename().string());
             report.Process();
             from = report.GetCompressedFileName();
-            wxRenameFile(from, fullFileName);
-            wxFileName to(ToWXString(filename));
-            to.SetExt("xlz");
-            fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(ToUTF8(to.GetFullPath()));
+            std::filesystem::rename(from, fullFileName);
+            std::filesystem::path toPath(filename);
+            toPath.replace_extension(".xlz");
+            fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(toPath.string());
         }
         else {
 			fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
@@ -794,19 +792,21 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
     FPPWriteData *data = new FPPWriteData();
-    data->realFile.Open(fullFileName);
-    std::string cl = "Content-Length: " + std::to_string(data->realFile.Length());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data->realFile.Length());
+    data->realFile.open(fullFileName, std::ios::binary);
+    data->realFile.seekg(0, std::ios::end);
+    data->fileLength = static_cast<size_t>(data->realFile.tellg());
+    data->realFile.seekg(0);
+    std::string cl = "Content-Length: " + std::to_string(data->fileLength);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, static_cast<long>(data->fileLength));
     chunk = curl_slist_append(chunk, cl.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-    data->realFile.Seek(0);
-    data->data = (uint8_t*)data->memBuffPre.GetData();
-    data->dataSize = data->memBuffPre.GetDataLen();
+    data->data = data->memBuffPre.data();
+    data->dataSize = data->memBuffPre.size();
     data->instance = this;
     data->file = &data->realFile;
-    data->postData =  (uint8_t*)data->memBuffPost.GetData();
-    data->postDataSize = data->memBuffPost.GetDataLen();
+    data->postData = data->memBuffPost.data();
+    data->postDataSize = data->memBuffPost.size();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, data);
 
@@ -835,7 +835,8 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         delete data;
         curl_slist_free_all(chunk);
         if (deleteFile) {
-            wxRemoveFile(fullFileName);
+            std::error_code ec;
+            std::filesystem::remove(fullFileName, ec);
         }
         updateProgress(1000, false);
     }, true);
@@ -850,7 +851,7 @@ bool FPP::callMoveFile(const std::string &filename) {
 
 class V7ProgressStruct {
 public:
-    wxFile in;
+    std::ifstream in;
     FPP *instance;
     size_t length;
 
@@ -910,7 +911,8 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         remaining = BLOCK_SIZE;
     }
     cpd->req->resize(remaining);
-    uint64_t read = ps->in.Read(cpd->req->data(), remaining);
+    ps->in.read(reinterpret_cast<char*>(cpd->req->data()), remaining);
+    uint64_t read = ps->in.gcount();
     if (read != remaining) {
         logger->info("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
@@ -940,7 +942,8 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         if (response_code != 200 && ps->errorCount < 3) {
             // strange error on upload, let's restart and try again (up to three attempts)
             ps->offset = 0;
-            ps->in.Seek(0);
+            ps->in.clear();
+            ps->in.seekg(0);
             ++ps->errorCount;
         } else if (response_code != 200) {
             ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + ". Response code: " + std::to_string(response_code));
@@ -967,11 +970,13 @@ bool FPP::uploadFileV7(const std::string &filename,
     bool cancelled = false;
 
     V7ProgressStruct *ps = new V7ProgressStruct();
-    ps->in.Open(ToWXString(file));
-    if (ps->in.IsOpened()) {
+    ps->in.open(file, std::ios::binary);
+    if (ps->in.is_open()) {
         ps->filename = filename;
-        
-        ps->length = ps->in.Length();
+
+        ps->in.seekg(0, std::ios::end);
+        ps->length = static_cast<size_t>(ps->in.tellg());
+        ps->in.seekg(0);
         ps->offset = 0;
         ps->fullUrl = ipAddress + "/api/file/" + dir;
         if (!_fppProxy.empty()) {
@@ -1012,57 +1017,61 @@ bool FPP::uploadOrCopyFile(const std::string &filename,
 // 6 - V2 sparse zlib
 
 
-static void FindHostSpecificMedia(const std::string &hostName, std::string &mediaBaseName, std::string &mediaFile, wxFileName &mfn) {
-    wxFileName mfn2(FromUTF8(mediaFile));
-    mfn2.SetName(mfn2.GetName() + "-" + FromUTF8(hostName));
-    //first, check filename-hostname with same extension
-    if (mfn2.Exists()) {
-        mediaFile = ToUTF8(mfn2.GetFullPath());
-        mediaBaseName =  ToUTF8(mfn2.GetFullName());
+static void FindHostSpecificMedia(const std::string &hostName, std::string &mediaBaseName, std::string &mediaFile, std::filesystem::path &mfn) {
+    std::filesystem::path origPath(mediaFile);
+    std::filesystem::path dir = origPath.parent_path();
+    std::string stem = origPath.stem().string();
+    std::string ext = origPath.extension().string();
+
+    // first, check filename-hostname with same extension
+    std::filesystem::path mfn2 = dir / (stem + "-" + hostName + ext);
+    if (FileExists(mfn2.string())) {
+        mediaFile = mfn2.string();
+        mediaBaseName = mfn2.filename().string();
         mfn = mfn2;
         return;
     }
-    //next, check "filename-hostname" with all the extensions
+    // next, check "filename-hostname" with all the extensions
     for (auto &a : FPP_MEDIA_EXT) {
-        mfn2.SetExt(a);
-        if (mfn2.Exists()) {
-            mediaFile = ToUTF8(mfn2.GetFullPath());
-            mediaBaseName =  ToUTF8(mfn2.GetFullName());
+        mfn2.replace_extension("." + a);
+        if (FileExists(mfn2.string())) {
+            mediaFile = mfn2.string();
+            mediaBaseName = mfn2.filename().string();
             mfn = mfn2;
             return;
         }
     }
-    //did not find, check for a directory with the hostname
-    wxFileName mfn3(FromUTF8(mediaFile));
-    mfn3.AppendDir(FromUTF8(hostName));
-    mfn2 = mfn3;
-    mfn2.SetName(mfn2.GetName() + "-" + FromUTF8(hostName));
-    if (wxFileName::DirExists(mfn3.GetPath())) {
-        //file of same name, but in new directory
-        if (mfn3.Exists()) {
-            mediaFile = ToUTF8(mfn3.GetFullPath());
-            mediaBaseName =  ToUTF8(mfn3.GetFullName());
+    // did not find, check for a directory with the hostname
+    std::filesystem::path hostDir = dir / hostName;
+    std::filesystem::path mfn3 = hostDir / origPath.filename();
+    mfn2 = hostDir / (stem + "-" + hostName + ext);
+    std::error_code ec;
+    if (std::filesystem::is_directory(hostDir, ec)) {
+        // file of same name, but in new directory
+        if (FileExists(mfn3.string())) {
+            mediaFile = mfn3.string();
+            mediaBaseName = mfn3.filename().string();
             mfn = mfn3;
             return;
         }
-        if (mfn2.Exists()) {
-            mediaFile = ToUTF8(mfn2.GetFullPath());
-            mediaBaseName =  ToUTF8(mfn2.GetFullName());
+        if (FileExists(mfn2.string())) {
+            mediaFile = mfn2.string();
+            mediaBaseName = mfn2.filename().string();
             mfn = mfn2;
             return;
         }
         for (auto &a : FPP_MEDIA_EXT) {
-            mfn2.SetExt(a);
-            if (mfn2.Exists()) {
-                mediaFile = ToUTF8(mfn2.GetFullPath());
-                mediaBaseName =  ToUTF8(mfn2.GetFullName());
+            mfn2.replace_extension("." + a);
+            if (FileExists(mfn2.string())) {
+                mediaFile = mfn2.string();
+                mediaBaseName = mfn2.filename().string();
                 mfn = mfn2;
                 return;
             }
-            mfn3.SetExt(a);
-            if (mfn3.Exists()) {
-                mediaFile = ToUTF8(mfn3.GetFullPath());
-                mediaBaseName =  ToUTF8(mfn3.GetFullName());
+            mfn3.replace_extension("." + a);
+            if (FileExists(mfn3.string())) {
+                mediaFile = mfn3.string();
+                mediaBaseName = mfn3.filename().string();
                 mfn = mfn3;
                 return;
             }
@@ -1071,9 +1080,9 @@ static void FindHostSpecificMedia(const std::string &hostName, std::string &medi
 }
 bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName) {
     bool cancelled = false;
-    wxFileName mfn(FromUTF8(media));
+    std::filesystem::path mfn(media);
     std::string mediaFile = media;
-    mediaBaseName = ToUTF8(mfn.GetFullName());
+    mediaBaseName = mfn.filename().string();
 
     if (majorVersion >= 6) {
         FindHostSpecificMedia(hostName, mediaBaseName, mediaFile, mfn);
@@ -1096,10 +1105,11 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
         if (rc == 200) {
             try {
                 nlohmann::json currentMeta = nlohmann::json::parse(resp, nullptr, false);
-                auto mfnSize = mfn.GetSize();
-                if (currentMeta.contains("format") && currentMeta["format"].contains("size")) {
+                std::error_code ec;
+                auto mfnSize = std::filesystem::file_size(mfn, ec);
+                if (!ec && currentMeta.contains("format") && currentMeta["format"].contains("size")) {
                     auto fppsize = GetJSONIntValueFromString(currentMeta["format"], "size");
-                    if (mfnSize == fppsize) {
+                    if (static_cast<int64_t>(mfnSize) == fppsize) {
                         doMediaUpload = false;
                     }
                 }
@@ -1108,8 +1118,10 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
         }
         if (doMediaUpload) {
             std::string dir = "music";
+            std::string mfnExt = mfn.extension().string();
+            if (!mfnExt.empty() && mfnExt[0] == '.') mfnExt = mfnExt.substr(1);
             for (auto &a : FPP_VIDEO_EXT) {
-                if (mfn.GetExt() == a) {
+                if (mfnExt == a) {
                     dir = "videos";
                 }
             }
@@ -1129,13 +1141,13 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     }
     outputFile = nullptr;
     if (tempFileName != "") {
-        ::wxRemoveFile(tempFileName);
+        { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
         tempFileName = "";
     }
 
     updateProgress(0, true);
-    wxFileName fn(FromUTF8(seq));
-    std::string baseName = ToUTF8(fn.GetFullName());
+    std::filesystem::path fn(seq);
+    std::string baseName = fn.filename().string();
     std::string mediaBaseName = "";
     bool cancelled = false;
     if (media != "" && fppType == FPP_TYPE::FPP) {
@@ -1148,7 +1160,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     sequences[baseName].media = mediaBaseName;
     sequences[baseName].duration = ((float)(file->getStepTime() * file->getNumFrames())) / 1000.0f;
 
-    tempFileName = ToStdString(wxFileName::CreateTempFileName(ToWXString(baseName)));
+    tempFileName = (std::filesystem::temp_directory_path() / baseName).string();
     TempFileManager::GetTempFileManager().AddTempFile(tempFileName);
     std::string fileName = tempFileName;
 
@@ -1248,7 +1260,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
 
     baseSeqName = baseName;
     if (fppType == FPP_TYPE::FPP) {
-        if ((type == 0 && file->getVersionMajor() == 1) || fn.GetExt() == "eseq") {
+        if ((type == 0 && file->getVersionMajor() == 1) || fn.extension() == ".eseq") {
             //these just get uploaded directly
             outputFile = file;
             outputFileIsOriginal = true;
@@ -1331,7 +1343,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
                 delete outputFile;
                 outputFile = nullptr;
                 if (tempFileName != "") {
-                    ::wxRemoveFile(tempFileName);
+                    { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
                     tempFileName = "";
                 }
                 return false;
@@ -1380,7 +1392,7 @@ bool FPP::FinalizeUploadSequence() {
             }
             cancelled = uploadOrCopyFile(baseSeqName, tempFileName, directory);
             if (!outputFileIsOriginal) {
-                ::wxRemoveFile(tempFileName);
+                { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
             }
             tempFileName = "";
             outputFileIsOriginal = false;
@@ -1786,22 +1798,19 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
                 std::string fn = obj["ObjFile"];
                 if (!fn.empty()) {
-                    wxFileName fileName(fn);
-                    std::string bn = fileName.GetFullName().ToStdString();
+                    std::string bn = std::filesystem::path(fn).filename().string();
                     obj["ObjFile"] = bn;
                     virtualDisplayData[bn] = fn;
                 }
                 MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
                 for (auto &fr : mesh->GetFileReferences()) {
-                    wxFileName fileName(fr);
-                    std::string bn = fileName.GetFullName().ToStdString();
+                    std::string bn = std::filesystem::path(fr).filename().string();
                     virtualDisplayData[bn] = fr;
                 }
             } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
                 std::string fn = obj["Image"];
                 if (!fn.empty()) {
-                    wxFileName fileName(fn);
-                    std::string bn = fileName.GetFullName().ToStdString();
+                    std::string bn = std::filesystem::path(fn).filename().string();
                     obj["Image"] = bn;
                     virtualDisplayData[bn] = fn;
                 }

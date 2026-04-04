@@ -12,9 +12,7 @@
 #include <chrono>
 #include <thread>
 
-#include <wx/ffile.h>
-#include <wx/log.h>
-#include <wx/wx.h>
+#include <wx/app.h> // wxTheApp->CallAfter in AudioDeviceChanged
 
 #include <algorithm>
 #include <fstream>
@@ -28,7 +26,6 @@
 #include "utils/ExternalHooks.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "string_utils.h"
 #include "../../dependencies/md5/md5.h"
 #include "../kiss_fft/tools/kiss_fftr.h"
@@ -1282,7 +1279,7 @@ void AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max,
     }
 }
 
-void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback fn) {
+void AudioManager::DoPolyphonicTranscription(AudioManagerProgressCallback fn) {
     
 
     // dont redo it
@@ -1337,7 +1334,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         while (len) {
             int progress = (((float)(totalLen - len) * 25) / totalLen);
             if (lastProgress < progress) {
-                fn(dlg, progress);
+                fn(progress);
                 lastProgress = progress;
             }
             pdata[0] = GetRawLeftDataPtr(start);
@@ -1368,7 +1365,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             spdlog::debug("Start,Duration,CalcStart,CalcEnd,midinote");
             for (size_t j = 0; j < features[0].size(); j++) {
                 if (j % 10 == 0) {
-                    fn(dlg, (int)(((float)j * 75.0) / (float)features[0].size()) + 25.0);
+                    fn((int)(((float)j * 75.0) / (float)features[0].size()) + 25.0);
                 }
 
                 long currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
@@ -1391,7 +1388,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 }
             }
 
-            fn(dlg, 100);
+            fn(100);
 
              // if (logger_pianodata.isDebugEnabled()) {
             spdlog::debug("Piano data calculated:");
@@ -1616,10 +1613,8 @@ void AudioManager::LoadAudioData(bool separateThread, AVFormatContext* formatCon
     }
 }
 
-void ProgressFunction(wxProgressDialog* pd, int p) {
-    if (pd != nullptr) {
-        pd->Update(p);
-    }
+void ProgressFunction(int p) {
+    // Progress callback
 }
 
 // Get the pre-prepared data for this frame
@@ -1650,8 +1645,7 @@ const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing
     }
     if (needNotes && !_polyphonicTranscriptionDone) {
         // need to do the polyphonic stuff
-        wxProgressDialog dlg("Processing Audio", "");
-        DoPolyphonicTranscription(&dlg, ProgressFunction);
+        DoPolyphonicTranscription(ProgressFunction);
     }
     if (frame < (int)_frameData.size()) {
         return &_frameData[frame];
@@ -1942,7 +1936,7 @@ int AudioManager::OpenMediaFile() {
 #endif
 
     AVFormatContext* formatContext = nullptr;
-    int res = avformat_open_input(&formatContext, ToUTF8(_audio_file).c_str(), nullptr, nullptr);
+    int res = avformat_open_input(&formatContext, _audio_file.c_str(), nullptr, nullptr);
     if (res != 0) {
         spdlog::error("avformat_open_input Error opening the file {} => {}.", (const char*)_audio_file.c_str(), res);
         _ok = false;

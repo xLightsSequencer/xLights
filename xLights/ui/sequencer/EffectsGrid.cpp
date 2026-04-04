@@ -11,6 +11,7 @@
 #include "wx/glcanvas.h"
 #include "wx/wx.h"
 #include <wx/numdlg.h>
+#include <wx/progdlg.h>
 #include <wx/textdlg.h>
 #ifdef __WXMAC__
 #include "OpenGL/gl.h"

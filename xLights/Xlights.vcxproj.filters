@@ -131,6 +131,8 @@
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="ui/sequencer/LayerSelectDialog.cpp" />
     <ClCompile Include="..\dependencies\md5\md5.cpp" />
+    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\ioapi.c" />
+    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\unzip.c" />
     <ClCompile Include="ui\import-export\VendorMusicDialog.cpp" />
     <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="ui/media/JukeboxPanel.cpp" />

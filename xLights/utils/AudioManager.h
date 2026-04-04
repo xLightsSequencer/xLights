@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <functional>
 #include <future>
 #include <list>
 #include <memory>
@@ -34,8 +35,6 @@ extern "C" {
 }
 
 #include "vamp-hostsdk/PluginLoader.h"
-#include <wx/progdlg.h>
-
 class AudioManager;
 
 enum class AUDIOSAMPLETYPE {
@@ -77,7 +76,7 @@ typedef enum MEDIAPLAYINGSTATE {
     STOPPED
 } MEDIAPLAYINGSTATE;
 
-typedef void(__cdecl* AudioManagerProgressCallback)(wxProgressDialog* dlg, int pct);
+typedef std::function<void(int)> AudioManagerProgressCallback;
 
 class AudioData {
 public:
@@ -388,7 +387,7 @@ public:
     const FrameData* GetFrameData(int frame, const std::string& timing, bool needNotes = false);
     const FrameData* GetFrameData(const std::string& timing, long ms, bool needNotes = false);
     void DoPrepareFrameData();
-    void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
+    void DoPolyphonicTranscription(AudioManagerProgressCallback progresscallback);
     bool IsPolyphonicTranscriptionDone() const {
         return _polyphonicTranscriptionDone;
     };

@@ -429,32 +429,31 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
             
             if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
 
-                wxFileName fn(fileName);
-                SequencePackage xsqPkg(fn, __frame);
+                SequencePackage xsqPkg(std::filesystem::path(fileName.ToStdString()), __frame);
 
                 if (xsqPkg.IsPkg()) {
                     xsqPkg.Extract();
                     xsqPkg.SetLeaveFiles(true);
 
                     // find the sequence file
-                    auto xsqFile = xsqPkg.GetXsqFile();
+                    const auto& xsqFile = xsqPkg.GetXsqFile();
 
                     // temporarily set the show folder
                     frame->SetReadOnlyMode(false);
                     xLightsApp::showDir = xsqPkg.GetTempShowFolder();
                     frame->SetDir(xLightsApp::showDir, false);
-                    
+
                     // save the folder and we will remove it when we shutdown
                     if (!cleanupDir.empty()) {
                         wxDir::Remove(cleanupDir, wxPATH_RMDIR_RECURSIVE);
                     }
                     cleanupDir = xsqPkg.GetTempDir();
-                    
+
                     // tell xlights not to allow saving ... at least as much as possible
                     frame->SetReadOnlyMode(true);
 
                     // open the sequence
-                    const wxString file = xsqFile.GetFullPath();
+                    const wxString file = wxString(xsqFile.string());
                     frame->OpenSequence(file, nullptr);
                 } else {
                     spdlog::debug("Zip file did not contain sequence.");
@@ -689,15 +688,14 @@ bool xLightsApp::OnInit()
         // this is not allowed
         renderOnlyMode = false;
 
-        wxFileName fn(readOnlyZipFile);
-        SequencePackage xsqPkg(fn, nullptr);
+        SequencePackage xsqPkg(std::filesystem::path(readOnlyZipFile), nullptr);
 
         if (xsqPkg.IsPkg()) {
             xsqPkg.Extract();
             xsqPkg.SetLeaveFiles(true);
 
             // find the sequence file
-            xsqFile = xsqPkg.GetXsqFile();
+            xsqFile = wxFileName(xsqPkg.GetXsqFile().string());
 
             // temporarily set the show folder
             showDir = xsqPkg.GetTempShowFolder();

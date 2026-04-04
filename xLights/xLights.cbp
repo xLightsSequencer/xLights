@@ -138,6 +138,12 @@
 		<Unit filename="../dependencies/wxLED/wxLED.h" />
 		<Unit filename="../dependencies/md5/md5.cpp" />
 		<Unit filename="../dependencies/md5/md5.h" />
+		<Unit filename="../dependencies/libxlsxwriter/third_party/minizip/ioapi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../dependencies/libxlsxwriter/third_party/minizip/unzip.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../dependencies/wxHTTPServer/connection.cpp" />
 		<Unit filename="../dependencies/wxHTTPServer/context.cpp" />
 		<Unit filename="../dependencies/wxHTTPServer/message.cpp" />

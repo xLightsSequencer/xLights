@@ -3497,13 +3497,9 @@ int UpperTS(float t, int intervalMS)
     return res;
 }
 
-void PTProgress(wxProgressDialog* pd, int p)
+void PTProgress(int p)
 {
-    // Update progress dialog
-    if (pd != nullptr)
-    {
-        pd->Update(p);
-    }
+    // Update progress callback
 }
 
 std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(AudioManager* audio, int intervalMS)
@@ -3513,9 +3509,8 @@ std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(Audi
     if (audio != nullptr) {
         try {
             if (!audio->IsPolyphonicTranscriptionDone()) {
-                wxProgressDialog pd("Processing Audio", "");
                 spdlog::info("Processing Polyphonic Transcription to produce notes");
-                audio->DoPolyphonicTranscription(&pd, &PTProgress);
+                audio->DoPolyphonicTranscription(&PTProgress);
                 spdlog::info("Processing Polyphonic Transcription - DONE");
             }
         } catch (...) {

@@ -25,6 +25,7 @@
  //*)
 
 #include <wx/clipbrd.h>
+#include <wx/progdlg.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/tglbtn.h>

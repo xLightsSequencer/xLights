@@ -499,7 +499,7 @@ void MapXLightsEffects(Element* target,
 
 void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile)
 {
-    SequencePackage xsqPkg(filename, this);
+    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()), this);
 
     if (xsqPkg.IsPkg()) {
         xsqPkg.Extract();
@@ -512,8 +512,8 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         return;
     }
 
-    SequenceFile xlf(xsqPkg.GetXsqFile().GetFullPath().ToStdString());
-    auto importDoc = xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile().GetFullPath().ToStdString());
+    SequenceFile xlf(xsqPkg.GetXsqFile().string());
+    auto importDoc = xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile().string());
     if (!importDoc) return;
     SequenceElements se(this);
     se.SetFrequency(_sequenceElements.GetFrequency());
@@ -555,7 +555,7 @@ ModelElement* AddModel(Model* m, SequenceElements& se)
 void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, const wxFileName& filename,
                                  bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc)
 {
-    SequencePackage xsqPkg(filename, this);
+    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()), this);
     ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
 }
 
@@ -564,7 +564,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
 {
     std::map<std::string, EffectLayer*> layerMap;
     std::map<std::string, Element*> elementMap;
-    xLightsImportChannelMapDialog dlg(this, xsqPkg.GetXsqFile(), false, true, false, false, showModelBlending);
+    xLightsImportChannelMapDialog dlg(this, wxFileName(xsqPkg.GetXsqFile().string()), false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     if (showModelBlending) {
