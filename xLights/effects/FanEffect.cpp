@@ -8,12 +8,17 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#define MAX_ISPC_FAN_COLORS 8
+
 #include "FanEffect.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
+
+#include "ispc/FanFunctions.ispc.h"
+#include "Parallel.h"
 
 
 #include "../../include/fan-16.xpm"
@@ -162,6 +167,61 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     }
 
     int max_radius = std::max(start_radius, end_radius);
+
+    do {
+        // Spatial palette entries need per-pixel position data — fall through to CPU.
+        bool hasSpatial = false;
+        for (int i = 0; i < num_colors && !hasSpatial; i++)
+            hasSpatial = buffer.palette.IsSpatial(i);
+        if (hasSpatial) break;
+
+        if (num_colors > MAX_ISPC_FAN_COLORS) break;
+
+        ispc::FanData fdata;
+        fdata.width             = buffer.BufferWi;
+        fdata.height            = buffer.BufferHt;
+        fdata.xc_adj            = xc_adj;
+        fdata.yc_adj            = yc_adj;
+        fdata.radius1           = (float)radius1;
+        fdata.radius2           = (float)radius2;
+        fdata.max_radius        = (float)max_radius;
+        fdata.blade_div_angle   = (float)blade_div_angle;
+        fdata.blade_width_angle = (float)blade_width_angle;
+        fdata.color_angle       = (float)color_angle;
+        fdata.element_angle     = (float)element_angle;
+        fdata.element_size      = (float)element_size;
+        fdata.angle_offset      = (float)angle_offset;
+        fdata.start_angle       = (float)start_angle;
+        fdata.blade_angle       = (float)blade_angle;
+        fdata.reverse_dir       = reverse_dir ? 1 : 0;
+        fdata.blend_edges       = blend_edges ? 1 : 0;
+        fdata.allowAlpha        = buffer.allowAlpha ? 1 : 0;
+        fdata.num_colors        = num_colors;
+
+        for (int i = 0; i < num_colors; i++) {
+            xlColor c;
+            buffer.palette.GetColor(i, c);
+            fdata.colorsAsRGBA[i].v[0] = c.red;
+            fdata.colorsAsRGBA[i].v[1] = c.green;
+            fdata.colorsAsRGBA[i].v[2] = c.blue;
+            fdata.colorsAsRGBA[i].v[3] = c.alpha;
+            HSVValue hsvC = c.asHSV();
+            fdata.colorsH[i] = (float)hsvC.hue;
+            fdata.colorsS[i] = (float)hsvC.saturation;
+            fdata.colorsV[i] = (float)hsvC.value;
+        }
+
+        int ispcMax = buffer.BufferWi * buffer.BufferHt;
+        constexpr int bfBlockSize = 4096;
+        int blocks = ispcMax / bfBlockSize + 1;
+        parallel_for(0, blocks, [&fdata, &buffer, ispcMax](int blk) {
+            int start = blk * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > ispcMax) end = ispcMax;
+            ispc::FanEffectISPC(&fdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+        });
+        return;
+    } while (false);
 
     for (int x = 0; x < buffer.BufferWi; x++)
     {

@@ -16,6 +16,9 @@
 #include "UtilClasses.h"
 #include "../../include/ColorWash.xpm"
 
+#include "ispc/ColorWashFunctions.ispc.h"
+#include "Parallel.h"
+
 #include <format>
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
@@ -63,11 +66,7 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
 
-    int y;
     xlColor color, orig;
-
-    double position = buffer.GetEffectTimeIntervalPosition(cycles);
-    buffer.GetMultiColorBlend(position, circularPalette, color);
 
     const int StartX = 0;
     const int StartY = 0;
@@ -75,69 +74,45 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int endY = buffer.BufferHt - 1;
 
     int tot = buffer.curPeriod - buffer.curEffStartPer;
-    if (!shimmer || (tot % 2) == 0) {
-        double HalfHt=double(endY - StartY)/2.0;
-        double HalfWi=double(endX - StartX)/2.0;
+    bool shimmerBlack = shimmer && ((tot % 2) != 0);
 
-        orig = color;
-        HSVValue hsvOrig = color.asHSV();
-        xlColor color2 = color;
-        for (int x = StartX; x <= endX; x++)
-        {
-            HSVValue hsv = hsvOrig;
-            if (HorizFade) {
-                if (reverseFades) {
-                    double mult = std::abs(HalfWi - x - StartX) / HalfWi;
-                    if (buffer.allowAlpha) {
-                        color.alpha = (double)orig.alpha * mult;
-                    } else {
-                        hsv.value *= mult;
-                        color = hsv;
-                    }
-                } else {
-                    double mult = 1.0 - std::abs(HalfWi - x - StartX) / HalfWi;
-                    if (buffer.allowAlpha) {
-                        color.alpha = (double)orig.alpha * mult;
-                    } else {
-                        hsv.value *= mult;
-                        color = hsv;
-                    }
-                }
-            }
-            else
-            {
-                color.alpha = orig.alpha;
-            }
- 
-            color2.alpha = color.alpha;
-            for (y=StartY; y<=endY; y++) {
-                if (VertFade) {
-                    if (reverseFades) {
-                        double mult = std::abs(HalfHt - (y - StartY)) / HalfHt;
-                        if (buffer.allowAlpha) {
-                            color.alpha = (double)color2.alpha * mult;
-                        } else {
-                            HSVValue hsv2 = hsv;
-                            hsv2.value *= mult;
-                            color = hsv2;
-                        }
-                    } else {
-                        double mult = 1.0 - std::abs(HalfHt - (y - StartY)) / HalfHt;
-                        if (buffer.allowAlpha) {
-                            color.alpha = (double)color2.alpha * mult;
-                        } else {
-                            HSVValue hsv2 = hsv;
-                            hsv2.value *= mult;
-                            color = hsv2;
-                        }
-                    }
-                }
-                buffer.SetPixel(x, y, color);
-            }
-        }
-    } else {
+    ispc::ColorWashData cwdata;
+    cwdata.width        = buffer.BufferWi;
+    cwdata.height       = buffer.BufferHt;
+    cwdata.horizFade    = HorizFade    ? 1 : 0;
+    cwdata.vertFade     = VertFade     ? 1 : 0;
+    cwdata.reverseFades = reverseFades ? 1 : 0;
+    cwdata.allowAlpha   = buffer.allowAlpha ? 1 : 0;
+    cwdata.shimmerBlack = shimmerBlack  ? 1 : 0;
+
+    if (shimmerBlack) {
         orig = xlBLACK;
+        cwdata.color.v[0] = cwdata.color.v[1] = cwdata.color.v[2] = cwdata.color.v[3] = 0;
+        cwdata.colorH = cwdata.colorS = cwdata.colorV = 0.0f;
+    } else {
+        double position = buffer.GetEffectTimeIntervalPosition(cycles);
+        buffer.GetMultiColorBlend(position, circularPalette, color);
+        orig = color;
+        cwdata.color.v[0] = color.red;
+        cwdata.color.v[1] = color.green;
+        cwdata.color.v[2] = color.blue;
+        cwdata.color.v[3] = color.alpha;
+        HSVValue hsvOrig = color.asHSV();
+        cwdata.colorH = (float)hsvOrig.hue;
+        cwdata.colorS = (float)hsvOrig.saturation;
+        cwdata.colorV = (float)hsvOrig.value;
     }
+
+    int max = buffer.BufferWi * buffer.BufferHt;
+    constexpr int bfBlockSize = 4096;
+    int blocks = max / bfBlockSize + 1;
+    parallel_for(0, blocks, [&cwdata, &buffer, max](int blk) {
+        int start = blk * bfBlockSize;
+        int end = start + bfBlockSize;
+        if (end > max) end = max;
+        ispc::ColorWashEffectISPC(&cwdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+    });
+
     if (effect->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
         if (VertFade || HorizFade) {
