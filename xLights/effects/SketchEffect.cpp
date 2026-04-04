@@ -14,7 +14,6 @@
 
 #include "../render/RenderBuffer.h"
 #include "SketchEffectDrawing.h"
-#include "../ui/effectpanels/SketchPanel.h"
 #include "../render/Effect.h"
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
@@ -87,15 +86,15 @@ void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, Rende
     double progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
     std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
-    double drawPercentage = GetValueCurveDouble("DrawPercentage", SketchPanel::DrawPercentageDef, settings, progress,
-                                                SketchPanel::DrawPercentageMin, SketchPanel::DrawPercentageMax,
+    double drawPercentage = GetValueCurveDouble("DrawPercentage", SketchEffect::DrawPercentageDef, settings, progress,
+                                                SketchEffect::DrawPercentageMin, SketchEffect::DrawPercentageMax,
                                                 buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int thickness = GetValueCurveInt("Thickness", SketchPanel::ThicknessDef, settings, progress,
-                                     SketchPanel::ThicknessMin, SketchPanel::ThicknessMax,
+    int thickness = GetValueCurveInt("Thickness", SketchEffect::ThicknessDef, settings, progress,
+                                     SketchEffect::ThicknessMin, SketchEffect::ThicknessMax,
                                      buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool motionEnabled = settings.GetBool("CHECKBOX_MotionEnabled");
-    int motionPercentage = GetValueCurveInt("MotionPercentage", SketchPanel::MotionPercentageDef, settings, progress,
-                                            SketchPanel::MotionPercentageMin, SketchPanel::MotionPercentageMax,
+    int motionPercentage = GetValueCurveInt("MotionPercentage", SketchEffect::MotionPercentageDef, settings, progress,
+                                            SketchEffect::MotionPercentageMin, SketchEffect::MotionPercentageMax,
                                             buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     xlColorVector colors(buffer.GetColorCount());
@@ -196,22 +195,22 @@ std::list<std::string> SketchEffect::GetFileReferences(Model* model, const Setti
 double SketchEffect::GetSettingVCMin(const std::string& name) const
 {
     if (name == "E_VALUECURVE_DrawPercentage")
-        return SketchPanel::DrawPercentageMin;
+        return SketchEffect::DrawPercentageMin;
     if (name == "E_VALUECURVE_Thickness")
-        return SketchPanel::ThicknessMin;
+        return SketchEffect::ThicknessMin;
     if (name == "E_VALUECURVE_MotionPercentage")
-        return SketchPanel::MotionPercentageMin;
+        return SketchEffect::MotionPercentageMin;
     return RenderableEffect::GetSettingVCMin(name);
 }
 
 double SketchEffect::GetSettingVCMax(const std::string& name) const
 {
     if (name == "E_VALUECURVE_DrawPercentage")
-        return SketchPanel::DrawPercentageMax;
+        return SketchEffect::DrawPercentageMax;
     if (name == "E_VALUECURVE_Thickness")
-        return SketchPanel::ThicknessMax;
+        return SketchEffect::ThicknessMax;
     if (name == "E_VALUECURVE_MotionPercentage")
-        return SketchPanel::MotionPercentageMax;
+        return SketchEffect::MotionPercentageMax;
     return RenderableEffect::GetSettingVCMax(name);
 }
 

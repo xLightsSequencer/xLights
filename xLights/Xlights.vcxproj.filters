@@ -735,9 +735,6 @@
     <ClCompile Include="ui/layout/LORPreview.cpp" />
     <ClCompile Include="ui/import-export/ExportSettings.cpp" />
     <ClCompile Include="render\GPURenderUtils.cpp" />
-    <ClCompile Include="ui\graphics\opengl\DrawGLUtils.cpp">
-      <Filter>ui\graphics\opengl</Filter>
-    </ClCompile>
     <ClCompile Include="ui\graphics\opengl\xlGLCanvas.cpp">
       <Filter>ui\graphics\opengl</Filter>
     </ClCompile>
@@ -2182,9 +2179,6 @@
     <ClInclude Include="models\Pixels.h" />
     <ClInclude Include="ui/layout/LORPreview.h" />
     <ClInclude Include="ui/import-export/ExportSettings.h" />
-    <ClInclude Include="graphics\opengl\DrawGLUtils.h">
-      <Filter>graphics\opengl</Filter>
-    </ClInclude>
     <ClInclude Include="graphics\opengl\xlGLCanvas.h">
       <Filter>graphics\opengl</Filter>
     </ClInclude>

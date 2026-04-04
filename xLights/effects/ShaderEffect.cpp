@@ -88,7 +88,6 @@
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "ui/graphics/opengl/DrawGLUtils.h"
 #include <nlohmann/json.hpp>
 
 #include <regex>

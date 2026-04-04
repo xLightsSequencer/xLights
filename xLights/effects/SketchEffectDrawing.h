@@ -7,7 +7,13 @@
 #include <string>
 #include <vector>
 
-#include "../ui/effectpanels/assist/SketchCanvasPanel.h"
+enum class SketchCanvasPathState : int {
+    Undefined,
+    DefineStartPoint,
+    LineToNewPoint,
+    QuadraticCurveToNewPoint,
+    CubicCurveToNewPoint
+};
 
 // A single sub-path: a starting point followed by cubic bezier segments.
 // cubics stores groups of 6 floats: [cpx1,cpy1, cpx2,cpy2, x1,y1, ...]

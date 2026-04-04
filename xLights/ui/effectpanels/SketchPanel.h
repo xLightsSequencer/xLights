@@ -2,6 +2,7 @@
 
 #include "EffectPanelUtils.h"
 #include "ui/shared/controls/BulkEditControls.h"
+#include "../../effects/SketchEffect.h"
 
 class BulkEditCheckBox;
 class BulkEditSlider;
@@ -59,17 +60,17 @@ public:
     BulkEditValueCurveButton* BitmapButton_MotionPercentage = nullptr;
     BulkEditTextCtrl* TextCtrl_MotionPercentage = nullptr;
 
-    static const int DrawPercentageMin = 0;
-    static const int DrawPercentageDef = 40;
-    static const int DrawPercentageMax = 100;
+    static const int DrawPercentageMin = SketchEffect::DrawPercentageMin;
+    static const int DrawPercentageDef = SketchEffect::DrawPercentageDef;
+    static const int DrawPercentageMax = SketchEffect::DrawPercentageMax;
 
-    static const int ThicknessMin = 1;
-    static const int ThicknessDef = 1;
-    static const int ThicknessMax = 25;
+    static const int ThicknessMin = SketchEffect::ThicknessMin;
+    static const int ThicknessDef = SketchEffect::ThicknessDef;
+    static const int ThicknessMax = SketchEffect::ThicknessMax;
 
-    static const int MotionPercentageMin = 1;
-    static const int MotionPercentageDef = 100;
-    static const int MotionPercentageMax = 100;
+    static const int MotionPercentageMin = SketchEffect::MotionPercentageMin;
+    static const int MotionPercentageDef = SketchEffect::MotionPercentageDef;
+    static const int MotionPercentageMax = SketchEffect::MotionPercentageMax;
 
 protected:
     static const long ID_TEXTCTRL_SketchDef;

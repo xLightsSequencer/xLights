@@ -909,9 +909,7 @@
 			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
 		</Unit>
 		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc.h" />
-		<Unit filename="ui/graphics/opengl/DrawGLUtils.cpp" />
-		<Unit filename="ui/graphics/opengl/DrawGLUtils.h" />
-		<Unit filename="ui/graphics/opengl/xlGLCanvas.cpp" />
+<Unit filename="ui/graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="ui/graphics/opengl/xlGLCanvas.h" />
 		<Unit filename="ui/graphics/opengl/xlOGL3GraphicsContext.cpp" />
 		<Unit filename="ui/graphics/opengl/xlOGL3GraphicsContext.h" />

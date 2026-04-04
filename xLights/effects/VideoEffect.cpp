@@ -20,7 +20,6 @@
 #include "VideoEffect.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
-#include "../ui/effectpanels/VideoPanel.h"
 #include "../render/VideoReader.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -363,17 +362,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                         // read the first frame ... if i dont it thinks the first frame i read is the first frame
                         _videoreader->GetNextFrame(0);
 
-                        // TODO: Future cleanup needed - this code accesses the panel from the render
-                        // thread which is not safe. Need to find an alternative way to communicate
-                        // video details back to the panel (e.g., via an event to the main thread).
-                        // VideoPanel *fp = static_cast<VideoPanel*>(panel);
-                        // if (fp != nullptr)
-                        // {
-                        //     wxCommandEvent event(EVT_VIDEODETAILS);
-                        //     event.SetInt(videolen);
-                        //     event.SetString(filename);
-                        //     wxPostEvent(fp, event);
-                        // }
 
                         if (starttime != 0)
                         {

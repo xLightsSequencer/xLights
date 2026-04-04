@@ -18,8 +18,6 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
-#include "ui/graphics/opengl/xlGLCanvas.h"
-
 #include <memory>
 #include <iostream>
 
@@ -92,16 +90,74 @@ static bool canUseFramebufferObjects()
 #endif
 
 #include <cstdio>
+#include <cstring>
 #include <sstream>
 #include <string>
 
 #include "UtilFunctions.h"
 #include "OpenGLShaders.h"
-#include "ui/graphics/opengl/DrawGLUtils.h"
 #include <log.h>
 
 #include "utils/TraceLog.h"
 using namespace TraceLog;
+
+static bool isDebugEnabled = false;
+static bool isTraceDebugEnabled = false;
+static std::shared_ptr<spdlog::logger> s_glLogger{ nullptr };
+
+void OpenGLShaders::SetupDebugLogging() {
+    s_glLogger = spdlog::get("opengl");
+    if (!s_glLogger) {
+        s_glLogger = spdlog::default_logger();
+    }
+}
+
+void OpenGLShaders::DoLogGLError(const char* file, int line, const char* msg)
+{
+    const char* f2 = file + strlen(file);
+    while (f2 > file && *f2 != '\\' && *f2 != '/') {
+        f2--;
+    }
+    if (*f2 == '\\' || *f2 == '/') {
+        f2++;
+    }
+    if (!s_glLogger) {
+        SetupDebugLogging();
+    }
+    s_glLogger->error("{}/{} - {}", f2, line, msg);
+}
+
+void OpenGLShaders::LogGLError(const char* file, int line, const char* msg) {
+    if (isDebugEnabled) {
+        int er = glGetError();
+        if (er || isTraceDebugEnabled) {
+            const char* f2 = file + strlen(file);
+            while (f2 > file && *f2 != '\\' && *f2 != '/') {
+                f2--;
+            }
+            if (*f2 == '\\' || *f2 == '/') {
+                f2++;
+            }
+            if (!s_glLogger) {
+                SetupDebugLogging();
+            }
+            if (isTraceDebugEnabled) {
+                if (msg) {
+                    s_glLogger->debug("{}/{} - {}:   {:X}", f2, line, msg, er);
+                } else {
+                    s_glLogger->debug("{}/{}:   {:X}", f2, line, er);
+                }
+            }
+            if (er) {
+                if (msg) {
+                    s_glLogger->error("{}/{} - {}:   {:X}", f2, line, msg, er);
+                } else {
+                    s_glLogger->error("{}/{}:   {:X}", f2, line, er);
+                }
+            }
+        }
+    }
+}
 
 
 namespace

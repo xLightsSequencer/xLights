@@ -7,19 +7,12 @@
 #include <vector>
 
 #include "utils/xlPoint.h"
+#include "effects/SketchEffectDrawing.h"
 
 class SketchEffectPath;
 class SketchEffectSketch;
 
 class wxBitmap;
-
-enum class SketchCanvasPathState : int {
-    Undefined,
-    DefineStartPoint,
-    LineToNewPoint,
-    QuadraticCurveToNewPoint,
-    CubicCurveToNewPoint
-};
 
 // This interface is an attempt to decouple the SketchCanvasPanel from it's
 // parent UI. In the current implementation of the SketchCanvasPanel, only

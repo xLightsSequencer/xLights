@@ -537,7 +537,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="render\FSEQFile.cpp" />
     <ClCompile Include="ui\sequencer\GenerateLyricsDialog.cpp" />
     <ClCompile Include="render\GPURenderUtils.cpp" />
-    <ClCompile Include="ui\graphics\opengl\DrawGLUtils.cpp" />
     <ClCompile Include="ui\graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="ui\graphics\opengl\xlOGL3GraphicsContext.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
@@ -1148,7 +1147,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="render\FontManager.h" />
     <ClInclude Include="render\FSEQFile.h" />
     <ClInclude Include="ui\sequencer\GenerateLyricsDialog.h" />
-    <ClInclude Include="ui\graphics\opengl\DrawGLUtils.h" />
     <ClInclude Include="ui\graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="ui\graphics\opengl\XlightsDrawable.h" />
     <ClInclude Include="ui\graphics\opengl\xlOGL3GraphicsContext.h" />

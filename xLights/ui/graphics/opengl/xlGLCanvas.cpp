@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
 END_EVENT_TABLE()
 
 #include "../../../graphics/xlMesh.h"
-#include "DrawGLUtils.h"
+#include "effects/OpenGLShaders.h"
 
 
 
@@ -84,7 +84,7 @@ static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
 
 static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
-    DrawGLUtils::SetupDebugLogging();
+    OpenGLShaders::SetupDebugLogging();
     wxGLAttributes atts;
     for (size_t x = only2d ? 5 : 0; x < 6; ++x) {
         atts.Reset();

@@ -18,6 +18,18 @@ class SketchEffectSketch;
 class SketchEffect : public RenderableEffect
 {
 public:
+    static const int DrawPercentageMin = 0;
+    static const int DrawPercentageDef = 40;
+    static const int DrawPercentageMax = 100;
+
+    static const int ThicknessMin = 1;
+    static const int ThicknessDef = 1;
+    static const int ThicknessMax = 25;
+
+    static const int MotionPercentageMin = 1;
+    static const int MotionPercentageDef = 100;
+    static const int MotionPercentageMax = 100;
+
     SketchEffect( int id );
     virtual ~SketchEffect();
 

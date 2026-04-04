@@ -13,7 +13,7 @@
 
 #include <log.h>
 
-#include "DrawGLUtils.h"
+#include "effects/OpenGLShaders.h"
 #include "../../../graphics/xlMesh.h"
 
 #include <glm/mat4x4.hpp>
@@ -96,7 +96,7 @@ __GLXextFuncPtr wglGetProcAddress(const char* a) {
 #endif
 
 
-bool DrawGLUtils::LoadGLFunctions() {
+static bool LoadGLFunctions() {
     glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
     glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
     glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
@@ -165,7 +165,7 @@ bool DrawGLUtils::LoadGLFunctions() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-bool DrawGLUtils::LoadGLFunctions() {
+static bool LoadGLFunctions() {
     return true;
 }
 #endif
@@ -213,20 +213,20 @@ public:
 
                 if (ProgramID == 0)
                 {
-                    DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create program from vertex and fragment shader");
+                    OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "Failed to create program from vertex and fragment shader");
                 }
 
                 glDeleteShader(FragmentShaderID);
             }
             else
             {
-                DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create fragment shader");
+                OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "Failed to create fragment shader");
             }
             glDeleteShader(VertexShaderID);
         }
         else
         {
-            DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create vertex shader");
+            OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "Failed to create vertex shader");
         }
 
         if (valid) {
@@ -292,7 +292,7 @@ public:
         }
         else
         {
-            DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "glCreateProgram failed.");
+            OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "glCreateProgram failed.");
         }
         return ProgramID;
     }
@@ -346,7 +346,7 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
 
     bool valid = true;
 
-    LOG_GL_ERRORV(DrawGLUtils::LoadGLFunctions());
+    LOG_GL_ERRORV(LoadGLFunctions());
     
     const GLubyte* str = glGetString(GL_VERSION);
     bool cp = str[0] > '3' || (str[0] == '3' && str[2] >= '3');
