@@ -29,6 +29,7 @@
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
 #include <wx/datetime.h>
+#include <wx/config.h>
 #include <map>
 #include <algorithm>
 
@@ -57,6 +58,18 @@ static wxString WildcardForMediaType(std::optional<MediaType> type) {
         case MediaType::BinaryFile: return "Glediator Files|*.gled;*.out;*.csv";
     }
     return "All files (*.*)|*.*";
+}
+
+static wxString LastDirConfigKey(std::optional<MediaType> type) {
+    if (!type.has_value()) return "MediaManagerLastImageDir";
+    switch (*type) {
+        case MediaType::Video:      return "MediaManagerLastVideoDir";
+        case MediaType::Shader:     return "MediaManagerLastShaderDir";
+        case MediaType::SVG:        return "MediaManagerLastSVGDir";
+        case MediaType::TextFile:   return "MediaManagerLastTextFileDir";
+        case MediaType::BinaryFile: return "MediaManagerLastBinaryFileDir";
+        default:                    return "MediaManagerLastImageDir";
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1175,14 +1188,18 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
 {
     if (_sequenceMedia == nullptr) return;
 
-    // Default the file picker to the show directory (or the old path's dir if absolute)
+    // Default the file picker to the last used image dir, then show directory, then old path's dir
     wxString defaultDir;
     {
-        wxFileName fn(oldPath);
-        if (fn.IsAbsolute() && fn.DirExists())
-            defaultDir = fn.GetPath();
-        else if (!_showDirectory.empty())
-            defaultDir = _showDirectory;
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Read(LastDirConfigKey(MediaType::Image), &defaultDir);
+        if (defaultDir.empty()) {
+            wxFileName fn(oldPath);
+            if (fn.IsAbsolute() && fn.DirExists())
+                defaultDir = fn.GetPath();
+            else if (!_showDirectory.empty())
+                defaultDir = _showDirectory;
+        }
     }
     wxFileName fnOld(oldPath);
 
@@ -1195,6 +1212,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                          wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK) return;
         pickedPath = dlg.GetPath().ToStdString();
+        wxConfigBase::Get()->Write(LastDirConfigKey(MediaType::Image), wxFileName(pickedPath).GetPath());
     }
 
     // --- Step 2: if same path, just reload and done ---
@@ -1542,7 +1560,13 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
 {
     if (_sequenceMedia == nullptr) return;
 
-    wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
+    wxString defaultDir;
+    {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Read(LastDirConfigKey(MediaType::Image), &defaultDir);
+        if (defaultDir.empty())
+            defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
+    }
     wxFileDialog dlg(this, "Add Image to Sequence", defaultDir, wxEmptyString,
                      "Image files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp|All files (*.*)|*.*",
                      wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
@@ -1550,6 +1574,8 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
 
     wxArrayString paths;
     dlg.GetPaths(paths);
+    if (!paths.empty())
+        wxConfigBase::Get()->Write(LastDirConfigKey(MediaType::Image), wxFileName(paths[0]).GetPath());
     std::string lastPath;
     const std::string sep(1, wxFileName::GetPathSeparator());
     for (const auto& p : paths) {
@@ -2149,13 +2175,20 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
 {
     if (!_panel->_sequenceMedia) return;
 
-    wxString defaultDir = _panel->_showDirectory.empty() ? wxString() : wxString(_panel->_showDirectory);
+    wxString defaultDir;
+    {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Read(LastDirConfigKey(_filterType), &defaultDir);
+        if (defaultDir.empty())
+            defaultDir = _panel->_showDirectory.empty() ? wxString() : wxString(_panel->_showDirectory);
+    }
     wxFileDialog dlg(this, "Select Media File", defaultDir, wxEmptyString,
                      WildcardForMediaType(_filterType),
                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() != wxID_OK) return;
 
     std::string path = dlg.GetPath().ToStdString();
+    wxConfigBase::Get()->Write(LastDirConfigKey(_filterType), wxFileName(path).GetPath());
     const std::string sep(1, wxFileName::GetPathSeparator());
 
     // Determine which MediaType to register as
