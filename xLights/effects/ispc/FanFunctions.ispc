@@ -92,7 +92,9 @@ export void FanEffectISPC(const uniform FanData * uniform data,
         float r = sqrt(x1 * x1 + y1 * y1);
 
         if (r >= data->radius1 && r <= data->radius2) {
-            float degrees_twist = (r / data->max_radius) * data->blade_angle;
+            float degrees_twist = (data->max_radius > 0.0f)
+                ? ((r / data->max_radius) * data->blade_angle)
+                : 0.0f;
             float theta = (atan2(x1, y1) * (180.0f / FAN_PI)) + degrees_twist + data->start_angle;
 
             if (data->reverse_dir) {
