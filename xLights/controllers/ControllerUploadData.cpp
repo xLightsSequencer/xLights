@@ -1318,6 +1318,11 @@ void UDController::ClearPorts() {
 }
 
 void UDController::Rescan(bool eliminateOverlaps) {
+    // Ensure transient output/controller channel caches are current before
+    // evaluating controller/model channel ranges.
+    if (_outputManager != nullptr) {
+        _outputManager->SomethingChanged();
+    }
     ClearPorts();
 
     for (const auto& it : *_modelManager) {

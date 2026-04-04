@@ -1034,7 +1034,7 @@ bool ModelManager::ReworkStartChannel() const
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
                 it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), allSortedModels);
-                if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
+                if (it->GetChannels() != oldC || (eth != nullptr && (eth->IsUniversePerString() || eth->SupportsUniversePerString()))) {
                     outputManager->SomethingChanged();
 
                     if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && xlights->IsSequencerInitialize())) { 
