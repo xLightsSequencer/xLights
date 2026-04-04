@@ -64,8 +64,6 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 
-#include "utils/ExternalHooks.h"
-
 
 namespace tinyobj {
 
@@ -653,6 +651,7 @@ bool ParseTextureNameAndOption(std::string *texname, texture_option_t *texopt,
 #endif  // TINY_OBJ_LOADER_H_
 
 #ifdef TINYOBJLOADER_IMPLEMENTATION
+#include "utils/ExternalHooks.h"
 #include <cassert>
 #include <cctype>
 #include <cmath>
