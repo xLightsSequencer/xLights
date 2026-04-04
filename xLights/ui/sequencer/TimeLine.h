@@ -13,6 +13,8 @@
 #include "wx/wx.h"
 #include "wx/window.h"
 
+class SequenceElements;
+
 #define HORIZONTAL_PADDING      10
 #define PIXELS_PER_MAJOR_HASH   100
 
@@ -129,6 +131,11 @@ public:
     void ClearTags();
     int GetTagCount();
 
+    // Sync tag positions with SequenceElements (core data store)
+    void SyncTagsFrom(const SequenceElements& elements);
+    void SyncTagsTo(SequenceElements& elements) const;
+    void SetSequenceElements(SequenceElements* elements) { _sequenceElements = elements; }
+
     //void MoveToLeft(int numberOfPixels);
     //void MoveToRight(int numberOfPixels);
     void RaiseChangeTimeline();
@@ -155,6 +162,7 @@ private:
     int mEndPos;
     int _savedPosition;
     int _tagPositions[10];
+    SequenceElements* _sequenceElements = nullptr;
     int _rightClickPosition;
 
     int mStartPixelOffset;

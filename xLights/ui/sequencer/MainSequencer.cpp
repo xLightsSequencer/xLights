@@ -348,7 +348,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
 
 MainSequencer::~MainSequencer()
 {
-    mSequenceElements->SetTimeLine(nullptr);
+    // Tag positions are stored in SequenceElements now; nothing to clean up
     timeDisplay = nullptr; // wxWidgets will delete it
 
 	//(*Destroy(MainSequencer)

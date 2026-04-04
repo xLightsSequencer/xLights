@@ -25,6 +25,14 @@
 #include <log.h>
 
 // ---------------------------------------------------------------------------
+// SequenceElements::GetXLightsFrame — UI convenience, lives here so
+// SequenceElements.cpp stays wx-free.
+// ---------------------------------------------------------------------------
+xLightsFrame* SequenceElements::GetXLightsFrame() const {
+    return dynamic_cast<xLightsFrame*>(renderContext);
+}
+
+// ---------------------------------------------------------------------------
 // WxRenderProgressSink — desktop implementation of IRenderProgressSink.
 // Creates a RenderProgressDialog with per-job wxGauge widgets.
 // ---------------------------------------------------------------------------
@@ -129,10 +137,10 @@ void xLightsFrame::RenderDone()
 
 void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent& /*evt*/)
 {
-    if (renderProgressInfo.empty()) {
+    if (_renderEngine->GetRenderProgressInfo().empty()) {
         return;
     }
-    for (auto it : renderProgressInfo) {
+    for (auto it : _renderEngine->GetRenderProgressInfo()) {
         if (it->progressSink) {
             it->progressSink->Show();
             return;
@@ -147,14 +155,14 @@ void xLightsFrame::OnRenderStatusTimerTrigger(wxTimerEvent& /*event*/)
 
 void xLightsFrame::UpdateRenderStatus()
 {
-    if (renderProgressInfo.empty()) {
+    if (_renderEngine->GetRenderProgressInfo().empty()) {
         RenderStatusTimer.Stop();
         return;
     }
 
     RenderMainThreadEffects();
 
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
+    for (auto it = _renderEngine->GetRenderProgressInfo().begin(); it != _renderEngine->GetRenderProgressInfo().end();) {
         int countModels = 0;
         int countFrames = 0;
 
@@ -217,10 +225,10 @@ void xLightsFrame::UpdateRenderStatus()
             _appProgress->SetValue(0);
             _appProgress->Reset();
             RenderDone();
-            rpi->callback(abortedRenderJobs > 0);
+            rpi->callback(_renderEngine->GetAbortedRenderJobs() > 0);
             delete rpi;
             rpi = nullptr;
-            it = renderProgressInfo.erase(it);
+            it = _renderEngine->GetRenderProgressInfo().erase(it);
         } else {
             ++it;
         }
@@ -230,9 +238,9 @@ void xLightsFrame::UpdateRenderStatus()
 void xLightsFrame::LogRenderStatus()
 {
     spdlog::debug("Logging render status ***************");
-    spdlog::debug("Render tree size. {} entries.", renderTree.data.size());
+    spdlog::debug("Render tree size. {} entries.", _renderEngine->GetRenderTree().data.size());
     spdlog::debug("Render Thread status:\n{}", (const char*)GetThreadStatusReport().c_str());
-    for (const auto& it : renderProgressInfo) {
+    for (const auto& it : _renderEngine->GetRenderProgressInfo()) {
         int frames = it->endFrame - it->startFrame + 1;
         spdlog::debug("Render progress rows {}, start frame {}, end frame {}, frames {}.", it->numRows, it->startFrame, it->endFrame, frames);
         for (int i = 0; i < it->numRows; i++) {
@@ -265,20 +273,20 @@ void xLightsFrame::LogRenderStatus()
 void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback)
 {
     BuildRenderTree();
-    if (renderTree.data.empty()) {
+    if (_renderEngine->GetRenderTree().data.empty()) {
         callback(false);
         return;
     }
 
-    spdlog::debug("Render tree built. {} entries.", renderTree.data.size());
+    spdlog::debug("Render tree built. {} entries.", _renderEngine->GetRenderTree().data.size());
 
     const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
         callback(false);
         return;
     }
-    std::list<Model*> models = renderTree.GetModels();
-    for (auto it : renderProgressInfo) {
+    std::list<Model*> models = _renderEngine->GetRenderTree().GetModels();
+    for (auto it : _renderEngine->GetRenderProgressInfo()) {
         for (size_t row = 0; row < (size_t)it->numRows; ++row) {
             if (it->jobs[row]) {
                 it->jobs[row]->AbortRender();
@@ -326,16 +334,16 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear)
 {
     BuildRenderTree();
     spdlog::debug("Render tree built for time slice {}ms-{}ms. {} entries.",
-                  startms, endms, renderTree.data.size());
+                  startms, endms, _renderEngine->GetRenderTree().data.size());
 
-    if (renderTree.data.empty()) {
+    if (_renderEngine->GetRenderTree().data.empty()) {
         return;
     }
     const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
         return;
     }
-    std::list<Model*> models = renderTree.GetModels();
+    std::list<Model*> models = _renderEngine->GetRenderTree().GetModels();
     std::list<Model*> restricts;
     if (startms < 0) startms = 0;
     if (endms < 0)   endms   = 0;

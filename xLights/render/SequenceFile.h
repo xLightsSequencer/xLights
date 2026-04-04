@@ -24,7 +24,6 @@
 class SequenceElements;
 class RenderContext;
 class UICallbacks;
-class xLightsFrame;
 class AudioManager;
 class EffectLayer;
 
@@ -143,7 +142,7 @@ public:
     std::string UniqueTimingName(RenderContext* renderContext, std::string name) const;
     void UpdateVersion();
     void UpdateVersion(const std::string& version);
-    void AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent);
+    void AdjustEffectSettingsForVersion(SequenceElements& elements, RenderContext* ctx);
 
     bool IsOpen() const { return is_open; }
     bool HasAudioMedia() const { return audio != nullptr; }

@@ -67,6 +67,9 @@
     <ClCompile Include="render\Render.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="render\RenderEngine.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="ui\render\RenderUI.cpp">
       <Filter>ui\render</Filter>
     </ClCompile>

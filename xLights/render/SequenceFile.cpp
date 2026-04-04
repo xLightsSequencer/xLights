@@ -29,16 +29,14 @@
 #include "RenderContext.h"
 #include "UICallbacks.h"
 #include "AudioManager.h"
-#include "../xLightsMain.h"
-#include "../ui/shared/dialogs/OptionChooser.h"
 #include "../effects/EffectManager.h"
+#include "ValueCurve.h"
 #include "../effects/RenderableEffect.h"
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../utils/DisplayMessages.h"
 #include "../utils/string_utils.h"
 #include "RenderUtils.h"
-#include "../ui/sequencer/TimeLine.h"
 #include "../import_export/Vixen3.h"
 #include "utils/ExternalHooks.h"
 
@@ -136,7 +134,7 @@ bool SequenceFile::NeedsTimesCorrected() const
 
 bool SequenceFile::SaveCopy() const
 {
-    std::filesystem::path archive_dir = std::filesystem::path(xLightsFrame::CurrentDir.ToStdString()) / "ArchiveV3";
+    std::filesystem::path archive_dir = std::filesystem::path(GetPath()) / "ArchiveV3";
 
     std::error_code ec;
     if (!std::filesystem::exists(archive_dir, ec)) {
@@ -636,7 +634,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, R
         std::string filename = next_file.stem().string();
 
         std::vector<std::string> grid_times;
-        wxArrayString timing_options; // wxArrayString needed for OptionChooser UI
+        std::vector<std::string> timing_options;
 
         pugi::xml_document input_xml;
         pugi::xml_parse_result result = input_xml.load_file(next_file.string().c_str());
@@ -672,16 +670,11 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, R
             }
         }
 
-        OptionChooser opt_dialog(dynamic_cast<wxWindow*>(xLightsParent));
-        opt_dialog.SetInstructionText("Choose Timing Grid to use for timing import:");
-        opt_dialog.SetOptions(timing_options);
-        wxArrayString timing_grids; // wxArrayString needed for OptionChooser UI
-        if (opt_dialog.ShowModal() == wxID_OK)
-        {
-            opt_dialog.GetSelectedOptions(timing_grids);
-        }
-        else
-        {
+        auto* ui = xLightsParent->GetUICallbacks();
+        if (!ui) return;
+        std::vector<std::string> timing_grids = ui->ChooseFromList(
+            "Choose Timing Grid to use for timing import:", timing_options);
+        if (timing_grids.empty()) {
             return;
         }
 
@@ -699,7 +692,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, R
                         {
                             grid_name = "Unnamed" + grid_id;
                         }
-                        for (size_t i1 = 0; i1 < timing_grids.GetCount(); i1++ )
+                        for (size_t i1 = 0; i1 < timing_grids.size(); i1++ )
                         {
                             if( grid_name == timing_grids[i1] )
                             {
@@ -1290,12 +1283,10 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
 
     // TimingTags
     auto timing_tags_node = root.append_child("TimingTags");
-    if (seq_elements.GetTimeLine() != nullptr) {
-        for (int i = 0; i < 10; ++i) {
-            auto tag_node = timing_tags_node.append_child("Tag");
-            tag_node.append_attribute("number") = i;
-            tag_node.append_attribute("position") = seq_elements.GetTimeLine()->GetTagPosition(i);
-        }
+    for (int i = 0; i < 10; ++i) {
+        auto tag_node = timing_tags_node.append_child("Tag");
+        tag_node.append_attribute("number") = i;
+        tag_node.append_attribute("position") = seq_elements.GetTagPosition(i);
     }
 
     int num_elements = seq_elements.GetElementCount();
@@ -1832,13 +1823,13 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
     return mediaName;
 }
 
-void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent)
+void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, RenderContext* ctx)
 {
     std::string ver = GetVersion();
-    std::vector<RenderableEffect*> effects(xLightsParent->GetEffectManager().size());
+    std::vector<RenderableEffect*> effects(ctx->GetEffectManager().size());
     int count = 0;
-    for (int x = 0; x < (int)xLightsParent->GetEffectManager().size(); x++) {
-        RenderableEffect* eff = xLightsParent->GetEffectManager()[x];
+    for (int x = 0; x < (int)ctx->GetEffectManager().size(); x++) {
+        RenderableEffect* eff = ctx->GetEffectManager()[x];
         if (eff->needToAdjustSettings(ver)) {
             effects[x] = eff;
             count++;

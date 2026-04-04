@@ -86,7 +86,8 @@ void xLightsFrame::CreateSequencer()
 
     spdlog::debug("                Set timeline.");
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
-    _sequenceElements.SetTimeLine(mainSequencer->PanelTimeLine);
+    mainSequencer->PanelTimeLine->SetSequenceElements(&_sequenceElements);
+    mainSequencer->PanelTimeLine->SyncTagsFrom(_sequenceElements);
 
     spdlog::debug("                Set sequence elements.");
     mainSequencer->PanelRowHeadings->SetSequenceElements(&_sequenceElements);

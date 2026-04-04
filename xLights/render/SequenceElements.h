@@ -14,6 +14,7 @@
 #include "Element.h"
 #include "SequenceMedia.h"
 namespace pugi { class xml_node; class xml_document; }
+#include <array>
 #include <vector>
 #include <set>
 #include <string>
@@ -22,7 +23,7 @@ namespace pugi { class xml_node; class xml_document; }
 
 class SequenceFile;
 class SequenceViewManager;
-class TimeLine;
+class xLightsFrame;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -124,8 +125,10 @@ public:
     int GetElementIndexOfTimingFromListIndex(int timingIndex);
     int GetViewCount();
     void RenameModelInViews(const std::string& old_name, const std::string& new_name);
-    TimeLine* GetTimeLine() const { return _timeLine; }
-    void SetTimeLine(TimeLine* timeline) { _timeLine = timeline; }
+    // Tag position storage (10 timeline bookmarks, -1 = unset)
+    int GetTagPosition(int tag) const { return _tagPositions[tag]; }
+    void SetTagPosition(int tag, int position) { _tagPositions[tag] = position; }
+    void ClearTags() { _tagPositions.fill(-1); }
 
     void DeleteElement(const std::string &name);
     void DeleteElementFromView(const std::string &name, int view);
@@ -199,6 +202,8 @@ public:
 
     EffectManager &GetEffectManager();
     RenderContext *GetRenderContext() const { return renderContext; };
+
+    // UI-layer convenience — implemented in ui/render/RenderUI.cpp (requires xLightsMain.h)
     xLightsFrame *GetXLightsFrame() const;
     
     // Color palettes from the loaded sequence
@@ -237,7 +242,7 @@ private:
     std::vector<EffectRange> mSelectedRanges;
     int mSelectedTimingRow;
     SequenceViewManager* _viewsManager = nullptr;
-    TimeLine* _timeLine = nullptr;
+    std::array<int, 10> _tagPositions{};
     RenderContext *renderContext = nullptr;
     double mFrequency;
     int mTimingRowCount = 0;

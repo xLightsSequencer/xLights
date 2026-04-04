@@ -91,6 +91,7 @@
 #include "outputs/ZCPP.h"
 #include "models/OutputModelManager.h"
 #include "render/RenderContext.h"
+#include "render/RenderEngine.h"
 #include "render/IRenderJobCallbacks.h"
 #include "render/IRenderProgressSink.h"
 #include "render/UICallbacks.h"
@@ -1484,9 +1485,8 @@ public:
 
     void DoPostStartupCommands();
 
-    std::list<RenderProgressInfo *>renderProgressInfo;
-    std::queue<RenderEvent*> mainThreadRenderEvents;
-    std::mutex renderEventLock;
+    // Render state is owned by _renderEngine (created in constructor).
+    // These accessors provide backward-compatible access for UI code.
 
     std::string _permanentShowFolder;
     std::string mediaFilename;
@@ -1522,6 +1522,10 @@ public:
 
     void SuspendAutoSave(bool dosuspend) override { _suspendAutoSave = dosuspend; }
 
+    // ---- RenderContext: status/timer ----
+    void SetLoadingStatusText(const std::string& text) override { SetStatusText(wxString(text)); }
+    void StartOutputTimer() override;
+
     // ---- RenderContext: UICallbacks access ----
     UICallbacks* GetUICallbacks() override { return this; }
 
@@ -1542,6 +1546,9 @@ public:
     std::string PromptForText(const std::string& message,
                               const std::string& caption,
                               const std::string& defaultValue = "") const override;
+    std::vector<std::string> ChooseFromList(
+        const std::string& prompt,
+        const std::vector<std::string>& options) const override;
     ProgressToken BeginProgress(const std::string& message,
                                 int maximum = 100) override;
     void UpdateProgress(ProgressToken token, int value,
@@ -1745,28 +1752,14 @@ private:
     int mEffectAssistMode = 0;
     int tempEffectAssistMode = 0;
 	bool mRendering;
-    int abortedRenderJobs = 0;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;
     int _crosshairSize = 1;
 
-    class RenderTree {
-    public:
-        RenderTree() : renderTreeChangeCount(0) {}
-        ~RenderTree() { Clear(); }
-        void Clear();
-        void Add(Model *el);
-        void Print();
-        // Returns the ordered list of models from the render tree.
-        // Defined in Render.cpp where RenderTreeData is fully declared.
-        std::list<Model*> GetModels() const;
-
-        unsigned int renderTreeChangeCount;
-        std::list<RenderTreeData*> data;
-    } renderTree;
     int mAutoSaveInterval;
     int BackupPurgeDays;
     JobPool jobPool;
+    std::unique_ptr<RenderEngine> _renderEngine;
 
     Model *playModel;
     int playType;
@@ -1963,7 +1956,7 @@ private:
     void LoadDockable();
     void SaveDockable();
 
-    Effect* GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const;
+    Effect* GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const override;
     void EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable);
     void CheckForAndCreateDefaultPerpective();
     void ResizeAndMakeEffectsScroll();
@@ -2042,7 +2035,6 @@ public:
 
     int GetPlayStatus() const { return playType; }
     void SetPlayStatus(int status);
-    void StartOutputTimer();
     void StopOutputTimer();
     
     MainSequencer* GetMainSequencer() const { return mainSequencer; }

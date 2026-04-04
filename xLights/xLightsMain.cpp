@@ -50,6 +50,7 @@
 #include "ui/sequencer/BatchRenderDialog.h"
 #include "CachedFileDownloader.h"
 #include "ui/shared/dialogs/CheckboxSelectDialog.h"
+#include "ui/shared/dialogs/OptionChooser.h"
 #include "ui/color/ColourReplaceDialog.h"
 #include "ui/color/ColoursPanel.h"
 #include "ui/import-export/ConvertDialog.h"
@@ -650,6 +651,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     });
 
     ValueCurve::SetSequenceElements(&_sequenceElements);
+
+    _renderEngine = std::make_unique<RenderEngine>(*this, jobPool, _renderCache);
+    _renderEngine->SetOnRenderStatusTimerStart([this]() { RenderStatusTimer.Start(100, false); });
+    _renderEngine->SetOnCallAfterRenderMainThread([this]() { CallAfter(&xLightsFrame::RenderMainThreadEffects); });
+    _renderEngine->SetOnRenderJobComplete([this](const std::string& modelName) {
+        CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering \"" + modelName + "\""), 0);
+    });
+    _renderEngine->SetOnAllRenderJobsComplete([this]() { CallAfter(&xLightsFrame::RenderDone); });
 
     _exiting = false;
     SplashScreenShow splash(renderOnlyMode);
@@ -2566,6 +2575,29 @@ std::string xLightsFrame::PromptForText(const std::string& message,
         return ted.GetValue().ToStdString();
     }
     return defaultValue;
+}
+
+std::vector<std::string> xLightsFrame::ChooseFromList(
+    const std::string& prompt,
+    const std::vector<std::string>& options) const {
+    wxArrayString wxOptions;
+    for (const auto& opt : options) {
+        wxOptions.push_back(opt);
+    }
+    OptionChooser dlg(const_cast<xLightsFrame*>(this));
+    dlg.SetInstructionText(prompt);
+    dlg.SetOptions(wxOptions);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxArrayString selected;
+        dlg.GetSelectedOptions(selected);
+        std::vector<std::string> result;
+        result.reserve(selected.size());
+        for (const auto& s : selected) {
+            result.push_back(s.ToStdString());
+        }
+        return result;
+    }
+    return {};
 }
 
 UICallbacks::ProgressToken xLightsFrame::BeginProgress(const std::string& message,

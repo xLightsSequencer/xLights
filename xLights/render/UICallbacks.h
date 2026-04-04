@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 // Abstract interface replacing direct wxMessageBox / wxFileSelector /
 // wxDirDialog / wxGetNumberFromUser / wxProgressDialog calls in
@@ -55,6 +56,13 @@ public:
     virtual std::string PromptForText(const std::string& message,
                                       const std::string& caption,
                                       const std::string& defaultValue = "") const = 0;
+
+    // ---- list chooser (multi-select) ----
+    // Present a list of options and let the user select one or more.
+    // Returns the selected items, or empty vector if cancelled.
+    virtual std::vector<std::string> ChooseFromList(
+        const std::string& prompt,
+        const std::vector<std::string>& options) const { return {}; }
 
     // ---- configuration queries ----
     virtual bool IsCheckSequenceOptionDisabled(const std::string& option) const { return false; }

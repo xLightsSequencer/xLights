@@ -1319,7 +1319,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 Render(_presetSequenceElements, _presetSequenceData,
                        { _presetModel }, { _presetModel },
                        0, frames - 1, nullptr, true, [](bool) {});
-                while (!renderProgressInfo.empty()) {
+                while (!_renderEngine->IsRenderDone()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     RenderMainThreadEffects();
                     UpdateRenderStatus();

@@ -10,10 +10,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cstdint>
 #include <list>
 #include <string>
 
 class AudioManager;
+class Effect;
 class EffectManager;
 class Model;
 class OutputModelManager;
@@ -67,6 +69,14 @@ public:
                                       bool clear = false) = 0;
     virtual TimingElement* AddTimingElement(const std::string& name,
                                             const std::string& subType = "") = 0;
+
+    // ---- persistent effect query (for render range expansion) ----
+    virtual Effect* GetPersistentEffectOnModelStartingAtTime(
+        const std::string& /*model*/, uint32_t /*startms*/) const { return nullptr; }
+
+    // ---- status / timer (empty defaults for headless) ----
+    virtual void SetLoadingStatusText(const std::string& /*text*/) {}
+    virtual void StartOutputTimer() {}
 
     // ---- misc ----
     virtual void SuspendAutoSave(bool suspend) = 0;

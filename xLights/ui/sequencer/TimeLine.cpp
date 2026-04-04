@@ -13,6 +13,7 @@
 
 #include "TimeLine.h"
 #include "Waveform.h"
+#include "../../render/SequenceElements.h"
 #include "../render/RenderUtils.h"
 #include "../xLightsMain.h"
 #include "../ui/wxUtilities.h"
@@ -127,6 +128,9 @@ void TimeLine::SetTagPosition(int tag, int position , bool flag)
 
     if (_tagPositions[tag] != position) {
         _tagPositions[tag] = position;
+        if (_sequenceElements) {
+            _sequenceElements->SetTagPosition(tag, position);
+        }
         if (flag) {
             Refresh(false);
             RaiseSequenceChange();
@@ -141,6 +145,21 @@ void TimeLine::ClearTags()
         _tagPositions[i] = -1;
     }
     Refresh(false);
+}
+
+void TimeLine::SyncTagsFrom(const SequenceElements& elements)
+{
+    for (int i = 0; i < 10; ++i) {
+        _tagPositions[i] = elements.GetTagPosition(i);
+    }
+    Refresh(false);
+}
+
+void TimeLine::SyncTagsTo(SequenceElements& elements) const
+{
+    for (int i = 0; i < 10; ++i) {
+        elements.SetTagPosition(i, _tagPositions[i]);
+    }
 }
 
 int TimeLine::GetTagCount()

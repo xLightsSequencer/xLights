@@ -20,9 +20,15 @@
 #include <map>
 #include <memory>
 
-#include "xLightsMain.h"
+#include "RenderEngine.h"
+#include "RenderContext.h"
+#include "Effect.h"
+#include "EffectLayer.h"
+#include "Element.h"
+#include "SequenceElements.h"
 #include "SequenceFile.h"
 #include "effects/RenderableEffect.h"
+#include "effects/EffectManager.h"
 #include "IRenderJobCallbacks.h"
 #include "IRenderJobStatus.h"
 #include "IRenderProgressSink.h"
@@ -34,6 +40,9 @@
 #include "Parallel.h"
 #include "utils/ExternalHooks.h"
 #include "GPURenderUtils.h"
+#include "RenderCache.h"
+#include "UtilClasses.h"
+#include "JobPool.h"
 
 #include <log.h>
 // END_OF_RENDER_FRAME is defined in RenderProgressInfo.h
@@ -193,18 +202,7 @@ private:
     const int finalFrame;
 };
 
-void RenderProgressInfo::CleanupJobs() {
-    for (int i = 0; i < numRows; ++i) {
-        delete jobs[i];
-        delete aggregators[i];
-    }
-    delete[] jobs;
-    jobs = nullptr;
-    delete[] aggregators;
-    aggregators = nullptr;
-    delete progressSink;
-    progressSink = nullptr;
-}
+// RenderProgressInfo::CleanupJobs() defined in Render.cpp
 
 class SNPair {
 public:
@@ -1066,19 +1064,221 @@ private:
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
 };
 
-// ---------------------------------------------------------------------------
-// Thin wrappers — delegate to RenderEngine
-// ---------------------------------------------------------------------------
 
-void xLightsFrame::RenderMainThreadEffects() {
-    _renderEngine->RenderMainThreadEffects();
+// RenderRange — moved to RenderUI.cpp (uses RenderCommandEvent wx type)
+
+RenderEngine::RenderEngine(RenderContext& ctx, JobPool& pool, RenderCache& cache)
+    : _ctx(ctx), _jobPool(pool), _renderCache(cache) {}
+
+RenderEngine::~RenderEngine() {
+    for (auto* rpi : _renderProgressInfo) {
+        rpi->CleanupJobs();
+        delete rpi;
+    }
+    _renderProgressInfo.clear();
 }
 
-void xLightsFrame::BuildRenderTree() {
-    _renderEngine->BuildRenderTree(_sequenceElements, modelsChangeCount);
+void RenderEngine::RenderMainThreadEffects() {
+    std::unique_lock<std::mutex> lock(_renderEventLock);
+    while (!_mainThreadRenderEvents.empty()) {
+        RenderEvent *evt = _mainThreadRenderEvents.front();
+        _mainThreadRenderEvents.pop();
+        lock.unlock();
+        RenderEffectOnMainThread(evt);
+        lock.lock();
+    }
 }
 
-void xLightsFrame::Render(SequenceElements& seqElements,
+void RenderEngine::RenderEffectOnMainThread(RenderEvent *ev) {
+    std::unique_lock<std::mutex> lock(ev->mutex);
+
+    // validate that the effect still exists as this could be being processed after the effect was deleted
+    SequenceElements& seqElements = _ctx.GetSequenceElements();
+    if (seqElements.IsValidEffect(ev->effect)) {
+        ev->returnVal = RenderEffectFromMap(ev->suppress, ev->effect,
+            ev->layer,
+            ev->period,
+            *ev->settingsMap,
+            *ev->buffer, *ev->ResetEffectState, false, ev) ? 1 : 0;
+    } else {
+        assert(false);
+    }
+    ev->signal.notify_all();
+}
+
+// RenderProgressInfo is defined in RenderProgressInfo.h (included above).
+// It was moved to a header so RenderUI.cpp can also access it.
+
+// LogRenderStatus — moved to RenderUI.cpp (needs access to RenderProgressInfo)
+
+static bool HasEffects(ModelElement *me) {
+    if (me->HasEffects()) {
+        return true;
+    }
+
+    for (int x = 0; x < me->GetSubModelAndStrandCount(); ++x) {
+        if (me->GetSubModel(x)->HasEffects()) {
+            return true;
+        }
+    }
+    for (int x = 0; x < me->GetStrandCount(); ++x) {
+        StrandElement *se = me->GetStrand(x);
+        for (int n = 0; n < se->GetNodeLayerCount(); ++n) {
+            if (se->GetNodeLayer(n)->GetEffectCount() > 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// OnProgressBarDoubleClick, OnRenderStatusTimerTrigger, UpdateRenderStatus,
+// RenderDone — all moved to RenderUI.cpp (wx UI handlers / progress-bar updates).
+
+class RenderTreeData {
+public:
+    RenderTreeData(Model *e): model(e) {
+
+        
+        if (e == nullptr) {
+            spdlog::critical("Render tree has a null model ... this is not going to end well.");
+        }
+
+        ModelGroup *mg = dynamic_cast<ModelGroup*>(e);
+        if (mg != nullptr) {
+            // might need to recalculate the group nodes
+            mg->CheckForChanges();
+        }
+
+        for (size_t node = 0; node < e->GetNodeCount(); ++node) {
+            unsigned int start = e->NodeStartChannel(node);
+            unsigned int end = e->NodeEndChannel(node);
+            AddRange(start, end);
+        }
+        sortRanges(ranges);
+    }
+
+    void AddRange(unsigned int start, unsigned int end) {
+        if (!ranges.empty()) {
+            if ((ranges.back().end + 1) == start) {
+                ranges.back().end = end;
+                return;
+            }
+        }
+        ranges.push_back(NodeRange(start, end));
+    }
+
+    bool Overlaps(RenderTreeData &e) {
+        for (const auto& it : ranges) {
+            for (const auto& it2 : e.ranges) {
+                if (it.Overlaps(it2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static void sortRanges(std::list<NodeRange> &ranges) {
+        ranges.sort();
+        auto it = ranges.begin();
+        auto it2 = ranges.begin();
+        if (it2 != ranges.end()) {
+            ++it2;
+        }
+        while (it2 != ranges.end()) {
+            if ((it->end + 1) == it2->start) {
+                //it2 is immediately at the end of it
+                it->end = it2->end;
+                it2 = ranges.erase(it2);
+            } else if (it->end >= (it2->start - 1) && (it->end <= it2->end)) {
+                // it2 overlaps the end of it
+                it->end = it2->end;
+                it2 = ranges.erase(it2);
+            } else if (it2->start <= it->end && it->end >= it2->end) {
+                //it2 fully contained in it
+                it2 = ranges.erase(it2);
+            } else {
+                ++it;
+                ++it2;
+            }
+        }
+    }
+
+    void Add(Model *el) {
+        renderOrder.push_back(el);
+    }
+    std::list<Model *> renderOrder;
+    std::list<NodeRange> ranges;
+    Model *model;
+};
+
+void RenderEngine::RenderTree::Clear() {
+    for (auto it : data) {
+        delete it;
+    }
+    data.clear();
+}
+
+void RenderEngine::RenderTree::Add(Model *el) {
+    RenderTreeData *elData = new RenderTreeData(el);
+    for (const auto& it : data) {
+        RenderTreeData *elData2 = it;
+        if (elData2->Overlaps(*elData)) {
+            elData->Add(elData2->model);
+            elData2->Add(el);
+        }
+    }
+    elData->Add(el);
+    data.push_back(elData);
+}
+
+void RenderEngine::RenderTree::Print() {
+    auto logger_render = spdlog::get("render");
+    logger_render->debug("========== RENDER TREE");
+    for (const auto& it : data) {
+        //printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
+        logger_render->debug("   {}:   ({})", it->model->GetName(), (int)it->ranges.size());
+        for (const auto& it2 : it->renderOrder) {
+            //printf("    %s     \n", it2->GetName().c_str());
+            logger_render->debug("        {}", it2->GetName());
+        }
+    }
+    logger_render->debug("========== END RENDER TREE");
+}
+
+std::list<Model*> RenderEngine::RenderTree::GetModels() const {
+    std::list<Model*> models;
+    for (const auto& it : data) {
+        models.push_back(it->model);
+    }
+    return models;
+}
+
+void RenderEngine::BuildRenderTree(SequenceElements& elements, unsigned int modelsChangeCount) {
+    unsigned int curChangeCount = elements.GetMasterViewChangeCount() + modelsChangeCount;
+    if (_renderTree.renderTreeChangeCount != curChangeCount) {
+        _renderTree.Clear();
+        const int numEls = elements.GetElementCount(MASTER_VIEW);
+        if (numEls == 0) {
+            //nothing to do....
+            return;
+        }
+        for (size_t row = 0; row < (size_t)numEls; ++row) {
+            Element *rowEl = elements.GetElement(row, MASTER_VIEW);
+            if (rowEl != nullptr && rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                Model *model = _ctx.GetModel(rowEl->GetModelName());
+                if (model != nullptr) {
+                    _renderTree.Add(model);
+                }
+            }
+        }
+        _renderTree.Print();
+        _renderTree.renderTreeChangeCount = curChangeCount;
+    }
+}
+
+void RenderEngine::Render(SequenceElements& seqElements,
                           SequenceData& seqData,
                           const std::list<Model*> models,
                           const std::list<Model *> &restrictToModels,
@@ -1086,183 +1286,525 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                           std::unique_ptr<IRenderProgressSink> sink, bool clear,
                           std::function<void(bool)>&& callback)
 {
-    _renderEngine->Render(seqElements, seqData, models, restrictToModels,
-                          startFrame, endFrame, std::move(sink), clear, std::move(callback));
-}
+    _abortedRenderJobs = 0;
 
-void xLightsFrame::RenderDirtyModels() {
-    _renderEngine->RenderDirtyModels(_sequenceElements, _seqData, _suspendRender, modelsChangeCount);
-}
-
-bool xLightsFrame::AbortRender(int maxTimeMS) {
-    return AbortRender(maxTimeMS, nullptr);
-}
-
-bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
-    static bool inAbort = false;
-    if (_renderEngine->IsRenderDone()) {
-        return true;
+    auto logger_render = spdlog::get("render");
+    if (startFrame < 0) {
+        startFrame = 0;
     }
-    if (inAbort) {
-        return false;
+    if (endFrame >= (int)seqData.NumFrames()) {
+        endFrame = seqData.NumFrames() - 1;
     }
-    inAbort = true;
-    spdlog::info("Aborting rendering ...");
-    _renderEngine->SignalAbort();
-
-    int maxLoops = maxTimeMS / 10;
-    int loops = 0;
-    while (!_renderEngine->IsRenderDone() && loops < maxLoops) {
-        loops++;
-        _renderEngine->RenderMainThreadEffects();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        UpdateRenderStatus();
-        if (!_renderEngine->IsRenderDone() && loops > 25) {
-            wxYield();
+    std::list<NodeRange> ranges;
+    if (restrictToModels.empty()) {
+        ranges.push_back(NodeRange(0, seqData.NumChannels()));
+    } else {
+        for (const auto& it : restrictToModels) {
+            RenderTreeData data(it);
+            ranges.insert(ranges.end(), data.ranges.begin(), data.ranges.end());
         }
-        if (loops % 200 == 0) {
-            spdlog::info("    Waiting for renderers to abort. {} left.", (int)_renderEngine->GetRenderProgressInfo().size());
-        }
+        RenderTreeData::sortRanges(ranges);
     }
-    spdlog::info("    Aborting renderers ... Done");
-    inAbort = false;
-    if (numThreadsAborted != nullptr) {
-        *numThreadsAborted = _renderEngine->GetAbortedRenderJobs();
-    }
-    return _renderEngine->IsRenderDone();
-}
+    int numRows = models.size();
+    RenderJob **jobs = new RenderJob*[numRows];
+    AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
+    std::vector<std::set<int>> channelMaps(seqData.NumChannels());
 
-void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
-    _renderEngine->RenderEffectForModel(model, startms, endms,
-                                        _sequenceElements, _seqData,
-                                        _suspendRender, modelsChangeCount, clear);
-}
+    size_t row = 0;
+    for (auto it = models.begin(); it != models.end(); ++it, ++row) {
+        jobs[row] = nullptr;
+        aggregators[row] = new AggregatorRenderer(seqData.NumFrames());
 
-// RenderTimeSlice — defined in RenderUI.cpp
+        Element *rowEl = seqElements.GetElement((*it)->GetName());
 
-bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
-                                  const std::string& model, const std::string& fn,
-                                  const std::string& fmt, bool doRender)
-{
-    if (endFrame == 0)
-        endFrame = _seqData.NumFrames();
+        if (rowEl == nullptr) {
+            //spdlog::critical("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '{}'.", (const char *)(*it)->GetName().c_str());
+        } else {
+            if (rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
 
-    Model* m = GetModel(model);
-    if (m == nullptr)
-        return false;
+                if (me == nullptr) {
+                    logger_render->critical("xLightsFrame::Render me is nullptr ... this is going to crash.");
+                }
 
-    if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
-        return false;
+                bool hasEffects = HasEffects(me);
+                bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
+                if (hasEffects || (isRestricted && clear)) {
+                    RenderJob *job = new RenderJob(me, seqData, &_ctx, this);
 
-    std::string filename(fn);
-    std::string format(fmt);
+                    if (job == nullptr) {
+                        logger_render->critical("xLightsFrame::Render job is nullptr ... this is going to crash.");
+                    }
 
-    auto sw = std::chrono::steady_clock::now();
-    std::string Out3 = format.substr(0, 3);
+                    job->setRenderRange(startFrame, endFrame);
+                    job->SetRangeRestriction(ranges);
+                    if (seqElements.SupportsModelBlending()) {
+                        job->SetModelBlending();
+                    }
+                    PixelBufferClass *buffer = job->getBuffer();
+                    if (buffer == nullptr || buffer->GetNodeCount() == 0) {
+                        delete job;
+                        continue;
+                    }
 
-    if (Out3 == "LSP") {
-        filename = filename + "_USER";
-    }
-    std::filesystem::path oName(filename);
-
-    if (oName.parent_path().empty()) {
-        oName = std::filesystem::path(CurrentDir.ToStdString()) / oName.filename();
-    }
-    std::string fullpath;
-
-    SetStatusText(std::format("Starting Export for {} - {}", format, Out3));
-    wxYield();
-
-    Element* el = _sequenceElements.GetElement(model);
-    if (el == nullptr)
-        return false;
-    RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, this);
-    assert(job != nullptr);
-    SequenceData* data = job->createExportBuffer();
-    assert(data != nullptr);
-    int cpn = job->getBuffer()->GetChanCountPerNode();
-
-    if (doRender) {
-        RenderAll();
-        // Wait for any in-progress render to complete
-        while (mRendering) {
-            wxYield();
+                    jobs[row] = job;
+                    aggregators[row]->addNext(job);
+                    size_t cn = buffer->GetChanCountPerNode();
+                    for (size_t node = 0; node < buffer->GetNodeCount(); ++node) {
+                        uint32_t start = buffer->NodeStartChannel(node);
+                        for (size_t c = 0; c < cn; ++c) {
+                            size_t cnum = start + c;
+                            if (cnum < seqData.NumChannels()) {
+                                for (const auto i : channelMaps[cnum]) {
+                                    int idx = i;
+                                    if ((size_t)idx != row) {
+                                        if (jobs[idx]->addNext(aggregators[row])) {
+                                            aggregators[row]->incNumAggregated();
+                                        }
+                                    }
+                                }
+                                channelMaps[cnum].insert(row);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
-    Model* m2 = GetModel(model);
-    // firstChan is the absolute 0-based channel of node 0; subtract it from nstart
-    // so that node data is packed at the start of the export buffer (index 0).
-    int firstChan = m2->NodeStartChannel(0);
-    for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
-        for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
-            int ostart = m2->NodeStartChannel(x);
-            int nstart = ostart - firstChan;
-            job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
-            job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
+
+    logger_render->debug("Aggregators created.");
+
+    channelMaps.clear();
+    unsigned int count = 0;
+    if (clear) {
+        for (int f = startFrame; f <= endFrame; f++) {
+            for (const auto& it : ranges) {
+                seqData[f].Zero(it.start, it.end - it.start + 1);
+            }
         }
     }
-    delete job;
 
-    if (Out3 == "Lcb") {
-        oName.replace_extension(".lcb");
-        fullpath = oName.string();
-        int lcbVer = 1;
-        if (format.find("S5") != std::string::npos) {
-            lcbVer = 2;
+    logger_render->debug("Data cleared.");
+
+    for (row = 0; row < (size_t)numRows; ++row) {
+        if (jobs[row]) {
+            if (aggregators[row]->getNumAggregated() == 0) {
+                //start all the jobs that don't depend on anything above them
+                //get them rendering while we setup the rest
+                jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
+                _jobPool.PushJob(jobs[row]);
+                ++count;
+            }
+            if (sink) {
+                sink->SetupJobProgress(jobs[row]);
+            }
         }
-        WriteLcbFile(fullpath, data->NumChannels(), startFrame, endFrame, data, lcbVer, cpn);
-    } else if (Out3 == "Vir") {
-        oName.replace_extension(".vir");
-        fullpath = oName.string();
-        WriteVirFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
-    } else if (Out3 == "LSP") {
-        oName.replace_extension(".xml");
-        fullpath = oName.string();
-        WriteLSPFile(fullpath, data->NumChannels(), startFrame, endFrame, data, cpn);
-    } else if (Out3 == "HLS") {
-        oName.replace_extension(".hlsnc");
-        fullpath = oName.string();
-        WriteHLSFile(fullpath, data->NumChannels(), startFrame, endFrame, data);
-    } else if (Out3 == "FPP") {
-        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.replace_extension(".eseq");
-        fullpath = oName.string();
-        bool v2 = format.find("Compressed") != std::string::npos;
-        WriteFalconPiModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), v2);
-    } else if (Out3 == "Com") {
-        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.replace_extension(".mp4");
-        fullpath = oName.string();
-        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
-    } else if (Out3 == "Unc") {
-        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        fullpath = oName.string();
-        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
-    } else if (Out3 == "Min") {
-        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.replace_extension(".bin");
-        fullpath = oName.string();
-        WriteMinleonNECModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model));
-    } else if (Out3 == "GIF") {
-        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
-        oName.replace_extension(".gif");
-        fullpath = oName.string();
-        WriteGIFModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), _seqData.FrameTime());
     }
-    float s = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
-    s /= 1000;
-    SetStatusText(std::format("Finished writing model: {} in {:.3f}s ", fullpath, s));
 
-    delete data;
-    EnableSequenceControls(true);
+    logger_render->debug("Job pool start size {}.", (int)_jobPool.size());
+    for (row = 0; row < (size_t)numRows; ++row) {
+        if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
+            //now start the rest
+            _jobPool.PushJob(jobs[row]);
+            ++count;
+        }
+    }
+    logger_render->debug("Job pool new size {}.", (int)_jobPool.size());
 
-    return true;
+    if (count) {
+        if (sink) {
+            sink->OnRenderSetupComplete();
+        }
+
+        // Copy RenderJob* array into IRenderJobStatus* array for RenderProgressInfo
+        // (RenderProgressInfo only needs the status interface for progress/cleanup).
+        IRenderJobStatus **statusJobs = new IRenderJobStatus*[numRows];
+        for (int i = 0; i < numRows; ++i) {
+            statusJobs[i] = jobs[i]; // implicit upcast
+        }
+        delete[] jobs;
+
+        RenderProgressInfo *pi = new RenderProgressInfo(std::move(callback));
+        pi->numRows = numRows;
+        pi->startFrame = startFrame;
+        pi->endFrame = endFrame;
+        pi->jobs = statusJobs;
+        pi->progressSink = sink.release(); // RenderProgressInfo takes ownership
+        pi->restriction = restrictToModels;
+        pi->aggregators = aggregators;
+
+        _renderProgressInfo.push_back(pi);
+        if (_onRenderStatusTimerStart) _onRenderStatusTimerStart();
+    } else {
+        delete[] jobs;
+        delete[] aggregators;
+        callback(_abortedRenderJobs > 0);
+        // sink auto-deleted by unique_ptr
+    }
 }
 
-bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int layer, int period, SettingsMap& SettingsMap,
+static void addModelsUpTo(std::list<Model*> &models, const std::list<Model *> &toAdd, Model *upTo) {
+    for (auto it = toAdd.begin(); it != toAdd.end(); ++it) {
+        bool add = true;
+        for (auto it2 = models.begin(); it2 != models.end() && add; ++it2) {
+            if (*it2 == *it) {
+                add = false;
+            }
+        }
+        if (add) {
+            models.push_back(*it);
+        }
+        if (upTo == *it) {
+            return;
+        }
+    }
+}
+
+static void addModelsFrom(std::list<Model*> &models, const std::list<Model *> &toAdd, Model *from) {
+    bool found = false;
+    for (auto it = toAdd.begin(); it != toAdd.end(); ++it) {
+        if (!found && from != *it) {
+            continue;
+        }
+        found = true;
+        bool add = true;
+        for (auto it2 = models.begin(); it2 != models.end() && add; ++it2) {
+            if (*it2 == *it) {
+                add = false;
+            }
+        }
+        if (add) {
+            models.push_back(*it);
+        }
+    }
+}
+
+void RenderEngine::RenderDirtyModels(SequenceElements& _sequenceElements, SequenceData& _seqData,
+                                     bool suspendRender, unsigned int modelsChangeCount) {
+
+    if (suspendRender) return; // dont render if suspended
+
+    BuildRenderTree(_sequenceElements, modelsChangeCount);
+    if (_renderTree.data.empty()) {
+        //nothing to do....
+        return;
+    }
+    const int numRows = _sequenceElements.GetElementCount();
+    if (numRows == 0) {
+        return;
+    }
+    int startms = 9999999;
+    int endms = -1;
+    std::list<Model *> models;
+    std::list<Model *> restricts;
+    for (int x = 0; x < numRows; x++) {
+        Element *el = _sequenceElements.GetElement(x);
+        if (el->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            int st, ed;
+            el->GetDirtyRange(st, ed);
+            if (st != -1) {
+                startms = std::min(startms, st);
+                endms = std::max(endms, ed);
+                for (auto it = _renderTree.data.begin(); it != _renderTree.data.end(); ++it) {
+                    if ((*it)->model->GetName() == el->GetModelName()) {
+                        restricts.push_back((*it)->model);
+                        addModelsUpTo(models, (*it)->renderOrder, (*it)->model);
+                    }
+                }
+            }
+        }
+    }
+    if (restricts.empty()) {
+        return;
+    }
+    for (auto x = models.begin(); x != models.end(); ++x) {
+        for (auto it = _renderTree.data.begin(); it != _renderTree.data.end(); ++it) {
+            if ((*it)->model == *x) {
+                addModelsFrom(models, (*it)->renderOrder, (*it)->model);
+            }
+        }
+    }
+    if (startms < 0) {
+        startms = 0;
+    }
+    if (endms < 0) {
+        endms = 0;
+    }
+    int startframe = startms /_seqData.FrameTime() - 1;
+    if (startframe < 0) {
+        startframe = 0;
+    }
+    int endframe = endms / _seqData.FrameTime() + 1;
+    if (endframe >= (int)_seqData.NumFrames()) {
+        endframe = _seqData.NumFrames() - 1;
+    }
+    if (endframe < startframe) {
+        return;
+    }
+    Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, nullptr, true, [] (bool) {});
+}
+
+void RenderEngine::SignalAbort() {
+    for (auto rpi : _renderProgressInfo) {
+        for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
+            if (rpi->jobs[row]) {
+                rpi->jobs[row]->AbortRender();
+                ++_abortedRenderJobs;
+            }
+        }
+    }
+}
+
+// RenderGridToSeqData — moved to RenderUI.cpp (creates WxRenderProgressSink)
+
+void RenderEngine::RenderEffectForModel(const std::string &model, int startms, int endms,
+                                        SequenceElements& _sequenceElements, SequenceData& _seqData,
+                                        bool suspendRender, unsigned int modelsChangeCount, bool clear) {
+
+    if (suspendRender) return;
+
+    BuildRenderTree(_sequenceElements, modelsChangeCount);
+
+    spdlog::debug("Render tree built for model {} {}ms-{}ms. {} entries.",
+        (const char *)model.c_str(),
+        startms,
+        endms,
+        _renderTree.data.size());
+
+    int startframe = startms / _seqData.FrameTime();
+
+    // If there is an effect at the start time that has the persistent flag set then include the prior frame
+    Effect* persistentEffectBefore = _ctx.GetPersistentEffectOnModelStartingAtTime(model, startms);
+    if (persistentEffectBefore != nullptr) {
+        startframe -= 1;
+    }
+
+    if (startframe < 0) {
+        startframe = 0;
+    }
+    int endframe = endms / _seqData.FrameTime();
+
+    // If there is an effect at the end time that has the persistent flag set then include the next frame
+    Effect* persistentEffectAfter = _ctx.GetPersistentEffectOnModelStartingAtTime(model, endms);
+    if (persistentEffectAfter != nullptr) {
+        endframe = persistentEffectAfter->GetEndTimeMS() / _seqData.FrameTime();
+    }
+
+    if (endframe >= (int)_seqData.NumFrames()) {
+        endframe = _seqData.NumFrames() - 1;
+    }
+    for (const auto& it : _renderTree.data) {
+        if (it->model->GetName() == model) {
+
+            for (const auto& it2 : _renderProgressInfo) {
+                RenderProgressInfo *rpi = it2;
+                if (std::find(rpi->restriction.begin(), rpi->restriction.end(), it->model) != rpi->restriction.end()) {
+                    if (startframe > rpi->startFrame) {
+                        startframe = rpi->startFrame;
+                    }
+                    if (endframe < rpi->endFrame) {
+                        endframe = rpi->endFrame;
+                    }
+                    for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
+                        if (rpi->jobs[row]) {
+                            rpi->jobs[row]->AbortRender();
+                        }
+                    }
+                }
+            }
+            std::list<Model *> m;
+            m.push_back(it->model);
+
+            spdlog::debug("Rendering {} models {} frames.", m.size(), endframe - startframe + 1);
+
+            Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, nullptr, true, [] (bool) {});
+        }
+    }
+}
+
+// DoExportModel stays on xLightsFrame in Render.cpp (uses wx heavily)
+
+bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int layer, int period, SettingsMap& SettingsMap,
     PixelBufferClass& buffer, bool& resetEffectState,
     bool bgThread, RenderEvent* event)
 {
-    return _renderEngine->RenderEffectFromMap(suppress, effectObj, layer, period, SettingsMap,
-        buffer, resetEffectState, bgThread, event);
+    auto logger_render = spdlog::get("render");
+
+    if (effectObj == nullptr) return false;
+
+    if (layer >= buffer.GetLayerCount()) {
+        logger_render->error("Model {} Effect {} at frame {} tried to render on a layer {} that does not exist (Only {} found).",
+            (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer + 1, buffer.GetLayerCount());
+        assert(false);
+        return false;
+    }
+
+    if (buffer.IsRenderingDisabled(layer)) {
+        return false;
+    }
+
+    if (buffer.BufferForLayer(layer, -1).BufferHt == 0 || buffer.BufferForLayer(layer, -1).BufferWi == 0) {
+        return false;
+    }
+
+    if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0) {
+        if (buffer.BufferForLayer(layer, 0).curEffStartPer == period) {
+            logger_render->warn("Model {} has no nodes so skipping rendering.", (const char*)buffer.GetModel()->GetName().c_str());
+        }
+        return false;
+    }
+
+    bool retval = true;
+
+    buffer.SetLayer(layer, period, resetEffectState);
+    resetEffectState = false;
+    int eidx = -1;
+
+    xlColor colorMask = xlColor::NilColor();
+    if (effectObj != nullptr) {
+        eidx = effectObj->GetEffectIndex();
+
+        const Model* m = buffer.GetModel();
+        if (m == nullptr) {
+            m = _ctx.GetModel(buffer.GetModelName());
+        }
+
+        if (m != nullptr) {
+            if (m->GetStringType().compare(0, 12, "Single Color") == 0 || m->GetStringType() == "Node Single Color") {
+                colorMask = buffer.GetNodeMaskColor(0);
+                if (colorMask == xlBLACK) {
+                    colorMask = xlColor::NilColor();
+                }
+            }
+        }
+        effectObj->SetColorMask(colorMask);
+    }
+
+    if (eidx >= 0) {
+        RenderableEffect* reff = _ctx.GetEffectManager().GetEffect(eidx);
+
+        if (reff) {
+            RenderBuffer* b = &buffer.BufferForLayer(layer, -1);
+            if (b == nullptr) {
+                logger_render->warn("render on model {} layer {} effect {} from {}ms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
+            }
+            else {
+                if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
+                    event->effect = effectObj;
+                    event->layer = layer;
+                    event->period = period;
+                    event->settingsMap = &SettingsMap;
+                    event->ResetEffectState = &resetEffectState;
+                    event->buffer = &buffer;
+                    event->suppress = suppress;
+
+                    std::unique_lock<std::mutex> lock(event->mutex);
+
+                    std::unique_lock<std::mutex> qlock(_renderEventLock);
+                    _mainThreadRenderEvents.push(event);
+                    qlock.unlock();
+
+                    if (_onCallAfterRenderMainThread) _onCallAfterRenderMainThread();
+                    if (event->signal.wait_for(lock, std::chrono::seconds(10)) == std::cv_status::no_timeout) {
+                        retval = event->returnVal == 1;
+                    }
+                    else {
+                        logger_render->warn("HELP!!!!   Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+
+                        if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
+                            retval = event->returnVal == 1;
+                        }
+                        else {
+                            logger_render->warn("DOUBLE HELP!!!!   Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                        }
+                    }
+                    if (period % 10 == 0) {
+                        std::this_thread::yield();
+
+                        SequenceElements& seqElements = _ctx.GetSequenceElements();
+                        if (!seqElements.IsValidEffect(event->effect)) {
+                            logger_render->error("In RenderEffectFromMap after Yield() call: effect is no longer valid (expected during abort/delete).");
+                        }
+                    }
+                }
+                else {
+                    int bufCnt = buffer.BufferCountForLayer(layer);
+                    std::function<void(int)> f([this, &buffer, layer, suppress, effectObj, reff, &SettingsMap, logger_render](int bufn) {
+                        RenderBuffer* rb = &buffer.BufferForLayer(layer, bufn);
+
+                        if (rb != nullptr) {
+                            RenderBuffer* oldBuffer = nullptr;
+                            RenderBuffer* newBuffer = nullptr;
+
+                            if (suppress) {
+                                newBuffer = new RenderBuffer(*rb);
+                                oldBuffer = rb;
+                                rb = newBuffer;
+                                rb->needToInit = oldBuffer->needToInit;
+                                rb->infoCache = oldBuffer->infoCache;
+                            }
+
+                            auto sw = std::chrono::steady_clock::now();
+                            if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
+                                if (!effectObj->GetFrame(*rb, _renderCache)) {
+                                    reff->Render(effectObj, SettingsMap, *rb);
+                                    GPURenderUtils::waitForRenderCompletion(rb);
+                                    effectObj->AddFrame(*rb, _renderCache);
+                                }
+                            }
+                            else {
+                                reff->Render(effectObj, SettingsMap, *rb);
+                            }
+
+                            auto swElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
+                            if (swElapsed > 150) {
+                                logger_render->info("Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) took more than 150 ms => {}ms.", rb->curPeriod, (const char*)buffer.GetModelName().c_str(), rb->BufferWi, rb->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), rb->curEffStartPer, effectObj->GetEndTimeMS(), rb->curEffEndPer, swElapsed);
+                            }
+
+                            if (suppress && oldBuffer != nullptr) {
+                                oldBuffer->needToInit = rb->needToInit;
+                                oldBuffer->infoCache = rb->infoCache;
+                                rb->infoCache.clear();
+                                delete newBuffer;
+                                rb = oldBuffer;
+                                newBuffer = nullptr;
+                                oldBuffer = nullptr;
+                            }
+                        }
+                        });
+                    if (bufCnt > 1) {
+                        if (bgThread) {
+                            static ParallelJobPool PER_MODEL_POOL("per_model_pool");
+                            parallel_for(0, bufCnt, [&f](int x) {f(x); }, 1, &PER_MODEL_POOL);
+                        }
+                        else {
+                            for (int x = 0; x < bufCnt; x++) {
+                                f(x);
+                            }
+                        }
+                    }
+                    else {
+                        f(0);
+                    }
+                    buffer.MergeBuffersForLayer(layer);
+                }
+            }
+        }
+        else {
+            retval = false;
+        }
+    }
+    else {
+        retval = false;
+    }
+    return retval;
 }
+
+void RenderEngine::OnRenderJobComplete(const std::string& modelName) {
+    if (_onRenderJobComplete) _onRenderJobComplete(modelName);
+}
+
+void RenderEngine::OnAllRenderJobsComplete() {
+    if (_onAllRenderJobsComplete) _onAllRenderJobsComplete();
+}
+

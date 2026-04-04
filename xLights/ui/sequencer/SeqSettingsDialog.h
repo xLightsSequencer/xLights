@@ -34,6 +34,7 @@
 class ConvertLogDialog;
 class SequenceElements;
 class ManageMediaPanel;
+class xLightsFrame;
 
 class SeqSettingsDialog: public wxDialog
 {

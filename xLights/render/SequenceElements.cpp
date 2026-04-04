@@ -16,8 +16,7 @@
 #include "SequenceElements.h"
 #include "pugixml.hpp"
 #include "RenderUtils.h"
-#include "../ui/sequencer/TimeLine.h"
-#include "../xLightsMain.h"
+#include "RenderContext.h"
 #include "SequenceFile.h"
 #include "../effects/RenderableEffect.h"
 #include "../models/SubModel.h"
@@ -53,11 +52,7 @@ SequenceElements::SequenceElements(RenderContext *ctx)
     mAllViews.push_back(master_view); // first view must remain as master view that determines render order
     hasPapagayoTiming = false;
     supportsModelBlending = true;
-    _timeLine = nullptr;
-}
-
-xLightsFrame* SequenceElements::GetXLightsFrame() const {
-    return dynamic_cast<xLightsFrame*>(renderContext);
+    _tagPositions.fill(-1);
 }
 
 SequenceElements::~SequenceElements()
@@ -96,10 +91,7 @@ void SequenceElements::Clear() {
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
-    if (GetTimeLine() != nullptr)
-    {
-        GetTimeLine()->ClearTags();
-    }
+    ClearTags();
 }
 
 void SequenceElements::SetSequenceEnd(int ms)
@@ -759,8 +751,8 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             for (auto tag : e.children("Tag")) {
                 int number = tag.attribute("number").as_int(-1);
                 int position = tag.attribute("position").as_int(-1);
-                if (number != -1 && GetTimeLine() != nullptr) {
-                    GetTimeLine()->SetTagPosition(number, position, false);
+                if (number != -1) {
+                    SetTagPosition(number, position);
                 }
             }
         } else if (ename == "EffectDB") {
@@ -865,8 +857,8 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 }
                                 loaded += LoadEffects(effectLayer, elemType, effectLayerNode, effectStrings, colorPalettes, importing);
                                 if (count) {
-                                    if (auto* frame = GetXLightsFrame()) {
-                                        frame->SetStatusText(std::format("Effects Loaded: {}%.", loaded * 100 / count));
+                                    if (renderContext) {
+                                        renderContext->SetLoadingStatusText(std::format("Effects Loaded: {}%.", loaded * 100 / count));
                                     }
                                 }
                             } else {
@@ -2114,8 +2106,8 @@ void SequenceElements::IncrementChangeCount(Element *el) {
                 if (el2 != nullptr) {
                     el2->IncrementChangeCount(ss, es);
                     modelsToRender.insert(*sit);
-                    if (auto* frame = GetXLightsFrame()) {
-                        frame->StartOutputTimer(); // start the timer so the render will trigger
+                    if (renderContext) {
+                        renderContext->StartOutputTimer(); // start the timer so the render will trigger
                     }
                 }
             }
