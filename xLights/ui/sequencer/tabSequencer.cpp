@@ -3905,6 +3905,16 @@ void xLightsFrame::ImportTimingElement()
             } else {
                 CurrentSeqXmlFile->ProcessAudacityTimingFiles( filenames, this);
             }
+            _sequenceElements.DeactivateAllTimingElements();
+            int timingCount = _sequenceElements.GetNumberOfTimingElements();
+            if (timingCount > 0) {
+                TimingElement* te = _sequenceElements.GetTimingElement(timingCount - 1);
+                if (te != nullptr) {
+                    te->SetActive(true);
+                }
+            }
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(this, eventRowHeaderChanged);
         }
     }
 
