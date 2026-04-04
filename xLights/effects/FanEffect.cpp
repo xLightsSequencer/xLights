@@ -167,6 +167,14 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     }
 
     int max_radius = std::max(start_radius, end_radius);
+    if (max_radius <= 0)
+    {
+        // A non-positive max radius would be used as a divisor in both the CPU
+        // and ISPC twist calculations. Treat this as "no twist" and use a safe
+        // positive denominator so both paths remain well-defined.
+        blade_angle = 0;
+        max_radius = 1;
+    }
 
     do {
         // Spatial palette entries need per-pixel position data — fall through to CPU.
