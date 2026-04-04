@@ -19,7 +19,7 @@
 #include "graphics/IModelPreview.h"
 
 #include "Color.h"
-#include "ui/layout/ViewpointMgr.h"
+#include "render/ViewpointMgr.h"
 #include "models/ModelManager.h"
 
 #include "ui/layout/Mouse3DManager.h"

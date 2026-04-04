@@ -23,6 +23,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     graphics/, remove wx types from xlGraphicsContext/xlFontInfo headers,
                                     move canvas implementations (xlGLCanvas, xlMetalCanvas, OGL3/Metal contexts)
                                     to ui/graphics/ with backwards-compatible forwarders in graphics/
+    -change (dkulp)             Decouple OutputModelManager from xLightsFrame (uses std::function callbacks),
+                                    remove wx/wx.h from Model.cpp, move ViewpointMgr/PreviewCamera to render/
+                                    (wx-free, menu IDs moved to UI layer), remove xLightsMain.h from Effect.cpp
+                                    and CustomModel.cpp, remove LayoutGroup.h from Model.cpp
 2026.04  April 2, 2026
     -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
                                     and media manager. Animated GIFs/WebP cycle through all frames, videos

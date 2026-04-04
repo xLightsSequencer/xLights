@@ -139,7 +139,7 @@
     <ClCompile Include="effects/OpenGLShaders.cpp" />
     <ClCompile Include="ui\shared\utils\xlLockButton.cpp" />
     <ClCompile Include="ui/model/ViewpointDialog.cpp" />
-    <ClCompile Include="ui/layout/ViewpointMgr.cpp" />
+    <ClCompile Include="render\ViewpointMgr.cpp" />
     <ClCompile Include="ui/sequencer/LyricUserDictDialog.cpp" />
     <ClCompile Include="render\RenderCache.cpp">
       <Filter>render</Filter>
@@ -1575,7 +1575,7 @@
     <ClInclude Include="effects/OpenGLShaders.h" />
     <ClInclude Include="ui\shared\utils\xlLockButton.h" />
     <ClInclude Include="ui/model/ViewpointDialog.h" />
-    <ClInclude Include="ui/layout/ViewpointMgr.h" />
+    <ClInclude Include="render\ViewpointMgr.h" />
     <ClInclude Include="ui/sequencer/LyricUserDictDialog.h" />
     <ClInclude Include="render\RenderCache.h">
       <Filter>render</Filter>

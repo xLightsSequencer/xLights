@@ -57,7 +57,7 @@
 #include "ui/sequencer/SelectPanel.h"
 #include "ui/diagnostics/SearchPanel.h"
 #include "ui/layout/LayoutGroup.h"
-#include "ui/layout/ViewpointMgr.h"
+#include "render/ViewpointMgr.h"
 #include "ui/layout/LayoutPanel.h"
 #include "../utils/TraceLog.h"
 #include "../ui/effectpanels/EffectPanelUtils.h"

@@ -18,7 +18,8 @@
 #include <vector>
 
 #include "CustomModel.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
+#include "../render/UICallbacks.h"
 #include "../xLightsVersion.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
@@ -670,7 +671,8 @@ std::list<std::string> CustomModel::CheckModelSettings()
         res.push_back(std::format("    ERR: Custom model '{}' has no nodes defined.", GetName()));
     }
 
-    if (!xLightsFrame::IsCheckSequenceOptionDisabledS("CustomSizeCheck")) {
+    auto* uiCallbacks = GetModelManager().GetUICallbacks();
+    if (!uiCallbacks || !uiCallbacks->IsCheckSequenceOptionDisabled("CustomSizeCheck")) {
         if (_customWidth > PERFORMANCE_IMPACT_SIZE || _customHeight > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
             float pop = ((float)GetNodeCount() * 100) / (float)(_customWidth * _customHeight);
             if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
@@ -984,7 +986,7 @@ bool HasDuplicates(float divisor, std::list<std::list<xlPoint>> chs)
     return false;
 }
 
-bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool CustomModel::ImportLORModel(std::string const& filename, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     
     pugi::xml_document doc;
@@ -1017,14 +1019,14 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
             }
         }
 
-        std::string newname = xlights->AllModels.GenerateModelName(std::filesystem::path(filename).stem().string());
+        std::string newname = GetModelManager().GenerateModelName(std::filesystem::path(filename).stem().string());
         SetName(newname);
 
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CustomModel::ImportLORModel");
 
         if (chs.size() == 0) {
             spdlog::error("No model data found.");
-            if (auto* ui = xlights->GetUICallbacks()) {
+            if (auto* ui = GetModelManager().GetUICallbacks()) {
                 ui->ShowMessage("Unable to import model data.");
             }
             return false;

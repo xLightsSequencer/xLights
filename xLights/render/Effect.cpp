@@ -20,8 +20,6 @@
 #include "UtilClasses.h"
 #include "RenderCache.h"
 #include "../models/Model.h"
-#include "../xLightsMain.h"
-#include "../xLightsApp.h"
 #include "../effects/RenderableEffect.h"
 #include "utils/ExternalHooks.h"
 
@@ -207,7 +205,7 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
 
     Element* parentElement = parent->GetParentElement();
     if (!importing && parentElement != nullptr) {
-        Model* model = parentElement->GetSequenceElements()->GetXLightsFrame()->AllModels[parentElement->GetFullName()];
+        Model* model = parentElement->GetSequenceElements()->GetRenderContext()->GetModel(parentElement->GetFullName());
         FixBuffer(model);
     }
 

@@ -52,6 +52,7 @@
 #include "../controllers/ControllerCaps.h"
 #include "../render/Element.h"
 #include "../xLightsMain.h"
+#include "../ui/layout/LayoutGroup.h"
 #include "DMX/DmxFloodArea.h"
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxGeneral.h"
@@ -90,6 +91,18 @@ OutputModelManager* ModelManager::GetOutputModelManager() const {
 
 bool ModelManager::IsLowDefinitionRender() const {
     return xlights ? xlights->IsLowDefinitionRender() : false;
+}
+
+std::vector<std::string> ModelManager::GetLayoutGroupNames() const {
+    std::vector<std::string> names;
+    if (layoutGroups != nullptr) {
+        for (const auto* grp : *layoutGroups) {
+            if (!grp->GetName().empty()) {
+                names.push_back(grp->GetName());
+            }
+        }
+    }
+    return names;
 }
 
 ModelManager::~ModelManager()
@@ -296,7 +309,7 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     // RecalcStartChannels resolves chains in topological order now that all
     // models are loaded.
     RecalcStartChannels();
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
 }
 
 uint32_t ModelManager::GetLastChannel() const
@@ -656,7 +669,7 @@ bool ModelManager::RecalcStartChannels() const
 
     // Commenting out as this doesn't need to happen unless we have changes and when we do it is redundant as the only
     // current caller of this method, xLightsMain>>RecalcStartChannels, already adds RELOAD_MODELLIST work if changes exist
-    // xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
+    // GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
 
     auto end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - swStart).count();
     spdlog::debug("RecalcStartChannels takes {}ms.", end);
@@ -777,8 +790,7 @@ bool ModelManager::ReworkStartChannel() const
 
     bool outputsChanged = false;
 
-    OutputManager* outputManager = xlights->GetOutputManager();
-    for (const auto& it : outputManager->GetControllers()) {
+    for (const auto& it : _outputManager->GetControllers()) {
         auto caps = it->GetControllerCaps();
 
         std::string serialPrefix;
@@ -954,7 +966,7 @@ bool ModelManager::ReworkStartChannel() const
                         itm->SetControllerName(NO_CONTROLLER);
 
                         // because we have now moved a model off a controller we really need to do this all again
-                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReworkStartChannel");
+                        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReworkStartChannel");
 
                         spdlog::warn("Attempt to place a second model {} on led panel port when only one is allowed. Only the first model has been retained. The others have been removed.", (const char*)itm->GetName().c_str());
 
@@ -1035,15 +1047,15 @@ bool ModelManager::ReworkStartChannel() const
                 // Set channel size won't always change the number of channels for some protocols
                 it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), allSortedModels);
                 if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
-                    outputManager->SomethingChanged();
+                    _outputManager->SomethingChanged();
 
                     if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && xlights->IsSequencerInitialize())) { 
-                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
+                        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
                     }
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ReworkStartChannel");
+                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
+                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
+                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
+                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ReworkStartChannel");
                 }
             }
         }
@@ -1052,7 +1064,7 @@ bool ModelManager::ReworkStartChannel() const
     // now we want to deal with any models specified as being on "No Controller"
     // first we need to work out the last used channel by all controllers and models other than those on No Controller
     uint32_t lastChannel = 0;
-    for (const auto& it : outputManager->GetControllers()) {
+    for (const auto& it : _outputManager->GetControllers()) {
         lastChannel = std::max(lastChannel, (uint32_t)it->GetEndChannel());
     }
 

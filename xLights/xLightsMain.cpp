@@ -1469,7 +1469,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     SetPanelSequencerLabel("");
 
-    _outputModelManager.SetFrame(this);
+    _outputModelManager.SetCallbacks(
+        [this]() { CallAfter(&xLightsFrame::DoASAPWork); },
+        [this](uint32_t work, const std::string& type, BaseObject* m, const std::string& selectedModel) {
+            DoWork(work, type, m, selectedModel);
+        });
 
     mRendering = false;
 

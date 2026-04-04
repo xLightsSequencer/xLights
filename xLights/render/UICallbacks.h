@@ -56,6 +56,9 @@ public:
                                       const std::string& caption,
                                       const std::string& defaultValue = "") const = 0;
 
+    // ---- configuration queries ----
+    virtual bool IsCheckSequenceOptionDisabled(const std::string& option) const { return false; }
+
     // ---- progress reporting ----
     // Begin a progress operation.  Returns a token that the caller passes
     // to UpdateProgress / EndProgress.  |maximum| is the upper bound of

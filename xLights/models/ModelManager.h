@@ -73,6 +73,7 @@ class ModelManager : public ObjectManager
 
         void SetLayoutGroups(std::vector<LayoutGroup*>* groups) { layoutGroups = groups; }
         const std::vector<LayoutGroup*>* GetLayoutGroups() const { return layoutGroups; }
+        std::vector<std::string> GetLayoutGroupNames() const;
 
         void clear();
 

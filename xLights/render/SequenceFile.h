@@ -24,7 +24,6 @@ class SequenceElements;
 class RenderContext;
 class UICallbacks;
 class xLightsFrame;
-class wxWindow;
 class AudioManager;
 class EffectLayer;
 

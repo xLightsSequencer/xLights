@@ -13,8 +13,8 @@
 #include <list>
 #include <string>
 #include <cstdint>
+#include <functional>
 
-class xLightsFrame;
 class BaseObject;
 class Controller;
 
@@ -24,7 +24,8 @@ class OutputModelManager {
     uint32_t _workASAP = 0;      // work to do asap
     uint32_t _setupTabWork = 0;  // work to do when we next switch to the setup tab
     uint32_t _layoutTabWork = 0; // work to do when we next switch to the layout tab
-    xLightsFrame* _frame = nullptr;
+    std::function<void()> _scheduleASAPWork;
+    std::function<void(uint32_t, const std::string&, BaseObject*, const std::string&)> _doImmediateWork;
     bool _workRequested = false;
     std::string _selectedModel = "";
     std::string _selectedController = "";
@@ -96,9 +97,11 @@ public:
         WORK_NETWORK_CHANGE | WORK_UPDATE_NETWORK_LIST;
 
     OutputModelManager() {}
-    void SetFrame(xLightsFrame* frame)
+    void SetCallbacks(std::function<void()> scheduleASAPWork,
+                      std::function<void(uint32_t, const std::string&, BaseObject*, const std::string&)> doImmediateWork)
     {
-        _frame = frame;
+        _scheduleASAPWork = std::move(scheduleASAPWork);
+        _doImmediateWork = std::move(doImmediateWork);
     }
     uint32_t PeekASAPWork()
     {

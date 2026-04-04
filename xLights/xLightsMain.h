@@ -83,7 +83,7 @@
 #include "ui/sequencer/SequenceViewManager.h"
 #include "ui/color/ColorManager.h"
 #include "ui/effects/EffectPresetManager.h"
-#include "ui/layout/ViewpointMgr.h"
+#include "render/ViewpointMgr.h"
 #include "PhonemeDictionary.h"
 #include "render/SequenceFile.h"
 #include "ui/sequencer/EffectsGrid.h"

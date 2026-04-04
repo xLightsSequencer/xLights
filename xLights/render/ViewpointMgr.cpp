@@ -8,8 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "ui/layout/ViewpointMgr.h"
-#include <wx/wx.h>
+#include "render/ViewpointMgr.h"
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -26,7 +25,7 @@ void PreviewCamera::Reset()
     angleZ = 0.0f;
     distance = -2000.0f;
     zoom = 1.0f;
-    panx = 0.0f; 
+    panx = 0.0f;
     pany = 0.0f;
     panz = 0.0f;
     zoom_corrx = 0.0f;
@@ -37,7 +36,7 @@ void PreviewCamera::Reset()
 PreviewCamera::PreviewCamera(bool is_3d_)
 : posX(0.0f), posY(0.0f), posZ(0.0f), angleX(20.0f), angleY(5.0f), angleZ(0.0f), distance(-2000.0f), zoom(1.0f),
   panx(0.0f), pany(0.0f), panz(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_),
-  name("Name Unspecified"), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
+  name("Name Unspecified"), mat_valid(false)
 {
 }
 
@@ -49,7 +48,7 @@ PreviewCamera::~PreviewCamera()
 PreviewCamera::PreviewCamera(const PreviewCamera &cam)
 : posX(cam.posX), posY(cam.posY), posZ(cam.posZ), angleX(cam.angleX), angleY(cam.angleY), angleZ(cam.angleZ), distance(cam.distance), zoom(cam.zoom),
   panx(cam.panx), pany(cam.pany), panz(cam.panz), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d),
-  name(cam.name), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
+  name(cam.name), mat_valid(false)
 {
 }
 
@@ -128,62 +127,36 @@ ViewpointMgr::ViewpointMgr()
     //ctor
 }
 
-ViewpointMgr::~ViewpointMgr()
-{
-    if (_defaultCamera2D != nullptr) delete _defaultCamera2D;
-    if (_defaultCamera3D != nullptr) delete _defaultCamera3D;
-    Clear();
-}
+ViewpointMgr::~ViewpointMgr() = default;
 
 void ViewpointMgr::DeleteCamera3D(int i)
 {
-    if (previewCameras3d.size() <= (size_t)i) return;
-    auto todelete = GetCamera3D(i);
-    auto it = previewCameras3d.begin();
-    std::advance(it, i);
-    previewCameras3d.erase(it);
-    delete todelete;
+    if ((size_t)i >= previewCameras3d.size()) return;
+    previewCameras3d.erase(previewCameras3d.begin() + i);
 }
 
 void ViewpointMgr::DeleteCamera2D(int i)
 {
-    if (previewCameras2d.size() <= (size_t)i) return;
-    auto todelete = GetCamera2D(i);
-    auto it = previewCameras2d.begin();
-    std::advance(it, i);
-    previewCameras2d.erase(it);
-    delete todelete;
+    if ((size_t)i >= previewCameras2d.size()) return;
+    previewCameras2d.erase(previewCameras2d.begin() + i);
 }
 
 PreviewCamera* ViewpointMgr::GetNamedCamera3D(const std::string& name)
 {
-    PreviewCamera* camera = nullptr;
-    for (size_t i = 0; i < previewCameras3d.size(); ++i)
-    {
-        if (previewCameras3d[i]->name == name) {
-            camera = previewCameras3d[i];
-            break;
+    for (auto& cam : previewCameras3d) {
+        if (cam->name == name) {
+            return cam.get();
         }
     }
-    return camera;
+    return nullptr;
 }
 
 bool ViewpointMgr::IsNameUnique(const std::string& name, bool is_3d)
 {
-    if (is_3d) {
-        for (size_t i = 0; i < previewCameras3d.size(); ++i)
-        {
-            if (previewCameras3d[i]->name == name) {
-                return false;
-            }
-        }
-    }
-    else {
-        for (size_t i = 0; i < previewCameras2d.size(); ++i)
-        {
-            if (previewCameras2d[i]->name == name) {
-                return false;
-            }
+    auto& cameras = is_3d ? previewCameras3d : previewCameras2d;
+    for (auto& cam : cameras) {
+        if (cam->name == name) {
+            return false;
         }
     }
     return true;
@@ -191,40 +164,32 @@ bool ViewpointMgr::IsNameUnique(const std::string& name, bool is_3d)
 
 void ViewpointMgr::Clear()
 {
-    for (auto x : previewCameras2d)
-    {
-        delete x;
-    }
-    for (auto x : previewCameras3d)
-    {
-        delete x;
-    }
     previewCameras2d.clear();
     previewCameras3d.clear();
 }
 
 void ViewpointMgr::AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d )
 {
-    PreviewCamera* new_camera;
+    std::unique_ptr<PreviewCamera> new_camera;
     if (current_camera != nullptr) {
-        new_camera = new PreviewCamera(*current_camera);
+        new_camera = std::make_unique<PreviewCamera>(*current_camera);
     }
     else {
-        new_camera = new PreviewCamera(is_3d);
+        new_camera = std::make_unique<PreviewCamera>(is_3d);
     }
     new_camera->name = name;
     if (new_camera->name == "") {
         new_camera->name = "...";  // avoid exception that occurs if menu name is blank
     }
     if (is_3d) {
-        previewCameras3d.push_back(new_camera);
+        previewCameras3d.push_back(std::move(new_camera));
     }
     else {
-        previewCameras2d.push_back(new_camera);
+        previewCameras2d.push_back(std::move(new_camera));
     }
 }
 
-void ViewpointMgr::SaveCameraToVisitor(BaseSerializingVisitor& visitor, PreviewCamera* camera,
+void ViewpointMgr::SaveCameraToVisitor(BaseSerializingVisitor& visitor, const PreviewCamera* camera,
                                         const std::string& nodename, const std::string& nameOverride) const
 {
     using F = BaseSerializingVisitor;
@@ -252,23 +217,23 @@ void ViewpointMgr::Save(BaseSerializingVisitor& visitor) const
     BaseSerializingVisitor::AttrCollector emptyAttrs;
     visitor.WriteOpenTag("Viewpoints", emptyAttrs);
 
-    for (auto* cam : previewCameras2d) {
-        SaveCameraToVisitor(visitor, cam, "Camera");
+    for (const auto& cam : previewCameras2d) {
+        SaveCameraToVisitor(visitor, cam.get(), "Camera");
     }
-    for (auto* cam : previewCameras3d) {
-        SaveCameraToVisitor(visitor, cam, "Camera");
+    for (const auto& cam : previewCameras3d) {
+        SaveCameraToVisitor(visitor, cam.get(), "Camera");
     }
-    if (_defaultCamera2D != nullptr) {
-        SaveCameraToVisitor(visitor, _defaultCamera2D, "DefaultCamera2D", "DEFAULT2D");
+    if (_defaultCamera2D) {
+        SaveCameraToVisitor(visitor, _defaultCamera2D.get(), "DefaultCamera2D", "DEFAULT2D");
     }
-    if (_defaultCamera3D != nullptr) {
-        SaveCameraToVisitor(visitor, _defaultCamera3D, "DefaultCamera3D", "DEFAULT3D");
+    if (_defaultCamera3D) {
+        SaveCameraToVisitor(visitor, _defaultCamera3D.get(), "DefaultCamera3D", "DEFAULT3D");
     }
 
     visitor.WriteCloseTag();
 }
 
-PreviewCamera* ViewpointMgr::CreateCameraFromNode(pugi::xml_node c)
+std::unique_ptr<PreviewCamera> ViewpointMgr::CreateCameraFromNode(pugi::xml_node c)
 {
     std::string name = UnXmlSafe(c.attribute("name").as_string(""));
     if (name.empty()) {
@@ -276,7 +241,7 @@ PreviewCamera* ViewpointMgr::CreateCameraFromNode(pugi::xml_node c)
         name = c.name();
     }
     bool is_3d = c.attribute("is_3d").as_int(0) != 0;
-    PreviewCamera* new_camera = new PreviewCamera(is_3d);
+    auto new_camera = std::make_unique<PreviewCamera>(is_3d);
     new_camera->name = name;
     new_camera->posX = c.attribute("posX").as_float(0.0f);
     new_camera->posY = c.attribute("posY").as_float(0.0f);
@@ -303,16 +268,18 @@ void ViewpointMgr::Load(pugi::xml_node vp_node)
 	{
         previewCameras2d.clear();
         previewCameras3d.clear();
+        _defaultCamera2D.reset();
+        _defaultCamera3D.reset();
         for (pugi::xml_node c = vp_node.first_child(); c; c = c.next_sibling())
         {
             std::string_view cname = c.name();
             if (cname == "Camera") {
-                PreviewCamera* new_camera = CreateCameraFromNode(c);
+                auto new_camera = CreateCameraFromNode(c);
                 if (new_camera->is_3d) {
-                    previewCameras3d.push_back(new_camera);
+                    previewCameras3d.push_back(std::move(new_camera));
                 }
                 else {
-                    previewCameras2d.push_back(new_camera);
+                    previewCameras2d.push_back(std::move(new_camera));
                 }
             }
             else if (cname == "DefaultCamera2D") {

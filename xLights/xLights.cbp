@@ -388,6 +388,8 @@
 		<Unit filename="ui/sequencer/RenameTextDialog.cpp" />
 		<Unit filename="ui/sequencer/RenameTextDialog.h" />
 		<Unit filename="render/Render.cpp" />
+		<Unit filename="render/ViewpointMgr.cpp" />
+		<Unit filename="render/ViewpointMgr.h" />
 		<Unit filename="render/RenderUI.cpp" />
 		<Unit filename="render/RenderBuffer.cpp" />
 		<Unit filename="render/RenderBuffer.h" />
@@ -502,8 +504,6 @@
 		<Unit filename="ui/layout/ViewObjectPanel.h" />
 		<Unit filename="ui/model/ViewpointDialog.cpp" />
 		<Unit filename="ui/model/ViewpointDialog.h" />
-		<Unit filename="ui/layout/ViewpointMgr.cpp" />
-		<Unit filename="ui/layout/ViewpointMgr.h" />
 		<Unit filename="ui/layout/ViewsModelsPanel.cpp" />
 		<Unit filename="ui/layout/ViewsModelsPanel.h" />
 		<Unit filename="import_export/Vixen3.cpp" />

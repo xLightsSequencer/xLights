@@ -51,6 +51,8 @@ const long ModelPreview::ID_VIEWPOINT2D = wxNewId();
 const long ModelPreview::ID_VIEWPOINT3D = wxNewId();
 const long ModelPreview::ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE = wxNewId();
 
+static constexpr long CAMERA_LOAD_BASE = 18000;
+
 
 
 void ModelPreview::setupCameras()
@@ -834,8 +836,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                     if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
                         wxMenu* mnuViewPoint = new wxMenu();
                         for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
-                            PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
-                            mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                            mnuViewPoint->Append(CAMERA_LOAD_BASE + i, xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
                         }
                         mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
                         mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
@@ -844,8 +845,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                     if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
                         wxMenu* mnuViewPoint = new wxMenu();
                         for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
-                            PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
-                            mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
+                            mnuViewPoint->Append(CAMERA_LOAD_BASE + i, xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
                         }
                         mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
                         mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
@@ -883,22 +883,14 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     } else if (id == 0x1000) {
         is3d = !is3d;
     } else if (is3d) {
-        if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-            for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId()) {
-                    SetCamera3D(i);
-                    break;
-                }
-            }
+        long camIdx = event.GetId() - CAMERA_LOAD_BASE;
+        if (camIdx >= 0 && camIdx < xlights->viewpoint_mgr.GetNum3DCameras()) {
+            SetCamera3D(camIdx);
         }
     } else {
-        if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-            for (int i = 0; i < (int)xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId()) {
-                    SetCamera2D(i);
-                    break;
-                }
-            }
+        long camIdx = event.GetId() - CAMERA_LOAD_BASE;
+        if (camIdx >= 0 && camIdx < xlights->viewpoint_mgr.GetNum2DCameras()) {
+            SetCamera2D(camIdx);
         }
     }
     Refresh();

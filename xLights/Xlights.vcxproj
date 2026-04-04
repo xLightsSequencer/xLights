@@ -880,6 +880,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="ui/sequencer/RenameTextDialog.cpp" />
     <ClCompile Include="render\Render.cpp" />
+    <ClCompile Include="render\ViewpointMgr.cpp" />
     <ClCompile Include="render\RenderUI.cpp" />
     <ClCompile Include="render\RenderBuffer.cpp" />
     <ClCompile Include="render\RenderCache.cpp" />
@@ -970,7 +971,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="render/VideoReader.cpp" />
     <ClCompile Include="ui/layout/ViewObjectPanel.cpp" />
     <ClCompile Include="ui/model/ViewpointDialog.cpp" />
-    <ClCompile Include="ui/layout/ViewpointMgr.cpp" />
     <ClCompile Include="ui/layout/ViewsModelsPanel.cpp" />
     <ClCompile Include="import_export\Vixen3.cpp" />
     <ClCompile Include="import_export\VSAFile.cpp" />
@@ -1455,6 +1455,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui/sequencer/RenderCommandEvent.h" />
     <ClInclude Include="ui/diagnostics/RenderProgressDialog.h" />
     <ClInclude Include="render\RenderUtils.h" />
+    <ClInclude Include="render\ViewpointMgr.h" />
     <ClInclude Include="ui\media\ResizeImageDialog.h" />
     <ClInclude Include="ui/app-shell/RestoreBackupDialog.h" />
     <ClInclude Include="ui/app-shell/SaveChangesDialog.h" />
@@ -1546,7 +1547,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="render/VideoReader.h" />
     <ClInclude Include="ui/layout/ViewObjectPanel.h" />
     <ClInclude Include="ui/model/ViewpointDialog.h" />
-    <ClInclude Include="ui/layout/ViewpointMgr.h" />
     <ClInclude Include="ui/layout/ViewsModelsPanel.h" />
     <ClInclude Include="import_export\Vixen3.h" />
     <ClInclude Include="import_export\VSAFile.h" />

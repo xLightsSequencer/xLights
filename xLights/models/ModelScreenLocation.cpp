@@ -20,7 +20,7 @@
 #include "../graphics/IModelPreview.h"
 #include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
-#include "../ui/layout/ViewpointMgr.h"
+#include "../render/ViewpointMgr.h"
 #include "Shapes.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"

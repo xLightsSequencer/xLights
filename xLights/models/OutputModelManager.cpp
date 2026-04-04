@@ -12,7 +12,6 @@
 
 #include "models/BaseObject.h"
 #include "outputs/Controller.h"
-#include "xLightsMain.h"
 #include "models/OutputModelManager.h"
 #include <log.h>
 
@@ -108,7 +107,7 @@ void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, Bas
 	_workASAP |= work;
     if (!_workRequested)
     {
-        _frame->CallAfter(&xLightsFrame::DoASAPWork);
+        if (_scheduleASAPWork) _scheduleASAPWork();
         _workRequested = true;
     }
 }
@@ -196,7 +195,7 @@ void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from
 #else
     logger_work->debug("Doing Immediate Work.");
 #endif
-    _frame->DoWork(work, "Immediate", m, selectedModel);
+    if (_doImmediateWork) _doImmediateWork(work, "Immediate", m, selectedModel);
 }
 
 void OutputModelManager::RemoveWork(const std::string& type, uint32_t toremove)

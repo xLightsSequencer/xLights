@@ -14,14 +14,12 @@
 #include <format>
 #include <string_view>
 #include <regex>
-#include <wx/wx.h>
 #include <pugixml.hpp>
 
 #include "CustomModel.h"
 #include "Model.h"
 #include "ModelGroup.h"
 #include "ModelManager.h"
-#include "ui/layout/LayoutGroup.h"
 #include "ModelScreenLocation.h"
 #include "RulerObject.h"
 #include "SubModel.h"
@@ -131,13 +129,8 @@ std::vector<std::string> Model::GetLayoutGroups(const ModelManager& mm)
     lg.push_back("All Previews");
     lg.push_back("Unassigned");
 
-    const std::vector<LayoutGroup*>* groups = mm.GetLayoutGroups();
-    if (groups != nullptr) {
-        for (const LayoutGroup* grp : *groups) {
-            if (!grp->GetName().empty()) {
-                lg.push_back(grp->GetName());
-            }
-        }
+    for (const auto& name : mm.GetLayoutGroupNames()) {
+        lg.push_back(name);
     }
 
     return lg;
