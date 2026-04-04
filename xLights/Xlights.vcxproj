@@ -408,6 +408,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\zip.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="..\dependencies\wxHTTPServer\connection.cpp" />
     <ClCompile Include="..\dependencies\wxHTTPServer\context.cpp" />
     <ClCompile Include="..\dependencies\wxHTTPServer\message.cpp" />
@@ -1633,6 +1637,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="XmlSerializer\GdtfParser.h" />
     <ClInclude Include="XmlSerializer\XmlDeserializingModelFactory.h" />
     <ClInclude Include="XmlSerializer\XmlDeserializingObjectFactory.h" />
+    <ClInclude Include="XmlSerializer\LayoutGroupData.h" />
     <ClInclude Include="XmlSerializer\XmlNodeKeys.h" />
     <ClInclude Include="XmlSerializer\XmlSerializeFunctions.h" />
     <ClInclude Include="XmlSerializer\XmlSerializer.h" />

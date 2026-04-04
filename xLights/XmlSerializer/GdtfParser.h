@@ -16,7 +16,8 @@
 #include <list>
 
 class Model;
-class xLightsFrame;
+class ModelManager;
+class UICallbacks;
 
 namespace XmlSerialize {
 
@@ -57,7 +58,8 @@ namespace XmlSerialize {
     // Returns true if parsing was successful, false if cancelled or failed
     bool ParseGdtfDescriptionXml(
         pugi::xml_document& gdtf_doc,
-        xLightsFrame* xlights,
+        ModelManager& modelManager,
+        UICallbacks* uiCallbacks,
         bool& cancelled,
         GdtfModelData& outData
     );
@@ -66,7 +68,7 @@ namespace XmlSerialize {
     Model* CreateDmxModelFromGdtfData(
         Model* existingModel,
         const GdtfModelData& gdtfData,
-        xLightsFrame* xlights
+        ModelManager& modelManager
     );
 
 } // namespace XmlSerialize

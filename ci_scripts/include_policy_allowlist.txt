@@ -6,7 +6,6 @@ xLights/controllers/FPP.cpp|../ui/wxUtilities.h
 xLights/controllers/FPP.cpp|ui/controllers/FPPUploadProgressDialog.h
 xLights/controllers/FPP.cpp|ui/setup/DiscoveryAuthDialog.h
 xLights/controllers/FPP.cpp|wx/config.h
-xLights/controllers/FPP.cpp|wx/debugrpt.h
 xLights/controllers/FPP.cpp|wx/gauge.h
 xLights/controllers/FPP.cpp|wx/secretstore.h
 xLights/models/Model.cpp|../xLightsApp.h

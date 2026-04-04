@@ -64,7 +64,7 @@ class ModelManager : public ObjectManager
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol, int smartReceiver) const;
         void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
-        void AddModelGroups(pugi::xml_node n, int w, int h, const std::string& name, bool& merge, bool& ask);
+        void AddModelGroups(pugi::xml_node n, const std::string& name, bool& merge, bool& ask);
         void LoadModels(pugi::xml_node modelNode, int previewW, int previewH);
         bool LoadGroups(pugi::xml_node groupNode, int previewW, int previewH);
         bool ModelHasNoDependencyOnNoController(Model* m, std::list<std::string>& visited) const;
@@ -102,6 +102,11 @@ class ModelManager : public ObjectManager
         static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode);
         std::string GetLastGeneratedModelName() const { return lastGeneratedModelName; }
 
+        // Ruler state for model import (tracks whether dimensions were applied via ruler)
+        void ClearUsedRuler() { _usedRuler = false; }
+        void SetUsedRuler() { _usedRuler = true; }
+        bool UsedRuler() const { return _usedRuler; }
+
         std::map<std::string, Model *> GetModels() const { return models; }
 
     private:
@@ -109,6 +114,7 @@ class ModelManager : public ObjectManager
     std::vector<LayoutGroup*>* layoutGroups = nullptr;
     OutputManager* _outputManager = nullptr;
     xLightsFrame* xlights = nullptr;
+    bool _usedRuler = false;
     int previewWidth = 0;
     int previewHeight = 0;
     std::map<std::string, Model *> models;

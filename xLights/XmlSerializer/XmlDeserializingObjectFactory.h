@@ -13,20 +13,20 @@
 #include <pugixml.hpp>
 
 class ViewObject;
-class xLightsFrame;
+class ViewObjectManager;
 
 struct XmlDeserializingObjectFactory {
-    ViewObject* Deserialize(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    ViewObject* Deserialize(pugi::xml_node node, ViewObjectManager& objects, bool importing);
 
 private:
-    void CommonDeserializeSteps(ViewObject* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    void CommonDeserializeSteps(ViewObject* model, pugi::xml_node node, ViewObjectManager& objects, bool importing);
 
-    void DeserializeBaseObjectAttributes(ViewObject* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    void DeserializeBaseObjectAttributes(ViewObject* model, pugi::xml_node node, ViewObjectManager& objects, bool importing);
     void DeserializeTerrainScreenLocationAttributes(ViewObject* object, pugi::xml_node node);
 
-    ViewObject* DeserializeGridlines(pugi::xml_node node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeImage(pugi::xml_node node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeMesh(pugi::xml_node node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeRuler(pugi::xml_node node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeTerrain(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeGridlines(pugi::xml_node node, ViewObjectManager& objects, bool importing);
+    ViewObject* DeserializeImage(pugi::xml_node node, ViewObjectManager& objects, bool importing);
+    ViewObject* DeserializeMesh(pugi::xml_node node, ViewObjectManager& objects, bool importing);
+    ViewObject* DeserializeRuler(pugi::xml_node node, ViewObjectManager& objects, bool importing);
+    ViewObject* DeserializeTerrain(pugi::xml_node node, ViewObjectManager& objects, bool importing);
 };

@@ -137,6 +137,7 @@
     <ClCompile Include="..\dependencies\md5\md5.cpp" />
     <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\ioapi.c" />
     <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\unzip.c" />
+    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\zip.c" />
     <ClCompile Include="ui\import-export\VendorMusicDialog.cpp" />
     <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="ui/media/JukeboxPanel.cpp" />
@@ -2541,6 +2542,9 @@
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="XmlSerializer\XmlDeserializingObjectFactory.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\LayoutGroupData.h">
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="XmlSerializer\XmlNodeKeys.h">

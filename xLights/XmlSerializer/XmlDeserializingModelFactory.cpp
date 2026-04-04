@@ -13,7 +13,6 @@
 #include "XmlSerializeFunctions.h"
 #include "DimmingCurve.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../models/ArchesModel.h"
 #include "../models/CandyCaneModel.h"
 #include "../models/ChannelBlockModel.h"
@@ -53,8 +52,8 @@
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Mesh.h"
 #include "../models/DMX/Servo.h"
-#include "../ui/layout/ModelPreview.h"
-#include "../xLightsMain.h"
+#include "../models/ModelManager.h"
+#include "../render/UICallbacks.h"
 #include "../utils/string_utils.h"
 
 #include <cstring>
@@ -91,7 +90,7 @@ static int ReadIntAttrWithLegacyFallback(pugi::xml_node node, const char* newAtt
     return node.attribute(legacyAttr).as_int(defaultVal);
 }
 
-Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("DisplayAs Missing");
 
     if (type.empty()) {
@@ -101,69 +100,69 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, xLightsFra
     std::string node_name = node.name();  // need this to support importing old models that did not have the DisplayAs attribute
 
     if (type == XmlNodeKeys::ArchesType || node_name == "archesmodel") {
-        return DeserializeArches(node, xlights, importing);
+        return DeserializeArches(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CandyCaneType) {
-        return DeserializeCandyCane(node, xlights, importing);
+        return DeserializeCandyCane(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ChannelBlockType) {
-        return DeserializeChannelBlock(node, xlights, importing);
+        return DeserializeChannelBlock(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CircleType || node_name == "circlemodel") {
-        return DeserializeCircle(node, xlights, importing);
+        return DeserializeCircle(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CubeType || node_name == "Cubemodel") {
-        return DeserializeCube(node, xlights, importing);
+        return DeserializeCube(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CustomType || node_name == "custommodel") {
-        return DeserializeCustom(node, xlights, importing);
+        return DeserializeCustom(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxMovingHeadType) {
-        return DeserializeDmxMovingHead(node, xlights, importing);
+        return DeserializeDmxMovingHead(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxMovingHeadAdvType) {
-        return DeserializeDmxMovingHeadAdv(node, xlights, importing);
+        return DeserializeDmxMovingHeadAdv(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxFloodAreaType) {
-        return DeserializeDmxFloodArea(node, xlights, importing);
+        return DeserializeDmxFloodArea(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxFloodlightType) {
-        return DeserializeDmxFloodlight(node, xlights, importing);
+        return DeserializeDmxFloodlight(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxGeneralType || node_name == "dmxgeneral") {
-        return DeserializeDmxGeneral(node, xlights, importing);
+        return DeserializeDmxGeneral(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxServoType || node_name == "dmxservo") {
-        return DeserializeDmxServo(node, xlights, importing);
+        return DeserializeDmxServo(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxServo3dType || node_name == "dmxservo3d") {
-        return DeserializeDmxServo3d(node, xlights, importing);
+        return DeserializeDmxServo3d(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxSkullType) {
-        return DeserializeDmxSkull(node, xlights, importing);
+        return DeserializeDmxSkull(node, modelManager, importing);
     } else if (type == XmlNodeKeys::IciclesType || node_name == "iciclemodel") {
-        return DeserializeIcicles(node, xlights, importing);
+        return DeserializeIcicles(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ImageType) {
-        return DeserializeImage(node, xlights, importing);
+        return DeserializeImage(node, modelManager, importing);
     } else if (type.find(XmlNodeKeys::MatrixType) != std::string::npos || node_name == "matrixmodel") {
-        return DeserializeMatrix(node, xlights, importing);
+        return DeserializeMatrix(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ModelGroupType || node_name == "modelGroup") {
-        return DeserializeModelGroup(node, xlights, importing);
+        return DeserializeModelGroup(node, modelManager, importing);
     } else if (type.find(XmlNodeKeys::MultiPointType) != std::string::npos || node_name == "multipointmodel") {
-        return DeserializeMultiPoint(node, xlights, importing);
+        return DeserializeMultiPoint(node, modelManager, importing);
     } else if (type == XmlNodeKeys::SingleLineType) {
-        return DeserializeSingleLine(node, xlights, importing);
+        return DeserializeSingleLine(node, modelManager, importing);
     } else if (type == XmlNodeKeys::PolyLineType || node_name == "polylinemodel") {
-        return DeserializePolyLine(node, xlights, importing);
+        return DeserializePolyLine(node, modelManager, importing);
     } else if (type == XmlNodeKeys::SphereType || node_name == "spheremodel") {
-        return DeserializeSphere(node, xlights, importing);
+        return DeserializeSphere(node, modelManager, importing);
     } else if (type == XmlNodeKeys::SpinnerType) {
-        return DeserializeSpinner(node, xlights, importing);
+        return DeserializeSpinner(node, modelManager, importing);
     } else if (type == XmlNodeKeys::StarType || node_name == "starmodel") {
-        return DeserializeStar(node, xlights, importing);
+        return DeserializeStar(node, modelManager, importing);
     } else if (type.find(XmlNodeKeys::TreeType) != std::string::npos || node_name == "treemodel") {
-        return DeserializeTree(node, xlights, importing);
+        return DeserializeTree(node, modelManager, importing);
     } else if (type == XmlNodeKeys::WindowType) {
-        return DeserializeWindow(node, xlights, importing);
+        return DeserializeWindow(node, modelManager, importing);
     } else if (type == XmlNodeKeys::WreathType) {
-        return DeserializeWreath(node, xlights, importing);
+        return DeserializeWreath(node, modelManager, importing);
     }
     throw std::runtime_error("Unknown model type: " + type);
 }
 
-void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DeserializeBaseObjectAttributes(model, node, xlights, importing);
-    DeserializeCommonModelAttributes(model, node, xlights, importing);
+void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DeserializeBaseObjectAttributes(model, node, modelManager, importing);
+    DeserializeCommonModelAttributes(model, node, modelManager, importing);
     DeserializeModelScreenLocationAttributes(model, node, importing);
     DeserializeSuperStrings(model, node);
-    DeserializeCommonModelChildElements(model, node, xlights, importing);
+    DeserializeCommonModelChildElements(model, node, modelManager, importing);
 }
 
 void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, pugi::xml_node ccNode) {
@@ -202,11 +201,11 @@ void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model,
     cc.UpdateProperty(CtrlProps::USE_SMART_REMOTE, cc.GetSmartRemote());
 }
 
-void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing) {
     std::string name = Trim(node.attribute("name").as_string());
     if (importing)
     {
-        name = xlights->AllModels.GenerateModelName(name);
+        name = modelManager.GenerateModelName(name);
         model->SetLayoutGroup("Unassigned", true);
     } else {
         model->SetLayoutGroup(node.attribute(XmlNodeKeys::LayoutGroupAttribute).as_string("Unassigned"), true);
@@ -216,7 +215,7 @@ void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model,
     model->SetFromBase(node.attribute(XmlNodeKeys::FromBaseAttribute).as_int(0));
 }
 
-void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing) {
     if (!node.attribute(XmlNodeKeys::StartSideAttribute).empty()) {
         model->SetStartSide(node.attribute(XmlNodeKeys::StartSideAttribute).as_string("B"));
         model->SetIsBtoT(std::string_view(node.attribute(XmlNodeKeys::StartSideAttribute).as_string("B")) == "B");
@@ -290,7 +289,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     }
 }
 
-void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* model, pugi::xml_node node, xLightsFrame* xlights,bool importing) {
+void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing) {
     bool importAliases = !importing;
     bool skipImportAliases = false;
     bool merge = false;
@@ -314,11 +313,10 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
         } else if ("subModel" == fname) {
             DeserializeSubModel(model, f);
         } else if ("modelGroup" == fname && importing) {
-            model->AddModelGroups(f, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
-                                     xlights->GetLayoutPreview()->GetVirtualCanvasHeight(),
-                                     model->GetName(), merge, showPopup);
+            model->AddModelGroups(f, model->GetName(), merge, showPopup);
         } else if (strcasecmp(f.name(), "shadowmodels") == 0 && importing) {
-            model->ImportExtraModels(f, xlights, xlights->GetLayoutPreview(), "Unassigned");
+            // TODO: Remove GetXLightsFrame() once ImportExtraModels takes ModelManager& (P1)
+            model->ImportExtraModels(f, modelManager.GetXLightsFrame(), "Unassigned");
         } else if ("dimensions" == fname && importing) {
             if (RulerObject::GetRuler() != nullptr) {
                 std::string units = f.attribute("units").as_string("mm");
@@ -326,10 +324,11 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
                 float height = f.attribute("height").as_float(1000);
                 float depth = f.attribute("depth").as_float(0);
                 model->ApplyDimensions(units, width, height, depth);
-                xlights->SetUsedRuler();
+                modelManager.SetUsedRuler();
             }
         } else if (strcasecmp(f.name(), "associatedmodels") == 0 && importing) {
-            model->ImportExtraModels(f, xlights, xlights->GetLayoutPreview(), model->GetLayoutGroup());
+            // TODO: Remove GetXLightsFrame() once ImportExtraModels takes ModelManager& (P1)
+            model->ImportExtraModels(f, modelManager.GetXLightsFrame(), model->GetLayoutGroup());
         } else if ("ControllerConnection" == fname) {
             if (!importing) {
                 DeserializeControllerConnection(model, f);
@@ -338,7 +337,8 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
             // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
             if (importAliases == false) {
                 if (skipImportAliases != true) {
-                    if (wxMessageBox("Should I import aliases from the base model?", "Import Aliases?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                    UICallbacks* uiCb = modelManager.GetUICallbacks();
+                    if (uiCb && uiCb->PromptYesNo("Should I import aliases from the base model?", "Import Aliases?")) {
                         importAliases = true;
                     } else {
                         skipImportAliases = true;
@@ -450,9 +450,9 @@ void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, pugi::x
     }
 }
 
-Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    ArchesModel* model = new ArchesModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    ArchesModel* model = new ArchesModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumArches(ReadAttrWithParmFallback(node, XmlNodeKeys::NumArchesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerArch(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -473,9 +473,9 @@ Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCandyCane(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    CandyCaneModel* model = new CandyCaneModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeCandyCane(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    CandyCaneModel* model = new CandyCaneModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumCanes(ReadAttrWithParmFallback(node, XmlNodeKeys::NumCanesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerCane(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerCaneAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -493,9 +493,9 @@ Model* XmlDeserializingModelFactory::DeserializeCandyCane(pugi::xml_node node, x
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeChannelBlock(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    ChannelBlockModel* model = new ChannelBlockModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeChannelBlock(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    ChannelBlockModel* model = new ChannelBlockModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumChannels(ReadAttrWithParmFallback(node, XmlNodeKeys::NumChannelsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     // Setup the model early to size the vector for number of colors
@@ -507,9 +507,9 @@ Model* XmlDeserializingModelFactory::DeserializeChannelBlock(pugi::xml_node node
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCircle(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    CircleModel* model = new CircleModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeCircle(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    CircleModel* model = new CircleModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumCircleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetCircleNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     // convert old circle sizes to new Layer sizes setting - this also reverses the order
@@ -530,9 +530,9 @@ Model* XmlDeserializingModelFactory::DeserializeCircle(pugi::xml_node node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    CubeModel* model = new CubeModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    CubeModel* model = new CubeModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetCubeWidth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetCubeHeight(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetCubeDepth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeDepthAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -545,9 +545,9 @@ Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, xLight
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    CustomModel* model = new CustomModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    CustomModel* model = new CustomModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetCustomWidth(ReadAttrWithParmFallback(node, XmlNodeKeys::CustomWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetCustomHeight(ReadAttrWithParmFallback(node, XmlNodeKeys::CustomHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetCustomDepth(node.attribute(XmlNodeKeys::CMDepthAttribute).as_int(1));
@@ -606,9 +606,9 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeIcicles(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    IciclesModel* model = new IciclesModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeIcicles(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    IciclesModel* model = new IciclesModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumIcicleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetLightsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
@@ -618,9 +618,9 @@ Model* XmlDeserializingModelFactory::DeserializeIcicles(pugi::xml_node node, xLi
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeImage(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    ImageModel* model = new ImageModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeImage(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    ImageModel* model = new ImageModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetImageFile(node.attribute(XmlNodeKeys::ImageAttribute).as_string(""));
     model->SetWhiteAsAlpha(std::string_view(node.attribute(XmlNodeKeys::WhiteAsAlphaAttribute).as_string("False")) == "True");
     model->SetOffBrightness(node.attribute(XmlNodeKeys::OffBrightnessAttribute).as_int(80));
@@ -628,9 +628,9 @@ Model* XmlDeserializingModelFactory::DeserializeImage(pugi::xml_node node, xLigh
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeMatrix(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    MatrixModel* model = new MatrixModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeMatrix(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    MatrixModel* model = new MatrixModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -646,9 +646,9 @@ Model* XmlDeserializingModelFactory::DeserializeMatrix(pugi::xml_node node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeMultiPoint(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    MultiPointModel* model = new MultiPointModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeMultiPoint(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    MultiPointModel* model = new MultiPointModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializePolyPointScreenLocationAttributes(model, node);
     int num_strings = node.attribute(XmlNodeKeys::MultiStringsAttribute).as_int(1);
     model->SetNumStrings(num_strings);
@@ -675,9 +675,9 @@ Model* XmlDeserializingModelFactory::DeserializeMultiPoint(pugi::xml_node node, 
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    SingleLineModel* model = new SingleLineModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    SingleLineModel* model = new SingleLineModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumLines(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerLine(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
     model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -686,9 +686,9 @@ Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, 
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    PolyLineModel* model = new PolyLineModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    PolyLineModel* model = new PolyLineModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetTotalLightCount(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "0"));
     DeserializePolyPointScreenLocationAttributes(model, node);
@@ -744,9 +744,9 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, xL
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeSphere(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    SphereModel* model = new SphereModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeSphere(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    SphereModel* model = new SphereModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -788,9 +788,9 @@ Model* XmlDeserializingModelFactory::DeserializeSphere(pugi::xml_node node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeSpinner(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    SpinnerModel* model = new SpinnerModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeSpinner(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    SpinnerModel* model = new SpinnerModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumSpinnerStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerArm(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArmAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetArmsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::ArmsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -803,9 +803,9 @@ Model* XmlDeserializingModelFactory::DeserializeSpinner(pugi::xml_node node, xLi
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeStar(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    StarModel* model = new StarModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeStar(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    StarModel* model = new StarModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumStarStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetStarNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetStarPoints(ReadAttrWithParmFallback(node, XmlNodeKeys::StarPointsAttribute, XmlNodeKeys::Parm3Attribute, "5"));
@@ -832,9 +832,9 @@ Model* XmlDeserializingModelFactory::DeserializeStar(pugi::xml_node node, xLight
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeTree(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    TreeModel* model = new TreeModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeTree(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    TreeModel* model = new TreeModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
@@ -872,9 +872,9 @@ Model* XmlDeserializingModelFactory::DeserializeTree(pugi::xml_node node, xLight
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeWindow(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    WindowFrameModel* model = new WindowFrameModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeWindow(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    WindowFrameModel* model = new WindowFrameModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetTopNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::TopNodesAttribute, XmlNodeKeys::Parm1Attribute, "0"));
     model->SetSideNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::SideNodesAttribute, XmlNodeKeys::Parm2Attribute, "0"));
     model->SetBottomNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::BottomNodesAttribute, XmlNodeKeys::Parm3Attribute, "0"));
@@ -884,24 +884,24 @@ Model* XmlDeserializingModelFactory::DeserializeWindow(pugi::xml_node node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeWreath(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    WreathModel* model = new WreathModel(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeWreath(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    WreathModel* model = new WreathModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumWreathStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetWreathNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeModelGroup(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeModelGroup(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     // Phase 3: Use setters to configure ModelGroup instead of passing XML to constructor
     // This removes the XML dependency from the ModelGroup constructor
 
     // Create ModelGroup with basic parameters (no XML)
-    ModelGroup* model = new ModelGroup(xlights->AllModels);
+    ModelGroup* model = new ModelGroup(modelManager);
 
     // Deserialize base object attributes (name, layout group, active state)
-    DeserializeBaseObjectAttributes(model, node, xlights, importing);
+    DeserializeBaseObjectAttributes(model, node, modelManager, importing);
 
     // Deserialize ModelGroup-specific properties using Phase 1 setters
     model->SetGridSize(node.attribute("GridSize").as_int(400));
@@ -1137,33 +1137,33 @@ void XmlDeserializingModelFactory::DeserializeDmxMovingHeadComm(DmxMovingHeadCom
     DeserializeDmxModel(model, node);
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxFloodArea(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxFloodArea* model = new DmxFloodArea(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxFloodArea(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxFloodArea* model = new DmxFloodArea(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDmxModel(model, node);
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxFloodlight(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxFloodlight* model = new DmxFloodlight(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxFloodlight(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxFloodlight* model = new DmxFloodlight(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDmxModel(model, node);
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxGeneral(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxGeneral* model = new DmxGeneral(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxGeneral(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxGeneral* model = new DmxGeneral(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDmxModel(model, node);
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxServo3d* model = new DmxServo3d(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxServo3d* model = new DmxServo3d(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDmxModel(model, node);
     model->SetNumServos(node.attribute("NumServos").as_int(1));
     model->SetNumStatic(node.attribute("NumStatic").as_int(1));
@@ -1251,9 +1251,9 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, 
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxServo(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxServo* model = new DmxServo(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxServo(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxServo* model = new DmxServo(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDmxModel(model, node);
     model->SetNumServos(node.attribute("NumServos").as_int(1));
     model->SetIs16Bit(std::string_view(node.attribute("Bits16").as_string("1")) == "1");
@@ -1302,9 +1302,9 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo(pugi::xml_node node, xL
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxSkull(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxSkull* model = new DmxSkull(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxSkull(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxSkull* model = new DmxSkull(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDmxModel(model, node);
     model->SetEyeBrightnessChannel(node.attribute("DmxEyeBrtChannel").as_int(15));
     model->SetJawOrient(node.attribute("DmxJawOrient").as_int(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::JAW)));
@@ -1364,9 +1364,9 @@ Model* XmlDeserializingModelFactory::DeserializeDmxSkull(pugi::xml_node node, xL
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxMovingHead* model = new DmxMovingHead(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxMovingHead* model = new DmxMovingHead(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDynamicColorAbility(model, node);
     DeserializeDmxMovingHeadComm(model, node);
     model->SetHideBody(std::string_view(node.attribute("HideBody").as_string("False")) == "True");
@@ -1388,9 +1388,9 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(pugi::xml_node nod
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DmxMovingHeadAdv *model = new DmxMovingHeadAdv(xlights->AllModels);
-    CommonDeserializeSteps(model, node, xlights, importing);
+Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    DmxMovingHeadAdv *model = new DmxMovingHeadAdv(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
     DeserializeDynamicColorAbility(model, node);
     DeserializeDmxMovingHeadComm(model, node);
 

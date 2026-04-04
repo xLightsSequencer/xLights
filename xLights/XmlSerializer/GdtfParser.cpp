@@ -17,9 +17,10 @@
 #include "../models/DMX/DmxColorAbilityRGB.h"
 #include "../models/DMX/DmxColorAbilityWheel.h"
 #include "../models/DMX/DmxShutterAbility.h"
-#include "../xLightsMain.h"
+#include "../models/ModelManager.h"
+#include "../render/UICallbacks.h"
+#include "../utils/TraceLog.h"
 #include "UtilFunctions.h"
-#include <wx/choicdlg.h>
 #include <algorithm>
 #include <string_view>
 #include <format>
@@ -82,7 +83,8 @@ namespace XmlSerialize {
     }
     bool ParseGdtfDescriptionXml(
         pugi::xml_document& gdtf_doc,
-        xLightsFrame* xlights,
+        ModelManager& modelManager,
+        UICallbacks* uiCallbacks,
         bool& cancelled,
         GdtfModelData& outData
     ) {
@@ -110,17 +112,17 @@ namespace XmlSerialize {
         }
         // Select mode (user choice if multiple modes)
         std::string selectedMode = modes.begin()->first;
-        if (modes.size() > 1) {
-            wxArrayString choices;
+        if (modes.size() > 1 && uiCallbacks) {
+            std::vector<std::string> choices;
             for (const auto& it : modes) {
                 choices.push_back(it.first);
             }
-            wxSingleChoiceDialog dlg(xlights, "Select the model mode", "DMX Model Mode", choices);
-            if (dlg.ShowModal() != wxID_OK) {
+            auto selected = uiCallbacks->ChooseFromList("Select the model mode", choices);
+            if (selected.empty()) {
                 cancelled = true;
                 return false;
             }
-            selectedMode = choices[dlg.GetSelection()].ToStdString();
+            selectedMode = selected.front();
         }
         outData.selectedMode = selectedMode;
         // Parse channels for the selected mode
@@ -146,7 +148,7 @@ namespace XmlSerialize {
     Model* CreateDmxModelFromGdtfData(
         Model* existingModel,
         const GdtfModelData& gdtfData,
-        xLightsFrame* xlights
+        ModelManager& modelManager
     ) {
         // Preserve existing model properties
         std::string startChannel = existingModel->GetModelStartChannel();
@@ -155,17 +157,17 @@ namespace XmlSerialize {
         auto w = ((BoxedScreenLocation&)existingModel->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)existingModel->GetModelScreenLocation()).GetScaleY();
         auto lg = existingModel->GetLayoutGroup();
-        xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+        TraceLog::AddTraceMessage("GetXlightsModel converted model to DMX");
         delete existingModel;
         existingModel = nullptr;
         // Create appropriate DMX model type
         Model* model = nullptr;
         DmxMovingHead* mh = nullptr;
         if (gdtfData.isMovingHead) {
-            model = xlights->AllModels.CreateDefaultModel("DmxMovingHeadAdv", startChannel);
+            model = modelManager.CreateDefaultModel("DmxMovingHeadAdv", startChannel);
             mh = dynamic_cast<DmxMovingHead*>(model);
         } else {
-            model = xlights->AllModels.CreateDefaultModel("DmxMovingHead", startChannel);
+            model = modelManager.CreateDefaultModel("DmxMovingHead", startChannel);
             mh = dynamic_cast<DmxMovingHead*>(model);
             if (mh != nullptr) {
                 mh->SetDmxStyle("Moving Head Bars");

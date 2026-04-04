@@ -28,7 +28,8 @@
 #include <wx/config.h>
 #include <wx/secretstore.h>
 #include <wx/gauge.h>
-#include <wx/debugrpt.h>
+#include <wx/timer.h>
+#include "../../dependencies/libxlsxwriter/third_party/minizip/zip.h"
 #include <zstd.h>
 
 #include "FPP.h"
@@ -754,12 +755,25 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     bool usingMove = true;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         if (this->canZipUpload) {
-            auto from = fullFileName;
-            wxDebugReportCompress report;
-            report.AddFile(fullFileName, std::filesystem::path(from).filename().string());
-            report.Process();
-            from = report.GetCompressedFileName();
-            std::filesystem::rename(from, fullFileName);
+            std::string zipPath = fullFileName + ".zip";
+            std::string entryName = std::filesystem::path(fullFileName).filename().string();
+            zipFile zf = zipOpen(zipPath.c_str(), APPEND_STATUS_CREATE);
+            if (zf) {
+                zip_fileinfo zi = {};
+                if (zipOpenNewFileInZip(zf, entryName.c_str(), &zi,
+                                        nullptr, 0, nullptr, 0, nullptr,
+                                        Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK) {
+                    std::ifstream ifs(fullFileName, std::ios::binary);
+                    char buf[32768];
+                    while (ifs.read(buf, sizeof(buf)) || ifs.gcount() > 0) {
+                        zipWriteInFileInZip(zf, buf, static_cast<unsigned>(ifs.gcount()));
+                        if (ifs.gcount() == 0) break;
+                    }
+                    zipCloseFileInZip(zf);
+                }
+                zipClose(zf, nullptr);
+            }
+            std::filesystem::rename(zipPath, fullFileName);
             std::filesystem::path toPath(filename);
             toPath.replace_extension(".xlz");
             fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(toPath.string());

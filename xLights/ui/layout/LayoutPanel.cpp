@@ -3842,8 +3842,8 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 gdtf_doc.load_buffer(buf.data(), sz);
 
                 XmlSerialize::GdtfModelData gdtfData;
-                if (XmlSerialize::ParseGdtfDescriptionXml(gdtf_doc, xlights, cancelled, gdtfData)) {
-                    model = XmlSerialize::CreateDmxModelFromGdtfData(model, gdtfData, xlights);
+                if (XmlSerialize::ParseGdtfDescriptionXml(gdtf_doc, xlights->AllModels, xlights->GetUICallbacks(), cancelled, gdtfData)) {
+                    model = XmlSerialize::CreateDmxModelFromGdtfData(model, gdtfData, xlights->AllModels);
                 } else {
                     cancelled = true;
                 }
@@ -3863,7 +3863,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
         pugi::xml_node root = doc.document_element();
 
         model->SetStartChannel("1");
-        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, root, xlights, cancelled);
+        model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights, cancelled);
 
         if (!cancelled)
             return model;
@@ -5313,7 +5313,13 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (md == nullptr)
             return;
         XmlSerializer serializer;
-        serializer.SerializeAndSaveModel(md);
+        wxString name = md->GetName();
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (!filename.IsEmpty()) {
+            ObtainAccessToURL(filename);
+            pugi::xml_document doc = serializer.SerializeModel(md, true);
+            doc.save_file(filename.ToStdString().c_str());
+        }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
@@ -7839,7 +7845,13 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (md == nullptr)
             return;
         XmlSerializer serializer;
-        serializer.SerializeAndSaveModel(md);
+        wxString name = md->GetName();
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (!filename.IsEmpty()) {
+            ObtainAccessToURL(filename);
+            pugi::xml_document doc = serializer.SerializeModel(md, true);
+            doc.save_file(filename.ToStdString().c_str());
+        }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {

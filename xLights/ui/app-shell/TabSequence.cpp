@@ -67,7 +67,16 @@ std::string xLightsFrame::BuildEffectsXml()
     visitor.WriteOpenTag("xrgb");
     serializer.SerializeAllModels(AllModels, visitor);
     serializer.SerializeAllObjects(AllObjects, visitor);
-    serializer.SerializeAllLayoutGroups(LayoutGroups, visitor);
+    std::vector<LayoutGroupData> lgData;
+    lgData.reserve(LayoutGroups.size());
+    for (const auto* lg : LayoutGroups) {
+        lgData.push_back({lg->GetName(), lg->GetBackgroundImage(),
+                          lg->GetBackgroundBrightness(), lg->GetBackgroundAlpha(),
+                          lg->GetBackgroundScaled(),
+                          lg->GetPosX(), lg->GetPosY(),
+                          lg->GetPaneWidth(), lg->GetPaneHeight()});
+    }
+    serializer.SerializeAllLayoutGroups(lgData, visitor);
     SerializePerspectives(visitor);
     SerializeSettings(visitor);
     _sequenceViewManager.Save(visitor);

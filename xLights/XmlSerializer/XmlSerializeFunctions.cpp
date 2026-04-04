@@ -11,14 +11,12 @@
 #include "StringSerializingVisitor.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
-#include "ui/shared/dialogs/CheckboxSelectDialog.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../models/ModelGroup.h"
 #include "../models/ModelManager.h"
-#include "../xLightsMain.h"
+#include "../render/UICallbacks.h"
 
-#include <sstream>
+#include <algorithm>
 #include <string_view>
 #include <format>
 
@@ -448,37 +446,36 @@ void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
 
     const ModelManager& mgr = model->GetModelManager();
 
-    wxArrayString allGroups;
-    wxArrayString onlyGroups;
+    std::vector<std::string> allGroups;
+    std::vector<std::string> onlyGroups;
     for (const auto& it : mgr.GetModels()) {
         if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(model->Name())) {
-                onlyGroups.Add(it.first);
-                allGroups.Add(it.first);
+                onlyGroups.push_back(it.first);
+                allGroups.push_back(it.first);
             } else if (dynamic_cast<ModelGroup*>(it.second)->ContainsModelOrSubmodel(model)) {
-                allGroups.Add(it.first);
+                allGroups.push_back(it.first);
             }
         }
     }
 
-    if (allGroups.size() == 0) {
+    if (allGroups.empty()) {
         return;
     }
 
-    CheckboxSelectDialog dlg(dynamic_cast<wxWindow*>(mgr.GetXLightsFrame()), "Select Groups to Export - cancel to include no groups", allGroups, onlyGroups);
-    if (dlg.ShowModal() == wxID_OK) {
-        onlyGroups = dlg.GetSelectedItems();
-    } else {
+    UICallbacks* uiCallbacks = mgr.GetUICallbacks();
+    if (!uiCallbacks) {
         return;
     }
-
-    if (onlyGroups.size() == 0) {
+    std::vector<std::string> selected = uiCallbacks->ChooseFromList(
+        "Select Groups to Export - cancel to include no groups", allGroups, onlyGroups);
+    if (selected.empty()) {
         return;
     }
 
     // Serialize selected model groups to the modelNode (not docNode)
     for (const auto& it : mgr.GetModels()) {
-        if (onlyGroups.Index(it.first) != wxNOT_FOUND) {
+        if (std::find(selected.begin(), selected.end(), it.first) != selected.end()) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) {
                 // Get the model names from the ModelGroup

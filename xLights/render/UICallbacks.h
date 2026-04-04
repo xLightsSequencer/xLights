@@ -64,6 +64,13 @@ public:
         const std::string& prompt,
         const std::vector<std::string>& options) const { return {}; }
 
+    // Overload with pre-selected items (checkbox-style).
+    // Items in |preSelected| start checked.  Returns the final selection, or empty if cancelled.
+    virtual std::vector<std::string> ChooseFromList(
+        const std::string& prompt,
+        const std::vector<std::string>& options,
+        const std::vector<std::string>& preSelected) const { return ChooseFromList(prompt, options); }
+
     // ---- configuration queries ----
     virtual bool IsCheckSequenceOptionDisabled(const std::string& option) const { return false; }
 

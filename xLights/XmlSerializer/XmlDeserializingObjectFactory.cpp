@@ -18,11 +18,11 @@
 #include "../models/TerrainObject.h"
 #include "../models/TerrainScreenLocation.h"
 #include "../models/ViewObject.h"
-#include "../xLightsMain.h"
+#include "../models/ViewObjectManager.h"
 
 using namespace XmlSerialize;
 
-ViewObject* XmlDeserializingObjectFactory::Deserialize(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+ViewObject* XmlDeserializingObjectFactory::Deserialize(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
     std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("DisplayAs Missing");
 
     if (type.empty()) {
@@ -30,25 +30,25 @@ ViewObject* XmlDeserializingObjectFactory::Deserialize(pugi::xml_node node, xLig
     }
 
     if (type == XmlNodeKeys::GridlinesType) {
-        return DeserializeGridlines(node, xlights, importing);
+        return DeserializeGridlines(node, objects, importing);
     } else if (type == XmlNodeKeys::ImageType) {
-        return DeserializeImage(node, xlights, importing);
+        return DeserializeImage(node, objects, importing);
     } else if (type == XmlNodeKeys::MeshType) {
-        return DeserializeMesh(node, xlights, importing);
+        return DeserializeMesh(node, objects, importing);
     } else if (type == XmlNodeKeys::TerrainType || type == XmlNodeKeys::TerrianType) {
-        return DeserializeTerrain(node, xlights, importing);
+        return DeserializeTerrain(node, objects, importing);
     } else if (type == XmlNodeKeys::RulerType) {
-        return DeserializeRuler(node, xlights, importing);
+        return DeserializeRuler(node, objects, importing);
     }
     throw std::runtime_error("Unknown object type: " + type);
 }
 
-void XmlDeserializingObjectFactory::CommonDeserializeSteps(ViewObject* model, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    DeserializeBaseObjectAttributes(model, node, xlights, importing);
+void XmlDeserializingObjectFactory::CommonDeserializeSteps(ViewObject* model, pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    DeserializeBaseObjectAttributes(model, node, objects, importing);
     DeserializeModelScreenLocationAttributes(model, node, importing);
 }
 
-void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* object, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* object, pugi::xml_node node, ViewObjectManager& objects, bool importing) {
     std::string name = node.attribute("name").as_string();
     // Trim whitespace
     auto start = name.find_first_not_of(" \t\r\n");
@@ -59,7 +59,7 @@ void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* 
         name.clear();
     }
     if (importing) {
-        name = xlights->AllObjects.GenerateObjectName(name);
+        name = objects.GenerateObjectName(name);
     }
     object->SetLayoutGroup("Default", true);
     object->SetName(name);
@@ -79,9 +79,9 @@ void XmlDeserializingObjectFactory::DeserializeTerrainScreenLocationAttributes(V
     screenLoc.SetDataFromString(node.attribute(XmlNodeKeys::PointDataAttribute).as_string());
 }
 
-ViewObject* XmlDeserializingObjectFactory::DeserializeGridlines(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    GridlinesObject* object = new GridlinesObject(xlights->AllObjects);
-    CommonDeserializeSteps(object, node, xlights, importing);
+ViewObject* XmlDeserializingObjectFactory::DeserializeGridlines(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    GridlinesObject* object = new GridlinesObject(objects);
+    CommonDeserializeSteps(object, node, objects, importing);
     object->SetGridLineSpacing(node.attribute("GridLineSpacing").as_int(50));
     object->SetGridWidth(node.attribute("GridWidth").as_int(1000));
     object->SetGridHeight(node.attribute("GridHeight").as_int(1000));
@@ -92,9 +92,9 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeGridlines(pugi::xml_node n
     return object;
 }
 
-ViewObject* XmlDeserializingObjectFactory::DeserializeImage(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    ImageObject* object = new ImageObject(xlights->AllObjects);
-    CommonDeserializeSteps(object, node, xlights, importing);
+ViewObject* XmlDeserializingObjectFactory::DeserializeImage(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    ImageObject* object = new ImageObject(objects);
+    CommonDeserializeSteps(object, node, objects, importing);
     object->SetImageFile(node.attribute(XmlNodeKeys::ImageAttribute).as_string());
     object->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
     object->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_int(100));
@@ -102,9 +102,9 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeImage(pugi::xml_node node,
     return object;
 }
 
-ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    MeshObject* object = new MeshObject(xlights->AllObjects);
-    CommonDeserializeSteps(object, node, xlights, importing);
+ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    MeshObject* object = new MeshObject(objects);
+    CommonDeserializeSteps(object, node, objects, importing);
     object->SetObjectFile(node.attribute(XmlNodeKeys::ObjFileAttribute).as_string());
     object->SetMeshOnly(std::string_view(node.attribute(XmlNodeKeys::MeshOnlyAttribute).as_string("0")) == "1");
     object->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_float(100));
@@ -112,9 +112,9 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(pugi::xml_node node, 
     return object;
 }
 
-ViewObject* XmlDeserializingObjectFactory::DeserializeTerrain(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    TerrainObject* object = new TerrainObject(xlights->AllObjects);
-    CommonDeserializeSteps(object, node, xlights, importing);
+ViewObject* XmlDeserializingObjectFactory::DeserializeTerrain(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    TerrainObject* object = new TerrainObject(objects);
+    CommonDeserializeSteps(object, node, objects, importing);
     DeserializeTerrainScreenLocationAttributes(object, node);
     object->SetImageFile(node.attribute(XmlNodeKeys::ImageAttribute).as_string());
     object->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
@@ -129,9 +129,9 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeTerrain(pugi::xml_node nod
     return object;
 }
 
-ViewObject* XmlDeserializingObjectFactory::DeserializeRuler(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
-    RulerObject* object = new RulerObject(xlights->AllObjects);
-    CommonDeserializeSteps(object, node, xlights, importing);
+ViewObject* XmlDeserializingObjectFactory::DeserializeRuler(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    RulerObject* object = new RulerObject(objects);
+    CommonDeserializeSteps(object, node, objects, importing);
     DeserializeTwoPointScreenLocationAttributes(object, node);
     object->SetUnits(node.attribute(XmlNodeKeys::UnitsAttribute).as_int(0));
     object->SetLength(node.attribute(XmlNodeKeys::LengthAttribute).as_float(1));

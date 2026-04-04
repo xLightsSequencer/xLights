@@ -392,7 +392,7 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
     }
 }
 
-void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::string& mname, bool& merge, bool& ask) {
+void ModelManager::AddModelGroups(pugi::xml_node n, const std::string& mname, bool& merge, bool& ask) {
     // 
     // spdlog::debug("ModelManager adding groups.");
 
@@ -563,10 +563,8 @@ void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::str
 
     // Use Deserialize to create the ModelGroup
     XmlDeserializingModelFactory factory;
-    Model* model = factory.Deserialize(tempNode, xlights, false);
+    Model* model = factory.Deserialize(tempNode, const_cast<ModelManager&>(*this), false);
     if (model != nullptr) {
-        model->GetModelScreenLocation().previewW = w;
-        model->GetModelScreenLocation().previewH = h;
         ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
         if (mg != nullptr) {
             mg->RebuildBuffers();
@@ -1140,7 +1138,7 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
             if (!name.empty()) {
                 allModels.insert(name);
                 if (ModelGroup::AllModelsExist(e, *this)) {
-                    Model* model = factory.Deserialize(e, xlights, false);
+                    Model* model = factory.Deserialize(e, *this, false);
                     if (model != nullptr) {
                         model->GetModelScreenLocation().previewW = previewW;
                         model->GetModelScreenLocation().previewH = previewH;
@@ -1179,7 +1177,7 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
         toBeDone.clear();
         for (const auto& it : processing) {
             if (ModelGroup::AllModelsExist(it, *this)) {
-                Model* model = factory.Deserialize(it, xlights, false);
+                Model* model = factory.Deserialize(it, *this, false);
                 if (model != nullptr) {
                     model->GetModelScreenLocation().previewW = previewW;
                     model->GetModelScreenLocation().previewH = previewH;
@@ -1202,7 +1200,7 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
         std::string msg = "Could not process model group " + name + " likely due to model groups loops. See Check Sequence for details.";
         DisplayWarning(msg);
         assert(false);
-        Model* model = factory.Deserialize(it, xlights, false);
+        Model* model = factory.Deserialize(it, *this, false);
         if (model != nullptr) {
             model->GetModelScreenLocation().previewW = previewW;
             model->GetModelScreenLocation().previewH = previewH;
@@ -1419,12 +1417,12 @@ Model* ModelManager::CreateModel(pugi::xml_node node, int previewW, int previewH
 {
     if (std::string_view(node.name()) == "modelGroup") {
         XmlDeserializingModelFactory factory;
-        return factory.Deserialize(node, xlights, false);
+        return factory.Deserialize(node, const_cast<ModelManager&>(*this), false);
     }
 
     Model* model;
     XmlSerializer serializer;
-    model = serializer.DeserializeModel(node, xlights, false);
+    model = serializer.DeserializeModel(node, const_cast<ModelManager&>(*this), false);
     
     if (model != nullptr) {
         model->GetModelScreenLocation().previewW = previewW;

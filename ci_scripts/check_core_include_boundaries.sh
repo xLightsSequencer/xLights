@@ -41,6 +41,7 @@ CORE_DIRS=(
     "xLights/outputs"
     "xLights/controllers"
     "xLights/utils"
+    "xLights/XmlSerializer"
 )
 
 if [[ ! -f "$ALLOWLIST_FILE" ]]; then

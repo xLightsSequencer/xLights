@@ -155,8 +155,8 @@ public:
     static void WriteFaceInfo(pugi::xml_node fiNode, const FaceStateData& faceInfo);
     std::string SerialiseFace() const;
     std::string SerialiseState() const;
-    void AddModelGroups(pugi::xml_node n, int w, int h, const std::string& name, bool& merge, bool& ask);
-    void ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, IModelPreview* modelPreview, const std::string& layoutGroup);
+    void AddModelGroups(pugi::xml_node n, const std::string& name, bool& merge, bool& ask);
+    void ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, const std::string& layoutGroup);
 
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
@@ -208,7 +208,7 @@ public:
     }
     
     void AddSubmodel(SubModel* sm);
-    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, IModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const;
+    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const;
 
     [[nodiscard]] std::string SerialiseSubmodel() const;
     [[nodiscard]] virtual std::string CreateBufferAsSubmodel() const;

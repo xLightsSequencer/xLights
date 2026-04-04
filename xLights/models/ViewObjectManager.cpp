@@ -92,7 +92,7 @@ ViewObject* ViewObjectManager::CreateObject(pugi::xml_node node) const {
     std::string type = node.attribute("DisplayAs").as_string();
     XmlSerializer serializer;
     ViewObject* view_object {nullptr};
-    view_object = serializer.DeserializeObject(node, xlights, false);
+    view_object = serializer.DeserializeObject(node, const_cast<ViewObjectManager&>(*this), false);
     return view_object;
 }
 

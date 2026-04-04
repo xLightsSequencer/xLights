@@ -1549,6 +1549,10 @@ public:
     std::vector<std::string> ChooseFromList(
         const std::string& prompt,
         const std::vector<std::string>& options) const override;
+    std::vector<std::string> ChooseFromList(
+        const std::string& prompt,
+        const std::vector<std::string>& options,
+        const std::vector<std::string>& preSelected) const override;
     ProgressToken BeginProgress(const std::string& message,
                                 int maximum = 100) override;
     void UpdateProgress(ProgressToken token, int value,

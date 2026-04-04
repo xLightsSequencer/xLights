@@ -144,6 +144,9 @@
 		<Unit filename="../dependencies/libxlsxwriter/third_party/minizip/unzip.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../dependencies/libxlsxwriter/third_party/minizip/zip.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../dependencies/wxHTTPServer/connection.cpp" />
 		<Unit filename="../dependencies/wxHTTPServer/context.cpp" />
 		<Unit filename="../dependencies/wxHTTPServer/message.cpp" />
@@ -538,10 +541,10 @@
 		<Unit filename="XmlSerializer/XmlDeserializingModelFactory.h" />
 		<Unit filename="XmlSerializer/XmlDeserializingObjectFactory.cpp" />
 		<Unit filename="XmlSerializer/XmlDeserializingObjectFactory.h" />
+		<Unit filename="XmlSerializer/LayoutGroupData.h" />
 		<Unit filename="XmlSerializer/XmlNodeKeys.h" />
 		<Unit filename="XmlSerializer/XmlSerializeFunctions.cpp" />
 		<Unit filename="XmlSerializer/XmlSerializeFunctions.h" />
-		<Unit filename="XmlSerializer/XmlSerializeRgbEffects.h" />
 		<Unit filename="XmlSerializer/XmlSerializer.h" />
 		<Unit filename="XmlSerializer/XmlSerializingVisitor.cpp" />
 		<Unit filename="XmlSerializer/XmlSerializingVisitor.h" />

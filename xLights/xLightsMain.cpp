@@ -2642,6 +2642,31 @@ std::vector<std::string> xLightsFrame::ChooseFromList(
     return {};
 }
 
+std::vector<std::string> xLightsFrame::ChooseFromList(
+    const std::string& prompt,
+    const std::vector<std::string>& options,
+    const std::vector<std::string>& preSelected) const {
+    wxArrayString wxOptions;
+    for (const auto& opt : options) {
+        wxOptions.push_back(opt);
+    }
+    wxArrayString wxPreSelected;
+    for (const auto& ps : preSelected) {
+        wxPreSelected.push_back(ps);
+    }
+    CheckboxSelectDialog dlg(const_cast<xLightsFrame*>(this), prompt, wxOptions, wxPreSelected);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxArrayString selected = dlg.GetSelectedItems();
+        std::vector<std::string> result;
+        result.reserve(selected.size());
+        for (const auto& s : selected) {
+            result.push_back(s.ToStdString());
+        }
+        return result;
+    }
+    return {};
+}
+
 UICallbacks::ProgressToken xLightsFrame::BeginProgress(const std::string& message,
                                                        int maximum) {
     auto* dlg = new wxProgressDialog(message, "", maximum, this,

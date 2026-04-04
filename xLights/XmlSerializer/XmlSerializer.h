@@ -18,7 +18,7 @@
 #include <vector>
 #include <pugixml.hpp>
 
-#include "ui/layout/LayoutGroup.h"
+#include "LayoutGroupData.h"
 #include "utils/ExternalHooks.h"
 
 struct XmlSerializer {
@@ -48,20 +48,20 @@ struct XmlSerializer {
     }
 
     // Serialize all layout groups into an XML string fragment.
-    static void SerializeAllLayoutGroups(const std::vector<LayoutGroup*>& layoutGroups, BaseSerializingVisitor &visitor) {
+    static void SerializeAllLayoutGroups(const std::vector<LayoutGroupData>& layoutGroups, BaseSerializingVisitor &visitor) {
         BaseSerializingVisitor::AttrCollector emptyAttrs;
         visitor.WriteOpenTag(XmlNodeKeys::LayoutGroupsType, emptyAttrs);
-        for (const LayoutGroup* lg : layoutGroups) {
+        for (const auto& lg : layoutGroups) {
             BaseSerializingVisitor::AttrCollector attr;
-            attr.Add("name", lg->GetName());
-            attr.Add(XmlNodeKeys::BackgroundImageAttribute,lg->GetBackgroundImage());
-            attr.Add(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
-            attr.Add(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
-            attr.Add(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
-            attr.Add("PosX", std::to_string(lg->GetPosX()));
-            attr.Add("PosY", std::to_string(lg->GetPosY()));
-            attr.Add("PaneWidth", std::to_string(lg->GetPaneWidth()));
-            attr.Add("PaneHeight", std::to_string(lg->GetPaneHeight()));
+            attr.Add("name", lg.name);
+            attr.Add(XmlNodeKeys::BackgroundImageAttribute, lg.backgroundImage);
+            attr.Add(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg.backgroundBrightness));
+            attr.Add(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg.backgroundAlpha));
+            attr.Add(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg.backgroundScaled));
+            attr.Add("PosX", std::to_string(lg.posX));
+            attr.Add("PosY", std::to_string(lg.posY));
+            attr.Add("PaneWidth", std::to_string(lg.paneWidth));
+            attr.Add("PaneHeight", std::to_string(lg.paneHeight));
             visitor.WriteOpenTag("layoutGroup", attr, true);
         }
         visitor.WriteCloseTag();
@@ -152,18 +152,6 @@ struct XmlSerializer {
     }
 
 
-    // Serializes and Saves a single model into an XML document (only used for Export)
-    void SerializeAndSaveModel(const Model* model) {
-        wxString name = model->GetName();
-
-        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-        if (filename.IsEmpty())
-            return;
-        ObtainAccessToURL(filename);
-        pugi::xml_document doc = SerializeModel(model, true);
-        doc.save_file(filename.ToStdString().c_str());
-    }
-
     // Serialize a single model into an XML document
     pugi::xml_document SerializeModel(const Model* model, bool includeGroups = false) {
         pugi::xml_document doc;
@@ -182,34 +170,34 @@ struct XmlSerializer {
     }
 
     // Deserialize a single model from an XML document
-    Model* DeserializeModel(const pugi::xml_document& doc, xLightsFrame* xlights, bool importing) {
+    Model* DeserializeModel(const pugi::xml_document& doc, ModelManager& modelManager, bool importing) {
         pugi::xml_node root = doc.document_element();
         if (!root) return nullptr;
         pugi::xml_node model_node = root.first_child();
         if (!model_node) return nullptr;
-        return DeserializeModel(model_node, xlights, importing);
+        return DeserializeModel(model_node, modelManager, importing);
     }
 
     // Deserialize a single model XML node
-    Model* DeserializeModel(pugi::xml_node model_node, xLightsFrame* xlights, bool importing) {
+    Model* DeserializeModel(pugi::xml_node model_node, ModelManager& modelManager, bool importing) {
         XmlDeserializingModelFactory factory{};
-        Model* model = factory.Deserialize(model_node, xlights, importing);
+        Model* model = factory.Deserialize(model_node, modelManager, importing);
         return model;
     }
 
     // Deserialize a single ViewObject from an XML document
-    ViewObject* DeserializeObject(const pugi::xml_document& doc, xLightsFrame* xlights, bool importing) {
+    ViewObject* DeserializeObject(const pugi::xml_document& doc, ViewObjectManager& objects, bool importing) {
         pugi::xml_node root = doc.document_element();
         if (!root) return nullptr;
         pugi::xml_node object_node = root.first_child();
         if (!object_node) return nullptr;
-        return DeserializeObject(object_node, xlights, importing);
+        return DeserializeObject(object_node, objects, importing);
     }
 
     // Deserialize a single ViewObject XML node
-    ViewObject* DeserializeObject(pugi::xml_node model_node, xLightsFrame* xlights, bool importing) {
+    ViewObject* DeserializeObject(pugi::xml_node model_node, ViewObjectManager& objects, bool importing) {
         XmlDeserializingObjectFactory factory{};
-        ViewObject* object = factory.Deserialize(model_node, xlights, importing);
+        ViewObject* object = factory.Deserialize(model_node, objects, importing);
         return object;
     }
 };
