@@ -47,6 +47,14 @@
 #include "../../include/text-64.xpm"
 #include <log.h>
 
+// Windows headers #define DrawText/GetCharWidth to *W variants — undefine to avoid mangling our method names
+#ifdef DrawText
+#undef DrawText
+#endif
+#ifdef GetCharWidth
+#undef GetCharWidth
+#endif
+
 #define MAXTEXTLINES 100
 
 // Local alignment constants (matching wx values) so we don't depend on wx headers

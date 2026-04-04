@@ -63,6 +63,9 @@ is_forbidden_include() {
     if [[ "$include_path" == ui/* || "$include_path" == */ui/* ]]; then
         return 0
     fi
+    if [[ "$include_path" == common/* || "$include_path" == */common/* ]]; then
+        return 0
+    fi
     if [[ "$include_path" == wx/* ]]; then
         return 0
     fi

@@ -40,6 +40,11 @@
 #include "../../include/shape-48.xpm"
 #include "../../include/shape-64.xpm"
 
+// Windows headers #define DrawText to DrawTextW — undefine to avoid mangling our method names
+#ifdef DrawText
+#undef DrawText
+#endif
+
 #define REPEATTRIGGER 20
 
 ShapeEffect::ShapeEffect(int id) : RenderableEffect(id, "Shape", shape_16, shape_24, shape_32, shape_48, shape_64)

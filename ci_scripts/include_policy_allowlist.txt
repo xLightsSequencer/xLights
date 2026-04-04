@@ -23,3 +23,5 @@ xLights/render/SequenceMedia.cpp|../xLightsMain.h
 xLights/render/SequencePackage.cpp|xLightsMain.h
 xLights/render/WindowsHardwareVideoReader.cpp|wx/msw/ole/oleutils.h
 xLights/utils/AudioManager.cpp|wx/app.h
+# TODO: Remove common/ dependency from JobPool — xlBaseApp should not be needed in core utils
+xLights/utils/JobPool.cpp|../common/xlBaseApp.h
