@@ -51,6 +51,11 @@
 #include "CachedFileDownloader.h"
 #include "ui/shared/dialogs/CheckboxSelectDialog.h"
 #include "ui/shared/dialogs/OptionChooser.h"
+#include "graphics/GLContextManager.h"
+#ifndef __APPLE__
+#include "ui/effectpanels/ShaderPanel.h"
+#include "ui/graphics/opengl/xlGLCanvas.h"
+#endif
 #include "ui/color/ColourReplaceDialog.h"
 #include "ui/color/ColoursPanel.h"
 #include "ui/import-export/ConvertDialog.h"
@@ -651,6 +656,43 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     });
 
     ValueCurve::SetSequenceElements(&_sequenceElements);
+
+    // Initialize the GL context manager for shader rendering.
+    {
+        GLContextManager::InitParams glParams;
+#ifdef _WIN32
+        // Windows: provide main-thread runner and lazy shared-context accessor
+        glParams.mainThreadRunner = [this](std::function<void()> fn) {
+            std::mutex mtx;
+            std::condition_variable cv;
+            bool done = false;
+            CallAfter([&]() {
+                fn();
+                {
+                    std::lock_guard<std::mutex> lk(mtx);
+                    done = true;
+                }
+                cv.notify_all();
+            });
+            std::unique_lock<std::mutex> lk(mtx);
+            cv.wait(lk, [&] { return done; });
+        };
+        glParams.getSharedGLContext = []() -> void* {
+            auto* ctx = xlGLCanvas::GetSharedContext();
+            return ctx ? (void*)ctx->GetGLRC() : nullptr;
+        };
+#elif !defined(__APPLE__)
+        // Linux: provide callbacks that activate/deactivate the shader panel's GL context
+        glParams.activateMainContext = [this]() {
+            auto* p = dynamic_cast<ShaderPanel*>(effectPanelManager.GetPanel(EffectManager::eff_SHADER, nullptr));
+            if (p && p->_preview) p->_preview->SetCurrentGLContext();
+        };
+        glParams.deactivateMainContext = []() {
+            // No explicit deactivation needed on Linux
+        };
+#endif
+        GLContextManager::Instance().Initialize(glParams);
+    }
 
     _renderEngine = std::make_unique<RenderEngine>(*this, jobPool, _renderCache);
     _renderEngine->SetOnRenderStatusTimerStart([this]() { RenderStatusTimer.Start(100, false); });

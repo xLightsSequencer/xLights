@@ -13,7 +13,6 @@
 #include "../../include/shader_32.xpm"
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
-#include <wx/wx.h>
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -75,7 +74,7 @@
 
 #include "ShaderEffect.h"
 #include "AudioManager.h"
-#include "../ui/effectpanels/ShaderPanel.h"
+#include "../graphics/GLContextManager.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h"
@@ -83,8 +82,6 @@
 #include "../models/Model.h"
 #include "UtilClasses.h"
 #include "../render/RenderContext.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
@@ -195,7 +192,13 @@ namespace
     }
 }
 
-bool ShaderEffect::useBackgroundRender = false;
+void ShaderEffect::SetBackgroundRender(bool b) {
+    GLContextManager::Instance().SetBackgroundRenderEnabled(b);
+}
+
+bool ShaderEffect::IsBackgroundRender() {
+    return GLContextManager::Instance().IsBackgroundRenderEnabled();
+}
 
 bool ShaderEffect::IsShaderFile(std::string filename)
 {
@@ -361,175 +364,10 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     }
 }
 
-#ifdef _WIN32
-typedef HGLRC(WINAPI * wglCreateContextAttribsARB_t)
-(HDC hDC, HGLRC hShareContext, const int *attribList);
-template <typename T>
-inline T wxWGLProcCast(PROC proc)
-{
-    return reinterpret_cast<T>(proc);
-}
-#define wxDEFINE_WGL_FUNC(name) \
-name##_t name = wxWGLProcCast<name##_t>(wglGetProcAddress(#name))
-
-static wxGLAttributes GetShaderAttributes() {
-    wxGLAttributes atts;
-    atts.Reset();
-    // we don't need a depth buffer or double buffering
-    atts.PlatformDefaults();
-    atts.RGBA()
-        .EndList();
-    return atts;
-}
-
-
-
-class ShaderGLCanvas : public xlGLCanvas {
-public:
-    ShaderGLCanvas(wxWindow *parent)
-    : xlGLCanvas(parent, GetShaderAttributes(), "ShaderEffects") {}
-    virtual ~ShaderGLCanvas() {}
-
-    virtual void InitializeGLContext() {}
-};
-
-class GLContextInfo {
-public:
-    GLContextInfo(xlGLCanvas* win) : _canvas(nullptr), _context(nullptr) {
-        //we need a valid context to get the ARB
-        win->SetCurrentGLContext();
-        wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
-        wglMakeCurrent(win->GetHDC(), nullptr);
-
-        wxGLContext *sharedContext = win->GetSharedContext();
-        HGLRC shared = sharedContext ? sharedContext->GetGLRC() : 0;
-
-        // create a new window and new HDC specifically for this context, we
-        // won't display this anywhere, but it's required to get the hardware accelerated
-        // contexts and such.
-        _canvas = new ShaderGLCanvas(win->GetParent());
-        _hdc = _canvas->GetHDC();
-
-        // we *should* need core profile/3.3... but seems to work withe 3.1 for Windows??
-        wxGLContextAttrs cxtAttrs;
-        cxtAttrs.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
-        _context = wglCreateContextAttribsARB(_hdc, shared, cxtAttrs.GetGLAttrs());
-        if (_context == NULL) {
-           wxGLContextAttrs newAttrs;
-           newAttrs.PlatformDefaults().OGLVersion(3, 1).CoreProfile().EndList();
-           _context = wglCreateContextAttribsARB(_hdc, shared, newAttrs.GetGLAttrs());
-        }
-        spdlog::debug("ShaderEffect Thread {} created open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
-
-        //now unset this as current on the main thread
-        UnsetCurrent();
-    }
-    ~GLContextInfo() {
-        wglDeleteContext(_context);
-        // by the time we get here it seems to be destroyed ... possibly because its parent has been destroyed
-        //delete _canvas;
-    }
-    void SetCurrent() {
-        for (int x = 0; x < 10; x++) {
-            if (wglMakeCurrent(_hdc, _context)) {
-                spdlog::debug("ShaderEffect Thread {} given open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
-                return;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        assert(false);
-        spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
-    }
-    void UnsetCurrent() {
-        for (int x = 0; x < 10; x++) {
-            if (wglMakeCurrent(_hdc, nullptr))
-            {
-                spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
-                return;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        assert(false);
-        spdlog::error("ShaderEffect Thread {} tried to set no current GL Context but failed.", wxThread::GetCurrentId());
-    }
-
-    HGLRC _context;
-    HDC _hdc;
-    xlGLCanvas *_canvas;
-};
-
-class GLContextPool {
-public:
-
-    GLContextPool() {
-    }
-    ~GLContextPool() {
-        while (!contexts.empty()) {
-            GLContextInfo *ret = contexts.front();
-            delete ret;
-            contexts.pop();
-        }
-    }
-
-    GLContextInfo *GetContext(xlGLCanvas *parent) {
-        // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
-        bool contextsEmpty = false;
-        {
-            std::unique_lock<std::mutex> locker(lock);
-            contextsEmpty = contexts.empty();
-        }
-
-        if (contextsEmpty) {
-            return create(parent);
-        }
-
-        {
-            std::unique_lock<std::mutex> locker(lock);
-            GLContextInfo *ret = contexts.front();
-            contexts.pop();
-            spdlog::debug("Shader opengl context taken from pool 0x{:#x}", (uint64_t)ret);
-            return ret;
-        }
-    }
-    void ReleaseContext(GLContextInfo *pctx) {
-        std::unique_lock<std::mutex> locker(lock);
-        contexts.push(pctx);
-        spdlog::debug("Shader opengl context released 0x{:#x}", (uint64_t)pctx);
-    }
-
-    GLContextInfo *create(xlGLCanvas *canv) {
-        std::mutex mtx;
-        std::condition_variable signal;
-        std::unique_lock<std::mutex> lck(mtx);
-        GLContextInfo *tdc = nullptr;
-        if (ShaderEffect::IsBackgroundRender()) {
-            canv->CallAfter([&mtx, &signal, &tdc, canv]() {
-                std::unique_lock<std::mutex> lck(mtx);
-                tdc = new GLContextInfo(canv);
-                lck.unlock();
-                signal.notify_all();
-            });
-            signal.wait(lck, [&tdc] {return tdc != nullptr;});
-        } else {
-            tdc = new GLContextInfo(canv);
-        }
-        return tdc;
-    }
-private:
-    std::mutex lock;
-    std::queue<GLContextInfo*> contexts;
-} GL_CONTEXT_POOL;
-#endif /* _WIN32 */
-
+// Platform-specific GL context management moved to graphics/GLContextManager.cpp
 
 #if defined(__APPLE__)
-constexpr int osxMaxSharedContextCount = 24;
 constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 24;
-static WXGLContext sharedContext = 0;
-static std::list<WXGLContext> sharedContexts;
-static std::mutex sharedContextsLock;
-static std::condition_variable sharedContextsNotifier;
-static int osxSharedContextCount = 0;
 #else
 constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 10;
 #endif
@@ -548,52 +386,33 @@ public:
 
         inline bool SetUniformInt(const std::string &name, int v) const {
             GLint loc = FindUniformLocation(name);
-            if (loc != -1) {
-                glUniform1i(loc, v);
-                return true;
-            }
+            if (loc != -1) { glUniform1i(loc, v); return true; }
             return false;
         }
         inline bool SetUniform1f(const std::string &name, float v) const {
             GLint loc = FindUniformLocation(name);
-            if (loc != -1) {
-                glUniform1f(loc, v);
-                return true;
-            }
+            if (loc != -1) { glUniform1f(loc, v); return true; }
             return false;
         }
         inline bool SetUniform2f(const std::string &name, float v1, float v2) const {
             GLint loc = FindUniformLocation(name);
-            if (loc != -1) {
-                glUniform2f(loc, v1, v2);
-                return true;
-            }
+            if (loc != -1) { glUniform2f(loc, v1, v2); return true; }
             return false;
         }
         inline bool SetUniform4f(const std::string &name, float v1, float v2, float v3, float v4) const {
             GLint loc = FindUniformLocation(name);
-            if (loc != -1) {
-                glUniform4f(loc, v1, v2, v3, v4);
-                return true;
-            }
+            if (loc != -1) { glUniform4f(loc, v1, v2, v3, v4); return true; }
             return false;
         }
         inline bool HasUniform(const std::string &name) {
-            GLint loc = FindUniformLocation(name);
-            if (loc != -1) {
-                return true;
-            }
-            return false;
+            return FindUniformLocation(name) != -1;
         }
     private:
         GLint FindUniformLocation(const std::string &name) const {
             const auto &a = uniforms.find(name);
-            if (a != uniforms.end()) {
-                return a->second;
-            }
+            if (a != uniforms.end()) return a->second;
             return -1;
         }
-
         void LoadUniforms(GLint program) {
             int uniformCount = 0;
             glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &uniformCount);
@@ -603,12 +422,9 @@ public:
                 GLint size;
                 GLenum type;
                 glGetActiveUniform(program, i, sizeof(buf), &len, &size, &type, buf);
-
-                int location = glGetUniformLocation(program, buf);
-                uniforms[buf] = location;
+                uniforms[buf] = glGetUniformLocation(program, buf);
             }
         }
-
     };
 
     static std::map<std::string, ShaderInfo*> shaderMap;
@@ -624,65 +440,22 @@ public:
             s_programId = 0;
         }
         if (_shaderConfig != nullptr) delete _shaderConfig;
-#if defined(__APPLE__)
-        std::unique_lock<std::mutex> lock(sharedContextsLock);
-        WXGLSetCurrentContext(sharedContext);
-        DestroyResources();
-        WXGLUnsetCurrentContext();
-#elif defined(_WIN32)
-        if (glContextInfo) {
-            glContextInfo->SetCurrent();
+
+        if (contextHandle) {
+            auto& mgr = GLContextManager::Instance();
+            mgr.MakeCurrent(contextHandle);
             DestroyResources();
-            glContextInfo->UnsetCurrent();
-            if (ShaderEffect::IsBackgroundRender()) {
-                GL_CONTEXT_POOL.ReleaseContext(glContextInfo);
-            }
+            mgr.DoneCurrent(contextHandle);
+            mgr.ReleaseContext(contextHandle);
+            contextHandle = nullptr;
         }
-#else
-        if (preview) {
-            unsigned vertexArrayId = s_vertexArrayId;
-            unsigned vertexBufferId = s_vertexBufferId;
-            unsigned fbId = s_fbId;
-            unsigned rbId = s_rbId;
-            unsigned rbTex = s_rbTex;
-            unsigned audioTex = s_audioTex;
-            xlGLCanvas *preview = this->preview;
-
-            preview->CallAfter([preview,
-                                vertexArrayId,
-                                vertexBufferId,
-                                fbId,
-                                rbId,
-                                rbTex,
-                                audioTex] {
-                preview->SetCurrentGLContext();
-                DestroyResources(vertexArrayId,
-                                 vertexBufferId,
-                                 fbId,
-                                 rbId,
-                                 rbTex,
-                                 audioTex);
-            });
-
-            s_programId = 0;
-            s_vertexArrayId = 0;
-            s_vertexBufferId = 0;
-            s_fbId = 0;
-            s_rbId = 0;
-            s_rbTex = 0;
-        }
-#endif
     }
 
     void SetProgramId(unsigned programId, ShaderInfo *si) {
-        if (s_programId && s_shaderInfo) {
-            StoreProgramId();
-        }
+        if (s_programId && s_shaderInfo) StoreProgramId();
         s_programId = programId;
         s_shaderInfo = si;
-        if (_shaderConfig) {
-            s_code = _shaderConfig->GetCode();
-        }
+        if (_shaderConfig) s_code = _shaderConfig->GetCode();
     }
     unsigned RefreshProgramId() {
         if (s_shaderInfo) {
@@ -700,8 +473,6 @@ public:
     void StoreProgramId() {
         if (s_programId && s_shaderInfo) {
             std::unique_lock<std::mutex> lock(shaderMapMutex);
-            // we'll keep some of them around.  We can always re-compile if we need more later
-            // but this keeps object retention count a bit bounded
             if (s_shaderInfo->programIds.size() > COMPILED_PROGRAM_RETAIN_COUNT) {
                 glDeleteProgram(s_programId);
             } else {
@@ -725,6 +496,7 @@ public:
     int s_rbWidth = 0;
     int s_rbHeight = 0;
     long _timeMS = 0;
+    GLContextManager::ContextHandle contextHandle = nullptr;
 
     void InitialiseShaderConfig(const std::string& filename, SequenceElements* sequenceElements) {
         if (_shaderConfig != nullptr) delete _shaderConfig;
@@ -733,58 +505,22 @@ public:
     }
 
     void DestroyResources() {
-        DestroyResources(s_vertexArrayId,
-                         s_vertexBufferId,
-                         s_fbId,
-                         s_rbId,
-                         s_rbTex,
-                         s_audioTex);
-        s_programId = 0;
-        s_vertexArrayId = 0;
-        s_vertexBufferId = 0;
-        s_fbId = 0;
-        s_rbId = 0;
-        s_rbTex = 0;
-        s_audioTex = 0;
+        DestroyResources(s_vertexArrayId, s_vertexBufferId, s_fbId, s_rbId, s_rbTex, s_audioTex);
+        s_programId = 0; s_vertexArrayId = 0; s_vertexBufferId = 0;
+        s_fbId = 0; s_rbId = 0; s_rbTex = 0; s_audioTex = 0;
     }
-    static void DestroyResources(unsigned s_vertexArrayId,
-                                 unsigned s_vertexBufferId,
-                                 unsigned s_fbId,
-                                 unsigned s_rbId,
-                                 unsigned s_rbTex,
-                                 unsigned s_audioTex) {
-        if (s_vertexArrayId) {
-            LOG_GL_ERRORV(glDeleteVertexArrays(1, &s_vertexArrayId));
-        }
-        if (s_vertexBufferId) {
-            LOG_GL_ERRORV(glDeleteBuffers(1, &s_vertexBufferId));
-        }
-        if (s_fbId) {
-            LOG_GL_ERRORV(glDeleteFramebuffers(1, &s_fbId));
-        }
-        if (s_rbId) {
-            LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId));
-        }
-        if (s_rbTex) {
-            LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
-        }
-        if (s_audioTex) {
-            LOG_GL_ERRORV(glDeleteTextures(1, &s_audioTex));
-        }
+    static void DestroyResources(unsigned vaId, unsigned vbId, unsigned fb, unsigned rb, unsigned rbTx, unsigned audTx) {
+        if (vaId) { LOG_GL_ERRORV(glDeleteVertexArrays(1, &vaId)); }
+        if (vbId) { LOG_GL_ERRORV(glDeleteBuffers(1, &vbId)); }
+        if (fb) { LOG_GL_ERRORV(glDeleteFramebuffers(1, &fb)); }
+        if (rb) { LOG_GL_ERRORV(glDeleteRenderbuffers(1, &rb)); }
+        if (rbTx) { LOG_GL_ERRORV(glDeleteTextures(1, &rbTx)); }
+        if (audTx) { LOG_GL_ERRORV(glDeleteTextures(1, &audTx)); }
     }
-
-#if defined(__APPLE__)
-    WXGLContext s_glContext = nullptr;
-#elif defined(_WIN32)
-    GLContextInfo *glContextInfo = nullptr;
-#else
-    xlGLCanvas *preview;
-#endif
 };
 std::map<std::string, ShaderRenderCache::ShaderInfo*> ShaderRenderCache::shaderMap;
 std::set<std::string> ShaderRenderCache::failedShaders;
 std::mutex ShaderRenderCache::shaderMapMutex;
-
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
 {
@@ -792,229 +528,33 @@ ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm,
 
 ShaderEffect::~ShaderEffect()
 {
-
 }
-
 
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
+    return GLContextManager::Instance().CanRenderOnBackgroundThread();
+}
 
-#if defined(__APPLE__)
-    // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
-    // the OSX GL engine is thread safe.
-    //
-    // on windows, we need to create the GL contexts on the main thread, but then can use them
-    // on the background thread.  Similar to the Path and text drawing contexts
+bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
+    auto& mgr = GLContextManager::Instance();
+    if (!cache->contextHandle) {
+        cache->contextHandle = mgr.AcquireContext();
+        if (!cache->contextHandle) return false;
+    }
+    mgr.MakeCurrent(cache->contextHandle);
     return true;
-#elif defined(_WIN32)
-    return useBackgroundRender;
-#else
-    return false;
-#endif
 }
 
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
+    auto& mgr = GLContextManager::Instance();
+    mgr.DoneCurrent(cache->contextHandle);
 #if defined(__APPLE__)
-    WXGLUnsetCurrentContext();
-    
-    std::unique_lock<std::mutex> lock(sharedContextsLock);
-    sharedContexts.push_front(cache->s_glContext);
-    cache->s_glContext = nullptr;
-    lock.unlock();
-    sharedContextsNotifier.notify_all();
-#elif defined(_WIN32)
-    if (cache->glContextInfo != nullptr) {
-        // release it from the thread every time so we never find ourselves in a situation where it has not been released by a thread
-        cache->glContextInfo->UnsetCurrent();
-    }
+    // macOS: return context to pool after each frame (original behavior)
+    mgr.ReleaseContext(cache->contextHandle);
+    cache->contextHandle = nullptr;
 #endif
+    // Windows/Linux: keep context cached for reuse across frames
 }
-
-#if defined(__APPLE__)
-void adjustWGLContext(WXGLContext ctx) {
-    struct GLRendererInfo {
-      GLint rendererID;       // RendererID number
-      GLint accelerated;      // Whether Hardware accelerated
-      GLint online;           // Whether renderer (/GPU) is onilne. Second GPU on Mac Pro is offline
-      GLint virtualScreen;    // Virtual screen number
-      GLint videoMemoryMB;
-      GLint textureMemoryMB;
-      GLint eGpu;
-      const GLubyte *vendor;
-    };
-    WXGLSetCurrentContext(ctx);
-
-    // Grab the GLFW context and pixel format for future calls
-    CGLContextObj contextObject = CGLGetCurrentContext();
-    CGLPixelFormatObj pixel_format = CGLGetPixelFormat(contextObject);
-
-    // Number of renderers
-    CGLRendererInfoObj rend;
-    GLint nRenderers = 0;
-    CGLQueryRendererInfo(0xffffffff, &rend, &nRenderers);
-
-    // Number of virtual screens
-    GLint nVirtualScreens = 0;
-    CGLDescribePixelFormat(pixel_format, 0, kCGLPFAVirtualScreenCount, &nVirtualScreens);
-
-    int maxMem = 0;
-
-    // Get renderer information
-    std::vector<GLRendererInfo> Renderers(nRenderers);
-    for (GLint i = 0; i < nRenderers; ++i) {
-        CGLDescribeRenderer(rend, i, kCGLRPOnline, &(Renderers[i].online));
-        CGLDescribeRenderer(rend, i, kCGLRPAcceleratedCompute, &(Renderers[i].accelerated));
-        CGLDescribeRenderer(rend, i, kCGLRPRendererID,  &(Renderers[i].rendererID));
-        CGLDescribeRenderer(rend, i, kCGLRPVideoMemoryMegabytes, &(Renderers[i].videoMemoryMB));
-        CGLDescribeRenderer(rend, i, kCGLRPTextureMemoryMegabytes, &(Renderers[i].textureMemoryMB));
-        CGLDescribeRenderer(rend, i, (CGLRendererProperty)142, &(Renderers[i].eGpu));
-    }
-
-    // Get corresponding virtual screen
-    for (GLint i = 0; i != nVirtualScreens; ++i) {
-        CGLSetVirtualScreen(contextObject, i);
-        GLint r;
-        CGLGetParameter(contextObject, kCGLCPCurrentRendererID, &r);
-
-        for (GLint j = 0; j < nRenderers; ++j) {
-            if (Renderers[j].rendererID == r) {
-                Renderers[j].virtualScreen = i;
-                Renderers[j].vendor = glGetString(GL_VENDOR);
-            }
-        }
-    }
-
-    // Print out information of renderers
-    bool found = false;
-    //printf("No. renderers: %d\n", nRenderers);
-    //printf(" No. virtual screens: %d\n", nVirtualScreens);
-    for (GLint i = 0; i < nRenderers; ++i) {
-        /*
-        printf("Renderer: %d\n", i);
-        printf(" Virtual Screen: %d\n", Renderers[i].virtualScreen);
-        printf(" Renderer ID: %d\n", Renderers[i].rendererID);
-        printf(" Vendor: %s\n", Renderers[i].vendor);
-        printf(" Accelerated: %d\n", Renderers[i].accelerated);
-        printf(" Online: %d\n", Renderers[i].online);
-        printf(" Video Memory MB: %d\n", Renderers[i].videoMemoryMB);
-        printf(" Texture Memory MB: %d\n", Renderers[i].textureMemoryMB);
-        printf(" eGpu: %d\n", Renderers[i].eGpu);
-        */
-        if (Renderers[i].eGpu) {
-            //prefer an eGPU if we find one
-            CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
-            found = true;
-        } else {
-            // otherwise, use the one with the most video memory
-            // as we'll assume that's the best option
-            maxMem = std::max(maxMem, Renderers[i].videoMemoryMB);
-        }
-    }
-
-    // Set the context to our desired virtual screen (and therefore OpenGL renderer)
-    if (!found) {
-        for (GLint i = 0; i < nRenderers; ++i) {
-            if (maxMem == Renderers[i].videoMemoryMB) {
-                CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
-            }
-        }
-    }
-    
-    const GLubyte* str = glGetString(GL_VERSION);
-    const GLubyte* rendn = glGetString(GL_RENDERER);
-    const GLubyte* vend = glGetString(GL_VENDOR);
-    std::string configs = std::format("ShaderEffect - glVer:  {}  ({})({})",
-                                      (const char *)str,
-                                      (const char *)rendn,
-                                      (const char *)vend);
-
-    
-    spdlog::info(configs);
-    WXGLUnsetCurrentContext();
-}
-WXGLContext createContext() {
-    wxGLAttributes attributes;
-    attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
-    attributes.AddAttribute(96 /* NSOpenGLPFAAcceleratedCompute */ );
-    attributes.AddAttribute(97 /* NSOpenGLPFAAllowOfflineRenderers */ );
-    attributes.MinRGBA(8, 8, 8, 8).EndList();
-    wxGLContextAttrs cxtAttrs;
-    cxtAttrs.CoreProfile().EndList();
-
-    
-    WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
-                                                        attributes.GetSize(),
-                                                        cxtAttrs.GetGLAttrs(),
-                                                        cxtAttrs.GetSize());
-    if (!pixelFormat) {
-        // couldn't get an AcceleratedCompute format, let's at least try defaults
-        wxGLAttributes attributes2;
-        attributes2.PlatformDefaults().MinRGBA(8, 8, 8, 8).EndList();
-        pixelFormat = WXGLChoosePixelFormat(attributes2.GetGLAttrs(),
-                                            attributes2.GetSize(),
-                                            cxtAttrs.GetGLAttrs(),
-                                            cxtAttrs.GetSize());
-    }
-    WXGLContext ctx = WXGLCreateContext(pixelFormat, sharedContext);
-    adjustWGLContext(ctx);
-    WXGLDestroyPixelFormat(pixelFormat);
-
-    return ctx;
-}
-#endif
-
-
-bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
-#if defined(__APPLE__)
-    if (cache->s_glContext == nullptr) {
-        std::unique_lock<std::mutex> lock(sharedContextsLock);
-        if (sharedContext == 0) {
-            sharedContext = createContext();
-        }
-        if (sharedContexts.empty() && osxSharedContextCount < osxMaxSharedContextCount) {
-            sharedContexts.push_front(createContext());
-            ++osxSharedContextCount;
-        }
-        while (sharedContexts.empty()) {
-            sharedContextsNotifier.wait(lock);
-        }
-        cache->s_glContext = sharedContexts.front();
-        sharedContexts.pop_front();
-    }
-    WXGLSetCurrentContext(cache->s_glContext);
-    return true;
-#elif defined(_WIN32)
-    ShaderPanel *p = static_cast<ShaderPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
-    if (!ShaderEffect::IsBackgroundRender()) {
-        p->_preview->SetCurrentGLContext();
-    } else if (cache->glContextInfo == nullptr) {
-        // we grab it here and release it when the cache is deleted
-        cache->glContextInfo = GL_CONTEXT_POOL.GetContext(p->_preview);
-
-        cache->glContextInfo->SetCurrent();
-        const GLubyte* str = glGetString(GL_VERSION);
-        const GLubyte* rend = glGetString(GL_RENDERER);
-        const GLubyte* vend = glGetString(GL_VENDOR);
-        std::string configs = std::format("ShaderEffect - glVer:  {}  ({})({})",
-                                          (const char *)str,
-                                          (const char *)rend,
-                                          (const char *)vend);
-
-        
-        spdlog::info(configs);
-    } else {
-        // we still need to grab the gl context to this thread
-        cache->glContextInfo->SetCurrent();
-    }
-    return true;
-#else
-    ShaderPanel *p = static_cast<ShaderPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
-    cache->preview = p->_preview;
-    p->_preview->SetCurrentGLContext();
-    return true;
-#endif
-}
-
 
 void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {

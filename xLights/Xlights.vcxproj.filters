@@ -746,6 +746,9 @@
     </ClCompile>
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="ui/automation/ScriptsDialog.cpp" />
+    <ClCompile Include="graphics\GLContextManager.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\xlMesh.cpp">
       <Filter>graphics</Filter>
     </ClCompile>

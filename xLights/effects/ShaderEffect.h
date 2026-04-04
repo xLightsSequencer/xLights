@@ -220,8 +220,8 @@ public:
     static ShaderConfig* ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements);
     static bool IsShaderFile(std::string filename);
 
-    static void SetBackgroundRender(bool b) { useBackgroundRender = b; }
-    static bool IsBackgroundRender() { return useBackgroundRender; }
+    static void SetBackgroundRender(bool b);
+    static bool IsBackgroundRender();
 
     virtual double GetSettingVCMin(const std::string& name) const override
     {
@@ -275,5 +275,4 @@ protected:
         float t[2];
     };
 
-    static bool useBackgroundRender;
 };

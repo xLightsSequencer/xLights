@@ -920,6 +920,8 @@
 		<Unit filename="graphics/xlGraphicsAccumulators.cpp" />
 		<Unit filename="graphics/xlGraphicsAccumulators.h" />
 		<Unit filename="graphics/xlGraphicsBase.h" />
+		<Unit filename="graphics/GLContextManager.cpp" />
+		<Unit filename="graphics/GLContextManager.h" />
 		<Unit filename="graphics/xlGraphicsContext.h" />
 		<Unit filename="graphics/xlMesh.cpp" />
 		<Unit filename="graphics/xlMesh.h" />

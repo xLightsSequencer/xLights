@@ -541,6 +541,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\graphics\opengl\xlOGL3GraphicsContext.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
+    <ClCompile Include="graphics\GLContextManager.cpp" />
     <ClCompile Include="graphics\xlMesh.cpp" />
     <ClCompile Include="ui/layout/HousePreviewPanel.cpp" />
     <ClCompile Include="ui\model\ImportPreviewsModelsDialog.cpp" />
