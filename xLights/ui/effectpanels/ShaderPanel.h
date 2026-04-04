@@ -45,6 +45,9 @@ class ShaderPanel: public xlEffectPanel
 		virtual ~ShaderPanel();
 		virtual void ValidateWindow() override;
 		virtual void SetDefaultParameters() override;
+#ifndef __WXOSX__
+        xlGLCanvas *GetPreview() const { return _preview; }
+#endif
 
 		//(*Declarations(ShaderPanel)
 		BulkEditFilePickerCtrl* FilePickerCtrl1;

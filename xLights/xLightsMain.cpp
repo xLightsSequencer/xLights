@@ -685,7 +685,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         // Linux: provide callbacks that activate/deactivate the shader panel's GL context
         glParams.activateMainContext = [this]() {
             auto* p = dynamic_cast<ShaderPanel*>(effectPanelManager.GetPanel(EffectManager::eff_SHADER, nullptr));
-            if (p && p->_preview) p->_preview->SetCurrentGLContext();
+            if (p && p->GetPreview()) p->GetPreview()->SetCurrentGLContext();
         };
         glParams.deactivateMainContext = []() {
             // No explicit deactivation needed on Linux
