@@ -9,11 +9,10 @@
  **************************************************************/
 
 #include "MarqueeEffect.h"
-#include "MarqueePanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/marquee-16.xpm"
 #include "../../include/marquee-24.xpm"
@@ -29,44 +28,6 @@ MarqueeEffect::MarqueeEffect(int id) : RenderableEffect(id, "Marquee", marquee_1
 MarqueeEffect::~MarqueeEffect()
 {
     //dtor
-}
-
-xlEffectPanel* MarqueeEffect::CreatePanel(wxWindow* parent)
-{
-    return new MarqueePanel(parent);
-}
-
-void MarqueeEffect::SetDefaultParameters() {
-    MarqueePanel *mp = (MarqueePanel*)panel;
-    if (mp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(mp->Slider_MarqueeXC, 0);
-    SetSliderValue(mp->Slider_MarqueeYC, 0);
-    SetSliderValue(mp->Slider_Marquee_Band_Size, 3);
-    SetSliderValue(mp->Slider_Marquee_ScaleX, 100);
-    SetSliderValue(mp->Slider_Marquee_ScaleY, 100);
-    SetSliderValue(mp->Slider_Marquee_Skip_Size, 0);
-    SetSliderValue(mp->Slider_Marquee_Speed, 3);
-    SetSliderValue(mp->Slider_Marquee_Stagger, 0);
-    SetSliderValue(mp->Slider_Marquee_Start, 0);
-    SetSliderValue(mp->Slider_Marquee_Thickness, 1);
-
-    SetCheckBoxValue(mp->CheckBox_Marquee_Reverse, false);
-    SetCheckBoxValue(mp->CheckBox_Marquee_PixelOffsets, false);
-    SetCheckBoxValue(mp->CheckBox_Marquee_WrapX, false);
-
-    mp->BitmapButton_MarqueeXCVC->SetActive(false);
-    mp->BitmapButton_MarqueeYCVC->SetActive(false);
-    mp->BitmapButton_Marquee_Band_SizeVC->SetActive(false);
-    mp->BitmapButton_Marquee_ScaleXVC->SetActive(false);
-    mp->BitmapButton_Marquee_ScaleYVC->SetActive(false);
-    mp->BitmapButton_Marquee_Skip_SizeVC->SetActive(false);
-    mp->BitmapButton_Marquee_SpeedVC->SetActive(false);
-    mp->BitmapButton_Marquee_StaggerVC->SetActive(false);
-    mp->BitmapButton_Marquee_StartVC->SetActive(false);
-    mp->BitmapButton_Marquee_ThicknessVC->SetActive(false);
 }
 
 static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int color_size, int shift)
@@ -145,7 +106,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         if (sign < 0) {
             current_color = colorcnt - current_color - 1;
         }
-       // wxLogDebug(wxString::Format("Color: %d,  Pos: %d", current_color, current_pos));
+
         if (corner_y2 != corner_y1) {
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger + 1) * sign);
             for (int x_pos = corner_x1; x_pos <= corner_x2; x_pos++) {

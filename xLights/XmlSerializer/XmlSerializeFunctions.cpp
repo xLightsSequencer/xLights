@@ -11,66 +11,68 @@
 #include "StringSerializingVisitor.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
-#include "CheckboxSelectDialog.h"
-#include "../UtilFunctions.h"
+#include "ui/shared/dialogs/CheckboxSelectDialog.h"
+#include "UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../models/ModelGroup.h"
 #include "../models/ModelManager.h"
 #include "../xLightsMain.h"
 
-#include <wx/xml/xml.h>
 #include <sstream>
+#include <string_view>
+#include <format>
 
 namespace XmlSerialize {
 
-void DeserializeModelScreenLocationAttributes(BaseObject* object, wxXmlNode* node, bool importing) {
+void DeserializeModelScreenLocationAttributes(BaseObject* object, pugi::xml_node node, bool importing) {
     glm::vec3 loc;
-    loc.x = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosXAttribute, "0").ToStdString());
-    loc.y = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosYAttribute, "0").ToStdString());
-    loc.z = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosZAttribute, "0").ToStdString());
+    loc.x = node.attribute(XmlNodeKeys::WorldPosXAttribute).as_float(0);
+    loc.y = node.attribute(XmlNodeKeys::WorldPosYAttribute).as_float(0);
+    loc.z = node.attribute(XmlNodeKeys::WorldPosZAttribute).as_float(0);
     object->GetBaseObjectScreenLocation().SetWorldPosition(loc);
     glm::vec3 scale(1.0f, 1.0f, 1.0f);
-    scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString());
-    scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString());
-    scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString());
+    scale.x = node.attribute(XmlNodeKeys::ScaleXAttribute).as_float(1.0f);
+    scale.y = node.attribute(XmlNodeKeys::ScaleYAttribute).as_float(1.0f);
+    scale.z = node.attribute(XmlNodeKeys::ScaleZAttribute).as_float(1.0f);
     object->GetBaseObjectScreenLocation().SetScaleMatrix(scale);
     glm::vec3 rotate(0.0f, 0.0f, 0.0f);
-    rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0").ToStdString());
-    rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0").ToStdString());
-    rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0").ToStdString());
+    rotate.x = node.attribute(XmlNodeKeys::RotateXAttribute).as_float(0);
+    rotate.y = node.attribute(XmlNodeKeys::RotateYAttribute).as_float(0);
+    rotate.z = node.attribute(XmlNodeKeys::RotateZAttribute).as_float(0);
     object->GetBaseObjectScreenLocation().SetRotation(rotate);
     if( !importing ) {
-         bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute, "0").ToStdString()) > 0;
+         bool locked = node.attribute(XmlNodeKeys::LockedAttribute).as_int(0) > 0;
         object->GetBaseObjectScreenLocation().Lock(locked);
     }
 }
 
-void DeserializeTwoPointScreenLocationAttributes(BaseObject* object, wxXmlNode* node) {
-    float x2 = std::stof(node->GetAttribute(XmlNodeKeys::X2Attribute, "0").ToStdString());
-    float y2 = std::stof(node->GetAttribute(XmlNodeKeys::Y2Attribute, "0").ToStdString());
-    float z2 = std::stof(node->GetAttribute(XmlNodeKeys::Z2Attribute, "0").ToStdString());
+void DeserializeTwoPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node) {
+    float x2 = node.attribute(XmlNodeKeys::X2Attribute).as_float(0);
+    float y2 = node.attribute(XmlNodeKeys::Y2Attribute).as_float(0);
+    float z2 = node.attribute(XmlNodeKeys::Z2Attribute).as_float(0);
     TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(object->GetBaseObjectScreenLocation());
     screenLoc.SetX2(x2);
     screenLoc.SetY2(y2);
     screenLoc.SetZ2(z2);
 }
 
-void DeserializeThreePointScreenLocationAttributes(BaseObject* object, wxXmlNode* node) {
+void DeserializeThreePointScreenLocationAttributes(BaseObject* object, pugi::xml_node node) {
     DeserializeTwoPointScreenLocationAttributes(object, node);
-    int angle = std::stoi(node->GetAttribute(XmlNodeKeys::AngleAttribute, "0").ToStdString());
-    float height = std::stof(node->GetAttribute(XmlNodeKeys::HeightAttribute, "1.0").ToStdString());
-    float shear = std::stof(node->GetAttribute(XmlNodeKeys::ShearAttribute, "0.0").ToStdString());
+    int angle = node.attribute(XmlNodeKeys::AngleAttribute).as_int(0);
+    float height = node.attribute(XmlNodeKeys::HeightAttribute).as_float(1.0f);
+    float shear = node.attribute(XmlNodeKeys::ShearAttribute).as_float(0.0f);
     ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(object->GetBaseObjectScreenLocation());
     screenLoc.SetAngle(angle);
     screenLoc.SetMHeight(height);
     screenLoc.SetYShear(shear);
 }
 
-void DeserializePolyPointScreenLocationAttributes(BaseObject* object, wxXmlNode* node) {
-    int num_points = std::stoi(node->GetAttribute(XmlNodeKeys::NumPointsAttribute, "2").ToStdString());
+void DeserializePolyPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node) {
+    int num_points = node.attribute(XmlNodeKeys::NumPointsAttribute).as_int(2);
     PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(object->GetBaseObjectScreenLocation());
     screenLoc.SetNumPoints(num_points);
-    screenLoc.SetDataFromString(node->GetAttribute(XmlNodeKeys::PointDataAttribute, "0.0, 0.0, 0.0, 0.0, 0.0, 0.0").ToStdString());
-    screenLoc.SetCurveDataFromString(node->GetAttribute(XmlNodeKeys::cPointDataAttribute, "").ToStdString());
+    screenLoc.SetDataFromString(node.attribute(XmlNodeKeys::PointDataAttribute).as_string("0.0, 0.0, 0.0, 0.0, 0.0, 0.0"));
+    screenLoc.SetCurveDataFromString(node.attribute(XmlNodeKeys::cPointDataAttribute).as_string());
 }
 
 
@@ -113,11 +115,7 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
                     value = value.substr(1);
                 }
                 if (!value.empty()) {
-                    try {
-                        locations[layer][row][col] = std::stoi(value);
-                    } catch (...) {
-                        // not a number, treat as 0
-                    }
+                    locations[layer][row][col] = (int)std::strtol(value.c_str(), nullptr, 10);
                 }
                 col++;
             }
@@ -132,7 +130,7 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
             rw.resize(width, -1);
         }
     }
-    
+
     return locations;
 }
 
@@ -150,9 +148,9 @@ std::vector<std::vector<std::vector<int>>> ParseCompressed(const std::string& co
         std::vector<std::string> nodeData;
         Split(n, ',', nodeData);
         if (nodeData.size() == 3) {
-            nodes.emplace_back(std::make_tuple(std::stoi(nodeData[0]), std::stoi(nodeData[1]), std::stoi(nodeData[2]), 0));
+            nodes.emplace_back(std::make_tuple((int)std::strtol(nodeData[0].c_str(), nullptr, 10), (int)std::strtol(nodeData[1].c_str(), nullptr, 10), (int)std::strtol(nodeData[2].c_str(), nullptr, 10), 0));
         } else if (nodeData.size() == 4) {
-            nodes.emplace_back(std::make_tuple(std::stoi(nodeData[0]), std::stoi(nodeData[1]), std::stoi(nodeData[2]), std::stoi(nodeData[3])));
+            nodes.emplace_back(std::make_tuple((int)std::strtol(nodeData[0].c_str(), nullptr, 10), (int)std::strtol(nodeData[1].c_str(), nullptr, 10), (int)std::strtol(nodeData[2].c_str(), nullptr, 10), (int)std::strtol(nodeData[3].c_str(), nullptr, 10)));
         }
     }
 
@@ -189,21 +187,21 @@ std::vector<std::vector<std::vector<int>>> ParseCompressed(const std::string& co
     return locations;
 }
 
-std::vector<std::vector<std::vector<int>>> ParseCustomModelDataFromXml(const wxXmlNode* node)
+std::vector<std::vector<std::vector<int>>> ParseCustomModelDataFromXml(pugi::xml_node node)
 {
-    std::string compressed = node->GetAttribute(XmlNodeKeys::CustomModelCmpAttribute).ToStdString();
-    if (compressed != "") {
+    std::string compressed = node.attribute(XmlNodeKeys::CustomModelCmpAttribute).as_string();
+    if (!compressed.empty()) {
         return XmlSerialize::ParseCompressed(compressed);
     } else {
-        std::string customModel = node->GetAttribute(XmlNodeKeys::CustomModelAttribute).ToStdString();
+        std::string customModel = node.attribute(XmlNodeKeys::CustomModelAttribute).as_string();
         return XmlSerialize::ParseCustomModel(customModel);
     }
 }
 
-void DeserializeFaceInfo(wxXmlNode* f, FaceStateData & faceInfo) {
-    std::string name = f->GetAttribute(XmlNodeKeys::StateNameAttribute, "SingleNode").ToStdString();
-    std::string type = f->GetAttribute(XmlNodeKeys::StateTypeAttribute, "SingleNode").ToStdString();
-    if (name == xlEMPTY_STRING) {
+void DeserializeFaceInfo(pugi::xml_node f, FaceStateData & faceInfo) {
+    std::string name = f.attribute(XmlNodeKeys::StateNameAttribute).as_string("SingleNode");
+    std::string type = f.attribute(XmlNodeKeys::StateTypeAttribute).as_string("SingleNode");
+    if (name.empty()) {
         name = type;
     }
     if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
@@ -213,29 +211,28 @@ void DeserializeFaceInfo(wxXmlNode* f, FaceStateData & faceInfo) {
             type = "Matrix";
         }
     }
-    wxXmlAttribute* att = f->GetAttributes();
-    while (att != nullptr) {
-        if (att->GetName() != XmlNodeKeys::StateNameAttribute) {
-            if (att->GetName().Left(5) == "Mouth" || att->GetName().Left(4) == "Eyes") {
+    for (pugi::xml_attribute att = f.first_attribute(); att; att = att.next_attribute()) {
+        std::string_view attName = att.name();
+        if (attName != XmlNodeKeys::StateNameAttribute) {
+            if (attName.substr(0, 5) == "Mouth" || attName.substr(0, 4) == "Eyes") {
                 if (type == XmlNodeKeys::MatrixType) {
-                    faceInfo[name][att->GetName().ToStdString()] = FixFile("", att->GetValue());
-                    if (att->GetValue() != faceInfo[name][att->GetName().ToStdString()])
-                        att->SetValue(faceInfo[name][att->GetName().ToStdString()]);
+                    faceInfo[name][std::string(attName)] = FixFile(std::string(""), std::string(att.value()));
+                    if (std::string(att.value()) != faceInfo[name][std::string(attName)])
+                        att.set_value(faceInfo[name][std::string(attName)]);
                 } else {
-                    faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                    faceInfo[name][std::string(attName)] = att.value();
                 }
             } else {
-                faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                faceInfo[name][std::string(attName)] = att.value();
             }
         }
-        att = att->GetNext();
     }
 }
 
-void DeserializeStateInfo(wxXmlNode* f, FaceStateData & stateInfo) {
-    std::string name = f->GetAttribute(XmlNodeKeys::StateNameAttribute, "SingleNode").ToStdString();
-    std::string type = f->GetAttribute(XmlNodeKeys::StateTypeAttribute, "SingleNode").ToStdString();
-    if (name == "") {
+void DeserializeStateInfo(pugi::xml_node f, FaceStateData & stateInfo) {
+    std::string name = f.attribute(XmlNodeKeys::StateNameAttribute).as_string("SingleNode");
+    std::string type = f.attribute(XmlNodeKeys::StateTypeAttribute).as_string("SingleNode");
+    if (name.empty()) {
         name = type;
     }
     if (!(type == "SingleNode" || type == "NodeRange")) {
@@ -243,12 +240,13 @@ void DeserializeStateInfo(wxXmlNode* f, FaceStateData & stateInfo) {
             type = "SingleNode";
         }
     }
-    wxXmlAttribute* att = f->GetAttributes();
-    while (att != nullptr) {
-        if (att->GetName() != "Name") {
-            if (att->GetValue() != "") { // we only save non default values to keep xml file small
-                std::string key = att->GetName().ToStdString();
-                std::string value = att->GetValue().ToStdString();
+    for (pugi::xml_attribute att = f.first_attribute(); att; att = att.next_attribute()) {
+        std::string_view attName = att.name();
+        if (attName != "Name") {
+            std::string_view attValue = att.value();
+            if (!attValue.empty()) { // we only save non default values to keep xml file small
+                std::string key(attName);
+                std::string value(attValue);
                 std::string storedKey = key;
                 if (key.find('s') == 0) { // Handle all keys starting with 's'
                     size_t sPos = key.find('s');
@@ -256,57 +254,60 @@ void DeserializeStateInfo(wxXmlNode* f, FaceStateData & stateInfo) {
                     size_t endPos = (dashPos != std::string::npos) ? dashPos : key.length();
                     if (sPos == 0 && sPos + 1 < endPos) {
                         std::string numStr = key.substr(sPos + 1, endPos - sPos - 1);
-                        int num = std::stoi(numStr);
-                        std::string paddedNum = wxString::Format("%03d", num).ToStdString();
-                        storedKey = "s" + paddedNum + (dashPos != std::string::npos ? key.substr(dashPos) : "");
+                        int num = (int)std::strtol(numStr.c_str(), nullptr, 10);
+                        storedKey = std::format("s{:03d}{}", num, (dashPos != std::string::npos ? key.substr(dashPos) : ""));
                     }
                 }
                 stateInfo[name][storedKey] = value;
             }
         }
-        att = att->GetNext();
     }
 }
 
 std::optional<CustomModelImportData> LoadCustomModelFromFile(const std::string& filename) {
-    wxXmlDocument doc(filename);
-    if (!doc.IsOk()) {
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.c_str());
+    if (!result) {
         return std::nullopt;
     }
-    
-    wxXmlNode* root = doc.GetRoot();
-    if (!root || root->GetName() != "custommodel") {
+
+    pugi::xml_node root = doc.document_element();
+    if (!root || std::string_view(root.name()) != "custommodel") {
         return std::nullopt;
     }
-    
+
     return LoadCustomModelFromXml(root);
 }
 
-std::optional<CustomModelImportData> LoadCustomModelFromXml(const wxXmlNode* node) {
-    if (!node || node->GetName() != "custommodel") {
+std::optional<CustomModelImportData> LoadCustomModelFromXml(pugi::xml_node node) {
+    if (!node || std::string_view(node.name()) != "custommodel") {
         return std::nullopt;
     }
-    
+
     CustomModelImportData data;
-    
+
     // Load basic attributes
-    data.name = node->GetAttribute("name", "").ToStdString();
-    data.width = wxAtoi(node->GetAttribute("parm1", "1"));
-    data.height = wxAtoi(node->GetAttribute("parm2", "1"));
-    data.depth = wxAtoi(node->GetAttribute("Depth", "1"));
-    
+    data.name = node.attribute("name").as_string();
+    // Read new attribute names first, fall back to old parm names
+    data.width = !node.attribute("CustomWidth").empty() ?
+        node.attribute("CustomWidth").as_int(1) : node.attribute("parm1").as_int(1);
+    data.height = !node.attribute("CustomHeight").empty() ?
+        node.attribute("CustomHeight").as_int(1) : node.attribute("parm2").as_int(1);
+    data.depth = node.attribute("Depth").as_int(1);
+
     // Check if it's a 1-depth model (or empty for pre-3D models)
-    wxString depthAttr = node->GetAttribute("Depth", "");
-    if (!depthAttr.IsEmpty() && data.depth != 1) {
+    std::string_view depthAttr = node.attribute("Depth").as_string();
+    if (!depthAttr.empty() && data.depth != 1) {
         return std::nullopt; // Not a 2D model
     }
-    
+
     // Load model data
     data.modelData = ParseCustomModelDataFromXml(node);
-    
+
     // Load submodels
-    for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
-        if (child->GetName() == "subModel") {
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        std::string_view childName = child.name();
+        if (childName == "subModel") {
             if (auto smData = ParseSubModelNode(child)) {
                 // Only import range-based submodels
                 if (smData->isRanges) {
@@ -321,139 +322,130 @@ std::optional<CustomModelImportData> LoadCustomModelFromXml(const wxXmlNode* nod
                 }
             }
         }
-        else if (child->GetName() == "faceInfo") {
+        else if (childName == "faceInfo") {
             CustomModelImportData::FaceData face;
-            face.name = child->GetAttribute("Name", "").ToStdString();
-            face.type = child->GetAttribute("Type", "").ToStdString();
-            
+            face.name = child.attribute("Name").as_string();
+            face.type = child.attribute("Type").as_string();
+
             if (face.type == "NodeRange") {
                 // Store all attributes
-                for (wxXmlAttribute* attr = child->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
-                    face.attributes[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                for (pugi::xml_attribute attr = child.first_attribute(); attr; attr = attr.next_attribute()) {
+                    face.attributes[attr.name()] = attr.value();
                 }
                 data.faces.push_back(std::move(face));
             }
         }
-        else if (child->GetName() == "stateInfo") {
+        else if (childName == "stateInfo") {
             CustomModelImportData::StateData state;
-            state.name = child->GetAttribute("Name", "").ToStdString();
-            state.type = child->GetAttribute("Type", "").ToStdString();
-            
+            state.name = child.attribute("Name").as_string();
+            state.type = child.attribute("Type").as_string();
+
             if (state.type == "NodeRange") {
                 // Store all attributes
-                for (wxXmlAttribute* attr = child->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
-                    state.attributes[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                for (pugi::xml_attribute attr = child.first_attribute(); attr; attr = attr.next_attribute()) {
+                    state.attributes[attr.name()] = attr.value();
                 }
                 data.states.push_back(std::move(state));
             }
         }
     }
-    
+
     return data;
 }
 
-std::optional<SubModelImportData> ParseSubModelNode(const wxXmlNode* node) {
-    if (!node || node->GetName() != "subModel") {
+std::optional<SubModelImportData> ParseSubModelNode(pugi::xml_node node) {
+    if (!node || std::string_view(node.name()) != "subModel") {
         return std::nullopt;
     }
-    
+
     SubModelImportData sm;
-    sm.name = node->GetAttribute(XmlNodeKeys::NameAttribute, "").ToStdString();
-    sm.isRanges = node->GetAttribute(XmlNodeKeys::SMTypeAttribute, "ranges") == "ranges";
-    sm.vertical = node->GetAttribute(XmlNodeKeys::LayoutAttribute, "vertical") == "vertical";
-    sm.subBuffer = node->GetAttribute(XmlNodeKeys::SubBufferAttribute, "").ToStdString();
-    sm.bufferStyle = node->GetAttribute(XmlNodeKeys::BufferStyleAttribute, "Default").ToStdString();
-    
+    sm.name = node.attribute(XmlNodeKeys::NameAttribute).as_string();
+    sm.isRanges = std::string_view(node.attribute(XmlNodeKeys::SMTypeAttribute).as_string("ranges")) == "ranges";
+    sm.vertical = std::string_view(node.attribute(XmlNodeKeys::LayoutAttribute).as_string("vertical")) == "vertical";
+    sm.subBuffer = node.attribute(XmlNodeKeys::SubBufferAttribute).as_string();
+    sm.bufferStyle = node.attribute(XmlNodeKeys::BufferStyleAttribute).as_string("Default");
+
     // Load strands/lines
     int lineNum = 0;
-    while (node->HasAttribute(wxString::Format("line%d", lineNum))) {
-        sm.strands.push_back(node->GetAttribute(wxString::Format("line%d", lineNum), "").ToStdString());
+    while (true) {
+        std::string lineAttr = std::format("line{}", lineNum);
+        pugi::xml_attribute attr = node.attribute(lineAttr);
+        if (attr.empty()) break;
+        sm.strands.push_back(attr.as_string());
         lineNum++;
     }
-    
+
     return sm;
 }
 
-std::vector<SubModelImportData> LoadSubModelsFromXml(const wxXmlNode* modelNode) {
+std::vector<SubModelImportData> LoadSubModelsFromXml(pugi::xml_node modelNode) {
     std::vector<SubModelImportData> subModels;
-    
+
     if (!modelNode) {
         return subModels;
     }
-    
+
     // Iterate through child nodes looking for subModel elements
-    for (wxXmlNode* child = modelNode->GetChildren(); child != nullptr; child = child->GetNext()) {
+    for (pugi::xml_node child = modelNode.first_child(); child; child = child.next_sibling()) {
         if (auto sm = ParseSubModelNode(child)) {
             subModels.push_back(std::move(*sm));
         }
     }
-    
+
     return subModels;
 }
 
-std::string GetModelAttributesAsJSON(const wxXmlNode* modelNode) {
+std::string GetModelAttributesAsJSON(pugi::xml_node modelNode) {
     if (!modelNode) {
         return "{}";
     }
-    
+
     std::string json = "{";
     bool first = true;
-    
+
     // Process model attributes
-    for (wxXmlAttribute* attrp = modelNode->GetAttributes(); attrp; attrp = attrp->GetNext()) {
-        wxString value = attrp->GetValue();
+    for (pugi::xml_attribute attrp = modelNode.first_attribute(); attrp; attrp = attrp.next_attribute()) {
+        std::string_view value = attrp.value();
         if (!value.empty()) {
             if (!first) {
                 json += ",";
             }
-            json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
+            json += "\"" + std::string(attrp.name()) + "\":\"" + JSONSafe(std::string(value)) + "\"";
             first = false;
         }
     }
-    
+
     // Process ControllerConnection child node
-    wxXmlNode* cc = nullptr;
-    for (wxXmlNode* child = modelNode->GetChildren(); child != nullptr; child = child->GetNext()) {
-        if (child->GetName() == "ControllerConnection") {
-            cc = child;
-            break;
-        }
-    }
-    
+    pugi::xml_node cc = modelNode.child("ControllerConnection");
+
     json += ",\"ControllerConnection\":{";
     if (cc) {
         bool first2 = true;
-        for (wxXmlAttribute* attrp = cc->GetAttributes(); attrp; attrp = attrp->GetNext()) {
-            wxString value = attrp->GetValue();
+        for (pugi::xml_attribute attrp = cc.first_attribute(); attrp; attrp = attrp.next_attribute()) {
+            std::string_view value = attrp.value();
             if (!value.empty()) {
                 if (!first2) {
                     json += ",";
                 }
-                json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
+                json += "\"" + std::string(attrp.name()) + "\":\"" + JSONSafe(std::string(value)) + "\"";
                 first2 = false;
             }
         }
     }
     json += "}}";
-    
+
     return json;
 }
 
-void SerializeModelGroupsForModel(const Model* model, wxXmlNode* docNode) {
+void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
     if (model == nullptr) return;
-    
+
     // Find the "model" node within docNode
-    wxXmlNode* modelNode = nullptr;
-    for (wxXmlNode* child = docNode->GetChildren(); child != nullptr; child = child->GetNext()) {
-        if (child->GetName() == "model") {
-            modelNode = child;
-            break;
-        }
-    }
-    
+    pugi::xml_node modelNode = docNode.child("model");
+
     // If no model node found, return early
-    if (modelNode == nullptr) return;
-    
+    if (!modelNode) return;
+
     const ModelManager& mgr = model->GetModelManager();
 
     wxArrayString allGroups;
@@ -491,7 +483,7 @@ void SerializeModelGroupsForModel(const Model* model, wxXmlNode* docNode) {
             if (mg != nullptr) {
                 // Get the model names from the ModelGroup
                 const std::vector<std::string>& model_names = mg->ModelNames();
-                
+
                 // Create comma-delimited string of model names
                 std::string modelsStr;
                 for (size_t i = 0; i < model_names.size(); ++i) {
@@ -500,45 +492,36 @@ void SerializeModelGroupsForModel(const Model* model, wxXmlNode* docNode) {
                     }
                     modelsStr += model_names[i];
                 }
-                
-                wxXmlNode* groupNode = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
-                groupNode->AddAttribute(XmlNodeKeys::NameAttribute, it.first);
-                groupNode->AddAttribute(XmlNodeKeys::mgSelectedAttribute, std::to_string(mg->IsSelected()));
-                groupNode->AddAttribute(XmlNodeKeys::mgModelsAttribute, modelsStr);
-                groupNode->AddAttribute(XmlNodeKeys::LayoutGroupAttribute, mg->GetLayoutGroup());
-                groupNode->AddAttribute(XmlNodeKeys::LayoutAttribute, mg->GetLayout());
-                groupNode->AddAttribute(XmlNodeKeys::mgGridSizeAttribute, std::to_string(mg->GetGridSize()));
-                groupNode->AddAttribute(XmlNodeKeys::mgCentrexAttribute, std::to_string(mg->GetCentreX()));
-                groupNode->AddAttribute(XmlNodeKeys::mgCentreyAttribute, std::to_string(mg->GetCentreY()));
-                groupNode->AddAttribute(XmlNodeKeys::mgCentreDefinedAttribute, std::to_string(mg->GetCentreDefined()));
 
-                modelNode->AddChild(groupNode);
+                pugi::xml_node groupNode = modelNode.append_child("modelGroup");
+                groupNode.append_attribute(XmlNodeKeys::NameAttribute) = it.first;
+                groupNode.append_attribute(XmlNodeKeys::mgSelectedAttribute) = std::to_string(mg->IsSelected());
+                groupNode.append_attribute(XmlNodeKeys::mgModelsAttribute) = modelsStr;
+                groupNode.append_attribute(XmlNodeKeys::LayoutGroupAttribute) = mg->GetLayoutGroup();
+                groupNode.append_attribute(XmlNodeKeys::LayoutAttribute) = mg->GetLayout();
+                groupNode.append_attribute(XmlNodeKeys::mgGridSizeAttribute) = mg->GetGridSize();
+                groupNode.append_attribute(XmlNodeKeys::mgCentrexAttribute) = std::to_string(mg->GetCentreX());
+                groupNode.append_attribute(XmlNodeKeys::mgCentreyAttribute) = std::to_string(mg->GetCentreY());
+                groupNode.append_attribute(XmlNodeKeys::mgCentreDefinedAttribute) = std::to_string(mg->GetCentreDefined());
             }
         }
     }
 }
 
-void AddDimensions(wxXmlNode* node, const Model* m) {
+void AddDimensions(pugi::xml_node node, const Model* m) {
     std::string rdu = m->GetRulerDim();
-    if (rdu != "") {
+    if (!rdu.empty()) {
         // Find the "model" node within the document
-        wxXmlNode* modelNode = nullptr;
-        for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
-            if (child->GetName() == "model") {
-                modelNode = child;
-                break;
-            }
-        }
-        
+        pugi::xml_node modelNode = node.child("model");
+
         // If no model node found, return early
-        if (modelNode == nullptr) return;
-        
-        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::DimNodeName);
-        xmlNode->AddAttribute(XmlNodeKeys::DimDepthAttribute, std::to_string(m->GetModelScreenLocation().GetRealDepth()));
-        xmlNode->AddAttribute(XmlNodeKeys::DimHeightAttribute, std::to_string(m->GetModelScreenLocation().GetRealHeight()));
-        xmlNode->AddAttribute(XmlNodeKeys::DimUnitsAttribute, rdu);
-        xmlNode->AddAttribute(XmlNodeKeys::DimWidthAttribute, std::to_string(m->GetModelScreenLocation().GetRealWidth()));
-        modelNode->AddChild(xmlNode);
+        if (!modelNode) return;
+
+        pugi::xml_node xmlNode = modelNode.append_child(XmlNodeKeys::DimNodeName);
+        xmlNode.append_attribute(XmlNodeKeys::DimDepthAttribute) = std::to_string(m->GetModelScreenLocation().GetRealDepth());
+        xmlNode.append_attribute(XmlNodeKeys::DimHeightAttribute) = std::to_string(m->GetModelScreenLocation().GetRealHeight());
+        xmlNode.append_attribute(XmlNodeKeys::DimUnitsAttribute) = rdu;
+        xmlNode.append_attribute(XmlNodeKeys::DimWidthAttribute) = std::to_string(m->GetModelScreenLocation().GetRealWidth());
     }
 }
 

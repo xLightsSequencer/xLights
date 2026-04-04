@@ -19,7 +19,7 @@ class RenardOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    RenardOutput(wxXmlNode* node);
+    RenardOutput(pugi::xml_node node);
     RenardOutput(const RenardOutput& from);
     RenardOutput();
     virtual ~RenardOutput() override {};

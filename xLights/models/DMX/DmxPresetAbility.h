@@ -12,13 +12,11 @@
 
 #include "../Node.h"
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
+#include <list>
+#include <string>
+
 class Model;
 class xlColor;
-class wxFile;
 
 struct PresetSetting {
     PresetSetting(uint8_t channel, uint8_t value, std::string description) :
@@ -39,8 +37,6 @@ public:
 
     virtual void SetPresetValues(xlColorVector& pixelVector) const;
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, int num_channels);
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, int num_channels, BaseObject* base);
     [[nodiscard]] virtual std::list<std::string> CheckModelSettings(Model* m) const;
     [[nodiscard]] virtual bool IsValidModelSettings(Model* m) const;
     [[nodiscard]] std::vector<PresetSetting> const& GetPresetSettings() const { return _presets; };
@@ -48,6 +44,11 @@ public:
     virtual void SetNodeNames(std::vector<std::string> & names) const;
 
     void AddPreset(uint8_t chan, uint8_t val, const std::string& desc);
+    void PopPreset() { if (!_presets.empty()) _presets.pop_back(); }
+    size_t GetPresetsCount() const { return _presets.size(); }
+    void SetPresetChannel(size_t idx, uint8_t chan) { _presets[idx].DMXChannel = chan; }
+    void SetPresetValue(size_t idx, uint8_t val) { _presets[idx].DMXValue = val; }
+    void SetPresetDescription(size_t idx, const std::string& desc) { _presets[idx].Description = desc; }
 
 private:
     std::vector<PresetSetting> _presets;

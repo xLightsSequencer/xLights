@@ -6,32 +6,40 @@
 
 #include <string>
 
-constexpr const char* completions_api = "/completions";
-
 bool GenericClient::IsAvailable() const {
-    return !base_url.empty() && _enabled;
+    return !base_url.empty() && !_enabledTypes.empty();
 }
 
 void GenericClient::SaveSettings() const {
-    _sm->setServiceSetting("GenericClientEnable", _enabled);
     _sm->setServiceSetting("GenericClientBaseURL", base_url);
-    _sm->setServiceSetting("GenericClientAPIKey", token);
+    _sm->setSecretServiceToken("GenericClientAPIKey", token);
     _sm->setServiceSetting("GenericClientModel", model);
     _sm->setServiceSetting("GenericClientImageModel", image_model);
+    for (auto t : GetTypes()) {
+        _sm->setServiceSetting(std::string("GenericClientEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
+    }
 }
 
 void GenericClient::LoadSettings() {
-    _enabled = _sm->getServiceSetting("GenericClientEnable", _enabled);
     base_url = _sm->getServiceSetting("GenericClientBaseURL", base_url);
-    token = _sm->getServiceSetting("GenericClientAPIKey", token);
+    token = _sm->getSecretServiceToken("GenericClientAPIKey");
     model = _sm->getServiceSetting("GenericClientModel", model);
     image_model = _sm->getServiceSetting("GenericClientImageModel", image_model);
+    bool oldEnabled = _sm->getServiceSetting("GenericClientEnable", false);
+    for (auto t : GetTypes()) {
+        bool enabled = _sm->getServiceSetting(std::string("GenericClientEnable_") + aiType::TypeSettingsSuffix(t), oldEnabled);
+        SetEnabledForType(t, enabled);
+    }
 }
 
 void GenericClient::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("Generic OpenAI Client"));
-    auto p = page->Append(new wxBoolProperty("Enabled", "GenericClient.Enabled", _enabled));
-    p->SetEditor("CheckBox");
+    for (auto t : GetTypes()) {
+        auto p = page->Append(new wxBoolProperty(wxString("Enable ") + aiType::TypeName(t),
+                                                  wxString("GenericClient.Enable_") + aiType::TypeSettingsSuffix(t),
+                                                  IsEnabledForType(t)));
+        p->SetEditor("CheckBox");
+    }
     page->Append(new wxStringProperty("Base URL", "GenericClient.BaseURL", base_url));
     auto* apiKeyProp = page->Append(new wxStringProperty("API Key", "GenericClient.APIKey", token));
     apiKeyProp->SetAttribute(wxPG_STRING_PASSWORD, true);
@@ -41,9 +49,13 @@ void GenericClient::PopulateLLMSettings(wxPropertyGrid* page) {
 }
 
 void GenericClient::SetSetting(const std::string& key, const wxVariant& value) {
-	if (key == "GenericClient.Enabled") {
-		_enabled = value.GetBool();
-    } else if (key == "GenericClient.BaseURL") {
+    for (auto t : GetTypes()) {
+        if (key == std::string("GenericClient.Enable_") + aiType::TypeSettingsSuffix(t)) {
+            SetEnabledForType(t, value.GetBool());
+            return;
+        }
+    }
+    if (key == "GenericClient.BaseURL") {
         base_url = value.GetString();
     } else if (key == "GenericClient.APIKey") {
         token = value.GetString();

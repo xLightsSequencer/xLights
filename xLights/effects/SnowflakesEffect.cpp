@@ -9,11 +9,10 @@
  **************************************************************/
 
 #include "SnowflakesEffect.h"
-#include "SnowflakesPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/snowflakes-16.xpm"
 #include "../../include/snowflakes-24.xpm"
@@ -29,42 +28,6 @@ SnowflakesEffect::SnowflakesEffect(int id) : RenderableEffect(id, "Snowflakes", 
 SnowflakesEffect::~SnowflakesEffect()
 {
     //dtor
-}
-
-xlEffectPanel *SnowflakesEffect::CreatePanel(wxWindow *parent) {
-    return new SnowflakesPanel(parent);
-}
-
-bool SnowflakesEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("4.3.03", version);
-}
-
-void SnowflakesEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    SettingsMap &settings = effect->GetSettings();
-    bool accumulate = settings.GetBool("E_CHECKBOX_Snowflakes_Accumulate", false);
-
-    // if it was accumulate then clear it and change the falling type from the default
-    if (accumulate)
-    {
-        settings["E_CHOICE_Falling"] = "Falling & Accumulating";
-        settings.erase("E_CHECKBOX_Snowflakes_Accumulate");
-    }
-
-    // if it was not accumulate then it should be driving
-    bool accumulate2 = settings.GetBool("E_CHECKBOX_Snowflakes_Accumulate", true);
-    if (!accumulate2)
-    {
-        settings["E_CHOICE_Falling"] = "Driving";
-        settings.erase("E_CHECKBOX_Snowflakes_Accumulate");
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
 }
 
 int static possible_downward_moves(RenderBuffer &buffer, int x, int y)
@@ -143,22 +106,6 @@ public:
     std::string LastFalling;
     int effectState;
 };
-
-void SnowflakesEffect::SetDefaultParameters()
-{
-    SnowflakesPanel *sp = (SnowflakesPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Snowflakes_Count->SetActive(false);
-    sp->BitmapButton_Snowflakes_Speed->SetActive(false);
-
-    SetSliderValue(sp->Slider_Snowflakes_Count, 5);
-    SetSliderValue(sp->Slider_Snowflakes_Type, 1);
-    SetSliderValue(sp->Slider_Snowflakes_Speed, 10);
-    SetChoiceValue(sp->Choice_Falling, "Driving");
-}
 
 void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const std::string& falling, int count, const xlColor& color1, int& effectState)
 {

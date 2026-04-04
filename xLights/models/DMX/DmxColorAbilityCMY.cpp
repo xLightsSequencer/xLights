@@ -8,15 +8,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/advprops.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/xml/xml.h>
+#include <format>
 
 #include "DmxColorAbilityCMY.h"
-#include "../BaseObject.h"
 #include "../Model.h"
 
-#include "../../Color.h"
+#include "Color.h"
 #include "../Node.h"
 
 DmxColorAbilityCMY::DmxColorAbilityCMY() :
@@ -110,16 +107,16 @@ std::list<std::string> DmxColorAbilityCMY::CheckModelSettings(Model* m) const
     auto nodeCount = m->GetNodeCount();
 
     if (cyan_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s cyan channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), cyan_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} cyan channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), cyan_channel, nodeCount));
     }
     if (magenta_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s magenta channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), magenta_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} magenta channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), magenta_channel, nodeCount));
     }
     if (yellow_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s yellow channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), yellow_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} yellow channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), yellow_channel, nodeCount));
     }
     if (white_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), white_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} white channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), white_channel, nodeCount));
     }
     return res;
 }
@@ -132,65 +129,6 @@ bool DmxColorAbilityCMY::IsValidModelSettings(Model* m) const
             magenta_channel < nodeCount + 1 &&
             yellow_channel < nodeCount + 1 &&
             white_channel < nodeCount + 1);
-}
-
-void DmxColorAbilityCMY::AddColorTypeProperties(wxPropertyGridInterface* grid, bool pwm) const
-{
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Cyan Channel", "DmxCyanChannel", cyan_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Magenta Channel", "DmxMagentaChannel", magenta_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Yellow Channel", "DmxYellowChannel", yellow_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("White Channel", "DmxWhiteChannel", white_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-}
-
-int DmxColorAbilityCMY::OnColorPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base)
-{
-    std::string propName = event.GetPropertyName();
-
-    if ("DmxCyanChannel" == propName) {
-        cyan_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        return 0;
-    } else if ("DmxMagentaChannel" == propName) {
-        magenta_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        return 0;
-    } else if ("DmxYellowChannel" == propName) {
-        yellow_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        return 0;
-    } else if ("DmxWhiteChannel" == propName) {
-        white_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    return -1;
 }
 
 xlColor DmxColorAbilityCMY::GetRGB(uint8_t cyan, uint8_t magenta, uint8_t yellow) const

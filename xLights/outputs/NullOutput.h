@@ -18,11 +18,11 @@ class NullOutput : public Output
 public:
 
     #pragma region Constructors and Destructors
-    NullOutput(wxXmlNode* node);
+    NullOutput(pugi::xml_node node);
     NullOutput() : Output() { _channels = 512; SetUniverse(64001); }
     NullOutput(const NullOutput& from);
     virtual ~NullOutput() override {};
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new NullOutput(*this);

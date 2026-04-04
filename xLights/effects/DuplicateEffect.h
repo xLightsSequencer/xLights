@@ -12,6 +12,8 @@
 
 #include "RenderableEffect.h"
 
+class SequenceElements;
+
 class DuplicateEffect : public RenderableEffect
 {
     public:
@@ -19,16 +21,13 @@ class DuplicateEffect : public RenderableEffect
         virtual ~DuplicateEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual void SetDefaultParameters() override;
-        virtual void SetPanelStatus(Model* cls) override;
         virtual bool CanRenderPartialTimeInterval() const override
         {
             return true;
         }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-        static int GetLayersForModel(const wxString& model);
+        static int GetLayersForModel(const SequenceElements& sequenceElements, const std::string& model);
 
     protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
 };

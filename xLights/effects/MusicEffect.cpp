@@ -8,16 +8,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "MusicPanel.h"
 #include "MusicEffect.h"
-#include "../AudioManager.h"
-#include "../sequencer/SequenceElements.h"
+#include "AudioManager.h"
+#include "../render/SequenceElements.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #include "../../include/music-16.xpm"
 #include "../../include/music-24.xpm"
@@ -26,6 +25,7 @@
 #include "../../include/music-64.xpm"
 
 #include <algorithm>
+#include <format>
 
 //#define wrdebug(...)
 
@@ -42,14 +42,10 @@ std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr) {
-        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Music effect is pointless if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-xlEffectPanel *MusicEffect::CreatePanel(wxWindow *parent) {
-	return new MusicPanel(parent);
 }
 
 bool MusicEffect::needToAdjustSettings(const std::string &version)
@@ -82,27 +78,6 @@ void MusicEffect::adjustSettings(const std::string& version, Effect* effect, boo
             settings["E_CHOICE_Music_Type"] = "Separate";
         }
     }
-}
-
-void MusicEffect::SetDefaultParameters() {
-    MusicPanel *mp = (MusicPanel*)panel;
-    if (mp == nullptr) {
-        return;
-    }
-
-    mp->BitmapButton_Music_OffsetVC->SetActive(false);
-
-    SetSliderValue(mp->Slider_Music_Bars, 20);
-    SetChoiceValue(mp->Choice_Music_Type, "Morph");
-    SetSliderValue(mp->Slider_Music_Sensitivity, 50);
-    SetCheckBoxValue(mp->CheckBox_Music_Scale, false);
-    SetChoiceValue(mp->Choice_Music_Scaling, "None");
-    SetSliderValue(mp->Slider_Music_Offset, 0);
-    SetSliderValue(mp->Slider_Music_StartNote, 60);
-    SetSliderValue(mp->Slider_Music_EndNote, 80);
-    SetChoiceValue(mp->Choice_Music_Colour, "Distinct");
-    SetCheckBoxValue(mp->CheckBox_Music_Fade, false);
-    SetCheckBoxValue(mp->CheckBox_Music_LogarithmicXAxis, false);
 }
 
 void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -160,7 +135,7 @@ public:
 	void ClearEvents()
 	{
 		// delete all our music events
-		for(int i = 0; i < _events.size(); ++i)
+		for(int i = 0; i < (int)_events.size(); ++i)
 		{
 			for (const auto& it : *_events[i])
 			{
@@ -297,7 +272,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
 
     try
     {
-        for (int x = 0; x < _events.size(); ++x)
+        for (int x = 0; x < (int)_events.size(); ++x)
         {
             for (int xx = ((float)x * per) + offsetx; xx < ((float)(x + 1) * per) + offsetx; ++xx)
             {
@@ -447,7 +422,7 @@ void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNo
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); ++i)
+                    for (int i = 0; i < (int)buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {
@@ -524,7 +499,7 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); ++i)
+                    for (int i = 0; i < (int)buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {
@@ -574,7 +549,7 @@ void MusicEffect::RenderOn(RenderBuffer &buffer, int x, int bars, int startNote,
                 {
                     // distinct
                     float percolour = 1.0 / (float)buffer.GetColorCount();
-                    for (int i = 0; i < buffer.GetColorCount(); ++i)
+                    for (int i = 0; i < (int)buffer.GetColorCount(); ++i)
                     {
                         if (proportion <= ((float)i + 1.0)*percolour)
                         {

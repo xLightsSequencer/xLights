@@ -12,8 +12,6 @@
 
 #include <list>
 
-#include <wx/xml/xml.h>
-
 #include "LorController.h"
 
 class LorControllers
@@ -27,10 +25,10 @@ public:
 
     #pragma region Construtors and Destructors
     LorControllers() { _dirty = true; }
-    LorControllers(wxXmlNode* node);
+    LorControllers(pugi::xml_node node);
     LorControllers(const LorControllers& from);
     virtual ~LorControllers() {}
-    void Save(wxXmlNode* node);
+    void Save(pugi::xml_node node);
     #pragma endregion
 
     #pragma region Getters and Setters

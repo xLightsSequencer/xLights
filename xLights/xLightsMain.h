@@ -45,6 +45,8 @@
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include <wx/dir.h>
+
+#include <pugixml.hpp>
 #include <wx/treebase.h>
 #include <wx/socket.h>
 #include <wx/listctrl.h>
@@ -52,6 +54,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/appprogress.h>
 
+#include <memory>
 #include <unordered_map>
 #include <map>
 #include <set>
@@ -60,34 +63,42 @@
 #ifdef LINUX
 #include <unistd.h>
 #endif
-#ifdef WINDOWS
-#include <windows.h>
-#endif
+//#ifdef WINDOWS
+//#ifndef WIN32_LEAN_AND_MEAN
+//#define WIN32_LEAN_AND_MEAN 1
+//#endif
+//#include <windows.h> //addeding this to the header is asking for trouble...
+//#endif
 
 #include "../common/xlBaseApp.h"
 #include "outputs/OutputManager.h"
-#include "PixelBuffer.h"
-#include "SequenceData.h"
+#include "render/PixelBuffer.h"
+#include "render/SequenceData.h"
 #include "effects/EffectManager.h"
+#include "ui/effectpanels/EffectPanelManager.h"
 #include "models/ModelManager.h"
 #include "models/ViewObjectManager.h"
-#include "xLightsTimer.h"
+#include "ui/shared/utils/xLightsTimer.h"
 #include "JobPool.h"
-#include "SequenceViewManager.h"
-#include "ColorManager.h"
-#include "EffectPresetManager.h"
-#include "ViewpointMgr.h"
+#include "ui/sequencer/SequenceViewManager.h"
+#include "ui/color/ColorManager.h"
+#include "ui/effects/EffectPresetManager.h"
+#include "ui/layout/ViewpointMgr.h"
 #include "PhonemeDictionary.h"
-#include "xLightsXmlFile.h"
-#include "sequencer/EffectsGrid.h"
-#include "RenderCache.h"
+#include "render/SequenceFile.h"
+#include "ui/sequencer/EffectsGrid.h"
+#include "render/RenderCache.h"
 #include "outputs/ZCPP.h"
-#include "OutputModelManager.h"
+#include "models/OutputModelManager.h"
+#include "render/RenderContext.h"
+#include "render/IRenderJobCallbacks.h"
+#include "render/IRenderProgressSink.h"
+#include "render/UICallbacks.h"
 #include "models/Model.h"
-#include "SequencePackage.h"
-#include "ScriptsDialog.h"
-#include "TipOfTheDayDialog.h"
-#include <CheckSequenceReport.h>
+#include "render/SequencePackage.h"
+#include "ui/automation/ScriptsDialog.h"
+#include "ui/app-shell/TipOfTheDayDialog.h"
+#include "ui/diagnostics/CheckSequenceReport.h"
 
 #include "ai/aiType.h"
 #include "ai/ServiceManager.h"
@@ -96,6 +107,7 @@ class wxDebugReport;
 
 class aiBase;
 class BaseSerializingVisitor;
+class CopyFormat1;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -120,6 +132,7 @@ class PerspectivesPanel;
 class TopEffectsPanel;
 class MainSequencer;
 class ModelPreview;
+class IModelPreview;
 class ZCPPOutput;
 class UDControllerPort;
 class Model;
@@ -128,6 +141,7 @@ class HttpServer;
 class HttpConnection;
 class HttpRequest;
 class wxTaskBarIcon;
+class wxProgressDialog;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -231,7 +245,6 @@ class RenderEvent;
 class wxDebugReportCompress;
 class BufferPanel;
 class LayoutPanel;
-class RenderProgressDialog;
 class RenderProgressInfo;
 class wxLed;
 
@@ -293,14 +306,15 @@ private:
     int id;
 };
 
-class xLightsFrame: public xlFrame
+class xLightsFrame: public xlFrame, public RenderContext, public UICallbacks, public IRenderJobCallbacks
 {
 public:
 
     xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1, bool renderOnlyMode = false);
     virtual ~xLightsFrame();
 
-    static bool IsCheckSequenceOptionDisabled(const std::string& option);
+    static bool IsCheckSequenceOptionDisabledS(const std::string& option);
+    bool IsCheckSequenceOptionDisabled(const std::string& option) const override { return IsCheckSequenceOptionDisabledS(option); }
     static void SetCheckSequenceOptionDisable(const std::string& option, bool value);
 
     enum PlayListIds
@@ -406,9 +420,11 @@ public:
     static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
-    static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
-    const std::string &GetShowDirectory() const { return showDirectory; }
-    const std::string &GetFseqDirectory() const { return fseqDirectory; }
+    static SequenceFile* CurrentSeqXmlFile; // global object for currently opened XML file
+    const std::string &GetShowDirectory() const override { return showDirectory; }
+    const std::string &GetFseqDirectory() const override { return fseqDirectory; }
+    AudioManager* GetCurrentMediaManager() const override;
+    const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);
@@ -419,7 +435,7 @@ public:
     std::string GetPresetIconFilename(const std::string& preset) const;
     void CreatePresetIcons();
     void ClearSequenceData();
-    void LoadAudioData(xLightsXmlFile& xml_file);
+    void LoadAudioData(SequenceFile& xml_file);
     virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
     virtual std::string GetCurrentDir() const override { return CurrentDir.ToStdString(); }
     wxString GetThreadStatusReport();
@@ -469,16 +485,16 @@ public:
 	}
     void UpdateReadOnlyState();
 
-    EffectManager &GetEffectManager() { return effectManager; }
+    EffectManager &GetEffectManager() override { return effectManager; }
 
-    bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
+    bool ImportSuperStar(Element *el, pugi::xml_document &doc, int x_size, int y_size,
                          int x_offset, int y_offset,
                          int imageResizeType, const wxSize &modelSize, const wxString& layerBlend,
                          const wxString& defaultGroupName = {});
-    bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
-    bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
+    bool ImportLMS(pugi::xml_document &doc, const wxFileName &filename);
+    bool ImportLPE(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportVixen3(const wxFileName &filename);
-    bool ImportS5(wxXmlDocument &doc, const wxFileName &filename);
+    bool ImportS5(pugi::xml_document &doc, const wxFileName &filename);
 
     void SuspendRender(bool suspend) { _suspendRender = suspend; }
     bool IsRenderSuspended() const { return _suspendRender; }
@@ -565,8 +581,6 @@ public:
     void OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsSelected(wxCommandEvent& event);
     void OnMenuItem_PackageSequenceSelected(wxCommandEvent& event);
-    void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
-    void OnMenuItem_xCaptureSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
     void OnMenuItem_DonateSelected(wxCommandEvent& event);
     void OnAC_OnClick(wxCommandEvent& event);
@@ -637,7 +651,6 @@ public:
     void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
-    void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     void OnButton_OpenProxyClick(wxCommandEvent& event);
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
     void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
@@ -812,9 +825,6 @@ public:
     static const wxWindowID ID_MNU_PREPAREAUDIO;
     static const wxWindowID ID_MENU_USER_DICT;
     static const wxWindowID ID_MENU_FIND_SHOW_FOLDER;
-    static const wxWindowID ID_MNU_XSCHEDULE;
-    static const wxWindowID ID_MENU_XCAPTURE;
-    static const wxWindowID ID_MNU_XSCANNER;
     static const wxWindowID ID_MENUITEM5;
     static const wxWindowID MNU_ID_ACLIGHTS;
     static const wxWindowID ID_MNU_SHOWRAMPS;
@@ -1036,15 +1046,12 @@ public:
     wxMenuItem* MenuItem_ViewZoomIn;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxMenuItem* MenuItem_Zoom;
-    wxMenuItem* MenuItem_xScanner;
-    wxMenuItem* MenuItem_xSchedule;
     wxMenuItem* Menu_GenerateAIImage;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenuItem* QuitMenuItem;
     wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* mExportModelsMenuItem;
-    wxMenuItem* xCaptureMenuItem;
     wxPanel* AUIStatusBar;
     wxPanel* Panel2;
     wxPanel* Panel5;
@@ -1108,11 +1115,12 @@ public:
     long DragRowIdx;
     //wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
-    int mSavedChangeCount = 0;
-    int mLastAutosaveCount = 0;
+    unsigned int mSavedChangeCount = 0;
+    unsigned int mLastAutosaveCount = 0;
     wxDateTime starttime;
     ModelPreview* modelPreview = nullptr;
     EffectManager effectManager;
+    EffectPanelManager effectPanelManager;
     int effGridPrevX;
     int effGridPrevY;
     bool _backupSubfolders = true;
@@ -1151,7 +1159,7 @@ public:
     SequenceData _presetSequenceData; // we create our own sequence data to render into
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
-    wxString _defaultSeqView;
+    std::string _defaultSeqView;
     wxString _videoExportCodec;
     int _videoExportBitrate;
 
@@ -1188,7 +1196,7 @@ public:
     }
     void DoAltBackup(bool prompt = true);
 
-    [[nodiscard]] const std::list<std::string>& GetMediaFolders() const {
+    [[nodiscard]] const std::list<std::string>& GetMediaFolders() const override {
         return mediaDirectories;
     }
     void SetMediaFolders(const std::list<std::string> &folders);
@@ -1383,7 +1391,7 @@ public:
     const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
     void SetRandomEffectsToUse(const wxArrayString &e);
 
-    const wxString& GetDefaultSeqView() const { return _defaultSeqView; }
+    const std::string& GetDefaultSeqView() const { return _defaultSeqView; }
     void SetDefaultSeqView(const wxString& view);
     wxArrayString GetSequenceViews();
 
@@ -1410,6 +1418,7 @@ public:
     wxListCtrl* List_Controllers = nullptr;
     bool inInitialize = false;
     wxPropertyGrid* Controllers_PropertyEditor = nullptr;
+    std::unique_ptr<class ControllerPropertyAdapter> _controllerAdapter;
     wxLed* LedPing = nullptr;
 
     void OnListItemActivatedControllers(wxListEvent& event);
@@ -1493,12 +1502,16 @@ public:
     wxArrayInt ChannelColors;
     long seekPoint;
 
-    wxString mBackgroundImage;
+    std::string mBackgroundImage;
     int mBackgroundBrightness;
     int mBackgroundAlpha;
     bool mScaleBackgroundImage = false;
     std::string mStoredLayoutGroup;
     bool _suspendAutoSave = false;
+
+    // UICallbacks progress dialog tracking
+    std::map<UICallbacks::ProgressToken, wxProgressDialog*> _progressDialogs;
+    UICallbacks::ProgressToken _nextProgressToken = 0;
 
     // convert
 public:
@@ -1507,7 +1520,34 @@ public:
     bool _renderMode = false;
     bool _checkSequenceMode = false;
 
-    void SuspendAutoSave(bool dosuspend) { _suspendAutoSave = dosuspend; }
+    void SuspendAutoSave(bool dosuspend) override { _suspendAutoSave = dosuspend; }
+
+    // ---- RenderContext: UICallbacks access ----
+    UICallbacks* GetUICallbacks() override { return this; }
+
+    // ---- UICallbacks implementation ----
+    void ShowMessage(const std::string& message,
+                     const std::string& caption = "xLights") const override;
+    bool PromptYesNo(const std::string& message,
+                     const std::string& caption = "xLights") const override;
+    std::string PromptForDirectory(const std::string& message,
+                                   const std::string& defaultPath = "") const override;
+    std::string PromptForFile(const std::string& message,
+                              const std::string& wildcard = "",
+                              const std::string& defaultPath = "") const override;
+    long PromptForNumber(const std::string& message,
+                         const std::string& caption,
+                         long defaultValue,
+                         long min, long max) const override;
+    std::string PromptForText(const std::string& message,
+                              const std::string& caption,
+                              const std::string& defaultValue = "") const override;
+    ProgressToken BeginProgress(const std::string& message,
+                                int maximum = 100) override;
+    void UpdateProgress(ProgressToken token, int value,
+                        const std::string& newMessage = "") override;
+    void EndProgress(ProgressToken token) override;
+
     void ClearLastPeriod();
     void WriteVirFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf);  //      HLS *.hlsnc
@@ -1517,8 +1557,22 @@ public:
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename, bool allowSparse = true); //  Falcon Pi Player *.fseq
     OutputManager* GetOutputManager() { return &_outputManager; };
-    OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
+    OutputModelManager* GetOutputModelManager() override { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
+
+    // Render effects into a list of xlImage frames. Used for preset GIF generation
+    // and shader preview thumbnails. The model, sequence data, and elements must
+    // already be set up with effects loaded.
+    std::vector<std::shared_ptr<xlImage>> RenderEffectToFrames(
+        Model* matrixModel, SequenceData& seqData, SequenceElements& seqElements,
+        size_t numFrames, int frameTimeMs);
+
+    // Helper methods for preset rendering
+    void EnsurePresetModel();
+    void LoadPresetEffects(const CopyFormat1& pd);
+    Model* GetPresetModel() { EnsurePresetModel(); return _presetModel; }
+    SequenceData& GetPresetSequenceData() { return _presetSequenceData; }
+    SequenceElements& GetPresetSequenceElements() { return _presetSequenceElements; }
 
 private:
 
@@ -1534,7 +1588,7 @@ private:
 
     // sequence
     void LoadEffectsFile();
-    void CreateDefaultEffectsXml(wxXmlDocument& doc);
+    void CreateDefaultEffectsXml(pugi::xml_document& doc);
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void SetPanelSequencerLabel(const std::string& sequence);
@@ -1546,19 +1600,24 @@ public:
     std::string BuildEffectsXml();
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
-    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount);
-    Model *GetModel(const std::string& name) const;
+    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount) override;
+    Model *GetModel(const std::string& name) const override;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
-    bool AbortRender(int maxTimeMs = 60000, int* numThreadsAborted = nullptr);
+    bool AbortRender(int maxTimeMs = 60000) override;
+    bool AbortRender(int maxTimeMs, int* numThreadsAborted);
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();
     bool RenderEffectFromMap(bool suppress, Effect *effect, int layer, int period, SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
-                             bool bgThread = false, RenderEvent *event = nullptr);
-    void RenderMainThreadEffects();
+                             bool bgThread = false, RenderEvent *event = nullptr) override;
+
+    // IRenderJobCallbacks implementation
+    void OnRenderJobComplete(const std::string& modelName) override;
+    void OnAllRenderJobsComplete() override;
+    void RenderMainThreadEffects() override;
     void RenderEffectOnMainThread(RenderEvent *evt);
-    void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
+    void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
     void RenderDirtyModels();
     void RenderTimeSlice(int startms, int endms, bool clear);
     void Render(SequenceElements& seqElements,
@@ -1566,7 +1625,7 @@ public:
                 const std::list<Model*> models,
                 const std::list<Model *> &restrictToModels,
                 int startFrame, int endFrame,
-                bool progressDialog, bool clear,
+                std::unique_ptr<IRenderProgressSink> sink, bool clear,
                 std::function<void(bool)>&& callback);
     void BuildRenderTree();
 
@@ -1575,8 +1634,8 @@ public:
     bool IsDrawRamps();
 
     void EnableSequenceControls(bool enable);
-    SequenceElements& GetSequenceElements() { return _sequenceElements; }
-    TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "");
+    SequenceElements& GetSequenceElements() override { return _sequenceElements; }
+    TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "") override;
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
@@ -1602,15 +1661,15 @@ public:
     void SetFrequency(int frequency);
     void RenderAll();
 
-    void SetXmlSetting(const wxString& settingName,const wxString& value);
-    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue) const;
+    void SetXmlSetting(const std::string& settingName, const std::string& value);
+    std::string GetXmlSetting(const std::string& settingName, const std::string& defaultValue) const;
     uint32_t GetMaxNumChannels();
 
     void UpdateSequenceVideoPanel( const wxString& path );
 
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
-    bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
+    bool SeqLoadXlightsFile(SequenceFile& xml_file, pugi::xml_document& doc, bool ChooseModels);
     void ResetEffectsXml();
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
@@ -1698,6 +1757,9 @@ private:
         void Clear();
         void Add(Model *el);
         void Print();
+        // Returns the ordered list of models from the render tree.
+        // Defined in Render.cpp where RenderTreeData is fully declared.
+        std::list<Model*> GetModels() const;
 
         unsigned int renderTreeChangeCount;
         std::list<RenderTreeData*> data;
@@ -1748,14 +1810,14 @@ public:
     long GetDisplay2DGridSpacing() const;
     void SetDisplay2DCenter0(bool bb);
     bool GetDisplay2DCenter0() const;
-    const wxString & GetDefaultPreviewBackgroundImage();
+    const std::string & GetDefaultPreviewBackgroundImage();
     bool GetDefaultPreviewBackgroundScaled();
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
-    void LoadModels(wxXmlNode* modelsNode,
-                    wxXmlNode* modelGroupsNode,
-                    wxXmlNode* viewObjectsNode);
+    void LoadModels(pugi::xml_node modelsNode,
+                    pugi::xml_node modelGroupsNode,
+                    pugi::xml_node viewObjectsNode);
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
@@ -1775,7 +1837,7 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
-    ModelPreview* GetHousePreview() const;
+    IModelPreview* GetHousePreview() const;
     void RenderLayout();
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }
     EffectsPanel* GetEffectsPanel() const { return EffectsPanel1; }
@@ -1906,7 +1968,7 @@ private:
     void CheckForAndCreateDefaultPerpective();
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
-    void LoadSequencer(xLightsXmlFile& xml_file);
+    void LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc);
     void DoLoadPerspective(Perspective* p);
     void CheckForValidModels();
     void ExportModels(wxString const& filename);
@@ -1975,8 +2037,7 @@ public:
     EffectTreeDialog *EffectTreeDlg = nullptr;
 
     ModelGroup* GetSelectedModelGroup() const;
-    void LoadJukebox(wxXmlNode* node);
-    static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
+    static pugi::xml_node FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create = false);
     TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }
 
     int GetPlayStatus() const { return playType; }
@@ -1987,13 +2048,13 @@ public:
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 
-    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false);
-    bool IsInShowFolder(const std::string & file) const;
+    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false) override;
+    bool IsInShowFolder(const std::string & file) const override;
     // Returns true if file is inside the show folder or any configured media folder
-    bool IsInShowOrMediaFolder(const std::string& file) const;
+    bool IsInShowOrMediaFolder(const std::string& file) const override;
     // Returns the path of file relative to the show folder or media folder it lives in.
     // Returns empty string if file is not inside any show/media folder.
-    std::string MakeRelativePath(const std::string& file) const;
+    std::string MakeRelativePath(const std::string& file) const override;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }

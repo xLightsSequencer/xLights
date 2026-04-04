@@ -11,6 +11,65 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.05  April ??, 2026
+    -change (dkulp)             Migrate output runtime sockets from wxDatagramSocket/wxIPV4address to SocketAbstraction UDPSocket
+    -change (dkulp)             Refactor Render.cpp: split UI-coupled code into RenderUI.cpp behind abstract
+                                    interfaces (IRenderJobCallbacks, IRenderJobStatus, IRenderProgressSink)
+                                    to decouple the render engine from wxWidgets
+    -change (dkulp)             Extract IModelPreview interface from ModelPreview; models/ and DMX/ now use
+                                    IModelPreview* instead of ModelPreview*, removing the ui/layout dependency
+                                    from the core models layer
+    -change (dkulp)             Reorganize graphics/ as a wx-free core package: move IModelPreview to
+                                    graphics/, remove wx types from xlGraphicsContext/xlFontInfo headers,
+                                    move canvas implementations (xlGLCanvas, xlMetalCanvas, OGL3/Metal contexts)
+                                    to ui/graphics/ with backwards-compatible forwarders in graphics/
+2026.04  April 2, 2026
+    -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
+                                    and media manager. Animated GIFs/WebP cycle through all frames, videos
+                                    show first 1 second, SVGs show static preview.
+    -change (dkulp)             Drop support for importing sequences saved with xLights versions prior to
+                                    2020. A warning dialog is shown when opening such sequences, suggesting
+                                    they first be opened and saved with a 2025 version of xLights.
+    -change (gil/dkulp)         Major internal refactor: models are now stored as native objects instead of
+                                    raw XML nodes. New serialization visitor pattern replaces direct XML
+                                    manipulation for rgbeffects.xml. This improves maintainability and
+                                    enables future features like proper undo/redo for model changes.
+    -change (dkulp)             Switch XML parsing from wxXml to pugixml for better performance and
+                                    reduced wxWidgets dependency
+    -change (scott)             Switch logging framework from log4cpp to spdlog
+    -change (dkulp)             Update to new wxWidgets tag, fixes emoji rendering on Windows
+    -change (dkulp)             Remove support for xLights v3 files
+    -change (gil/dkulp)         Remove unused WholeHouseModel and PaletteMgmtDialog
+    -change (dkulp)             Extensive removal of wxWidgets types from core code (wxString, wxColour, etc.)
+                                    in favor of std::string, xlColor, and std::format
+    -change (dkulp)             Reorganize source: effect UI panels moved to ui/, ValueCurve to render/,
+                                    render engine code to render/
+    -change (dkulp)             Model XML attributes renamed from generic parm1/2/3 to descriptive field
+                                    names (old names still accepted for reading)
+    -enh (dkulp)                Metal GPU rendering for Circles, ColorWash, Bars, Spirals, Fan, and
+                                    Kaleidoscope effects on macOS
+    -enh (dkulp)                Tendril, Shape, and VU Meter effects now use nanosvg rendering instead of
+                                    wxGraphicsContext
+    -enh (dkulp)                Introduce Claude/Anthropic as an AI service for color palette generation
+                                    and model mapping
+    -enh (scott)                Add generic OpenAI API client for use with local or remote APIs that
+                                    support the OpenAI v1 API
+    -enh (dkulp)                Add ability to bulk search for missing images in sequences
+    -enh (dkulp)                Images in show/media folders now stored as relative paths in xsq files
+                                    for better portability
+    -enh (dkulp)                Move presets out of xlights_rgbeffects.xml and into a dedicated xlights_effectpresets.json
+    -enh (gil)                  Add RotateX support for ThreePointScreenLocation models
+    -enh (gil)                  Add Individual Start Channels support for CustomModel
+    -enh (dkulp)                Add "Effect Sequence" type to new sequence wizard. Effect sequences use
+                                    sparse V2 FSEQ files with exact channel ranges, no default timing
+                                    tracks, and no view selection — designed for reusable effect overlays
+                                    that won't interfere with other models on controllers.
+    -bug (derwin12)             Fix model video export producing black output
+    -bug (derwin12)             Restore default metronome timing track options
+    -bug (derwin12)             Fix Import from zip not bringing in images
+    -bug (dkulp)                Fix right-click on empty row headings area not showing a popup to
+                                    open Display Elements
+    -bug (dkulp)                Fix preset import when file has .xml extension
 2026.03  February 23, 2026
     -enh (dkulp)            Completely new method for managing Pictures for pictures effect
                                 - Images can now be embedded in the xsq

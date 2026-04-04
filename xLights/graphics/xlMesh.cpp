@@ -7,34 +7,34 @@
 #include <filesystem>
 #include <algorithm>
 
-#include <wx/filename.h>
+#include "utils/ExternalHooks.h"
+#include "UtilFunctions.h"
+#include "../utils/xlImage.h"
 
-#include "../ExternalHooks.h"
-#include "../UtilFunctions.h"
+#include <log.h>
 
-#include <log4cpp/Category.hh>
+xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : filename(f), graphicsContext(ctx) {
 
-xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     objectsLoaded = false;
-    wxFileName fn(filename);
-    
+    std::filesystem::path fp(filename);
+    std::string dirPath = fp.parent_path().string();
+
     tinyobj::ObjReaderConfig reader_config;
     reader_config.triangulate = true;
-    reader_config.mtl_search_path = fn.GetPath();  // Path to material files
+    reader_config.mtl_search_path = dirPath;  // Path to material files
 
     if (!objects.ParseFromFile(filename, reader_config)) {
         if (!objects.Error().empty()) {
-            logger_base.error("TinyObjReader: %s", objects.Error().c_str());
+            spdlog::error("TinyObjReader: {}", objects.Error().c_str());
             return;
         }
     }
     if (!objects.Warning().empty()) {
-        logger_base.warn("TinyObjReader: %s", objects.Warning().c_str());
+        spdlog::warn("TinyObjReader: {}", objects.Warning().c_str());
     }
     objectsLoaded = true;
-    
-    
+
+
     materials.resize(objects.GetMaterials().size());
     int idx = 0;
     for (auto &m : objects.GetMaterials()) {
@@ -45,21 +45,22 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
         materials[idx].name = m.name;
         materials[idx].color.Set((uint8_t)red, (uint8_t)green, (uint8_t)blue, (uint8_t)dissolve);
         if (m.diffuse_texname != "") {
-            wxString texName = m.diffuse_texname;
+            std::string texName = m.diffuse_texname;
             if (!FileExists(texName)) {
-                texName = fn.GetPath() + fn.GetPathSeparator() + m.diffuse_texname;
+                texName = dirPath + "/" + m.diffuse_texname;
             }
             if (!FileExists(texName)) {
                 texName = m.diffuse_texname;
-                if (texName.Contains(("/"))) {
-                    texName = texName.substr(texName.Last('/') + 1);
+                size_t slashPos = texName.find_last_of('/');
+                if (slashPos != std::string::npos) {
+                    texName = texName.substr(slashPos + 1);
                 }
-                texName = fn.GetPath() + fn.GetPathSeparator() + texName;
+                texName = dirPath + "/" + texName;
             }
             if (FileExists(texName)) {
                 ObtainAccessToURL(texName);
-                wxImage image(texName);
-                if (image.IsOk()) {
+                xlImage image;
+                if (image.LoadFromFile(texName)) {
                     image = image.Mirror(false);
                     materials[idx].texture = ctx->createTexture(image, m.diffuse_texname, true);
                 }
@@ -76,7 +77,7 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
     yMax = -9999999;
     zMax = -9999999;
     auto &vertices = objects.GetAttrib().vertices;
-    for (int x = 0; x < vertices.size(); x += 3) {
+    for (int x = 0; x < (int)vertices.size(); x += 3) {
         xMin = std::min(vertices[x], xMin);
         xMax = std::max(vertices[x], xMax);
         yMin = std::min(vertices[x + 1], yMin);
@@ -174,7 +175,7 @@ void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
         if (line.rfind("mtllib ", 0) == 0) {
             output << "mtllib ";
             line = line.substr(7);
-            int idx = line.find(' ');
+            size_t idx = line.find(' ');
             if (idx != std::string::npos) {
                 std::filesystem::path mtlpath(path);
                 mtlpath.replace_filename(line);

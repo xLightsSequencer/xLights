@@ -11,13 +11,13 @@
  **************************************************************/
 
 #include "BaseSerializingVisitor.h"
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <vector>
 
 class XmlSerializingVisitor : public BaseSerializingVisitor {
 public:
-    XmlSerializingVisitor(wxXmlDocument* doc, bool exporting = false);
-    XmlSerializingVisitor(wxXmlNode* parentNode, bool exporting = false);
+    explicit XmlSerializingVisitor(pugi::xml_document* doc, bool exporting = false);
+    explicit XmlSerializingVisitor(pugi::xml_node parentNode, bool exporting = false);
 
     void WriteOpenTag(const std::string& name, const AttrCollector& attrs,
                       bool selfClose = false) override;
@@ -30,6 +30,6 @@ public:
     void WriteBodyText(const std::string& txt) override;
 
 private:
-    std::vector<wxXmlNode*> nodeStack;
-    wxXmlDocument *doc = nullptr;
+    std::vector<pugi::xml_node> nodeStack;
+    pugi::xml_document *doc = nullptr;
 };

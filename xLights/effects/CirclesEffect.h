@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include <cmath>
 
 static const int MAX_RGB_BALLS = 20;
@@ -93,7 +93,7 @@ public:
 
 class CirclesRenderCache : public EffectRenderCache {
 public:
-    CirclesRenderCache() : numBalls(0), metaType(false) {
+    CirclesRenderCache() : metaType(false), numBalls(0) {
         balls = new RgbBalls[MAX_RGB_BALLS];
         metaballs = new MetaBall[MAX_RGB_BALLS];
     };
@@ -124,7 +124,6 @@ class CirclesEffect : public RenderableEffect
 public:
     CirclesEffect(int id);
     virtual ~CirclesEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -161,8 +160,6 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-
     // Update ball positions in cache (without drawing). Returns the cache.
     // After this call, cache->balls or cache->metaballs have updated positions.
     CirclesRenderCache* UpdateCacheState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer);

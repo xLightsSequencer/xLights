@@ -12,6 +12,7 @@
 
 #include "Model.h"
 #include <string>
+#include <cmath>
 
 class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -34,8 +35,14 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
     
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual int GetNumStrings() const override { return _numStrings; }
+        virtual int NodesPerString() const override;
+        [[nodiscard]] int GetNumStarStrings() const { return _numStrings; }
+        [[nodiscard]] int GetNodesPerString() const { return _nodesPerString; }
+        [[nodiscard]] int GetStarPoints() const { return _starPoints; }
+        void SetNumStarStrings(int val) { _numStrings = val; }
+        void SetStarNodesPerString(int val) { _nodesPerString = val; }
+        void SetStarPoints(int val) { _starPoints = val; }
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
@@ -49,13 +56,23 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
+        struct xlRealPoint {
+            double x = 0.0;
+            double y = 0.0;
+            xlRealPoint() = default;
+            xlRealPoint(double x_, double y_) : x(x_), y(y_) {}
+        };
+
         static std::vector<std::string> STAR_BUFFER_STYLES;
         virtual void InitModel() override;
-        wxRealPoint GetPointOnCircle(double radius, double angle);
-        double LineLength(wxRealPoint start, wxRealPoint end);
-        wxRealPoint GetPositionOnLine(wxRealPoint start, wxRealPoint end, double distance);
+        xlRealPoint GetPointOnCircle(double radius, double angle);
+        double LineLength(const xlRealPoint& start, const xlRealPoint& end);
+        xlRealPoint GetPositionOnLine(const xlRealPoint& start, const xlRealPoint& end, double distance);
 
     private:
+        int _numStrings = 1;
+        int _nodesPerString = 1;
+        int _starPoints = 5;
         // The ratio between the inner and outer radius of the star; default is 2.618034.
     float _starRatio = 2.618034f;
         // The ratio between the inner start and outer star radius (if more than 1 layer)

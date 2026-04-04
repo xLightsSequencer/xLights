@@ -8,14 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include "IciclesModel.h"
-#include "../OutputModelManager.h"
-#include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 IciclesModel::IciclesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
@@ -29,10 +23,22 @@ IciclesModel::~IciclesModel()
 {
 }
 
+int IciclesModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _lightsPerString;
+    }
+    return _lightsPerString * ts;
+}
+
 void IciclesModel::InitModel()
 {
-    int numStrings = parm1;
-    int lightsPerString = parm2;
+    int numStrings = _numStrings;
+    int lightsPerString = _lightsPerString;
 
     SetNodeCount(numStrings, lightsPerString, rgbOrder);
     ParseDropSizes();
@@ -40,7 +46,7 @@ void IciclesModel::InitModel()
     int width = -1;
     size_t curNode = 0;
     size_t curCoord = 0;
-    for (size_t x = 0; x < numStrings; x++) {
+    for (int x = 0; x < numStrings; x++) {
         int lights = lightsPerString;
         size_t y = 0;
         size_t curDrop = 0;
@@ -63,7 +69,7 @@ void IciclesModel::InitModel()
             Nodes[curNode]->ActChan = stringStartChan[0] + curNode * GetNodeChannelCount(StringType);
             Nodes[curNode]->StringNum = x;
             Nodes[curNode]->Coords[curCoord].bufX = width;
-            if (_alternateNodes) {
+            if (HasAlternateNodes()) {
                 if (y + 1 <= (nodesInDrop + 1) / 2) {
                     Nodes[curNode]->Coords[curCoord].bufY = _maxH - 1 - (2 * y);
                     Nodes[curNode]->Coords[curCoord].screenY = (2 * y);
@@ -105,90 +111,6 @@ void IciclesModel::InitModel()
     screenLocation.SetRenderSize(width, _maxH);
 }
 
-static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
-
-void IciclesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "IciclesLights", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "IciclesLights", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-    }
-
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
-    p->SetEditor("CheckBox");
-
-    grid->Append(new wxDropPatternProperty("Drop Pattern", "IciclesDrops", _dropPatternString));
-
-    grid->Append(new wxEnumProperty("Starting Location", "IciclesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-}
-
-int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("IciclesStrings" == event.GetPropertyName()) {
-        parm1 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        return 0;
-    } else if ("IciclesLights" == event.GetPropertyName()) {
-        parm2 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        return 0;
-    } else if ("IciclesDrops" == event.GetPropertyName()) {
-        SetDropPattern(event.GetPropertyValue().GetString());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesDrops");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesDrops");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesDrops");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesDrops");
-        return 0;
-    } else if ("IciclesStart" == event.GetPropertyName()) {
-        _dir = event.GetValue().GetLong() == 0 ? "L" : "R";
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStart");
-        return 0;
-    } else if ("AlternateNodes" == event.GetPropertyName()) {
-        _alternateNodes = event.GetPropertyValue().GetBool();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::AlternateNodes");
-        return 0;
-    }
-    return Model::OnPropertyGridChange(grid, event);
-}
-
 void IciclesModel::SetDropPattern(const std::string & pattern)
 {
     _dropPatternString = pattern;
@@ -198,12 +120,12 @@ void IciclesModel::SetDropPattern(const std::string & pattern)
 void IciclesModel::ParseDropSizes()
 {
     _dropSizes.clear();
-    wxArrayString pat = wxSplit(_dropPatternString, ',');
+    auto pat = Split(_dropPatternString, ',');
     _maxH = 0;
-    for (int x = 0; x < pat.size(); x++) {
-        int d = wxAtoi(pat[x]);
+    for (int x = 0; x < (int)pat.size(); x++) {
+        int d = (int)std::strtol(pat[x].c_str(), nullptr, 10);
         if (d >= 0) { // we dont handle drops of less than zero
-            _dropSizes.push_back(wxAtoi(pat[x]));
+            _dropSizes.push_back(d);
             _maxH = std::max(_maxH, (size_t)d);
         }
     }
@@ -218,8 +140,3 @@ std::string IciclesModel::GetDimension() const
     return static_cast<TwoPointScreenLocation>(screenLocation).GetDimension(1.0);
 }
 
-void IciclesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
-{
-    // the height does not make sense for icicles
-    static_cast<TwoPointScreenLocation>(screenLocation).AddDimensionProperties(grid, 1.0);
-}

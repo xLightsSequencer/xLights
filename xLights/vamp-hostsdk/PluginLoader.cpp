@@ -47,7 +47,7 @@
 #include <fstream>
 
 // xLights
-#include <log4cpp/Category.hh>
+#include <log.h>
 // end xLights
 
 using namespace std;
@@ -220,8 +220,8 @@ PluginLoader::Impl::listPlugins()
     if (!m_allPluginsEnumerated) enumeratePlugins(Enumeration());
 
     // xLights
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Vamp: plugin dlls found %d.", (int)m_pluginLibraryNameMap.size());
+    
+    spdlog::debug("Vamp: plugin dlls found {}.", (int)m_pluginLibraryNameMap.size());
     // end xLights
 
     vector<PluginKey> plugins;
@@ -296,8 +296,8 @@ vector<PluginLoader::PluginKey>
 PluginLoader::Impl::enumeratePlugins(Enumeration enumeration)
 {
     // xLights
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Vamp: PluginLoader: enumerating plugins for %s.", (const char*)enumeration.key.c_str());
+    
+    spdlog::debug("Vamp: PluginLoader: enumerating plugins for {}.", (const char*)enumeration.key.c_str());
     // end xLights
 
     string libraryName, identifier;
@@ -317,13 +317,13 @@ PluginLoader::Impl::enumeratePlugins(Enumeration enumeration)
 
         string fullPath = fullPaths[i];
         // xLights
-        logger_base.debug("Vamp: Trying to load library: %s.", (const char*)fullPath.c_str());
+        spdlog::debug("Vamp: Trying to load library: {}.", (const char*)fullPath.c_str());
         // end xLights
         void *handle = Files::loadLibrary(fullPath);
         if (!handle)
         {
             // xLights
-            logger_base.warn("Vamp: FAILED.");
+            spdlog::warn("Vamp: FAILED.");
             // end xLights
             continue;
         }
@@ -335,7 +335,7 @@ PluginLoader::Impl::enumeratePlugins(Enumeration enumeration)
         if (!fn) {
             if (specific) {
                 // xLights
-                logger_base.error("Vamp: PluginLoader: No vampGetPluginDescriptor function found in library: %s.", (const char*)fullPath.c_str());
+                spdlog::error("Vamp: PluginLoader: No vampGetPluginDescriptor function found in library: {}.", (const char*)fullPath.c_str());
                 // end xLights
                 cerr << "Vamp::HostExt::PluginLoader: "
                     << "No vampGetPluginDescriptor function found in library \""
@@ -367,7 +367,7 @@ PluginLoader::Impl::enumeratePlugins(Enumeration enumeration)
 
         if (!found && specific) {
             // xLights
-            logger_base.error("Vamp: PluginLoader: Plugin %s not found in library %s.", (const char*)identifier.c_str(), (const char*)fullPath.c_str());
+            spdlog::error("Vamp: PluginLoader: Plugin {} not found in library {}.", (const char*)identifier.c_str(), (const char*)fullPath.c_str());
             // end xLights
             cerr << "Vamp::HostExt::PluginLoader: Plugin \""
                  << identifier << "\" not found in library \""
@@ -437,7 +437,7 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
                                float inputSampleRate, int adapterFlags)
 {
     // xLights
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     // end xLights
 
     string libname, identifier;
@@ -450,20 +450,20 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
     string fullPath = getLibraryPathForPlugin(key);
     if (fullPath == "") {
         // xLights
-        logger_base.error("Vamp: PluginLoader: No library found in Vamp path for plugin %s.", (const char*)key.c_str());
+        spdlog::error("Vamp: PluginLoader: No library found in Vamp path for plugin {}.", (const char*)key.c_str());
         // end xLights
         std::cerr << "Vamp::HostExt::PluginLoader: No library found in Vamp path for plugin \"" << key << "\"" << std::endl;
         return 0;
     }
     
     // xLights
-    logger_base.debug("Vamp: PluginLoader: Loading library %s.", (const char*)fullPath.c_str());
+    spdlog::debug("Vamp: PluginLoader: Loading library {}.", (const char*)fullPath.c_str());
     // end xLights
     void *handle = Files::loadLibrary(fullPath);
     if (!handle)
     {
         // xLights
-        logger_base.error("Vamp: PluginLoader: FAILED.");
+        spdlog::error("Vamp: PluginLoader: FAILED.");
         // end xLights
         return 0;
     }
@@ -473,7 +473,7 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
 
     if (!fn) {
         // xLights
-        logger_base.error("Vamp: PluginLoader: No vampGetPluginDescriptor function found in library %s.", (const char*)fullPath.c_str());
+        spdlog::error("Vamp: PluginLoader: No vampGetPluginDescriptor function found in library {}.", (const char*)fullPath.c_str());
         // end xLights
         cerr << "Vamp::HostExt::PluginLoader: No vampGetPluginDescriptor function found in library \""
              << fullPath << "\"" << endl;
@@ -516,7 +516,7 @@ PluginLoader::Impl::loadPlugin(PluginKey key,
     }
 
     // xLights
-    logger_base.error("Vamp: PluginLoader: Plugin %s not found in library %s.", (const char*)identifier.c_str(), (const char*)fullPath.c_str());
+    spdlog::error("Vamp: PluginLoader: Plugin {} not found in library {}.", (const char*)identifier.c_str(), (const char*)fullPath.c_str());
     // end xLights
     cerr << "Vamp::HostExt::PluginLoader: Plugin \""
          << identifier << "\" not found in library \""

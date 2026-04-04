@@ -29,18 +29,14 @@ public:
         EYE_LR
     };
 
-    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+    virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                   xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                   const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                   bool highlightFirst = false, int highlightpixel = 0,
                                   float *boundingBox = nullptr) override;
-    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
-    void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
+    virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
+    void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
 
-
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-    virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
 
     bool Is16Bit() const { return _16bit; }
     bool IsMeshOnly() const { return mesh_only; }
@@ -190,7 +186,7 @@ protected:
     std::unique_ptr<Servo> eye_ud_servo = nullptr;
     std::unique_ptr<Servo> eye_lr_servo = nullptr;
     bool _16bit = true;
-    wxString obj_path = "";
+    std::string obj_path;
     int eye_brightness_channel {0};
     int default_channels[6];
     int default_min_limit[6];

@@ -33,7 +33,7 @@ class DMXOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    DMXOutput(wxXmlNode* node);
+    DMXOutput(pugi::xml_node node);
     DMXOutput(const DMXOutput& from);
     DMXOutput();
     virtual ~DMXOutput() override {};

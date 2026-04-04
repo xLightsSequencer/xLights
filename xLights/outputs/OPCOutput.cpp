@@ -10,73 +10,49 @@
  **************************************************************/
 
 #include "OPCOutput.h"
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include "OutputManager.h"
-#include "../UtilFunctions.h"
 #include "../utils/ip_utils.h"
 
-#include <wx/xml/xml.h>
-#include <wx/process.h>
-
-#include <log4cpp/Category.hh>
-
-#ifdef __linux__
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#endif
+#include <log.h>
 
 #pragma region Private Functions
 void OPCOutput::OpenSocket() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_socket != nullptr) return;
 
-    _socket = new wxSocketClient();
+    _socket = new sockets::TCPSocket();
     if (_socket == nullptr) {
-        logger_base.error("OPCOutput: Error opening socket to connect to %s.", (const char*)_remoteAddr.IPAddress().c_str());
+        spdlog::error("OPCOutput: Error opening socket object to connect to {}.", _remoteIp);
     }
     else
     {
-        wxIPV4address localaddr;
-        if (GetForceLocalIPToUse() == "") {
-            localaddr.AnyAddress();
-        }
-        else {
-            localaddr.Hostname(GetForceLocalIPToUse());
-        }
-
-        _socket->SetFlags(wxSOCKET_NOWAIT);
-        _socket->SetLocal(localaddr);
-        _socket->Connect(_remoteAddr, true);
-        if (!_socket->IsOk()) {
-            logger_base.error("OPCOutput: %s Error connecting to socket. Network may not be connected? OK : FALSE", (const char*)_remoteAddr.IPAddress().c_str());
-            delete _socket;
-            _socket = nullptr;
-        }
-        else if (_socket->Error()) {
-            logger_base.error("OPCOutput: %s Error connecting OPC socket => %d : %s.", (const char*)_remoteAddr.IPAddress().c_str(), _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+        const std::string localIp = GetForceLocalIPToUse();
+        if (!_socket->Connect(_remoteIp, OPC_PORT, localIp, false)) {
+            spdlog::error("OPCOutput: {} Error connecting OPC socket: {}", _remoteIp, _socket->LastError());
             delete _socket;
             _socket = nullptr;
         }
         else
         {
-            logger_base.error("OPCOutput: OPC socket connected to %s.", (const char*)_remoteAddr.IPAddress().c_str());
-            #ifdef __linux__
+            spdlog::debug("OPCOutput: OPC socket connected to {}.", _remoteIp);
             // The pixels sent is timing sensitive, TCP_NODELAY disables
             // Nagle algorithm to delay sending out TCP packets to combine
             // with later data.  This needs to not delay or combine writes.
-            int optval = 1;
-            if(setsockopt(_socket->GetSocket(), IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval)) == -1)
-                logger_base.error("OPCOutput: failed to set TCP_NODELAY");
-            #endif
+            if (!_socket->SetNoDelay(true)) {
+                spdlog::error("OPCOutput: failed to set TCP_NODELAY");
+            }
         }
     }
 }
 #pragma endregion
 
 #pragma region Constructors and Destructors
-OPCOutput::OPCOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+OPCOutput::OPCOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > GetMaxChannels()) SetChannels(GetMaxChannels());
     _socket = nullptr;
@@ -106,13 +82,13 @@ OPCOutput::OPCOutput(const OPCOutput& from) :
 OPCOutput::~OPCOutput()
 {
     if (_socket != nullptr) delete _socket;
-    if (_data != nullptr) delete _data;
+    if (_data != nullptr) free(_data);
 }
 
-wxXmlNode* OPCOutput::Save() {
+pugi::xml_node OPCOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    IPOutput::Save(node);
+    pugi::xml_node node = parent.append_child("network");
+    IPOutput::SaveAttr(node);
 
     return node;
 }
@@ -124,9 +100,9 @@ std::string OPCOutput::GetLongDescription() const {
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "OPC {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ")";
+    res += "OPC {" + std::to_string(_universe) + "} ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ")";
 
     return res;
 }
@@ -145,7 +121,7 @@ void OPCOutput::SetChannels(int32_t channels)
 
 std::string OPCOutput::GetExport() const {
 
-    return wxString::Format(",%ld,%ld,,%s,%s,,,,%d,%i",
+    return std::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),
@@ -160,7 +136,7 @@ void OPCOutput::SetTransientData(int32_t& startChannel, int nullnumber) {
     //    _fppProxyOutput->SetTransientData(startChannel, nullnumber);
     //}
 
-    wxASSERT(startChannel != -1);
+    assert(startChannel != -1);
     //_outputNumber = on++;
     _startChannel = startChannel;
     startChannel += GetChannels();
@@ -186,8 +162,7 @@ bool OPCOutput::Open() {
     _data[2] = (uint8_t)((_channels & 0xFF00) >> 8);
     _data[3] = (uint8_t)(_channels & 0xFF);
 
-    _remoteAddr.Hostname(_ip.c_str());
-    _remoteAddr.Service(OPC_PORT);
+    _remoteIp = GetResolvedIP();
 
     OpenSocket();
 
@@ -208,7 +183,7 @@ void OPCOutput::Close() {
 #pragma region Frame Handling
 void OPCOutput::StartFrame(long msec) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return;
     //if (_fppProxyOutput) {
@@ -218,7 +193,7 @@ void OPCOutput::StartFrame(long msec) {
     if (_socket == nullptr && OutputManager::IsRetryOpen()) {
         OpenSocket();
         if (_ok) {
-            logger_base.debug("OPCOutput: Open retry successful");
+            spdlog::debug("OPCOutput: Open retry successful");
         }
     }
 
@@ -243,8 +218,15 @@ void OPCOutput::EndFrame(int suppressFrames) {
     reentry = true;
 
     if (_changed || NeedToOutput(suppressFrames)) {
-        _socket->Write(_data, _channels + OPC_PACKET_HEADERLEN);
-        FrameOutput();
+        if (_socket->Write(_data, _channels + OPC_PACKET_HEADERLEN)) {
+            FrameOutput();
+        }
+        else {
+            spdlog::error("OPCOutput: Write failed for {}: {}", _remoteIp, _socket->LastError());
+            delete _socket;
+            _socket = nullptr;
+            SkipFrame();
+        }
     }
     else {
         SkipFrame();
@@ -310,51 +292,3 @@ void OPCOutput::AllOff() {
 
 
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-#include "ControllerEthernet.h"
-void OPCOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
-    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
-
-    auto p = propertyGrid->GetProperty("Channels");
-    if (p) {
-        p->SetValue(GetChannels());
-        if (ce->IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
-        } else {
-            p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPGFlags::ReadOnly , false);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            p->SetHelpString("");
-        }
-    }
-}
-
-void OPCOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before , Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
-{
-    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
-    auto p = propertyGrid->Insert(before, new wxUIntProperty("OPC Channel", "Universe", GetUniverse()));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 255);
-    p->SetEditor("SpinCtrl");
-    
-    p = propertyGrid->Insert(before, new wxUIntProperty("Message Data Size", "Channels", GetChannels()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", GetMaxChannels());    
-}
-
-bool OPCOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c)
-{
-    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
-    return false;
-}
-void OPCOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
-    IPOutput::RemoveProperties(propertyGrid);    
-    propertyGrid->DeleteProperty("Universe");
-    propertyGrid->DeleteProperty("Channels");
-}
-#endif
-#pragma endregion

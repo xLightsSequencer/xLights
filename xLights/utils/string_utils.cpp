@@ -11,4 +11,3 @@
 #include "string_utils.h"
 
 const std::string xlEMPTY_STRING{ "" };
-const wxString xlEMPTY_WXSTRING{ "" };

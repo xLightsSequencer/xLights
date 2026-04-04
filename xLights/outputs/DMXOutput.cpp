@@ -11,7 +11,8 @@
 
 #include "DMXOutput.h"
 
-#include <wx/xml/xml.h>
+#include "serial.h"
+#include <cstring>
 
 #pragma region Constructors and Destructors
 DMXOutput::DMXOutput(const DMXOutput& from) : SerialOutput(from) {
@@ -21,7 +22,7 @@ DMXOutput::DMXOutput(const DMXOutput& from) : SerialOutput(from) {
     memset(_data, 0x00, sizeof(_data));
 }
 
-DMXOutput::DMXOutput(wxXmlNode* node) : SerialOutput(node) {
+DMXOutput::DMXOutput(pugi::xml_node node) : SerialOutput(node) {
     _baudRate = GetDefaultBaudRate();
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));

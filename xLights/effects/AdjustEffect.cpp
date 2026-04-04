@@ -9,22 +9,19 @@
  **************************************************************/
 
 #include "AdjustEffect.h"
-#include "AdjustPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
-#include "../TimingPanel.h"
-
 #include "../../include/adjust16.xpm"
 #include "../../include/adjust24.xpm"
 #include "../../include/adjust32.xpm"
 #include "../../include/adjust48.xpm"
 #include "../../include/adjust64.xpm"
 #include "UtilFunctions.h"
+
+#include <format>
 
 AdjustEffect::AdjustEffect(int id) :
     RenderableEffect(id, "Adjust", adjust16_xpm, adjust24_xpm, adjust32_xpm, adjust48_xpm, adjust64_xpm)
@@ -37,37 +34,15 @@ AdjustEffect::~AdjustEffect()
     //dtor
 }
 
-xlEffectPanel *AdjustEffect::CreatePanel(wxWindow *parent) {
-    return new AdjustPanel(parent);
-}
-
 std::list<std::string> AdjustEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0") {
-        res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a Adjust effect. Without canvas mode Adjust is unlikely to do anything useful. Effect: Adjust, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Canvas mode not enabled on a Adjust effect. Without canvas mode Adjust is unlikely to do anything useful. Effect: Adjust, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-void AdjustEffect::SetDefaultParameters() {
-    AdjustPanel *ap = (AdjustPanel*)panel;
-    if (ap == nullptr) {
-        return;
-    }
-
-	SetChoiceValue(ap->Choice_Action, "None");
-    SetSpinValue(ap->SpinCtrl_Value1, 0);
-    SetSpinValue(ap->SpinCtrl_Value2, 0);
-    SetSpinValue(ap->SpinCtrl_NthChannel, 1);
-    SetSpinValue(ap->SpinCtrl_StartingAt, 1);
-
-    // Turn on canvas mode as this really only makes sense in canvas mode
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
-    layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
 void AdjustEffect::AdjustChannels(bool singleColour, int numChannels, RenderBuffer& buffer, const std::string& action, int value1, int value2, int nth, int starting, int count)

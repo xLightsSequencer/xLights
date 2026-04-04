@@ -4,20 +4,19 @@
 #include <map>
 #include <memory>
 
-#include <wx/bitmap.h>
 #include <glm/fwd.hpp>
 
-#include "../Color.h"
+#include "Color.h"
+#include "../utils/xlImage.h"
 #include "xlGraphicsAccumulators.h"
 #include "xlFontInfo.h"
 
 class xlMesh;
-class wxWindow;
 
 class xlGraphicsContext {
 public:
 
-    xlGraphicsContext(wxWindow *w) : window(w) {}
+    xlGraphicsContext() {}
     virtual ~xlGraphicsContext() {}
 
     // Setup the Viewport
@@ -29,9 +28,8 @@ public:
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() = 0;
     virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() = 0;
     virtual xlVertexIndexedColorAccumulator *createVertexIndexedColorAccumulator() = 0;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) = 0;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) = 0;
-    virtual xlTexture *createTexture(const wxImage &image, const std::string &name, bool finalize = false) = 0;
+    virtual xlTexture *createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) = 0;
+    virtual xlTexture *createTexture(const xlImage &image, const std::string &name, bool finalize = false) = 0;
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) = 0;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) = 0;
     virtual xlGraphicsProgram *createGraphicsProgram() = 0;
@@ -101,13 +99,9 @@ public:
         contextMap[n] = v;
         return this;
     }
-    void *getConotextualValue(const std::string &n) {
+    void *getContextualValue(const std::string &n) {
         return contextMap[n];
-    }
-    wxWindow *getWindow() {
-        return window;
     }
 protected:
     std::map<std::string, void*> contextMap;
-    wxWindow *window;
 };

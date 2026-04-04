@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include <vector>
 
@@ -20,7 +20,6 @@
 #include "ControllerUploadData.h"
 
 class FalconString;
-class wxProgressDialog;
 
 class Falcon : public BaseController
 {
@@ -138,7 +137,7 @@ class Falcon : public BaseController
     int V4_EncodePixelProtocol(const std::string& protocol);
     void V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str);
     int V4_GetRebootSecs();
-    void V4_WaitForReboot(const std::string& name, wxWindow* parent);
+    void V4_WaitForReboot(const std::string& name, UICallbacks* ui);
     std::string SendToFalconV4(std::string msg);
     std::vector<std::string> V4_GetMediaFiles();
     bool V4_IsFileUploading();
@@ -152,11 +151,11 @@ class Falcon : public BaseController
     bool V4_IsValidStartChannel(Controller* controller, int universe, long startChannel);
     bool V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMode, unsigned long startChannel, bool& reboot);
     bool V4_GetStatus(nlohmann::json& res);
-    bool V4_SetInputUniverses(Controller* controller, wxWindow* parent);
-    bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress);
+    bool V4_SetInputUniverses(Controller* controller, UICallbacks* ui);
+    bool V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui, bool doProgress);
     int V4_ValidBrightness(int b) const;
     int V4_ValidGamma(int g) const;
-    bool V4_SetInputMode(Controller* controller, wxWindow* parent);
+    bool V4_SetInputMode(Controller* controller, UICallbacks* ui);
     bool V4_ValidateWAV(const std::string& media);
 
 #ifndef DISCOVERYONLY
@@ -177,9 +176,9 @@ class Falcon : public BaseController
     bool ValidateBoard(Controller* controller);
 
     #pragma region Strings.xml Handling
-    int CountStrings(const wxXmlDocument& stringsDoc) const;
-    void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const;
-    int MaxPixels(const wxXmlDocument& stringsDoc, int board) const;
+    int CountStrings(const pugi::xml_document& stringsDoc) const;
+    void ReadStringData(const pugi::xml_document& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const;
+    int MaxPixels(const pugi::xml_document& stringsDoc, int board) const;
     #pragma endregion
 
     #pragma region FalconString Handling
@@ -198,7 +197,7 @@ class Falcon : public BaseController
     void ResetStringOutputs();
     void UploadStringPort(const std::string& request, bool final);
     void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel, float defaultGamma);
-    std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
+    std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, UICallbacks* ui);
 #endif
     #pragma endregion
 
@@ -232,11 +231,11 @@ class Falcon : public BaseController
     
     bool IsEnhancedV2Firmware() const;
     
-    int GetMaxPixels() const;     
+    int GetMaxPixels() const;
     #pragma endregion
 
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool progress);
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui, bool progress);
 #endif
 
 public:
@@ -256,9 +255,9 @@ public:
     std::string V4_DecodeBoardConfiguration(int config) const;
     std::string V4_DecodeMode(int mode) const;
     #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(Controller* controller, UICallbacks* ui) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
     bool UploadSequence(const std::string& seq, const std::string& file, const std::string& media, std::function<bool(int, std::string)> progress);
     #endif
     

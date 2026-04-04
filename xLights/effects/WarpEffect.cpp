@@ -8,8 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/checkbox.h>
-
+#include <format>
 #include <sstream>
 
 #include "../../include/warp-64.xpm"
@@ -19,17 +18,14 @@
 #include "../../include/warp-16.xpm"
 
 #include "WarpEffect.h"
-#include "WarpPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsMain.h"
-#include "../DissolveTransitionPattern.h"
-#include "../xLightsApp.h"
-#include "../TimingPanel.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "../models/Model.h"
+#include "UtilClasses.h"
+#include "../render/DissolveTransitionPattern.h"
 #include "UtilFunctions.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 namespace
 {
@@ -506,93 +502,16 @@ WarpEffect::~WarpEffect()
 {
 }
 
-xlEffectPanel *WarpEffect::CreatePanel(wxWindow *parent)
-{
-    return new WarpPanel(parent);
-}
-
-bool WarpEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2018.20", version);
-}
-
-void WarpEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    SettingsMap &settings = effect->GetSettings();
-
-    auto treatment = settings.Get("E_CHOICE_Warp_Treatment", "");
-    if (treatment != "")
-    {
-        settings["E_CHOICE_Warp_Treatment_APPLYLAST"] = treatment;
-        settings.erase("E_CHOICE_Warp_Treatment");
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0")
     {
-        res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a warp effect. Without canvas mode warp won't do anything. Effect: Warp, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Canvas mode not enabled on a warp effect. Without canvas mode warp won't do anything. Effect: Warp, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-void WarpEffect::SetDefaultParameters()
-{
-    WarpPanel *p = (WarpPanel *)panel;
-    if (p == nullptr) {
-        return;
-    }
-
-    p->BitmapButton_Warp_X->SetActive( false );
-    p->BitmapButton_Warp_Y->SetActive( false );
-
-    if (p->Choice_Warp_Type->GetStringSelection() == "") {
-        SetChoiceValue(p->Choice_Warp_Type, "water drops");
-        SetChoiceValue(p->Choice_Warp_Treatment, "constant");
-    }
-
-    SetSliderValue( p->Slider_Warp_X, 50 );
-
-    SetSliderValue( p->Slider_Warp_Y, 50 );
-
-    SetSliderValue( p->Slider_Warp_Cycle_Count, 1 );
-
-    SetSliderValue( p->Slider_Warp_Speed, 20 );
-
-    SetSliderValue( p->Slider_Warp_Frequency, 20 );
-
-    // Turn on canvas mode as this really only makes sense in canvas mode
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
-    layerBlendingPanel->CheckBox_Canvas->SetValue(true);
-}
-
-void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
-{
-    SettingsMap &settingsMap = effect->GetSettings();
-
-    if ( settingsMap.Get( "E_CHOICE_Warp_Type", "" )== "water drops" )
-      settingsMap.erase( "E_CHOICE_Warp_Type" );
-    if ( settingsMap.Get( "E_CHOICE_Warp_Treatment_APPLYLAST", "" )== "constant" )
-      settingsMap.erase( "E_CHOICE_Warp_Treatment_APPLYLAST" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Cycle_Count", "" ) == "1" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Cycle_Count" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Speed", "" )== "20" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Speed" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Frequency", "" )== "20" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Frequency" );
-
-    RenderableEffect::RemoveDefaults(version, effect);
 }
 
 void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer)
@@ -609,8 +528,8 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
     int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double x = 0.01 * xPercentage;
     double y = 0.01 * yPercentage;
-    float speed = std::stof( speedStr );
-    float frequency = std::stof( freqStr );
+    float speed = std::strtof( speedStr.c_str(), nullptr );
+    float frequency = std::strtof( freqStr.c_str(), nullptr );
 
     WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
     if ( warpType == WarpEffect::WarpType::WATER_DROPS) {
@@ -628,7 +547,7 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
     } else if (warpType == WarpEffect::WarpType::FLIP) {
         RenderPixelTransform(flip, buffer, params);
     } else if (warpType == WarpEffect::WarpType::SINGLE_WATER_DROP) {
-        float cycleCount = std::stof( warpStrCycleCount );
+        float cycleCount = std::strtof( warpStrCycleCount.c_str(), nullptr );
         float intervalLen = 1.f / cycleCount;
         float scaledProgress = progress / intervalLen;
         float intervalProgress, intervalIndex;
@@ -645,7 +564,7 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
         // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
         // a very good description, maybe back-and-forth or something would be more accurate
         if (warpTreatment == "constant") {
-            float cycleCount = std::stof(warpStrCycleCount);
+            float cycleCount = std::strtof(warpStrCycleCount.c_str(), nullptr);
             float intervalLen = 1.f / (2 * cycleCount );
             float scaledProgress = progress / intervalLen;
             float intervalProgress, intervalIndex;

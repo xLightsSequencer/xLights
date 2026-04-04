@@ -8,18 +8,16 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
+#include <format>
 
 #include "MultiPointModel.h"
-#include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     DisplayAs = DisplayAsType::MultiPoint;
-    parm1 = parm2 = parm3 = 0;
+    // MultiPointModel: parm values not used directly
 }
 
 MultiPointModel::~MultiPointModel()
@@ -28,7 +26,7 @@ MultiPointModel::~MultiPointModel()
 
 bool MultiPointModel::IsNodeFirst(int n) const
 {
-    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - 1);
 }
 
 int MultiPointModel::MapToNodeIndex(int strand, int node) const {
@@ -37,8 +35,6 @@ int MultiPointModel::MapToNodeIndex(int strand, int node) const {
 
 void MultiPointModel::InitModel()
 {
-    parm1 = 1;
-    
     InitLine();
 
     // calculate min/max for the model
@@ -112,14 +108,12 @@ void MultiPointModel::InitModel()
     }
 }
 
-// initialize buffer coordinates
-// parm1=Number of Strings/Arches/Canes
-// parm2=Pixels Per String/Arch/Cane
 void MultiPointModel::InitLine() {
-    int numLights = parm1 * screenLocation.num_points;
+    int numStrings = 1;
+    int numLights = numStrings * screenLocation.num_points;
     Nodes.clear();
-    SetNodeCount(parm1,screenLocation.num_points,rgbOrder);
-    SetBufferSize(1,SingleNode?parm1:numLights);
+    SetNodeCount(numStrings,screenLocation.num_points,rgbOrder);
+    SetBufferSize(1,SingleNode?numStrings:numLights);
     int LastStringNum=-1;
     int chan = 0;
     int ChanIncr = GetNodeChannelCount(StringType);
@@ -130,7 +124,7 @@ void MultiPointModel::InitLine() {
 
     int idx = 0;
     for(size_t n=0; n<NodeCount; n++) {
-        if (Nodes[n]->StringNum != LastStringNum) {
+        if ((int)Nodes[n]->StringNum != LastStringNum) {
             LastStringNum=Nodes[n]->StringNum;
             chan=stringStartChan[LastStringNum];
             if (!IsLtoR) {
@@ -140,7 +134,7 @@ void MultiPointModel::InitLine() {
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
-        Nodes[n]->Coords.resize(SingleNode?screenLocation.num_points:parm3);
+        Nodes[n]->Coords.resize(SingleNode?screenLocation.num_points:GetLightsPerNode());
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].bufX=idx;
@@ -149,139 +143,6 @@ void MultiPointModel::InitLine() {
         idx++;
     }
 }
-void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p;
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("# Lights", "MultiPointNodes", screenLocation.num_points));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->Enable(false); // number of nodes is determined by number of points
-    }
-    else {
-        p = grid->Append(new wxUIntProperty("# Nodes", "MultiPointNodes", screenLocation.num_points));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->Enable(false); // number of nodes is determined by number of points
-    }
-
-    p = grid->Append(new wxUIntProperty("Strings", "MultiPointStrings", _strings));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 48);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (_strings == 1) {
-        // cant set start node
-    } else {
-        wxString nm = StartNodeAttrName(0);
-
-        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", _hasIndivNodes));
-        p->SetAttribute("UseCheckbox", true);
-
-        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, _hasIndivNodes ? _indivStartNodes[0] : 1));
-        psn->SetAttribute("Min", 1);
-        psn->SetAttribute("Max", (int)GetNodeCount());
-        psn->SetEditor("SpinCtrl");
-
-        if (_hasIndivNodes) {
-            int c = _strings;
-            for (int x = 0; x < c; x++) {
-                nm = StartNodeAttrName(x);
-                int v = _indivStartNodes[x];
-                if (v < 1) v = 1;
-                if (v > NodesPerString()) v = NodesPerString();
-                if (x == 0) {
-                    psn->SetValue(v);
-                } else {
-                    grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
-                }
-            }
-        } else {
-            psn->Enable(false);
-        }
-    }
-
-    p = grid->Append(new wxFloatProperty("Height", "ModelHeight", _height));
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-}
-
-int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("MultiPointNodes" == event.GetPropertyName()) {
-        screenLocation.num_points = (int)event.GetPropertyValue().GetLong();
-        wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
-        if (sp == nullptr) {
-            sp = grid->GetPropertyByLabel("# Lights");
-        }
-        sp->SetValueFromInt((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
-        return 0;
-    }
-    else if ("MultiPointStrings" == event.GetPropertyName()) {
-        int old_string_count = _strings;
-        int new_string_count = event.GetValue().GetInteger();
-        _strings = new_string_count;
-        if (old_string_count != new_string_count) {
-            if (_hasIndivNodes) {
-                for (int x = 0; x < new_string_count; x++) {
-                    _indivStartNodes[x] = ComputeStringStartNode(x);
-                }
-            }
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
-        return 0;
-    } else if (!GetModelScreenLocation().IsLocked() && !IsFromBase() && "ModelHeight" == event.GetPropertyName()) {
-        _height = event.GetValue().GetDouble();
-        if (std::abs(_height) < 0.01f) {
-            if (_height < 0.0f) {
-                _height = -0.01f;
-            }
-            else {
-                _height = 0.01f;
-            }
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MultiPointModel::OnPropertyGridChange::ModelHeight");
-        return 0;
-    } else if ((GetModelScreenLocation().IsLocked() || IsFromBase()) && "ModelHeight" == event.GetPropertyName()) {
-        event.Veto();
-        return 0;
-    }
-    return Model::OnPropertyGridChange(grid, event);
-}
-
-int MultiPointModel::OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if (event.GetPropertyName().StartsWith("ModelIndividualSegments.")) {
-        wxString str = event.GetPropertyName();
-        str = str.SubString(str.Find(".") + 1, str.length());
-        str = str.SubString(3, str.length());
-        int segment = wxAtoi(str) - 1;
-        return segment;
-    }
-    return -1;
-}
-
 int MultiPointModel::GetNumPhysicalStrings() const
 {
     int ts = GetSmartTs();
@@ -359,9 +220,9 @@ void MultiPointModel::NormalizePointData()
 
     std::string point_data = "";
     for (int i = 0; i < screenLocation.num_points; ++i) {
-        point_data += wxString::Format("%f,", screenLocation.mPos[i].x);
-        point_data += wxString::Format("%f,", screenLocation.mPos[i].y);
-        point_data += wxString::Format("%f", screenLocation.mPos[i].z);
+        point_data += std::format("{:f},", screenLocation.mPos[i].x);
+        point_data += std::format("{:f},", screenLocation.mPos[i].y);
+        point_data += std::format("{:f}", screenLocation.mPos[i].z);
         if (i != screenLocation.num_points - 1) {
             point_data += ",";
         }

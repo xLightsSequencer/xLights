@@ -9,16 +9,17 @@
  **************************************************************/
 
 #include "LiquidEffect.h"
-#include "LiquidPanel.h"
 
+#include <cassert>
+#include <format>
 #include <Box2D/Box2D.h>
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
-#include "../UtilFunctions.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
+#include "UtilFunctions.h"
 #include "../models/Model.h"
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include "../../include/liquid-16.xpm"
 #include "../../include/liquid-24.xpm"
@@ -26,7 +27,7 @@
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 //#define LE_INTERPOLATE
 #define MAX_PARTICLES 100000
@@ -39,10 +40,6 @@ LiquidEffect::~LiquidEffect()
 {
 }
 
-xlEffectPanel *LiquidEffect::CreatePanel(wxWindow *parent) {
-    return new LiquidPanel(parent);
-}
-
 std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -51,7 +48,7 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
                              settings.GetBool("E_CHECKBOX_FlowMusic2", false) ||
                              settings.GetBool("E_CHECKBOX_FlowMusic3", false) ||
                              settings.GetBool("E_CHECKBOX_FlowMusic4", false))) {
-        res.push_back(wxString::Format("    WARN: Liquid effect cant change flow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Liquid effect cant change flow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     int frameInterval = 50;
@@ -69,105 +66,14 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     int count = lifetimeFrames * (flow1 + flow2 + flow3 + flow4);
 
     if (count > MAX_PARTICLES) {
-        res.push_back(wxString::Format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = %d exceeds %d. Particle count will be limited. Model '%s', Start %s", count, MAX_PARTICLES, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = {} exceeds {}. Particle count will be limited. Model '{}', Start {}", count, MAX_PARTICLES, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     if (settings.GetInt("E_TEXTCTRL_Size", 500) > 1000) {
-        res.push_back(wxString::Format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-void LiquidEffect::SetDefaultParameters()
-{
-    LiquidPanel* tp = (LiquidPanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    SetCheckBoxValue(tp->CheckBox_TopBarrier, false);
-    SetCheckBoxValue(tp->CheckBox_BottomBarrier, true);
-    SetCheckBoxValue(tp->CheckBox_LeftBarrier, false);
-    SetCheckBoxValue(tp->CheckBox_RightBarrier, false);
-
-    SetCheckBoxValue(tp->CheckBox_HoldColor, true);
-    SetCheckBoxValue(tp->CheckBox_MixColors, false);
-    SetChoiceValue(tp->Choice_ParticleType, "Elastic");
-
-    SetSliderValue(tp->Slider_LifeTime, 10000);
-    SetSliderValue(tp->Slider_Despeckle, 0);
-    SetSliderValue(tp->Slider_WarmUpFrames, 0);
-    SetSliderValue(tp->Slider_Liquid_Gravity, 100);
-    SetSliderValue(tp->Slider_Liquid_GravityAngle, 0);
-
-    SetSliderValue(tp->Slider_X1, 50);
-    SetSliderValue(tp->Slider_Y1, 100);
-    SetSliderValue(tp->Slider_Direction1, 270);
-    SetSliderValue(tp->Slider_Flow1, 100);
-    SetSliderValue(tp->Slider_Size, 500);
-    SetSliderValue(tp->Slider_Velocity1, 100);
-    SetSliderValue(tp->Slider_Liquid_SourceSize1, 0);
-    SetCheckBoxValue(tp->CheckBox_FlowMusic1, false);
-
-    SetCheckBoxValue(tp->CheckBox_Enabled2, false);
-    SetSliderValue(tp->Slider_X2, 0);
-    SetSliderValue(tp->Slider_Y2, 50);
-    SetSliderValue(tp->Slider_Direction2, 0);
-    SetSliderValue(tp->Slider_Flow2, 100);
-    SetSliderValue(tp->Slider_Velocity2, 100);
-    SetSliderValue(tp->Slider_Liquid_SourceSize2, 0);
-    SetCheckBoxValue(tp->CheckBox_FlowMusic2, false);
-
-    SetCheckBoxValue(tp->CheckBox_Enabled3, false);
-    SetSliderValue(tp->Slider_X3, 50);
-    SetSliderValue(tp->Slider_Y3, 0);
-    SetSliderValue(tp->Slider_Direction3, 90);
-    SetSliderValue(tp->Slider_Flow3, 100);
-    SetSliderValue(tp->Slider_Velocity3, 100);
-    SetSliderValue(tp->Slider_Liquid_SourceSize3, 0);
-    SetCheckBoxValue(tp->CheckBox_FlowMusic3, false);
-
-    SetCheckBoxValue(tp->CheckBox_Enabled4, false);
-    SetSliderValue(tp->Slider_X4, 100);
-    SetSliderValue(tp->Slider_Y4, 50);
-    SetSliderValue(tp->Slider_Direction4, 180);
-    SetSliderValue(tp->Slider_Flow4, 100);
-    SetSliderValue(tp->Slider_Velocity4, 100);
-    SetSliderValue(tp->Slider_Liquid_SourceSize4, 0);
-    SetCheckBoxValue(tp->CheckBox_FlowMusic4, false);
-
-    tp->BitmapButton_LifeTime->SetActive(false);
-    tp->BitmapButton_Liquid_Gravity->SetActive(false);
-    tp->BitmapButton_Liquid_GravityAngle->SetActive(false);
-
-    tp->BitmapButton_X1->SetActive(false);
-    tp->BitmapButton_Y1->SetActive(false);
-    tp->BitmapButton_Velocity1->SetActive(false);
-    tp->BitmapButton_Direction1->SetActive(false);
-    tp->BitmapButton_Flow1->SetActive(false);
-    tp->BitmapButton_Liquid_SourceSize1->SetActive(false);
-
-    tp->BitmapButton_X2->SetActive(false);
-    tp->BitmapButton_Y2->SetActive(false);
-    tp->BitmapButton_Velocity2->SetActive(false);
-    tp->BitmapButton_Direction2->SetActive(false);
-    tp->BitmapButton_Flow2->SetActive(false);
-    tp->BitmapButton_Liquid_SourceSize2->SetActive(false);
-
-    tp->BitmapButton_X3->SetActive(false);
-    tp->BitmapButton_Y3->SetActive(false);
-    tp->BitmapButton_Velocity3->SetActive(false);
-    tp->BitmapButton_Direction3->SetActive(false);
-    tp->BitmapButton_Flow3->SetActive(false);
-    tp->BitmapButton_Liquid_SourceSize3->SetActive(false);
-
-    tp->BitmapButton_X4->SetActive(false);
-    tp->BitmapButton_Y4->SetActive(false);
-    tp->BitmapButton_Velocity4->SetActive(false);
-    tp->BitmapButton_Direction4->SetActive(false);
-    tp->BitmapButton_Flow4->SetActive(false);
-    tp->BitmapButton_Liquid_SourceSize4->SetActive(false);
 }
 
 void LiquidEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -394,8 +300,8 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
 
     if (despeckle > 0)
     {
-        for (size_t y = 0; y < buffer.BufferHt; ++y) {
-            for (size_t x = 0; x < buffer.BufferWi; ++x) {
+        for (int y = 0; y < buffer.BufferHt; ++y) {
+            for (int x = 0; x < buffer.BufferWi; ++x) {
                 if (buffer.GetPixel(x, y) == xlBLACK) {
                     buffer.SetPixel(x, y, GetDespeckleColor(buffer, x, y, despeckle));
                 }
@@ -429,7 +335,7 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     {
         for (int xx = startx; xx <= endx; ++xx)
         {
-            if (yy != y || xx != x) // dont evaluate the pixel itself
+            if (yy != (int)y || xx != (int)x) // dont evaluate the pixel itself
             {
                 xlColor c = buffer.GetPixel(xx, yy);
 
@@ -651,7 +557,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
     const std::string& particleType, int despeckle, float gravity, int gravityAngle)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool enabled[4];
     enabled[0] = true;
@@ -720,14 +626,14 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     // allow up to 1 times physical memory
     if (IsExcessiveMemoryUsage(1.0))
     {
-        logger_base.error("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
-        logger_base.error("To reduce memory turn off render caching and/or change liquid effect settings.");
+        spdlog::error("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
+        spdlog::error("To reduce memory turn off render caching and/or change liquid effect settings.");
 
         // delete our world to get all our memory back
         delete _world;
         _world = nullptr;
 
-        wxASSERT(false);
+        assert(false);
         return;
     }
 

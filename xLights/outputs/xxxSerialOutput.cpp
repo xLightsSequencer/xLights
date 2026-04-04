@@ -10,10 +10,13 @@
  **************************************************************/
 
 #include "xxxSerialOutput.h"
-#include "ControllerSerial.h"
-#include "OutputModelManager.h"
+#include <cstring>
+#include "serial.h"
 
-#include <wx/xml/xml.h>
+#include "string_utils.h"
+#include "ControllerSerial.h"
+#include "models/OutputModelManager.h"
+
 
 #pragma region Private Functions
 void xxxSerialOutput::SendHeartbeat() const {
@@ -29,6 +32,19 @@ void xxxSerialOutput::SendHeartbeat() const {
         _serial->Write((char*)d, 4);
     }
 }
+
+void xxxSerialOutput::SetDeviceChannels(const std::string& deviceChannels) {
+    if (_deviceChannels != deviceChannels) {
+        _deviceChannels = deviceChannels;
+        _dirty = true;
+    }
+    auto ch = Split(_deviceChannels, ',');
+    uint8_t channels = 0;
+    for (const auto& it : ch) {
+        channels += std::stoi(it);
+    }
+    SetChannels(channels);
+}
 #pragma endregion
 
 #pragma region Constructors and Destructors
@@ -41,11 +57,11 @@ xxxSerialOutput::xxxSerialOutput(const xxxSerialOutput& from) : SerialOutput(fro
     _dirty = false;
 }
 
-xxxSerialOutput::xxxSerialOutput(wxXmlNode* node) : SerialOutput(node) {
+xxxSerialOutput::xxxSerialOutput(pugi::xml_node node) : SerialOutput(node) {
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
     memset(_data, 0, sizeof(_data));
-    SetDeviceChannels(node->GetAttribute("DeviceChannels", "8"));
+    SetDeviceChannels(node.attribute("DeviceChannels").as_string("8"));
     _dirty = false;
 }
 
@@ -56,12 +72,12 @@ xxxSerialOutput::xxxSerialOutput() : SerialOutput() {
 }
 #pragma endregion
 
-wxXmlNode* xxxSerialOutput::Save() {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+pugi::xml_node xxxSerialOutput::Save(pugi::xml_node parent) {
+    pugi::xml_node node = parent.append_child("network");
 
-    node->AddAttribute("DeviceChannels", _deviceChannels);
+    node.append_attribute("DeviceChannels") = _deviceChannels;
 
-    SerialOutput::Save(node);
+    SerialOutput::SaveAttr(node);
 
     return node;
 }
@@ -137,10 +153,10 @@ void xxxSerialOutput::EndFrame(int suppressFrames) {
 
 uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
     uint8_t device = 0;
-    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = wxAtoi(it);
-        if (channel < ch) {
+        int ch = std::stoi(it);
+        if (channel < (uint32_t)ch) {
             break;
         }
         channel -= ch;
@@ -150,10 +166,10 @@ uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
 }
 
 uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
-    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = wxAtoi(it);
-        if (channel < ch) {
+        int ch = std::stoi(it);
+        if (channel < (uint32_t)ch) {
             break;
         }
         channel -= ch;
@@ -162,9 +178,9 @@ uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
 }
 
 uint8_t xxxSerialOutput::GetDeviceChannels(uint8_t device) const {
-	auto deviceChannels = wxSplit(_deviceChannels, ',');
+	auto deviceChannels = Split(_deviceChannels, ',');
     if (device < deviceChannels.size()) {
-		return wxAtoi(deviceChannels[device]);
+		return std::stoi(deviceChannels[device]);
 	}
 	return 0;
 }
@@ -214,52 +230,3 @@ void xxxSerialOutput::AllOff() {
 #pragma endregion 
 
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-#include "ControllerEthernet.h"
-#include "../models/ModelManager.h"
-
-void xxxSerialOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    SerialOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
-    ControllerSerial* ce = dynamic_cast<ControllerSerial*>(c);
-
-    auto p = propertyGrid->GetProperty("DeviceChannels");
-    if (p) {
-        if (ce->GetOutputs().size() > 1) {
-            p->SetValue(((xxxSerialOutput*)ce->GetOutputs().front())->GetDeviceChannels());
-            p->Hide(false);
-        } else {
-            p->Hide(true);
-        }
-    }
-}
-
-void xxxSerialOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty* before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
-    SerialOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
-
-    propertyGrid->Insert(before, new wxStringProperty("Device Channels", "DeviceChannels", GetDeviceChannels()));
-}
-
-void xxxSerialOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
-    SerialOutput::RemoveProperties(propertyGrid);
-    propertyGrid->DeleteProperty("DeviceChannels");
-}
-
-bool xxxSerialOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
-    if (SerialOutput::HandlePropertyEvent(event, outputModelManager, c)) {
-        return true;
-    }
-    wxString const name = event.GetPropertyName();
-    if (name == "DeviceChannels") {
-        SetDeviceChannels(event.GetValue().GetString().ToStdString());
-        wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-        grid->GetProperty("Channels")->SetValueFromString(wxString::Format("%d", GetChannels()));
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "xxxSerialOutput::HandlePropertyEvent::DeviceChannels");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "xxxSerialOutput::HandlePropertyEvent::DeviceChannels", nullptr);
-        return true;
-    }
-    return false;
-}
-
-#endif
-#pragma endregion

@@ -7,9 +7,9 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
-#include <wx/xml/xml.h>
-#include <wx/cursor.h>
-
+#include <cassert>
+#include <format>
+#include "../utils/string_utils.h"
 #include "../support/VectorMath.h"
 
 #include "TerrainScreenLocation.h"
@@ -17,7 +17,7 @@
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../graphics/xlGraphicsContext.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #define BOUNDING_RECT_OFFSET        8
 #define NUM_TERRAIN_HANDLES   861   // default number of points for a 40x20 grid
@@ -149,7 +149,7 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
                 va->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
             default:
-                wxASSERT(false);
+                assert(false);
                 break;
             }
         }
@@ -210,13 +210,13 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     return true;
 }
 
-wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
+CursorType TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
 {
-    wxCursor return_value = wxCURSOR_DEFAULT;
+    CursorType return_value = CursorType::Default;
     handle = NO_HANDLE;
 
     if (_locked) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
@@ -226,7 +226,7 @@ wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm:
         handle = -1;
 
         // Test each each Oriented Bounding Box (OBB).
-        for (size_t i = edit_active ? 1 : 0; edit_active ? i < mSelectableHandles : i < 1; i++) {
+        for (int i = edit_active ? 1 : 0; edit_active ? i < mSelectableHandles : i < 1; i++) {
             float intersection_distance; // Output of TestRayOBBIntersection()
 
             if (VectorMath::TestRayOBBIntersection(
@@ -240,7 +240,7 @@ wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm:
                 if (intersection_distance < distance) {
                     distance = intersection_distance;
                     handle = i;
-                    return_value = wxCURSOR_HAND;
+                    return_value = CursorType::Hand;
                 }
             }
         }
@@ -249,7 +249,7 @@ wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm:
     return return_value;
 }
 
-int TerrainScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int TerrainScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
 
@@ -262,12 +262,12 @@ int TerrainScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
             if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
             if (scaley == 0) scaley = 0.001f;
-            if (isnan(scaley)) scaley = 1.0f;
+            if (std::isnan(scaley)) scaley = 1.0f;
 
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
 
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
                 if (active_axis == MSLAXIS::Y_AXIS) {
                     mPos[point] = newy;
                     if (tool_size > 1) {
@@ -302,7 +302,7 @@ int TerrainScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot,
     if (handle != CENTER_HANDLE) {
         if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
 
                 float newz = (mPos[point] - mov.z*scale);
                 mPos[point] = newz;
@@ -377,13 +377,13 @@ void TerrainScreenLocation::SetActiveAxis(MSLAXIS axis)
 
 void TerrainScreenLocation::SetDataFromString(const std::string& point_data)
 {
-    wxArrayString point_array = wxSplit(point_data, ',');
+    auto point_array = Split(point_data, ',');
     int i = 0;
-    for (int p = 2; p < point_array.size() && i < num_points; ) {
-        float val = wxAtof(point_array[p]);
+    for (int p = 2; p < (int)point_array.size() && i < num_points; ) {
+        float val = (float)std::strtof(point_array[p].c_str(), nullptr);
         if (val == 0.0f) {
             p++;
-            float num_zeroes = wxAtof(point_array[p]);
+            float num_zeroes = (float)std::strtof(point_array[p].c_str(), nullptr);
             for (int j = 0; j < num_zeroes; ++j) {
                 if (i == num_points) {
                     break;
@@ -418,25 +418,25 @@ void TerrainScreenLocation::Init() {
 }
 
 const std::string TerrainScreenLocation::GetDataAsString() const {
-    wxString point_data = "";
+    std::string point_data = "";
     // store the number of points in each axis to allow for smart resizing
     // when grid is altered after terrain points have already been established
-    point_data += wxString::Format("%f,%f,", (float)num_points_wide, (float)num_points_deep);
+    point_data += std::format("{:f},{:f},", (float)num_points_wide, (float)num_points_deep);
     int num_zeroes = 0;
     for (int i = 0; i < num_points; ++i) {
         if (mPos[i] != 0) {
             if (num_zeroes > 0) {
-                point_data += wxString::Format("%f,%f,", 0.0f, (float)num_zeroes);
+                point_data += std::format("{:f},{:f},", 0.0f, (float)num_zeroes);
                 num_zeroes = 0;
             }
-            point_data += wxString::Format("%f", mPos[i]);
+            point_data += std::format("{:f}", mPos[i]);
             if (i != num_points - 1) {
                 point_data += ",";
             }
         } else {
             num_zeroes++;
             if (i == num_points - 1) {
-                point_data += wxString::Format("%f,%f", 0.0f, (float)num_zeroes);
+                point_data += std::format("{:f},{:f}", 0.0f, (float)num_zeroes);
             }
         }
     }

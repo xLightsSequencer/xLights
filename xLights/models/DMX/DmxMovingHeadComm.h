@@ -52,6 +52,7 @@ class DmxMovingHeadComm : public DmxModel {
         }
     
         void SetDmxFixture(const std::string val) { dmx_fixture = val; }
+        void SetFixtureVal(int val) { fixture_val = val; }
 
         static std::string FixtureIDtoString(int fixture_val) {
             if (fixture_val == DMX_MOVING_HEAD_1) {

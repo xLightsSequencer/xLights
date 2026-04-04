@@ -12,15 +12,12 @@
 
 #include "RenderableEffect.h"
 
-class wxImage;
-
 class SketchAssistPanel;
 class SketchEffectSketch;
-class SketchPanel;
 
 class SketchEffect : public RenderableEffect
 {
-public: 
+public:
     SketchEffect( int id );
     virtual ~SketchEffect();
 
@@ -30,38 +27,18 @@ public:
     }
     void Render( Effect* effect, const SettingsMap& settings, RenderBuffer& buffer ) override;
 
-    void SetDefaultParameters() override;
     bool needToAdjustSettings( const std::string& version ) override;
     void adjustSettings( const std::string& version, Effect* effect, bool removeDefaults = true ) override;
     std::list<std::string> CheckEffectSettings( const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache ) override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
-
-    AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
-    bool HasAssistPanel() override
-    {
-        return true;
-    }
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
     virtual double GetSettingVCMin(const std::string& name) const override;
     virtual double GetSettingVCMax(const std::string& name) const override;
 
 protected:
-    void RemoveDefaults( const std::string& version, Effect* effect ) override;
-    xlEffectPanel* CreatePanel( wxWindow* parent ) override;
-
     void renderSketch(const SketchEffectSketch& sketch,
-                      wxImage& img, double progress,
+                      RenderBuffer& buffer, double progress,
                       double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage,
                       const xlColorVector& colors);
-
-    void updateSketchAssistBackground() const;
-
-    // Since SketchEffect and SketchPanel are more-or-less singletons,
-    // having a raw pointer to the effect's panel is sufficient
-    SketchPanel* m_panel = nullptr;
-
-    // Assist panels come and go and are owned by the window passed into
-    // GetAssistPanel()... so we just store the latest one as a weak_ptr
-    SketchAssistPanel* m_sketchAssistPanel = nullptr;
 };

@@ -11,21 +11,15 @@
  **************************************************************/
 
 #include <string>
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "BaseObjectVisitor.h"
 #include "DisplayAsType.h"
 #include "ModelScreenLocation.h"
 #include <glm/mat3x3.hpp>
 
-class xLightsFrame;
-class wxPropertyGridInterface;
-class wxXmlNode;
+class RenderContext;
 class ModelScreenLocation;
-class ModelPreview;
-class OutputManager;
-class wxPropertyGridEvent;
-class wxMenu;
-class wxCommandEvent;
+class IModelPreview;
 
 class BaseObject
 {
@@ -33,29 +27,21 @@ public:
     BaseObject();
     virtual ~BaseObject();
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) = 0;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) = 0;
-    virtual void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) {}
-    virtual void HandlePropertyGridContextMenu(wxCommandEvent& event) {}
     virtual std::string GetDimension() const = 0;
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() = 0;
 
-    virtual bool CleanupFileLocations(xLightsFrame* frame) { return false; }
+    virtual bool CleanupFileLocations(RenderContext* ctx) { return false; }
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
-    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects);
+    virtual glm::vec3 MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects);
     virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects);
     void SelectHandle(int handle);
     void Lock(bool lock);
     bool IsLocked() const;
-    virtual void AddASAPWork(uint32_t work, const std::string& from);
+    virtual void AddASAPWork(uint32_t work, const std::string& from) = 0;
     virtual void ReloadModel() = 0;
 
     void SetTop(float y);
@@ -108,9 +94,9 @@ public:
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
-    [[nodiscard]] bool Scale(const glm::vec3& factor);
+    bool Scale(const glm::vec3& factor);
 
-    [[nodiscard]] bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
+    [[nodiscard]] bool IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2);
 
     virtual void Accept(BaseObjectVisitor &visitor) const {};
 

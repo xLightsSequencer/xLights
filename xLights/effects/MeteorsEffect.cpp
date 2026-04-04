@@ -9,23 +9,24 @@
  **************************************************************/
 
 #include "MeteorsEffect.h"
-#include "MeteorsPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+
+#include <format>
 
 #include "../../include/meteors-16.xpm"
 #include "../../include/meteors-24.xpm"
 #include "../../include/meteors-32.xpm"
 #include "../../include/meteors-48.xpm"
 #include "../../include/meteors-64.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64)
 {
@@ -42,14 +43,10 @@ std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& set
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Meteors_UseMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Meteors effect cant follow music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Meteors effect cant follow music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-xlEffectPanel *MeteorsEffect::CreatePanel(wxWindow *parent) {
-    return new MeteorsPanel(parent);
 }
 
 //these must match list indexes in xLightsMain.h: -DJ
@@ -133,33 +130,6 @@ static MeteorsRenderCache* GetCache(RenderBuffer &buffer, int id) {
         buffer.infoCache[id] = cache;
     }
     return cache;
-}
-
-void MeteorsEffect::SetDefaultParameters() {
-    MeteorsPanel *mp = (MeteorsPanel*)panel;
-    if (mp == nullptr) {
-        return;
-    }
-
-    mp->BitmapButton_Meteors_Count->SetActive(false);
-    mp->BitmapButton_Meteors_Length->SetActive(false);
-    mp->BitmapButton_Meteors_Speed->SetActive(false);
-    mp->BitmapButton_Meteors_Swirl_Intensity->SetActive(false);
-    mp->BitmapButton_Meteors_XOffsetVC->SetActive(false);
-    mp->BitmapButton_Meteors_YOffsetVC->SetActive(false);
-
-    SetChoiceValue(mp->Choice_Meteors_Effect, "Down");
-    SetChoiceValue(mp->Choice_Meteors_Type, "Rainbow");
-
-    SetSliderValue(mp->Slider_Meteors_Count, 10);
-    SetSliderValue(mp->Slider_Meteors_Length, 25);
-    SetSliderValue(mp->Slider_Meteors_Swirl_Intensity, 0);
-    SetSliderValue(mp->Slider_Meteors_Speed, 10);
-    SetSliderValue(mp->Slider_Meteors_XOffset, 0);
-    SetSliderValue(mp->Slider_Meteors_YOffset, 0);
-
-    SetCheckBoxValue(mp->CheckBox_Meteors_UseMusic, false);
-    SetCheckBoxValue(mp->CheckBox_FadeWithDistance, false);
 }
 
 float MeteorsEffect::calcEffectStateOffset(int mSpeed, RenderBuffer& buffer) {

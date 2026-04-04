@@ -10,13 +10,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/socket.h>
+#include "../outputs/SocketAbstraction.h"
 
 // A very simplified web socket class that can only send text web socket messages
 
 class WebSocketClient
 {
-    wxSocketClient _socket;
+    sockets::TCPSocket _socket;
     bool _connected;
 
     std::string ReadSocket();

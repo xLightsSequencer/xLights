@@ -14,11 +14,8 @@
 #include "../../graphics/xlGraphicsAccumulators.h"
 #include <glm/glm.hpp>
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
 class BaseObject;
-
-class ModelPreview;
+class IModelPreview;
 
 class DmxImage
 {
@@ -31,12 +28,7 @@ public:
     void Init(BaseObject* base);
     bool GetExists() { return obj_exists; }
 
-    void AddTypeProperties(wxPropertyGridInterface* grid);
-    void UpdateTypeProperties(wxPropertyGridInterface* grid) {}
-
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
-
-    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *pg,
+    void Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *pg,
               glm::mat4 &motion_matrix,
               int transparency, float brightness, bool only_image,
               float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot);
@@ -59,6 +51,12 @@ public:
     float GetOffsetZ() const { return offset_z; }
 
     void SetImageFile(const std::string& file) { _imageFile = file; }
+    void NotifyImageFileChanged() {
+        for (auto it = _images.begin(); it != _images.end(); ++it) { delete it->second; }
+        _images.clear();
+        obj_exists = false;
+        image_selected = true;
+    }
     void SetScaleX(float val) { scalex = val; }
     void SetScaleY(float val) { scaley = val; }
     void SetScaleZ(float val) { scalez = val; }
@@ -72,7 +70,6 @@ public:
 protected:
 
 private:
-    wxXmlNode* node_xml;
     std::string _imageFile {""};
     int width {1};
     int height {1};
@@ -89,6 +86,6 @@ private:
     float rotatex {0.0f};
     float rotatey {0.0f};
     float rotatez {0.0f};
-    wxString base_name;
+    std::string base_name;
 };
 

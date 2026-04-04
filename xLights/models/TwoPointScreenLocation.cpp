@@ -8,26 +8,28 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+#include <format>
 #include "TwoPointScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
+#include "../utils/DisplayMessages.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 extern void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, xlVertexColorAccumulator &va);
-extern wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation);
+extern CursorType GetResizeCursor(int cornerIndex, int PreviewRotation);
 extern void rotate_point(float cx, float cy, float angle, float &x, float &y);
 
 #define SNAP_RANGE                  5
@@ -97,7 +99,7 @@ void TwoPointScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) cons
 }
 
 
-bool TwoPointScreenLocation::IsContained(ModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
+bool TwoPointScreenLocation::IsContained(IModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
     int xs = x1_ < x2_ ? x1_ : x2_;
     int xf = x1_ > x2_ ? x1_ : x2_;
     int ys = y1_ < y2_ ? y1_ : y2_;
@@ -142,16 +144,16 @@ bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direc
     return return_value;
 }
 
-wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
+CursorType TwoPointScreenLocation::CheckIfOverHandles(IModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
-    wxASSERT(!preview->Is3D());
+    assert(!preview->Is3D());
 
     handle = NO_HANDLE;
 
     if (_locked)
     {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     glm::vec3 ray_origin;
@@ -170,7 +172,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     float zoom = preview->GetCameraZoomForHandles();
     int scale = preview->GetHandleScale();
     float hw = GetRectHandleWidth(zoom, scale);
-    for (size_t h = 0; h < num_handles; h++) {
+    for (int h = 0; h < num_handles; h++) {
         handle_aabb_min[h].x = mHandlePosition[h + 1].x - hw;
         handle_aabb_min[h].y = mHandlePosition[h + 1].y - hw;
         handle_aabb_min[h].z = mHandlePosition[h + 1].z - hw;
@@ -181,7 +183,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
 
     // Test each each Oriented Bounding Box (OBB).
     int handles_found = 0;
-    for (size_t i = 0; i < num_handles; i++)
+    for (int i = 0; i < num_handles; i++)
     {
         if (VectorMath::TestRayOBBIntersection2D(
             ray_origin,
@@ -198,10 +200,10 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     }
 
     if (handle == NO_HANDLE) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
     else if (handle == SHEAR_HANDLE) {
-        return wxCURSOR_HAND;
+        return CursorType::Hand;
     }
     else {
         return GetResizeCursor(handle, rotatez);
@@ -446,7 +448,7 @@ void TwoPointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bool
     DrawBoundingBoxLines(Box3dColor, start, end, mat, *vac);
 }
 
-int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int TwoPointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (latch) {
         saved_angle = 0.0f;
@@ -752,7 +754,7 @@ int TwoPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot
     return MODEL_UPDATE_RGBEFFECTS;
 }
 
-int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int TwoPointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -803,7 +805,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
     return MODEL_UPDATE_RGBEFFECTS;
 }
 
-wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if( preview->Is3D() ) {
@@ -815,213 +817,13 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
-    return wxCURSOR_SIZING;
-}
-
-void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(origin, point2)));
-    //prop->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
-    prop->SetAttribute("Precision", 2);
-    //prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    return CursorType::Sizing;
 }
 
 std::string TwoPointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
-    return wxString::Format("Length %s", RulerObject::MeasureLengthDescription(origin, point2)).ToStdString();
-}
-
-void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
-    prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("WorldX", "WorldX", worldPos_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("WorldY", "WorldY", worldPos_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("WorldZ", "WorldZ", worldPos_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-
-    prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", worldPos_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Y1", "ModelY1", worldPos_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Z1", "ModelZ1", worldPos_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-
-    prop = propertyEditor->Append(new wxFloatProperty("X2", "ModelX2", x2 + worldPos_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(BlueOrLightBlue());
-    prop = propertyEditor->Append(new wxFloatProperty("Y2", "ModelY2", y2 + worldPos_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(BlueOrLightBlue());
-    prop = propertyEditor->Append(new wxFloatProperty("Z2", "ModelZ2", z2 + worldPos_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(BlueOrLightBlue());
-}
-
-int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    std::string name = event.GetPropertyName().ToStdString();
-    if (!_locked && "WorldX" == name) {
-        worldPos_x = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::WorldX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::WorldX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::WorldX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::WorldX");
-        return 0;
-    }
-    else if (_locked && "WorldX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "WorldY" == name) {
-        worldPos_y = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::WorldY");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::WorldY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::WorldY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::WorldY");
-        return 0;
-    }
-    else if (_locked && "WorldY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "WorldZ" == name) {
-        worldPos_z = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::WorldZ");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::WorldZ");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::WorldZ");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::WorldZ");
-        return 0;
-    }
-    else if (_locked && "WorldZ" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelX1" == name) {
-        float old_world_x = worldPos_x;
-        worldPos_x = event.GetValue().GetDouble();
-        x2 += old_world_x - worldPos_x;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelX1");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::ModelX1");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::ModelX1");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::ModelX1");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ModelX1" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelY1" == name) {
-        float old_world_y = worldPos_y;
-        worldPos_y = event.GetValue().GetDouble();
-        y2 += old_world_y - worldPos_y;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelY1");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::ModelY1");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::ModelY1");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::ModelY1");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ModelY1" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelZ1" == name) {
-        float old_world_z = worldPos_z;
-        worldPos_z = event.GetValue().GetDouble();
-        z2 += old_world_z - worldPos_z;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ1");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ1");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ1");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ1");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ModelZ1" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelX2" == name) {
-        x2 = event.GetValue().GetDouble() - worldPos_x;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelX2");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::ModelX2");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::ModelX2");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::ModelX2");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ModelX2" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelY2" == name) {
-        y2 = event.GetValue().GetDouble() - worldPos_y;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelY2");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::ModelY2");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::ModelY2");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::ModelY2");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ModelY2" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelZ2" == name) {
-        z2 = event.GetValue().GetDouble() - worldPos_z;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ2");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ2");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ2");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::ModelZ2");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ModelZ2" == name) {
-        event.Veto();
-        return 0;
-    } else if (!_locked && "RealLength" == name) {
-        auto origLen = RulerObject::UnMeasure(RulerObject::Measure(origin, point2));
-        auto len = RulerObject::UnMeasure(event.GetValue().GetDouble());
-        x2 = (x2 * len) / origLen;
-        y2 = (y2 * len) / origLen;
-        z2 = (z2 * len) / origLen;
-
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::RealLength");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    } else if (_locked && "RealLength" == name) {
-        event.Veto();
-        return 0;
-    } else if ("Locked" == name)
-    {
-        _locked = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::Locked");
-        return 0;
-    }
-
-    return 0;
+    return std::format("Length {}", RulerObject::MeasureLengthDescription(origin, point2));
 }
 
 void TwoPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
@@ -1144,7 +946,7 @@ void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPt
     aabb_max = glm::vec3(RenderWi * scalex, BB_OFF, BB_OFF);
 }
 
-glm::vec2 TwoPointScreenLocation::GetScreenOffset(ModelPreview* preview) const
+glm::vec2 TwoPointScreenLocation::GetScreenOffset(IModelPreview* preview) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
         preview->getHeight(),

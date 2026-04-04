@@ -33,7 +33,7 @@ class J1Sys : public BaseController
     #pragma endregion
 
     #pragma region String Port Handling
-    std::string BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels, wxWindow* parent) const;
+    std::string BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels) const;
     void ResetStringOutputs();
     void ReadCurrentConfig(std::vector<J1SysPixelOutput>& j);
     void DumpConfig(const std::vector<J1SysPixelOutput>& j) const;
@@ -41,7 +41,7 @@ class J1Sys : public BaseController
     #pragma endregion
 
     #pragma region Serial Port Handling
-    std::string BuildSerialPort(bool active, int port, char protocol, int speed, int universe, wxWindow* parent) const;
+    std::string BuildSerialPort(bool active, int port, char protocol, int speed, int universe) const;
     void ResetSerialOutputs();
     void DumpConfig(const std::vector<J1SysSerialOutput>& j) const;
     void ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j);
@@ -60,7 +60,7 @@ public:
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
     bool SetInputUniverses(Controller* controller, OutputManager* outputManager);
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion

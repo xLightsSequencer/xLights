@@ -8,13 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
-#include "../xLightsMain.h"
-#include "../xLightsApp.h"
 
 BaseObject::BaseObject()
 : changeCount(0), _active(true)
@@ -42,7 +38,7 @@ void BaseObject::SetLayoutGroup(const std::string &grp, bool ignore_changes) {
     AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
 }
 
-glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects)
+glm::vec3 BaseObject::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects)
 {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
     int i = GetBaseObjectScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
@@ -81,11 +77,6 @@ void BaseObject::Lock(bool lock)
 bool BaseObject::IsLocked() const
 {
     return GetBaseObjectScreenLocation().IsLocked();
-}
-
-void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
-{
-    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
 }
 
 void BaseObject::SetTop(float y) {
@@ -305,7 +296,7 @@ bool BaseObject::Scale(const glm::vec3& factor)
     return return_value;
 }
 
-bool BaseObject::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
+bool BaseObject::IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) {
     return  GetBaseObjectScreenLocation().IsContained(preview, x1, y1, x2, y2);
 }
 

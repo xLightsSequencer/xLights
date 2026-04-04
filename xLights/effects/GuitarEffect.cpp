@@ -16,18 +16,20 @@
 #include "../../include/guitar-64.xpm"
 
 #include "GuitarEffect.h"
-#include "GuitarPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsXmlFile.h"
-#include "../UtilFunctions.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "../render/SequenceFile.h"
+#include "../render/SequenceElements.h"
+#include "UtilFunctions.h"
 #include "models/Model.h"
 
+#include <cstdlib>
+#include <format>
 #include <string>
 #include <list>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 class GuitarTiming
 {
@@ -453,7 +455,7 @@ public:
 
     void GeneratePossibleTimings(const std::string& type, uint8_t maxFrets)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         // if there are no notes it may be because the timings were set using SnnPnn
         if (_notes.size() == 0)
@@ -564,7 +566,7 @@ public:
 
         if (max != _notes.size())
         {
-            logger_base.warn("One or more notes not found on %s at %lu.", (const char*)type.c_str(), _startMS);
+            spdlog::warn("One or more notes not found on {} at {}.", (const char*)type.c_str(), _startMS);
         }
 
         bool allZero = false;
@@ -596,10 +598,9 @@ public:
 };
 
 GuitarEffect::GuitarEffect(int id) :
-    RenderableEffect(id, "Guitar", Guitar_16_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm) 
+    RenderableEffect(id, "Guitar", Guitar_16_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm)
 {
     //ctor
-	_panel = nullptr;
 }
 
 GuitarEffect::~GuitarEffect()
@@ -613,14 +614,14 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
 
     if (settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "") == "")
     {
-        res.push_back(wxString::Format("    ERR: Guitar effect needs a timing track. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Guitar effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     else
     {
         std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar", 100, 6);
         if (timings.size() == 0)
         {
-            res.push_back(wxString::Format("    ERR: Guitar effect timing track '%s' has no notes. Model '%s', Start %s", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Guitar effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
 
         while (timings.size() > 0)
@@ -633,64 +634,14 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-void GuitarEffect::SetPanelStatus(Model *cls)
-{
-    SetPanelTimingTracks();
-}
-
-void GuitarEffect::SetPanelTimingTracks()
-{
-    GuitarPanel *fp = (GuitarPanel*)panel;
-    if (fp == nullptr)
-    {
-        return;
-    }
-
-    if (mSequenceElements == nullptr)
-    {
-        return;
-    }
-
-    // Load the names of the timing tracks
-    std::string timingtracks = GetTimingTracks(1);
-    wxCommandEvent event(EVT_SETTIMINGTRACKS);
-    event.SetString(timingtracks);
-    wxPostEvent(fp, event);
-}
-
-xlEffectPanel *GuitarEffect::CreatePanel(wxWindow *parent) {
-    _panel = new GuitarPanel(parent);
-	return _panel;
-}
-
-void GuitarEffect::SetDefaultParameters() {
-    GuitarPanel *pp = (GuitarPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    SetChoiceValue(pp->Choice_Guitar_Type, "Guitar");
-    SetChoiceValue(pp->Choice_StringAppearance, "On");
-    SetSliderValue(pp->Slider_MaxFrets, 19);
-    SetCheckBoxValue(pp->CheckBox_Collapse, false);
-    SetCheckBoxValue(pp->CheckBox_Fade, false);
-    SetCheckBoxValue(pp->CheckBox_ShowStrings, false);
-    SetCheckBoxValue(pp->CheckBox_VaryWaveLengthOnFret, true);
-    SetSliderValue(pp->Slider_StringWaveFactor, 0);
-    SetSliderValue(pp->Slider_BaseWaveFactor, 10);
-    SetPanelTimingTracks();
-}
-
 void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "");
 
-    if (timing.ToStdString() == oldname)
+    if (timing == oldname)
     {
-        effect->GetSettings()["E_CHOICE_Guitar_MIDITrack_APPLYLAST"] = wxString(newname);
+        effect->GetSettings()["E_CHOICE_Guitar_MIDITrack_APPLYLAST"] = newname;
     }
-
-    SetPanelTimingTracks();
 }
 
 void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -810,9 +761,6 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
     uint8_t strings = NoteTiming::GetStrings(type);
 
     if (buffer.needToInit) {
-        // just in case the timing tracks have changed
-        SetPanelTimingTracks();
-
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack) {
             cache->ClearTimings();
@@ -977,22 +925,22 @@ void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const s
     }
 }
 
-std::vector<float> GuitarEffect::Parse(wxString& l)
+std::vector<float> GuitarEffect::Parse(const std::string& l)
 {
 	std::vector<float> res;
-	wxString s = l;
-	while (s.Len() != 0)
+	std::string s = l;
+	while (!s.empty())
 	{
-		int end = s.First('\t');
-		if (end > 0)
+		auto end = s.find('\t');
+		if (end != std::string::npos)
 		{
-			res.push_back(wxAtof(s.SubString(0, end - 1)));
-			s = s.Right(s.Len() - end - 1);
+			res.push_back(std::strtod(s.substr(0, end).c_str(), nullptr));
+			s = s.substr(end + 1);
 		}
 		else
 		{
-			res.push_back(wxAtof(s));
-			s = "";
+			res.push_back(std::strtod(s.c_str(), nullptr));
+			s.clear();
 		}
 	}
 
@@ -1107,7 +1055,7 @@ int GuitarEffect::ConvertNote(const std::string& note)
         break;
     default:
         {
-            int number = wxAtoi(n);
+            int number = std::strtol(n.c_str(), nullptr, 10);
             if (number < 0) number = 0;
             if (number > 127) number = 127;
             return number;
@@ -1141,7 +1089,7 @@ int GuitarEffect::ConvertNote(const std::string& note)
 
     if (n != "")
     {
-        octave = wxAtoi(n);
+        octave = std::strtol(n.c_str(), nullptr, 10);
     }
 
     int number = 12 + (octave * 12) + nletter + sharp;
@@ -1152,14 +1100,12 @@ int GuitarEffect::ConvertNote(const std::string& note)
 
 std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings)
 {
-    static log4cpp::Category& logger_Guitardata = log4cpp::Category::getInstance(std::string("log_Guitardata"));
-
     std::list<NoteTiming*> res;
 
-    logger_Guitardata.debug("Loading timings from timing track " + track);
+    spdlog::debug("Loading timings from timing track " + track);
 
     if (mSequenceElements == nullptr) {
-        logger_Guitardata.debug("No timing tracks found.");
+        spdlog::debug("No timing tracks found.");
         return res;
     }
 
@@ -1167,7 +1113,7 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
     EffectLayer* el = GetTiming(track);
 
     if (el == nullptr) {
-        logger_Guitardata.debug("Timing track not found.");
+        spdlog::debug("Timing track not found.");
         return res;
     }
 

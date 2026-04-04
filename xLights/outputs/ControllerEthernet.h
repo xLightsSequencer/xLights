@@ -19,22 +19,12 @@
 #include "Controller.h"
 #include "IPOutput.h"
 
-class wxXmlNode;
 class Output;
 
 // An ethernet controller sends data to a unique IP address
 class ControllerEthernet : public Controller
 {
-private:
-    void SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager);
-
 protected:
-
-#pragma region Property Choices
-    static wxPGChoices __types;
-    static void InitialiseTypes(bool forceXXX);
-    wxPGChoices GetProtocols() const;
-#pragma endregion
 
 #pragma region Member Variables
     std::string _ip;
@@ -55,11 +45,11 @@ protected:
 public:
 
 #pragma region Constructors and Destructors
-    ControllerEthernet(OutputManager* om, wxXmlNode* node, const std::string& showDir);
+    ControllerEthernet(OutputManager* om, pugi::xml_node node, const std::string& showDir);
     ControllerEthernet(OutputManager* om, bool acceptDuplicates = false);
     ControllerEthernet(OutputManager* om, const ControllerEthernet& from);
     virtual ~ControllerEthernet();
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual bool UpdateFrom(Controller* from) override;
     virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion
@@ -103,6 +93,23 @@ public:
     void SetVersion(int version);
 
     bool AllSameSize() const;
+
+    void SetForceSizes(bool force) { if (_forceSizes != force) { _forceSizes = force; _dirty = true; } }
+
+    // Output list manipulation for adapters
+    void AppendOutput(Output* output) { _outputs.push_back(output); }
+    void ClearOutputs() {
+        while (_outputs.size()) {
+            delete _outputs.back();
+            _outputs.pop_back();
+        }
+    }
+    void RemoveTrailingOutputs(int keepCount) {
+        while (keepCount < (int)_outputs.size()) {
+            delete _outputs.back();
+            _outputs.pop_back();
+        }
+    }
 #pragma endregion
 
 #pragma region Virtual Functions
@@ -118,7 +125,7 @@ public:
 
     virtual std::string GetType() const override { return CONTROLLER_ETHERNET; }
 
-    void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
+    void Convert(pugi::xml_node node, std::string showDir) override; // loads a legacy networks node
 
     virtual bool NeedsControllerConfig() const override { return GetProtocol() == OUTPUT_ZCPP; }
 
@@ -145,7 +152,7 @@ public:
     virtual std::string GetColumn2Label() const override { return _ip; }
     virtual std::string GetColumn3Label() const override;
 
-    virtual void VMVChanged(wxPropertyGrid *grid = nullptr) override;
+    virtual void VMVChanged() override;
 
     virtual Output::PINGSTATE Ping() override;
     virtual void AsyncPing() override;
@@ -163,16 +170,11 @@ public:
 #pragma endregion
 
 #pragma region UI
+    // UI property grid methods moved to ui/controllerproperties/ControllerEthernetPropertyAdapter
+    bool SupportsUniversePerString() const;
     #ifndef EXCLUDENETWORKUI
-        bool SupportsUniversePerString() const;
-    
-        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) override;
-        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-        virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
-        virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
-        virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override { SetExpanded(expanded); }
-        virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}, uint32_t universeSize = 510) override;
-#endif
+    virtual bool SetChannelSize(int32_t channels, std::list<Model*> = {}, uint32_t universeSize = 510) override;
+    #endif
 
     #ifndef EXCLUDEDISCOVERY
         void SetAllSameSize(bool allSame, OutputModelManager* omm);

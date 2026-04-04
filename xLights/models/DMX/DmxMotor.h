@@ -10,12 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
+#include <string>
 #include <glm/glm.hpp>
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
 class BaseObject;
-class wxXmlNode;
 
 class DmxMotor
 {
@@ -26,10 +23,6 @@ protected:
         virtual ~DmxMotor();
 
         void Init();
-
-        void AddTypeProperties(wxPropertyGridInterface* grid);
-
-        int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
         std::string GetName() const { return base_name; }
         int GetChannelCoarse() const { return channel_coarse; }
@@ -62,7 +55,7 @@ protected:
 
 protected:
 
-    wxString base_name;
+    std::string base_name;
     int channel_coarse{ 0 };
     int channel_fine{ 0 };
     int min_value{ 0 };

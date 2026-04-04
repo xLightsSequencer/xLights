@@ -11,13 +11,15 @@
 
 #include "LorControllers.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <numeric>
 
 #pragma region Construtors and Destructors
-LorControllers::LorControllers(wxXmlNode* node) {
+LorControllers::LorControllers(pugi::xml_node node) {
 
-    wxXmlNode* ctrlr_node = node->GetChildren();
-    for (wxXmlNode* e = ctrlr_node->GetChildren(); e != nullptr; e = e->GetNext()) {
+    pugi::xml_node ctrlr_node = node.first_child();
+    for (pugi::xml_node e = ctrlr_node.first_child(); e; e = e.next_sibling()) {
         _controllers.push_back(new LorController(e));
     }
     _dirty = false;
@@ -32,10 +34,9 @@ LorControllers::LorControllers(const LorControllers& from)
     _dirty = true;
 }
 
-void LorControllers::Save(wxXmlNode* node) {
+void LorControllers::Save(pugi::xml_node node) {
     for (const auto& it : _controllers) {
-        wxXmlNode* cntrl_node = new wxXmlNode(wxXML_ELEMENT_NODE, "controller");
-        node->AddChild(cntrl_node);
+        pugi::xml_node cntrl_node = node.append_child("controller");
         it->Save(cntrl_node);
     }
     _dirty = false;

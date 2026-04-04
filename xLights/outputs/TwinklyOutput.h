@@ -11,10 +11,10 @@
  **************************************************************/
 #include <nlohmann/json.hpp>
 #include "IPOutput.h"
+#include "SocketAbstraction.h"
 #include <array>
-#include <wx/wx.h>
+#include <chrono>
 
-class wxDatagramSocket;
 class Discovery;
 
 // define this to use some hard coded sample date
@@ -22,15 +22,15 @@ class Discovery;
 
 class TwinklyOutput : public IPOutput
 {
-    wxMilliClock_t _lastLEDModeTime = 0;
+    std::chrono::milliseconds _lastLEDModeTime{0};
 
 public:
 #pragma region Constructors and Destructors
-    TwinklyOutput(wxXmlNode* node, bool isActive);
+    TwinklyOutput(pugi::xml_node node, bool isActive);
     TwinklyOutput();
     TwinklyOutput(const TwinklyOutput& from);
     virtual ~TwinklyOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new TwinklyOutput(*this);
@@ -107,17 +107,7 @@ private:
     std::string m_token;
     std::array<char, TOKEN_SIZE> m_decodedToken;
     std::vector<unsigned char> m_channelData;
-    wxDatagramSocket* _datagram = nullptr;
+    sockets::UDPSocket* _datagram = nullptr;
 
     void OpenDatagram();
-    
-    
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
-    #endif
-    #pragma endregion UI
 };

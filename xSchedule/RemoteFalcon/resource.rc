@@ -1,3 +1,0 @@
-APP_ICON ICON "../../include/RemoteFalcon.ico"
-
-#include "wx/msw/wx.rc"

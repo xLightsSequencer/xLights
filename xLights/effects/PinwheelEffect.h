@@ -40,14 +40,11 @@ class PinwheelEffect : public RenderableEffect
 public:
     PinwheelEffect(int id);
     virtual ~PinwheelEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
     {
         return true;
     }
-    virtual bool needToAdjustSettings(const std::string& version) override;
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return true;
@@ -105,7 +102,7 @@ protected:
     
     class PinwheelData {
     public:
-        PinwheelData(int i) : pinwheel_arms(i), colorarray(i), colorIsSpacial(i), colorsAsHSV(i), colorsAsColor(i) {
+        PinwheelData(int i) : colorarray(i), colorIsSpacial(i), colorsAsHSV(i), colorsAsColor(i), pinwheel_arms(i) {
             
         }
         std::vector<uint32_t> colorarray;
@@ -127,8 +124,6 @@ protected:
         float pos;
     };
 
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-    
     void RenderNewMethod(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);
     virtual void RenderNewArms(RenderBuffer& buffer, PinwheelData &data);
     void RenderOldMethod(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);

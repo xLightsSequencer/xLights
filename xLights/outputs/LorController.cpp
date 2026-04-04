@@ -10,9 +10,9 @@
  **************************************************************/
 
 #include "LorController.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
-#include <wx/wxchar.h>
+#include <cstdlib>
 
 #pragma region Constructors and Destructors
 LorController::LorController() {
@@ -26,14 +26,14 @@ LorController::LorController() {
     _expanded = true;
 }
 
-LorController::LorController(wxXmlNode* node) {
+LorController::LorController(pugi::xml_node node) {
 
-    _unit_id = wxAtoi(node->GetAttribute("UnitId", "1"));
-    _num_channels = wxAtoi(node->GetAttribute("NumChannels", "16"));
-    _type = node->GetAttribute("CntlrType", "AC Controller").ToStdString();
-    _mode = AddressMode(wxAtoi(node->GetAttribute("AddrMode", "1")));
-    _description = node->GetAttribute("CntlrDesc", "LOR Controller").ToStdString();
-    _expanded = node->GetAttribute("Expanded", "TRUE") == "TRUE";
+    _unit_id = node.attribute("UnitId").as_int(1);
+    _num_channels = node.attribute("NumChannels").as_int(16);
+    _type = node.attribute("CntlrType").as_string("AC Controller");
+    _mode = AddressMode(node.attribute("AddrMode").as_int(1));
+    _description = node.attribute("CntlrDesc").as_string("LOR Controller");
+    _expanded = std::string_view(node.attribute("Expanded").as_string("TRUE")) == "TRUE";
     _dirty = false;
 }
 
@@ -48,14 +48,14 @@ LorController::LorController(const LorController& from)
     _dirty = true;
 }
 
-void LorController::Save(wxXmlNode* node) {
-    
-    node->AddAttribute("UnitId", wxString::Format("%d", _unit_id));
-    node->AddAttribute("NumChannels", wxString::Format("%d", _num_channels));
-    node->AddAttribute("CntlrType", wxString::Format("%s", _type));
-    node->AddAttribute("AddrMode", wxString::Format("%d", _mode));
-    node->AddAttribute("CntlrDesc", wxString::Format("%s", _description));
-    node->AddAttribute("Expanded", _expanded ? _("TRUE") : _("FALSE"));
+void LorController::Save(pugi::xml_node node) {
+
+    node.append_attribute("UnitId") = _unit_id;
+    node.append_attribute("NumChannels") = _num_channels;
+    node.append_attribute("CntlrType") = _type;
+    node.append_attribute("AddrMode") = (int)_mode;
+    node.append_attribute("CntlrDesc") = _description;
+    node.append_attribute("Expanded") = _expanded ? "TRUE" : "FALSE";
     _dirty = false;
 }
 #pragma endregion
@@ -64,7 +64,7 @@ void LorController::Save(wxXmlNode* node) {
 int LorController::GetTotalNumChannels() const {
 
     if (StartsWith(_type, "Pixie")) {
-        return GetNumChannels() * wxAtoi(_type.substr(5));
+        return GetNumChannels() * static_cast<int>(std::strtol(_type.substr(5).c_str(), nullptr, 10));
     }
 
     return GetNumChannels();

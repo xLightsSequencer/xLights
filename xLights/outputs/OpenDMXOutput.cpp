@@ -10,11 +10,15 @@
  **************************************************************/
 
 #include "OpenDMXOutput.h"
+#include <cstring>
 
-#include <wx/xml/xml.h>
+#include "serial.h"
+
+#include <thread>
+#include <chrono>
 
 #pragma region Constructors and Destructors
-OpenDMXOutput::OpenDMXOutput(wxXmlNode* node) : SerialOutput(node) {
+OpenDMXOutput::OpenDMXOutput(pugi::xml_node node) : SerialOutput(node) {
     _baudRate = GetDefaultBaudRate();
     memset(_data, 0x00, sizeof(_data));
 }
@@ -52,7 +56,7 @@ void OpenDMXOutput::EndFrame(int suppressFrames) {
     if (_changed || NeedToOutput(suppressFrames)) {
         if (_serial != nullptr) {
             _serial->SendBreak();  // sends a 1 millisecond break
-            wxMilliSleep(1);      // mark after break (MAB) - 1 millisecond is overkill (8 microseconds is the minimum dmx requirement)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));  // mark after break (MAB) - 1 millisecond is overkill (8 microseconds is the minimum dmx requirement)
             _serial->Write((char *)_data, 513);
             FrameOutput();
         }

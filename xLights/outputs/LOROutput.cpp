@@ -10,8 +10,12 @@
  **************************************************************/
 
 #include "LOROutput.h"
+#include <cstring>
 
-#include <wx/xml/xml.h>
+#include "serial.h"
+
+#include <thread>
+#include <chrono>
 
 #pragma region Constructors and Destructors
 LOROutput::LOROutput(const LOROutput& from) :
@@ -22,7 +26,7 @@ LOROutput::LOROutput(const LOROutput& from) :
     memset(_data, 0, sizeof(_data));
 }
 
-LOROutput::LOROutput(wxXmlNode* node) : SerialOutput(node) {
+LOROutput::LOROutput(pugi::xml_node node) : SerialOutput(node) {
 
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
@@ -134,6 +138,6 @@ void LOROutput::AllOff() {
     }
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
-    wxMilliSleep(50);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 #pragma endregion 

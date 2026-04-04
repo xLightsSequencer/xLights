@@ -1,9 +1,11 @@
+#include <array>
+
 #include "MetalComputeUtilities.hpp"
 #include "MetalEffects.hpp"
 #include "MetalEffectDataTypes.h"
 
-#include "../../RenderBuffer.h"
-#include <array>
+#include "../../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 class MetalWarpEffectData {
 public:

@@ -10,18 +10,14 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/file.h>
 #include <vector>
 #include <glm/glm.hpp>
 #include "../../graphics/tiny_obj_loader.h"
-#include "../../Color.h"
+#include "Color.h"
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class wxXmlNode;
 class BaseObject;
 
-class ModelPreview;
+class IModelPreview;
 class xlGraphicsContext;
 class xlGraphicsProgram;
 class xlMesh;
@@ -36,17 +32,12 @@ public:
     bool GetExists(BaseObject* base, xlGraphicsContext *ctx);
     bool HasObjFile() const { return !_objFile.empty(); }
 
-    void AddTypeProperties(wxPropertyGridInterface* grid);
-    void UpdateTypeProperties(wxPropertyGridInterface* grid) {}
-
-    int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
-
-    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
+    void Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
             glm::mat4& base_matrix, glm::mat4& motion_matrix,
             bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0,
             bool rotation = false, bool use_pivot = false);
 
-    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,     glm::mat4& base_matrix, glm::mat4& trans_matrix, float xrot, float yrot, float zrot,
+    void Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,     glm::mat4& base_matrix, glm::mat4& trans_matrix, float xrot, float yrot, float zrot,
             bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z,
             bool rotation, bool use_pivot);
 
@@ -84,6 +75,7 @@ public:
     void SetBrightness(float bright) { brightness = bright; }
 
     void SetObjFile(const std::string& file) { _objFile = file; }
+    void NotifyObjFileChanged() { obj_loaded = false; obj_exists = false; if (controls_size) { recalc_size = true; } }
     void SetScaleX(float val) { scalex = val; }
     void SetScaleY(float val) { scaley = val; }
     void SetScaleZ(float val) { scalez = val; }
@@ -129,7 +121,7 @@ private:
     float rotatez = 0.0f;
     float half_height = 1.0f;
     float rscale = 1.0f;
-    wxString base_name;
+    std::string base_name;
 
     float bmin[3] = { 0.0, 0.0, 0.0 };
     float bmax[3] = { 0.0, 0.0, 0.0 };

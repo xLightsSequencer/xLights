@@ -12,7 +12,7 @@
 
 #include "RenderableEffect.h"
 
-#include "../Color.h"
+#include "Color.h"
 
 #define RIPPLE_CYCLES_MIN 0
 #define RIPPLE_CYCLES_MAX 300
@@ -57,9 +57,7 @@ class RippleEffect : public RenderableEffect
 public:
     RippleEffect(int id);
     virtual ~RippleEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    //virtual void SetPanelStatus(Model* cls) override;
     //virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -70,7 +68,7 @@ public:
         return true;
     }
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
@@ -155,9 +153,6 @@ public:
             return RIPPLE_OUTLINE_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }
-
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
 private:
 

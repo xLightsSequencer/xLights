@@ -14,7 +14,14 @@
 #include <nlohmann/json.hpp>
 
 #define SOL_ALL_SAFETIES_ON 1
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcomma"
+#endif
 #include "sol/sol.hpp"
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #include <lua.h>
 
 #include <list>

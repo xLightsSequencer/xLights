@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "../Color.h"
+#include "Color.h"
 #include "tiny_obj_loader.h"
 #include "xlGraphicsContext.h"
 

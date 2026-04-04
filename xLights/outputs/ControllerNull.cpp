@@ -9,21 +9,18 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-
 #include "ControllerNull.h"
 #include "OutputManager.h"
 #include "Output.h"
-#include "../UtilFunctions.h"
-#include "../SpecialOptions.h"
-#include "../OutputModelManager.h"
+#include "UtilFunctions.h"
+#include "../utils/SpecialOptions.h"
+#include "../models/OutputModelManager.h"
 #include "NullOutput.h"
 #include "../models/ModelManager.h"
 
 #pragma region Constructors and Destructors
-ControllerNull::ControllerNull(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
+ControllerNull::ControllerNull(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
     _dirty = false;
-    wxASSERT(_outputs.size() == 1);
 }
 
 ControllerNull::ControllerNull(OutputManager* om) : Controller(om) {
@@ -37,8 +34,8 @@ ControllerNull::ControllerNull(OutputManager* om, const ControllerNull& from) :
     // Nothing to actually copy
 }
 
-wxXmlNode* ControllerNull::Save() {
-    wxXmlNode* um = Controller::Save();
+pugi::xml_node ControllerNull::Save(pugi::xml_node parent) {
+    pugi::xml_node um = Controller::Save(parent);
 
     return um;
 }
@@ -68,7 +65,7 @@ std::string ControllerNull::GetLongDescription() const {
     std::string res = "";
     if (!IsActive()) res += "INACTIVE ";
     res += GetName() + "  NULL ";
-    res += "(" + std::string(wxString::Format(wxT("%ld"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%ld"), GetEndChannel())) + ") ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
     res += _description;
 
     return res;
@@ -86,7 +83,7 @@ std::string ControllerNull::GetShortDescription() const {
 	return res;
 }
 
-void ControllerNull::Convert(wxXmlNode* node, std::string showDir) {
+void ControllerNull::Convert(pugi::xml_node node, std::string showDir) {
 
     Controller::Convert(node, showDir);
 
@@ -107,15 +104,15 @@ void ControllerNull::Convert(wxXmlNode* node, std::string showDir) {
 }
 
 std::string ControllerNull::GetChannelMapping(int32_t ch) const {
-    return wxString::Format("Channel %d maps to ...\nTYPE: NULL\nName: %s\nChannel: %d\n%s",
-        ch, 
-        GetName(), 
-        ch - GetStartChannel() + 1, 
-        (IsActive() ? _("") : _("INACTIVE\n")));
+    return std::format("Channel {} maps to ...\nTYPE: NULL\nName: {}\nChannel: {}\n{}",
+        ch,
+        GetName(),
+        ch - GetStartChannel() + 1,
+        (IsActive() ? "" : "INACTIVE\n"));
 }
 
 std::string ControllerNull::GetExport() const {
-    return wxString::Format("%s,%d,%d,%s,NULL,,,,\"%s\",%d,%d,%s,,%s,%s,,,%s",
+    return std::format("{},{},{},{},NULL,,,,\"{}\",{},{},{},,{},{},,,{}",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),
@@ -123,48 +120,13 @@ std::string ControllerNull::GetExport() const {
         GetDescription(),
         GetId(),
         GetChannels(),
-        (IsActive() ? _("") : _("DISABLED")),
-        (IsAutoSize() ? _("AutoSize") : _("")),
-        (IsAutoLayout() ? _("AutoLayout") : _("")),
+        (IsActive() ? "" : "DISABLED"),
+        (IsAutoSize() ? "AutoSize" : ""),
+        (IsAutoLayout() ? "AutoLayout" : ""),
         GetFPPProxy()
     );
 }
 #pragma endregion
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-void ControllerNull::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-
-    Controller::AddProperties(propertyGrid, modelManager, expandProperties);
-
-    auto p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
-    p->ChangeFlag(wxPGFlags::ReadOnly , true);
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-
-    p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
-    p->SetEditor("SpinCtrl");
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100000000);
-}
-
-bool ControllerNull::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
-
-    if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
-
-    wxString const name = event.GetPropertyName();
-    //wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-
-    if (name == "Channels") {
-        if (_outputs.size() > 0) {
-            _outputs.front()->SetChannels(event.GetValue().GetLong());
-        }
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "NullOutput::HandlePropertyEvent::Channels");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "NullOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "NullOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "NullOutput::HandlePropertyEvent::Channels", nullptr);
-        return true;
-    }
-    return false;
-}
-#endif
+// UI property grid methods moved to ui/controllerproperties/ControllerNullPropertyAdapter
 #pragma endregion

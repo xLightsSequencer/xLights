@@ -20,6 +20,7 @@ public:
 
     friend class MultiPointModel;
     friend class PolyLineModel;
+    friend class ScreenLocationPropertyHelper;
     
     virtual void Init() override;
 
@@ -27,17 +28,17 @@ public:
     virtual void TranslatePoint(float& x, float& y, float& z) const override;
     virtual void ApplyModelViewMatrices(xlGraphicsContext *ctx) const override;
 
-    virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
+    virtual bool IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const override;
-    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int& handle, int x, int y) const override;
-    virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
+    virtual CursorType CheckIfOverHandles(IModelPreview* preview, int& handle, int x, int y) const override;
+    virtual CursorType CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
 
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
 
-    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
+    virtual int MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual int MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
     virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
@@ -49,18 +50,15 @@ public:
     virtual bool SupportsCurves() const override {return true;}
     virtual bool HasCurve(int segment) const override { return mPos[segment].has_curve; }
     virtual void SetCurve(int seg_num, bool create = true) override;
-    virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
+    virtual void AddHandle(IModelPreview* preview, int mouseX, int mouseY) override;
     virtual void InsertHandle(int after_handle, float zoom, int scale) override;
     virtual void DeleteHandle(int handle) override;
-    virtual wxCursor InitializeLocation(int& handle, int x, int y, const std::vector<NodeBaseClassPtr>& Nodes, ModelPreview* preview) override;
+    virtual CursorType InitializeLocation(int& handle, int x, int y, const std::vector<NodeBaseClassPtr>& Nodes, IModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr>& Node) override;
 
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid, float factor = 1.0) const override;
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) const override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual std::string GetDimension(float factor = 1.0) const override;
     
-    virtual glm::vec2 GetScreenOffset(ModelPreview* preview) const override;
+    virtual glm::vec2 GetScreenOffset(IModelPreview* preview) const override;
     virtual float GetHcenterPos() const override;
     virtual float GetVcenterPos() const override;
     virtual float GetDcenterPos() const override;

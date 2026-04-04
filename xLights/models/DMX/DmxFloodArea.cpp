@@ -8,14 +8,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-
 #include "DmxFloodArea.h"
-#include "../../ModelPreview.h"
-#include "../../UtilFunctions.h"
-#include "../../xLightsMain.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
+#include "UtilFunctions.h"
 #include "../../xLightsVersion.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 

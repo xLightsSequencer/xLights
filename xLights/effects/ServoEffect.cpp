@@ -15,10 +15,13 @@
 #include "../../include/servo-64.xpm"
 
 #include "ServoEffect.h"
-#include "ServoPanel.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
+#include "render/ValueCurve.h"
+#include "../utils/string_utils.h"
+
+#include <format>
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
 #include "../models/DMX/DmxColorAbility.h"
 #include "../models/DMX/DmxModel.h"
 #include "../models/DMX/DmxMotor.h"
@@ -28,9 +31,9 @@
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Servo.h"
 #include "../models/ModelGroup.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/Element.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/Effect.h"
+#include "../render/Element.h"
+#include "../render/SequenceElements.h"
 
 ServoEffect::ServoEffect(int id) :
     RenderableEffect(id, "Servo", servo_16, servo_24, servo_32, servo_48, servo_64) {
@@ -41,9 +44,6 @@ ServoEffect::~ServoEffect() {
     // dtor
 }
 
-xlEffectPanel* ServoEffect::CreatePanel(wxWindow* parent) {
-    return new ServoPanel(parent);
-}
 bool ServoEffect::needToAdjustSettings(const std::string& version) {
     if (IsVersionOlder("2024.11", version)) {
         return true;
@@ -111,39 +111,22 @@ std::list<std::string> ServoEffect::CheckEffectSettings(const SettingsMap& setti
 
     bool useTiming = settings.GetBool("E_CHECKBOX_Timing_Track");
     if (useTiming) {
-        wxString timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
+        std::string timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
         if (timing == "") {
-            res.push_back(wxString::Format("    ERR: Servo effect with no timing selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Servo effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (timing != "" && GetTiming(timing) == nullptr) {
-            res.push_back(wxString::Format("    ERR: Servo effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Servo effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
     return res;
 }
 
 void ServoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Servo_TimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Servo_TimingTrack", "");
 
-    if (timing.ToStdString() == oldname) {
-        effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = wxString(newname);
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = newname;
     }
-}
-
-void ServoEffect::SetDefaultParameters() {
-    ServoPanel* dp = (ServoPanel*)panel;
-    if (dp == nullptr) {
-        return;
-    }
-    dp->EndLinkedButton->SetValue(false);
-    dp->StartLinkedButton->SetValue(false);
-    dp->ValueCurve_Servo->SetActive(false);
-    SetSliderValue(dp->Slider_Servo, 0);
-    SetSliderValue(dp->SliderEndValue, 0);
-    dp->Choice_Channel->SetSelection(-1);
-    dp->CheckBox_16bit->SetValue(false);
-    SetCheckBoxValue(dp->CheckBox_Timing_Track, false);
-    dp->Choice_Servo_TimingTrack->SetSelection(-1);
-    dp->SyncCheckBox->SetValue(false);
 }
 
 void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
@@ -190,7 +173,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxServo* servo = (DmxServo*)model_info;
                         for (int k = 0; k < servo->GetNumServos(); ++k) {
                             int axis_channel = servo->GetAxis(k)->GetChannel();
-                            if (axis_channel == (i + 1)) {
+                            if (axis_channel == (int)(i + 1)) {
                                 min_limit = servo->GetAxis(k)->GetMinLimit();
                                 max_limit = servo->GetAxis(k)->GetMaxLimit();
                                 break;
@@ -200,7 +183,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxServo3d* servo = (DmxServo3d*)model_info;
                         for (int k = 0; k < servo->GetNumServos(); ++k) {
                             int axis_channel = servo->GetAxis(k)->GetChannel();
-                            if (axis_channel == (i + 1)) {
+                            if (axis_channel == (int)(i + 1)) {
                                 min_limit = servo->GetAxis(k)->GetMinLimit();
                                 max_limit = servo->GetAxis(k)->GetMaxLimit();
                                 break;
@@ -210,7 +193,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
                         for (int k = 0; k < mhead->GetNumMotors(); ++k) {
                             int axis_channel = mhead->GetAxis(k)->GetChannelCoarse();
-                            if (axis_channel == (i + 1)) {
+                            if (axis_channel == (int)(i + 1)) {
                                 min_limit = mhead->GetAxis(k)->GetMinValue();
                                 max_limit = mhead->GetAxis(k)->GetMaxValue();
                                 channel_coarse = mhead->GetAxis(k)->GetChannelCoarse() - 1;
@@ -223,42 +206,42 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                         DmxSkull* skull = (DmxSkull*)model_info;
                         if (skull->HasPan()) {
                             int pan_channel = skull->GetPanChannel();
-                            if (pan_channel == (i + 1)) {
+                            if (pan_channel == (int)(i + 1)) {
                                 min_limit = skull->GetPanMinLimit();
                                 max_limit = skull->GetPanMaxLimit();
                             }
                         }
                         if (skull->HasTilt()) {
                             int tilt_channel = skull->GetTiltChannel();
-                            if (tilt_channel == (i + 1)) {
+                            if (tilt_channel == (int)(i + 1)) {
                                 min_limit = skull->GetTiltMinLimit();
                                 max_limit = skull->GetTiltMaxLimit();
                             }
                         }
                         if (skull->HasNod()) {
                             int nod_channel = skull->GetNodChannel();
-                            if (nod_channel == (i + 1)) {
+                            if (nod_channel == (int)(i + 1)) {
                                 min_limit = skull->GetNodMinLimit();
                                 max_limit = skull->GetNodMaxLimit();
                             }
                         }
                         if (skull->HasJaw()) {
                             int jaw_channel = skull->GetJawChannel();
-                            if (jaw_channel == (i + 1)) {
+                            if (jaw_channel == (int)(i + 1)) {
                                 min_limit = skull->GetJawMinLimit();
                                 max_limit = skull->GetJawMaxLimit();
                             }
                         }
                         if (skull->HasEyeUD()) {
                             int eye_ud_channel = skull->GetEyeUDChannel();
-                            if (eye_ud_channel == (i + 1)) {
+                            if (eye_ud_channel == (int)(i + 1)) {
                                 min_limit = skull->GetEyeUDMinLimit();
                                 max_limit = skull->GetEyeUDMaxLimit();
                             }
                         }
                         if (skull->HasEyeLR()) {
                             int eye_lr_channel = skull->GetEyeLRChannel();
-                            if (eye_lr_channel == (i + 1)) {
+                            if (eye_lr_channel == (int)(i + 1)) {
                                 min_limit = skull->GetEyeLRMinLimit();
                                 max_limit = skull->GetEyeLRMaxLimit();
                             }
@@ -268,7 +251,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     if (dmx->HasColorAbility()) {
                         DmxColorAbility* dmx_color = dmx->GetColorAbility();
                         if (dmx_color != nullptr) {
-                            if (dmx_color->IsColorChannel(i + 1) || brt_channel == (i + 1)) {
+                            if (dmx_color->IsColorChannel(i + 1) || brt_channel == (int)(i + 1)) {
                                 min_limit = 0;
                                 max_limit = 255;
                             }
@@ -315,48 +298,8 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     }
 }
 
-void ServoEffect::SetPanelStatus(Model* cls) {
-    ServoPanel* p = (ServoPanel*)panel;
-    if (p == nullptr) {
-        return;
-    }
-    if (cls == nullptr) {
-        return;
-    }
-
-    Model* m = cls;
-    if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        m = dynamic_cast<ModelGroup*>(cls)->GetFirstModel();
-        if (m == nullptr)
-            m = cls;
-    }
-
-    p->Choice_Servo_TimingTrack->Clear();
-    for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|')) {
-        p->Choice_Servo_TimingTrack->Append(it);
-    }
-
-    int num_channels = m->GetNumChannels();
-
-    wxString choice_ctrl = "ID_CHOICE_Channel";
-    wxChoice* choice = (wxChoice*)(p->FindWindowByName(choice_ctrl));
-
-    if (choice != nullptr) {
-        choice->Clear();
-        for (int i = 0; i <= num_channels; ++i) {
-            std::string name = m->GetNodeName(i);
-            if (name != "" && name[0] != '-') {
-                choice->Append(name);
-            }
-        }
-        choice->SetSelection(0);
-    }
-    p->FlexGridSizer_Main->Layout();
-    p->Refresh();
-}
-
 int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName) {
-    static const std::map<wxString, int> phonemeMap = {
+    static const std::map<std::string, int> phonemeMap = {
         { "AI", 90 },
         { "E", 70 },
         { "FV", 20 },
@@ -376,9 +319,6 @@ int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* element
     if (track == nullptr || track->GetEffectLayerCount() < 3) {
         phoneme = "rest";
     } else {
-        int startms = -1;
-        int endms = -1;
-
         EffectLayer* layer = track->GetEffectLayer(2);
         std::unique_lock<std::recursive_mutex> locker2(layer->GetLock());
         int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
@@ -386,17 +326,14 @@ int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* element
         if (ef == nullptr) {
             phoneme = "rest";
         } else {
-            startms = ef->GetStartTimeMS();
-            endms = ef->GetEndTimeMS();
             phoneme = ef->GetEffectName();
         }
     }
 
-    wxString pp = phoneme;
-    std::string p = pp.BeforeFirst('-');
-    // bool shimmer = pp.Lower().EndsWith("-shimmer");
+    std::string p = BeforeFirst(phoneme, '-');
+    // bool shimmer = Lower(phoneme).ends_with("-shimmer");
 
-    std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
+    std::map<std::string, int>::const_iterator it = phonemeMap.find(p);
     int PhonemeInt = 0;
     if (it != phonemeMap.end()) {
         PhonemeInt = it->second;

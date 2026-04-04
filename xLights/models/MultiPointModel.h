@@ -29,19 +29,18 @@ public:
     virtual int GetNumPhysicalStrings() const override;
     virtual void DeleteHandle(int handle) override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-    virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
     
     virtual int GetNumStrings() const override{ return _strings; }
     float GetModelHeight() const { return _height; }
+    int GetNumPoints() const { return screenLocation.GetNumPoints(); }
+    void SetNumPoints(int points) { screenLocation.SetNumPoints(points); }
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
 
-    const std::string StartNodeAttrName(int idx) const
+    const std::string StartNodeAttrName(int idx) const override
     {
-        return wxString::Format(wxT("MultiNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+        return "MultiNode" + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
 
 protected:

@@ -9,12 +9,15 @@
  **************************************************************/
 
 #include "WaveEffect.h"
-#include "WavePanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
+#include <cmath>
+#include <cstdlib>
+
+#include "render/ValueCurve.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
 
 #include "../../include/wave-16.xpm"
 #include "../../include/wave-24.xpm"
@@ -31,10 +34,6 @@ WaveEffect::~WaveEffect()
 {
     //dtor
 }
-xlEffectPanel *WaveEffect::CreatePanel(wxWindow *parent) {
-    return new WavePanel(parent);
-}
-
 bool WaveEffect::needToAdjustSettings(const std::string& version)
 {
     return IsVersionOlder("2022.06", version);
@@ -49,7 +48,7 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
         std::string speed = settings.Get("E_SLIDER_Wave_Speed", "");
         if (speed != "") {
             settings.erase("E_SLIDER_Wave_Speed");
-            settings["E_TEXTCTRL_Wave_Speed"] = wxString::Format("%d", wxAtoi(speed));
+            settings["E_TEXTCTRL_Wave_Speed"] = std::to_string(std::strtol(speed.c_str(), nullptr, 10));
         } else {
             speed = settings.Get("E_VALUECURVE_Wave_Speed", "");
             if (Contains(speed, "Active=TRUE")) {
@@ -101,28 +100,6 @@ static inline int GetWaveFillColor(const std::string &color) {
     return 0; //None
 }
 
-void WaveEffect::SetDefaultParameters() {
-    WavePanel *wp = (WavePanel*)panel;
-    if (wp == nullptr) {
-        return;
-    }
-
-    SetChoiceValue(wp->Choice_Wave_Type, "Sine");
-    SetChoiceValue(wp->Choice_Fill_Colors, "None");
-    SetCheckBoxValue(wp->CheckBox_Mirror_Wave, false);
-    SetSliderValue(wp->Slider_Number_Waves, 900);
-    SetSliderValue(wp->Slider_Thickness_Percentage, 5);
-    SetSliderValue(wp->Slider_Wave_Height, 50);
-    SetSliderValue(wp->Slider_Wave_Speed, 1000);
-    SetSliderValue(wp->Slider_Y_Offset, 0);
-    SetChoiceValue(wp->Choice_Wave_Direction, "Right to Left");
-    wp->BitmapButton_Number_WavesVC->SetActive(false);
-    wp->BitmapButton_Thickness_PercentageVC->SetActive(false);
-    wp->BitmapButton_Wave_HeightVC->SetActive(false);
-    wp->BitmapButton_Wave_SpeedVC->SetActive(false);
-    wp->BitmapButton_Wave_YOffsetVC->SetActive(false);
-}
-
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
@@ -169,7 +146,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         //        if (r < 100./ThicknessWave) r = 100./ThicknessWave; //turn into straight line; don't completely disappear
         if (r < 0) r = 0; //turn into straight line; don't completely disappear
     } else if (WaveType == WAVETYPE_IVYFRACTAL) { //generate branches at start of effect
-        if (buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
+        if (buffer.needToInit || ((int)WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
             r = 0;
             int delay = 0;
             int delta = 0; //next branch length, angle
@@ -289,7 +266,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 
             if (WaveType == WAVETYPE_SQUARE) { // Square Wave
-                if (signbit(sinrad) != signbit(sinradMinus1)) {
+                if (std::signbit(sinrad) != std::signbit(sinradMinus1)) {
                     y1 = yc - yc * (WaveHeight / 100.0);
                     y2 = yc + yc * (WaveHeight / 100.0);
                 } else if (sinrad > 0.0) {
@@ -313,7 +290,6 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             int y1mirror = yc + (yc - y1);
             int y2mirror = yc + (yc - y2);
             deltay = y2 - y1;
-            wxASSERT(deltay > 0);
 
             for (y = y1; y <= y2; y++) {
                 int adjustedY = y + roundedWaveYOffset;

@@ -14,11 +14,12 @@
 #include <string>
 
 #include "ControllerUploadData.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 class ModelManager;
 class OutputManager;
 class Controller;
+class UICallbacks;
 
 class BaseController
 {
@@ -58,14 +59,14 @@ public:
 
     [[nodiscard]] virtual const std::string &GetModel() const { return _model; }
     [[nodiscard]] virtual const std::string &GetVersion() const { return _version; }
-    [[nodiscard]] virtual std::string GetFullName() const { return _model + ((_version == "") ? _("") : (_(" ") + _version)); }
+    [[nodiscard]] virtual std::string GetFullName() const { return _version.empty() ? _model : (_model + " " + _version); }
 
 #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) { return false; }
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) = 0;
-    
-    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
-    //virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
+    virtual bool SetInputUniverses(Controller* controller, UICallbacks* ui) { return false; }
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) = 0;
+
+    virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) { return false; }
+    //virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, UICallbacks* ui) { return false; }
 #endif
 
     [[nodiscard]] virtual bool UsesHTTP() const = 0;

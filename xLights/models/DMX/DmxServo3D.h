@@ -21,15 +21,13 @@ public:
     DmxServo3d(const ModelManager& manager);
     virtual ~DmxServo3d();
 
-    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+    virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                       bool highlightFirst = false, int highlightpixel = 0,
                                       float *boundingBox = nullptr) override;
-    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+    virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual std::list<std::string> CheckModelSettings() override;
 
     const Servo* GetAxis(int num) { return num < num_servos ? servos[num].get() : servos[0].get(); }
@@ -51,6 +49,8 @@ public:
     void SetNumMotion(int val);
     void SetIs16Bit(bool val) { _16bit = val; }
     void SetBrightness(float val) {brightness = val; }
+    bool GetShowPivot() const { return show_pivot; }
+    void SetShowPivot(bool val) { show_pivot = val; }
 
     Mesh* CreateStaticMesh(const std::string& name, int idx);
     Mesh* CreateMotionMesh(const std::string& name, int idx);
@@ -64,7 +64,7 @@ public:
 
 protected:
     virtual void InitModel() override;
-    void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
+    void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
 
     float brightness = 100.0f;
 

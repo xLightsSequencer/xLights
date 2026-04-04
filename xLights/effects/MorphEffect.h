@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #define MORPH_X_MIN 0
 #define MORPH_X_MAX 100
@@ -47,13 +47,7 @@ public:
     virtual ~MorphEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
-    virtual AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
-    virtual bool HasAssistPanel() override
-    {
-        return true;
-    }
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-    virtual void SetDefaultParameters() override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return true;
@@ -106,6 +100,4 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

@@ -31,7 +31,6 @@
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_html.lib")
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_propgrid.lib")
     #pragma comment(lib, "wxexpatd.lib")
-    #pragma comment(lib, "log4cppLIBd.lib")
 #else
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u.lib")
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u_net.lib")
@@ -49,7 +48,6 @@
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_html.lib")
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_propgrid.lib")
     #pragma comment(lib, "wxexpat.lib")
-    #pragma comment(lib, "log4cppLIB.lib")
 
 #endif
 #pragma comment(lib, "libcurl.dll.a")

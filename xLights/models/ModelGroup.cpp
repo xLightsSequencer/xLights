@@ -8,18 +8,17 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-#include <wx/xml/xml.h>
-#include <wx/sstream.h>
+#include <cassert>
 
 #include "ModelGroup.h"
 #include "ModelManager.h"
 #include "SingleLineModel.h"
 #include "ModelScreenLocation.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
+#include "../utils/ThreadUtils.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 static const std::string HORIZ("Horizontal Stack");
 static const std::string VERT("Vertical Stack");
@@ -172,7 +171,7 @@ bool ModelGroup::DirectlyContainsModel(std::string const& m) const
 
 bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 {
-    wxASSERT(m->GetDisplayAs() != DisplayAsType::ModelGroup);
+    assert(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
     visited.push_back(this);
@@ -197,7 +196,7 @@ bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 
 bool ModelGroup::ContainsModel(const Model* m) const
 {
-    wxASSERT(m->GetDisplayAs() != DisplayAsType::ModelGroup);
+    assert(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
     visited.push_back(this);
@@ -327,9 +326,9 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     return GROUP_BUFFER_STYLES;
 }
 
-bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
+bool ModelGroup::AllModelsExist(pugi::xml_node node, const ModelManager& models)
 {
-    std::string nms = node->GetAttribute("models").ToStdString();
+    std::string nms = node.attribute("models").as_string();
     std::vector<std::string> mn;
     Split(nms, ',', mn, true);
     for (auto& it : mn) {
@@ -341,14 +340,14 @@ bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
     return true;
 }
 
-bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::set<std::string>& allmodels)
+bool ModelGroup::RemoveNonExistentModels(pugi::xml_node node, const std::set<std::string>& allmodels)
 {
     bool changed = false;
 
     std::string models;
     std::string modelsRemoved;
 
-    std::string nms = node->GetAttribute("models", "").ToStdString();
+    std::string nms = node.attribute("models").as_string();
     std::vector<std::string> mn;
     Split(nms, ',', mn, true);
     for (auto& mm : mn) {
@@ -372,8 +371,8 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::set<std::st
     }
 
     if (changed && !modelsRemoved.empty()) {
-        node->DeleteAttribute("models");
-        node->AddAttribute("models", models);
+        node.remove_attribute("models");
+        node.append_attribute("models") = models;
     }
     return changed;
 }
@@ -852,8 +851,8 @@ void ModelGroup::ModelRemoved(const std::string &oldName) {
 bool ModelGroup::RemoveDuplicates()
 {
     bool changed = false;
-    for (int i = 0; i < modelNames.size(); i++) {
-        for (int j = i + 1; j < modelNames.size(); j++) {
+    for (int i = 0; i < (int)modelNames.size(); i++) {
+        for (int j = i + 1; j < (int)modelNames.size(); j++) {
             if (modelNames[i] == modelNames[j]) {
                 changed = true;
                 auto it = begin(modelNames);
@@ -879,7 +878,7 @@ bool ModelGroup::IsModelFromBase(const std::string& modelName) const
 bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     
-    for (int x = 0; x < modelNames.size(); x++) {
+    for (int x = 0; x < (int)modelNames.size(); x++) {
         if (modelNames[x] == oldName) {
             modelNames[x] = newName;
             changed = true;
@@ -911,7 +910,7 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
 bool ModelGroup::SubModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     
-    for (int x = 0; x < modelNames.size(); x++) {
+    for (int x = 0; x < (int)modelNames.size(); x++) {
         if (modelNames[x] == oldName) {
             modelNames[x] = newName;
             changed = true;
@@ -935,7 +934,7 @@ bool ModelGroup::CheckForChanges() const {
     }
 
     if (l != changeCount) {
-        if (!wxThread::IsMain()) {
+        if (!IsMainThread()) {
             //calling reset on any thread other than the main thread is bad.  In theory, any changes to the group/model
             //would only be done on the main thread after an abortRender call so we shouldn't get here, but we are
             //seeing stack traces in crash reports that show otherwise so likely some abortRender calls are missing.
@@ -1086,12 +1085,12 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int 
 //            m->InitRenderBufferNodes("Single Line", "2D", "None", nodesSingleLine, x, y);
 //            totalSingleLine += nodesSingleLine.size();
 
-//            wxASSERT(nodesDefault.size() == nodesSingleLine.size());
+//            assert(nodesDefault.size() == nodesSingleLine.size());
 //        }
 //    }
-//    wxASSERT(mgNodesDefault.size() == mgNodesPerPreview.size());
-//    wxASSERT(mgNodesDefault.size() == totalPerModelDefault);
-//    wxASSERT(mgNodesDefault.size() == totalSingleLine);
+//    assert(mgNodesDefault.size() == mgNodesPerPreview.size());
+//    assert(mgNodesDefault.size() == totalPerModelDefault);
+//    assert(mgNodesDefault.size() == totalSingleLine);
 //}
 
 void ModelGroup::InitRenderBufferNodes(const std::string& tp,
@@ -1115,11 +1114,11 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             if (m != nullptr && m->IsActive()) {
-                int start = Nodes.size();
+                int start = (int)Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y, stagger);
                 y = 0;
-                while (start < Nodes.size()) {
+                while (start < (int)Nodes.size()) {
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufX = BufferWi;
                         it2.bufY = y;
@@ -1140,14 +1139,14 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             if (m != nullptr && m->IsActive()) {
-                int start = Nodes.size();
+                int start = (int)Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y, stagger);
-                while (start < Nodes.size()) {
+                while (start < (int)Nodes.size()) {
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufX = it2.bufX + modelX;
                         if (stagger < 0) {
-                            it2.bufY += (modelNames.size() - modelCount - 1) * stagger;
+                            it2.bufY += ((int)modelNames.size() - modelCount - 1) * stagger;
                         } else {
                             it2.bufY += modelCount * stagger;
                         }
@@ -1155,8 +1154,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                     start++;
                 }
                 if (stagger < 0) {
-                    if (y + (modelNames.size() - modelCount - 1) * stagger > BufferHt) {
-                        BufferHt = y + (modelNames.size() - modelCount - 1) * stagger;
+                    if (y + ((int)modelNames.size() - modelCount - 1) * stagger > BufferHt) {
+                        BufferHt = y + ((int)modelNames.size() - modelCount - 1) * stagger;
                     }
                 }
                 else
@@ -1177,15 +1176,15 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             if (m != nullptr && m->IsActive()) {
-                int start = Nodes.size();
+                int start = (int)Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y, stagger);
-                while (start < Nodes.size()) {
+                while (start < (int)Nodes.size()) {
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufY = it2.bufY + modelY;
                         if (stagger < 0)
                         {
-                            it2.bufX += (modelNames.size() - modelCount - 1) * stagger;
+                            it2.bufX += ((int)modelNames.size() - modelCount - 1) * stagger;
 
                         } else {
                             it2.bufX += modelCount * stagger;
@@ -1194,8 +1193,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                     start++;
                 }
                 if (stagger < 0) {
-                    if (x + (modelNames.size() - modelCount - 1) * stagger > BufferWi) {
-                        BufferWi = x + (modelNames.size() - modelCount - 1) * stagger;
+                    if (x + ((int)modelNames.size() - modelCount - 1) * stagger > BufferWi) {
+                        BufferWi = x + ((int)modelNames.size() - modelCount - 1) * stagger;
                     }
                 } else {
                     if (x + modelCount * stagger > BufferWi) {
@@ -1220,10 +1219,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             for (const auto& it : modelNames) {
                 Model* m = modelManager[it];
                 if (m != nullptr && m->IsActive()) {
-                    int start = Nodes.size();
+                    int start = (int)Nodes.size();
                     int x, y;
                     m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y, stagger);
-                    while (start < Nodes.size()) {
+                    while (start < (int)Nodes.size()) {
                         for (auto& it2 : Nodes[start]->Coords) {
                             it2.bufX = (double)it2.bufX * ((double)modBufferWi / (double)x) + (double)modelX;
                             it2.bufY = (double)it2.bufY * ((double)BufferHt / (double)y);
@@ -1248,10 +1247,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             for (const auto& it : modelNames) {
                 Model* m = modelManager[it];
                 if (m != nullptr && m->IsActive()) {
-                    int start = Nodes.size();
+                    int start = (int)Nodes.size();
                     int x, y;
                     m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y, stagger);
-                    while (start < Nodes.size()) {
+                    while (start < (int)Nodes.size()) {
                         for (auto& it2 : Nodes[start]->Coords) {
                             it2.bufX = (double)it2.bufX * ((double)BufferWi / (double)x);
                             it2.bufY = (double)it2.bufY * ((double)modBufferHt / (double)y) + (double)modelY;
@@ -1267,11 +1266,11 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             if (m != nullptr && m->IsActive()) {
-                int start = Nodes.size();
+                int start = (int)Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y, stagger);
                 y = 0;
-                while (start < Nodes.size()) {
+                while (start < (int)Nodes.size()) {
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufY = BufferHt;
                         it2.bufX = y;
@@ -1292,11 +1291,11 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             if (m != nullptr && m->IsActive()) {
-                int start = Nodes.size();
+                int start = (int)Nodes.size();
                 int x = 0;
                 int y = 0;
                 m->InitRenderBufferNodes("As Pixel", "2D", "None", Nodes, x, y, stagger);
-                while (start < Nodes.size()) {
+                while (start < (int)Nodes.size()) {
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufY = 0;
                         it2.bufX = outx;
@@ -1346,12 +1345,12 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             ModelGroup* grp = dynamic_cast<ModelGroup*>(m);
-            int startBM = Nodes.size();
+            int startBM = (int)Nodes.size();
             if (grp != nullptr) {
                 int bw, bh;
                 bw = bh = 0;
                 grp->InitRenderBufferNodes(type, "2D", "None", Nodes, bw, bh, stagger);
-                for (int x = startBM; x < Nodes.size(); x++) {
+                for (int x = startBM; x < (int)Nodes.size(); x++) {
                     for (auto& it2 : Nodes[x]->Coords) {
                         if (horiz) {
                             it2.bufX += curS;
@@ -1369,7 +1368,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                 int bw, bh;
                 bw = bh = 0;
                 m->InitRenderBufferNodes(type, "2D", "None", Nodes, bw, bh, stagger);
-                for (int x = startBM; x < Nodes.size(); x++) {
+                for (int x = startBM; x < (int)Nodes.size(); x++) {
                     for (auto& it2 : Nodes[x]->Coords) {
                         if (horiz) {
                             SetCoords(it2, it2.bufX + curS, it2.bufY, -1, BufferHt, bh);
@@ -1385,10 +1384,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                 }
             }
             if (m != nullptr && m->IsActive()) {
-                int endBM = Nodes.size();
-                if ((endBM - startBM) != m->GetNodeCount()) {
-                    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                    logger_base.warn("Model group '%s' had problems creating render buffer for Per Strand/Model. Problem model '%s'.",
+                int endBM = (int)Nodes.size();
+                if ((endBM - startBM) != (int)m->GetNodeCount()) {
+                    
+                    spdlog::warn("Model group '{}' had problems creating render buffer for Per Strand/Model. Problem model '{}'.",
                                      (const char*)GetFullName().c_str(),
                                      (const char*)m->GetFullName().c_str());
                 }
@@ -1401,12 +1400,12 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         if (deep) {
             for (const auto& it : GetFlatModels(false, true)) {
                 Model* m = it;
-                wxASSERT(m != nullptr);
+                assert(m != nullptr);
                 if (!m->IsActive()) continue;
-                int start = Nodes.size();
+                int start = (int)Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y, stagger);
-                while (start < Nodes.size()) {
+                while (start < (int)Nodes.size()) {
                     for (auto& it2 : Nodes[start]->Coords) {
                         it2.bufX = BufferWi;
                         it2.bufY = 0;
@@ -1419,10 +1418,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             for (const auto& it : modelNames) {
                 Model* m = modelManager[it];
                 if (m != nullptr && m->IsActive()) {
-                    int start = Nodes.size();
+                    int start = (int)Nodes.size();
                     int x, y;
                     m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y, stagger);
-                    while (start < Nodes.size()) {
+                    while (start < (int)Nodes.size()) {
                         for (auto& it2 : Nodes[start]->Coords) {
                             it2.bufX = BufferWi;
                             it2.bufY = 0;
@@ -1445,14 +1444,14 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         for (const auto& it : modelNames) {
             Model* m = modelManager[it];
             if (m != nullptr && m->IsActive()) {
-                int start = Nodes.size();
+                int start = (int)Nodes.size();
                 int bw, bh;
                 m->InitRenderBufferNodes("Default", "2D", "None", Nodes, bw, bh, stagger);
                 if (bw != BufferWi || bh != BufferHt) {
                     //need to either scale or center
                     int offx = (BufferWi - bw) / 2;
                     int offy = (BufferHt - bh) / 2;
-                    while (start < Nodes.size()) {
+                    while (start < (int)Nodes.size()) {
                         for (auto& it2 : Nodes[start]->Coords) {
                             if (scale) {
                                 it2.bufX = (double)it2.bufX * ((double)BufferWi / (double)bw);

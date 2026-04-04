@@ -9,34 +9,51 @@
  **************************************************************/
 
 #include "TextEffect.h"
+#include "AudioManager.h"
 
+#include <cassert>
+#include <chrono>
+#include <cstdlib>
+#include <ctime>
+#include <filesystem>
+#include <iomanip>
+#include <fstream>
+#include <format>
 #include <mutex>
 #include <array>
+#include <sstream>
 #include <unordered_map>
 
-#include "TextPanel.h"
-#include <wx/checkbox.h>
-
-#include "../sequencer/Effect.h"
-#include "../sequencer/Element.h"
-#include "../sequencer/EffectsGrid.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/Element.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
-#include "../FontManager.h"
-#include "../xLightsMain.h"
-#include "../ExternalHooks.h"
-#include "../xLightsXmlFile.h"
+#include "UtilFunctions.h"
+#include "../render/FontManager.h"
+#include "../render/RenderContext.h"
+#include "../render/SequenceElements.h"
+#include "utils/ExternalHooks.h"
+#include "../render/SequenceFile.h"
+#include "../render/SequenceMedia.h"
+#include "../utils/string_utils.h"
+#include "../utils/xlRect.h"
+#include "../utils/xlSize.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
 #include "../../include/text-32.xpm"
 #include "../../include/text-48.xpm"
 #include "../../include/text-64.xpm"
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #define MAXTEXTLINES 100
+
+// Local alignment constants (matching wx values) so we don't depend on wx headers
+constexpr int TEXT_ALIGN_CENTER_HORIZONTAL = 0x0100;
+constexpr int TEXT_ALIGN_RIGHT = 0x0200;
+constexpr int TEXT_ALIGN_BOTTOM = 0x0400;
+constexpr int TEXT_ALIGN_CENTER_VERTICAL = 0x0800;
 
 TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64), font_mgr(FontManager::instance())
 {
@@ -52,20 +69,25 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString textFilename = settings.Get("E_FILEPICKERCTRL_Text_File", "");
-    wxString text = ToWXString(settings.Get("E_TEXTCTRL_Text", ""));
-    wxString lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
+    std::string textFilename = settings.Get("E_FILEPICKERCTRL_Text_File", "");
+    std::string text = settings.Get("E_TEXTCTRL_Text", "");
+    std::string lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
 
     if (text == "" && textFilename == "" && lyricTrack == "") {
-        res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    } else if (textFilename != "" && !FileExists(textFilename)) {
-        res.push_back(wxString::Format("    ERR: Text effect cant find file '%s'. Model '%s', Start %s", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    } else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir, textFilename.ToStdString())) {
-        res.push_back(wxString::Format("    WARN: Text effect file '%s' not under show directory. Model '%s', Start %s", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Text effect has no actual text. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else if (textFilename != "") {
+        auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        auto entry = mm.GetTextFile(textFilename);
+        entry->MarkIsUsed();
+        if (entry->GetContent().empty() && !entry->IsEmbedded()) {
+            res.push_back(std::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        } else if (!entry->IsEmbedded() && !IsFileInShowDir(std::string(), textFilename)) {
+            res.push_back(std::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        }
     }
 
     if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        res.push_back(wxString::Format("    WARN: Text effect generally does not work well on a model group. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Text effect generally does not work well on a model group. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }
@@ -73,7 +95,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
 std::list<std::string> TextEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;    
-    wxString textFilename = SettingsMap["E_FILEPICKERCTRL_Text_File"];
+    std::string textFilename = SettingsMap["E_FILEPICKERCTRL_Text_File"];
     if (textFilename != "")
     {
         res.push_back(textFilename);
@@ -81,15 +103,15 @@ std::list<std::string> TextEffect::GetFileReferences(Model* model, const Setting
     return res;
 }
 
-bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+bool TextEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_Text_File"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_Text_File"];
     if (FileExists(file))
     {
-        if (!frame->IsInShowFolder(file))
+        if (!ctx->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Text_File"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()));
+            SettingsMap["E_FILEPICKERCTRL_Text_File"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator));
             rc = true;
         }
     }
@@ -97,282 +119,58 @@ bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Settings
     return rc;
 }
 
-xlEffectPanel *TextEffect::CreatePanel(wxWindow *parent) {
-    return new TextPanel(parent);
-}
-
-static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
-    wxCheckBox *c = (wxCheckBox*)w->FindWindowById(id);
-    c->SetValue(b);
-    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, id);
-    evt.SetEventObject(c);
-    evt.SetInt(b);
-    c->ProcessWindowEvent(evt);
-}
-
 bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
     // we dont want to use render cache if text is coming from a file as the file might have changed
-    if (ToWXString(settings["TEXTCTRL_Text"]) == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+    if (settings["TEXTCTRL_Text"] == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
         return false;
     // we dont want to use render cache if text is coming from lyric track, if you have text then it overrides the lyric track
-    if (ToWXString(settings["TEXTCTRL_Text"]) == ""  && settings["CHOICE_Text_LyricTrack"] != "")
+    if (settings["TEXTCTRL_Text"] == ""  && settings["CHOICE_Text_LyricTrack"] != "")
         return false;
     return true;
 }
 
 void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
 {
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
     SettingsMap &settings = effect->GetSettings();
-    if (IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version))
-    {
-        // this is to prevent recursive adjustments since we are adding
-        // layers and may be called by for loops based on number of layers
-        if (settings.Get("Converted", "xxx") == "1") {
-            settings.erase("Converted");
-            return;
-        }
 
-        if (RenderableEffect::needToAdjustSettings(version)) {
-            RenderableEffect::adjustSettings(version, effect, removeDefaults);
-        }
-
-        if (IsVersionOlder("2016.46", version)) {
-            settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter1"];
-            settings["E_CHECKBOX_Text_PixelOffsets"] = settings["E_CHECKBOX_Text_PixelOffsets1"];
-            settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count1"];
-            settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir1"];
-            settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect1"];
-            settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font1"];
-            settings["E_SLIDER_Text_XEnd"] = settings["E_SLIDER_Text_XEnd1"];
-            settings["E_SLIDER_Text_XStart"] = settings["E_SLIDER_Text_XStart1"];
-            settings["E_SLIDER_Text_YEnd"] = settings["E_SLIDER_Text_YEnd1"];
-            settings["E_SLIDER_Text_YStart"] = settings["E_SLIDER_Text_YStart1"];
-            settings["E_TEXTCTRL_Text"] = settings["E_TEXTCTRL_Text_Line1"];
-            settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed1"];
-
-            EffectLayer* el = effect->GetParentEffectLayer();
-            Element* elem = el->GetParentElement();
-
-            std::string line2 = settings["E_TEXTCTRL_Text_Line2"];
-            std::string line3 = settings["E_TEXTCTRL_Text_Line3"];
-            std::string line4 = settings["E_TEXTCTRL_Text_Line4"];
-
-            if (line2 != "") {
-                std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
-                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-                SettingsMap &new_settings = new_eff->GetSettings();
-                new_settings["Converted"] = "1";
-                new_settings["E_TEXTCTRL_Text"] = line2;
-                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter2"];
-                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count2"];
-                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir2"];
-                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect2"];
-                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font2"];
-                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
-                int pos = (wxAtoi(settings["E_SLIDER_Text_Position2"]) * 2) - 100;
-                wxString strpos = wxString::Format("%d", pos);
-                new_settings["E_SLIDER_Text_XStart"] = "0";
-                new_settings["E_SLIDER_Text_XEnd"] = "0";
-                new_settings["E_SLIDER_Text_YStart"] = strpos;
-                new_settings["E_SLIDER_Text_YEnd"] = strpos;
-                SelectTextColor(palette, 2);
-                new_eff->SetPalette(palette);
-            }
-            if (line3 != "") {
-                std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
-                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-                SettingsMap &new_settings = new_eff->GetSettings();
-                new_settings["Converted"] = "1";
-                new_settings["E_TEXTCTRL_Text"] = line3;
-                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter3"];
-                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count3"];
-                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir3"];
-                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect3"];
-                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font3"];
-                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
-                int pos = (wxAtoi(settings["E_SLIDER_Text_Position3"]) * 2) - 100;
-                wxString strpos = wxString::Format("%d", pos);
-                new_settings["E_SLIDER_Text_XStart"] = "0";
-                new_settings["E_SLIDER_Text_XEnd"] = "0";
-                new_settings["E_SLIDER_Text_YStart"] = strpos;
-                new_settings["E_SLIDER_Text_YEnd"] = strpos;
-                SelectTextColor(palette, 3);
-                new_eff->SetPalette(palette);
-            }
-            if (line4 != "") {
-                std::string palette = effect->GetPaletteAsString();
-                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
-                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-                SettingsMap &new_settings = new_eff->GetSettings();
-                new_settings["Converted"] = "1";
-                new_settings["E_TEXTCTRL_Text"] = line4;
-                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter4"];
-                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count4"];
-                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir4"];
-                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect4"];
-                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font4"];
-                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
-                int pos = (wxAtoi(settings["E_SLIDER_Text_Position4"]) * 2) - 100;
-                wxString strpos = wxString::Format("%d", pos);
-                new_settings["E_SLIDER_Text_XStart"] = "0";
-                new_settings["E_SLIDER_Text_XEnd"] = "0";
-                new_settings["E_SLIDER_Text_YStart"] = strpos;
-                new_settings["E_SLIDER_Text_YEnd"] = strpos;
-                SelectTextColor(palette, 4);
-                new_eff->SetPalette(palette);
-            }
-            std::string palette = effect->GetPaletteAsString();
-            SelectTextColor(palette, 1);
-            effect->SetPalette(palette);
-
-            settings.erase("E_CHECKBOX_TextToCenter1");
-            settings.erase("E_CHECKBOX_TextToCenter2");
-            settings.erase("E_CHECKBOX_TextToCenter3");
-            settings.erase("E_CHECKBOX_TextToCenter4");
-            settings.erase("E_CHECKBOX_Text_PixelOffsets1");
-            settings.erase("E_CHOICE_Text_Count1");
-            settings.erase("E_CHOICE_Text_Count2");
-            settings.erase("E_CHOICE_Text_Count3");
-            settings.erase("E_CHOICE_Text_Count4");
-            settings.erase("E_CHOICE_Text_Dir1");
-            settings.erase("E_CHOICE_Text_Dir2");
-            settings.erase("E_CHOICE_Text_Dir3");
-            settings.erase("E_CHOICE_Text_Dir4");
-            settings.erase("E_CHOICE_Text_Effect1");
-            settings.erase("E_CHOICE_Text_Effect2");
-            settings.erase("E_CHOICE_Text_Effect3");
-            settings.erase("E_CHOICE_Text_Effect4");
-            settings.erase("E_FONTPICKER_Text_Font1");
-            settings.erase("E_FONTPICKER_Text_Font2");
-            settings.erase("E_FONTPICKER_Text_Font3");
-            settings.erase("E_FONTPICKER_Text_Font4");
-            settings.erase("E_SLIDER_Text_Position2");
-            settings.erase("E_SLIDER_Text_Position3");
-            settings.erase("E_SLIDER_Text_Position4");
-            settings.erase("E_SLIDER_Text_XEnd1");
-            settings.erase("E_SLIDER_Text_XStart1");
-            settings.erase("E_SLIDER_Text_YEnd1");
-            settings.erase("E_SLIDER_Text_YStart1");
-            settings.erase("E_TEXTCTRL_Text_Line1");
-            settings.erase("E_TEXTCTRL_Text_Line2");
-            settings.erase("E_TEXTCTRL_Text_Line3");
-            settings.erase("E_TEXTCTRL_Text_Line4");
-            settings.erase("E_TEXTCTRL_Text_Speed1");
-            settings.erase("E_TEXTCTRL_Text_Speed2");
-            settings.erase("E_TEXTCTRL_Text_Speed3");
-            settings.erase("E_TEXTCTRL_Text_Speed4");
+    // Resolve broken paths first, then convert to relative for portability
+    std::string file = settings["E_FILEPICKERCTRL_Text_File"];
+    if (!file.empty() && !FileExists(file)) {
+        std::string fixed = FixFile("", file);
+        if (!fixed.empty() && fixed != file) {
+            settings["E_FILEPICKERCTRL_Text_File"] = fixed;
+            file = fixed;
         }
     }
-
-    wxString file = settings["E_FILEPICKERCTRL_Text_File"];
-    if (file != "")
-    {
-        if (!FileExists(file))
-        {
-            settings["E_FILEPICKERCTRL_Text_File"] = FixFile("", file);
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_Text_File"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_Text_File"] = rel;
+            }
         }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetTextFile(settings["E_FILEPICKERCTRL_Text_File"]);
     }
 }
 
-void TextEffect::SelectTextColor(std::string& palette, int index) const
-{
-    wxString new_palette = "";
-    wxArrayString palette_array = wxSplit(palette, ',');
-    int found_color = 0;
-    for( int i=0; i < palette_array.size(); i++ ) {
-        if( palette_array[i].StartsWith("C_CHECKBOX_Palette") ) {
-            found_color++;
-            if( found_color != index ) {
-                continue;
-            }
-        }
-        new_palette += palette_array[i];
-        if( i < palette_array.size() - 1 ) {
-            new_palette += ",";
-        }
-    }
-    palette = new_palette;
-}
-
-void TextEffect::SetDefaultParameters() {
-    TextPanel *tp = (TextPanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    SetTextValue(tp->TextCtrl_Text, "");
-    tp->FilePickerCtrl1->SetFileName(wxFileName(""));
-    SetChoiceValue(tp->Choice_Text_Dir, "none");
-    tp->Choice_LyricTrack->SetSelection(-1);
-    SetSliderValue(tp->Slider_Text_Speed, 10);
-    SetChoiceValue(tp->Choice_Text_Effect, "normal");
-    SetChoiceValue(tp->Choice_Text_Count, "none");
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter, false);
-    SetCheckBoxValue(tp->CheckBox_Text_PixelOffsets, false);
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_Text_Color_PerWord, false);
-    SetSliderValue(tp->Slider_Text_XStart, 0);
-    SetSliderValue(tp->Slider_Text_YStart, 0);
-    SetSliderValue(tp->Slider_Text_XEnd, 0);
-    SetSliderValue(tp->Slider_Text_YEnd, 0);
-}
-
-void TextEffect::SetPanelStatus(Model* cls)
-{
-    TextPanel* tp = static_cast<TextPanel*>(panel);
-    if (tp == nullptr)
-    {
-        return;
-    }
-
-    tp->Choice_LyricTrack->Clear();
-    if (mSequenceElements == nullptr)
-    {
-        tp->ValidateWindow();
-        return;
-    }
-
-    // Load the names of the timing tracks
-    tp->Choice_LyricTrack->Append("");
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-        {
-            TimingElement* te = dynamic_cast<TimingElement*>(e);
-            auto n = e->GetName();
-            if (e->GetEffectLayerCount() > 1)
-            {
-                if (te->HasLyrics(0)) {
-                    tp->Choice_LyricTrack->Append(n + " - Phrases");
-                }
-                if (te->HasLyrics(1)) {
-                    tp->Choice_LyricTrack->Append(n + " - Words");
-                }
-            }
-            else
-            {
-                if (te->HasLyrics(0)) {
-                    tp->Choice_LyricTrack->Append(n + " - Phrases");
-                }
-            }
-        }
-    }
-
-    // Select the first one
-    if (tp->Choice_LyricTrack->GetCount() > 0)
-    {
-        tp->Choice_LyricTrack->Select(0);
-    }
-
-    // Validate the window (includes enabling and disabling controls)
-    tp->ValidateWindow();
-}
+// RGBA image data returned by FlushAndGetImage and cached
+struct CachedRGBAImage {
+    std::vector<uint8_t> data;
+    int width = 0;
+    int height = 0;
+};
 
 //formatting notes:
 //countdown == seconds: put a non-0 value in text line 1 to count down
@@ -380,7 +178,7 @@ void TextEffect::SetPanelStatus(Model* cls)
 //countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
 
 void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
-    const wxFontInfo& fnt = TextDrawingContext::GetTextFont(FontString);
+    TextFontInfo fnt = TextDrawingContext::GetTextFont(FontString);
     dc->SetFont(fnt, color);
 }
 
@@ -401,7 +199,7 @@ enum TextDirection {
     TEXTDIR_UPDOWN
 };
 
-static TextDirection TextEffectDirectionsIndex(const wxString &st) {
+static TextDirection TextEffectDirectionsIndex(const std::string &st) {
     if (st == "left") return TEXTDIR_LEFT;
     if (st == "right") return TEXTDIR_RIGHT;
     if (st == "up") return TEXTDIR_UP;
@@ -420,7 +218,7 @@ static TextDirection TextEffectDirectionsIndex(const wxString &st) {
     if (st == "up-down") return TEXTDIR_UPDOWN;
     return TEXTDIR_NONE;
 }
-static int TextCountDownIndex(const wxString &st) {
+static int TextCountDownIndex(const std::string &st) {
     if (st == "seconds") return 1;
     if (st == "to date 'd h m s'") return 2;
     if (st == "to date 'h:m:s'") return 3;
@@ -431,7 +229,7 @@ static int TextCountDownIndex(const wxString &st) {
     return 0;
 }
 
-static int TextEffectsIndex(const wxString &st) {
+static int TextEffectsIndex(const std::string &st) {
     if (st == "vert text up") return 1;
     if (st == "vert text down") return 2;
     if (st == "rotate up 45") return 3;
@@ -444,54 +242,59 @@ static int TextEffectsIndex(const wxString &st) {
 void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     // determine if we are rendering an xLights Font
-    wxString xl_font = SettingsMap.Get("CHOICE_Text_Font", "Use OS Fonts");
+    std::string xl_font = SettingsMap.Get("CHOICE_Text_Font", "Use OS Fonts");
     if( xl_font != "Use OS Fonts" )
     {
         RenderXLText(effect, SettingsMap, buffer);
         return;
     }
 
-    wxString text = ToWXString(SettingsMap["TEXTCTRL_Text"]);
-    text.Replace("\\n", "\n");
+    std::string text = SettingsMap["TEXTCTRL_Text"];
+    Replace(text, "\\n", "\n");
 
-    wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
-    wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
+    std::string filename = SettingsMap["FILEPICKERCTRL_Text_File"];
+    std::string lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
-    if (text.IsEmpty())
+    if (text.empty())
     {
-        if (FileExists(filename)) {
-            wxFile file(filename);
-            if (file.IsOpened()) {
-                wxString fileContent;
-                if (file.ReadAll(&fileContent)) {
-                    wxArrayString lines = wxSplit(fileContent, '\n');
-
-                    text.Clear();
-                    int lineCount = std::min((int)lines.GetCount(), MAXTEXTLINES);
-
-                    for (int i = 0; i < lineCount; i++) {
-                        if (i > 0) {
-                            text += "\n";
-                        }
-                        text += lines[i];
-                    }
-
-                    while (!text.IsEmpty() && text.Last() == '\n') {
-                        text.RemoveLast();
-                    }
+        if (!filename.empty()) {
+            auto* seqMedia = buffer.GetSequenceMedia();
+            std::string fileContent;
+            if (seqMedia) {
+                auto entry = seqMedia->GetTextFile(filename);
+                if (entry) {
+                    entry->MarkIsUsed();
+                    fileContent = entry->GetContent();
                 }
-                file.Close();
+            }
+
+            if (!fileContent.empty()) {
+                auto lines = Split(fileContent, '\n');
+
+                text.clear();
+                int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
+
+                for (int i = 0; i < lineCount; i++) {
+                    if (i > 0) {
+                        text += "\n";
+                    }
+                    text += lines[i];
+                }
+
+                while (!text.empty() && text.back() == '\n') {
+                    text.pop_back();
+                }
             }
         }
         else
         {
-            if (!lyricTrack.IsEmpty())
+            if (!lyricTrack.empty())
             {
                 Element* t = nullptr;
-                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++)
                 {
-                    auto lt = lyricTrack.BeforeLast('-');
-                    lt = lt.Left(lt.size() - 1);
+                    auto lt = BeforeLast(lyricTrack, '-');
+                    lt = lt.substr(0, lt.size() - 1);
                     Element* e = mSequenceElements->GetElement(i);
                     if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt)
                     {
@@ -504,7 +307,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 {
                     long time = buffer.curPeriod * buffer.frameTimeInMs;
                     EffectLayer* el = nullptr;
-                    if (lyricTrack.EndsWith(" - Phrases"))
+                    if (EndsWith(lyricTrack, " - Phrases"))
                     {
                         el = t->GetEffectLayer(0);
                     }
@@ -532,71 +335,59 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         text = FlipWord(SettingsMap, text, buffer);
     }
 
-    if (!text.IsEmpty()) {
+    if (!text.empty()) {
 
-        int starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
-        int startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
-        int endy = wxAtoi(SettingsMap.Get("SLIDER_Text_YEnd", "0"));
-        int endx = wxAtoi(SettingsMap.Get("SLIDER_Text_XEnd", "0"));
-        bool pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0"));
-        bool perWord = wxAtoi(SettingsMap.Get("CHECKBOX_Text_Color_PerWord", "0"));
+        int starty = std::strtol(SettingsMap.Get("SLIDER_Text_YStart", "0").c_str(), nullptr, 10);
+        int startx = std::strtol(SettingsMap.Get("SLIDER_Text_XStart", "0").c_str(), nullptr, 10);
+        int endy = std::strtol(SettingsMap.Get("SLIDER_Text_YEnd", "0").c_str(), nullptr, 10);
+        int endx = std::strtol(SettingsMap.Get("SLIDER_Text_XEnd", "0").c_str(), nullptr, 10);
+        bool pixelOffsets = std::strtol(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0").c_str(), nullptr, 10);
+        bool perWord = std::strtol(SettingsMap.Get("CHECKBOX_Text_Color_PerWord", "0").c_str(), nullptr, 10);
 
-        wxImage * i = RenderTextLine(buffer,
+        const CachedRGBAImage* i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
                        text,
                        SettingsMap["FONTPICKER_Text_Font"],
                        TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]),
-                       wxAtoi(SettingsMap["CHECKBOX_TextToCenter"]),
-                       wxAtoi(SettingsMap["CHECKBOX_TextNoRepeat"]),
+                       std::strtol(SettingsMap["CHECKBOX_TextToCenter"].c_str(), nullptr, 10),
+                       std::strtol(SettingsMap["CHECKBOX_TextNoRepeat"].c_str(), nullptr, 10),
                        TextEffectsIndex(SettingsMap["CHOICE_Text_Effect"]),
                        TextCountDownIndex(SettingsMap["CHOICE_Text_Count"]),
-                       wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed", "10")),
+                       std::strtol(SettingsMap.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10),
                        startx, starty, endx, endy, pixelOffsets, perWord);
-        
+
         if (i == nullptr) {
             return;
         }
+        const uint8_t* rgba = i->data.data();
+        int w = i->width;
+        int h = i->height;
         xlColor c;
-        bool ha = i->HasAlpha();
-        unsigned char* data = i->GetData();
-        unsigned char* alpha = ha ? i->GetAlpha() : nullptr;
-        int w = i->GetWidth();
-        int h = i->GetHeight();
         int cur = 0;
-        int cura = 0;
-        for(int y = h - 1; y >= 0; y--)
-        {
-            for(int x=0; x < w; x++)
-            {
-                if (ha) {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2], alpha[cura++]);
-                } else {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2]);
-                    if (c == xlBLACK) {
-                        c.alpha = 0;
-                    }
-                }
-                cur += 3;
+        for (int y = h - 1; y >= 0; y--) {
+            for (int x = 0; x < w; x++) {
+                c.Set(rgba[cur], rgba[cur + 1], rgba[cur + 2], rgba[cur + 3]);
+                cur += 4;
                 buffer.SetPixel(x, y, c);
             }
         }
     }
 }
 
-wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
-                              const wxString& text,
-                              wxCoord *widthText,
-                              wxCoord *heightText,
-                              wxCoord *hl)
+xlSize GetMultiLineTextExtent(TextDrawingContext *dc,
+                              const std::string& text,
+                              int *widthText,
+                              int *heightText,
+                              int *hl)
 {
     double widthTextMax = 0, widthLine;
     double heightTextTotal = 0;
     double heightLineDefault = 0, heightLine = 0;
 
-    wxString curLine;
-    for ( wxString::const_iterator pc = text.begin(); ; ++pc )
+    std::string curLine;
+    for ( size_t idx = 0; ; ++idx )
     {
-        if ( pc == text.end() || *pc == wxS('\n') )
+        if ( idx == text.size() || text[idx] == '\n' )
         {
             if ( curLine.empty() )
             {
@@ -613,7 +404,7 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
                 {
                     // but we don't know it yet - choose something reasonable
                     double dummy;
-                    dc->GetTextExtent(wxS("W"), &dummy, &heightLineDefault);
+                    dc->GetTextExtent("W", &dummy, &heightLineDefault);
                 }
 
                 heightTextTotal += heightLineDefault;
@@ -626,7 +417,7 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
                 heightTextTotal += heightLine;
             }
 
-            if ( pc == text.end() )
+            if ( idx == text.size() )
             {
                 break;
             }
@@ -637,19 +428,19 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
         }
         else
         {
-            curLine += *pc;
+            curLine += text[idx];
         }
     }
     *widthText = widthTextMax;
     *heightText = heightTextTotal;
     *hl = heightLine;
-    return wxSize(widthTextMax, heightTextTotal);
+    return xlSize(widthTextMax, heightTextTotal);
 }
 
 class CachedTextInfo {
 public:
     CachedTextInfo() {}
-    CachedTextInfo(const std::string &txt, const std::string font, const std::vector<xlColor> &c, const wxRect &r)
+    CachedTextInfo(const std::string &txt, const std::string font, const std::vector<xlColor> &c, const xlRect &r)
     : text(txt), rect(r), color(c), fontString(font) {}
     ~CachedTextInfo() {}
     
@@ -661,7 +452,7 @@ public:
     }
     
     std::string text;
-    wxRect rect;
+    xlRect rect;
     std::vector<xlColor> color;
     std::string fontString;
 };
@@ -681,53 +472,56 @@ struct CachedTextInfoHasher {
 
 class TextRenderCache : public EffectRenderCache {
 public:
-    TextRenderCache() : timer_countdown(0), synced_textsize(wxSize(0,0)) {};
-    virtual ~TextRenderCache() {
-        for (const auto& it : textCache) {
-            delete it.second;
-        }
-    };
+    TextRenderCache() : timer_countdown(0), synced_textsize(xlSize(0,0)) {};
+    virtual ~TextRenderCache() = default;
     int timer_countdown;
-    wxSize synced_textsize;
-    
-    wxImage *GetImage(const CachedTextInfo &inf) {
-        return textCache[inf];
+    xlSize synced_textsize;
+
+    CachedRGBAImage *GetImage(const CachedTextInfo &inf) {
+        auto it = textCache.find(inf);
+        if (it != textCache.end()) return &it->second;
+        return nullptr;
     }
-    void PutImage(const CachedTextInfo &inf, wxImage *img) {
-        textCache[inf] = img;
+    CachedRGBAImage* PutImage(const CachedTextInfo &inf, std::vector<uint8_t> rgbaData, int w, int h) {
+        auto& img = textCache[inf];
+        img.width = w;
+        img.height = h;
+        img.data = std::move(rgbaData);
+        return &img;
     }
     
-    wxSize GetMultiLineTextExtent(const std::string &font, const wxString &msg) {
-        std::pair<std::string, wxString> key(font, msg);
+    xlSize GetMultiLineTextExtent(const std::string &font, const std::string &msg) {
+        std::pair<std::string, std::string> key(font, msg);
         auto i = textExtentCache.find(key);
         if (i == textExtentCache.end()) {
-            return wxSize(-1, -1);
+            return xlSize(-1, -1);
         }
         return i->second;
     }
-    void PutMultiLineTextExtent(const std::string &font, const wxString &msg, const wxSize &sz) {
-        std::pair<std::string, wxString> key(font, msg);
+    void PutMultiLineTextExtent(const std::string &font, const std::string &msg, const xlSize &sz) {
+        std::pair<std::string, std::string> key(font, msg);
         textExtentCache[key] = sz;
     }
-    
-    std::unordered_map<CachedTextInfo, wxImage*, CachedTextInfoHasher> textCache;
-    std::map<std::pair<std::string, wxString>, wxSize> textExtentCache;
+
+    CachedRGBAImage lastRendered; // temp storage for uncached FlushAndGetImage results
+    std::unordered_map<CachedTextInfo, CachedRGBAImage, CachedTextInfoHasher> textCache;
+    std::map<std::pair<std::string, std::string>, xlSize> textExtentCache;
 };
 
-wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
-                              const wxString& text,
+xlSize GetMultiLineTextExtent(TextDrawingContext *dc,
+                              const std::string& text,
                               TextRenderCache *cache,
                               const std::string &font,
                               bool &fontSet)
 {
-    wxSize i = cache->GetMultiLineTextExtent(font, text);
-    if (i.x == -1 && i.y == -1) {
+    xlSize i = cache->GetMultiLineTextExtent(font, text);
+    if (i.width == -1 && i.height == -1) {
         if (!fontSet) {
             dc->Clear();
             SetFont(dc, font, xlWHITE);
             fontSet = true;
         }
-        wxCoord x,y,z;
+        int x,y,z;
         i = GetMultiLineTextExtent(dc, text, &x, &y, &z);
         cache->PutMultiLineTextExtent(font, text, i);
     }
@@ -735,8 +529,8 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
 }
 
 void DrawLabel(TextDrawingContext *dc,
-               const wxString& text,
-               const wxRect& rect,
+               const std::string& text,
+               const xlRect& rect,
                int alignment,
                TextRenderCache *cache,
                const std::string &fontString,
@@ -744,18 +538,18 @@ void DrawLabel(TextDrawingContext *dc,
                const bool perWord = false)
 {
     // find the text position
-    wxCoord widthText, heightText, heightLine;
+    int widthText, heightText, heightLine;
     GetMultiLineTextExtent(dc, text, &widthText, &heightText, &heightLine);
 
-    wxCoord width = widthText;
-    wxCoord height = heightText;
+    int width = widthText;
+    int height = heightText;
 
-    wxCoord x, y;
-    if ( alignment & wxALIGN_RIGHT )
+    int x, y;
+    if ( alignment & TEXT_ALIGN_RIGHT )
     {
         x = rect.GetRight() - width;
     }
-    else if ( alignment & wxALIGN_CENTRE_HORIZONTAL )
+    else if ( alignment & TEXT_ALIGN_CENTER_HORIZONTAL )
     {
         x = (rect.GetLeft() + rect.GetRight() + 1 - width) / 2;
     }
@@ -764,11 +558,11 @@ void DrawLabel(TextDrawingContext *dc,
         x = rect.GetLeft();
     }
 
-    if ( alignment & wxALIGN_BOTTOM )
+    if ( alignment & TEXT_ALIGN_BOTTOM )
     {
         y = rect.GetBottom() - height;
     }
-    else if ( alignment & wxALIGN_CENTRE_VERTICAL )
+    else if ( alignment & TEXT_ALIGN_CENTER_VERTICAL )
     {
         y = (rect.GetTop() + rect.GetBottom() + 1 - height) / 2;
     }
@@ -784,51 +578,51 @@ void DrawLabel(TextDrawingContext *dc,
     //     wxMSW which uses this function for multi-line texts, so we may only
     //     call DrawText() for single-line strings from here to avoid infinite
     //     recursion.
-    wxString curLine;
+    std::string curLine;
     int curPos = 0;
-    for ( wxString::const_iterator pc = text.begin(); ; ++pc )
+    for ( size_t idx = 0; ; ++idx )
     {
-        if ( pc == text.end() || *pc == '\n' ) {
+        if ( idx == text.size() || text[idx] == '\n' ) {
             int xRealStart = x; // init it here to avoid compielr warnings
             if ( !curLine.empty() )
             {
                 // NB: can't test for !(alignment & wxALIGN_LEFT) because
                 //     wxALIGN_LEFT is 0
-                if ( alignment & (wxALIGN_RIGHT | wxALIGN_CENTRE_HORIZONTAL) )
+                if ( alignment & (TEXT_ALIGN_RIGHT | TEXT_ALIGN_CENTER_HORIZONTAL) )
                 {
-                    wxCoord x1,y1,z1;
-                    wxCoord widthLine = GetMultiLineTextExtent(dc, curLine, &x1, &y1, &z1).x;
+                    int x1,y1,z1;
+                    int widthLine = GetMultiLineTextExtent(dc, curLine, &x1, &y1, &z1).width;
 
-                    if ( alignment & wxALIGN_RIGHT )
+                    if ( alignment & TEXT_ALIGN_RIGHT )
                     {
                         xRealStart += width - widthLine;
                     }
-                    else // if ( alignment & wxALIGN_CENTRE_HORIZONTAL )
+                    else // if ( alignment & TEXT_ALIGN_CENTER_HORIZONTAL )
                     {
                         xRealStart += (width - widthLine) / 2;
                     }
                 }
                 //else: left aligned, nothing to do
                 if (colors.size() != 1) {
-                    wxArrayDouble d;
+                    std::vector<double> d;
                     dc->GetTextExtents(curLine, d);
-                    for (int x1 = 0; x1 < curLine.size(); x1++) {
-                        wxString c = curLine[x1];
+                    for (int x1 = 0; x1 < (int)curLine.size(); x1++) {
+                        std::string c(1, curLine[x1]);
                         if (c != " ") {
                             SetFont(dc, fontString, colors[curPos % colors.size()]);
                             double loc = xRealStart;
                             if (x1 != 0) {
-                                if (x1 - 1 < d.size()) {
+                                if (x1 - 1 < (int)d.size()) {
                                     loc += d[x1 - 1];
                                 }
                                 else {
-                                    wxASSERT(false); // this seems to happen when fonts are not good
+                                    assert(false); // this seems to happen when fonts are not good
                                 }
                             }
                             dc->DrawText(c, loc, y);
                         }
-                        if ((perWord && c == ' ' && x1 + 1 < curLine.size() && curLine[x1 + 1] != ' ') ||
-                            (!perWord && c != ' ')) {
+                        if ((perWord && c == " " && x1 + 1 < (int)curLine.size() && curLine[x1 + 1] != ' ') ||
+                            (!perWord && c != " ")) {
                             curPos++;
                         }
                     }
@@ -839,14 +633,14 @@ void DrawLabel(TextDrawingContext *dc,
 
             y += heightLine;
 
-            if ( pc == text.end() )
+            if ( idx == text.size() )
                 break;
 
             curLine.clear();
         }
         else // not end of line
         {
-            curLine += *pc;
+            curLine += text[idx];
         }
     }
 }
@@ -899,9 +693,9 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
 }
 
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
-wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
+const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     TextDrawingContext* dc,
-                                    const wxString& Line_orig,
+                                    const std::string& Line_orig,
                                     const std::string &fontString,
                                     int dir,
                                     bool center, bool norepeat, int Effect, int Countdown, int tspeed,
@@ -909,10 +703,10 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     bool isPixelBased, bool perWord) const
 {
     int i;
-    wxString Line = Line_orig;
-    wxString msg, tempmsg;
+    std::string Line = Line_orig;
+    std::string msg, tempmsg;
 
-    if (Line.IsEmpty()) return nullptr;
+    if (Line.empty()) return nullptr;
 
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
@@ -927,18 +721,18 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             // vertical text up
             tempmsg=msg;
             msg.clear();
-            for(i=0; i<tempmsg.length(); i++)
+            for(i=0; i<(int)tempmsg.length(); i++)
             {
-                msg = msg + tempmsg.GetChar(tempmsg.length()-i-1) + "\n";
+                msg = msg + tempmsg[tempmsg.length()-i-1] + "\n";
             }
             break;
         case 2:
             // vertical text down
             tempmsg=msg;
             msg.clear();
-            for(i=0; i<tempmsg.length(); i++)
+            for(i=0; i<(int)tempmsg.length(); i++)
             {
-                msg = msg + tempmsg.GetChar(i) + "\n";
+                msg = msg + tempmsg[i] + "\n";
             }
             break;
         default: break;
@@ -947,9 +741,11 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     TextRenderCache *cache = GetCache(buffer, id);
     bool fontSet = false;
     
-    wxSize textsize = GetMultiLineTextExtent(dc, msg, cache, fontString, fontSet);
-    int extra_left = IsGoingLeft(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(false), cache, fontString, fontSet).x: 0; //CAUTION: trim() alters object, so make a copy first
-    int extra_right = IsGoingRight(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(true), cache, fontString, fontSet).x: 0;
+    xlSize textsize = GetMultiLineTextExtent(dc, msg, cache, fontString, fontSet);
+    auto ltrim = [](const std::string& s) { size_t start = s.find_first_not_of(" \t"); return start == std::string::npos ? std::string() : s.substr(start); };
+    auto rtrim = [](const std::string& s) { size_t end = s.find_last_not_of(" \t"); return end == std::string::npos ? std::string() : s.substr(0, end + 1); };
+    int extra_left = IsGoingLeft(dir)? textsize.width - GetMultiLineTextExtent(dc, ltrim(msg), cache, fontString, fontSet).width: 0;
+    int extra_right = IsGoingRight(dir)? textsize.width - GetMultiLineTextExtent(dc, rtrim(msg), cache, fontString, fontSet).width: 0;
     int xoffset=0;
     int yoffset=0;
 
@@ -960,19 +756,19 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             TextRotation=45.0;
             yoffset=int(0.707*double(textsize.GetHeight()));
             i=int(0.707*double(textsize.GetWidth()+textsize.GetHeight()));
-            textsize.Set(i,i);
+            textsize = xlSize(i,i);
             break;
         case 4:
             // rotate up 90
             TextRotation=90.0;
-            textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
+            textsize = xlSize(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
             break;
         case 5:
             // rotate down 45
             TextRotation=-45.0;
             xoffset=int(0.707*double(textsize.GetHeight()));
             i=int(0.707*double(textsize.GetWidth()+textsize.GetHeight()));
-            textsize.Set(i,i);
+            textsize = xlSize(i,i);
             yoffset=i;
             break;
         case 6:
@@ -980,7 +776,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             TextRotation=-90.0;
             xoffset=textsize.GetHeight();
             yoffset=textsize.GetWidth();
-            textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
+            textsize = xlSize(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
             break;
         default: break;
     }
@@ -1002,7 +798,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
 
     if (TextRotation == 0.0)
     {
-        wxRect rect(0,0,buffer.BufferWi,buffer.BufferHt);
+        xlRect rect(0,0,buffer.BufferWi,buffer.BufferHt);
         switch (dir)
         {
             case TEXTDIR_VECTOR: {
@@ -1137,16 +933,16 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
         if (colors.size() == 0) {
             colors.push_back(xlWHITE);
         }
-        CachedTextInfo inf(msg.ToStdString(), fontString, colors, rect);
-        wxImage *img = GetCache(buffer,id)->GetImage(inf);
+        CachedTextInfo inf(msg, fontString, colors, rect);
+        CachedRGBAImage *img = GetCache(buffer,id)->GetImage(inf);
         if (img == nullptr) {
             dc->Clear();
             SetFont(dc, fontString, colors[0]);
-            DrawLabel(dc, msg, rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, GetCache(buffer,id), fontString, colors, perWord);
-            wxImage *i2 = dc->FlushAndGetImage();
-            img = new wxImage(i2->GetSize());
-            *img = i2->Copy();
-            GetCache(buffer,id)->PutImage(inf, img);
+            DrawLabel(dc, msg, rect, TEXT_ALIGN_CENTER_HORIZONTAL|TEXT_ALIGN_CENTER_VERTICAL, GetCache(buffer,id), fontString, colors, perWord);
+            int iw, ih;
+            const uint8_t* rgba = dc->FlushAndGetImage(&iw, &ih);
+            std::vector<uint8_t> rgbaData(rgba, rgba + (size_t)iw * ih * 4);
+            img = GetCache(buffer,id)->PutImage(inf, std::move(rgbaData), iw, ih);
         }
         return img;
     }
@@ -1206,22 +1002,25 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             break; // static
     }
 
-    return buffer.GetTextDrawingContext()->FlushAndGetImage();
+    int iw, ih;
+    const uint8_t* rgba = buffer.GetTextDrawingContext()->FlushAndGetImage(&iw, &ih);
+    cache->lastRendered.width = iw;
+    cache->lastRendered.height = ih;
+    cache->lastRendered.data.assign(rgba, rgba + (size_t)iw * ih * 4);
+    return &cache->lastRendered;
+
 }
 
-void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig) const
+void TextEffect::FormatCountdown(int Countdown, int state, std::string& Line, RenderBuffer &buffer, std::string& msg, std::string Line_orig) const
 {
     long longsecs;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
     int minutes,seconds;
 
-    wxDateTime dt;
-    wxTimeSpan ts;
-    wxString::const_iterator end;
-    wxString fmt = Line_orig;
-    wxString prepend = Line_orig;   //for prepended/appended text to countdown
-    wxString append = Line_orig;   //for prepended/appended text to countdown
-    wxString timePart = Line_orig;
+    std::string fmt = Line_orig;
+    std::string prepend = Line_orig;   //for prepended/appended text to countdown
+    std::string append = Line_orig;   //for prepended/appended text to countdown
+    std::string timePart = Line_orig;
 
     switch (Countdown)
     {
@@ -1230,43 +1029,42 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 // countdown seconds
                 if (state == 0)
                 {
-                    long tempLong;
-                    if (!Line.ToLong(&tempLong)) tempLong = 0;
+                    long tempLong = std::strtol(Line.c_str(), nullptr, 10);
                     GetCache(buffer, id)->timer_countdown = buffer.curPeriod + tempLong*framesPerSec + framesPerSec - 1;  // capture 0 period
                 }
                 seconds = (GetCache(buffer, id)->timer_countdown - buffer.curPeriod) / framesPerSec;
                 if (seconds < 0) seconds = 0;
-                msg = wxString::Format("%i", seconds);
+                msg = std::format("{}", seconds);
             }
             break;
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
         case COUNTDOWN_MINUTES_SECONDS:
         {
-            if (timePart.Find('/') != -1)
+            if (timePart.find('/') != std::string::npos)
             {
-                timePart = timePart.AfterFirst('/').BeforeLast('/');
-                prepend = prepend.BeforeFirst('/');
-                append = append.AfterLast('/');
+                timePart = BeforeLast(AfterFirst(timePart, '/'), '/');
+                prepend = BeforeFirst(prepend, '/');
+                append = AfterLast(append, '/');
             }
             else
             {
                 append = "";
                 prepend = "";
             }
-            wxArrayString minSec = wxSplit(timePart, ':');
+            auto minSec = Split(timePart, ':');
             if (minSec.size() == 1)
             {
-                seconds = wxAtoi(minSec[0]);
+                seconds = std::strtol(minSec[0].c_str(), nullptr, 10);
             }
             else if (minSec.size() == 2)
             {
-                minutes = wxAtoi(minSec[0]);
-                seconds = (minutes * 60) + wxAtoi(minSec[1]);
-                //MessageBoxA(NULL, "total seconds: " + wxString::Format("%i", seconds), "message", MB_ICONINFORMATION | MB_OK | MB_DEFBUTTON2);
+                minutes = std::strtol(minSec[0].c_str(), nullptr, 10);
+                seconds = (minutes * 60) + std::strtol(minSec[1].c_str(), nullptr, 10);
+
             }
             else //invalid format
             {
-                msg = _T("Invalid Format");
+                msg = "Invalid Format";
                 break;
             }
             if (state == 0)
@@ -1281,12 +1079,12 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             if (seconds < 0)
                 seconds = 0;
 
-            wxString tempSeconds = wxString::Format("%i", seconds);
+            std::string tempSeconds = std::format("{}", seconds);
 
-            if (tempSeconds.Len() == 1)
-                tempSeconds = tempSeconds.Pad(1, '0', false);
+            if (tempSeconds.size() == 1)
+                tempSeconds = "0" + tempSeconds;
 
-            msg = prepend + ' ' + wxString::Format("%i", minutes) + " : " + tempSeconds + append;
+            msg = prepend + ' ' + std::format("{}", minutes) + " : " + tempSeconds + append;
             }
            break;
 
@@ -1344,13 +1142,13 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 //time_local = time.Format(wxT("%T"), wxDateTime::A_EST).c_str();
                 if (Line.size() >= 4)
                 {
-                    wxChar delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
-                    Line.Remove(0, 1); //.erase(Line.begin(), Line.begin() + 1); //remove leading delim
-                    //            Line.RemoveLast(); //remove delimiter
-                    fmt = Line.After(delim);
-                    Line.Truncate(Line.find(delim)); //remove fmt string, leaving only count down date
+                    char delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
+                    Line.erase(0, 1); //remove leading delim
+                    fmt = AfterFirst(Line, delim);
+                    auto delimPos = Line.find(delim);
+                    if (delimPos != std::string::npos) Line.resize(delimPos); //remove fmt string, leaving only count down date
                 }
-                else fmt.Empty();
+                else fmt.clear();
             //CAUTION: fall thru here
         case COUNTDOWN_D_H_M_S:
         case COUNTDOWN_H_M_S:
@@ -1360,15 +1158,33 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             // countdown to date
             if (state%framesPerSec == 0)   //1x/sec
             {
-                //            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
-                if (dt.ParseRfc822Date(Line, &end))
+                // Parse RFC822 date string (e.g. "Wed, 02 Oct 2015 15:00:00 +0200")
+                std::tm tmbuf = {};
+                std::istringstream iss(Line);
+                iss >> std::get_time(&tmbuf, "%a, %d %b %Y %H:%M:%S");
+                if (!iss.fail())
                 {
-                    // dt is (at least partially) valid, so calc # of seconds until then
-                    ts = dt.Subtract(wxDateTime::Now());
-                    wxLongLong ll = ts.GetSeconds();
-                    if (ll > LONG_MAX) ll = LONG_MAX;
-                    if (ll < 0) ll = 0;
-                    longsecs = ll.ToLong();
+                    // Parse timezone offset if present (e.g. "+0200" or "-0500")
+                    int tzOffsetSecs = 0;
+                    std::string tzStr;
+                    iss >> tzStr;
+                    if (!tzStr.empty() && (tzStr[0] == '+' || tzStr[0] == '-')) {
+                        int sign = (tzStr[0] == '+') ? 1 : -1;
+                        int tzVal = (int)std::strtol(tzStr.c_str() + 1, nullptr, 10);
+                        tzOffsetSecs = sign * ((tzVal / 100) * 3600 + (tzVal % 100) * 60);
+                    }
+                    // Convert parsed time to UTC time_t, then adjust for timezone
+#ifdef _MSC_VER
+                    std::time_t targetTime = _mkgmtime(&tmbuf) - tzOffsetSecs;
+#else
+                    std::time_t targetTime = timegm(&tmbuf) - tzOffsetSecs;
+#endif
+                    auto now = std::chrono::system_clock::now();
+                    auto nowTime = std::chrono::system_clock::to_time_t(now);
+                    int64_t diffSecs = static_cast<int64_t>(difftime(targetTime, nowTime));
+                    if (diffSecs > LONG_MAX) diffSecs = LONG_MAX;
+                    if (diffSecs < 0) diffSecs = 0;
+                    longsecs = static_cast<long>(diffSecs);
                 }
                 else
                 {
@@ -1380,11 +1196,10 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             else
             {
                 longsecs = GetCache(buffer, id)->timer_countdown;
-                ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
             }
             if (!longsecs)
             {
-                msg = _T("invalid date");    //show when invalid -DJ
+                msg = "invalid date";    //show when invalid -DJ
                 break;
             }
             int days = longsecs / 60 / 60 / 24;
@@ -1392,31 +1207,56 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             minutes = (longsecs / 60) % 60;
             seconds = longsecs % 60;
             if (Countdown == COUNTDOWN_D_H_M_S)
-                msg = wxString::Format("%dd %dh %dm %ds", days, hours, minutes, seconds);
+                msg = std::format("{}d {}h {}m {}s", days, hours, minutes, seconds);
             else if (Countdown == COUNTDOWN_H_M_S)
-                msg = wxString::Format("%d : %d : %d", hours, minutes, seconds);
+                msg = std::format("{} : {} : {}", hours, minutes, seconds);
             else if (Countdown == COUNTDOWN_S)
-                msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
+                msg = std::format("{}", 60 * 60 * hours + 60 * minutes + seconds);
             else if (Countdown == COUNTDOWN_FREEFMT)
                 //            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
-                if (fmt == "" || (fmt.EndsWith("%") && !fmt.EndsWith("%%")))
+                if (fmt == "" || (EndsWith(fmt, "%") && !EndsWith(fmt, "%%")))
                 {
-                    msg = _T("invalid format");
+                    msg = "invalid format";
                 }
                 else
                 {
-                    msg = ts.Format(fmt); //dt.Format(fmt)
+                    // Format timespan using wxTimeSpan-compatible format specifiers:
+                    // %H=hours, %M=minutes, %S=seconds, %l=milliseconds, %D=days, %E=weeks, %%=literal %
+                    long totalHours = longsecs / 3600;
+                    int fmtMinutes = (longsecs / 60) % 60;
+                    int fmtSeconds = longsecs % 60;
+                    long fmtDays = longsecs / 86400;
+                    long fmtWeeks = longsecs / (7 * 86400);
+                    std::string result;
+                    for (size_t i = 0; i < fmt.length(); i++) {
+                        if (fmt[i] == '%' && i + 1 < fmt.length()) {
+                            i++;
+                            switch (fmt[i]) {
+                                case 'H': result += std::format("{:02}", totalHours); break;
+                                case 'M': result += std::format("{:02}", fmtMinutes); break;
+                                case 'S': result += std::format("{:02}", fmtSeconds); break;
+                                case 'l': result += "000"; break; // no sub-second precision in countdown
+                                case 'D': result += std::format("{}", fmtDays); break;
+                                case 'E': result += std::format("{}", fmtWeeks); break;
+                                case '%': result += '%'; break;
+                                default: result += '%'; result += fmt[i]; break;
+                            }
+                        } else {
+                            result += fmt[i];
+                        }
+                    }
+                    msg = result;
                 }
             else //if (Countdown == COUNTDOWN_M_or_S)
                 if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
-                    msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
+                    msg = std::format("{}", 60 * 60 * hours + 60 * minutes + seconds);
                 else //COUNTDOWN_M_or_S: show minutes
-                    msg = wxString::Format("%d m", 60 * hours + minutes);
+                    msg = std::format("{} m", 60 * hours + minutes);
         }
             break;
         default:
             msg=Line;
-            msg.Replace("\\n", "\n", true); //allow vertical spacing (mainly for up/down) -DJ
+            Replace(msg, "\\n", "\n"); //allow vertical spacing (mainly for up/down) -DJ
             break;
     }
 }
@@ -1424,12 +1264,12 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
 #define msgReplace(a, b, c) \
     do                      \
     {                    \
-       if (a.Contains(b)) { \
-           a.Replace(b, (c)); \
+       if (Contains(a, b)) { \
+           Replace(a, b, (c)); \
        } \
     } while (0)
 
-void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
+void TextEffect::ReplaceVaribles(std::string& msg, RenderBuffer& buffer) const
 {
     msgReplace(msg, "${TITLE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
     msgReplace(msg, "${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
@@ -1444,13 +1284,13 @@ void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
     msgReplace(msg, "${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
     msgReplace(msg, "${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
 
-    if (msg.Contains("${UPPER}")) {
-        msg.Replace("${UPPER}", "");
-        msg = msg.Upper();
+    if (Contains(msg, "${UPPER}")) {
+        Replace(msg, "${UPPER}", "");
+        msg = Upper(msg);
     }
-    if (msg.Contains("${LOWER}")) {
-        msg.Replace("${LOWER}", "");
-        msg = msg.Lower();
+    if (Contains(msg, "${LOWER}")) {
+        Replace(msg, "${LOWER}", "");
+        msg = Lower(msg);
     }
 }
 
@@ -1484,7 +1324,7 @@ std::string TextEffect::FlipWord(const SettingsMap& settings, const std::string&
 
     if (words.size() > 1) {
         // we need to adjust the text
-        int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10")); // 0 to 50
+        int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10); // 0 to 50
 
         // zero means just show the first word ... never advance
         // one means go through words once
@@ -1511,12 +1351,12 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int num_colors = buffer.palette.Size();
     buffer.palette.GetColor(0, c);
 
-    int starty = wxAtoi(settings.Get("SLIDER_Text_YStart", "0"));
-    int startx = wxAtoi(settings.Get("SLIDER_Text_XStart", "0"));
-    int endy = wxAtoi(settings.Get("SLIDER_Text_YEnd", "0"));
-    int endx = wxAtoi(settings.Get("SLIDER_Text_XEnd", "0"));
-    bool pixelOffsets = wxAtoi(settings.Get("CHECKBOX_Text_PixelOffsets", "0"));
-    bool perWord = wxAtoi(settings.Get("CHECKBOX_Text_Color_PerWord", "0"));
+    int starty = std::strtol(settings.Get("SLIDER_Text_YStart", "0").c_str(), nullptr, 10);
+    int startx = std::strtol(settings.Get("SLIDER_Text_XStart", "0").c_str(), nullptr, 10);
+    int endy = std::strtol(settings.Get("SLIDER_Text_YEnd", "0").c_str(), nullptr, 10);
+    int endx = std::strtol(settings.Get("SLIDER_Text_XEnd", "0").c_str(), nullptr, 10);
+    bool pixelOffsets = std::strtol(settings.Get("CHECKBOX_Text_PixelOffsets", "0").c_str(), nullptr, 10);
+    bool perWord = std::strtol(settings.Get("CHECKBOX_Text_Color_PerWord", "0").c_str(), nullptr, 10);
 
     int OffsetLeft = startx * buffer.BufferWi / 100;
     int OffsetTop = -starty * buffer.BufferHt / 100;
@@ -1526,49 +1366,53 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     }
 
     font_mgr.init();
-    wxString xl_font = settings["CHOICE_Text_Font"];
+    std::string xl_font = settings["CHOICE_Text_Font"];
     xlFont* font = font_mgr.get_font(xl_font);
-    wxBitmap* bmp = font->get_bitmap();
-    wxImage image = bmp->ConvertToImage();
+    const xlImage* image = font->get_image();
     int char_width = font->GetWidth();
     int char_height = font->GetHeight();
 
-    wxString text = ToWXString(settings["TEXTCTRL_Text"]);
-    text.Replace("\\n", "\n");
+    std::string text = settings["TEXTCTRL_Text"];
+    Replace(text, "\\n", "\n");
 
-    wxString filename = settings["FILEPICKERCTRL_Text_File"];
-    wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
+    std::string filename = settings["FILEPICKERCTRL_Text_File"];
+    std::string lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
     if (text == "") {
-        if (FileExists(filename)) {
-            wxFile file(filename);
-            if (file.IsOpened()) {
-                wxString fileContent;
-                if (file.ReadAll(&fileContent)) {
-                    wxArrayString lines = wxSplit(fileContent, '\n');
-
-                    text.Clear();
-                    int lineCount = std::min((int)lines.GetCount(), MAXTEXTLINES);
-
-                    for (int i = 0; i < lineCount; i++) {
-                        if (i > 0) {
-                            text += "\n";
-                        }
-                        text += lines[i];
-                    }
-
-                    while (!text.IsEmpty() && text.Last() == '\n') {
-                        text.RemoveLast();
-                    }
+        if (!filename.empty()) {
+            auto* seqMedia = buffer.GetSequenceMedia();
+            std::string fileContent;
+            if (seqMedia) {
+                auto entry = seqMedia->GetTextFile(filename);
+                if (entry) {
+                    entry->MarkIsUsed();
+                    fileContent = entry->GetContent();
                 }
-                file.Close();
+            }
+
+            if (!fileContent.empty()) {
+                auto lines = Split(fileContent, '\n');
+
+                text.clear();
+                int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
+
+                for (int i = 0; i < lineCount; i++) {
+                    if (i > 0) {
+                        text += "\n";
+                    }
+                    text += lines[i];
+                }
+
+                while (!text.empty() && text.back() == '\n') {
+                    text.pop_back();
+                }
             }
         }
         else if (lyricTrack != "") {
             Element* t = nullptr;
-            for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
-                auto lt = lyricTrack.BeforeLast('-');
-                lt = lt.Left(lt.size() - 1);
+            for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
+                auto lt = BeforeLast(lyricTrack, '-');
+                lt = lt.substr(0, lt.size() - 1);
                 Element* e = mSequenceElements->GetElement(i);
                 if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt) {
                     t = e;
@@ -1578,7 +1422,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
             if (t != nullptr) {
                 long time = buffer.curPeriod * buffer.frameTimeInMs;
                 EffectLayer* el = nullptr;
-                if (lyricTrack.EndsWith(" - Phrases")) {
+                if (EndsWith(lyricTrack, " - Phrases")) {
                     el = t->GetEffectLayer(0);
                 }
                 else {
@@ -1595,19 +1439,19 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         }
     }
 
-    wxString msg = text;
+    std::string msg = text;
     int Countdown = TextCountDownIndex(settings["CHOICE_Text_Count"]);
     if (Countdown > 0) {
-        int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
+        int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10);
         int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
-        wxString Line = text;
+        std::string Line = text;
         FormatCountdown(Countdown, state, Line, buffer, msg, text);
-        msg.Replace(" : ", ":");
+        Replace(msg, " : ", ":");
     }
     ReplaceVaribles(msg, buffer);
     text = msg;
 
-    wxArrayString lines = wxSplit(text, '\n');
+    auto lines = Split(text, '\n');
     std::vector<int> line_lengths;
     int max_line_length = 0;
     for (const auto& line : lines) {
@@ -1671,15 +1515,15 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     if (!lines.empty()) {
         int curPos = 0;
         for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
-            const wxString& line = lines[line_idx];
+            const std::string& line = lines[line_idx];
             int line_offset_left = OffsetLeft - line_lengths[line_idx] / 2;
             if (rotate_90 || vertical) {
                 line_offset_left = OffsetLeft;
             }
 
-            for (int i = 0; i < line.length(); i++) {
+            for (int i = 0; i < (int)line.length(); i++) {
                 buffer.palette.GetColor(curPos % num_colors, c);
-                if ((perWord && line[i] == ' ' && i + 1 < line.size() && line[i + 1] != ' ') || 
+                if ((perWord && line[i] == ' ' && i + 1 < (int)line.size() && line[i + 1] != ' ') ||
                     (!perWord && line[i] != ' ')) {
                     curPos++;
                 }
@@ -1688,17 +1532,17 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                 int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
 
                 int actual_width = font->GetCharWidth(ascii);
-                wxASSERT(actual_width > 0);
+                assert(actual_width > 0);
                 if (rotate_90 && up) {
                     OffsetTop -= actual_width;
                 }
                 for (int w = 0; w < actual_width; w++) {
                     int x_pos = x_start_corner + w;
                     for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++) {
-                        if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight()) {
-                            int red = image.GetRed(x_pos, y_pos);
-                            int green = image.GetGreen(x_pos, y_pos);
-                            int blue = image.GetBlue(x_pos, y_pos);
+                        if (x_pos >= 0 && x_pos < image->GetWidth() && y_pos >= 0 && y_pos < image->GetHeight()) {
+                            int red = image->GetRed(x_pos, y_pos);
+                            int green = image->GetGreen(x_pos, y_pos);
+                            int blue = image->GetBlue(x_pos, y_pos);
                             if (red == 255 && green == 255 && blue == 255) {
                                 if (rotate_90) {
                                     if (up) {
@@ -1733,7 +1577,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
     int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90) const
 {
-    int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
+    int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10);
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
     int txtwidth = text_len;
@@ -1757,8 +1601,8 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
     int ylimit = totheight * 8 + 1;
 
     TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-    int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);
-    int norepeat = wxAtoi(settings["CHECKBOX_TextNoRepeat"]);
+    int center = std::strtol(settings["CHECKBOX_TextToCenter"].c_str(), nullptr, 10);
+    int norepeat = std::strtol(settings["CHECKBOX_TextNoRepeat"].c_str(), nullptr, 10);
 
     switch (dir) {
     case TEXTDIR_VECTOR:

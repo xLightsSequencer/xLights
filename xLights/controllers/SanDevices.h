@@ -10,13 +10,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/protocol/http.h>
-
 #include <list>
 #include <string>
 
 #include "ControllerUploadData.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 #include "BaseController.h"
 
 class SanDevices;
@@ -97,17 +95,6 @@ public:
     }
 };
 
-// I had to write this http class as wxHTTP is unable to handle the SanDevices
-class SimpleHTTP : public wxHTTP
-{
-    bool MyBuildRequest(const wxString& path, const wxString& method, wxString& startResult);
-
-public:
-    SimpleHTTP() : wxHTTP() { }
-    virtual ~SimpleHTTP() { }
-    wxInputStream *GetInputStream(const wxString& path, wxString& startResult);
-};
-
 class SanDevices : public BaseController
 {
     #pragma region Member Variables
@@ -118,7 +105,6 @@ class SanDevices : public BaseController
                                 E681 = 681,
                                 E682 = 682 }; // enum class
 
-    SimpleHTTP _http;
     std::string _page;
     FirmwareVersion _firmware;
     SanDeviceModel _sdmodel = SanDeviceModel::Unknown;
@@ -146,8 +132,8 @@ class SanDevices : public BaseController
     #pragma endregion
 
     #pragma region Private Functions
-    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
-    bool SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
+    bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui);
+    bool SetOutputsV5(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui);
     bool ParseV4Webpage(const std::string& page);
     bool ParseV5MainWebpage(const std::string& page);
     bool ParseV5OutputWebpage(const std::string& page);
@@ -194,8 +180,8 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetInputUniverses(Controller* controller, UICallbacks* ui) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
     virtual bool needsHTTP_0_9() const override { return true; }

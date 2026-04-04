@@ -23,7 +23,6 @@ class GarlandsEffect : public RenderableEffect
 public:
     GarlandsEffect(int id);
     virtual ~GarlandsEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -52,6 +51,4 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

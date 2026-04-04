@@ -8,20 +8,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
-
 #include "ArchesModel.h"
 #include "ModelScreenLocation.h"
 #include "xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "../ModelPreview.h"
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 ArchesModel::ArchesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
@@ -37,188 +28,6 @@ ArchesModel::~ArchesModel()
 }
 
 
-static const char *LEFT_RIGHT_VALUES[] = {
-    "Green Square", 
-    "Blue Square"
-};
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
-
-static const char* LEFT_RIGHT_INSIDE_OUTSIDE_VALUES[] = {
-    "Green Square Inside",
-    "Green Square Outside",
-    "Blue Square Inside",
-    "Blue Square Outside"
-};
-static wxPGChoices LEFT_RIGHT_INSIDE_OUTSIDE(wxArrayString(4, LEFT_RIGHT_INSIDE_OUTSIDE_VALUES));
-
-void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p = grid->Append(new wxBoolProperty("Layered Arches", "LayeredArches", GetLayerSizeCount() != 0));
-    p->SetEditor("CheckBox");
-
-    if (GetLayerSizeCount() == 0) {
-        p = grid->Append(new wxUIntProperty("# Arches", "ArchesCount", parm1));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 100);
-        p->SetEditor("SpinCtrl");
-
-        p = grid->Append(new wxUIntProperty("Nodes Per Arch", "ArchesNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 1000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes", "ArchesNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-
-        AddLayerSizeProperty(grid);
-
-        p = grid->Append(new wxUIntProperty("Hollow %", "Hollow", _hollow));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 95);
-        p->SetEditor("SpinCtrl");
-
-        p = grid->Append(new wxBoolProperty("Zig-Zag Layers", "ZigZag", _zigzag));
-        p->SetEditor("CheckBox");
-    }
-
-    p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Arc Degrees", "ArchesArc", _arc));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 180);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Arch Tilt", "ArchesSkew", screenLocation.GetAngle()));
-    p->SetAttribute("Min", -180);
-    p->SetAttribute("Max", 180);
-    p->SetEditor("SpinCtrl");
-
-    if (GetLayerSizeCount() == 0) {
-        p = grid->Append(new wxIntProperty("Gap Between Arches", "ArchesGap", _gap));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 500);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (GetLayerSizeCount() != 0) {
-        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT_INSIDE_OUTSIDE, (IsLtoR ? 0 : 2) + (isBotToTop ? 1 : 0)));
-    } else {
-        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-    }
-}
-
-int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("ArchesCount" == event.GetPropertyName()) {
-        SetParm1((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        return 0;
-    } else if ("ArchesNodes" == event.GetPropertyName()) {
-        SetParm2((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesNodes");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ArchesModel::OnPropertyGridChange::ArchesNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ArchesModel::OnPropertyGridChange::ArchesNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ArchesModel::OnPropertyGridChange::SingleLineNodes");
-        return 0;
-    } else if ("ArchesLights" == event.GetPropertyName()) {
-        SetParm3((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesLights");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesLights");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesLights");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesLights");
-        return 0;
-    } else if ("ArchesArc" == event.GetPropertyName()) {
-        SetArc((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesArc");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesArc");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesArc");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesArc");
-        return 0;
-    } else if ("ArchesSkew" == event.GetPropertyName()) {
-        screenLocation.SetAngle(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesSkew");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesSkew");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesSkew");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesSkew");
-        return 0;
-    } else if ("LayeredArches" == event.GetPropertyName()) {
-        if (event.GetPropertyValue().GetBool()) {
-            parm1 = 1;
-            SetLayerSizeCount(1);
-            SetLayerSize(0, parm2);
-        } else {
-            SetLayerSizeCount(0);
-        }
-        OnLayerSizesChange(true);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::HandleLayerSizePropertyChange::Layers");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
-        return 0;
-    } else if ("ZigZag" == event.GetPropertyName()) {
-        _zigzag = event.GetPropertyValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
-        return 0;
-    } else if ("Hollow" == event.GetPropertyName()) {
-        _hollow = event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesHollow");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesHollow");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesHollow");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesHollow");
-        return 0;
-    } else if ("ArchesGap" == event.GetPropertyName()) {
-        _gap = event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        return 0;
-    } else if ("ArchesStart" == event.GetPropertyName()) {
-        int value = event.GetValue().GetLong();
-        if (GetLayerSizeCount() != 0) {
-            SetDirection((value == 0 || value == 1) ? "L" : "R");
-            SetStartSide((value == 0 || value == 2) ? "T" : "B");
-            SetIsBtoT(value != 0 && value != 2);
-        } else {
-            SetDirection(value == 0 ? "L" : "R");
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesStart");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
 
 void ArchesModel::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
@@ -240,7 +49,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string& tp, const std::string
 
         int cur = 0;
 
-        for (int x = 0; x < Nodes.size(); x++) {
+        for (int x = 0; x < (int)Nodes.size(); x++) {
             newNodes.push_back(NodeBaseClassPtr(Nodes[x]->clone()));
             for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
                 newNodes[cur]->Coords[c].bufX = cur;
@@ -257,7 +66,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string& tp, const std::string
 bool ArchesModel::IsNodeFirst(int n) const 
 {
     if (GetLayerSizeCount() == 0) {
-        return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - 1);
+        return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - 1);
     } else {
         return n == 0;
     }
@@ -266,17 +75,17 @@ bool ArchesModel::IsNodeFirst(int n) const
 void ArchesModel::InitModel()
 {
     if (GetLayerSizeCount() == 0) {
-        int NumArches = parm1;
-        int SegmentsPerArch = parm2;
+        int NumArches = _numArches;
+        int SegmentsPerArch = _nodesPerArch;
 
         SetBufferSize(NumArches, SegmentsPerArch);
         if (SingleNode) {
-            SetNodeCount(NumArches * SegmentsPerArch, parm3, rgbOrder);
+            SetNodeCount(NumArches * SegmentsPerArch, _lightsPerNode, rgbOrder);
         } else {
             SetNodeCount(NumArches, SegmentsPerArch, rgbOrder);
-            if (parm3 > 1) {
+            if (_lightsPerNode > 1) {
                 for (size_t x = 0; x < Nodes.size(); x++) {
-                    Nodes[x]->Coords.resize(parm3);
+                    Nodes[x]->Coords.resize(_lightsPerNode);
                 }
             }
         }
@@ -311,12 +120,12 @@ void ArchesModel::InitModel()
         }
         SetBufferSize(lcount, maxLen);
         if (SingleNode) {
-            SetNodeCount(parm2, parm3, rgbOrder);
+            SetNodeCount(_nodesPerArch, _lightsPerNode, rgbOrder);
         } else {
-            SetNodeCount(1, parm2, rgbOrder);
-            if (parm3 > 1) {
+            SetNodeCount(1, _nodesPerArch, rgbOrder);
+            if (_lightsPerNode > 1) {
                 for (size_t x = 0; x < Nodes.size(); x++) {
-                    Nodes[x]->Coords.resize(parm3);
+                    Nodes[x]->Coords.resize(_lightsPerNode);
                 }
             }
         }
@@ -326,11 +135,11 @@ void ArchesModel::InitModel()
         bool dir = IsLtoR;
         bool in_out = isBotToTop;
         float y = 0;
-        for (int layer = 0; layer < GetLayerSizeCount(); layer++) {
+        for (int layer = 0; layer < (int)GetLayerSizeCount(); layer++) {
             int yy = layer;
             if (in_out) yy = GetLayerSizeCount() - layer - 1;
             int it = GetLayerSizes()[yy];
-            if (idx < Nodes.size()) {
+            if (idx < (int)Nodes.size()) {
                 if (it == 1) {
                     int startChan = stringStartChan[0] + idx * GetNodeChannelCount(StringType);
                     Nodes[idx]->ActChan = startChan;
@@ -343,7 +152,7 @@ void ArchesModel::InitModel()
                 } else {
                     float gap = (float)(maxLen - 1) / (float)(it - 1);
                     for (int x = 0; x < it; x++) {
-                        if (idx < Nodes.size()) {
+                        if (idx < (int)Nodes.size()) {
                             int xx = std::round((float)x * gap);
                             if (!dir) {
                                 xx = maxLen - 1 - xx;
@@ -378,13 +187,25 @@ int ArchesModel::MapToNodeIndex(int strand, int node) const {
         idx += node;
         return idx;
     }
-    return strand * parm2 + node;
+    return strand * _nodesPerArch + node;
 }
 int ArchesModel::GetNumStrands() const {
     if (GetLayerSizeCount() != 0) {
         return GetLayerSizeCount();
     }
-    return parm1;
+    return _numArches;
+}
+
+int ArchesModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerArch;
+    }
+    return _nodesPerArch * ts;
 }
 
 int ArchesModel::GetStrandLength(int strand) const
@@ -407,7 +228,7 @@ int ArchesModel::GetMappedStrand(int strand) const
 int ArchesModel::CalcChannelsPerString()
 {
     SingleChannel = false;
-    return GetNodeChannelCount(StringType) * parm2;
+    return GetNodeChannelCount(StringType) * _nodesPerArch;
 }
 
 static void rotate_point(float cx, float cy, float angle, float& x, float& y)
@@ -432,7 +253,7 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
 {
     double x;
     size_t NodeCount = GetNodeCount();
-    double midpt = maxLen * parm3;
+    double midpt = maxLen * _lightsPerNode;
     midpt -= 1.0;
     midpt /= 2.0;
     double total = toRadians(_arc);
@@ -440,8 +261,8 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
     float skew_angle = toRadians(screenLocation.GetAngle());
 
     double angle = -M_PI / 2.0 + start;
-    x = midpt * sin(angle) * 2.0 + maxLen * parm3;
-    double width = maxLen * parm3 * 2 - x;
+    x = midpt * sin(angle) * 2.0 + maxLen * _lightsPerNode;
+    double width = maxLen * _lightsPerNode * 2 - x;
 
     double archgap = 0;
     if (arches > 1) {
@@ -453,9 +274,9 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
         size_t CoordCount = GetCoordCount(n);
         double adj = 1.0 - archgap * (arches - 1 - Nodes[n]->Coords[0].bufY);
         for (size_t c = 0; c < CoordCount; c++) {
-            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c)) / midpt / 2.0;
-            x = midpt * sin(angle2) * 2.0 * adj + maxLen * parm3;
-            double y = (maxLen * parm3) * cos(angle2);
+            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0;
+            x = midpt * sin(angle2) * 2.0 * adj + maxLen * _lightsPerNode;
+            double y = (maxLen * _lightsPerNode) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
             Nodes[n]->Coords[c].screenY = y * screenLocation.GetMHeight() * adj;
             rotate_point(x, 0, skew_angle,
@@ -464,7 +285,7 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
             minY = std::min(minY, y);
         }
     }
-    float renderHt = parm2 * parm3;
+    float renderHt = _nodesPerArch * _lightsPerNode;
     if (minY > 1) {
         renderHt -= minY;
         for (const auto& it : Nodes) {
@@ -480,7 +301,7 @@ void ArchesModel::SetArchCoord()
 {
     double x;
     size_t NodeCount = GetNodeCount();
-    double midpt = parm2 * parm3;
+    double midpt = _nodesPerArch * _lightsPerNode;
     midpt -= 1.0;
     midpt /= 2.0;
     double total = toRadians(_arc);
@@ -488,8 +309,8 @@ void ArchesModel::SetArchCoord()
     float skew_angle = toRadians(screenLocation.GetAngle());
 
     double angle = -M_PI / 2.0 + start;
-    x = midpt * sin(angle) * 2.0 + parm2 * parm3;
-    double width = parm2 * parm3 * 2 - x;
+    x = midpt * sin(angle) * 2.0 + _nodesPerArch * _lightsPerNode;
+    double width = _nodesPerArch * _lightsPerNode * 2 - x;
 
     double minY = 999999;
     int gaps = 0;
@@ -497,9 +318,9 @@ void ArchesModel::SetArchCoord()
         double xoffset = Nodes[n]->StringNum * width;
         size_t CoordCount = GetCoordCount(n);
         for (size_t c = 0; c < CoordCount; c++) {
-            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c)) / midpt / 2.0;
-            x = xoffset + midpt * sin(angle2) * 2.0 + parm2 * parm3 + gaps * _gap;
-            double y = (parm2 * parm3) * cos(angle2);
+            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0;
+            x = xoffset + midpt * sin(angle2) * 2.0 + _nodesPerArch * _lightsPerNode + gaps * _gap;
+            double y = (_nodesPerArch * _lightsPerNode) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
             Nodes[n]->Coords[c].screenY = y * screenLocation.GetMHeight();
             rotate_point(x, 0, skew_angle,
@@ -507,11 +328,11 @@ void ArchesModel::SetArchCoord()
                 Nodes[n]->Coords[c].screenY);
             minY = std::min(minY, y);
         }
-        if ((n + 1) % parm2 == 0) {
+        if ((n + 1) % _nodesPerArch == 0) {
             gaps++;
         }
     }
-    float renderHt = parm2 * parm3;
+    float renderHt = _nodesPerArch * _lightsPerNode;
     if (minY > 1) {
         renderHt -= minY;
         for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -520,38 +341,26 @@ void ArchesModel::SetArchCoord()
             }
         }
     }
-    screenLocation.SetRenderSize(width * parm1 + (parm1 - 1) * _gap, renderHt);
+    screenLocation.SetRenderSize(width * _numArches + (_numArches - 1) * _gap, renderHt);
 }
 
 std::string ArchesModel::GetDimension() const
 {
-    if (GetLayerSizeCount() == 0 && parm1 != 0) {
-        return GetModelScreenLocation().GetDimension(1.0 / parm1);
+    if (GetLayerSizeCount() == 0 && _numArches != 0) {
+        return GetModelScreenLocation().GetDimension(1.0 / _numArches);
     }
     return GetModelScreenLocation().GetDimension(1.0);
-}
-
-void ArchesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
-{
-    if (GetLayerSizeCount() == 0 && parm1 != 0) {
-        GetModelScreenLocation().AddDimensionProperties(grid, 1.0 / parm1);
-    } else {
-        GetModelScreenLocation().AddDimensionProperties(grid, 1.0);
-    }
 }
 
 void ArchesModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1 && GetLayerSizeCount() > 0) {
-        SetParm2((int)GetLayerSizesTotalNodes());
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ArchesModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ArchesModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ArchesModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::OnLayerSizesChange");
+    if (_numArches == 1 && GetLayerSizeCount() > 0) {
+        _nodesPerArch = (int)GetLayerSizesTotalNodes();
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::OnLayerSizesChange");
     }
 }

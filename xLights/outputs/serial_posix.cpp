@@ -6,12 +6,18 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+#include <chrono>
+#include <string>
+#include <thread>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <linux/serial.h>
+
+#include "serial.h"
 
 // Linux version
 
@@ -91,7 +97,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     // save the device name
     _devName = devName;
 
-    _fd = open(wxString(devName).fn_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+    _fd = open(devName.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     if(_fd < 0) return _fd;
 
     // exclusive use
@@ -204,7 +210,7 @@ int SerialPort::WaitingToWrite()
 int SerialPort::SendBreak()
 {
     ioctl(_fd, TIOCSBRK);
-    wxMilliSleep(1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     ioctl(_fd, TIOCCBRK);
     return 0;
 };

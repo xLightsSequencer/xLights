@@ -14,11 +14,17 @@
 #include "../outputs/Output.h"
 #include "../outputs/DDPOutput.h"
 #include "../models/ModelManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
 #include "ControllerCaps.h"
+#include "../render/UICallbacks.h"
 #include "../outputs/ControllerEthernet.h"
 
-#include <log4cpp/Category.hh>
+#include <chrono>
+#include <thread>
+
+#include <log.h>
 
 #include <vector>
 
@@ -52,14 +58,14 @@ static std::map<std::string, std::string> EspsV4ColorOrders = {
 // This is tested with a pixel stick running v3.0 of the firmware
 ESPixelStick::ESPixelStick(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
+    
+    spdlog::debug("connecting to ESPixelStick controller on {}.", _ip);
 
     if (!CheckHTTPconnection()) 
     {
         if (!CheckWsConnection()) {
             _connected = false;
-            logger_base.error("Error connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
+            spdlog::error("Error connecting to ESPixelStick controller on {}.", _ip);
         }
     }
 }
@@ -69,8 +75,6 @@ ESPixelStick::ESPixelStick(const std::string& ip, const std::string &proxy) : Ba
 
 bool ESPixelStick::CheckWsConnection()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _wsClient.Connect(_ip, "/ws");
 
     if (_wsClient.IsConnected()) {
@@ -78,7 +82,7 @@ bool ESPixelStick::CheckWsConnection()
         _connected = true;
         _wsClient.Send("G2");
         _version = GetFromJSON("", "version", GetWSResponse());
-        logger_base.debug("Connected to ESPixelStick WebSocket - Firmware Version %s", (const char*)_version.c_str());
+        spdlog::debug("Connected to ESPixelStick WebSocket - Firmware Version {}", _version);
         return true;
     }
 
@@ -87,8 +91,8 @@ bool ESPixelStick::CheckWsConnection()
 
 bool ESPixelStick::CheckHTTPconnection()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("CheckHTTPconnection ", (const char*)_ip.c_str());
+    
+    spdlog::debug("CheckHTTPconnection ", (const char*)_ip.c_str());
 
     // open HTTP connection to get admininfo
     nlohmann::json HttpResponse;
@@ -100,7 +104,7 @@ bool ESPixelStick::CheckHTTPconnection()
         _model = "ESPixelStick";
         _connected = true;
         _version = HttpResponse["version"].get<std::string>();
-        logger_base.debug("Connected to ESPixelStick HTTP - Firmware Version %s", (const char*)_version.c_str());
+        spdlog::debug("Connected to ESPixelStick HTTP - Firmware Version {}", _version);
         return true;
     }
 
@@ -109,146 +113,146 @@ bool ESPixelStick::CheckHTTPconnection()
 
 bool ESPixelStick::GetAdminInformation(nlohmann::json& Response)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetAdminInformation: Getting ESPSv4 HTTP admin info");
+    
+    spdlog::debug("GetAdminInformation: Getting ESPSv4 HTTP admin info");
     return GetHttpConfig("admininfo", "admin", Response);
 }
 
 bool ESPixelStick::GetInputConfig(nlohmann::json& Response) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetInputConfig: Getting ESPSv4 HTTP input config");
+    
+    spdlog::debug("GetInputConfig: Getting ESPSv4 HTTP input config");
     return (_UsingHttpConfig) ? GetHttpConfig("input_config", "input_config", Response) : GetWsConfig("input", "input_config", Response);
 }
 
 bool ESPixelStick::SetInputConfig(nlohmann::json& Data) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetInputConfig: Setting ESPSv4 HTTP input config");
+    
+    spdlog::debug("SetInputConfig: Setting ESPSv4 HTTP input config");
     return (_UsingHttpConfig) ? SetHttpConfig("input_config", "input_config", Data) : SetWsConfig("input", "input_config", Data);
 }
 
 bool ESPixelStick::GetOutputConfig(nlohmann::json& Response) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetOutputConfig: Getting ESPSv4 HTTP output config");
+    
+    spdlog::debug("GetOutputConfig: Getting ESPSv4 HTTP output config");
     return (_UsingHttpConfig) ? GetHttpConfig("output_config", "output_config", Response) : GetWsConfig("output", "output_config", Response);
 }
 
 bool ESPixelStick::SetOutputConfig(nlohmann::json& Data) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetOutputConfig: Setting ESPSv4 HTTP output config");
+    
+    spdlog::debug("SetOutputConfig: Setting ESPSv4 HTTP output config");
     return ((_UsingHttpConfig) ? SetHttpConfig("output_config", "output_config", Data) : SetWsConfig("output", "output_config", Data));
 }
 
 bool ESPixelStick::GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Response) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetHttpConfig: Getting ESPSv4 HTTP config file");
+    
+    spdlog::debug("GetHttpConfig: Getting ESPSv4 HTTP config file");
 
     std::string const url = "/conf/" + FileName + ".json";
     std::string const RawData = GetURL(url);
-    // logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+    // spdlog::debug(std::string("GetHttpConfig: RawData: ") + RawData);
     try
     {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData[key];
     }
-    catch (nlohmann::json::exception ex)
+    catch (const nlohmann::json::exception& ex)
     {
         Response.clear();
-        logger_base.debug(std::string("GetHttpConfig: ERROR: Could not parse json: ") + RawData);
-        logger_base.error(std::string("GetHttpConfig: ERROR: Could not parse json: ") + ex.what());
+        spdlog::debug(std::string("GetHttpConfig: ERROR: Could not parse json: ") + RawData);
+        spdlog::error(std::string("GetHttpConfig: ERROR: Could not parse json: ") + ex.what());
     }
 
-    logger_base.debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.size()));
+    spdlog::debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.size()));
     return (0 != Response.size());
 }
 
 bool ESPixelStick::SetHttpConfig(std::string const& filename, std::string const& key, nlohmann::json const& Data) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
+    
+    spdlog::debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
     std::string const url = "http://" + _ip + "/conf/" + filename + ".json";
 
     nlohmann::json newJson;
     newJson[key] = Data;
     std::string newData = newJson.dump();
-    // logger_base.debug(std::string("SetHttpConfig: newData: '") + newData + "'");
+    // spdlog::debug(std::string("SetHttpConfig: newData: '") + newData + "'");
 
     std::string const contentType = "application/json";
     int ReturnCode = -1;
     std::vector<unsigned char> value(newData.begin(), newData.end());
     CurlManager::INSTANCE.doPost(url, contentType, value, ReturnCode);
 
-    // logger_base.debug(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
+    // spdlog::debug(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
     return (200 == ReturnCode);
 }
 
 bool ESPixelStick::GetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json& Response) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetWsConfig: Getting ESPSv4 HTTP config file");
+    
+    spdlog::debug("GetWsConfig: Getting ESPSv4 HTTP config file");
 
     nlohmann::json newJson;
     newJson["cmd"]["get"] = SectionName;
-    // logger_base.debug(std::string("GetWsConfig: cmd: ") + newJson.dump());
+    // spdlog::debug(std::string("GetWsConfig: cmd: ") + newJson.dump());
     _wsClient.Send(newJson.dump());
     std::string const RawData = GetWSResponse();
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData["get"][key];
-    } catch (nlohmann::json::exception ex) {
+    } catch (const nlohmann::json::exception& ex) {
         Response.clear();
-        logger_base.debug(std::string("GetWsConfig: ERROR: Could not parse json: ") + RawData);
-        logger_base.error(std::string("GetWsConfig: ERROR: Could not parse json: ") + ex.what());
+        spdlog::debug(std::string("GetWsConfig: ERROR: Could not parse json: ") + RawData);
+        spdlog::error(std::string("GetWsConfig: ERROR: Could not parse json: ") + ex.what());
     }
 
-    // logger_base.debug(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
+    // spdlog::debug(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
     return (0 != Response.size());
 }
 
 bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json const & Data) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetWsConfig: Setting ESPSv4 HTTP config file");
+    
+    spdlog::debug("SetWsConfig: Setting ESPSv4 HTTP config file");
 
     nlohmann::json newJson;
     newJson["cmd"]["set"][SectionName] = Data;
-    // logger_base.debug(std::string("SetWsConfig: cmd: ") + newJson.dump());
+    // spdlog::debug(std::string("SetWsConfig: cmd: ") + newJson.dump());
     _wsClient.Send(newJson.dump());
 
     std::string const RawData = GetWSResponse();
-    // logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
+    // spdlog::debug(std::string("SetWsConfig: RawData: ") + RawData);
     nlohmann::json Response;
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData["cmd"];
-    } catch (nlohmann::json::exception ex) {
-        logger_base.debug(std::string("SetWsConfig: ERROR: Could not parse json: ") + RawData);
-        logger_base.error(std::string("SetWsConfig: ERROR: Could not parse json: ") + ex.what());
+    } catch (const nlohmann::json::exception& ex) {
+        spdlog::debug(std::string("SetWsConfig: ERROR: Could not parse json: ") + RawData);
+        spdlog::error(std::string("SetWsConfig: ERROR: Could not parse json: ") + ex.what());
     }
 
     std::string const returnValue = Response.get<std::string>();
-    // logger_base.debug(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
+    // spdlog::debug(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
     bool const result = returnValue == "OK";
-    // logger_base.debug(std::string("SetWsConfig: result: ") + std::to_string(result));
+    // spdlog::debug(std::string("SetWsConfig: result: ") + std::to_string(result));
     return result;
 }
 
 std::string ESPixelStick::GetWSResponse()
 {
-    wxLongLong start = wxGetLocalTimeMillis();
-    wxLongLong diff = 0;
+    const auto start = std::chrono::steady_clock::now();
+    auto diff = std::chrono::milliseconds(0);
     std::string resp = "";
-    while (diff < 500 && resp == "") {
-        wxMilliSleep(5);
+    while (diff < std::chrono::milliseconds(500) && resp.empty()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
         resp = _wsClient.Receive();
-        diff = wxGetLocalTimeMillis() - start;
+        diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
     }
     return resp;
 }
 
 std::string ESPixelStick::GetFromJSON(std::string const& section, std::string const& key, std::string const & json) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     // skip over the "G2" header or whatever
 
     try {
-        for (int x = 0; x < json.size(); x++) {
+        for (int x = 0; x < (int)json.size(); x++) {
             if (json[x] == '{' || json[x] == '[') {
                 std::string const config = json.substr(x);
                 nlohmann::json origJson = nlohmann::json::parse(config);
@@ -272,8 +276,8 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
                 }
             }
         }
-    } catch (nlohmann::json::exception ex) {
-        logger_base.error(std::string("GetFromJSON: ERROR: Could not parse json: ") + ex.what());
+    } catch (const nlohmann::json::exception& ex) {
+        spdlog::error(std::string("GetFromJSON: ERROR: Could not parse json: ") + ex.what());
     }
 
     return "";
@@ -286,7 +290,7 @@ bool EspsPort::WriteConfigToJson(nlohmann::json& JsonConfig) {
     if (std::to_string(CurrentPort["type"].get<int>()) != CurrentProtocolId)
     {
         NumItemsChanged++;
-        CurrentPort["type"] = std::stoi(CurrentProtocolId);
+        CurrentPort["type"] = (int)std::strtol(CurrentProtocolId.c_str(), nullptr, 10);
     }
     nlohmann::json& CurrentProtocol = CurrentPort[CurrentProtocolId];
 
@@ -297,7 +301,7 @@ bool EspsPort::WriteConfigToJson(nlohmann::json& JsonConfig) {
 
 int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     for (auto const& [ElementName, ElementValue] : Settings)
     {
@@ -314,17 +318,13 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
         else if (JsonConfig[ElementName].is_number_float())
         {
             double temp;
-            try {
-                temp = std::stod(ElementValue);
-            } catch (const std::exception&) {
-                temp = 0.0;
-            }
+            temp = std::strtod(ElementValue.c_str(), nullptr);
             JsonConfig[ElementName] = temp;
-            // logger_base.debug("float:ElementName: '" + ElementName + "' value: '" + std::to_string(JsonConfig[ElementName].get<float>()) + "'");
+            // spdlog::debug("float:ElementName: '" + ElementName + "' value: '" + std::to_string(JsonConfig[ElementName].get<float>()) + "'");
         }
         else if (JsonConfig[ElementName].is_number_integer())
         {
-            JsonConfig[ElementName] = wxAtoi(ElementValue);
+            JsonConfig[ElementName] = (int)strtol(ElementValue.c_str(), nullptr, 10);
         }
         else if (JsonConfig[ElementName].is_boolean())
         {
@@ -332,7 +332,7 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
         }
         else
         {
-            logger_base.error("EspsV4Protocol:WriteConfigToJson: Encountered an unsupported field type in the esps protocol configuration for Element: " + ElementName);
+            spdlog::error("EspsV4Protocol:WriteConfigToJson: Encountered an unsupported field type in the esps protocol configuration for Element: " + ElementName);
             continue;
         }
     }
@@ -343,8 +343,8 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
 #pragma endregion
 
 #pragma region Getters and Setters
-bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+bool ESPixelStick::SetInputUniverses(Controller* controller, UICallbacks* ui) {
+    
     if (_version.size() > 0 && _version[0] == '4') {
         //only needed on V4.   V3 will upload inputs with outputs
 
@@ -405,7 +405,7 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
                 DDPOutput* ddp = dynamic_cast<DDPOutput*>(outputs.front());
                 if (ddp) {
                     if (ddp->IsKeepChannelNumbers()) {
-                        DisplayError("The DDP 'Keep Channel Numbers' option is not supported with ESPixelStick. Please disable.");
+                        ui->ShowMessage("The DDP 'Keep Channel Numbers' option is not supported with ESPixelStick. Please disable.", "Error");
                         return false;
                     }
                 }
@@ -414,28 +414,28 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
         if (changed) {
             if (SetInputConfig(inputConfig)) {
-                logger_base.debug("ESPixelStick Inputs Upload: Success!!!");
+                spdlog::debug("ESPixelStick Inputs Upload: Success!!!");
             }
         }
     }
     return true;
 }
 
-bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    SetInputUniverses(controller, parent);
-    return SetOutputs(allmodels, outputManager, controller, parent);
+bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
+    SetInputUniverses(controller, ui);
+    return SetOutputs(allmodels, outputManager, controller, ui);
 }
 
-bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
     if (!_version.empty() && _version[0] == '4') {
-        return SetOutputsV4(allmodels, outputManager, controller, parent);
+        return SetOutputsV4(allmodels, outputManager, controller, ui);
     }
-    return SetOutputsV3(allmodels, outputManager, controller, parent);
+    return SetOutputsV3(allmodels, outputManager, controller, ui);
 }
 
 bool EspsV4Protocol::GetSetting(std::string const& Name, std::string& value) {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("EspsV4Protocol:GetSetting: Start");
+    // 
+    // spdlog::debug("EspsV4Protocol:GetSetting: Start");
     bool Response { true };
 
     if (Settings.contains(Name))
@@ -448,13 +448,13 @@ bool EspsV4Protocol::GetSetting(std::string const& Name, std::string& value) {
         Response = false;
     }
 
-    // logger_base.debug("EspsV4Protocol:GetSetting: Done");
+    // spdlog::debug("EspsV4Protocol:GetSetting: Done");
     return Response;
 } // GetSetting
 
 bool EspsV4Protocol::PutSetting(std::string const& Name, std::string value, std::string const& DefaultValue) {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("EspsV4Protocol:PutSetting: Start");
+    // 
+    // spdlog::debug("EspsV4Protocol:PutSetting: Start");
     bool Response{ false };
 
     do // once
@@ -487,19 +487,19 @@ bool EspsV4Protocol::PutSetting(std::string const& Name, std::string value, std:
             break;
         }
 
-        // logger_base.debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + value + "' json: '" + Settings[Name] + "'");
+        // spdlog::debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + value + "' json: '" + Settings[Name] + "'");
         Settings[Name] = value;
         NumItemsChanged++;
 
     } while (false);
 
-    // logger_base.debug("EspsV4Protocol:GetSetting: Done");
+    // spdlog::debug("EspsV4Protocol:GetSetting: Done");
     return Response;
 } // PutSetting
 
 bool EspsV4Protocol::PutSetting(std::string const& Name, int value, int DefaultValue) {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("EspsV4Protocol:PutSetting: Start");
+    // 
+    // spdlog::debug("EspsV4Protocol:PutSetting: Start");
     bool Response{ false };
 
     do // once
@@ -533,19 +533,19 @@ bool EspsV4Protocol::PutSetting(std::string const& Name, int value, int DefaultV
             break;
         }
 
-        // logger_base.debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + sValue + "' json: '" + Settings[Name] + "'");
+        // spdlog::debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + sValue + "' json: '" + Settings[Name] + "'");
         Settings[Name] = sValue;
         NumItemsChanged++;
 
     } while (false);
 
-    // logger_base.debug("EspsV4Protocol:GetSetting: Done");
+    // spdlog::debug("EspsV4Protocol:GetSetting: Done");
     return Response;
 } // PutSetting
 
 bool EspsV4Protocol::PutSetting(std::string const& Name, float value, float DefaultValue) {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("EspsV4Protocol:PutSetting: Start");
+    // 
+    // spdlog::debug("EspsV4Protocol:PutSetting: Start");
     bool Response = false;
 
     do // once
@@ -579,19 +579,19 @@ bool EspsV4Protocol::PutSetting(std::string const& Name, float value, float Defa
             break;
         }
 
-        // logger_base.debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + sValue + "' json: '" + Settings[Name] + "'");
+        // spdlog::debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + sValue + "' json: '" + Settings[Name] + "'");
         Settings[Name] = sValue;
         NumItemsChanged++;
 
     } while (false);
 
-    // logger_base.debug("EspsV4Protocol:GetSetting: Done");
+    // spdlog::debug("EspsV4Protocol:GetSetting: Done");
     return Response;
 } // PutSetting
 
 void EspsV4Protocol::ParseV4Settings(std::string const& Id, const nlohmann::json& JsonConfig) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("EspsV4Protocol:ParseV4Config: Start");
+    
+    // spdlog::debug("EspsV4Protocol:ParseV4Config: Start");
     _Id = Id;
 
     // process the element in the protocol
@@ -617,24 +617,23 @@ void EspsV4Protocol::ParseV4Settings(std::string const& Id, const nlohmann::json
         }
         else
         {
-            logger_base.error("EspsV4Protocol:ParseV4Config: Encountered an unsupported field type in the esps protocol configuration for Element: " + ElementId);
+            spdlog::error("EspsV4Protocol:ParseV4Config: Encountered an unsupported field type in the esps protocol configuration for Element: " + ElementId);
             continue;
         }
 
-        logger_base.debug("EspsPort:ParseV4Config: Id: " + ElementId + ", value: " + FinalValue);
+        spdlog::debug("EspsPort:ParseV4Config: Id: " + ElementId + ", value: " + FinalValue);
         Settings[ElementId] = FinalValue;
     }
 
     _Name = Settings["type"];
     _Name = Lower(_Name);
-    // logger_base.debug("EspsV4Protocol:ParseV4Config: Done");
+    // spdlog::debug("EspsV4Protocol:ParseV4Config: Done");
 
 } // ParseV4Settings
 
 bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("EspsPort:ParseV4Config: Start");
+    // spdlog::debug("EspsPort:ParseV4Config: Start");
 
     bool Response { true };
 
@@ -642,7 +641,7 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
     {
         // process the port members
         for (auto const& [ElementId, Elementval] : JsonConfig.items()) {
-            logger_base.debug("EspsPort:ParseV4Config: ProtocolId: " + ElementId);
+            spdlog::debug("EspsPort:ParseV4Config: ProtocolId: " + ElementId);
 
             // protocol IDs are a one or two character value
             if (3 > ElementId.length()) {
@@ -653,14 +652,14 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
                 // add protocol to the list of protocols valid for this port
                 auto const ProtocolName = Lower(Protocol.Name());
 
-                logger_base.debug("Adding protocol '" + ProtocolName + "' to port " + PortId);
+                spdlog::debug("Adding protocol '" + ProtocolName + "' to port " + PortId);
                 ProtocolsByName[ProtocolName] = Protocol;
                 ProtocolIdToProtocolName[Protocol.Id()] = ProtocolName;
             } else if (ElementId == "type") {
                 CurrentProtocolId = std::to_string(Elementval.get<int>());
             } else {
                 // error getting port information
-                logger_base.error("EspsPort:ParseV4Config: Could not parse data for port: " + ElementId);
+                spdlog::error("EspsPort:ParseV4Config: Could not parse data for port: " + ElementId);
                 Response = false;
                 break;
             }
@@ -682,14 +681,14 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
 
     } while (false);
 
-    // logger_base.debug("EspsPort:ParseV4Config: Done");
+    // spdlog::debug("EspsPort:ParseV4Config: Done");
     return Response;
 
 } // ParseV4Settings
 
 bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ParseV4Config: Start");
+    // 
+    // spdlog::debug("ParseV4Config: Start");
 
     bool Response { true };
 
@@ -711,7 +710,7 @@ bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
         for (auto const& [Portkey, Portval] : Ports.items())
         {
             EspsPort NewEspsPort;
-            // logger_base.debug("ParseV4Config: Portkey: " + Portkey);
+            // spdlog::debug("ParseV4Config: Portkey: " + Portkey);
             NewEspsPort.PortId = Portkey;
 
             NewEspsPort.ParseV4Settings(Ports[Portkey]);
@@ -722,22 +721,21 @@ bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
 
     } while (false);
 
-    // logger_base.debug("ParseV4Config: End");
+    // spdlog::debug("ParseV4Config: End");
     return Response;
 
 } // ParseV4Config
 
-bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+    spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", _ip);
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
     ControllerCaps * rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);
     cud.Dump();
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     do // once
     {
@@ -755,7 +753,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
         {
             // no valid config present
             std::string const msg = "ESPixelStick Outputs Upload: Could not parse config from ESPixelstick";
-            DisplayError(msg);
+            ui->ShowMessage(msg, "Error");
             success = false;
             break;
         }
@@ -786,7 +784,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             {
                 // not a supported protocol. Use disabled
                 CurrentEspsPort.Disable();
-                DisplayError("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4");
+                ui->ShowMessage("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4", "Error");
                 continue;
             }
 
@@ -817,7 +815,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     // unsupported color order
                     CurrentEspsPort.Disable();
                     std::string const msg = "ESPixelStick Outputs Upload: Color Order '" + colorOrder + "' not supported by ESPS V4";
-                    DisplayError(msg);
+                    ui->ShowMessage(msg, "Error");
                     return false;
                 }
 
@@ -870,7 +868,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             {
                 // not a supported protocol. Use disabled
                 CurrentEspsPort.Disable();
-                DisplayError("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4");
+                ui->ShowMessage("ESPixelStick Outputs Upload: Protocol '" + targetProtocolName + "' not supported by ESPS V4", "Error");
                 continue;
             }
 
@@ -898,17 +896,17 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             if (SetOutputConfig(outputConfig))
             {
                 success = true;
-                logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
+                spdlog::debug("ESPixelStick Outputs Upload: Success!!!");
             }
             else
             {
                 success = false;
-                logger_base.error("ESPixelStick Outputs Upload: Failure!!!");
+                spdlog::error("ESPixelStick Outputs Upload: Failure!!!");
             }
         }
         else
         {
-            logger_base.debug("ESPixelStick Outputs Upload: No Changes to upload");
+            spdlog::debug("ESPixelStick Outputs Upload: No Changes to upload");
             success = true;
         }
     } while (false);
@@ -916,9 +914,9 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
     return success;
 }
 
-bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) {
+    
+    spdlog::debug("ESPixelStick Outputs Upload: Uploading to {}", _ip);
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -928,12 +926,12 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
 
     cud.Dump();
 
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     try {
         if (success && cud.GetMaxPixelPort() > 0) {
             if (!check.empty()) {
-                DisplayWarning("Upload warnings:\n" + check);
+                ui->ShowMessage("Upload warnings:\n" + check, "Warning");
             }
 
             UDControllerPort* port = cud.GetControllerPixelPort(1);
@@ -941,7 +939,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
             _wsClient.Send("G1");
             std::string config = GetWSResponse();
             if (config.empty()) {
-                DisplayError("Failed to get Data from ESPixelStick");
+                ui->ShowMessage("Failed to get Data from ESPixelStick", "Error");
                 return false;
             }
             config = config.substr(2);
@@ -1001,14 +999,14 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
 
             if (_wsClient.Send(message)) {
                 success = true;
-                logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
+                spdlog::debug("ESPixelStick Outputs Upload: Success!!!");
             }
             GetWSResponse();
         } else {
-            DisplayError("Not uploaded due to errors.\n" + check);
+            ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
         }
-    } catch (nlohmann::json::exception ex) {
-        logger_base.error(std::string("SetOutputsV3: ERROR: Could not parse json: ") + ex.what());
+    } catch (const nlohmann::json::exception& ex) {
+        spdlog::error(std::string("SetOutputsV3: ERROR: Could not parse json: ") + ex.what());
     }
 
     return success;

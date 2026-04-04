@@ -1,7 +1,7 @@
 
 #include "xlFontInfo.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <vector>
 #include <map>
 
@@ -40,7 +40,7 @@ xlFontInfo::~xlFontInfo() {
 }
 
 bool xlFontInfo::valid() const {
-    return image.IsOk();
+    return image.IsOk();  // xlImage::IsOk()
 }
 
 bool xlFontInfo::init(int size) {
@@ -73,29 +73,29 @@ bool xlFontInfo::load(const FontInfoStruct &fi) {
     maxH = fi.maxH;
     maxD = fi.maxD;
     widths = fi.widths;
-    image = wxImage(fi.data);
-    if (!image.IsOk()) {
+
+    // Load XPM data directly into xlImage
+    xlImage xpmImg(fi.data);
+    if (!xpmImg.IsOk()) {
         return false;
     }
-    image.InitAlpha();
 
-    for (int x = 0; x < image.GetWidth(); x++) {
-        for (int y = 0; y < image.GetHeight(); y++) {
-            int alpha = image.GetRed(x, y);
-            if (alpha) {
-                image.SetRGB(x, y, 0, 0, 0);
-                image.SetAlpha(x, y, alpha);
-            } else {
-                image.SetRGB(x, y, 0, 0, 0);
-                image.SetAlpha(x, y, 0);
-            }
+    int w = xpmImg.GetWidth();
+    int h = xpmImg.GetHeight();
+
+    // Process: use red channel as alpha mask, set all pixels to black
+    image.Create(w, h);
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            uint8_t alpha = xpmImg.GetRed(x, y);
+            image.SetRGBA(x, y, 0, 0, 0, alpha);
         }
     }
     return image.IsOk();
 }
 float xlFontInfo::widthOf(const std::string &text, float factor) const {
     float w = 0;
-    for (int idx = 0; idx < text.size(); idx++) {
+    for (int idx = 0; idx < (int)text.size(); idx++) {
         char ch = text[idx];
         if (ch < ' ' || ch > '~') {
             ch = '?';
@@ -114,7 +114,7 @@ void xlFontInfo::populate(xlVertexTextureAccumulator &va, float x, float yBase, 
     va.PreAlloc(6 * text.size());
     float textureHeight = image.GetHeight();
     float textureWidth = image.GetWidth();
-    for (int idx = 0; idx < text.size(); idx++) {
+    for (int idx = 0; idx < (int)text.size(); idx++) {
         char ch = text[idx];
         if (ch < ' ' || ch > '~') {
             ch = '?';
@@ -187,8 +187,8 @@ const xlFontInfo &xlFontInfo::FindFont(int size) {
     }
 
     if (!FONTS[tsize].valid()) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("xlFontTexture had trouble creating font size %d ... this could end badly.", size);
+        
+        spdlog::warn("xlFontTexture had trouble creating font size {} ... this could end badly.", size);
     }
 
     return FONTS[tsize];

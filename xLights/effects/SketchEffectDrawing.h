@@ -1,43 +1,77 @@
 #pragma once
 
-#include <wx/geometry.h>
+#include "../utils/xlPoint.h"
 
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include "assist/SketchCanvasPanel.h"
+#include "../ui/effectpanels/assist/SketchCanvasPanel.h"
 
-class wxGraphicsContext;
-class wxGraphicsPath;
+// A single sub-path: a starting point followed by cubic bezier segments.
+// cubics stores groups of 6 floats: [cpx1,cpy1, cpx2,cpy2, x1,y1, ...]
+struct SketchSubPath {
+    float startX = 0;
+    float startY = 0;
+    std::vector<float> cubics;
+};
+
+// Collection of sub-paths emitted by Draw methods.
+struct SketchPathData {
+    std::vector<SketchSubPath> subPaths;
+
+    void moveTo(float x, float y) {
+        subPaths.push_back({x, y, {}});
+    }
+    void cubicTo(float cp1x, float cp1y, float cp2x, float cp2y, float ex, float ey) {
+        if (subPaths.empty()) subPaths.push_back({0, 0, {}});
+        auto& c = subPaths.back().cubics;
+        c.push_back(cp1x); c.push_back(cp1y);
+        c.push_back(cp2x); c.push_back(cp2y);
+        c.push_back(ex);   c.push_back(ey);
+    }
+    // Emit a line as a degenerate cubic (cp1=from, cp2=to)
+    void lineTo(float fromX, float fromY, float toX, float toY) {
+        cubicTo(fromX, fromY, toX, toY, toX, toY);
+    }
+    void append(const SketchPathData& other) {
+        subPaths.insert(subPaths.end(), other.subPaths.begin(), other.subPaths.end());
+    }
+    bool empty() const {
+        return subPaths.empty();
+    }
+};
 
 // A segment can currently be either a line segment (start and end point)
 // or a quadratic-bezier segment (start and end point with one control point)
 // or a cubic-bezier segment (start and end point with two control points).
 //
-// Coordinates are normalized to [0,1] and scaled for drawing in the Draw*() methods
+// Coordinates are normalized to [0,1] and scaled for drawing in the Draw*() methods.
+// Draw methods emit cubic bezier data into a SketchPathData structure.
 class SketchPathSegment
 {
 public:
     virtual ~SketchPathSegment() = default;
 
     [[nodiscard]] virtual double Length() const = 0;
-    [[nodiscard]] virtual wxPoint2DDouble StartPoint() const = 0;
-    virtual void SetStartPoint(const wxPoint2DDouble& pt) = 0;
-    [[nodiscard]] virtual wxPoint2DDouble EndPoint() const = 0;
-    virtual void SetEndPoint(const wxPoint2DDouble& pt) = 0;
-    virtual void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const = 0;
-    virtual void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    [[nodiscard]] virtual xlPointD StartPoint() const = 0;
+    virtual void SetStartPoint(const xlPointD& pt) = 0;
+    [[nodiscard]] virtual xlPointD EndPoint() const = 0;
+    virtual void SetEndPoint(const xlPointD& pt) = 0;
+    virtual void DrawEntireSegment(SketchPathData& pathData, int w, int h) const = 0;
+    virtual void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                                     std::optional<double> startPercentage,
                                     double endPercentage) const = 0;
-    [[nodiscard]] virtual bool HitTest(const wxPoint2DDouble& pt) const = 0;
+    [[nodiscard]] virtual bool HitTest(const xlPointD& pt) const = 0;
     virtual void ReverseSegment() = 0;
     virtual void getProgressPosition( double partialLength, double& x, double& y ) = 0;
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
-// the path can be closed to potentially represent a polygon
+// the path can be closed to potentially represent a polygon.
+// collectEntirePath/collectPartialPath emit cubic bezier points in nanosvg format
+// into a float vector. The first two floats are the initial moveTo point.
 class SketchEffectPath
 {
 public:
@@ -47,13 +81,11 @@ public:
 
     void appendSegment(std::shared_ptr<SketchPathSegment> cmd);
     void closePath(bool updateSegments, SketchCanvasPathState state);
-    void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const;
-    void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
+    void collectEntirePath(SketchPathData& pathData, int w, int h) const;
+    void collectPartialPath(SketchPathData& pathData, int w, int h,
                          std::optional<double> startPercentage,
                          double endPercentage) const;
     void reversePath();
-
-    //virtual void getProgressPosition( double progress, double& x, double& y ) = 0;
 
     [[nodiscard]] const std::vector<std::shared_ptr<SketchPathSegment>>& segments() const
     {
@@ -103,7 +135,7 @@ public:
     void reversePath(int pathIndex);
     void deletePath(int pathIndex);
     void swapPaths(int pathIndex0, int pathIndex1);
-    
+
     void getProgressPosition( double progress, double& x, double& y );
     [[nodiscard]] double getLength();
 
@@ -114,101 +146,101 @@ protected:
 class SketchLine : public SketchPathSegment
 {
 public:
-    SketchLine(const wxPoint2DDouble& fromPt, const wxPoint2DDouble& toPt) :
+    SketchLine(const xlPointD& fromPt, const xlPointD& toPt) :
         m_fromPt(fromPt),
         m_toPt(toPt)
     {}
     [[nodiscard]] double Length() const override
     {
-        return m_fromPt.GetDistance(m_toPt);
+        return m_fromPt.distance(m_toPt);
     }
-    [[nodiscard]] wxPoint2DDouble StartPoint() const override
+    [[nodiscard]] xlPointD StartPoint() const override
     {
         return m_fromPt;
     }
-    void SetStartPoint(const wxPoint2DDouble& pt) override
+    void SetStartPoint(const xlPointD& pt) override
     {
         m_fromPt = pt;
     }
-    [[nodiscard]] wxPoint2DDouble EndPoint() const override
+    [[nodiscard]] xlPointD EndPoint() const override
     {
         return m_toPt;
     }
-    void SetEndPoint(const wxPoint2DDouble& pt) override
+    void SetEndPoint(const xlPointD& pt) override
     {
         m_toPt = pt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    void DrawEntireSegment(SketchPathData& pathData, int w, int h) const override;
+    void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
-    bool HitTest(const wxPoint2DDouble& pt) const override;
+    bool HitTest(const xlPointD& pt) const override;
     void ReverseSegment() override;
     void getProgressPosition( double partialLength, double& x, double& y ) override;
 
 protected:
-    wxPoint2DDouble m_fromPt;
-    wxPoint2DDouble m_toPt;
+    xlPointD m_fromPt;
+    xlPointD m_toPt;
 };
 
 class SketchQuadraticBezier : public SketchPathSegment
 {
 public:
-    SketchQuadraticBezier(const wxPoint2DDouble& fromPt,
-                          const wxPoint2DDouble& cp,
-                          const wxPoint2DDouble& toPt) :
+    SketchQuadraticBezier(const xlPointD& fromPt,
+                          const xlPointD& cp,
+                          const xlPointD& toPt) :
         m_fromPt(fromPt),
         m_cp(cp),
         m_toPt(toPt)
     {
     }
     [[nodiscard]] double Length() const override;
-    [[nodiscard]] wxPoint2DDouble StartPoint() const override
+    [[nodiscard]] xlPointD StartPoint() const override
     {
         return m_fromPt;
     }
-    void SetStartPoint(const wxPoint2DDouble& pt) override
+    void SetStartPoint(const xlPointD& pt) override
     {
         m_fromPt = pt;
     }
-    [[nodiscard]] wxPoint2DDouble EndPoint() const override
+    [[nodiscard]] xlPointD EndPoint() const override
     {
         return m_toPt;
     }
-    void SetEndPoint(const wxPoint2DDouble& pt) override
+    void SetEndPoint(const xlPointD& pt) override
     {
         m_toPt = pt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    void DrawEntireSegment(SketchPathData& pathData, int w, int h) const override;
+    void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
-    bool HitTest(const wxPoint2DDouble& pt) const override;
+    bool HitTest(const xlPointD& pt) const override;
     void ReverseSegment() override;
     void getProgressPosition( double partialLength, double& x, double& y ) override;
 
-    [[nodiscard]] wxPoint2DDouble ControlPoint() const
+    [[nodiscard]] xlPointD ControlPoint() const
     {
         return m_cp;
     }
-    void SetControlPoint(const wxPoint2DDouble& pt)
+    void SetControlPoint(const xlPointD& pt)
     {
         m_cp = pt;
     }
 
 protected:
-    wxPoint2DDouble m_fromPt;
-    wxPoint2DDouble m_cp;
-    wxPoint2DDouble m_toPt;
+    xlPointD m_fromPt;
+    xlPointD m_cp;
+    xlPointD m_toPt;
 };
 
 class SketchCubicBezier : public SketchPathSegment
 {
 public:
-    SketchCubicBezier(const wxPoint2DDouble& fromPt,
-                      const wxPoint2DDouble& cp1,
-                      const wxPoint2DDouble& cp2,
-                      const wxPoint2DDouble& toPt) :
+    SketchCubicBezier(const xlPointD& fromPt,
+                      const xlPointD& cp1,
+                      const xlPointD& cp2,
+                      const xlPointD& toPt) :
         m_fromPt(fromPt),
         m_cp1(cp1),
         m_cp2(cp2),
@@ -216,50 +248,50 @@ public:
     {
     }
     [[nodiscard]] double Length() const override;
-    [[nodiscard]] wxPoint2DDouble StartPoint() const override
+    [[nodiscard]] xlPointD StartPoint() const override
     {
         return m_fromPt;
     }
-    void SetStartPoint(const wxPoint2DDouble& pt) override
+    void SetStartPoint(const xlPointD& pt) override
     {
         m_fromPt = pt;
     }
-    [[nodiscard]] wxPoint2DDouble EndPoint() const override
+    [[nodiscard]] xlPointD EndPoint() const override
     {
         return m_toPt;
     }
-    void SetEndPoint(const wxPoint2DDouble& pt) override
+    void SetEndPoint(const xlPointD& pt) override
     {
         m_toPt = pt;
     }
-    void DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const override;
-    void DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz,
+    void DrawEntireSegment(SketchPathData& pathData, int w, int h) const override;
+    void DrawPartialSegment(SketchPathData& pathData, int w, int h,
                             std::optional<double> startPercentage,
                             double endPercentage) const override;
-    [[nodiscard]] bool HitTest(const wxPoint2DDouble& pt) const override;
+    [[nodiscard]] bool HitTest(const xlPointD& pt) const override;
     void ReverseSegment() override;
     void getProgressPosition( double partialLength, double& x, double& y ) override;
 
-    [[nodiscard]] wxPoint2DDouble ControlPoint1() const
+    [[nodiscard]] xlPointD ControlPoint1() const
     {
         return m_cp1;
     }
-    void SetControlPoint1(const wxPoint2DDouble& pt)
+    void SetControlPoint1(const xlPointD& pt)
     {
         m_cp1 = pt;
     }
-    [[nodiscard]] wxPoint2DDouble ControlPoint2() const
+    [[nodiscard]] xlPointD ControlPoint2() const
     {
         return m_cp2;
     }
-    void SetControlPoint2(const wxPoint2DDouble& pt)
+    void SetControlPoint2(const xlPointD& pt)
     {
         m_cp2 = pt;
     }
 
 protected:
-    wxPoint2DDouble m_fromPt;
-    wxPoint2DDouble m_cp1;
-    wxPoint2DDouble m_cp2;
-    wxPoint2DDouble m_toPt;
+    xlPointD m_fromPt;
+    xlPointD m_cp1;
+    xlPointD m_cp2;
+    xlPointD m_toPt;
 };

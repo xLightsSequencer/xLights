@@ -29,17 +29,23 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual int GetStrandLength(int strand) const override { return _strandLength; }
         [[nodiscard]] virtual int GetNumStrands() const override { return _strands; };
         [[nodiscard]] virtual int MapToNodeIndex(int strand, int node) const override;
-        virtual void ExportAsCustomXModel3D() const override;
+        virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const override;
         [[nodiscard]] virtual bool SupportsExportAsCustom3D() const override { return true; }
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual int NodesPerString() const override;
 
-        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
-
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager * outputManager, bool darkMode = false) override;
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
+        virtual int GetNumStrings() const override { return 1; }
+
+        [[nodiscard]] int GetCubeWidth() const { return _cubeWidth; }
+        [[nodiscard]] int GetCubeHeight() const { return _cubeHeight; }
+        [[nodiscard]] int GetCubeDepth() const { return _cubeDepth; }
+        void SetCubeWidth(int val) { _cubeWidth = val; }
+        void SetCubeHeight(int val) { _cubeHeight = val; }
+        void SetCubeDepth(int val) { _cubeDepth = val; }
 
         [[nodiscard]] std::string GetCubeStyle() const;
         [[nodiscard]] std::string GetStrandStyle() const;
@@ -51,6 +57,12 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetStrandStyle(const std::string & style);
         void SetCubeStrings(int strings) { _cubeStrings = strings; }
         void SetCubeStart(const std::string & start);
+        [[nodiscard]] int GetCubeStartIndex() const { return _cubeStart; }
+        [[nodiscard]] int GetCubeStyleIndex() const { return _cubeStyle; }
+        [[nodiscard]] int GetStrandStyleIndex() const { return _strandStyle; }
+        void SetCubeStartIndex(int idx) { _cubeStart = idx; }
+        void SetCubeStyleIndex(int idx) { _cubeStyle = idx; }
+        void SetStrandStyleIndex(int idx) { _strandStyle = idx; }
         void SetStrandPerLayer(bool val) { _strandPerLayer = val; }
 
     protected:
@@ -68,11 +80,14 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitModel() override;
         
     private:
+        int _cubeWidth = 1;
+        int _cubeHeight = 1;
+        int _cubeDepth = 1;
         int _strandLength = 1;
         int _strands = 1;
         int _cubeStart = 0;
         int _cubeStrings = 1;
         int _cubeStyle = 0;
         int _strandStyle = 0;
-        bool _strandPerLayer = FALSE;
+        bool _strandPerLayer = false;
 };

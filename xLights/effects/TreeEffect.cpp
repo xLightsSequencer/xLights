@@ -9,11 +9,10 @@
  **************************************************************/
 
 #include "TreeEffect.h"
-#include "TreePanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/tree-16.xpm"
 #include "../../include/tree-24.xpm"
@@ -29,39 +28,6 @@ TreeEffect::TreeEffect(int id) : RenderableEffect(id, "Tree", tree_16, tree_24, 
 TreeEffect::~TreeEffect()
 {
     //dtor
-}
-
-xlEffectPanel *TreeEffect::CreatePanel(wxWindow *parent) {
-    return new TreePanel(parent);
-}
-
-void TreeEffect::SetDefaultParameters()
-{
-    TreePanel *tp = (TreePanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(tp->Slider_Tree_Branches, 3);
-    SetSliderValue(tp->Slider_Tree_Speed, 10);
-    SetCheckBoxValue(tp->CheckBox1, false);
-}
-
-bool TreeEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2016.50", version);
-}
-
-void TreeEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    SettingsMap &settings = effect->GetSettings();
-    settings["E_CHECKBOX_Tree_ShowLights"] = "1";
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
 }
 
 void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

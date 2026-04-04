@@ -13,13 +13,16 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-
-#ifdef __WXMSW__
+#ifdef _WIN32
+    #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN 1
+    #endif
     #include <windows.h>
 #else
     #include <termios.h>
 #endif
+
+#include <string>
 
 class SerialPort
 {
@@ -29,7 +32,7 @@ protected:
     std::string _devName;
     int _callback;  // used in basic script
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     HANDLE _fd = INVALID_HANDLE_VALUE;
     OVERLAPPED _ov;
     int _rtsdtr_state = 0;

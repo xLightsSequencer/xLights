@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <map>
 #include <string>
 #include <list>
@@ -25,7 +25,7 @@ namespace XmlSerialize {
         std::string description;
         int low;
         int high;
-        
+
         DMXChannelValue() : low(0), high(0) {}
     };
 
@@ -35,9 +35,9 @@ namespace XmlSerialize {
         int channelStart;
         int channels;
         std::list<DMXChannelValue> values;
-        
+
         DMXChannelInfo() : channelStart(0), channels(0) {}
-        
+
         bool IsMovingHead() const {
             return attribute == "Pan" || attribute == "Tilt";
         }
@@ -49,14 +49,14 @@ namespace XmlSerialize {
         int totalChannels;
         bool isMovingHead;
         std::string selectedMode;
-        
+
         GdtfModelData() : totalChannels(0), isMovingHead(false) {}
     };
 
     // Parse GDTF description.xml and return structured data
     // Returns true if parsing was successful, false if cancelled or failed
     bool ParseGdtfDescriptionXml(
-        wxXmlDocument& gdtf_doc,
+        pugi::xml_document& gdtf_doc,
         xLightsFrame* xlights,
         bool& cancelled,
         GdtfModelData& outData

@@ -8,19 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
 
 #include "CircleModel.h"
 #include "ModelScreenLocation.h"
-#include "../OutputModelManager.h"
-#include "xLightsVersion.h"
-#include "../xLightsMain.h"
-#include "../UtilFunctions.h"
-#include "../ModelPreview.h"
+#include "../models/OutputModelManager.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 CircleModel::CircleModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
@@ -56,127 +47,35 @@ bool CircleModel::AllNodesAllocated() const
         allocated += it;
     }
 
-    return (allocated == GetNodeCount());
+    return (allocated == (int)GetNodeCount());
 }
 
-// parm3 is number of points
+// _centerPercent controls inner circle size
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
+int CircleModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
+}
+
 void CircleModel::InitModel()
 {
     if (GetLayerSizeCount() == 0) {
         SetLayerSizeCount(1);
     }
     if (GetLayerSizeCount() == 1) {
-        SetLayerSize(0, parm1 * parm2);
+        SetLayerSize(0, _numStrings * _nodesPerString);
     }
 
     InitCircle();
     SetCircleCoord();
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
-}
-
-static const char* CIRCLE_START_LOCATION_VALUES[] = { 
-        "Top Outer-CCW",
-        "Top Outer-CW",
-        "Top Inner-CCW",
-        "Top Inner-CW",
-        "Bottom Outer-CCW",
-        "Bottom Outer-CW",
-        "Bottom Inner-CCW",
-        "Bottom Inner-CW"
-};
-
-static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_VALUES));
-
-void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-    }
-    else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-    }
-
-    p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    AddLayerSizeProperty(grid);
-
-    int start = IsLtoR ? 1 : 0;
-    if (_insideOut) {
-        start += 2;
-    }
-    if (isBotToTop) {
-        start += 4;
-    }
-    grid->Append(new wxEnumProperty("Starting Location", "CircleStart", CIRCLE_START_LOCATION, start));
-}
-
-int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("CircleStringCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        return 0;
-    }
-    else if ("CircleLightCount" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        return 0;
-    }
-    else if ("CircleCenterPercent" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        return 0;
-    }
-    else if ("CircleStart" == event.GetPropertyName()) {
-        int v = event.GetValue().GetLong();
-        _dir = (v & 0x1 ? "L" : "R");
-        _startSide = ( v < 4 ? "T" : "B");
-        _insideOut = ( v & 0x2 ? "1" : "0");
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleLayerSizes");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
 }
 
 int CircleModel::maxSize() {
@@ -192,7 +91,7 @@ int CircleModel::maxSize() {
 void CircleModel::InitCircle()
 {
     int maxLights = 0;
-    int numLights = parm1 * parm2;
+    int numLights = _numStrings * _nodesPerString;
     int cnt = 0;
 
     if (GetLayerSizeCount() == 0) {
@@ -200,7 +99,7 @@ void CircleModel::InitCircle()
         SetLayerSize(0, numLights);
     }
 
-    for (int x = 0; x < GetLayerSizeCount(); x++) {
+    for (int x = 0; x < (int)GetLayerSizeCount(); x++) {
         if ((cnt + GetLayerSize(x)) > numLights) {
             if (cnt > numLights) {
                 SetLayerSize(x, 0);
@@ -215,7 +114,7 @@ void CircleModel::InitCircle()
         }
     }
 
-    SetNodeCount(parm1, parm2, rgbOrder);
+    SetNodeCount(_numStrings, _nodesPerString, rgbOrder);
     SetBufferSize(GetLayerSizeCount(), maxLights);
     int LastStringNum = -1;
     int chan = 0;
@@ -224,15 +123,15 @@ void CircleModel::InitCircle()
 
     size_t node = 0;
     int nodesToMap = NodeCount;
-    for (int circle = 0; circle < GetLayerSizeCount(); circle++) {
+    for (int circle = 0; circle < (int)GetLayerSizeCount(); circle++) {
         int idx = 0;
         auto strandLen = GetStrandLength(circle);
         int loop_count = std::min(nodesToMap, strandLen);
         // if the number of nodes in this layer is exactly divisible into the maximum loops then we dont fudge ... but if it isnt then we want to fudge things slightly 
         // so that the largest layer goes to the end but any layer not divisible does not use the last x value
         double fudge = -1 * maxLights / strandLen + 1;
-        for (size_t n = 0; n < loop_count; n++) {
-            if (Nodes[node]->StringNum != LastStringNum) {
+        for (int n = 0; n < loop_count; n++) {
+            if ((int)Nodes[node]->StringNum != LastStringNum) {
                 LastStringNum = Nodes[node]->StringNum;
                 chan = stringStartChan[LastStringNum];
             }
@@ -267,12 +166,12 @@ void CircleModel::SetCircleCoord()
     int nodesToMap = NodeCount;
     int node = 0;
     double maxRadius = maxLights / 2.0;
-    double minRadius = (double)parm3 / 100.0 * maxRadius;
-    for (int c2 = 0; c2 < GetLayerSizeCount(); c2++) {
+    double minRadius = (double)_centerPercent / 100.0 * maxRadius;
+    for (int c2 = 0; c2 < (int)GetLayerSizeCount(); c2++) {
         int circle = c2;
         int loop_count = std::min(nodesToMap, GetStrandLength(circle));
         double radius = (GetLayerSizeCount() == 1) ? maxRadius : _insideOut ? (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)(GetLayerSizeCount() - circle - 1) / (double)(GetLayerSizeCount() - 1)) : (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)circle / (double)(GetLayerSizeCount() - 1));
-        for (size_t n = 0; n < loop_count; n++) {
+        for (int n = 0; n < loop_count; n++) {
             size_t CoordCount = GetCoordCount(node);
             for (size_t c = 0; c < CoordCount; c++) {
                 double angle = (isBotToTop ? -M_PI : 0) + M_PI * ((loop_count == 1) ? (double)c / (double)CoordCount : (double)n / (double)loop_count) * 2.0;
@@ -293,15 +192,12 @@ void CircleModel::SetCircleCoord()
 void CircleModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1 && GetLayerSizeCount() > 0) {
-        parm2 = (int)GetLayerSizesTotalNodes();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CircleModel::OnLayerSizesChange");
+    if (_numStrings == 1 && GetLayerSizeCount() > 0) {
+        _nodesPerString = (int)GetLayerSizesTotalNodes();
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CircleModel::OnLayerSizesChange");
     }
 }

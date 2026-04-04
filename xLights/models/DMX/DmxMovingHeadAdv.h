@@ -14,6 +14,8 @@
 #include "DmxMotor.h"
 #include "Mesh.h"
 #include <memory>
+#include <string>
+#include <vector>
 
 class MhFeature;
 
@@ -23,15 +25,13 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         DmxMovingHeadAdv(const ModelManager& manager);
         virtual ~DmxMovingHeadAdv();
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+        virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                           xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                           const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                           bool highlightFirst = false, int highlightpixel = 0,
                                           float *boundingBox = nullptr) override;
-        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+        virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
         int GetNumMotors() const { return NUM_MOTORS; }
@@ -57,15 +57,14 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
     protected:
         virtual void InitModel() override;
 
-        void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active, const xlColor *c);
+        void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active, const xlColor *c);
 
         void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open, float beam_offset);
 
-        virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const { return 1.5f; }
 
         void CorrectDefaultColorChannels();
-        void MapChannelName(wxArrayString& array, int chan, std::string name);
+        void MapChannelName(std::vector<std::string>& array, int chan, std::string name);
 
         int GetMinChannels();
 
@@ -83,8 +82,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         std::unique_ptr<Mesh> yoke_mesh = nullptr;
         std::unique_ptr<Mesh> head_mesh = nullptr;
 
-        wxXmlNode* features_xml_node = nullptr;
-        wxString obj_path = "";
+        std::string obj_path;
         std::vector<std::unique_ptr<MhFeature>> features;
         std::map<std::string, PanTiltState> panTiltStates;
 };

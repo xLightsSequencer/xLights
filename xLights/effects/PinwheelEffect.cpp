@@ -9,20 +9,19 @@
  **************************************************************/
 
 #include "PinwheelEffect.h"
-#include "PinwheelPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/pinwheel-16.xpm"
 #include "../../include/pinwheel-24.xpm"
 #include "../../include/pinwheel-32.xpm"
 #include "../../include/pinwheel-48.xpm"
 #include "../../include/pinwheel-64.xpm"
-#include <log4cpp/Category.hh>
+#include <log.h>
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include "ispc/PinwheelFunctions.ispc.h"
 
@@ -35,57 +34,6 @@ PinwheelEffect::~PinwheelEffect()
 {
     //dtor
 }
-xlEffectPanel *PinwheelEffect::CreatePanel(wxWindow *parent) {
-    return new PinwheelPanel(parent);
-}
-
-void PinwheelEffect::SetDefaultParameters() {
-    PinwheelPanel* pp = (PinwheelPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    pp->BitmapButton_PinwheelXCVC->SetActive(false);
-    pp->BitmapButton_PinwheelYCVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_ArmSizeVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_SpeedVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_ThicknessVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_TwistVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_OffsetVC->SetActive(false);
-
-    SetChoiceValue(pp->Choice_Pinwheel_3D, "none");
-    SetChoiceValue(pp->Choice_Pinwheel_Style, "New Render Method");
-
-    SetSliderValue(pp->Slider_PinwheelXC, 0);
-    SetSliderValue(pp->Slider_PinwheelYC, 0);
-    SetSliderValue(pp->Slider_Pinwheel_Arms, 3);
-    SetSliderValue(pp->Slider_Pinwheel_ArmSize, 100);
-    SetSliderValue(pp->Slider_Pinwheel_Thickness, 0);
-    SetSliderValue(pp->Slider_Pinwheel_Twist, 0);
-    SetSliderValue(pp->Slider_Pinwheel_Speed, 10);
-    SetSliderValue(pp->Slider_Pinwheel_Offset, 0);
-
-    SetCheckBoxValue(pp->CheckBox_Pinwheel_Rotation, true);
-}
-
-bool PinwheelEffect::needToAdjustSettings(const std::string &version) {
-    // give the base class a chance to adjust any settings
-    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2017.5", version);
-}
-
-void PinwheelEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
-    // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-    SettingsMap& settings = effect->GetSettings();
-    if (settings.Contains("E_TEXTCTRL_Pinwheel_Speed")) {
-        std::string val = settings["E_TEXTCTRL_Pinwheel_Speed"];
-        settings.erase("E_TEXTCTRL_Pinwheel_Speed");
-        settings["E_SLIDER_Pinwheel_Speed"] = val;
-    }
-}
-
 PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string& pinwheel_3d) {
     if (pinwheel_3d == "3D") {
         return PW_3D;
@@ -204,7 +152,7 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
     
     std::vector<ispc::float3> colorsAsHSV(rdata.numColors);
     std::vector<uint8_t> colorIsSpacial(rdata.numColors);
-    for (int x = 0; x < rdata.numColors; x++) {
+    for (int x = 0; x < (int)rdata.numColors; x++) {
         colorsAsHSV[x] = {(float)data.colorsAsHSV[x].hue, (float)data.colorsAsHSV[x].saturation, (float)data.colorsAsHSV[x].value};
         colorIsSpacial[x] = data.colorIsSpacial[x] ? 1 : 0;
     }
@@ -303,7 +251,7 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
     int base_degrees, int max_radius, int pinwheel_twist,
     int xc_adj, int yc_adj, int colorIdx, PinwheelEffect::Pinwheel3DType pw3dType, float round)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
     float pi_180 = (float)M_PI / 180.0f;
 
     int xc = buffer.BufferWi / 2;

@@ -108,6 +108,7 @@
 												<content>
 													<item>Media</item>
 													<item>Animation</item>
+													<item>Effect</item>
 												</content>
 												<handler function="OnChoice_Xml_Seq_TypeSelect" entry="EVT_CHOICE" />
 											</object>
@@ -192,8 +193,8 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Premilliseconds" member="yes">
 												<value>0</value>
 												<maxlength>5</maxlength>
-												<size>50,25</size>
-												<tooltip>Milliseconds to add to the begining of the sequence</tooltip>
+												<size>50,-1d</size>
+												<tooltip>Milliseconds to add to the beginning of the sequence</tooltip>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -203,7 +204,7 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Postmilliseconds" member="yes">
 												<value>0</value>
 												<maxlength>5</maxlength>
-												<size>50,25</size>
+												<size>50,-1d</size>
 												<tooltip>Milliseconds to add to the ending of the sequence</tooltip>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -235,7 +236,7 @@
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_AddMilliseconds" variable="Button_AddMilliseconds" member="yes">
 														<label>Adjust Milliseconds</label>
-														<size>143,23</size>
+														<size>80,-1d</size>
 														<handler function="OnButton_AddMillisecondsClick" entry="EVT_BUTTON" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -779,7 +780,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxLEFT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxLEFT|wxBOTTOM|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

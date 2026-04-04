@@ -1,4 +1,3 @@
-
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -9,8 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/msgdlg.h>
+#include <chrono>
+#include <filesystem>
+#include <thread>
 
 #include "SerialOutput.h"
 #include "LOROutput.h"
@@ -24,40 +24,43 @@
 #include "OpenPixelNetOutput.h"
 #include "GenericSerialOutput.h"
 #include "OutputManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+#include "../utils/DisplayMessages.h"
 
-#include <log4cpp/Category.hh>
+#include "serial.h"
+
+#include <log.h>
 
 #pragma region Private Functions
-void SerialOutput::Save(wxXmlNode* node) {
+void SerialOutput::SaveAttr(pugi::xml_node node) {
 
     if (_commPort != "") {
-        node->AddAttribute("ComPort", _commPort.c_str());
+        node.append_attribute("ComPort") = _commPort;
     }
 
     if (_baudRate != 0) {
-        node->AddAttribute("BaudRate", wxString::Format(wxT("%i"), _baudRate));
+        node.append_attribute("BaudRate") = _baudRate;
     }
     else {
-        node->AddAttribute("BaudRate", "n/a");
+        node.append_attribute("BaudRate") = "n/a";
     }
 
-    Output::Save(node);
+    Output::SaveAttr(node);
 }
 #pragma endregion
 
 #pragma region Constructors and Destructors
-SerialOutput::SerialOutput(wxXmlNode* node) : Output(node) {
-    
+SerialOutput::SerialOutput(pugi::xml_node node) : Output(node) {
+
     strcpy(_serialConfig, "8N1");
-    _commPort = node->GetAttribute("ComPort", "").ToStdString();
-    if (node->GetAttribute("BaudRate", "n/a") == "n/a") {
+    _commPort = node.attribute("ComPort").as_string("");
+    if (std::string_view(node.attribute("BaudRate").as_string("n/a")) == "n/a") {
         _baudRate = 0;
     }
     else {
-        _baudRate = wxAtoi(node->GetAttribute("BaudRate", ""));
+        _baudRate = node.attribute("BaudRate").as_int(0);
     }
-    SetId(wxAtoi(node->GetAttribute("Id", "0")));
+    SetId(node.attribute("Id").as_int(0));
 }
 
 SerialOutput::SerialOutput(const SerialOutput& from) :
@@ -80,14 +83,14 @@ SerialOutput::~SerialOutput() {
     if (_serial != nullptr) delete _serial;
 }
 
-wxXmlNode* SerialOutput::Save() {
+pugi::xml_node SerialOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Save(node);
+    pugi::xml_node node = parent.append_child("network");
+    SaveAttr(node);
 
     return node;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region static Functions
 std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
@@ -95,7 +98,7 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
     std::list<std::string> res;
 
     res.push_back("NotConnected");
-#ifdef __WXMSW__
+#ifdef _WIN32
     // Windows
     res.push_back("COM1");
     res.push_back("COM2");
@@ -117,22 +120,19 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
     res.push_back("\\\\.\\COM18");
     res.push_back("\\\\.\\COM19");
     res.push_back("\\\\.\\COM20");
-#elif __WXOSX__
+#elif defined(__APPLE__)
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
-    wxArrayString output, errors;
-    wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
-    if (!errors.IsEmpty()) {
-        DisplayError(errors.Last());
-    }
-    else if (output.IsEmpty()) {
-        DisplayError(_("no devices found"));
-    }
-    else {
-        for (int i = 0; i < output.Count(); i++) {
-            if (output[i].StartsWith("cu.")) {
-                res.push_back("/dev/" + output[i].ToStdString());
+    {
+        std::error_code ec;
+        for (const auto& entry : std::filesystem::directory_iterator("/dev", ec)) {
+            auto name = entry.path().filename().string();
+            if (name.starts_with("cu.")) {
+                res.push_back("/dev/" + name);
             }
+        }
+        if (ec) {
+            DisplayError("no devices found");
         }
     }
 #else
@@ -182,7 +182,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
 
     std::list<std::string> res;
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     TCHAR valname[_MAX_PATH];
     TCHAR portname[_MAX_PATH];
     DWORD vallen = sizeof(valname);
@@ -200,38 +200,37 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
             }
             //need to enlarge read buf if this happens; just truncate string for now
             //                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
-            res.push_back(wxString::Format("%s", portname).ToStdString());
+            res.push_back(std::string(portname, portname + portlen / sizeof(TCHAR) - 1));
             vallen = sizeof(valname);
             portlen = sizeof(portname);
         }
         if (err && (err != ERROR_NO_MORE_ITEMS)) {
-            res.push_back(wxString::Format("Error %d (can't get serial comm ports from registry)", err).ToStdString());
+            res.push_back(std::format("Error {} (can't get serial comm ports from registry)", err));
         }
         if (hkey) RegCloseKey(hkey);
     }
     else {
         res.push_back("(no available ports)");
     }
-#elif __WXOSX__
+#elif defined(__APPLE__)
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
-    wxArrayString output, errors;
-    wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
-    if (!errors.IsEmpty()) {
-        DisplayError(errors.Last());
-    } else if (output.IsEmpty()) {
-        res.push_back("(no available ports)");
-        DisplayError(_("no devices found"));
-    } else {
-        for (int i = 0; i < output.Count(); i++) {
-            if (output[i].StartsWith("cu.") && !output[i].StartsWith("cu.B")) {
-                res.push_back("/dev/" + output[i].ToStdString());
+    {
+        std::error_code ec;
+        for (const auto& entry : std::filesystem::directory_iterator("/dev", ec)) {
+            auto name = entry.path().filename().string();
+            if (name.starts_with("cu.") && !name.starts_with("cu.B")) {
+                res.push_back("/dev/" + name);
             }
+        }
+        if (ec) {
+            res.push_back("(no available ports)");
+            DisplayError("no devices found");
         }
     }
 #else
     res.push_back("port enumeration not supported on Linux");
-#endif // __WXMSW__
+#endif // _WIN32
 
     return res;
 }
@@ -244,8 +243,8 @@ std::string SerialOutput::GetLongDescription() const {
 
     if (!_enabled) res += "INACTIVE ";
     res += GetType();
-    res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += " [1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
 
     return res;
 }
@@ -293,7 +292,7 @@ bool SerialOutput::operator==(const SerialOutput& output) const {
 #pragma region Start and Stop
 bool SerialOutput::Open() {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _ok = Output::Open();
 
@@ -303,20 +302,20 @@ bool SerialOutput::Open() {
 
     if (_commPort == "NotConnected") {
 
-        logger_base.warn("Serial port %s for %s not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
+        spdlog::warn("Serial port {} for {} not opened as it is tagged as not connected.", _commPort, GetType());
         // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
     }
     else {
         _serial = new SerialPort();
 
-        logger_base.debug("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
+        spdlog::debug("Opening serial port {}. Baud rate = {}. Config = {}.", _commPort, _baudRate, _serialConfig);
 
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0) {
             delete _serial;
             _serial = nullptr;
 
-            logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+            spdlog::warn("Unable to open serial port {}. Error code = {}", _commPort, errcode);
             _ok = false;
 
             std::string p = "";
@@ -328,22 +327,23 @@ bool SerialOutput::Open() {
             }
 
             if (OutputManager::IsInteractive()) {
-                wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
-                    _("Things to check:\n") +
-                    _("1. Are all required cables plugged in?\n") +
-                    _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
-                    _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
-                    _("Unable to open serial port %s. Error code = %d"),
-                    (const char *)GetType().c_str(),
-                    (const char *)GetCommPort().c_str(),
-                    (const char *)p.c_str(),
-                    (const char *)_commPort.c_str(),
+                std::string msg = std::format(
+                    "Error occurred while connecting to {} network on {} (Available Ports {}) \n\n"
+                    "Things to check:\n"
+                    "1. Are all required cables plugged in?\n"
+                    "2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n"
+                    "3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n"
+                    "Unable to open serial port {}. Error code = {}",
+                    GetType(),
+                    GetCommPort(),
+                    p,
+                    _commPort,
                     errcode);
                 DisplayError(msg);
             }
         }
         else {
-            logger_base.debug("    Serial port %s open.", (const char *)_commPort.c_str());
+            spdlog::debug("    Serial port {} open.", _commPort);
         }
     }
 
@@ -351,29 +351,26 @@ bool SerialOutput::Open() {
 }
 
 void SerialOutput::Close() {
-
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_serial != nullptr) {
         // throw away any pending data
         _serial->Purge();
 
         // wait until the die time has passed
-        while (wxGetUTCTimeMillis() < _dieTime) {
-            wxMilliSleep(5);
+        while (GetCurrentTimeMillis() < _dieTime) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
         // wait until pending data to send is sent
         int i = 0;
         while( !TxEmpty() && (i < 200) ) {
-            wxMilliSleep(5);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
             i++;
         }
 
         _serial->Close();
         delete _serial;
         _serial = nullptr;
-        logger_base.debug("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
+        spdlog::debug("    Serial port {} closed in {} milliseconds.", _commPort, i * 5);
     }
 }
 #pragma endregion
@@ -381,14 +378,14 @@ void SerialOutput::Close() {
 #pragma region Frame Handling
 void SerialOutput::StartFrame(long msec) {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return;
 
     if (!_ok && OutputManager::IsRetryOpen()) {
         _ok = SerialOutput::Open();
         if (_ok) {
-            logger_base.debug("SerialOutput: Open retry successful. %s.", (const char *)_commPort.c_str());
+            spdlog::debug("SerialOutput: Open retry successful. {}.", _commPort);
         }
     }
 

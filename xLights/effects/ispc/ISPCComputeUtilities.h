@@ -10,7 +10,7 @@
 #pragma once
 
 #include <vector>
-#include "../../PixelBuffer.h"
+#include "../../render/PixelBuffer.h"
 
 class ISPCComputeUtilitiesData;
 

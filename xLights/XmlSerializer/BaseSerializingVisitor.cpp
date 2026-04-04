@@ -13,16 +13,18 @@
 
 #include "BaseSerializingVisitor.h"
 
+#include <charconv>
+
 #include "../models/ArchesModel.h"
 #include "../models/BaseObject.h"
 #include "../models/BaseObjectVisitor.h"
 #include "../models/CandyCaneModel.h"
 #include "../models/ChannelBlockModel.h"
 #include "../models/CircleModel.h"
-#include "../Color.h"
+#include "Color.h"
 #include "../models/CubeModel.h"
 #include "../models/CustomModel.h"
-#include "../DimmingCurve.h"
+#include "DimmingCurve.h"
 #include "../models/GridlinesObject.h"
 #include "../models/IciclesModel.h"
 #include "../models/ImageModel.h"
@@ -46,7 +48,7 @@
 #include "../models/WindowFrameModel.h"
 #include "../models/WreathModel.h"
 #include "../xLightsVersion.h"
-#include "../Pixels.h"
+#include "../models/Pixels.h"
 #include "../models/DMX/DmxBeamAbility.h"
 #include "../models/DMX/DmxColorAbilityCMY.h"
 #include "../models/DMX/DmxColorAbilityRGB.h"
@@ -87,15 +89,9 @@ static std::string LowerStr(const std::string& s) {
 
 // static
 std::string BaseSerializingVisitor::FloatToString(float f) {
-    std::string ret = std::to_string(f);
-    int len = ret.length();
-    while (len && ret[len - 1] == '0') {
-        --len;
-    }
-    if (ret[len - 1] == '.') {
-        len += 2;
-    }
-    return ret.substr(0, len);
+    char buf[32];
+    auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::general, 6);
+    return std::string(buf, ptr);
 }
 
 // static
@@ -138,9 +134,8 @@ void BaseSerializingVisitor::AddBaseObjectAttributes(const BaseObject& base, Att
 void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCollector& attrs) {
     attrs.Add(XmlNodeKeys::StartSideAttribute, model.GetStartSide());
     attrs.Add(XmlNodeKeys::DirAttribute, model.GetDirection());
-    attrs.Add(XmlNodeKeys::Parm1Attribute, std::to_string(model.GetParm1()));
-    attrs.Add(XmlNodeKeys::Parm2Attribute, std::to_string(model.GetParm2()));
-    attrs.Add(XmlNodeKeys::Parm3Attribute, std::to_string(model.GetParm3()));
+    // Note: parm1/2/3 are no longer written here.
+    // Each model's Visit() method writes its own named attributes.
     attrs.Add(XmlNodeKeys::AntialiasAttribute, std::to_string((long)model.GetPixelStyle()));
     attrs.Add(XmlNodeKeys::PixelSizeAttribute, std::to_string(model.GetPixelSize()));
     if (model.GetChanCountPerNode() > 3) {
@@ -348,6 +343,7 @@ void BaseSerializingVisitor::AddDimmerAbilityAttributes(const DmxDimmerAbility* 
 }
 
 void BaseSerializingVisitor::AddDmxModelAttributes(const DmxModel& dmx_model, AttrCollector& attrs) {
+    attrs.Add(XmlNodeKeys::DmxChannelCountAttribute, std::to_string(dmx_model.GetDmxChannelCount()));
     if (dmx_model.HasBeamAbility()) {
         AddBeamAbilityAttributes(dmx_model.GetBeamAbility(), attrs);
     }
@@ -542,6 +538,30 @@ void BaseSerializingVisitor::WriteOtherElements(const Model* m) {
     WriteSubmodels(m);
 }
 
+void BaseSerializingVisitor::WriteDimensionsElement(const Model& model) {
+    auto ruler = RulerObject::GetRuler();
+    if (ruler == nullptr) return;
+
+    std::string u = "mm";
+    switch (ruler->GetUnits()) {
+    case RULER_UNITS_INCHES: u = "i";  break;
+    case RULER_UNITS_FEET:   u = "f";  break;
+    case RULER_UNITS_YARDS:  u = "y";  break;
+    case RULER_UNITS_MM:     u = "mm"; break;
+    case RULER_UNITS_CM:     u = "cm"; break;
+    case RULER_UNITS_M:      u = "m";  break;
+    }
+    float height = (model.GetDisplayAs() == DisplayAsType::Icicles)
+        ? model.GetModelScreenLocation().GetRestorableMHeight()
+        : model.GetModelScreenLocation().GetRealHeight();
+    AttrCollector attrs;
+    attrs.Add(XmlNodeKeys::DimUnitsAttribute,  u);
+    attrs.Add(XmlNodeKeys::DimWidthAttribute,  FloatToString(model.GetModelScreenLocation().GetRealWidth()));
+    attrs.Add(XmlNodeKeys::DimHeightAttribute, FloatToString(height));
+    attrs.Add(XmlNodeKeys::DimDepthAttribute,  FloatToString(model.GetModelScreenLocation().GetRealDepth()));
+    WriteOpenTag(XmlNodeKeys::DimNodeName, attrs, true);
+}
+
 void BaseSerializingVisitor::Visit(const ControllerConnection& cc) {
     AttrCollector attrs;
     attrs.Add(XmlNodeKeys::PortAttribute,     std::to_string(cc.GetCtrlPort()));
@@ -563,17 +583,17 @@ void BaseSerializingVisitor::Visit(const ControllerConnection& cc) {
     if (cc.IsPropertySet(CtrlProps::END_NULLS_ACTIVE))
         attrs.Add(XmlNodeKeys::EndNullAttribute, std::to_string(cc.GetEndNulls()));
     if (cc.IsPropertySet(CtrlProps::BRIGHTNESS_ACTIVE))
-        attrs.Add(XmlNodeKeys::DCBrightnessAttribute, std::to_string(cc.GetBrightness()));
+        attrs.Add(XmlNodeKeys::BrightnessAttribute, std::to_string(cc.GetBrightness()));
     if (cc.IsPropertySet(CtrlProps::GAMMA_ACTIVE))
         attrs.Add(XmlNodeKeys::GammaAttribute, FloatToString(cc.GetGamma()));
     if (cc.IsPropertySet(CtrlProps::COLOR_ORDER_ACTIVE))
         attrs.Add(XmlNodeKeys::ColorOrderAttribute, cc.GetColorOrder());
     if (cc.IsPropertySet(CtrlProps::REVERSE_ACTIVE))
-        attrs.Add(XmlNodeKeys::CReverseAttribute, std::to_string(cc.GetReverse()));
+        attrs.Add(XmlNodeKeys::ReverseAttribute, std::to_string(cc.GetReverse()));
     if (cc.IsPropertySet(CtrlProps::GROUP_COUNT_ACTIVE))
         attrs.Add(XmlNodeKeys::GroupCountAttribute, std::to_string(cc.GetGroupCount()));
     if (cc.IsPropertySet(CtrlProps::ZIG_ZAG_ACTIVE))
-        attrs.Add(XmlNodeKeys::CZigZagAttribute, std::to_string(cc.GetZigZag()));
+        attrs.Add(XmlNodeKeys::ZigZagAttribute, std::to_string(cc.GetZigZag()));
 
     WriteOpenTag(XmlNodeKeys::CtrlConnectionName, attrs, true);
 }
@@ -601,6 +621,9 @@ void BaseSerializingVisitor::CommonObjectVisitSteps(const ViewObject& object, At
 void BaseSerializingVisitor::Visit(const ArchesModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumArchesAttribute, std::to_string(model.GetNumArches()));
+    attrs.Add(XmlNodeKeys::NodesPerArchAttribute, std::to_string(model.GetNodesPerArch()));
+    attrs.Add(XmlNodeKeys::LightsPerNodeAttribute, std::to_string(model.GetLightsPerNode()));
     AddThreePointScreenLocationAttributes(model, attrs);
     if (model.GetZigZag()) {
         attrs.Add(XmlNodeKeys::ZigZagAttribute, "true");
@@ -609,7 +632,7 @@ void BaseSerializingVisitor::Visit(const ArchesModel& model) {
     if (model.GetGap()) {
         attrs.Add(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
     }
-    attrs.Add(XmlNodeKeys::CArcAttribute, std::to_string(model.GetArc()));
+    attrs.Add(XmlNodeKeys::ArcAttribute, std::to_string(model.GetArc()));
     attrs.Add(XmlNodeKeys::LayerSizesAttribute, model.SerialiseLayerSizes());
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
@@ -620,6 +643,9 @@ void BaseSerializingVisitor::Visit(const ArchesModel& model) {
 void BaseSerializingVisitor::Visit(const CandyCaneModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumCanesAttribute, std::to_string(model.GetNumCanes()));
+    attrs.Add(XmlNodeKeys::NodesPerCaneAttribute, std::to_string(model.GetNodesPerCane()));
+    attrs.Add(XmlNodeKeys::LightsPerNodeAttribute, std::to_string(model.GetLightsPerNode()));
     AddThreePointScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::CCHeightAttribute,       std::to_string(model.GetCandyCaneHeight()));
     attrs.Add(XmlNodeKeys::CCReverseAttribute,      model.IsReverse() ? "true" : "false");
@@ -634,7 +660,10 @@ void BaseSerializingVisitor::Visit(const CandyCaneModel& model) {
 void BaseSerializingVisitor::Visit(const CircleModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumCircleStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
     AddBoxedScreenLocationAttributes(model, attrs);
+    attrs.Add(XmlNodeKeys::CenterPercentAttribute, std::to_string(model.GetCenterPercent()));
     attrs.Add(XmlNodeKeys::InsideOutAttribute,  model.IsInsideOut() ? "1" : "0");
     attrs.Add(XmlNodeKeys::LayerSizesAttribute, model.SerialiseLayerSizes());
     SortAttributes(attrs);
@@ -646,6 +675,7 @@ void BaseSerializingVisitor::Visit(const CircleModel& model) {
 void BaseSerializingVisitor::Visit(const ChannelBlockModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumChannelsAttribute, std::to_string(model.GetNumChannels()));
     AddTwoPointScreenLocationAttributes(model, attrs);
     std::vector<std::string> cp = model.GetChannelColors();
     for (auto i = 0; i < (int)cp.size(); i++) {
@@ -660,6 +690,9 @@ void BaseSerializingVisitor::Visit(const ChannelBlockModel& model) {
 void BaseSerializingVisitor::Visit(const CubeModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::CubeWidthAttribute, std::to_string(model.GetCubeWidth()));
+    attrs.Add(XmlNodeKeys::CubeHeightAttribute, std::to_string(model.GetCubeHeight()));
+    attrs.Add(XmlNodeKeys::CubeDepthAttribute, std::to_string(model.GetCubeDepth()));
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::StyleAttribute,          model.GetCubeStyle());
     attrs.Add(XmlNodeKeys::CubeStartAttribute,      model.GetCubeStart());
@@ -675,6 +708,8 @@ void BaseSerializingVisitor::Visit(const CubeModel& model) {
 void BaseSerializingVisitor::Visit(const CustomModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::CustomWidthAttribute, std::to_string(model.GetCustomWidth()));
+    attrs.Add(XmlNodeKeys::CustomHeightAttribute, std::to_string(model.GetCustomHeight()));
     AddBoxedScreenLocationAttributes(model, attrs);
     int depth = model.GetCustomDepth();
     attrs.Add(XmlNodeKeys::CMDepthAttribute, std::to_string(depth));
@@ -713,6 +748,8 @@ void BaseSerializingVisitor::Visit(const CustomModel& model) {
 void BaseSerializingVisitor::Visit(const IciclesModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumIcicleStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetLightsPerString()));
     AddThreePointScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::DropPatternAttribute,    model.GetDropPattern());
@@ -738,6 +775,9 @@ void BaseSerializingVisitor::Visit(const ImageModel& model) {
 void BaseSerializingVisitor::Visit(const MatrixModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumMatrixStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
+    attrs.Add(XmlNodeKeys::StrandsPerStringAttribute, std::to_string(model.GetStrandsPerString()));
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::VertMatrixAttribute,    model.isVerticalMatrix() ? "true" : "false");
     attrs.Add(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
@@ -803,6 +843,9 @@ void BaseSerializingVisitor::Visit(const MultiPointModel& model) {
 void BaseSerializingVisitor::Visit(const SingleLineModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumLines()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
+    attrs.Add(XmlNodeKeys::LightsPerNodeAttribute, std::to_string(model.GetLightsPerNode()));
     AddTwoPointScreenLocationAttributes(model, attrs);
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
@@ -813,6 +856,8 @@ void BaseSerializingVisitor::Visit(const SingleLineModel& model) {
 void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::LightsPerNodeAttribute, std::to_string(model.GetLightsPerNode()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetTotalLightCount()));
     AddPolyPointScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::PolyStringsAttribute,    std::to_string(model.GetNumStrings()));
     attrs.Add(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
@@ -842,6 +887,9 @@ void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
 void BaseSerializingVisitor::Visit(const SphereModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumMatrixStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
+    attrs.Add(XmlNodeKeys::StrandsPerStringAttribute, std::to_string(model.GetStrandsPerString()));
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::DegreesAttribute,        std::to_string(model.GetSphereDegrees()));
     attrs.Add(XmlNodeKeys::StartLatAttribute,       std::to_string(model.GetStartLatitude()));
@@ -858,6 +906,9 @@ void BaseSerializingVisitor::Visit(const SphereModel& model) {
 void BaseSerializingVisitor::Visit(const SpinnerModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumSpinnerStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerArmAttribute, std::to_string(model.GetNodesPerArm()));
+    attrs.Add(XmlNodeKeys::ArmsPerStringAttribute, std::to_string(model.GetArmsPerString()));
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::AlternateAttribute,  model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::ZigZagAttribute,     model.HasZigZag() ? "true" : "false");
@@ -873,6 +924,9 @@ void BaseSerializingVisitor::Visit(const SpinnerModel& model) {
 void BaseSerializingVisitor::Visit(const StarModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumStarStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
+    attrs.Add(XmlNodeKeys::StarPointsAttribute, std::to_string(model.GetStarPoints()));
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::LayerSizesAttribute,        model.SerialiseLayerSizes());
     attrs.Add(XmlNodeKeys::StarStartLocationAttribute, model.GetStartLocation());
@@ -887,6 +941,9 @@ void BaseSerializingVisitor::Visit(const StarModel& model) {
 void BaseSerializingVisitor::Visit(const TreeModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumMatrixStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
+    attrs.Add(XmlNodeKeys::StrandsPerStringAttribute, std::to_string(model.GetStrandsPerString()));
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::AlternateNodesAttribute,      model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::NoZigZagAttribute,            model.IsNoZigZag() ? "true" : "false");
@@ -907,6 +964,9 @@ void BaseSerializingVisitor::Visit(const TreeModel& model) {
 void BaseSerializingVisitor::Visit(const WindowFrameModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::TopNodesAttribute, std::to_string(model.GetTopNodes()));
+    attrs.Add(XmlNodeKeys::SideNodesAttribute, std::to_string(model.GetSideNodes()));
+    attrs.Add(XmlNodeKeys::BottomNodesAttribute, std::to_string(model.GetBottomNodes()));
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::RotationAttribute, model.GetRotation() ? "Counter Clockwise" : "Clockwise");
     SortAttributes(attrs);
@@ -918,6 +978,8 @@ void BaseSerializingVisitor::Visit(const WindowFrameModel& model) {
 void BaseSerializingVisitor::Visit(const WreathModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
+    attrs.Add(XmlNodeKeys::NumStringsAttribute, std::to_string(model.GetNumWreathStrings()));
+    attrs.Add(XmlNodeKeys::NodesPerStringAttribute, std::to_string(model.GetNodesPerString()));
     AddBoxedScreenLocationAttributes(model, attrs);
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);

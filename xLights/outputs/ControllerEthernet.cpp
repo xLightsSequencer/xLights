@@ -9,14 +9,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+
+#include <cassert>
 
 #include "ControllerEthernet.h"
 #include "OutputManager.h"
 #include "Output.h"
-#include "../UtilFunctions.h"
-#include "../SpecialOptions.h"
-#include "../OutputModelManager.h"
+#include "UtilFunctions.h"
+#include "../utils/SpecialOptions.h"
+#include "../models/OutputModelManager.h"
 #include "IPOutput.h"
 #include "E131Output.h"
 #include "ArtNetOutput.h"
@@ -28,93 +29,36 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+#ifndef EXCLUDENETWORKUI
+#include "../models/Model.h"
+#endif
 #include "../utils/ip_utils.h"
 
-#ifndef EXCLUDENETWORKUI
-#include "../xLightsMain.h"
-#endif
+#include <format>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
-#pragma region Property Choices
-wxPGChoices ControllerEthernet::__types;
-
-wxPGChoices ControllerEthernet::GetProtocols() const
-{
-    ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
-
-    if (caps == nullptr) return __types;
-
-    wxPGChoices types;
-    for (const auto& it : caps->GetInputProtocols()) {
-        if (it == "e131") types.Add(OUTPUT_E131);
-        else if (it == "zcpp") types.Add(OUTPUT_ZCPP);
-        else if (it == "artnet") types.Add(OUTPUT_ARTNET);
-        else if (it == "kinet") types.Add(OUTPUT_KINET);
-        else if (it == "ddp") types.Add(OUTPUT_DDP);
-        else if (it == "opc") types.Add(OUTPUT_OPC);
-        else if (it == "player only")
-            types.Add(OUTPUT_PLAYER_ONLY);
-        else if (it == "twinkly")
-            types.Add(OUTPUT_TWINKLY);
-        else if (it == "xxx ethernet") {
-            if (SpecialOptions::GetOption("xxx") == "true" || GetProtocol() == OUTPUT_xxxETHERNET) {
-                types.Add(OUTPUT_xxxETHERNET);
-            }
-        }
-    }
-    return types;
-}
-
-void ControllerEthernet::InitialiseTypes(bool forceXXX) {
-
-    if (__types.GetCount() == 0) {
-        __types.Add(OUTPUT_E131);
-        __types.Add(OUTPUT_ZCPP);
-        __types.Add(OUTPUT_ARTNET);
-        __types.Add(OUTPUT_DDP);
-        __types.Add(OUTPUT_OPC);
-        __types.Add(OUTPUT_KINET);
-        if (SpecialOptions::GetOption("xxx") == "true" || forceXXX) {
-            __types.Add(OUTPUT_xxxETHERNET);
-        }
-        __types.Add(OUTPUT_TWINKLY);
-        __types.Add(OUTPUT_PLAYER_ONLY);
-    }
-    else if (forceXXX) {
-        bool found = false;
-        for (size_t i = 0; i < __types.GetCount(); i++) {
-            if (__types.GetLabel(i) == OUTPUT_xxxETHERNET) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            __types.Add(OUTPUT_xxxETHERNET);
-        }
-    }
-}
-#pragma endregion
+// Property choices moved to ui/controllerproperties/ControllerEthernetPropertyAdapter
 
 #pragma region Constructors and Destructors
-ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
+ControllerEthernet::ControllerEthernet(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
 
-    _type = node->GetAttribute("Protocol");
-    InitialiseTypes(_type == OUTPUT_xxxETHERNET);
-    SetIP(node->GetAttribute("IP"));
-    SetFPPProxy(node->GetAttribute("FPPProxy"));
-    SetPriority(wxAtoi(node->GetAttribute("Priority", "100")));
-    SetVersion(wxAtoi(node->GetAttribute("Version", "1")));
-    _expanded = node->GetAttribute("Expanded", "FALSE") == "TRUE";
-    _universePerString = node->GetAttribute("UPS", "FALSE") == "TRUE";
-    _forceLocalIP = node->GetAttribute("ForceLocalIP", "");
+    _type = node.attribute("Protocol").as_string("");
+    // Property choice initialization moved to ControllerEthernetPropertyAdapter
+    SetIP(node.attribute("IP").as_string(""));
+    SetFPPProxy(node.attribute("FPPProxy").as_string(""));
+    SetPriority(node.attribute("Priority").as_int(100));
+    SetVersion(node.attribute("Version").as_int(1));
+    _expanded = std::string_view(node.attribute("Expanded").as_string("FALSE")) == "TRUE";
+    _universePerString = std::string_view(node.attribute("UPS").as_string("FALSE")) == "TRUE";
+    _forceLocalIP = node.attribute("ForceLocalIP").as_string("");
     _dirty = false;
 }
 
 ControllerEthernet::ControllerEthernet(OutputManager* om, bool acceptDuplicates) : Controller(om) {
 
     _managed = !acceptDuplicates;
-    InitialiseTypes(false);
+    // Property choice initialization moved to ControllerEthernetPropertyAdapter
     _name = (om == nullptr) ? "Dummy" : om->UniqueName("Ethernet_");
     _type = OUTPUT_E131;
     _expanded = false;
@@ -143,18 +87,18 @@ ControllerEthernet::~ControllerEthernet() {
     }
 }
 
-wxXmlNode* ControllerEthernet::Save() {
+pugi::xml_node ControllerEthernet::Save(pugi::xml_node parent) {
 
-    wxXmlNode* um = Controller::Save();
+    pugi::xml_node um = Controller::Save(parent);
 
-    um->AddAttribute("IP", _ip);
-    um->AddAttribute("Protocol", _type);
-    um->AddAttribute("FPPProxy", _fppProxy);
-    um->AddAttribute("Priority", wxString::Format("%d", _priority));
-    um->AddAttribute("Version", wxString::Format("%d", _version));
-    um->AddAttribute("Expanded", _expanded ? _("TRUE") : _("FALSE"));
-    um->AddAttribute("UPS", _universePerString ? _("TRUE") : _("FALSE"));
-    um->AddAttribute("ForceLocalIP", _forceLocalIP);
+    um.append_attribute("IP") = _ip;
+    um.append_attribute("Protocol") = _type;
+    um.append_attribute("FPPProxy") = _fppProxy;
+    um.append_attribute("Priority") = _priority;
+    um.append_attribute("Version") = _version;
+    um.append_attribute("Expanded") = _expanded ? "TRUE" : "FALSE";
+    um.append_attribute("UPS") = _universePerString ? "TRUE" : "FALSE";
+    um.append_attribute("ForceLocalIP") = _forceLocalIP;
 
     return um;
 }
@@ -547,7 +491,7 @@ std::string ControllerEthernet::GetLongDescription() const {
 
     if (!IsActive()) res += "INACTIVE ";
     res += GetName() + " " + GetProtocol() + " " + GetIP() + " ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
     res += _description;
 
     return res;
@@ -567,7 +511,7 @@ std::string ControllerEthernet::GetShortDescription() const {
 	return res;
 }
 
-void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
+void ControllerEthernet::Convert(pugi::xml_node node, std::string showDir) {
 
     _outputs.push_back(Output::Create(this, node, showDir));
     if (_outputs.back() == nullptr) {
@@ -599,7 +543,7 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
             _priority = dynamic_cast<ZCPPOutput*>(_outputs.front())->GetPriority();
         }
         else if (_type == OUTPUT_xxxETHERNET) {
-            InitialiseTypes(true);
+            // xxx ethernet type - adapter handles protocol choices initialization
         }
     }
 
@@ -613,7 +557,7 @@ void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
                 _outputs.back()->Enable(IsActive());
             }
             else {
-                wxASSERT(false);
+                assert(false);
             }
         }
         delete o;
@@ -655,26 +599,26 @@ bool ControllerEthernet::SupportsDefaultGamma() const
 std::string ControllerEthernet::GetChannelMapping(int32_t ch) const
 {
 
-    wxString res = wxString::Format("Channel %d maps to ...\nType: %s\nName: %s\nIP: %s\n", ch, GetProtocol(), GetName(), GetIP());
+    std::string res = std::format("Channel {} maps to ...\nType: {}\nName: {}\nIP: {}\n", ch, GetProtocol(), GetName(), GetIP());
 
     int32_t sc;
     auto o = GetOutput(ch, sc);
 
     if (o == nullptr) {
-        res += wxString::Format("Channel: INVALID %d\n", ch);
+        res += std::format("Channel: INVALID {}\n", ch);
     }
     else {
         if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_xxxETHERNET) {
-            res += wxString::Format("Universe: %s\nChannel: %d\n", o->GetUniverseString(), sc);
+            res += std::format("Universe: {}\nChannel: {}\n", o->GetUniverseString(), sc);
         }
         else if (o->GetType() == OUTPUT_KINET) {
-            res += wxString::Format("Port: %s\nChannel: %d\n", o->GetUniverseString(), sc);
+            res += std::format("Port: {}\nChannel: {}\n", o->GetUniverseString(), sc);
         }
         else if (o->GetType() == OUTPUT_OPC) {
-            res += wxString::Format("Channel: %s\nMessage Offset: %d\n", o->GetUniverseString(), sc);
+            res += std::format("Channel: {}\nMessage Offset: {}\n", o->GetUniverseString(), sc);
         }
         else {
-            res += wxString::Format("Channel: %d\n", sc);
+            res += std::format("Channel: {}\n", sc);
         }
     }
 
@@ -695,10 +639,10 @@ std::string ControllerEthernet::GetColumn3Label() const {
             return _outputs.front()->GetUniverseString() + "-" + _outputs.back()->GetUniverseString();
         }
     }
-    return wxString::Format("%d", GetId());
+    return std::to_string(GetId());
 }
 
-void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
+void ControllerEthernet::VMVChanged()
 {
     SetUniversePerString(false);
     auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
@@ -711,22 +655,7 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
         }
         if (autoLayout) {
             if (!prefer.empty()) {
-#ifndef EXCLUDENETWORKUI
-                if (grid && GetProtocol() != prefer) {
-                    if (_outputs.size() > 0) {
-                        _outputs.front()->RemoveProperties(grid);
-                    }
-                    SetProtocol(prefer);
-                    if (_outputs.size() > 0) {
-                        std::list<wxPGProperty*> expandProperties;
-                        auto before = grid->GetProperty("Managed");
-                        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
-                    }
-                } else
-#endif
-                {
-                    SetProtocol(prefer);
-                }
+                SetProtocol(prefer);
             }
             auto const& state = c->GetPreferredState();
             if (!state.empty()) {
@@ -784,7 +713,7 @@ void ControllerEthernet::SetExpanded(bool expanded)
 
 std::string ControllerEthernet::GetExport() const {
 
-    return wxString::Format("%s,%d,%d,%s,%s,%s,,,\"%s\",%s,%d,%s,%s,%s,%s,%s,%s,%s",
+    return std::format("{},{},{},{},{},{},,,\"{}\",{},{},{},{},{},{},{},{},{}",
                             GetName(),
                             GetStartChannel(),
                             GetEndChannel(),
@@ -794,12 +723,12 @@ std::string ControllerEthernet::GetExport() const {
                             GetDescription(),
                             GetColumn3Label(),
                             GetChannels(),
-                            (IsActive() ? _("") : _("DISABLED")),
-                            (IsSuppressDuplicateFrames() ? _("SuppressDuplicates") : _("")),
-                            (IsAutoSize() ? _("AutoSize") : _("")),
-                            (IsAutoLayout() ? _("AutoLayout") : _("")),
-                            (IsAutoUpload() ? _("AutoUpload") : _("")),
-                            (IsFullxLightsControl() ? _("FullxLightsControl") : _("")),
+                            (IsActive() ? "" : "DISABLED"),
+                            (IsSuppressDuplicateFrames() ? "SuppressDuplicates" : ""),
+                            (IsAutoSize() ? "AutoSize" : ""),
+                            (IsAutoLayout() ? "AutoLayout" : ""),
+                            (IsAutoUpload() ? "AutoUpload" : ""),
+                            (IsFullxLightsControl() ? "FullxLightsControl" : ""),
                             GetFPPProxy());
 }
 
@@ -835,11 +764,11 @@ bool ControllerEthernet::SupportsUpload() const {
 #pragma endregion
 
 #pragma region UI
-#ifndef EXCLUDENETWORKUI
 
+#ifndef EXCLUDENETWORKUI
 bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_outputs.size() == 0) return false;
 
     for (auto& it2 : GetOutputs()) {
@@ -866,7 +795,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                     lastSerialPort = m->GetControllerPort();
                 }
                 else {
-                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                    for (int s = 0; s < m->GetNumPhysicalStrings(); s++) {
                         size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
                         if (chs > 0) {
                             universes += ((chs - 1) / channels_per_universe) + 1;
@@ -906,13 +835,13 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
          }
 
         //if required universes is less than num of outputs, remove unneeded universes
-        while (universes < _outputs.size()) {
+        while (universes < (int)_outputs.size()) {
             delete _outputs.back();
             _outputs.pop_back();
         }
 
         //if required universes is greater than  num of outputs, add needed universes
-        int diff = universes - _outputs.size();
+        int diff = universes - (int)_outputs.size();
         for (int i = 0; i < diff; i++) {
             auto lastUsedUniverse = 0;
 
@@ -976,7 +905,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                     }
                     lastSerialPort = m->GetControllerPort();
                 } else {
-                    for (size_t s = 0; s < m->GetNumPhysicalStrings(); s++) {
+                    for (int s = 0; s < m->GetNumPhysicalStrings(); s++) {
                         size_t chs = m->NodesPerString(s) * m->GetChanCountPerNode();
 
                         if (m->GetNumPhysicalStrings() == 1) {
@@ -985,9 +914,9 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
 
                         while (chs > 0) {
                             size_t uch = std::min(chs, (size_t)channels_per_universe);
-                            wxASSERT(o != end(_outputs));
+                            assert(o != end(_outputs));
                             if (o == end(_outputs)) {
-                                logger_base.debug("Unexpected error. Not enough outputs. Channels remaining: %zu, Outputs size: %zu", chs, _outputs.size());
+                                spdlog::debug("Unexpected error. Not enough outputs. Channels remaining: {}, Outputs size: {}", chs, _outputs.size());
                                 return false;
                             }
                             (*o)->SetChannels(uch);
@@ -1001,6 +930,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
     }
     return true;
 }
+#endif // EXCLUDENETWORKUI
 
 bool ControllerEthernet::SupportsUniversePerString() const
 {
@@ -1015,456 +945,9 @@ bool ControllerEthernet::SupportsUniversePerString() const
     return false;
 }
 
-void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) {
-    Controller::UpdateProperties(propertyGrid, modelManager, expandProperties, outputModelManager);
-    wxPGProperty *p = propertyGrid->GetProperty("Protocol");
-    if (p) {
-        wxPGChoices protocols = GetProtocols();
-        p->SetChoices(protocols);
-        if (EncodeChoices(protocols, _type) == -1) {
-            p->SetChoiceSelection(0);
-            SetProtocolAndRebuildProperties(Controller::DecodeChoices(protocols, 0), propertyGrid, outputModelManager);
-        }
-        else
-        {
-            p->SetChoiceSelection(EncodeChoices(protocols, _type));
-        }
-    }
-    p = propertyGrid->GetProperty("Multicast");
-    if (p) {
-        if (_type == OUTPUT_E131) {
-            p->SetValue(_ip == "MULTICAST");
-            p->Hide(false);
-        } else {
-            p->Hide(true);
-        }
-    }
-    p = propertyGrid->GetProperty("IP");
-    if (_ip != "MULTICAST") {
-        p->Hide(false);
-        p->SetValue(_ip);
-        if (GetProtocol() == OUTPUT_ZCPP || GetProtocol() == OUTPUT_DDP) {
-            p->SetHelpString("This must be unique across all controllers.");
-        } else {
-            p->SetHelpString("This should ideally be unique across all controllers.");
-        }
-    } else {
-        p->Hide(true);
-    }
-    p = propertyGrid->GetProperty("Priority");
-    if (p) {
-        if (_type == OUTPUT_E131 || _type == OUTPUT_ZCPP) {
-            p->Hide(false);
-            p->SetValue(_priority);
-        } else {
-            p->Hide(true);
-        }
-    }
-    p = propertyGrid->GetProperty("Managed");
-    if (p) {
-        // if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
-            p->Hide(false);
-            p->SetValue(_managed);
-            if (!_managed) {
-                p->SetHelpString("This controller cannot be made managed until all other controllers with the same IP address are removed.");
-            } else {
-                p->SetHelpString("");
-            }
-        // } else {
-        //     p->Hide(true);
-        // }
-    }
-    p = propertyGrid->GetProperty("FPPProxy");
-    if (p) {
-        if (IsFPPProxyable()) {
-            p->Hide(false);
-            p->SetValue(GetControllerFPPProxy());
-            if (!GetControllerFPPProxy().empty() && (GetControllerFPPProxy() == _ip || !ip_utils::IsIPValidOrHostname(GetControllerFPPProxy()))) {
-                p->SetBackgroundColour(*wxRED);
-            } else {
-                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-            }
-        } else {
-            p->Hide(true);
-        }
-    }
-    p = propertyGrid->GetProperty("ForceLocalIP");
-    if (p) {
-        if (_type != OUTPUT_PLAYER_ONLY) {
-            p->Hide(false);
-                        
-            auto ips = GetLocalIPs();
-            int val = 0;
-            int idx = 1;
-            for (const auto& it : ips) {
-                if (it == _forceLocalIP)
-                    val = idx;
-                ++idx;
-            }
-            p->SetValue(val);
-        } else {
-            p->Hide(true);
-        }
-    }
-    p = propertyGrid->GetProperty("Models");
-    if (p) {
-        if (_type == OUTPUT_PLAYER_ONLY) {
-            p->Hide(true);
-        } else {
-            p->Hide(false);
-            p->SetValue(modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1));
-            p->SetHelpString(modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), 4));
-        }
-    }
-    
-    if (_outputs.size() >= 1) {
-        _outputs.front()->UpdateProperties(propertyGrid, this, modelManager, expandProperties);
-    }
-}
-
-void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-
-    Controller::AddProperties(propertyGrid, modelManager, expandProperties);
-
-    wxPGProperty* p = nullptr;
-    p = propertyGrid->Append(new wxBoolProperty("Multicast", "Multicast", _ip == "MULTICAST"));
-    p->SetEditor("CheckBox");
-
-    p = propertyGrid->Append(new wxStringProperty("IP Address", "IP", _ip));
-
-    p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", GetControllerFPPProxy()));
-    p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
-
-    
-    auto protocols = GetProtocols();
-    p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, _type)));
-
-
-    auto ips = GetLocalIPs();
-    wxPGChoices choices;
-    choices.Add("");
-    for (const auto& it : ips) {
-        choices.Add(it);
-    }
-    propertyGrid->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, 0));
-
-    p = propertyGrid->Append(new wxUIntProperty("Priority", "Priority", _priority));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
-    
-    p = propertyGrid->Append(new wxStringProperty("Models", "Models", ""));
-    p->ChangeFlag(wxPGFlags::ReadOnly , true);
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-
-    auto p2 = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
-    p2->SetEditor("CheckBox");
-    p2->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p2->ChangeFlag(wxPGFlags::ReadOnly , true);
-
-    bool allSameSize = AllSameSize();
-    if (_outputs.size() >= 1) {
-        //FIXME
-        _outputs.front()->AddProperties(propertyGrid, p2, this, allSameSize, expandProperties);
-    }   
-}
-
-bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
-
-    if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
-
-    wxString const name = event.GetPropertyName();
-
-    if (name == "IP") {
-        SetIP(event.GetValue().GetString());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::IP");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::IP", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::IP", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::IP", nullptr);
-        return true;
-    } else if (name == "Multicast") {
-        if (event.GetValue().GetBool()) {
-            SetIP("MULTICAST");
-        } else {
-            SetIP("");
-        }
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Multicast");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Multicast", nullptr);
-        return true;
-    } else if (name == "Priority") {
-        SetPriority(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Priority");
-        return true;
-    } else if (name == "Version") {
-        SetVersion(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Version");
-        return true;
-    } else if (name == "FPPProxy") {
-        SetFPPProxy(event.GetValue().GetString().Trim(true).Trim(false));
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::FPPProxy");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::FPPProxy", nullptr);
-        return true;
-    } else if (name == "ForceLocalIP") {
-        auto ips = GetLocalIPs();
-
-        if (event.GetValue().GetLong() == 0) {
-            SetForceLocalIP("");
-        } else {
-            if (event.GetValue().GetLong() >= ips.size() + 1) { // need to add one as dropdown has blank first entry
-                // likely the number of IPs changed after the list was loaded so ignore
-            } else {
-                auto it = begin(ips);
-                std::advance(it, event.GetValue().GetLong() - 1);
-                SetForceLocalIP(*it);
-            }
-        }
-
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::ForceLocalIP");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::ForceLocalIP", nullptr);
-        return true;
-    } else if (name == "Managed") {
-        SetManaged(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Managed");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Managed", nullptr);
-        return true;
-    } else if (name == "Protocol") {
-        auto protocols = GetProtocols();
-        wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-        SetProtocolAndRebuildProperties(Controller::DecodeChoices(protocols, event.GetValue().GetLong()), grid, outputModelManager);
-        return true;
-    } else if (name == "Universe") {
-        int univ = event.GetValue().GetLong();
-        for (auto& it : _outputs) {
-            it->SetUniverse(univ++);
-        }
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Universe");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Universe", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Universe", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Universe", nullptr);
-        return true;
-    } else if (name == "Universes") {
-        // add universes
-        while (_outputs.size() < event.GetValue().GetLong()) {
-            AddOutput();
-        }
-
-        // drop universes
-        while (_outputs.size() > event.GetValue().GetLong()) {
-            delete _outputs.back();
-            _outputs.pop_back();
-        }
-
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Universes");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Universes", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Universes", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Universes", nullptr);
-        return true;
-    } else if (name == "UniversePerString") {
-
-        SetUniversePerString(event.GetValue().GetBool());
-
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::UniversePerString");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::UniversePerString", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::UniversePerString", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::UniversePerString", nullptr);
-        return true;
-    } else if (name == "IndivSizes") {
-        _forceSizes = event.GetValue().GetBool();
-
-        // Let user stop this if they didnt understand the implications
-        if (!_forceSizes && !AllSameSize()) {
-            if (wxMessageBox(wxString::Format("Are you sure you want to set all universes to %ld channels?", (long)_outputs.front()->GetChannels()), "Confirm resize?", wxICON_QUESTION | wxYES_NO) != wxYES) {
-                event.GetProperty()->SetValue(wxVariant(true));
-                return true;
-            }
-        }
-        SetAllSameSize(!_forceSizes, outputModelManager);
-        return true;
-    } else if (name == "Channels") {
-        for (auto& it : _outputs) {
-            it->SetChannels(event.GetValue().GetLong());
-            outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Channels");
-            outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Channels", nullptr);
-            outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Channels", nullptr);
-            outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Channels", nullptr);
-        }
-        return true;
-    } else if (StartsWith(name, "Channels/")) {
-        // the property label is the universe number so we look up the output based on that
-        wxString n = event.GetProperty()->GetLabel();
-        if (n.Contains("or")) n = n.AfterLast(' ');
-        int univ = wxAtoi(n);
-        for (auto& it : _outputs) {
-            if (it->GetUniverse() == univ) {
-                it->SetChannels(event.GetValue().GetLong());
-                outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Channels/");
-                outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Channels/", nullptr);
-                outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Channels/", nullptr);
-                outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Channels/", nullptr);
-                return true;
-            }
-        }
-    }
-
-    if (_outputs.size() == 1) {
-        if (_outputs.front()->HandlePropertyEvent(event, outputModelManager, this)) return true;
-    } else if (_outputs.size() > 1) {
-        if (_outputs.front()->HandlePropertyEvent(event, outputModelManager, this)) {
-            auto it = _outputs.begin();
-            ++it;
-            while (it != _outputs.end()) {
-                (*it)->HandlePropertyEvent(event, outputModelManager, this);
-                ++it;
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const {
-
-    Controller::ValidateProperties(om, propGrid);
-
-    auto p = propGrid->GetPropertyByName("Protocol");
-    auto caps = ControllerCaps::GetControllerConfig(this);
-    if (caps != nullptr && p != nullptr) {
-        // controller must support the protocol
-        if (!caps->IsValidInputProtocol(Lower(_type))) {
-            p->SetBackgroundColour(*wxRED);
-        }
-        else {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-
-    if (GetIP() != "MULTICAST") {
-        p = propGrid->GetPropertyByName("IP");
-        if (GetIP() == "") {
-            p->SetBackgroundColour(*wxRED);
-        }
-        // ZCPP and DDP cannot share IP with any other output
-        else if (GetProtocol() == OUTPUT_ZCPP || GetProtocol() == OUTPUT_DDP) {
-            p = propGrid->GetPropertyByName("IP");
-            bool err = false;
-            for (const auto& it : _outputManager->GetControllers(GetIP())) {
-                if (it != this) {
-                    err = true;
-                }
-            }
-
-            if (!ip_utils::IsIPValidOrHostname(GetIP())) {
-                err = true;
-            }
-
-            if (err) {
-                p->SetBackgroundColour(*wxRED);
-            }
-            else {
-                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-            }
-        }
-        else {
-            if (!ip_utils::IsIPValidOrHostname(GetIP())) {
-                p->SetBackgroundColour(*wxRED);
-            }
-            else {
-                p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-            }
-        }
-    }
-
-    p = propGrid->GetPropertyByName("Universe");
-    if (p != nullptr) {
-        long u = p->GetValue().GetLong();
-        bool valid = true;
-
-        if (_type == OUTPUT_ARTNET) {
-            if (u < 0 || u > 32767) {
-                valid = false;
-            }
-        }
-        else if (_type == OUTPUT_E131) {
-            if (u < 1 || u > 64000) {
-                valid = false;
-            }
-        }
-        else if (_type == OUTPUT_OPC || _type == OUTPUT_KINET) {
-            if (u < 1 || u > 255) {
-                valid = false;
-            }
-        }
-
-        if (valid) {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-        else {
-            p->SetBackgroundColour(*wxRED);
-        }
-    }
-
-    p = propGrid->GetPropertyByName("Universes");
-    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_KINET)) {
-        if (_outputs.size() > caps->GetMaxInputE131Universes()) {
-            p->SetBackgroundColour(*wxRED);
-        }
-        else {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-
-    p = propGrid->GetPropertyByName("Channels");
-    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_KINET)) {
-        if (_outputs.front()->GetChannels() > caps->GetMaxInputUniverseChannels()) {
-            p->SetBackgroundColour(*wxRED);
-        }
-        else {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-
-    if (caps != nullptr && p != nullptr && (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_KINET)) {
-        for (const auto& it : _outputs) {
-            p = propGrid->GetPropertyByName("Channels/" + it->GetUniverseString());
-            if (p != nullptr) {
-                if (it->GetChannels() > caps->GetMaxInputUniverseChannels()) {
-                    p->SetBackgroundColour(*wxRED);
-                }
-                else {
-                    p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-                }
-            }
-        }
-    }
-
-    if (IsFPPProxyable()) {
-        p = propGrid->GetPropertyByName("FPPProxy");
-        if (!GetControllerFPPProxy().empty() && (GetControllerFPPProxy() == _ip || !ip_utils::IsIPValidOrHostname(GetControllerFPPProxy()))) {
-            p->SetBackgroundColour(*wxRED);
-        } else {
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-}
-
-void ControllerEthernet::SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
-    if (_outputs.size() > 0) {
-        _outputs.front()->RemoveProperties(grid);
-    }
-    SetProtocol(protocol);
-
-    if (_outputs.size() > 0) {
-        std::list<wxPGProperty*> expandProperties;
-        auto before = grid->GetProperty("Managed");
-        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
-    }
-    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
-    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-    outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-    outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-}
-#endif
+// UI property grid methods (UpdateProperties, AddProperties, HandlePropertyEvent,
+// ValidateProperties, SetProtocolAndRebuildProperties) moved to
+// ui/controllerproperties/ControllerEthernetPropertyAdapter
 
 void ControllerEthernet::AddOutput()
 {
@@ -1486,7 +969,7 @@ void ControllerEthernet::AddOutput()
     }
     else
     {
-		wxASSERT(false);
+		assert(false);
 	}
     if (_outputs.size() > 0) {
         _outputs.back()->SetIP(_outputs.front()->GetIP(), IsActive());
@@ -1508,15 +991,13 @@ void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)
                 it->SetChannels(_outputs.front()->GetChannels());
             }
         }
-#ifndef EXCLUDENETWORKUI
+        #ifndef EXCLUDENETWORKUI
         if (omm != nullptr) {
-            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::SetAllSameSize");
-            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::SetAllSameSize", nullptr);
-            omm->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::SetAllSameSize", nullptr);
-            omm->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES, "ControllerEthernet::SetAllSameSize", nullptr);
+            omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE |
+                             OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES, "ControllerEthernet::SetAllSameSize");
             omm->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::SetAllSameSize", nullptr);
         }
-#endif
+        #endif
     }
 }
 

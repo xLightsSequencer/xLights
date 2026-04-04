@@ -52,7 +52,7 @@ class uDMXOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    uDMXOutput(wxXmlNode* node);
+    uDMXOutput(pugi::xml_node node);
     uDMXOutput(SerialOutput* output);
     uDMXOutput();
     virtual ~uDMXOutput() override;

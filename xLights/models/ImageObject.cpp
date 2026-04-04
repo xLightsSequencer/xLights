@@ -8,17 +8,18 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
+#include <filesystem>
+#include <format>
 #include "ImageObject.h"
+#include "../utils/xlImage.h"
 #include "UtilFunctions.h"
-#include "ModelPreview.h"
-#include "xLightsMain.h"
-#include "../ExternalHooks.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
+#include "utils/ExternalHooks.h"
+#include "../render/RenderContext.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 ImageObject::ImageObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
@@ -44,72 +45,31 @@ void ImageObject::InitModel()
     screenLocation.SetRenderSize(width, height, 10.0f);
 }
 
-void ImageObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
-                                             "Image",
-                                             _imageFile));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-                                        ";*.webp"
-                                        "|All files (*.*)|*.*");
-
-    p = grid->Append(new wxUIntProperty("Transparency", "Transparency", transparency));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-}
-
-int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("Image" == event.GetPropertyName()) {
-        for (auto it = _images.begin(); it != _images.end(); ++it) {
-            delete it->second;
-        }
-        _images.clear();
-        _imageFile = event.GetValue().GetString();
-        ObtainAccessToURL(_imageFile);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Image");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Image");
-        return 0;
-    } else if ("Transparency" == event.GetPropertyName()) {
-        transparency = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Transparency");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Transparency");
-        return 0;
-    } else if ("Brightness" == event.GetPropertyName()) {
-        brightness = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Brightness");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Brightness");
-        return 0;
+void ImageObject::ClearImages() {
+    for (auto it = _images.begin(); it != _images.end(); ++it) {
+        delete it->second;
     }
-
-    return ViewObject::OnPropertyGridChange(grid, event);
+    _images.clear();
 }
 
-bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+bool ImageObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if( !IsActive() ) { return true; }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool exists = false;
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
-    if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
+    if (_images.find(preview->getName()) == _images.end()) {
         if (FileExists(_imageFile)) {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
-                (const char *)GetName().c_str(),
-                (const char *)_imageFile.c_str(),
-                (const char *)preview->GetName().c_str());
-            wxImage image(_imageFile);
-            if (image.IsOk()) {
+            spdlog::debug("Loading image model {} file {} for preview {}.",
+                GetName(),
+                _imageFile,
+                preview->getName());
+            xlImage image;
+            if (image.LoadFromFile(_imageFile)) {
                 xlTexture *t = ctx->createTexture(image, GetName(), true);
-                _images[preview->GetName().ToStdString()] = t;
+                _images[preview->getName()] = t;
                 width = image.GetWidth();
                 height = image.GetHeight();
                 screenLocation.SetRenderSize(width, height, 10.0f);
@@ -143,7 +103,7 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
     GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);
 
     if (exists) {
-        xlTexture* image = _images[preview->GetName().ToStdString()];
+        xlTexture* image = _images[preview->getName()];
         xlGraphicsProgram *program = transparency == 0 ? solid : transparent;
         xlVertexTextureAccumulator *va = ctx->createVertexTextureAccumulator();
         
@@ -165,18 +125,18 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
         auto vac = solid->getAccumulator();
         int startVert = vac->getCount();
         
-        vac->AddVertex(x1, y1, z1, *wxRED);
-        vac->AddVertex(x2, y2, z2, *wxRED);
-        vac->AddVertex(x2, y2, z2, *wxRED);
-        vac->AddVertex(x3, y3, z3, *wxRED);
-        vac->AddVertex(x3, y3, z3, *wxRED);
-        vac->AddVertex(x4, y4, z4, *wxRED);
-        vac->AddVertex(x4, y4, z4, *wxRED);
-        vac->AddVertex(x1, y1, z1, *wxRED);
-        vac->AddVertex(x1, y1, z1, *wxRED);
-        vac->AddVertex(x3, y3, z3, *wxRED);
-        vac->AddVertex(x2, y2, z2, *wxRED);
-        vac->AddVertex(x4, y4, z4, *wxRED);
+        vac->AddVertex(x1, y1, z1, xlRED);
+        vac->AddVertex(x2, y2, z2, xlRED);
+        vac->AddVertex(x2, y2, z2, xlRED);
+        vac->AddVertex(x3, y3, z3, xlRED);
+        vac->AddVertex(x3, y3, z3, xlRED);
+        vac->AddVertex(x4, y4, z4, xlRED);
+        vac->AddVertex(x4, y4, z4, xlRED);
+        vac->AddVertex(x1, y1, z1, xlRED);
+        vac->AddVertex(x1, y1, z1, xlRED);
+        vac->AddVertex(x3, y3, z3, xlRED);
+        vac->AddVertex(x2, y2, z2, xlRED);
+        vac->AddVertex(x4, y4, z4, xlRED);
         int end = vac->getCount();
         solid->addStep([solid, vac, startVert, end](xlGraphicsContext *ctx) {
             ctx->drawLines(vac, startVert, end - startVert);
@@ -194,28 +154,28 @@ std::list<std::string> ImageObject::CheckModelSettings()
     std::list<std::string> res;
 
     if (_imageFile == "" || !FileExists(_imageFile)) {
-        res.push_back(wxString::Format("    ERR: Image object '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
-    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
-        res.push_back(wxString::Format("    ERR: Image object '%s' cant load image file '%s'", GetName(), _imageFile).ToStdString());
+        res.push_back(std::format("    ERR: Image object '{}' cant find image file '{}'", GetName(), _imageFile));
+    } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
+        res.push_back(std::format("    ERR: Image object '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
-            res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());
+        if (!IsFileInShowDir(std::string(), _imageFile)) {
+            res.push_back(std::format("    WARN: Image object '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }
     res.splice(res.end(), BaseObject::CheckModelSettings());
     return res;
 }
 
-bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
+bool ImageObject::CleanupFileLocations(RenderContext* ctx)
 {
     bool rc = false;
     if (FileExists(_imageFile)) {
-        if (!frame->IsInShowFolder(_imageFile)) {
-            _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
+        if (!ctx->IsInShowFolder(_imageFile)) {
+            _imageFile = ctx->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }
-    return BaseObject::CleanupFileLocations(frame) || rc;
+    return BaseObject::CleanupFileLocations(ctx) || rc;
 }
 
 std::list<std::string> ImageObject::GetFileReferences()

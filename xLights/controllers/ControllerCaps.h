@@ -15,19 +15,18 @@
 #include <map>
 #include <string>
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 class Controller;
 class BaseController;
-class wxPropertyGrid;
-class wxPropertyGridEvent;
 
 class ControllerCaps
 {
     #pragma region Member Variables
     std::string _vendor;
     std::string _model;
-    wxXmlNode* _config = nullptr;
+    pugi::xml_document _configDoc;
+    pugi::xml_node _config;
     #pragma endregion
 
     #pragma region Static Variables
@@ -39,8 +38,8 @@ class ControllerCaps
 public:
 
     #pragma region Constructors and Destructors
-    ControllerCaps(const std::string& v, const std::string& m, wxXmlNode* n) : _vendor(v), _model(m) { _config = new wxXmlNode(*n); }
-    virtual ~ControllerCaps() { if (_config != nullptr) { delete _config; } }
+    ControllerCaps(const std::string& v, const std::string& m, pugi::xml_node n) : _vendor(v), _model(m) { _configDoc.reset(); _config = _configDoc.append_copy(n); }
+    virtual ~ControllerCaps() {}
     #pragma endregion Constructors and Destructors
 
     #pragma region Static Functions
@@ -150,9 +149,15 @@ public:
     bool DisableMonitoring() const;
 
     void Dump() const;
-    
-    void AddProperties(Controller *controller, wxPropertyGrid* propertyGrid);
-    bool HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event);
+
+    struct ExtraPropertyDef {
+        std::string name;
+        std::string label;
+        std::string defaultValue;
+        std::string type; // "String" or "Enum"
+        std::vector<std::string> values; // populated for Enum type
+    };
+    std::vector<ExtraPropertyDef> GetExtraPropertyDefs() const;
 
     #pragma endregion
 };

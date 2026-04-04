@@ -16,7 +16,6 @@
 #include <wx/app.h>
 #include <wx/debugrpt.h>
 #include <wx/frame.h>
-#include <wx/glcanvas.h>
 
 
 class xlCrashHandler;
@@ -96,41 +95,3 @@ public:
     }
 };
 
-class xlGLBaseApp : public wxGLApp, public xlCrashHandler
-{
-public:
-    xlGLBaseApp(std::string const& appName) :
-        wxGLApp(),
-        xlCrashHandler(appName)
-    {
-    }
-
-    virtual xlFrame* GetTopWindow() override
-    {
-        return (xlFrame*)wxGLApp::GetTopWindow();
-    }
-
-    virtual void OnAssertFailure(wxChar const* file, int line, wxChar const* func, wxChar const* cond, wxChar const* msg) override
-    {
-        HandleAssertFailure(file, line, func, cond, msg);
-        wxGLApp::OnAssertFailure(file, line, func, cond, msg);
-    }
-
-    virtual bool OnExceptionInMainLoop() override
-    {
-        HandleCrash(true, "Exception from main loop.");
-        return false;
-    }
-
-    virtual void OnFatalException() override
-    {
-        HandleCrash(true, "Fatal exception occurred.");
-        wxGLApp::OnFatalException();
-    }
-
-    virtual void OnUnhandledException() override
-    {
-        HandleUnhandledException();
-        wxGLApp::OnUnhandledException();
-    }
-};

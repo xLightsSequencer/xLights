@@ -11,12 +11,7 @@
  **************************************************************/
 
 #include "DmxColorAbility.h"
-#include "../../Color.h"
-
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
+#include "Color.h"
 
 class DmxColorAbilityRGB : public DmxColorAbility
 {
@@ -26,8 +21,6 @@ class DmxColorAbilityRGB : public DmxColorAbility
     void InitColor() override;
     bool IsColorChannel(uint32_t channel)const override;
     void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const override;
-    void AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm) const override;
-    int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) override;
     [[nodiscard]] std::list<std::string> CheckModelSettings(Model *m) const override;
     [[nodiscard]] bool IsValidModelSettings(Model* m) const override;
     [[nodiscard]] xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const override;

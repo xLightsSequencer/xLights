@@ -1,10 +1,10 @@
 name: Create Ubuntu and Window Releases
 
-on: 
+on:
   push:
     tags:
     - '*'
-    
+
   workflow_dispatch:
 jobs:
   build-linux:
@@ -14,6 +14,21 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
+
+      - name: Extract release notes
+        id: release_notes
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          NOTES=$(awk -v ver="$TAG" '
+            /^[0-9]{4}\.[0-9]{2}/ { if (found) exit; if ($1 == ver) found=1 }
+            found { print }
+          ' README.txt)
+          {
+            echo "notes<<RELEASE_NOTES_EOF"
+            echo "$NOTES"
+            echo "RELEASE_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - run: docker pull ghcr.io/xlightssequencer/xlights-build-docker:master
       - run: docker run --name buildvm ghcr.io/xlightssequencer/xlights-build-docker:master /bin/bash Recipe.appimage
       - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
@@ -23,8 +38,9 @@ jobs:
         with:
            allowUpdates: true
            artifacts: "/tmp/AppImage/*.AppImage"
+           body: ${{ steps.release_notes.outputs.notes }}
            token: ${{ secrets.GITHUB_TOKEN }}
-           
+
   build-windows:
    runs-on: windows-2022
 
@@ -43,8 +59,8 @@ jobs:
         version: 1.30.0
 
     - name: Download wxWidgets
-      run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2026.02 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+      run:
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2026.04 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
 
     - name: Build wxWidgets
       working-directory: ..\wxWidgets\
@@ -58,10 +74,11 @@ jobs:
     - name: Build Installer
       working-directory: build_scripts\msw
       run: ISCC.exe xLights_4_64bit_VS.iss
-      
+
     - uses: ncipollo/release-action@v1
       with:
            allowUpdates: true
+           omitBodyDuringUpdate: true
            artifacts: 'build_scripts\msw\output\*'
            token: ${{ secrets.GITHUB_TOKEN }}
 

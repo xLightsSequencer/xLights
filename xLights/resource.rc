@@ -7,9 +7,3 @@ XSQZ ICON "../include/xsqz.ico"
 #include "wx/msw/wx.rc"
 
 
-#if defined(WX_CPU_AMD64)
-1 24 "xLightsApp64.manifest"
-#elif defined(WX_CPU_X86)
-1 24 "xLightsApp32.manifest"
-#endif
-

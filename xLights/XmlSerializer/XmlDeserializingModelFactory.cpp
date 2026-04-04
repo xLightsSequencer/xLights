@@ -11,8 +11,9 @@
 #include "XmlDeserializingModelFactory.h"
 #include "XmlNodeKeys.h"
 #include "XmlSerializeFunctions.h"
-#include "../DimmingCurve.h"
-#include "../UtilFunctions.h"
+#include "DimmingCurve.h"
+#include "UtilFunctions.h"
+#include "../ui/wxUtilities.h"
 #include "../models/ArchesModel.h"
 #include "../models/CandyCaneModel.h"
 #include "../models/ChannelBlockModel.h"
@@ -52,21 +53,52 @@
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Mesh.h"
 #include "../models/DMX/Servo.h"
-#include "../ModelPreview.h"
+#include "../ui/layout/ModelPreview.h"
 #include "../xLightsMain.h"
+#include "../utils/string_utils.h"
 
-#include <wx/xml/xml.h>
+#include <cstring>
+#include <string_view>
 
 using namespace XmlSerialize;
 
-Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-    wxString type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "DisplayAs Missing");
+// Helper to read an attribute, falling back to a legacy attribute name
+static std::string GetAttrWithLegacyFallback(pugi::xml_node node, const char* newAttr, const char* legacyAttr, const char* defaultVal = "") {
+    if (!node.attribute(newAttr).empty()) {
+        return node.attribute(newAttr).as_string(defaultVal);
+    }
+    return node.attribute(legacyAttr).as_string(defaultVal);
+}
+
+// Helper to check if either the new or legacy attribute name exists
+static bool HasAttrOrLegacy(pugi::xml_node node, const char* newAttr, const char* legacyAttr) {
+    return !node.attribute(newAttr).empty() || !node.attribute(legacyAttr).empty();
+}
+
+// Helper to read a new named attribute, falling back to a legacy parm attribute
+static long ReadAttrWithParmFallback(pugi::xml_node node, const char* newAttr, const char* parmAttr, const char* defaultVal) {
+    if (!node.attribute(newAttr).empty()) {
+        return std::strtol(node.attribute(newAttr).as_string(defaultVal), nullptr, 10);
+    }
+    return std::strtol(node.attribute(parmAttr).as_string(defaultVal), nullptr, 10);
+}
+
+// Helper to read an integer attribute, falling back to a legacy attribute name
+static int ReadIntAttrWithLegacyFallback(pugi::xml_node node, const char* newAttr, const char* legacyAttr, int defaultVal) {
+    if (!node.attribute(newAttr).empty()) {
+        return node.attribute(newAttr).as_int(defaultVal);
+    }
+    return node.attribute(legacyAttr).as_int(defaultVal);
+}
+
+Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+    std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("DisplayAs Missing");
 
     if (type.empty()) {
         throw std::runtime_error("Model has an empty DisplayAs attribute");
     }
 
-    std::string node_name = node->GetName();  // need this to support importing old models that did not have the DisplayAs attribute
+    std::string node_name = node.name();  // need this to support importing old models that did not have the DisplayAs attribute
 
     if (type == XmlNodeKeys::ArchesType || node_name == "archesmodel") {
         return DeserializeArches(node, xlights, importing);
@@ -100,11 +132,11 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeIcicles(node, xlights, importing);
     } else if (type == XmlNodeKeys::ImageType) {
         return DeserializeImage(node, xlights, importing);
-    } else if (type.Contains(XmlNodeKeys::MatrixType) || node_name == "matrixmodel") {
+    } else if (type.find(XmlNodeKeys::MatrixType) != std::string::npos || node_name == "matrixmodel") {
         return DeserializeMatrix(node, xlights, importing);
     } else if (type == XmlNodeKeys::ModelGroupType || node_name == "modelGroup") {
         return DeserializeModelGroup(node, xlights, importing);
-    } else if (type.Contains(XmlNodeKeys::MultiPointType) || node_name == "multipointmodel") {
+    } else if (type.find(XmlNodeKeys::MultiPointType) != std::string::npos || node_name == "multipointmodel") {
         return DeserializeMultiPoint(node, xlights, importing);
     } else if (type == XmlNodeKeys::SingleLineType) {
         return DeserializeSingleLine(node, xlights, importing);
@@ -116,7 +148,7 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeSpinner(node, xlights, importing);
     } else if (type == XmlNodeKeys::StarType || node_name == "starmodel") {
         return DeserializeStar(node, xlights, importing);
-    } else if (type.Contains(XmlNodeKeys::TreeType) || node_name == "treemodel") {
+    } else if (type.find(XmlNodeKeys::TreeType) != std::string::npos || node_name == "treemodel") {
         return DeserializeTree(node, xlights, importing);
     } else if (type == XmlNodeKeys::WindowType) {
         return DeserializeWindow(node, xlights, importing);
@@ -126,7 +158,7 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
     throw std::runtime_error("Unknown model type: " + type);
 }
 
-void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DeserializeBaseObjectAttributes(model, node, xlights, importing);
     DeserializeCommonModelAttributes(model, node, xlights, importing);
     DeserializeModelScreenLocationAttributes(model, node, importing);
@@ -134,110 +166,121 @@ void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNod
     DeserializeCommonModelChildElements(model, node, xlights, importing);
 }
 
-void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, wxXmlNode* ccNode) {
+void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, pugi::xml_node ccNode) {
     auto& cc = model->GetCtrlConn();
-    cc.SetDMXChannel(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ChannelAttribute, "-1").ToStdString()));
-    cc.SetProtocol(ccNode->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
-    cc.SetSerialProtocolSpeed(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
-    cc.SetCtrlPort(std::stoi(ccNode->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
-    cc.SetBrightness(std::stoi(ccNode->GetAttribute(XmlNodeKeys::DCBrightnessAttribute, std::to_string(CtrlDefs::DEFAULT_BRIGHTNESS)).ToStdString()));
-    cc.SetStartNulls(std::stoi(ccNode->GetAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
-    cc.SetEndNulls(std::stoi(ccNode->GetAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
-    cc.SetColorOrder(ccNode->GetAttribute(XmlNodeKeys::ColorOrderAttribute, CtrlDefs::DEFAULT_COLOR_ORDER).ToStdString());
-    cc.SetGroupCount(std::stoi(ccNode->GetAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(CtrlDefs::DEFAULT_GROUP_COUNT)).ToStdString()));
-    cc.SetGamma(std::stof(ccNode->GetAttribute(XmlNodeKeys::GammaAttribute, std::to_string(CtrlDefs::DEFAULT_GAMMA)).ToStdString()));
-    cc.SetReverse(std::stoi(ccNode->GetAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(CtrlDefs::DEFAULT_REVERSE)).ToStdString()));
-    cc.SetZigZag(std::stoi(ccNode->GetAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(CtrlDefs::DEFAULT_ZIGZAG)).ToStdString()));
+    cc.SetDMXChannel(ccNode.attribute(XmlNodeKeys::ChannelAttribute).as_int(1));
+    cc.SetProtocol(ccNode.attribute(XmlNodeKeys::ProtocolAttribute).as_string(""));
+    cc.SetSerialProtocolSpeed(ccNode.attribute(XmlNodeKeys::ProtocolSpeedAttribute).as_int(CtrlDefs::DEFAULT_PROTOCOL_SPEED));
+    cc.SetCtrlPort(ccNode.attribute(XmlNodeKeys::PortAttribute).as_int(CtrlDefs::DEFAULT_PORT));
+    cc.SetBrightness(ReadIntAttrWithLegacyFallback(ccNode, XmlNodeKeys::BrightnessAttribute, XmlNodeKeys::DCBrightnessAttribute, CtrlDefs::DEFAULT_BRIGHTNESS));
+    cc.SetStartNulls(ccNode.attribute(XmlNodeKeys::StartNullAttribute).as_int(CtrlDefs::DEFAULT_NULLS));
+    cc.SetEndNulls(ccNode.attribute(XmlNodeKeys::EndNullAttribute).as_int(CtrlDefs::DEFAULT_NULLS));
+    cc.SetColorOrder(ccNode.attribute(XmlNodeKeys::ColorOrderAttribute).as_string(CtrlDefs::DEFAULT_COLOR_ORDER.data()));
+    cc.SetGroupCount(ccNode.attribute(XmlNodeKeys::GroupCountAttribute).as_int(CtrlDefs::DEFAULT_GROUP_COUNT));
+    cc.SetGamma(ccNode.attribute(XmlNodeKeys::GammaAttribute).as_float(CtrlDefs::DEFAULT_GAMMA));
+    cc.SetReverse(ReadIntAttrWithLegacyFallback(ccNode, XmlNodeKeys::ReverseAttribute, XmlNodeKeys::CReverseAttribute, CtrlDefs::DEFAULT_REVERSE));
+    cc.SetZigZag(ReadIntAttrWithLegacyFallback(ccNode, XmlNodeKeys::ZigZagAttribute, XmlNodeKeys::CZigZagAttribute, CtrlDefs::DEFAULT_ZIGZAG));
 
     // Set all the property checkbox active states
-    cc.UpdateProperty(CtrlProps::START_NULLS_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::StartNullAttribute));
-    cc.UpdateProperty(CtrlProps::END_NULLS_ACTIVE,   ccNode->HasAttribute(XmlNodeKeys::EndNullAttribute));
-    cc.UpdateProperty(CtrlProps::BRIGHTNESS_ACTIVE,  ccNode->HasAttribute(XmlNodeKeys::DCBrightnessAttribute));
-    cc.UpdateProperty(CtrlProps::GAMMA_ACTIVE,       ccNode->HasAttribute(XmlNodeKeys::GammaAttribute));
-    cc.UpdateProperty(CtrlProps::COLOR_ORDER_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::ColorOrderAttribute));
-    cc.UpdateProperty(CtrlProps::REVERSE_ACTIVE,     ccNode->HasAttribute(XmlNodeKeys::CReverseAttribute));
-    cc.UpdateProperty(CtrlProps::GROUP_COUNT_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::GroupCountAttribute));
-    cc.UpdateProperty(CtrlProps::ZIG_ZAG_ACTIVE,     ccNode->HasAttribute(XmlNodeKeys::CZigZagAttribute));
-    cc.UpdateProperty(CtrlProps::TS_ACTIVE,          ccNode->HasAttribute(XmlNodeKeys::SmartRemoteTsAttribute));
+    cc.UpdateProperty(CtrlProps::START_NULLS_ACTIVE, !ccNode.attribute(XmlNodeKeys::StartNullAttribute).empty());
+    cc.UpdateProperty(CtrlProps::END_NULLS_ACTIVE,   !ccNode.attribute(XmlNodeKeys::EndNullAttribute).empty());
+    cc.UpdateProperty(CtrlProps::BRIGHTNESS_ACTIVE,  HasAttrOrLegacy(ccNode, XmlNodeKeys::BrightnessAttribute, XmlNodeKeys::DCBrightnessAttribute));
+    cc.UpdateProperty(CtrlProps::GAMMA_ACTIVE,       !ccNode.attribute(XmlNodeKeys::GammaAttribute).empty());
+    cc.UpdateProperty(CtrlProps::COLOR_ORDER_ACTIVE, !ccNode.attribute(XmlNodeKeys::ColorOrderAttribute).empty());
+    cc.UpdateProperty(CtrlProps::REVERSE_ACTIVE,     HasAttrOrLegacy(ccNode, XmlNodeKeys::ReverseAttribute, XmlNodeKeys::CReverseAttribute));
+    cc.UpdateProperty(CtrlProps::GROUP_COUNT_ACTIVE, !ccNode.attribute(XmlNodeKeys::GroupCountAttribute).empty());
+    cc.UpdateProperty(CtrlProps::ZIG_ZAG_ACTIVE,     HasAttrOrLegacy(ccNode, XmlNodeKeys::ZigZagAttribute, XmlNodeKeys::CZigZagAttribute));
+    cc.UpdateProperty(CtrlProps::TS_ACTIVE,          !ccNode.attribute(XmlNodeKeys::SmartRemoteTsAttribute).empty());
 
     // Set all the Smart Remote values
-    cc.SetSmartRemote(std::stoi(ccNode->GetAttribute(XmlNodeKeys::SmartRemoteAttribute, "0").ToStdString()));
-    cc.SetSRMaxCascade(std::stoi(ccNode->GetAttribute(XmlNodeKeys::SRMaxCascadeAttribute, "1").ToStdString()));
-    cc.SetSRCascadeOnPort(ccNode->GetAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, "FALSE").ToStdString() == "TRUE");
-    cc.SetSmartRemoteTs(std::stoi(ccNode->GetAttribute(XmlNodeKeys::SmartRemoteTsAttribute, "0").ToStdString()));
-    cc.SetSmartRemoteType(ccNode->GetAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, ""));
+    cc.LoadSmartRemote(ccNode.attribute(XmlNodeKeys::SmartRemoteAttribute).as_int(0));
+    cc.SetSRMaxCascade(ccNode.attribute(XmlNodeKeys::SRMaxCascadeAttribute).as_int(1));
+    cc.SetSRCascadeOnPort(std::string_view(ccNode.attribute(XmlNodeKeys::SRCascadeOnPortAttribute).as_string("FALSE")) == "TRUE");
+    cc.SetSmartRemoteTs(ccNode.attribute(XmlNodeKeys::SmartRemoteTsAttribute).as_int(0));
+    cc.SetSmartRemoteType(ccNode.attribute(XmlNodeKeys::SmartRemoteTypeAttribute).as_string(""));
 
     cc.UpdateProperty(CtrlProps::USE_SMART_REMOTE, cc.GetSmartRemote());
 }
 
-void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-    std::string name = node->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+    std::string name = Trim(node.attribute("name").as_string());
     if (importing)
     {
         name = xlights->AllModels.GenerateModelName(name);
         model->SetLayoutGroup("Unassigned", true);
     } else {
-        model->SetLayoutGroup(node->GetAttribute(XmlNodeKeys::LayoutGroupAttribute, "Unassigned").ToStdString(), true);
+        model->SetLayoutGroup(node.attribute(XmlNodeKeys::LayoutGroupAttribute).as_string("Unassigned"), true);
     }
     model->SetName(name);
-    model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
-    model->SetFromBase(std::stoi(node->GetAttribute(XmlNodeKeys::FromBaseAttribute, "0").ToStdString()));
+    model->SetActive(node.attribute(XmlNodeKeys::ActiveAttribute).as_int(1));
+    model->SetFromBase(node.attribute(XmlNodeKeys::FromBaseAttribute).as_int(0));
 }
 
-void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-    if (node->HasAttribute(XmlNodeKeys::StartSideAttribute)) {
-        model->SetStartSide(node->GetAttribute(XmlNodeKeys::StartSideAttribute, "B"));
-        model->SetIsBtoT(node->GetAttribute(XmlNodeKeys::StartSideAttribute, "B") == "B");
+void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing) {
+    if (!node.attribute(XmlNodeKeys::StartSideAttribute).empty()) {
+        model->SetStartSide(node.attribute(XmlNodeKeys::StartSideAttribute).as_string("B"));
+        model->SetIsBtoT(std::string_view(node.attribute(XmlNodeKeys::StartSideAttribute).as_string("B")) == "B");
     } else {
         model->SetIsBtoT(true);
     }
-    model->SetDirection(node->GetAttribute(XmlNodeKeys::DirAttribute, "L"));
-    model->SetIsLtoR(node->GetAttribute(XmlNodeKeys::DirAttribute, "L") != "R");
-    model->SetParm1(std::stol(node->GetAttribute(XmlNodeKeys::Parm1Attribute,"0").ToStdString()));
-    model->SetParm2(std::stol(node->GetAttribute(XmlNodeKeys::Parm2Attribute,"0").ToStdString()));
-    model->SetParm3(std::stol(node->GetAttribute(XmlNodeKeys::Parm3Attribute,"0").ToStdString()));
-    model->SetPixelStyle((Model::PIXEL_STYLE)(std::stol(node->GetAttribute(XmlNodeKeys::AntialiasAttribute, std::to_string((int)Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH)).ToStdString())));
-    model->SetPixelSize(std::stoi(node->GetAttribute(XmlNodeKeys::PixelSizeAttribute, "2").ToStdString()));
-    model->SetRGBWHandling((std::string)node->GetAttribute(XmlNodeKeys::RGBWHandleAttribute));
-    model->SetStringType(node->GetAttribute(XmlNodeKeys::StringTypeAttribute, "RGB Nodes").ToStdString());
-    model->SetLowDefFactor(std::stoi(node->GetAttribute(XmlNodeKeys::LowDefinitionAttribute, "100").ToStdString()));
-    model->SetShadowModelFor(node->GetAttribute(XmlNodeKeys::ShadowModelAttribute, "").ToStdString());
-    model->SetTransparency(std::stol(node->GetAttribute(XmlNodeKeys::TransparencyAttribute,"0").ToStdString()));
-    model->SetBlackTransparency(std::stol(node->GetAttribute(XmlNodeKeys::BTransparencyAttribute,"0").ToStdString()));
-    model->SetDescription(node->GetAttribute(XmlNodeKeys::DescriptionAttribute));
-    model->SetTagColourAsString(node->GetAttribute(XmlNodeKeys::TagColourAttribute, "#000000"));
-    model->SetNodeNames(node->GetAttribute(XmlNodeKeys::NodeNamesAttribute).ToStdString());
-    model->SetStrandNames(node->GetAttribute(XmlNodeKeys::StrandNamesAttribute).ToStdString());
-    model->SetCustomColor(node->GetAttribute(XmlNodeKeys::CustomColorAttribute, "#000000").ToStdString());
-    model->SetModelChain(node->GetAttribute(XmlNodeKeys::ModelChainAttribute,""));
-    model->SetPixelSpacing(node->GetAttribute(XmlNodeKeys::PixelSpacingAttribute, ""));
-    model->SetPixelCount(node->GetAttribute(XmlNodeKeys::PixelCountAttribute, ""));
-    model->SetPixelType(node->GetAttribute(XmlNodeKeys::PixelTypeAttribute, ""));
-    
+    model->SetDirection(node.attribute(XmlNodeKeys::DirAttribute).as_string("L"));
+    model->SetIsLtoR(std::string_view(node.attribute(XmlNodeKeys::DirAttribute).as_string("L")) != "R");
+    // Note: parm1/2/3 are no longer read here.
+    // Each model's specific deserializer reads its own named attributes with parm fallback.
+    model->SetPixelStyle((Model::PIXEL_STYLE)(node.attribute(XmlNodeKeys::AntialiasAttribute).as_int((int)Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH)));
+    model->SetPixelSize(node.attribute(XmlNodeKeys::PixelSizeAttribute).as_int(2));
+    model->SetRGBWHandling(node.attribute(XmlNodeKeys::RGBWHandleAttribute).as_string());
+    model->SetStringType(node.attribute(XmlNodeKeys::StringTypeAttribute).as_string("RGB Nodes"));
+    model->SetLowDefFactor(node.attribute(XmlNodeKeys::LowDefinitionAttribute).as_int(100));
+    model->SetShadowModelFor(node.attribute(XmlNodeKeys::ShadowModelAttribute).as_string(""));
+    model->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
+    model->SetBlackTransparency(node.attribute(XmlNodeKeys::BTransparencyAttribute).as_int(0));
+    model->SetDescription(node.attribute(XmlNodeKeys::DescriptionAttribute).as_string());
+    model->SetTagColourAsString(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000"));
+    model->SetNodeNames(node.attribute(XmlNodeKeys::NodeNamesAttribute).as_string());
+    model->SetStrandNames(node.attribute(XmlNodeKeys::StrandNamesAttribute).as_string());
+    model->SetCustomColor(node.attribute(XmlNodeKeys::CustomColorAttribute).as_string("#000000"));
+    model->SetModelChain(node.attribute(XmlNodeKeys::ModelChainAttribute).as_string(""));
+    model->SetPixelSpacing(node.attribute(XmlNodeKeys::PixelSpacingAttribute).as_string(""));
+    model->SetPixelCount(node.attribute(XmlNodeKeys::PixelCountAttribute).as_string(""));
+    model->SetPixelType(node.attribute(XmlNodeKeys::PixelTypeAttribute).as_string(""));
+
     if (!importing) {
-        model->SetControllerName(node->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString(), true);
+        model->SetControllerName(Trim(node.attribute(XmlNodeKeys::ControllerAttribute).as_string("")), true);
     }
-    
+
     // Keep this after SetControllerName because it can clear out the start channel
-    model->SetStartChannel(node->GetAttribute(XmlNodeKeys::StartChannelAttribute, "1").ToStdString());
-    
+    model->SetStartChannel(node.attribute(XmlNodeKeys::StartChannelAttribute).as_string("1"));
+
     // Individual Start Channels
-    bool hasIndivChan = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
+    bool hasIndivChan = node.attribute(XmlNodeKeys::AdvancedAttribute).as_int(0) != 0;
     model->SetHasIndividualStartChannels(hasIndivChan);
     if (hasIndivChan) {
-        int num_strings = model->GetParm1();
+        // Read string count from new attribute names, falling back to parm1 for backward compat
+        int num_strings = ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1");
+        // Try model-specific attribute names if NumStrings wasn't found
+        if (node.attribute(XmlNodeKeys::NumStringsAttribute).empty() && node.attribute(XmlNodeKeys::Parm1Attribute).empty()) {
+            if (!node.attribute(XmlNodeKeys::NumArchesAttribute).empty())
+                num_strings = node.attribute(XmlNodeKeys::NumArchesAttribute).as_int(1);
+            else if (!node.attribute(XmlNodeKeys::NumCanesAttribute).empty())
+                num_strings = node.attribute(XmlNodeKeys::NumCanesAttribute).as_int(1);
+            else if (!node.attribute(XmlNodeKeys::NumChannelsAttribute).empty())
+                num_strings = node.attribute(XmlNodeKeys::NumChannelsAttribute).as_int(1);
+            else if (!node.attribute(XmlNodeKeys::DmxChannelCountAttribute).empty())
+                num_strings = node.attribute(XmlNodeKeys::DmxChannelCountAttribute).as_int(1);
+        }
         model->SetIndivStartChannelCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {
-            model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
+            model->SetIndividualStartChannel(i, node.attribute(model->StartChanAttrName(i)).as_string(""));
         }
     }
-    
-    if (node->HasAttribute(XmlNodeKeys::ModelBrightnessAttribute) && model->GetDimmingCurve() == nullptr) {
-        std::string mb = node->GetAttribute(XmlNodeKeys::ModelBrightnessAttribute, "0").ToStdString();
+
+    if (!node.attribute(XmlNodeKeys::ModelBrightnessAttribute).empty() && model->GetDimmingCurve() == nullptr) {
+        std::string mb = node.attribute(XmlNodeKeys::ModelBrightnessAttribute).as_string("0");
         if (mb.empty()) {
             mb = "0";
         }
-        int b = std::stoi(mb);
+        int b = std::strtol(mb.c_str(), nullptr, 10);
         if (b != 0) {
             std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
             dimmingInfo["all"]["gamma"] = "1.0";
@@ -247,50 +290,51 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     }
 }
 
-void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* model, wxXmlNode* node, xLightsFrame* xlights,bool importing) {
+void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* model, pugi::xml_node node, xLightsFrame* xlights,bool importing) {
     bool importAliases = !importing;
     bool skipImportAliases = false;
     bool merge = false;
     bool showPopup = true;
 
-    wxXmlNode* f = node->GetChildren();
-    while (f != nullptr) {
-        if ("faceInfo" == f->GetName()) {
+    pugi::xml_node f = node.first_child();
+    while (f) {
+        std::string_view fname = f.name();
+        if ("faceInfo" == fname) {
             FaceStateData newFaceInfo(model->GetFaceInfo());
             XmlSerialize::DeserializeFaceInfo(f, newFaceInfo);
             model->SetFaceInfo(newFaceInfo);
             model->UpdateFaceInfoNodes();
-        } else if ("stateInfo" == f->GetName()) {
+        } else if ("stateInfo" == fname) {
             FaceStateData newStateInfo(model->GetStateInfo());
             XmlSerialize::DeserializeStateInfo(f, newStateInfo);
             model->SetStateInfo(newStateInfo);
             model->UpdateStateInfoNodes();
-        } else if (XmlNodeKeys::DimmingCurveName == f->GetName()) {
+        } else if (XmlNodeKeys::DimmingCurveName == fname) {
             DeserializeDimmingCurve(model, f);
-        } else if ("subModel" == f->GetName()) {
+        } else if ("subModel" == fname) {
             DeserializeSubModel(model, f);
-        } else if ("modelGroup" == f->GetName() && importing) {
+        } else if ("modelGroup" == fname && importing) {
             model->AddModelGroups(f, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                                      xlights->GetLayoutPreview()->GetVirtualCanvasHeight(),
                                      model->GetName(), merge, showPopup);
-        } else if ("shadowmodels" == f->GetName().Lower() && importing) {
+        } else if (strcasecmp(f.name(), "shadowmodels") == 0 && importing) {
             model->ImportExtraModels(f, xlights, xlights->GetLayoutPreview(), "Unassigned");
-        } else if ("dimensions" == f->GetName() && importing) {
+        } else if ("dimensions" == fname && importing) {
             if (RulerObject::GetRuler() != nullptr) {
-                std::string units = f->GetAttribute("units", "mm");
-                float width = wxAtof(f->GetAttribute("width", "1000"));
-                float height = wxAtof(f->GetAttribute("height", "1000"));
-                float depth = wxAtof(f->GetAttribute("depth", "0"));
+                std::string units = f.attribute("units").as_string("mm");
+                float width = f.attribute("width").as_float(1000);
+                float height = f.attribute("height").as_float(1000);
+                float depth = f.attribute("depth").as_float(0);
                 model->ApplyDimensions(units, width, height, depth);
                 xlights->SetUsedRuler();
             }
-        } else if ("associatedmodels" == f->GetName().Lower() && importing) {
+        } else if (strcasecmp(f.name(), "associatedmodels") == 0 && importing) {
             model->ImportExtraModels(f, xlights, xlights->GetLayoutPreview(), model->GetLayoutGroup());
-        } else if ("ControllerConnection" == f->GetName()) {
+        } else if ("ControllerConnection" == fname) {
             if (!importing) {
                 DeserializeControllerConnection(model, f);
             }
-        } else if (f->GetName() == XmlNodeKeys::AliasesAttribute) {
+        } else if (fname == XmlNodeKeys::AliasesAttribute) {
             // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
             if (importAliases == false) {
                 if (skipImportAliases != true) {
@@ -305,44 +349,44 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
                 DeserializeAliases(model, f);
             }
         }
-        f = f->GetNext();
+        f = f.next_sibling();
     }
 }
-void XmlDeserializingModelFactory::DeserializeDimmingCurve(Model* model, wxXmlNode* node) {
+void XmlDeserializingModelFactory::DeserializeDimmingCurve(Model* model, pugi::xml_node node) {
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
-    wxXmlNode *child = node->GetChildren();
+    pugi::xml_node child = node.first_child();
     while (child) {
-        std::string key = child->GetName();
-        if (child->HasAttribute("filename")) {
-            dimmingInfo[key]["filename"] = child->GetAttribute("filename").ToStdString();
+        std::string key = child.name();
+        if (!child.attribute("filename").empty()) {
+            dimmingInfo[key]["filename"] = child.attribute("filename").as_string();
         } else {
-            dimmingInfo[key]["brightness"] = child->GetAttribute("brightness", "100").ToStdString();
-            dimmingInfo[key]["gamma"] = child->GetAttribute("gamma", "1.0").ToStdString();
+            dimmingInfo[key]["brightness"] = child.attribute("brightness").as_string("100");
+            dimmingInfo[key]["gamma"] = child.attribute("gamma").as_string("1.0");
         }
-        child = child->GetNext();
+        child = child.next_sibling();
     }
     model->SetDimmingInfo(dimmingInfo);
 }
 
-void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, wxXmlNode* node)
+void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, pugi::xml_node node)
 {
     // Use the shared parsing function from XmlSerializeFunctions
     auto smData = XmlSerialize::ParseSubModelNode(node);
     if (!smData) {
         return; // Invalid submodel node
     }
-    
+
     // Create the SubModel object
     SubModel* sm = new SubModel(
-        model, 
-        smData->name, 
-        smData->vertical, 
-        smData->isRanges, 
+        model,
+        smData->name,
+        smData->vertical,
+        smData->isRanges,
         smData->bufferStyle
     );
-    
+
     model->AddSubmodel(sm);
-    
+
     // Populate the submodel based on type
     if (sm->IsRanges()) {
         if (sm->IsXYBufferStyle()) {
@@ -363,18 +407,27 @@ void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, wxXmlNode* 
         // Subbuffer type
         sm->AddSubbuffer(smData->subBuffer);
     }
+
+    // Load aliases for this submodel (handles both "Aliases" and legacy "aliases")
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        std::string_view childName = child.name();
+        if (childName == XmlNodeKeys::AliasesAttribute || childName == "aliases") {
+            DeserializeAliases(sm, child);
+            break;
+        }
+    }
 }
 
-void XmlDeserializingModelFactory::DeserializeAliases(Model* model, wxXmlNode* node)
+void XmlDeserializingModelFactory::DeserializeAliases(Model* model, pugi::xml_node node)
 {
     std::list<std::string> aliases;
 
-    wxXmlNode* f = node->GetChildren();
-    while (f != nullptr) {
-        if (f->HasAttribute(XmlNodeKeys::NameAttribute)) {
-            aliases.push_back(f->GetAttribute(XmlNodeKeys::NameAttribute));
+    pugi::xml_node f = node.first_child();
+    while (f) {
+        if (!f.attribute(XmlNodeKeys::NameAttribute).empty()) {
+            aliases.push_back(f.attribute(XmlNodeKeys::NameAttribute).as_string());
         }
-        f = f->GetNext();
+        f = f.next_sibling();
     }
 
     if (aliases.size() > 0) {
@@ -382,14 +435,14 @@ void XmlDeserializingModelFactory::DeserializeAliases(Model* model, wxXmlNode* n
     }
 }
 
-void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, wxXmlNode* node)
+void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, pugi::xml_node node)
 {
     bool found = true;
     int index = 0;
     while (found) {
         auto an = std::format("SuperStringColour{}", index);
-        if (node->HasAttribute(an)) {
-            model->AddSuperStringColour(xlColor(node->GetAttribute(an)));
+        if (!node.attribute(an).empty()) {
+            model->AddSuperStringColour(xlColor(std::string(node.attribute(an).as_string())));
         } else {
             found = false;
         }
@@ -397,19 +450,22 @@ void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, wxXmlNo
     }
 }
 
-Model* XmlDeserializingModelFactory::DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     ArchesModel* model = new ArchesModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumArches(ReadAttrWithParmFallback(node, XmlNodeKeys::NumArchesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerArch(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
-    model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute).ToStdString() == "true");
-    if (node->HasAttribute(XmlNodeKeys::HollowAttribute)) { model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute).ToStdString())); }
-    if (node->HasAttribute(XmlNodeKeys::GapAttribute)) { model->SetGap(std::stoi(node->GetAttribute(XmlNodeKeys::GapAttribute).ToStdString())); }
-    if (node->HasAttribute(XmlNodeKeys::CArcAttribute)) {
-        model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::CArcAttribute).ToStdString()));
+    model->SetZigZag(std::string_view(node.attribute(XmlNodeKeys::ZigZagAttribute).as_string()) == "true");
+    if (!node.attribute(XmlNodeKeys::HollowAttribute).empty()) { model->SetHollow(node.attribute(XmlNodeKeys::HollowAttribute).as_int(0)); }
+    if (!node.attribute(XmlNodeKeys::GapAttribute).empty()) { model->SetGap(node.attribute(XmlNodeKeys::GapAttribute).as_int(0)); }
+    if (HasAttrOrLegacy(node, XmlNodeKeys::ArcAttribute, XmlNodeKeys::CArcAttribute)) {
+        model->SetArc(std::strtol(GetAttrWithLegacyFallback(node, XmlNodeKeys::ArcAttribute, XmlNodeKeys::CArcAttribute).c_str(), nullptr, 10));
     }
-    model->DeserializeLayerSizes(node->GetAttribute(XmlNodeKeys::LayerSizesAttribute).ToStdString(), false);
-    if (node->HasAttribute(XmlNodeKeys::ArchesSkewAttribute)) {
-        int angle = std::stoi(node->GetAttribute(XmlNodeKeys::ArchesSkewAttribute, "0").ToStdString());
+    model->DeserializeLayerSizes(node.attribute(XmlNodeKeys::LayerSizesAttribute).as_string(), false);
+    if (!node.attribute(XmlNodeKeys::ArchesSkewAttribute).empty()) {
+        int angle = node.attribute(XmlNodeKeys::ArchesSkewAttribute).as_int(0);
         ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
         screenLoc.SetAngle(angle);
     }
@@ -417,75 +473,88 @@ Model* XmlDeserializingModelFactory::DeserializeArches(wxXmlNode* node, xLightsF
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeCandyCane(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     CandyCaneModel* model = new CandyCaneModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumCanes(ReadAttrWithParmFallback(node, XmlNodeKeys::NumCanesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerCane(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerCaneAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
-    model->SetReverse(node->GetAttribute(XmlNodeKeys::CCReverseAttribute, "false") == "true");
-    model->SetSticks(node->GetAttribute(XmlNodeKeys::CCSticksAttribute, "false") == "true");
-    model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
-    if (node->HasAttribute(XmlNodeKeys::CCSkewAttribute)) {
-        int angle = wxAtoi(node->GetAttribute(XmlNodeKeys::CCSkewAttribute, "0"));
+    model->SetReverse(std::string_view(node.attribute(XmlNodeKeys::CCReverseAttribute).as_string("false")) == "true");
+    model->SetSticks(std::string_view(node.attribute(XmlNodeKeys::CCSticksAttribute).as_string("false")) == "true");
+    model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
+    if (!node.attribute(XmlNodeKeys::CCSkewAttribute).empty()) {
+        int angle = node.attribute(XmlNodeKeys::CCSkewAttribute).as_int(0);
         ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
         screenLoc.SetAngle(angle);
     }
-    model->SetCaneHeight(std::stof(node->GetAttribute(XmlNodeKeys::CCHeightAttribute, "1.0").ToStdString()));
+    model->SetCaneHeight(node.attribute(XmlNodeKeys::CCHeightAttribute).as_float(1.0f));
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeChannelBlock(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     ChannelBlockModel* model = new ChannelBlockModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumChannels(ReadAttrWithParmFallback(node, XmlNodeKeys::NumChannelsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     // Setup the model early to size the vector for number of colors
     model->Setup();
     for (auto i = 0; i < model->GetNumStrands();  i++) {
-        std::string color = node->GetAttribute(XmlNodeKeys::ChannelColorAttribute + std::to_string(i+1), "white");
+        std::string color = node.attribute(std::string(XmlNodeKeys::ChannelColorAttribute) + std::to_string(i+1)).as_string("white");
         model->SetChannelColor(i, color);
     }
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeCircle(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     CircleModel* model = new CircleModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumCircleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCircleNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     // convert old circle sizes to new Layer sizes setting - this also reverses the order
-    std::string layer_sizes = xlEMPTY_STRING;
-    if (node->GetAttribute(XmlNodeKeys::CircleSizesAttribute, xlEMPTY_STRING) != xlEMPTY_STRING) {
-        layer_sizes = ReverseCSV(node->GetAttribute(XmlNodeKeys::CircleSizesAttribute, xlEMPTY_STRING));
+    std::string layer_sizes;
+    std::string circleSizes = node.attribute(XmlNodeKeys::CircleSizesAttribute).as_string("");
+    if (!circleSizes.empty()) {
+        layer_sizes = ReverseCSV(circleSizes);
     } else {
-        layer_sizes = node->GetAttribute(XmlNodeKeys::LayerSizesAttribute, xlEMPTY_STRING);
+        layer_sizes = node.attribute(XmlNodeKeys::LayerSizesAttribute).as_string("");
     }
     model->DeserializeLayerSizes(layer_sizes, false);
-    if (!node->HasAttribute("StartSide")) {
+    if (node.attribute("StartSide").empty()) {
         model->SetIsBtoT(false);
     }
-    model->SetInsideOut(node->GetAttribute(XmlNodeKeys::InsideOutAttribute, "0") == "1");
+    model->SetCenterPercent(ReadAttrWithParmFallback(node, XmlNodeKeys::CenterPercentAttribute, XmlNodeKeys::Parm3Attribute, "0"));
+    model->SetInsideOut(std::string_view(node.attribute(XmlNodeKeys::InsideOutAttribute).as_string("0")) == "1");
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCube(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     CubeModel* model = new CubeModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetCubeStrings(std::stoi(node->GetAttribute(XmlNodeKeys::CubeStringsAttribute, "1").ToStdString()));
-    model->SetCubeStart(node->GetAttribute(XmlNodeKeys::CubeStartAttribute, xlEMPTY_STRING).ToStdString());
-    model->SetCubeStyle(node->GetAttribute(XmlNodeKeys::StyleAttribute, xlEMPTY_STRING));
-    model->SetStrandStyle(node->GetAttribute(XmlNodeKeys::StrandPerLineAttribute, xlEMPTY_STRING));
-    model->SetStrandPerLayer(node->GetAttribute(XmlNodeKeys::StrandPerLayerAttribute, "FALSE") == "TRUE");
+    model->SetCubeWidth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCubeHeight(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetCubeDepth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeDepthAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetCubeStrings(node.attribute(XmlNodeKeys::CubeStringsAttribute).as_int(1));
+    model->SetCubeStart(node.attribute(XmlNodeKeys::CubeStartAttribute).as_string(""));
+    model->SetCubeStyle(node.attribute(XmlNodeKeys::StyleAttribute).as_string(""));
+    model->SetStrandStyle(node.attribute(XmlNodeKeys::StrandPerLineAttribute).as_string(""));
+    model->SetStrandPerLayer(std::string_view(node.attribute(XmlNodeKeys::StrandPerLayerAttribute).as_string("FALSE")) == "TRUE");
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     CustomModel* model = new CustomModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetCustomDepth(std::stol(node->GetAttribute(XmlNodeKeys::CMDepthAttribute, "1").ToStdString()));
-    int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::CustomStringsAttribute, "1").ToStdString());
+    model->SetCustomWidth(ReadAttrWithParmFallback(node, XmlNodeKeys::CustomWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCustomHeight(ReadAttrWithParmFallback(node, XmlNodeKeys::CustomHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetCustomDepth(node.attribute(XmlNodeKeys::CMDepthAttribute).as_int(1));
+    int num_strings = node.attribute(XmlNodeKeys::CustomStringsAttribute).as_int(1);
     model->SetNumStrings(num_strings);
-    model->SetCustomBackground(node->GetAttribute(XmlNodeKeys::BkgImageAttribute, xlEMPTY_STRING));
-    model->SetCustomLightness(std::stol(node->GetAttribute(XmlNodeKeys::BkgLightnessAttribute, "0").ToStdString()));
+    model->SetCustomBackground(node.attribute(XmlNodeKeys::BkgImageAttribute).as_string(""));
+    model->SetCustomLightness(node.attribute(XmlNodeKeys::BkgLightnessAttribute).as_int(0));
     std::vector<std::vector<std::vector<int>>>& locations = model->GetData();
     locations = XmlSerialize::ParseCustomModelDataFromXml(node);
 
@@ -495,89 +564,110 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(wxXmlNode* node, xLightsF
         model->SetIndivStartNodesCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {
             // Try new attribute name first, fall back to old "String" format for backward compatibility
-            wxString nodeVal = node->GetAttribute(model->StartNodeAttrName(i), "");
+            std::string nodeVal = node.attribute(model->StartNodeAttrName(i)).as_string("");
             if (nodeVal.empty()) {
                 // Old format used "String1", "String2", etc. for start nodes (only if not using indiv channels)
                 if (!model->HasIndividualStartChannels()) {
-                    nodeVal = node->GetAttribute(Model::StartChanAttrName(i), "0");
+                    nodeVal = node.attribute(Model::StartChanAttrName(i)).as_string("0");
                 } else {
                     nodeVal = "0";
                 }
             }
-            model->SetNodeSize(i, std::stoi(nodeVal.ToStdString()));
+            model->SetNodeSize(i, std::strtol(nodeVal.c_str(), nullptr, 10));
         }
     }
 
     // Individual Start Channels - re-read with correct string count
-    // (CommonDeserializeSteps used parm1 which is the grid width for CustomModel)
     if (model->HasIndividualStartChannels()) {
         model->SetIndivStartChannelCount(num_strings);
         for (auto i = 0; i < num_strings; i++) {
-            model->SetIndividualStartChannel(i, node->GetAttribute(Model::StartChanAttrName(i), "").ToStdString());
+            model->SetIndividualStartChannel(i, node.attribute(Model::StartChanAttrName(i)).as_string(""));
         }
     }
 
     model->Setup();
+
+    // Any per-string start nodes that were not present in the XML remain 0.
+    // Now that Setup() has built the node list, ComputeStringStartNode() returns
+    // accurate values. Set them and re-run Setup() so stringStartChan is consistent.
+    if (num_strings > 1) {
+        bool anyUpdated = false;
+        for (int i = 0; i < num_strings; i++) {
+            if (model->GetIndivStartNode(i) == 0) {
+                model->SetNodeSize(i, model->ComputeStringStartNode(i));
+                anyUpdated = true;
+            }
+        }
+        if (anyUpdated) {
+            model->Setup();
+        }
+    }
+
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeIcicles(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     IciclesModel* model = new IciclesModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumIcicleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetLightsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
-    model->SetDropPattern(node->GetAttribute(XmlNodeKeys::DropPatternAttribute, "3,4,5,4"));
-    model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
+    model->SetDropPattern(node.attribute(XmlNodeKeys::DropPatternAttribute).as_string("3,4,5,4"));
+    model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeImage(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     ImageModel* model = new ImageModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetImageFile(node->GetAttribute(XmlNodeKeys::ImageAttribute, xlEMPTY_STRING));
-    model->SetWhiteAsAlpha(node->GetAttribute(XmlNodeKeys::WhiteAsAlphaAttribute, "False") == "True");
-    model->SetOffBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::OffBrightnessAttribute, "80").ToStdString()));
+    model->SetImageFile(node.attribute(XmlNodeKeys::ImageAttribute).as_string(""));
+    model->SetWhiteAsAlpha(std::string_view(node.attribute(XmlNodeKeys::WhiteAsAlphaAttribute).as_string("False")) == "True");
+    model->SetOffBrightness(node.attribute(XmlNodeKeys::OffBrightnessAttribute).as_int(80));
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeMatrix(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     MatrixModel* model = new MatrixModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
-    model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
-    std::string type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "Matrix");
+    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
+    model->SetNoZigZag(std::string_view(node.attribute(XmlNodeKeys::NoZigZagAttribute).as_string("false")) == "true");
+    std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("Matrix");
     if (type == "Vert Matrix") {
         model->SetVertical(true);
-    } else if (node->GetAttribute(XmlNodeKeys::VertMatrixAttribute, "false") == "true") {
+    } else if (std::string_view(node.attribute(XmlNodeKeys::VertMatrixAttribute).as_string("false")) == "true") {
         model->SetVertical(true);
     }
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeMultiPoint(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeMultiPoint(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     MultiPointModel* model = new MultiPointModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializePolyPointScreenLocationAttributes(model, node);
-    int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::MultiStringsAttribute, "1").ToStdString());
+    int num_strings = node.attribute(XmlNodeKeys::MultiStringsAttribute).as_int(1);
     model->SetNumStrings(num_strings);
-    model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
+    model->SetModelHeight(node.attribute(XmlNodeKeys::ModelHeightAttribute).as_float(1.0f));
 
     // Individual Start Channels
     if (model->HasIndividualStartChannels()) {
         model->SetIndivStartChannelCount(num_strings);
         for (int i = 0; i < num_strings; i++) {
-            model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
+            model->SetIndividualStartChannel(i, node.attribute(model->StartChanAttrName(i)).as_string(""));
         }
     }
 
     // Individual Start Nodes
-    if (num_strings > 1) {
+    if (num_strings > 1 && !node.attribute(model->StartNodeAttrName(0)).empty()) {
         model->SetHasIndivStartNodes(true);
         model->SetIndivStartNodesCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {
-            model->SetNodeSize(i, std::stoi(node->GetAttribute(model->StartNodeAttrName(i), "0").ToStdString()));
+            model->SetNodeSize(i, node.attribute(model->StartNodeAttrName(i)).as_int(0));
         }
     }
 
@@ -585,57 +675,60 @@ Model* XmlDeserializingModelFactory::DeserializeMultiPoint(wxXmlNode* node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     SingleLineModel* model = new SingleLineModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumLines(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerLine(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     PolyLineModel* model = new PolyLineModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetTotalLightCount(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "0"));
     DeserializePolyPointScreenLocationAttributes(model, node);
-    int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::PolyStringsAttribute, "1").ToStdString());
+    int num_strings = node.attribute(XmlNodeKeys::PolyStringsAttribute).as_int(1);
     model->SetNumStrings(num_strings);
-    model->SetDropPattern(node->GetAttribute(XmlNodeKeys::DropPatternAttribute, "1"));
-    model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
-    model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
+    model->SetDropPattern(node.attribute(XmlNodeKeys::DropPatternAttribute).as_string("1"));
+    model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
+    model->SetModelHeight(node.attribute(XmlNodeKeys::ModelHeightAttribute).as_float(1.0f));
     PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(model->GetBaseObjectScreenLocation());
 
-    // The common deserializer reads parm1-count individual start channels, but for PolyLine
-    // parm1 is _numSegments. PolyLine should use string count like all other models.
     // Re-read the individual start channels using num_strings count.
     if (model->HasIndividualStartChannels()) {
         model->SetIndivStartChannelCount(num_strings);
         for (int i = 0; i < num_strings; i++) {
-            model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
+            model->SetIndividualStartChannel(i, node.attribute(model->StartChanAttrName(i)).as_string(""));
         }
     }
 
     // Individual Start Nodes
-    if (num_strings > 1) {
+    if (num_strings > 1 && !node.attribute(model->StartNodeAttrName(0)).empty()) {
         model->SetHasIndivStartNodes(true);
         model->SetIndivStartNodesCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {
-            model->SetNodeSize(i, std::stoi(node->GetAttribute(model->StartNodeAttrName(i), "0").ToStdString()));
+            model->SetNodeSize(i, node.attribute(model->StartNodeAttrName(i)).as_int(0));
         }
     }
 
     // Individual Segments
     int num_segments = screenLoc.GetNumPoints() - 1;
     model->SetNumSegments(num_segments);
-    if (node->HasAttribute(model->SegAttrName(0))) {  // old models didn't require segment attributes
+    if (!node.attribute(model->SegAttrName(0)).empty()) {  // old models didn't require segment attributes
         model->SetAutoDistribute(false);
         for (auto i = 0; i < num_segments;  i++) {
-            model->SetSegmentSize(i, std::stoi(node->GetAttribute(model->SegAttrName(i), "0").ToStdString()));
+            model->SetSegmentSize(i, node.attribute(model->SegAttrName(i)).as_int(0));
         }
     }
 
     // Corner Settings
     for (int x = 0; x <= num_segments; x++) {
-        std::string corner = node->GetAttribute(model->CornerAttrName(x), "Neither");
+        std::string corner = node.attribute(model->CornerAttrName(x)).as_string("Neither");
         model->SetCornerString(x, corner);
         if( x == 0 ) {
             model->SetLeadOffset(x, corner == "Leading Segment" ? 1.0 : corner == "Trailing Segment" ? 0.0 : 0.5);
@@ -651,165 +744,202 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLight
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeSphere(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     SphereModel* model = new SphereModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetStartLatitude(std::stoi(node->GetAttribute(XmlNodeKeys::StartLatAttribute, "-86").ToStdString()));
-    model->SetEndLatitude(std::stoi(node->GetAttribute(XmlNodeKeys::EndLatAttribute, "86").ToStdString()));
-    model->SetDegrees(std::stoi(node->GetAttribute(XmlNodeKeys::DegreesAttribute, "360").ToStdString()));
-    model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
-    model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
-    std::string version = node->GetAttribute(XmlNodeKeys::versionNumberAttribute).ToStdString();
-    if (version.empty() || std::stoi(version) < 8) {
-        // sphere scale was adjusted to be "round". Previously, on half the size was considered for X and Z, but
-        // full size for Y.
-        auto mtrx = model->GetModelScreenLocation().GetScaleMatrix();
-        mtrx.x *= 1.1f; // to account for the 90% space or 1.8 in the code
-        mtrx.z *= 1.1f;
-        mtrx.x /= 2.0f; // x and z scale now need to be half
-        mtrx.z /= 2.0f;
-        model->GetModelScreenLocation().SetScaleMatrix(mtrx);
+    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetStartLatitude(node.attribute(XmlNodeKeys::StartLatAttribute).as_int(-86));
+    model->SetEndLatitude(node.attribute(XmlNodeKeys::EndLatAttribute).as_int(86));
+    model->SetDegrees(node.attribute(XmlNodeKeys::DegreesAttribute).as_int(360));
+    model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
+    model->SetNoZigZag(std::string_view(node.attribute(XmlNodeKeys::NoZigZagAttribute).as_string("false")) == "true");
+    std::string version = node.attribute(XmlNodeKeys::versionNumberAttribute).as_string();
+    if (version.empty() || std::strtol(version.c_str(), nullptr, 10) < 8) {
+        // Sphere scaling was fixed to be truly round. Previously:
+        //   Hradius = BufferHt / (1.8 * 1.8 * 2)  (used for X and Z)
+        //   Vradius = BufferHt / (1.8 * 2)         (used for Y)
+        // Now all axes use: radius = max(BufferHt, BufferWi) / (1.8 * 2)
+        //
+        // To preserve visual size we need:
+        //   scaleX,Z *= BufferHt / (1.8 * max(BufferHt, BufferWi))
+        //   scaleY   *= BufferHt / max(BufferHt, BufferWi)
+        int nodesPerString = model->GetNodesPerString();
+        int strandsPerString = model->GetStrandsPerString();
+        if (strandsPerString < 1) strandsPerString = 1;
+        if (strandsPerString > nodesPerString) strandsPerString = nodesPerString;
+        int pixelsPerStrand = (strandsPerString > 0) ? nodesPerString / strandsPerString : nodesPerString;
+        int numStrands = model->GetNumStrings() * strandsPerString;
+        int bufferHt = pixelsPerStrand;
+        int bufferWi = numStrands;
+        int mx = std::max(bufferHt, bufferWi);
+        if (mx > 0) {
+            float htOverMax = (float)bufferHt / (float)mx;
+            auto mtrx = model->GetModelScreenLocation().GetScaleMatrix();
+            mtrx.x *= htOverMax / 1.8f;
+            mtrx.z *= htOverMax / 1.8f;
+            mtrx.y *= htOverMax;
+            model->GetModelScreenLocation().SetScaleMatrix(mtrx);
+        }
     }
 
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeSpinner(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     SpinnerModel* model = new SpinnerModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute, "20").ToStdString()));
-    model->SetStartAngle(std::stoi(node->GetAttribute(XmlNodeKeys::StartAngleAttribute, "0").ToStdString()));
-    model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute, "360").ToStdString()));
-    model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute, "false") == "true");
-    model->SetAlternate(node->GetAttribute(XmlNodeKeys::AlternateAttribute, "false") == "true");
+    model->SetNumSpinnerStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerArm(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArmAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetArmsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::ArmsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetHollow(node.attribute(XmlNodeKeys::HollowAttribute).as_int(20));
+    model->SetStartAngle(node.attribute(XmlNodeKeys::StartAngleAttribute).as_int(0));
+    model->SetArc(node.attribute(XmlNodeKeys::ArcAttribute).as_int(360));
+    model->SetZigZag(std::string_view(node.attribute(XmlNodeKeys::ZigZagAttribute).as_string("false")) == "true");
+    model->SetAlternate(std::string_view(node.attribute(XmlNodeKeys::AlternateAttribute).as_string("false")) == "true");
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeStar(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     StarModel* model = new StarModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumStarStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetStarNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStarPoints(ReadAttrWithParmFallback(node, XmlNodeKeys::StarPointsAttribute, XmlNodeKeys::Parm3Attribute, "5"));
 
     // convert old star sizes to new Layer sizes setting
-    std::string layer_sizes = xlEMPTY_STRING;
-    if (node->GetAttribute("starSizes", "") != "") {
-        layer_sizes = node->GetAttribute(XmlNodeKeys::StarSizesAttribute, "");
+    std::string layer_sizes;
+    if (!node.attribute(XmlNodeKeys::StarSizesAttribute).empty()) {
+        layer_sizes = node.attribute(XmlNodeKeys::StarSizesAttribute).as_string("");
     } else {
-        layer_sizes = node->GetAttribute(XmlNodeKeys::LayerSizesAttribute, "");
+        layer_sizes = node.attribute(XmlNodeKeys::LayerSizesAttribute).as_string("");
     }
     model->DeserializeLayerSizes(layer_sizes, false);
 
-    auto starStartLocation = node->GetAttribute(XmlNodeKeys::StarStartLocationAttribute, "");
-    if (starStartLocation == "") {
+    std::string starStartLocation = node.attribute(XmlNodeKeys::StarStartLocationAttribute).as_string("");
+    if (starStartLocation.empty()) {
         starStartLocation = model->ConvertFromDirStartSide();
     }
     model->SetStarStartLocation(starStartLocation);
 
-    model->SetStarRatio(wxAtof(node->GetAttribute(XmlNodeKeys::StarRatioAttribute, "2.618034") ));
-    model->SetInnerPercent(wxAtoi(node->GetAttribute(XmlNodeKeys::StarCenterPercentAttribute, "-1")));
+    model->SetStarRatio(node.attribute(XmlNodeKeys::StarRatioAttribute).as_float(2.618034f));
+    model->SetInnerPercent(node.attribute(XmlNodeKeys::StarCenterPercentAttribute).as_int(-1));
 
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeTree(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeTree(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     TreeModel* model = new TreeModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
-    model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
-    model->SetVertical(node->GetAttribute(XmlNodeKeys::StrandDirAttribute, "Vertical") == "Vertical");
-    model->SetFirstStrand(std::stoi(node->GetAttribute(XmlNodeKeys::exportFirstStrandAttribute, "0").ToStdString()) - 1);
-    model->SetTreeRotation(std::stof(node->GetAttribute(XmlNodeKeys::TreeRotationAttribute, "3.0").ToStdString()));
-    model->SetTreeSpiralRotations(std::stof(node->GetAttribute(XmlNodeKeys::TreeSpiralRotationsAttribute, "0.0").ToStdString()));
-    model->SetTreeBottomTopRatio(std::stof(node->GetAttribute(XmlNodeKeys::TreeBottomTopRatioAttribute, "6.0").ToStdString()));
-    model->SetPerspective(std::stof(node->GetAttribute(XmlNodeKeys::TreePerspectiveAttribute, "0.2").ToStdString()));
-    std::string type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "Tree");
-    if (type != "Tree") {  // handle old DiaplsyAs format
-        wxStringTokenizer tkz(type, " ");
-        wxString token = tkz.GetNextToken();
-        token = tkz.GetNextToken();
-        if (token == "Flat") {
-            model->SetTreeType(1);
-            model->SetTreeDegrees(0);
-        } else if (token == "Ribbon") {
-            model->SetTreeType(2);
-            model->SetTreeDegrees(-1);
-        } else {
-            long degrees = 0;
-            token.ToLong(&degrees);
-            model->SetTreeDegrees(degrees);
+    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
+    model->SetNoZigZag(std::string_view(node.attribute(XmlNodeKeys::NoZigZagAttribute).as_string("false")) == "true");
+    model->SetVertical(std::string_view(node.attribute(XmlNodeKeys::StrandDirAttribute).as_string("Vertical")) == "Vertical");
+    model->SetFirstStrand(node.attribute(XmlNodeKeys::exportFirstStrandAttribute).as_int(0) - 1);
+    model->SetTreeRotation(node.attribute(XmlNodeKeys::TreeRotationAttribute).as_float(3.0f));
+    model->SetTreeSpiralRotations(node.attribute(XmlNodeKeys::TreeSpiralRotationsAttribute).as_float(0.0f));
+    model->SetTreeBottomTopRatio(node.attribute(XmlNodeKeys::TreeBottomTopRatioAttribute).as_float(6.0f));
+    model->SetPerspective(node.attribute(XmlNodeKeys::TreePerspectiveAttribute).as_float(0.2f));
+    std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("Tree");
+    if (type != "Tree") {  // handle old DisplayAs format
+        // Split on space to parse old format like "Tree Flat", "Tree Ribbon", "Tree 360"
+        std::string_view sv(type);
+        auto spacePos = sv.find(' ');
+        if (spacePos != std::string_view::npos) {
+            std::string_view token = sv.substr(spacePos + 1);
+            if (token == "Flat") {
+                model->SetTreeType(1);
+                model->SetTreeDegrees(0);
+            } else if (token == "Ribbon") {
+                model->SetTreeType(2);
+                model->SetTreeDegrees(-1);
+            } else {
+                long degrees = std::strtol(std::string(token).c_str(), nullptr, 10);
+                model->SetTreeDegrees(degrees);
+            }
         }
     } else {
-        model->SetTreeType(std::stoi(node->GetAttribute(XmlNodeKeys::TreeTypeAttribute, "0").ToStdString()));
-        model->SetTreeDegrees(std::stol(node->GetAttribute(XmlNodeKeys::TreeDegreesAttribute, "360").ToStdString()));
+        model->SetTreeType(node.attribute(XmlNodeKeys::TreeTypeAttribute).as_int(0));
+        model->SetTreeDegrees(node.attribute(XmlNodeKeys::TreeDegreesAttribute).as_int(360));
     }
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeWindow(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     WindowFrameModel* model = new WindowFrameModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
-    model->SetRotation((node->GetAttribute("Rotation", "CW") == "Clockwise" || node->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1);
+    model->SetTopNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::TopNodesAttribute, XmlNodeKeys::Parm1Attribute, "0"));
+    model->SetSideNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::SideNodesAttribute, XmlNodeKeys::Parm2Attribute, "0"));
+    model->SetBottomNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::BottomNodesAttribute, XmlNodeKeys::Parm3Attribute, "0"));
+    std::string rotation = node.attribute("Rotation").as_string("CW");
+    model->SetRotation((rotation == "Clockwise" || rotation == "CW") ? 0 : 1);
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeWreath(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     WreathModel* model = new WreathModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumWreathStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetWreathNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeModelGroup(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeModelGroup(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     // Phase 3: Use setters to configure ModelGroup instead of passing XML to constructor
     // This removes the XML dependency from the ModelGroup constructor
-    
+
     // Create ModelGroup with basic parameters (no XML)
     ModelGroup* model = new ModelGroup(xlights->AllModels);
-    
+
     // Deserialize base object attributes (name, layout group, active state)
     DeserializeBaseObjectAttributes(model, node, xlights, importing);
-    
+
     // Deserialize ModelGroup-specific properties using Phase 1 setters
-    model->SetGridSize(std::stoi(node->GetAttribute("GridSize", "400").ToStdString()));
-    model->SetLayout(node->GetAttribute("layout", "minimalGrid").ToStdString());
-    model->SetDefaultCamera(node->GetAttribute("DefaultCamera", "2D").ToStdString());
-    
+    model->SetGridSize(node.attribute("GridSize").as_int(400));
+    model->SetLayout(node.attribute("layout").as_string("minimalGrid"));
+    model->SetDefaultCamera(node.attribute("DefaultCamera").as_string("2D"));
+
     // Centre offset attributes
-    if (node->HasAttribute("XCentreOffset")) {
-        model->SetXCentreOffset(std::stof(node->GetAttribute("XCentreOffset", "0").ToStdString()));
+    if (!node.attribute("XCentreOffset").empty()) {
+        model->SetXCentreOffset(node.attribute("XCentreOffset").as_float(0));
     }
-    if (node->HasAttribute("YCentreOffset")) {
-        model->SetYCentreOffset(std::stof(node->GetAttribute("YCentreOffset", "0").ToStdString()));
+    if (!node.attribute("YCentreOffset").empty()) {
+        model->SetYCentreOffset(node.attribute("YCentreOffset").as_float(0));
     }
-    
+
     // Centre position attributes
-    if (node->GetAttribute("centreDefined", "0") != "0") {
+    if (std::string_view(node.attribute("centreDefined").as_string("0")) != "0") {
         model->SetCentreDefined(true);
-        model->SetCentreX(std::stof(node->GetAttribute("centrex", "0").ToStdString()));
-        model->SetCentreY(std::stof(node->GetAttribute("centrey", "0").ToStdString()));
-        if (node->HasAttribute("centreMinx")) {
-            model->SetCentreMinx(std::stoi(node->GetAttribute("centreMinx", "0").ToStdString()));
+        model->SetCentreX(node.attribute("centrex").as_float(0));
+        model->SetCentreY(node.attribute("centrey").as_float(0));
+        if (!node.attribute("centreMinx").empty()) {
+            model->SetCentreMinx(node.attribute("centreMinx").as_int(0));
         }
-        if (node->HasAttribute("centreMiny")) {
-            model->SetCentreMiny(std::stoi(node->GetAttribute("centreMiny", "0").ToStdString()));
+        if (!node.attribute("centreMiny").empty()) {
+            model->SetCentreMiny(node.attribute("centreMiny").as_int(0));
         }
-        if (node->HasAttribute("centreMaxx")) {
-            model->SetCentreMaxx(std::stoi(node->GetAttribute("centreMaxx", "0").ToStdString()));
+        if (!node.attribute("centreMaxx").empty()) {
+            model->SetCentreMaxx(node.attribute("centreMaxx").as_int(0));
         }
-        if (node->HasAttribute("centreMaxy")) {
-            model->SetCentreMaxy(std::stoi(node->GetAttribute("centreMaxy", "0").ToStdString()));
+        if (!node.attribute("centreMaxy").empty()) {
+            model->SetCentreMaxy(node.attribute("centreMaxy").as_int(0));
         }
     }
-    
+
     // Tag colour
-    model->SetTagColourAsString(node->GetAttribute(XmlNodeKeys::TagColourAttribute, "#000000"));
-    
+    model->SetTagColourAsString(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000"));
+
     // Parse and add models to the group
-    std::string modelsStr = node->GetAttribute("models", "").ToStdString();
+    std::string modelsStr = node.attribute("models").as_string("");
     if (!modelsStr.empty()) {
         std::vector<std::string> modelNames;
         Split(modelsStr, ',', modelNames, true);
@@ -819,18 +949,19 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(wxXmlNode* node, xLig
             }
         }
     }
-    
+
     // Note: We call RebuildBuffers() to finalize the model group
     // This handles node initialization and buffer setup
     model->RebuildBuffers();
-    
+
     return model;
 }
 
 // ************************************************************************************************************
 // **********************                        DMX Section                           ************************
 // ************************************************************************************************************
-void XmlDeserializingModelFactory::DeserializeDmxModel(DmxModel* dmx_model, wxXmlNode* node) {
+void XmlDeserializingModelFactory::DeserializeDmxModel(DmxModel* dmx_model, pugi::xml_node node) {
+    dmx_model->SetDmxChannelCount(ReadAttrWithParmFallback(node, XmlNodeKeys::DmxChannelCountAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     if (dmx_model->HasBeamAbility()) {
         DeserializeBeamAbility(dmx_model, node);
     }
@@ -848,36 +979,36 @@ void XmlDeserializingModelFactory::DeserializeDmxModel(DmxModel* dmx_model, wxXm
     }
 }
 
-void XmlDeserializingModelFactory::DeserializeBeamAbility(DmxModel* model, wxXmlNode* node) {
+void XmlDeserializingModelFactory::DeserializeBeamAbility(DmxModel* model, pugi::xml_node node) {
     DmxBeamAbility* beam_ability = model->GetBeamAbility();
-    beam_ability->SetBeamLength(std::stof(node->GetAttribute("DmxBeamLength", std::to_string(beam_ability->GetDefaultBeamLength())).ToStdString()));
-    beam_ability->SetBeamWidth(std::stof(node->GetAttribute("DmxBeamWidth", std::to_string(beam_ability->GetDefaultBeamWidth())).ToStdString()));
-    beam_ability->SetBeamOrient(std::stoi(node->GetAttribute("DmxBeamOrient", "0").ToStdString()));
-    beam_ability->SetBeamYOffset(std::stof(node->GetAttribute("DmxBeamYOffset", std::to_string(beam_ability->GetDefaultBeamYOffset())).ToStdString()));
+    beam_ability->SetBeamLength(node.attribute("DmxBeamLength").as_float(beam_ability->GetDefaultBeamLength()));
+    beam_ability->SetBeamWidth(node.attribute("DmxBeamWidth").as_float(beam_ability->GetDefaultBeamWidth()));
+    beam_ability->SetBeamOrient(node.attribute("DmxBeamOrient").as_int(0));
+    beam_ability->SetBeamYOffset(node.attribute("DmxBeamYOffset").as_float(beam_ability->GetDefaultBeamYOffset()));
 }
 
-void XmlDeserializingModelFactory::DeserializePresetAbility(DmxModel* model, wxXmlNode* node) {
+void XmlDeserializingModelFactory::DeserializePresetAbility(DmxModel* model, pugi::xml_node node) {
     DmxPresetAbility* preset_ability = model->GetPresetAbility();
     for (int i = 0; i < DmxPresetAbility::MAX_PRESETS; ++i) {
-        auto dmxChanKey = wxString::Format("DmxPresetChannel%d", i);
-        auto dmxValueKey = wxString::Format("DmxPresetValue%d", i);
-        auto descKey = wxString::Format("DmxPresetDesc%d", i);
-        if (!node->HasAttribute(dmxChanKey) || !node->HasAttribute(dmxValueKey)) {
+        auto dmxChanKey = std::format("DmxPresetChannel{}", i);
+        auto dmxValueKey = std::format("DmxPresetValue{}", i);
+        auto descKey = std::format("DmxPresetDesc{}", i);
+        if (node.attribute(dmxChanKey).empty() || node.attribute(dmxValueKey).empty()) {
             break;
         }
-        uint8_t dmxChan = wxAtoi(node->GetAttribute(dmxChanKey, "1"));
-        uint8_t dmxVal = wxAtoi(node->GetAttribute(dmxValueKey, "0"));
-        std::string dmxDesc = node->GetAttribute(descKey);
+        uint8_t dmxChan = node.attribute(dmxChanKey).as_int(1);
+        uint8_t dmxVal = node.attribute(dmxValueKey).as_int(0);
+        std::string dmxDesc = node.attribute(descKey).as_string();
         preset_ability->AddPreset(dmxChan, dmxVal, dmxDesc);
     }
 }
 
-void XmlDeserializingModelFactory::DeserializeDynamicColorAbility(DmxModel* model, wxXmlNode* node) {
-    int color_type = std::stoi(node->GetAttribute("DmxColorType", "0").ToStdString());
+void XmlDeserializingModelFactory::DeserializeDynamicColorAbility(DmxModel* model, pugi::xml_node node) {
+    int color_type = node.attribute("DmxColorType").as_int(0);
     model->InitColorAbility(color_type);
 }
 
-void XmlDeserializingModelFactory::DeserializeColorAbility(DmxModel* model, wxXmlNode* node) {
+void XmlDeserializingModelFactory::DeserializeColorAbility(DmxModel* model, pugi::xml_node node) {
     DmxColorAbility* color_ability = model->GetColorAbility();
     DmxColorAbility::DMX_COLOR_TYPE color_type = color_ability->GetColorType();
     if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
@@ -889,124 +1020,124 @@ void XmlDeserializingModelFactory::DeserializeColorAbility(DmxModel* model, wxXm
     }
 }
 
-void XmlDeserializingModelFactory::DeserializeColorAbilityRGBAttributes(DmxColorAbilityRGB* ability, wxXmlNode* node) {
-    ability->SetRedChannel(std::stoi(node->GetAttribute("DmxRedChannel", "1").ToStdString()));
-    ability->SetGreenChannel(std::stoi(node->GetAttribute("DmxGreenChannel", "2").ToStdString()));
-    ability->SetBlueChannel(std::stoi(node->GetAttribute("DmxBlueChannel", "3").ToStdString()));
-    ability->SetWhiteChannel(std::stoi(node->GetAttribute("DmxWhiteChannel", "0").ToStdString()));
+void XmlDeserializingModelFactory::DeserializeColorAbilityRGBAttributes(DmxColorAbilityRGB* ability, pugi::xml_node node) {
+    ability->SetRedChannel(node.attribute("DmxRedChannel").as_int(1));
+    ability->SetGreenChannel(node.attribute("DmxGreenChannel").as_int(2));
+    ability->SetBlueChannel(node.attribute("DmxBlueChannel").as_int(3));
+    ability->SetWhiteChannel(node.attribute("DmxWhiteChannel").as_int(0));
 
-    ability->SetRedBrightness(std::stoi(node->GetAttribute("DmxRedBrightness", "100").ToStdString()));
-    ability->SetGreenBrightness(std::stoi(node->GetAttribute("DmxGreenBrightness", "100").ToStdString()));
-    ability->SetBlueBrightness(std::stoi(node->GetAttribute("DmxBlueBrightness", "100").ToStdString()));
-    ability->SetWhiteBrightness(std::stoi(node->GetAttribute("DmxWhiteBrightness", "100").ToStdString()));
+    ability->SetRedBrightness(node.attribute("DmxRedBrightness").as_int(100));
+    ability->SetGreenBrightness(node.attribute("DmxGreenBrightness").as_int(100));
+    ability->SetBlueBrightness(node.attribute("DmxBlueBrightness").as_int(100));
+    ability->SetWhiteBrightness(node.attribute("DmxWhiteBrightness").as_int(100));
 
-    ability->SetRedGamma(std::stof(node->GetAttribute("DmxRedGamma", "1.0").ToStdString()));
-    ability->SetGreenGamma(std::stof(node->GetAttribute("DmxGreenGamma", "1.0").ToStdString()));
-    ability->SetBlueGamma(std::stof(node->GetAttribute("DmxBlueGamma", "1.0").ToStdString()));
-    ability->SetWhiteGamma(std::stof(node->GetAttribute("DmxWhiteGamma", "1.0").ToStdString()));
+    ability->SetRedGamma(node.attribute("DmxRedGamma").as_float(1.0f));
+    ability->SetGreenGamma(node.attribute("DmxGreenGamma").as_float(1.0f));
+    ability->SetBlueGamma(node.attribute("DmxBlueGamma").as_float(1.0f));
+    ability->SetWhiteGamma(node.attribute("DmxWhiteGamma").as_float(1.0f));
  }
 
-void XmlDeserializingModelFactory::DeserializeColorWheelAttributes(DmxColorAbilityWheel* ability, wxXmlNode* node) {
-    ability->SetWheelChannel(std::stoi(node->GetAttribute("DmxColorWheelChannel", "0").ToStdString()));
-    ability->SetDimmerChannel(std::stoi(node->GetAttribute("DmxDimmerChannel", "0").ToStdString()));
-    ability->SetWheelDelay(std::stoi(node->GetAttribute("DmxColorWheelDelay", "0").ToStdString()));
+void XmlDeserializingModelFactory::DeserializeColorWheelAttributes(DmxColorAbilityWheel* ability, pugi::xml_node node) {
+    ability->SetWheelChannel(node.attribute("DmxColorWheelChannel").as_int(0));
+    ability->SetDimmerChannel(node.attribute("DmxDimmerChannel").as_int(0));
+    ability->SetWheelDelay(node.attribute("DmxColorWheelDelay").as_int(0));
     for (int i = 0; i< DmxColorAbilityWheel::MAX_COLORS; ++i) {
-        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
-        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
-        if ( !node->HasAttribute(dmxkey) || !node->HasAttribute(colorkey) ) {
+        auto dmxkey = std::format("DmxColorWheelDMX{}", i);
+        auto colorkey = std::format("DmxColorWheelColor{}", i);
+        if ( node.attribute(dmxkey).empty() || node.attribute(colorkey).empty() ) {
             break;
         }
-        uint8_t dmxVal = wxAtoi(node->GetAttribute(dmxkey, "1"));
-        wxString dmxcolor = node->GetAttribute(colorkey);
+        uint8_t dmxVal = node.attribute(dmxkey).as_int(1);
+        std::string dmxcolor = node.attribute(colorkey).as_string();
         ability->AddColor(dmxcolor, dmxVal);
     }
 }
 
-void XmlDeserializingModelFactory::DeserializeColorAbilityCMYAttributes(DmxColorAbilityCMY* ability, wxXmlNode* node) {
-    ability->SetCyanChannel(std::stoi(node->GetAttribute("DmxCyanChannel", "1").ToStdString()));
-    ability->SetMagentaChannel(std::stoi(node->GetAttribute("DmxMagentaChannel", "2").ToStdString()));
-    ability->SetYellowChannel(std::stoi(node->GetAttribute("DmxYellowChannel", "3").ToStdString()));
-    ability->SetWhiteChannel(std::stoi(node->GetAttribute("DmxWhiteChannel", "0").ToStdString()));
+void XmlDeserializingModelFactory::DeserializeColorAbilityCMYAttributes(DmxColorAbilityCMY* ability, pugi::xml_node node) {
+    ability->SetCyanChannel(node.attribute("DmxCyanChannel").as_int(1));
+    ability->SetMagentaChannel(node.attribute("DmxMagentaChannel").as_int(2));
+    ability->SetYellowChannel(node.attribute("DmxYellowChannel").as_int(3));
+    ability->SetWhiteChannel(node.attribute("DmxWhiteChannel").as_int(0));
 }
 
-void XmlDeserializingModelFactory::DeserializeShutterAbility(DmxModel* model, wxXmlNode* node) {
+void XmlDeserializingModelFactory::DeserializeShutterAbility(DmxModel* model, pugi::xml_node node) {
     DmxShutterAbility* shutter_ability = model->GetShutterAbility();
-    shutter_ability->SetShutterChannel(std::stoi(node->GetAttribute("DmxShutterChannel", "0").ToStdString()));
-    shutter_ability->SetShutterThreshold(std::stoi(node->GetAttribute("DmxShutterOpen", "1").ToStdString()));
-    shutter_ability->SetShutterOnValue(std::stoi(node->GetAttribute("DmxShutterOnValue", "0").ToStdString()));
+    shutter_ability->SetShutterChannel(node.attribute("DmxShutterChannel").as_int(0));
+    shutter_ability->SetShutterThreshold(node.attribute("DmxShutterOpen").as_int(1));
+    shutter_ability->SetShutterOnValue(node.attribute("DmxShutterOnValue").as_int(0));
 }
 
-void XmlDeserializingModelFactory::DeserializeDimmerAbility(DmxModel* model, wxXmlNode* node) {
+void XmlDeserializingModelFactory::DeserializeDimmerAbility(DmxModel* model, pugi::xml_node node) {
     DmxDimmerAbility* dimmer_ability = model->GetDimmerAbility();
-    dimmer_ability->SetDimmerChannel(std::stoi(node->GetAttribute(XmlNodeKeys::MhDimmerChannelAttribute, "0").ToStdString()));
+    dimmer_ability->SetDimmerChannel(node.attribute(XmlNodeKeys::MhDimmerChannelAttribute).as_int(0));
 }
 
-void XmlDeserializingModelFactory::DeserializeDmxImage(DmxImage* img, wxXmlNode* node) {
-    img->SetImageFile(FixFile("", node->GetAttribute(XmlNodeKeys::ImageAttribute, "")));
-    img->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString()));
-    img->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString()));
-    img->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString()));
-    img->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0").ToStdString()));
-    img->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0").ToStdString()));
-    img->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0").ToStdString()));
-    img->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0").ToStdString()));
-    img->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0").ToStdString()));
-    img->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0").ToStdString()));
+void XmlDeserializingModelFactory::DeserializeDmxImage(DmxImage* img, pugi::xml_node node) {
+    img->SetImageFile(FixFile(std::string(""), std::string(node.attribute(XmlNodeKeys::ImageAttribute).as_string(""))));
+    img->SetScaleX(node.attribute(XmlNodeKeys::ScaleXAttribute).as_float(1.0f));
+    img->SetScaleY(node.attribute(XmlNodeKeys::ScaleYAttribute).as_float(1.0f));
+    img->SetScaleZ(node.attribute(XmlNodeKeys::ScaleZAttribute).as_float(1.0f));
+    img->SetRotateX(node.attribute(XmlNodeKeys::RotateXAttribute).as_float(0.0f));
+    img->SetRotateY(node.attribute(XmlNodeKeys::RotateYAttribute).as_float(0.0f));
+    img->SetRotateZ(node.attribute(XmlNodeKeys::RotateZAttribute).as_float(0.0f));
+    img->SetOffsetX(node.attribute(XmlNodeKeys::OffsetXAttribute).as_float(0.0f));
+    img->SetOffsetY(node.attribute(XmlNodeKeys::OffsetYAttribute).as_float(0.0f));
+    img->SetOffsetZ(node.attribute(XmlNodeKeys::OffsetZAttribute).as_float(0.0f));
 }
 
-void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, wxXmlNode* node) {
-    motor->SetChannelCoarse(std::stoi(node->GetAttribute(XmlNodeKeys::ChannelCoarseAttribute, "0").ToStdString()));
-    motor->SetChannelFine(std::stoi(node->GetAttribute(XmlNodeKeys::ChannelFineAttribute, "0").ToStdString()));
-    motor->SetMinLimit(std::stoi(node->GetAttribute(XmlNodeKeys::MinLimitAttribute, "-180").ToStdString()));
-    motor->SetMaxLimit(std::stoi(node->GetAttribute(XmlNodeKeys::MaxLimitAttribute, "180").ToStdString()));
-    motor->SetRangeOfMOtion(std::stof(node->GetAttribute(XmlNodeKeys::RangeOfMotionAttribute, "180.0").ToStdString()));
-    motor->SetOrientZero(std::stoi(node->GetAttribute(XmlNodeKeys::OrientZeroAttribute, "0").ToStdString()));
-    motor->SetOrientHome(std::stoi(node->GetAttribute(XmlNodeKeys::OrientHomeAttribute, "0").ToStdString()));
-    motor->SetSlewLimit(std::stof(node->GetAttribute(XmlNodeKeys::SlewLimitAttribute, "0.0").ToStdString()));
-    motor->SetReverse(node->GetAttribute(XmlNodeKeys::ReverseAttribute, "0") == "1");
-    motor->SetUpsideDown(node->GetAttribute(XmlNodeKeys::UpsideDownAttribute, "0") == "1");
+void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, pugi::xml_node node) {
+    motor->SetChannelCoarse(node.attribute(XmlNodeKeys::ChannelCoarseAttribute).as_int(0));
+    motor->SetChannelFine(node.attribute(XmlNodeKeys::ChannelFineAttribute).as_int(0));
+    motor->SetMinLimit(node.attribute(XmlNodeKeys::MinLimitAttribute).as_int(-180));
+    motor->SetMaxLimit(node.attribute(XmlNodeKeys::MaxLimitAttribute).as_int(180));
+    motor->SetRangeOfMOtion(node.attribute(XmlNodeKeys::RangeOfMotionAttribute).as_float(180.0f));
+    motor->SetOrientZero(node.attribute(XmlNodeKeys::OrientZeroAttribute).as_int(0));
+    motor->SetOrientHome(node.attribute(XmlNodeKeys::OrientHomeAttribute).as_int(0));
+    motor->SetSlewLimit(node.attribute(XmlNodeKeys::SlewLimitAttribute).as_float(0.0f));
+    motor->SetReverse(std::string_view(node.attribute(XmlNodeKeys::ReverseAttribute).as_string("0")) == "1");
+    motor->SetUpsideDown(std::string_view(node.attribute(XmlNodeKeys::UpsideDownAttribute).as_string("0")) == "1");
 }
 
-void XmlDeserializingModelFactory::DeserializeMesh(Mesh* mesh, wxXmlNode* node) {
-    mesh->SetObjFile(FixFile("", node->GetAttribute(XmlNodeKeys::ObjFileAttribute, "")));
-    mesh->SetRenderWidth(std::stof(node->GetAttribute(XmlNodeKeys::WidthAttribute, "1.0").ToStdString()));
-    mesh->SetRenderHeight(std::stof(node->GetAttribute(XmlNodeKeys::HeightAttribute, "1.0").ToStdString()));
-    mesh->SetRenderDepth(std::stof(node->GetAttribute(XmlNodeKeys::DepthAttribute, "1.0").ToStdString()));
-    mesh->SetMeshOnly(node->GetAttribute(XmlNodeKeys::MeshOnlyAttribute, "0") == "1");
-    mesh->SetBrightness(std::stof(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100.0").ToStdString()));
-    mesh->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString()));
-    mesh->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString()));
-    mesh->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString()));
-    mesh->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0").ToStdString()));
-    mesh->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0").ToStdString()));
-    mesh->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0").ToStdString()));
-    mesh->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0").ToStdString()));
-    mesh->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0").ToStdString()));
-    mesh->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0").ToStdString()));
+void XmlDeserializingModelFactory::DeserializeMesh(Mesh* mesh, pugi::xml_node node) {
+    mesh->SetObjFile(FixFile(std::string(""), std::string(node.attribute(XmlNodeKeys::ObjFileAttribute).as_string(""))));
+    mesh->SetRenderWidth(node.attribute(XmlNodeKeys::WidthAttribute).as_float(1.0f));
+    mesh->SetRenderHeight(node.attribute(XmlNodeKeys::HeightAttribute).as_float(1.0f));
+    mesh->SetRenderDepth(node.attribute(XmlNodeKeys::DepthAttribute).as_float(1.0f));
+    mesh->SetMeshOnly(std::string_view(node.attribute(XmlNodeKeys::MeshOnlyAttribute).as_string("0")) == "1");
+    mesh->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_float(100.0f));
+    mesh->SetScaleX(node.attribute(XmlNodeKeys::ScaleXAttribute).as_float(1.0f));
+    mesh->SetScaleY(node.attribute(XmlNodeKeys::ScaleYAttribute).as_float(1.0f));
+    mesh->SetScaleZ(node.attribute(XmlNodeKeys::ScaleZAttribute).as_float(1.0f));
+    mesh->SetRotateX(node.attribute(XmlNodeKeys::RotateXAttribute).as_float(0.0f));
+    mesh->SetRotateY(node.attribute(XmlNodeKeys::RotateYAttribute).as_float(0.0f));
+    mesh->SetRotateZ(node.attribute(XmlNodeKeys::RotateZAttribute).as_float(0.0f));
+    mesh->SetOffsetX(node.attribute(XmlNodeKeys::OffsetXAttribute).as_float(0.0f));
+    mesh->SetOffsetY(node.attribute(XmlNodeKeys::OffsetYAttribute).as_float(0.0f));
+    mesh->SetOffsetZ(node.attribute(XmlNodeKeys::OffsetZAttribute).as_float(0.0f));
 }
 
-void XmlDeserializingModelFactory::DeserializeServo(Servo* servo, wxXmlNode* node) {
-    servo->SetChannel(std::stoi(node->GetAttribute("Channel", "0").ToStdString()));
-    servo->SetMinLimit(std::stoi(node->GetAttribute("MinLimit", "1").ToStdString()));
-    servo->SetMaxLimit(std::stoi(node->GetAttribute("MaxLimit", "65535").ToStdString()));
-    servo->SetRangeOfMotion(std::stof(node->GetAttribute("RangeOfMotion", "180.0").ToStdString()));
-    servo->SetScaledPivotOffsetX(std::stof(node->GetAttribute("PivotOffsetX", "0").ToStdString()));
-    servo->SetScaledPivotOffsetY(std::stof(node->GetAttribute("PivotOffsetY", "0").ToStdString()));
-    servo->SetScaledPivotOffsetZ(std::stof(node->GetAttribute("PivotOffsetZ", "0").ToStdString()));
-    servo->SetStyle(node->GetAttribute("ServoStyle", "Translate X"));
-    servo->SetControllerMin(std::stoi(node->GetAttribute("ControllerMin", "1000").ToStdString()));
-    servo->SetControllerMax(std::stoi(node->GetAttribute("ControllerMax", "2000").ToStdString()));
-    servo->SetControllerReverse(std::stoi(node->GetAttribute("ControllerReverse", "0").ToStdString()) != 0);
-    servo->SetControllerZero(node->GetAttribute("ControllerZeroBehavior", "Hold"));
-    servo->SetControllerDataType(node->GetAttribute("ControllerDataType", "Scaled"));
+void XmlDeserializingModelFactory::DeserializeServo(Servo* servo, pugi::xml_node node) {
+    servo->SetChannel(node.attribute("Channel").as_int(0));
+    servo->SetMinLimit(node.attribute("MinLimit").as_int(1));
+    servo->SetMaxLimit(node.attribute("MaxLimit").as_int(65535));
+    servo->SetRangeOfMotion(node.attribute("RangeOfMotion").as_float(180.0f));
+    servo->SetScaledPivotOffsetX(node.attribute("PivotOffsetX").as_float(0));
+    servo->SetScaledPivotOffsetY(node.attribute("PivotOffsetY").as_float(0));
+    servo->SetScaledPivotOffsetZ(node.attribute("PivotOffsetZ").as_float(0));
+    servo->SetStyle(node.attribute("ServoStyle").as_string("Translate X"));
+    servo->SetControllerMin(node.attribute("ControllerMin").as_int(1000));
+    servo->SetControllerMax(node.attribute("ControllerMax").as_int(2000));
+    servo->SetControllerReverse(node.attribute("ControllerReverse").as_int(0) != 0);
+    servo->SetControllerZero(node.attribute("ControllerZeroBehavior").as_string("Hold"));
+    servo->SetControllerDataType(node.attribute("ControllerDataType").as_string("Scaled"));
 }
 
-void XmlDeserializingModelFactory::DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, wxXmlNode* node) {
-    model->SetDmxFixture(node->GetAttribute(XmlNodeKeys::DmxFixtureAttribute, "MH1"));
+void XmlDeserializingModelFactory::DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, pugi::xml_node node) {
+    model->SetDmxFixture(node.attribute(XmlNodeKeys::DmxFixtureAttribute).as_string("MH1"));
     DeserializeDmxModel(model, node);
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxFloodArea(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxFloodArea(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxFloodArea* model = new DmxFloodArea(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDmxModel(model, node);
@@ -1014,7 +1145,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxFloodArea(wxXmlNode* node, xL
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxFloodlight(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxFloodlight(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxFloodlight* model = new DmxFloodlight(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDmxModel(model, node);
@@ -1022,7 +1153,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxFloodlight(wxXmlNode* node, x
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxGeneral(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxGeneral(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxGeneral* model = new DmxGeneral(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDmxModel(model, node);
@@ -1030,28 +1161,28 @@ Model* XmlDeserializingModelFactory::DeserializeDmxGeneral(wxXmlNode* node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxServo3d* model = new DmxServo3d(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDmxModel(model, node);
-    model->SetNumServos(std::stoi(node->GetAttribute("NumServos", "1").ToStdString()));
-    model->SetNumStatic(std::stoi(node->GetAttribute("NumStatic", "1").ToStdString()));
-    model->SetNumMotion(std::stoi(node->GetAttribute("NumMotion", "1").ToStdString()));
-    model->SetIs16Bit(node->GetAttribute("Bits16", "1") == "1");
-    model->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
+    model->SetNumServos(node.attribute("NumServos").as_int(1));
+    model->SetNumStatic(node.attribute("NumStatic").as_int(1));
+    model->SetNumMotion(node.attribute("NumMotion").as_int(1));
+    model->SetIs16Bit(std::string_view(node.attribute("Bits16").as_string("1")) == "1");
+    model->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_int(100));
 
-    wxXmlNode* n = node->GetChildren();
-    while (n != nullptr) {
-        std::string name = n->GetName();
-        int servo_idx = name.find("Servo");
-        int static_idx = name.find("StaticMesh");
-        int motion_idx = name.find("MotionMesh");
+    pugi::xml_node n = node.first_child();
+    while (n) {
+        std::string name = n.name();
+        std::string::size_type servo_idx = name.find("Servo");
+        std::string::size_type static_idx = name.find("StaticMesh");
+        std::string::size_type motion_idx = name.find("MotionMesh");
 
         if ("StaticMesh" == name) { // convert original name that had no number
             Mesh* msh = model->CreateStaticMesh("StaticMesh1", 0);
             DeserializeMesh(msh, n);
         } else if ("MotionMesh" == name) { // convert original name that had no number
-            Mesh* msh = model->CreateStaticMesh("MotionMesh1", 0);
+            Mesh* msh = model->CreateMotionMesh("MotionMesh1", 0);
             DeserializeMesh(msh, n);
         } else if (static_idx != std::string::npos) {
             std::string num = name.substr(10, name.length());
@@ -1075,7 +1206,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
                 DeserializeServo(sv, n);
             }
         }
-        n = n->GetNext();
+        n = n.next_sibling();
     }
 
     // get servo linkages
@@ -1083,7 +1214,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
         std::string num = std::to_string(i + 1);
         std::string this_link = "Servo" + num + "Linkage";
         std::string this_default = "Mesh " + num;
-        std::string link = node->GetAttribute(this_link, this_default);
+        std::string link = node.attribute(this_link).as_string(this_default.c_str());
         if (link.length() < 5) {
             link = "Mesh 1";
         }
@@ -1102,7 +1233,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
         std::string num = std::to_string(i + 1);
         std::string this_link = "Mesh" + num + "Linkage";
         std::string this_default = "Mesh " + num;
-        std::string link = node->GetAttribute(this_link, this_default);
+        std::string link = node.attribute(this_link).as_string(this_default.c_str());
         if (link.length() < 5) {
             link = "Mesh 1";
         }
@@ -1120,21 +1251,21 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxServo(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxServo(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxServo* model = new DmxServo(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDmxModel(model, node);
-    model->SetNumServos(std::stoi(node->GetAttribute("NumServos", "1").ToStdString()));
-    model->SetIs16Bit(node->GetAttribute("Bits16", "1") == "1");
-    model->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
-    model->SetTransparency(std::stoi(node->GetAttribute(XmlNodeKeys::TransparencyAttribute, "0").ToStdString()));
+    model->SetNumServos(node.attribute("NumServos").as_int(1));
+    model->SetIs16Bit(std::string_view(node.attribute("Bits16").as_string("1")) == "1");
+    model->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_int(100));
+    model->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
 
-    wxXmlNode* n = node->GetChildren();
-    while (n != nullptr) {
-        std::string name = n->GetName();
-        int servo_idx = name.find("Servo");
-        int static_idx = name.find("StaticImage");
-        int motion_idx = name.find("MotionImage");
+    pugi::xml_node n = node.first_child();
+    while (n) {
+        std::string name = n.name();
+        std::string::size_type servo_idx = name.find("Servo");
+        std::string::size_type static_idx = name.find("StaticImage");
+        std::string::size_type motion_idx = name.find("MotionImage");
 
         if ("StaticImage" == name) { // convert original name that had no number
             DmxImage* img = model->CreateStaticImage("StaticImage1", 0);
@@ -1164,38 +1295,38 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo(wxXmlNode* node, xLight
                 DeserializeServo(sv, n);
             }
         }
-        n = n->GetNext();
+        n = n.next_sibling();
     }
 
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxSkull(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxSkull(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxSkull* model = new DmxSkull(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDmxModel(model, node);
-    model->SetEyeBrightnessChannel(std::stoi(node->GetAttribute("DmxEyeBrtChannel", "15").ToStdString()));
-    model->SetJawOrient(std::stoi(node->GetAttribute("DmxJawOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::JAW))).ToStdString()));
-    model->SetPanOrient(std::stoi(node->GetAttribute("DmxPanOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::PAN))).ToStdString()));
-    model->SetTiltOrient(std::stoi(node->GetAttribute("DmxTiltOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::TILT))).ToStdString()));
-    model->SetNodOrient(std::stoi(node->GetAttribute("DmxNodOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::NOD))).ToStdString()));
-    model->SetEyeUDOrient(std::stoi(node->GetAttribute("DmxEyeUDOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::EYE_UD))).ToStdString()));
-    model->SetEyeLROrient(std::stoi(node->GetAttribute("DmxEyeLROrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::EYE_LR))).ToStdString()));
-    model->SetHasJaw(node->GetAttribute("HasJaw", "1") == "1");
-    model->SetHasPan(node->GetAttribute("HasPan", "1") == "1");
-    model->SetHasTilt(node->GetAttribute("HasTilt", "1") == "1");
-    model->SetHasNod(node->GetAttribute("HasNod", "1") == "1");
-    model->SetHasEyeUD(node->GetAttribute("HasEyeUD", "1") == "1");
-    model->SetHasEyeLR(node->GetAttribute("HasEyeLR", "1") == "1");
-    model->SetHasColor(node->GetAttribute("HasColor", "1") == "1");
-    model->SetIs16Bit(node->GetAttribute("Bits16", "1") == "1");
-    model->SetMeshOnly(node->GetAttribute("MeshOnly", "0") == "1");
+    model->SetEyeBrightnessChannel(node.attribute("DmxEyeBrtChannel").as_int(15));
+    model->SetJawOrient(node.attribute("DmxJawOrient").as_int(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::JAW)));
+    model->SetPanOrient(node.attribute("DmxPanOrient").as_int(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::PAN)));
+    model->SetTiltOrient(node.attribute("DmxTiltOrient").as_int(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::TILT)));
+    model->SetNodOrient(node.attribute("DmxNodOrient").as_int(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::NOD)));
+    model->SetEyeUDOrient(node.attribute("DmxEyeUDOrient").as_int(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::EYE_UD)));
+    model->SetEyeLROrient(node.attribute("DmxEyeLROrient").as_int(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::EYE_LR)));
+    model->SetHasJaw(std::string_view(node.attribute("HasJaw").as_string("1")) == "1");
+    model->SetHasPan(std::string_view(node.attribute("HasPan").as_string("1")) == "1");
+    model->SetHasTilt(std::string_view(node.attribute("HasTilt").as_string("1")) == "1");
+    model->SetHasNod(std::string_view(node.attribute("HasNod").as_string("1")) == "1");
+    model->SetHasEyeUD(std::string_view(node.attribute("HasEyeUD").as_string("1")) == "1");
+    model->SetHasEyeLR(std::string_view(node.attribute("HasEyeLR").as_string("1")) == "1");
+    model->SetHasColor(std::string_view(node.attribute("HasColor").as_string("1")) == "1");
+    model->SetIs16Bit(std::string_view(node.attribute("Bits16").as_string("1")) == "1");
+    model->SetMeshOnly(std::string_view(node.attribute("MeshOnly").as_string("0")) == "1");
 
-    wxXmlNode* n = node->GetChildren();
+    pugi::xml_node n = node.first_child();
 
-    while (n != nullptr) {
-        std::string name = n->GetName();
+    while (n) {
+        std::string name = n.name();
         if ("HeadMesh" == name) {
             Mesh* mesh = model->CreateMesh("HeadMesh");
             if (mesh != nullptr) { DeserializeMesh(mesh, n); }
@@ -1227,23 +1358,23 @@ Model* XmlDeserializingModelFactory::DeserializeDmxSkull(wxXmlNode* node, xLight
             Servo* servo = model->CreateServo("EyeLeftRightServo");
             if (servo != nullptr) { DeserializeServo(servo, n); }
         }
-        n = n->GetNext();
+        n = n.next_sibling();
     }
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxMovingHead* model = new DmxMovingHead(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDynamicColorAbility(model, node);
     DeserializeDmxMovingHeadComm(model, node);
-    model->SetHideBody(node->GetAttribute("HideBody", "False").ToStdString() == "True");
-    model->SetDmxStyle(node->GetAttribute("DmxStyle", "Moving Head Top"));
+    model->SetHideBody(std::string_view(node.attribute("HideBody").as_string("False")) == "True");
+    model->SetDmxStyle(node.attribute("DmxStyle").as_string("Moving Head Top"));
 
-    wxXmlNode* n = node->GetChildren();
-    while (n != nullptr) {
-        std::string name = n->GetName();
+    pugi::xml_node n = node.first_child();
+    while (n) {
+        std::string name = n.name();
         if ("PanMotor" == name) {
             DmxMotor* motor = model->GetPanMotor();
             DeserializeDmxMotor(motor, n);
@@ -1251,21 +1382,21 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(wxXmlNode* node, x
             DmxMotor* motor = model->GetTiltMotor();
             DeserializeDmxMotor(motor, n);
         }
-        n = n->GetNext();
+        n = n.next_sibling();
     }
     model->Setup();
     return model;
 }
 
-Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
+Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(pugi::xml_node node, xLightsFrame* xlights, bool importing) {
     DmxMovingHeadAdv *model = new DmxMovingHeadAdv(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDynamicColorAbility(model, node);
     DeserializeDmxMovingHeadComm(model, node);
 
-    wxXmlNode* n = node->GetChildren();
-    while (n != nullptr) {
-        std::string name = n->GetName();
+    pugi::xml_node n = node.first_child();
+    while (n) {
+        std::string name = n.name();
         if ("PanMotor" == name) {
             DmxMotor* motor = model->GetPanMotor();
             DeserializeDmxMotor(motor, n);
@@ -1281,35 +1412,8 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(wxXmlNode *node
         } else if ("HeadMesh" == name) {
             Mesh* msh = model->CreateHeadMesh(name);
             DeserializeMesh(msh, n);
-        } else if ("Features" == name) {
-            // NOT sure we are going to make features active.  Couldn't think of a good way to execute them and have sequences still be shareable.
-            // process features
-          /*  if( features_xml_node == nullptr ) {
-                features_xml_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Features");
-                node->AddChild(features_xml_node);
-            } else {
-                n = features_xml_node->GetChildren();
-                while (n != nullptr) {
-                    std::string node_name = n->GetName();
-                    std::string feature_name = n->GetAttribute("Name", node_name);
-                    bool feature_found {false};
-                    for (auto it = features.begin(); it != features.end(); ++it) {
-                        if( (*it)->GetName() == feature_name ) {
-                            feature_found = true;
-                            (*it)->Init();
-                            break;
-                        }
-                    }
-                    if( !feature_found ) {
-                        std::unique_ptr<MhFeature> newFeature(new MhFeature(n, node_name, feature_name));
-                        newFeature->Init();
-                        features.push_back(std::move(newFeature));
-                    }
-                    n = n->GetNext();
-                }
-            }*/
         }
-        n = n->GetNext();
+        n = n.next_sibling();
     }
     model->Setup();
     return model;

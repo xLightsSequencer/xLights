@@ -11,7 +11,7 @@
 #include "ControllerCaps.h"
 #include "ILightThat.h"
 
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
 #include "../outputs/ControllerEthernet.h"
@@ -23,21 +23,21 @@
 
 #include <nlohmann/json.hpp>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <utils/CurlManager.h>
 
 #pragma region Constructors and Destructors
 ILightThat::ILightThat(const std::string& ip, const std::string& proxy) :
     BaseController(ip, proxy)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
         _connected = true;
-        logger_base.debug("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
+        spdlog::debug("Connected to ILightThat controller model {}.", (const char*)GetFullName().c_str());
     } else {
         _connected = false;
-        logger_base.error("Error connecting to ILightThat controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to ILightThat controller on {}.", (const char*)_ip.c_str());
     }
 }
 
@@ -53,10 +53,10 @@ ILightThat::~ILightThat()
 #pragma endregion
 
 #pragma region Getters and Setters
-bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ILightThat Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("ILightThat Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
     std::unordered_map<std::string, int> model_test_cols = {};
     std::string const json = GetURL("/settings");
@@ -64,9 +64,9 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         try {
             nlohmann::json jsonVal = nlohmann::json::parse(json);
             if (jsonVal["ports"].is_array()) {
-                for (int i = 0; i < jsonVal["ports"].size(); i++) {
+                for (int i = 0; i < (int)jsonVal["ports"].size(); i++) {
                     if (jsonVal["ports"][i].contains("models")) {
-                        for (int j = 0; j < jsonVal["ports"][i]["models"].size(); j++) {
+                        for (int j = 0; j < (int)jsonVal["ports"][i]["models"].size(); j++) {
                             auto model = jsonVal["ports"][i]["models"][j];
                             if (model.contains("test_colour")) {
                                 model_test_cols[model["name"].get<std::string>()] = model["test_colour"].get<int>();
@@ -76,11 +76,11 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
             }
         } catch (nlohmann::json::parse_error& ex) {
-            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", ex.what());
-            logger_base.warn((const char*)json.c_str());
+            spdlog::warn("ILightThat Outputs Upload: Failed to parse JSON: {}", ex.what());
+            spdlog::warn((const char*)json.c_str());
         } catch (std::exception& e) {
-            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", e.what());
-            logger_base.warn((const char*)json.c_str());
+            spdlog::warn("ILightThat Outputs Upload: Failed to parse JSON: {}", e.what());
+            spdlog::warn((const char*)json.c_str());
         }
     }
 

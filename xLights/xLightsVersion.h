@@ -10,21 +10,22 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <string>
+
  // Update these before building a release
 
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
 #else
-static const wxString xlights_version_string  = "2026.03.2";
+static const std::string xlights_version_string  = "2026.04.1";
 #endif
 #ifdef DEBUG
-static const wxString xlights_qualifier       = " DEBUG";
+static const std::string xlights_qualifier       = " DEBUG";
 #else
-static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
+static const std::string xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
 #endif
-static const wxString xlights_build_date      = __DATE__;
-	
-const wxString &GetBitness();
-wxString GetDisplayVersionString();
+static const std::string xlights_build_date      = __DATE__;
+
+std::string GetDisplayVersionString();
 
 #define WXWIDGETS_VERSION "33"

@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 #define DMX_MIN 0
 #define DMX_MAX 255
@@ -28,13 +28,11 @@ public:
         return false;
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    virtual void SetPanelStatus(Model* cls) override;
-    virtual void SetDefaultParameters() override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return true;
     }
-    void RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) const;
+    void RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings) const;
 
     virtual double GetSettingVCMin(const std::string& name) const override
     {
@@ -48,14 +46,6 @@ public:
             return DMX_MAX;
         return RenderableEffect::GetSettingVCMax(name);
     }
-
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-    virtual bool needToAdjustSettings(const std::string& version) override
-    {
-        return true;
-    };
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 
 private:
     bool SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap& SettingsMap, double eff_pos, xlColor& color, RenderBuffer& buffer);

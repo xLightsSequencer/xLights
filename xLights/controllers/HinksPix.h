@@ -11,15 +11,20 @@
  **************************************************************/
 
 #include <array>
+#include <chrono>
+#include <cstdint>
+#include <functional>
 #include <list>
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
 #include "BaseController.h"
 #include "ControllerUploadData.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 #include <curl/curl.h>
 
@@ -38,9 +43,9 @@ struct HinksPixOutput {
         colorOrder(0),
         brightness(defaultBrightness_),
         gamma(1),
+        used(false),
         controllerStartChannel(1),
-        controllerEndChannel(0),
-        used(false){};
+        controllerEndChannel(0){};
     const int output;
     int universe;
     int startChannel;
@@ -58,9 +63,9 @@ struct HinksPixOutput {
     void setControllerChannels(const int startChan);
 
     void Dump() const;
-    void SetConfig(wxString const& data);
-    wxString BuildCommand() const;
-    wxString BuildCommandEasyLights() const;
+    void SetConfig(const std::string& data);
+    std::string BuildCommand() const;
+    std::string BuildCommandEasyLights() const;
 
 private:
     int controllerStartChannel;
@@ -88,8 +93,8 @@ struct HinksPixSerial {
     void Dump() const;
     void SetConfig(nlohmann::json const& data);
 
-    wxString BuildCommand() const;
-    wxString BuildCommandEasyLights(int mode) const;
+    std::string BuildCommand() const;
+    std::string BuildCommandEasyLights(int mode) const;
 };
 
 struct HinksSmartOutput {
@@ -106,8 +111,8 @@ struct HinksSmartOutput {
     }
 
     void Dump() const;
-    void SetConfig(wxString const& data);
-    wxString BuildCommand() const;
+    void SetConfig(const std::string& data);
+    std::string BuildCommand() const;
 };
 
 struct HinksPixInputUniverse {
@@ -126,8 +131,8 @@ struct HinksPixInputUniverse {
     }
 
     void Dump() const;
-    wxString BuildCommand() const;
-    wxString BuildCommandEasyLights() const;
+    std::string BuildCommand() const;
+    std::string BuildCommandEasyLights() const;
 };
 
 struct HinksPixFileData {
@@ -194,10 +199,10 @@ class HinksPix : public BaseController
     
     bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     void UploadPixelOutputsEasyLights(bool& worked);
-    wxString GetControllerE131Data(int rowIndex) const;
-    wxString GetControllerData(int rowIndex, std::string const& data = std::string())const ;
-    wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const;
-    std::map<wxString, wxString> StringToMap(wxString const& text) const;
+    std::string GetControllerE131Data(int rowIndex) const;
+    std::string GetControllerData(int rowIndex, const std::string& data = std::string()) const;
+    std::string GetControllerRowData(int rowIndex, const std::string& url, const std::string& data) const;
+    std::map<std::string, std::string> StringToMap(const std::string& text) const;
     
     void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, int32_t hinkstartChan) const;
     void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const;
@@ -236,10 +241,10 @@ public:
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
-    bool UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const;
+    bool UploadFileToController(const std::string& localpathname, const std::string& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, const std::chrono::system_clock::time_point& fileTime) const;
     bool UploadTimeToController() const;
     bool UploadModeToController(unsigned char mode) const;
     [[nodiscard]] std::vector<HinksPixFileData> GetFileInfoFromSDCard(uint8_t cmd) const;

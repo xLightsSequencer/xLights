@@ -8,20 +8,21 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
+#include <cassert>
+#include <filesystem>
+#include <format>
 
 #include "ImageModel.h"
+#include "../utils/xlImage.h"
 #include "ModelScreenLocation.h"
-#include "../ModelPreview.h"
-#include "../RenderBuffer.h"
-#include "../xLightsMain.h"
+#include "../graphics/IModelPreview.h"
+#include "../render/RenderBuffer.h"
+#include "../render/RenderContext.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../graphics/xlGraphicsContext.h"
@@ -70,113 +71,8 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
     newNodes.push_back(NodeBaseClassPtr(node));
 }
 
-void ImageModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
-                                             "Image",
-                                             _imageFile));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-                                        ";*.webp"
-        "|All files (*.*)|*.*");
-
-    p = grid->Append(new wxUIntProperty("Off Brightness", "OffBrightness", _offBrightness));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 200);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxBoolProperty("Read White As Alpha",
-        "WhiteAsAlpha",
-        _whiteAsAlpha));
-    p->SetAttribute("UseCheckbox", true);
-}
-
-void ImageModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
-{
-    wxPGProperty* p = grid->GetPropertyByName("ModelFaces");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelDimmingCurves");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelStates");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelStrandNodeNames");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("SubModels");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelSize");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelStyle");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelBlackTransparency");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-}
-
-int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-
-    IncrementChangeCount();
-    if ("Image" == event.GetPropertyName()) {
-        for (auto it = _images.begin(); it != _images.end(); ++it) {
-            delete it->second;
-        }
-        _images.clear();
-        _imageFile = event.GetValue().GetString();
-        ObtainAccessToURL(_imageFile);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::Image");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::Image");
-        return 0;
-    } else if ("WhiteAsAlpha" == event.GetPropertyName()) {
-        _whiteAsAlpha = event.GetValue();
-        for (auto it = _images.begin(); it != _images.end(); ++it) {
-            delete it->second;
-        }
-        _images.clear();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
-        return 0;
-    } else if ("OffBrightness" == event.GetPropertyName()) {
-        _offBrightness = event.GetValue().GetInteger();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
-
 void ImageModel::InitModel()
 {
-    parm2 = 1;
-    parm3 = 1;
-
     SetNodeCount(1, 1, rgbOrder);
 	Nodes[0]->ActChan = stringStartChan[0];
 	Nodes[0]->StringNum = 0;
@@ -199,8 +95,14 @@ void ImageModel::SetImageFile(const std::string & imageFile)
     ObtainAccessToURL(imageFile);
     _imageFile = FixFile("", imageFile);
 }
+void ImageModel::ClearImageCache() {
+    for (auto it = _images.begin(); it != _images.end(); ++it) {
+        delete it->second;
+    }
+    _images.clear();
+}
 
-void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void ImageModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     bool mustEnd = false;
     xlGraphicsContext *ctx = preview->getCurrentGraphicsContext();
@@ -215,21 +117,19 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         GetModelScreenLocation().PrepareToDraw(false, false);
 
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
 
         bool drawColor = (StringType.rfind("Single Color", 0) != 0 && StringType != "Node Single Color");
 
-        xlTexture *texture = _images[preview->GetName().ToStdString()];
-        xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
+        xlTexture *texture = _images[preview->getName()];
+        xlTexture* textureColorOverlay = _images[preview->getName() + "_color_overlay"];
         if (texture == nullptr && FileExists(_imageFile)) {
-            wxImage img(_imageFile);
-            if (img.IsOk()) {
-                bool mAlpha = img.HasAlpha();
-                if (!mAlpha && _whiteAsAlpha) {
-                    img.InitAlpha();
+            xlImage img;
+            if (img.LoadFromFile(_imageFile)) {
+                if (_whiteAsAlpha) {
                     for (int x = 0; x < img.GetWidth(); x++) {
                         for (int y = 0; y < img.GetHeight(); y++) {
-                            int r = img.GetRed(x,y);
+                            int r = img.GetRed(x, y);
                             if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y)) {
                                 img.SetAlpha(x, y, r);
                             }
@@ -257,9 +157,6 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
                 // Modify image for color overlay
                 if (drawColor) {
-                    if (!mAlpha) {
-                        img.InitAlpha();
-                    }
                     for (int x = 0; x < img.GetWidth(); x++) {
                         for (int y = 0; y < img.GetHeight(); y++) {
                             int l = img.GetGreen(x, y); // Take green as luminance. Red, Green, Blue should now be equal after grayscale conversion
@@ -352,7 +249,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+void ImageModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d,
                                       const xlColor* color, bool allowSelected, bool wiring,
                                       bool highlightFirst, int highlightpixel,
@@ -364,17 +261,15 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
 
     bool drawColor = !allowSelected && StringType.rfind("Single Color",0) != 0 && StringType != "Node Single Color";
 
-    xlTexture *texture = _images[preview->GetName().ToStdString()];
-    xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
+    xlTexture *texture = _images[preview->getName()];
+    xlTexture* textureColorOverlay = _images[preview->getName() + "_color_overlay"];
     if (texture == nullptr && FileExists(_imageFile)) {
-        wxImage img(_imageFile);
-        if (img.IsOk()) {
-            bool mAlpha = img.HasAlpha();
-            if (!mAlpha && _whiteAsAlpha) {
-                img.InitAlpha();
+        xlImage img;
+        if (img.LoadFromFile(_imageFile)) {
+            if (_whiteAsAlpha) {
                 for (int x = 0; x < img.GetWidth(); x++) {
                     for (int y = 0; y < img.GetHeight(); y++) {
-                        int r = img.GetRed(x,y);
+                        int r = img.GetRed(x, y);
                         if (r == img.GetGreen(x, y) && r == img.GetBlue(x, y)) {
                             img.SetAlpha(x, y, r);
                         }
@@ -396,18 +291,15 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                     }
                 }
             }
-            
+
             width = img.GetWidth();
             height = img.GetHeight();
-            hasAlpha = img.HasAlpha();
+            hasAlpha = true; // xlImage always has alpha
             texture = ctx->createTexture(img, GetName(), true);
-            _images[preview->GetName().ToStdString()] = texture;
+            _images[preview->getName()] = texture;
 
             // Modify image for color overlay
             if (drawColor) {
-                if (!mAlpha) {
-                    img.InitAlpha();
-                }
                 for (int x = 0; x < img.GetWidth(); x++) {
                     for (int y = 0; y < img.GetHeight(); y++) {
                         int l = img.GetGreen(x, y); // Take green as luminance. Red and Blue should now be equal to Green after grayscale conversion
@@ -418,7 +310,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                 }
             }
             textureColorOverlay = ctx->createTexture(img, GetName() + "_color_overlay", true);
-            _images[preview->GetName().ToStdString() + "_color_overlay"] = textureColorOverlay;
+            _images[preview->getName() + "_color_overlay"] = textureColorOverlay;
         }
     }
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
@@ -498,18 +390,18 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     }
 }
 
-bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
+bool ImageModel::CleanupFileLocations(RenderContext* ctx)
 {
     bool rc = false;
     if (FileExists(_imageFile)) {
-        if (!frame->IsInShowFolder(_imageFile)) {
-            _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
+        if (!ctx->IsInShowFolder(_imageFile)) {
+            _imageFile = ctx->MoveToShowFolder(_imageFile, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             Setup();
             rc = true;
         }
     }
 
-    return Model::CleanupFileLocations(frame) || rc;
+    return Model::CleanupFileLocations(ctx) || rc;
 }
 
 std::list<std::string> ImageModel::GetFileReferences()
@@ -525,13 +417,13 @@ std::list<std::string> ImageModel::CheckModelSettings()
 {
     std::list<std::string> res;
 
-    if (_imageFile == "" || !wxFile::Exists(_imageFile)) {
-        res.push_back(wxString::Format("    ERR: Image model '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
-    } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
-        res.push_back(wxString::Format("    ERR: Image model '%s' cant load image file '%s'", GetName(), _imageFile).ToStdString());
+    if (_imageFile == "" || !FileExists(_imageFile)) {
+        res.push_back(std::format("    ERR: Image model '{}' cant find image file '{}'", GetName(), _imageFile));
+    } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
+        res.push_back(std::format("    ERR: Image model '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
-            res.push_back(wxString::Format("    WARN: Image model '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());
+        if (!IsFileInShowDir(std::string(), _imageFile)) {
+            res.push_back(std::format("    WARN: Image model '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }
     res.splice(res.end(), Model::CheckModelSettings());
@@ -541,7 +433,7 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
 int ImageModel::GetChannelValue(int channel)
 {
-    wxASSERT(channel == 0);
+    assert(channel == 0);
 
     xlColor c;
     Nodes[channel]->GetColor(c);

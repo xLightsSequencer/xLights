@@ -1,7 +1,7 @@
 #include "ServiceManager.h"
 #include "UtilFunctions.h"
 #include "OpenAIAPI.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include <nlohmann/json.hpp>
 
 #include "OpenAIImageGenerator.h"
@@ -9,12 +9,13 @@
 #include <string>
 #include <vector>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
+#include <wx/msgdlg.h>
 
 constexpr const char* completion_url = "/chat/completions";
 
 std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string bearerToken = token;
 
@@ -35,12 +36,12 @@ std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const
         { "Authorization", "Bearer " + bearerToken }
     };
 
-    logger_base.debug("%s: %s", (const char*)GetLLMName().c_str(), (const char*)request.c_str());
+    spdlog::debug("{}: {}", GetLLMName(), request);
 
     int responseCode = 0;
-    std::string response = Curl::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
+    std::string response = CurlManager::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
-    logger_base.debug("%s Response %d: %s", (const char*)GetLLMName().c_str(), responseCode, (const char*)response.c_str());
+    spdlog::debug("{} Response {}: {}", GetLLMName(), responseCode, response);
 
     if (responseCode != 200) {
         return { response, false };
@@ -50,32 +51,32 @@ std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const
     try {
         root = nlohmann::json::parse(response);
     } catch (const std::exception&) {
-        logger_base.error("%s: Invalid JSON response: %s", (const char*)GetLLMName().c_str(), (const char*)response.c_str());
+        spdlog::error("{}: Invalid JSON response: {}", GetLLMName(), response);
         return { GetLLMName() +  ": Invalid JSON response", false };
     }
 
     auto choices = root["choices"];
     if (choices.is_null() || choices.size() == 0) {
-        logger_base.error("%s: No choices in response", (const char*)GetLLMName().c_str());
+        spdlog::error("{}: No choices in response", GetLLMName());
         return { GetLLMName() + ": No choices in response", false };
     }
 
     auto choice = choices[0];
     auto text = choice["message"]["content"];
     if (text.is_null()) {
-        logger_base.error("%s: No text in response", (const char*)GetLLMName().c_str());
+        spdlog::error("{}: No text in response", GetLLMName());
         return { GetLLMName() + ": No text in response", false };
     }
 
     response = text.get<std::string>();
-    logger_base.debug("%s: %s", GetLLMName().c_str(), response.c_str());
+    spdlog::debug("{}: {}", GetLLMName(), response);
 
     return { response, true };
 }
 
 aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt) const {
     aiBase::AIColorPalette ret;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (token.empty()) {
         ret.error = "You must set a " + GetLLMName() + " Bearer Token in the Preferences on the Services Panel";
@@ -130,23 +131,23 @@ aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt
         { "Authorization", "Bearer " + token }
     };
 
-    logger_base.debug("%s: %s", (const char*)GetLLMName().c_str(), (const char*)request.c_str());
+    spdlog::debug("{}: {}", GetLLMName(), request);
 
     int responseCode = 0;
-    std::string response = Curl::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
+    std::string response = CurlManager::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
-    logger_base.debug("%s Response %d: %s", (const char*)GetLLMName().c_str(), responseCode, (const char*)response.c_str());
+    spdlog::debug("{} Response {}: {}", GetLLMName(), responseCode, response);
     if (responseCode != 200) {
         ret.error = response;
     }
-    logger_base.debug("%s Response: %s", (const char*)GetLLMName().c_str(), (const char*)response.c_str());
+    spdlog::debug("{} Response: {}", GetLLMName(), response);
     try {
         nlohmann::json root = nlohmann::json::parse(response);
 
         if (root.contains("choices") && root["choices"].is_array() && root["choices"].size() > 0 && root["choices"][0].contains("message")) {
             auto const color_responce = root["choices"][0]["message"]["content"].get<std::string>();
 
-            logger_base.debug("%s Content %s", (const char*)GetLLMName().c_str(), (const char*)color_responce.c_str());
+            spdlog::debug("{} Content {}", GetLLMName(), color_responce);
             try {
                 // Check if the response is valid JSON
                 nlohmann::json const color_root = nlohmann::json::parse(color_responce);
@@ -156,7 +157,7 @@ aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt
                     if (color_root.contains("description")) {
                         ret.description = color_root["description"].get<std::string>();
                     }
-                    for (int x = 0; x < color_root["colors"].size(); x++) {
+                    for (size_t x = 0; x < color_root["colors"].size(); x++) {
                         auto& color = color_root["colors"][x];
                         ret.colors.push_back(aiBase::AIColor());
                         ret.colors.back().hexValue = color["hex_code"].get<std::string>();
@@ -166,16 +167,16 @@ aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt
                     return ret;
                 }
             } catch (const std::exception& ex) {
-                logger_base.error(ex.what());
+                spdlog::error("{}", ex.what());
             }
-            logger_base.error("Response does not contain 'colors' array or is not in expected format.");
+            spdlog::error("Response does not contain 'colors' array or is not in expected format.");
             ret.error = "Response does not contain 'colors' array or is not in expected format.";
         } else {
-            logger_base.error("Invalid response from %s API.", (const char*)GetLLMName().c_str());
+            spdlog::error("Invalid response from {} API.", GetLLMName());
             ret.error = "Invalid response from " + GetLLMName() + " API.";
         }
     } catch (const std::exception& e) {
-        logger_base.error(e.what());
+        spdlog::error("{}", e.what());
     }
 
     return ret;

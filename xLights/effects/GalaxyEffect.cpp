@@ -9,13 +9,12 @@
  **************************************************************/
 
 #include "GalaxyEffect.h"
-#include "GalaxyPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
-#include "../Parallel.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
+#include "Parallel.h"
 
 #include "../../include/galaxy-16.xpm"
 #include "../../include/galaxy-24.xpm"
@@ -31,10 +30,6 @@ GalaxyEffect::GalaxyEffect(int id) : RenderableEffect(id, "Galaxy", galaxy_16, g
 GalaxyEffect::~GalaxyEffect()
 {
     //dtor
-}
-
-xlEffectPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
-    return new GalaxyPanel(parent);
 }
 
 int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
@@ -70,41 +65,6 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
         }
     }
     return 2; // draw small icon
-}
-
-void GalaxyEffect::SetDefaultParameters() {
-    GalaxyPanel *gp = (GalaxyPanel*)panel;
-    if (gp == nullptr) {
-        return;
-    }
-
-    gp->ValueCurve_Galaxy_Accel->SetActive(false);
-    gp->ValueCurve_Galaxy_CenterX->SetActive(false);
-    gp->ValueCurve_Galaxy_CenterY->SetActive(false);
-    gp->ValueCurve_Galaxy_Duration->SetActive(false);
-    gp->ValueCurve_Galaxy_End_Radius->SetActive(false);
-    gp->ValueCurve_Galaxy_End_Width->SetActive(false);
-    gp->ValueCurve_Galaxy_Revolutions->SetActive(false);
-    gp->ValueCurve_Galaxy_Start_Angle->SetActive(false);
-    gp->ValueCurve_Galaxy_Start_Radius->SetActive(false);
-    gp->ValueCurve_Galaxy_Start_Width->SetActive(false);
-
-    SetSliderValue(gp->Slider_Galaxy_Accel, 0);
-    SetSliderValue(gp->Slider_Galaxy_CenterX, 50);
-    SetSliderValue(gp->Slider_Galaxy_CenterY, 50);
-    SetSliderValue(gp->Slider_Galaxy_Duration, 20);
-    SetSliderValue(gp->Slider_Galaxy_End_Radius, 10);
-    SetSliderValue(gp->Slider_Galaxy_End_Width, 5);
-    SetSliderValue(gp->Slider_Galaxy_Revolutions, 1440);
-    SetSliderValue(gp->Slider_Galaxy_Start_Angle, 0);
-    SetSliderValue(gp->Slider_Galaxy_Start_Radius, 1);
-    SetSliderValue(gp->Slider_Galaxy_Start_Width, 5);
-
-    SetCheckBoxValue(gp->CheckBox_Galaxy_Blend_Edges, true);
-    SetCheckBoxValue(gp->CheckBox_Galaxy_Inward, false);
-    SetCheckBoxValue(gp->CheckBox_Galaxy_Reverse, false);
-
-    SetCheckBoxValue(gp->CheckBox_Galaxy_Scale, true);
 }
 
 bool GalaxyEffect::needToAdjustSettings(const std::string& version) {

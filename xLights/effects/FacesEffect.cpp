@@ -8,27 +8,29 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <filesystem>
+#include <format>
 #include <list>
 
 #include "FacesEffect.h"
-#include "FacesPanel.h"
+#include "../utils/xlImage.h"
 #include "../models/Model.h"
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
-#include "../sequencer/SequenceElements.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
-#include "../xLightsMain.h" 
+#include "../render/SequenceElements.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
+#include "../render/RenderContext.h"
 #include "PicturesEffect.h"
-#include "../ExternalHooks.h"
+#include "utils/ExternalHooks.h"
 
-#include <wx/tokenzr.h>
+#include "../utils/string_utils.h"
 
 #include "../../include/corofaces.xpm"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 class FacesRenderCache : public EffectRenderCache {
     std::map<std::string, RenderBuffer*> _imageCache;
@@ -71,73 +73,7 @@ FacesEffect::~FacesEffect() {
     //dtor
 }
 
-wxString FacesEffect::GetEffectString() {
-    FacesPanel* p = (FacesPanel*)panel;
-    std::stringstream ret;
-
-    if (p->CheckBox_Faces_Outline->GetValue()) {
-        ret << "E_CHECKBOX_Faces_Outline=1,";
-
-        if (p->Choice1->GetStringSelection() != "") {
-            ret << "E_CHOICE_Faces_UseState=";
-            ret << p->Choice1->GetStringSelection();
-            ret << ",";
-        }
-    }
-
-    if (p->CheckBox_SuppressShimmer->GetValue()) {
-        ret << "E_CHECKBOX_Faces_SuppressShimmer=1,";
-    }
-
-    if (p->CheckBox_SuppressWhenNotSinging->GetValue() && !p->RadioButton1->GetValue()) {
-        ret << "E_CHECKBOX_Faces_SuppressWhenNotSinging=1,";
-        if (p->CheckBox_Fade->GetValue()) {
-            ret << "E_CHECKBOX_Faces_Fade=1,";
-        }
-        if (p->SpinCtrl_LeadFrames->GetValue() > 0) {
-            ret << "E_SPINCTRL_Faces_LeadFrames=";
-            ret << p->SpinCtrl_LeadFrames->GetValue();
-            ret << ",";
-        }
-    }
-
-    if (p->CheckBox_TransparentBlack->GetValue()) {
-        ret << "E_CHECKBOX_Faces_TransparentBlack=1,";
-        ret << "E_TEXTCTRL_Faces_TransparentBlack=";
-        ret << p->TextCtrl_Faces_TransparentBlack->GetValue().ToStdString();
-        ret << ",";
-    }
-
-    ret << "E_CHOICE_Faces_Eyes=";
-    ret << p->Choice_Faces_Eyes->GetStringSelection().ToStdString();
-    ret << ",";
-
-    ret << "E_CHOICE_Faces_EyeBlinkFrequency=";
-    ret << p->Choice_Faces_EyeBlinkFrequency->GetStringSelection().ToStdString();
-    ret << ",";
-
-    ret << "E_CHOICE_Faces_EyeBlinkDuration=";
-    ret << p->Choice_Faces_EyeBlinkDuration->GetStringSelection().ToStdString();
-    ret << ",";
-
-    ret << "E_CHOICE_Faces_FaceDefinition=";
-    ret << p->Face_FaceDefinitonChoice->GetStringSelection().ToStdString();
-    ret << ",";
-
-    if (p->RadioButton1->GetValue()) {
-        ret << "E_CHOICE_Faces_Phoneme=";
-        ret << p->Choice_Faces_Phoneme->GetStringSelection().ToStdString();
-        ret << ",";
-    } else {
-        ret << "E_CHOICE_Faces_TimingTrack=";
-        ret << p->Choice_Faces_TimingTrack->GetStringSelection().ToStdString();
-        ret << ",";
-    }
-    return ret.str();
-}
-
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
-    wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
@@ -163,7 +99,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     // check the face exists on the model
     if (definition != "Rendered") {
         if (model->GetFaceInfo().find(definition) == model->GetFaceInfo().end()) {
-            res.push_back(wxString::Format("    ERR: Face effect face '%s' does not exist on model '%s'. Start %s", definition, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Face effect face '{}' does not exist on model '{}'. Start {}", definition, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -174,10 +110,10 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (modelType != "Matrix" && modelType != "Rendered") {
         // -Buffer not rotated
-        wxString bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
+        std::string bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
 
         if (bufferTransform != "None") {
-            res.push_back(wxString::Format("    WARN: Face effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    WARN: Face effect with transformed buffer '{}' may not render correctly. Model '{}', Start {}", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())));
         }
 
         if (settings.GetInt("B_SLIDER_Rotation", 0) != 0 ||
@@ -190,11 +126,11 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
             settings.Get("B_VALUECURVE_YRotation", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Rotations", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos) {
-            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active may not render correctly. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    WARN: Face effect with rotozoom active may not render correctly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
 
         if (settings.Get("B_CUSTOM_SubBuffer", "") != "") {
-            res.push_back(wxString::Format("    WARN: Face effect with subbuffer defined '%s' may not render correctly. Model '%s', Start %s", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    WARN: Face effect with subbuffer defined '{}' may not render correctly. Model '{}', Start {}", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -206,14 +142,14 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
                 if (picture != "") {
                     if (!FileExists(picture)) {
-                        res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Definition '%s', Start %s", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-                    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture)) {
-                        res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Definition '%s', Start %s", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                        res.push_back(std::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
+                    } else if (!IsFileInShowDir(std::string(), picture)) {
+                        res.push_back(std::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     }
 
                     if (FileExists(picture)) {
-                        wxImage i;
-                        i.LoadFile(picture);
+                        xlImage i;
+                        i.LoadFromFile(picture);
                         if (i.IsOk()) {
                             int ih = i.GetHeight();
                             int iw = i.GetWidth();
@@ -221,7 +157,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 #define IMAGESIZETHRESHOLD 10
                             if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                                 float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
-                                res.push_back(wxString::Format("    WARN: Faces effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Definition '%s', Start %s", picture, scale, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                                res.push_back(std::format("    WARN: Faces effect image file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '{}', Definition '{}', Start {}", picture, scale, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                             }
                         }
                     }
@@ -230,14 +166,14 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
-    wxString timing = settings.Get("E_CHOICE_Faces_TimingTrack", "");
-    wxString phoneme = settings.Get("E_CHOICE_Faces_Phoneme", "");
+    std::string timing = settings.Get("E_CHOICE_Faces_TimingTrack", "");
+    std::string phoneme = settings.Get("E_CHOICE_Faces_Phoneme", "");
 
     // - Face chosen or specific phoneme
     if (phoneme == "" && timing == "") {
-        res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Face effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else if (timing != "" && GetTiming(timing) == nullptr) {
-        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Face effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -267,59 +203,6 @@ int FacesEffect::GetEyeBlinkDuration(std::string& eyeBlinkDurationString) const 
         EyeBlinkDuration = 400;
 
     return EyeBlinkDuration;
-}
-
-void FacesEffect::SetPanelStatus(Model* cls) {
-    FacesPanel* fp = (FacesPanel*)panel;
-    if (fp == nullptr)
-        return;
-
-    fp->Choice1->Clear();
-    fp->Choice1->Append("");
-    fp->Choice_Faces_TimingTrack->Clear();
-    fp->Face_FaceDefinitonChoice->Clear();
-    for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|')) {
-        fp->Choice_Faces_TimingTrack->Append(it);
-    }
-
-    bool addRender = true;
-    if (cls != nullptr) {
-        Model* m = cls;
-
-        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-            m = ((ModelGroup*)cls)->GetFirstModel();
-        } else if (cls->GetDisplayAs() == DisplayAsType::SubModel) {
-            m = ((SubModel*)cls)->GetParent();
-        }
-
-        if (m != nullptr) {
-            for (auto it : m->GetFaceInfo()) {
-                if (it.first != "") {
-                    fp->Face_FaceDefinitonChoice->Append(it.first);
-                    if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
-                        addRender = false;
-                    }
-                }
-            }
-
-            std::list<std::string> used;
-            for (const auto& it : m->GetStateInfo()) {
-                if (std::find(begin(used), end(used), it.first) == end(used) )
-                {
-                    fp->Choice1->Append(it.first);
-                    used.push_back(it.first);
-                }
-            }
-        }
-    }
-    if (fp->Face_FaceDefinitonChoice->GetCount() == 0) {
-        fp->Face_FaceDefinitonChoice->Append("Default");
-        addRender = false;
-    }
-    if (addRender) {
-        fp->Face_FaceDefinitonChoice->Append("Rendered");
-    }
-    fp->Face_FaceDefinitonChoice->SetSelection(0);
 }
 
 std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap) const {
@@ -374,40 +257,11 @@ std::list<std::string> FacesEffect::GetFileReferences(Model* model, const Settin
     return res;
 }
 
-xlEffectPanel* FacesEffect::CreatePanel(wxWindow* parent) {
-    return new FacesPanel(parent);
-}
-
-void FacesEffect::SetDefaultParameters() {
-    FacesPanel* fp = (FacesPanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    SetRadioValue(fp->RadioButton1);
-    SetChoiceValue(fp->Choice_Faces_Phoneme, "AI");
-    SetChoiceValue(fp->Choice_Faces_Eyes, "Auto");
-    SetChoiceValue(fp->Choice_Faces_EyeBlinkFrequency, "Normal");
-    SetChoiceValue(fp->Choice1, "");
-
-    if (fp->Face_FaceDefinitonChoice->GetCount() > 0) {
-        fp->Face_FaceDefinitonChoice->SetSelection(0);
-    }
-
-    SetCheckBoxValue(fp->CheckBox_SuppressShimmer, false);
-    SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
-    SetCheckBoxValue(fp->CheckBox_SuppressWhenNotSinging, false);
-    SetCheckBoxValue(fp->CheckBox_Fade, false);
-    SetSpinValue(fp->SpinCtrl_LeadFrames, 0);
-    SetCheckBoxValue(fp->CheckBox_TransparentBlack, false);
-    SetSliderValue(fp->Slider_Faces_TransparentBlack, 0);
-}
-
 void FacesEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Faces_TimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Faces_TimingTrack", "");
 
-    if (timing.ToStdString() == oldname) {
-        effect->GetSettings()["E_CHOICE_Faces_TimingTrack"] = wxString(newname);
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Faces_TimingTrack"] = newname;
     }
 }
 
@@ -475,7 +329,7 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
 
 void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
     //wxStopWatch sw;
     uint8_t alpha = 255;
     if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
@@ -510,7 +364,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     }
 
     //if (sw.TimeInMicro() > 2000) {
-    //    logger_base.debug("Face effect frame render time: %lldus %s", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
+    //    spdlog::debug("Face effect frame render time: {}us {}", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
     //}
 }
 
@@ -518,7 +372,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
     if (alpha == 0)
         return; // 0 alpha means there is nothing to do
 
-    static const std::map<wxString, int> phonemeMap = {
+    static const std::map<std::string, int> phonemeMap = {
         { "AI", 0 },
         { "E", 1 },
         { "FV", 2 },
@@ -532,11 +386,11 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
         { "(off)", 10 }
     };
 
-    wxString pp = Phoneme;
-    std::string p = pp.BeforeFirst('-');
-    bool shimmer = !suppressShimmer && pp.Lower().EndsWith("-shimmer");
+    std::string pp = Phoneme;
+    std::string p = BeforeFirst(pp, '-');
+    bool shimmer = !suppressShimmer && EndsWith(Lower(pp), "-shimmer");
 
-    std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
+    std::map<std::string, int>::const_iterator it = phonemeMap.find(p);
     int PhonemeInt = 0;
     if (it != phonemeMap.end()) {
         PhonemeInt = it->second;
@@ -799,46 +653,45 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
 
 /*----------------------CoroFaces--------------------------*/
 //TODO: move this to a shared location:
-static wxString NoInactive(wxString name)
+static std::string NoInactive(std::string name)
 {
-    const wxString InactiveIndicator = "?";
-    return name.StartsWith(InactiveIndicator)? name.substr(InactiveIndicator.size()): name;
+    const std::string InactiveIndicator = "?";
+    return name.starts_with(InactiveIndicator) ? name.substr(InactiveIndicator.size()) : name;
 }
 
 //cached model info:
 static std::unordered_map<std::string, std::unordered_map<std::string, /*wxPoint*/ std::string> > model_xy;
 
-static bool parse_model(const wxString& want_model)
+static bool parse_model(const std::string& want_model, const std::string& showDir)
 {
-    if (model_xy.find((const char*)want_model.c_str()) != model_xy.end()) return true; //already have info
+    if (model_xy.find(want_model) != model_xy.end()) return true; //already have info
 
-    wxFileName pgoFile;
-    wxXmlDocument pgoXml;
-    pgoFile.AssignDir(xLightsFrame::CurrentDir);
-    pgoFile.SetFullName(_(XLIGHTS_PGOFACES_FILE));
-    if (!FileExists(pgoFile)) return false;
-    if (!pgoXml.Load(pgoFile.GetFullPath())) return false;
-    wxXmlNode* root = pgoXml.GetRoot();
-    if (!root || (root->GetName() != "papagayo")) return false;
+    pugi::xml_document pgoXml;
+    std::filesystem::path pgoFile = std::filesystem::path(showDir) / XLIGHTS_PGOFACES_FILE;
+    std::string pgoFileStr = pgoFile.string();
+    if (!FileExists(pgoFileStr)) return false;
+    if (!pgoXml.load_file(pgoFileStr.c_str())) return false;
+    pugi::xml_node root = pgoXml.document_element();
+    if (!root || (std::string_view(root.name()) != "papagayo")) return false;
     for (int compat = 0; compat < 2; ++compat)
     {
-        wxXmlNode* Presets = xLightsFrame::FindNode(pgoXml.GetRoot(), compat? wxT("corofaces"): wxT("presets"), wxT("Name"), wxEmptyString, false); //kludge: backwards compatible with current settings
+        pugi::xml_node Presets = FindXmlNode(pgoXml.document_element(), compat? "corofaces": "presets", "Name", "", false); //kludge: backwards compatible with current settings
         if (!Presets) continue; //should be there if seq was generated in this folder
         //group name is not available, so use first occurrence of model in *any* group:
         //NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
-        for (wxXmlNode* group = Presets->GetChildren(); group != nullptr; group = group->GetNext())
+        for (pugi::xml_node group = Presets.first_child(); group; group = group.next_sibling())
         {
-            for (wxXmlNode* voice = group->GetChildren(); voice != nullptr; voice = voice->GetNext())
+            for (pugi::xml_node voice = group.first_child(); voice; voice = voice.next_sibling())
             {
-                wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));
+                std::string voice_name = NoInactive(voice.attribute("name").as_string());
                 if (voice_name != want_model) continue;
                 //XmlNode getting trashed later, so save it here
-                std::unordered_map<std::string, std::string>& map = model_xy[(const char*)want_model.c_str()];
+                std::unordered_map<std::string, std::string>& map = model_xy[want_model];
                 map.clear();
-                for (wxXmlAttribute* attrp = voice->GetAttributes(); attrp; attrp = attrp->GetNext())
+                for (pugi::xml_attribute attrp = voice.first_attribute(); attrp; attrp = attrp.next_attribute())
                 {
-                    wxString value = attrp->GetValue();
-                    if (!value.empty()) map[(const char*)attrp->GetName().c_str()] = (const char*)value.c_str();
+                    std::string value = attrp.as_string();
+                    if (!value.empty()) map[attrp.name()] = value;
                 }
                 return true;
             }
@@ -879,10 +732,10 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     HSVValue hsv;
     buffer.Color2HSV(color, hsv);
 
-    std::vector<wxPoint> first_xy;
+    std::vector<xlPoint> first_xy;
     const Model* model_info = buffer.GetModel();
 
-    if (!model_info || !parse_model(buffer.cur_model))
+    if (!model_info || !parse_model(buffer.cur_model, buffer.renderContext->GetShowDirectory()))
     {
         return;
     }
@@ -903,13 +756,13 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         std::string eyesLower(eyes);
         std::transform(eyesLower.begin(), eyesLower.end(), eyesLower.begin(), ::tolower);
 
-        std::string info = map[wxString::Format(wxT("Eyes_%s"), eyesLower.c_str()).ToStdString()];
+        std::string info = map[std::format("Eyes_{}", eyesLower)];
         Model::ParseFaceElement(info, first_xy);
 
-        info = map[wxString::Format(wxT("Eyes2_%s"), eyesLower.c_str()).ToStdString()];
+        info = map[std::format("Eyes2_{}", eyesLower)];
         Model::ParseFaceElement(info, first_xy);
 
-        info = map[wxString::Format(wxT("Eyes3_%s"), eyesLower.c_str()).ToStdString()];
+        info = map[std::format("Eyes3_{}", eyesLower)];
         Model::ParseFaceElement(info, first_xy);
     }
     if (face_outline)
@@ -926,7 +779,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
 std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf)
 {
-    return wxString::Format("%d|%d|%s|%s|%s", bufferWi, bufferHt, dirstr, picture, stf).ToStdString();
+    return std::format("{}|{}|{}|{}|{}", bufferWi, bufferHt, dirstr, picture, stf);
 }
 
 
@@ -1052,8 +905,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     if (buffer.curEffStartPer == buffer.curPeriod) {
         if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default") {
             if (buffer.isTransformed) {
-                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
+                
+                spdlog::warn("Faces effect starting at {}ms until {}ms on model {} has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
             }
         }
     }
@@ -1174,9 +1027,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
 
     bool customColor = findKey(faceInfoDef, "CustomColors") == "1";
 
-    wxString pp = phoneme;
-    std::string p = pp.BeforeFirst('-');
-    bool shimmer = !suppressShimmer && pp.Lower().EndsWith("-shimmer");
+    std::string pp = phoneme;
+    std::string p = BeforeFirst(pp, '-');
+    bool shimmer = !suppressShimmer && EndsWith(Lower(pp), "-shimmer");
 
     std::vector<std::string> todo;
     std::vector<xlColor> colors;
@@ -1208,7 +1061,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
     }
-    if (buffer.palette.Size() > colorOffset) {
+    if ((int)buffer.palette.Size() > colorOffset) {
         buffer.palette.GetColor(colorOffset, color); //use second color for eyes; user must make sure it matches model node type
     }
     if (eyes == "Open" || eyes == "Auto") {
@@ -1238,7 +1091,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 3) {
+            if ((int)buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
@@ -1256,7 +1109,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 4) {
+            if ((int)buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
@@ -1289,7 +1142,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 3) {
+            if ((int)buffer.palette.Size() > colorOffset + 3) {
                 buffer.palette.GetColor(colorOffset + 3, color); //use fifth colour
             }
             colors.push_back(color);
@@ -1307,7 +1160,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
         } else {
-            if (buffer.palette.Size() > colorOffset + 4) {
+            if ((int)buffer.palette.Size() > colorOffset + 4) {
                 buffer.palette.GetColor(colorOffset + 4, color); //use sixth colour
             }
             colors.push_back(color);
@@ -1316,7 +1169,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     } else if (eyes == "(off)") {
         //no eyes
     }
-    if (buffer.palette.Size() > (1 + colorOffset)) {
+    if ((int)buffer.palette.Size() > (1 + colorOffset)) {
         buffer.palette.GetColor((1 + colorOffset), color); //use third color for outline; user must make sure it matches model node type
     }
     if (face_outline) {
@@ -1335,7 +1188,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             colors.front().alpha = ((int)alpha * colors.front().alpha) / 255;
         }
 
-        if (buffer.palette.Size() > (2 + colorOffset)) {
+        if ((int)buffer.palette.Size() > (2 + colorOffset)) {
             buffer.palette.GetColor((2 + colorOffset), color); //use forth color for outline 2; user must make sure it matches model node type
         }
 
@@ -1435,11 +1288,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             }
         } else {
             std::string channels = findKey(faceInfoDef, todo[t]);
-            wxStringTokenizer wtkz(channels, ",");
-            while (wtkz.HasMoreTokens()) {
-                wxString valstr = wtkz.GetNextToken();
+            for (const auto& valstr : Split(channels, ',')) {
                 if (type == 0) {
-                    auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
+                    auto it2 = cache->nodeNameCache.find(valstr);
                     if (it2 != cache->nodeNameCache.end()) {
                         int n = it2->second;
                         buffer.SetNodePixel(n, colors[t], true);
@@ -1454,8 +1305,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if (findKey(sts, "CustomColors") == "1") {
                     if (findKey(sts, "Type") == "NodeRange") {
                         for (size_t i = 1; i <= 200; i++) {
-                            auto r = findKey(sts, wxString::Format("s%03d", (int)i));
-                            auto c = findKey(sts, wxString::Format("s%03d-Color", (int)i));
+                            auto r = findKey(sts, std::format("s{:03d}", (int)i));
+                            auto c = findKey(sts, std::format("s{:03d}-Color", (int)i));
                             if (r != "") {
                                 xlColor colour = xlColor(c);
                                 if (c.empty()) {
@@ -1465,7 +1316,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                                 
                                 // use the nodes as it is faster
                                 if (model_info->GetStateInfoNodes().find(outlineState) != model_info->GetStateInfoNodes().end()) {
-                                    const std::string k2 = wxString::Format("s%03d", (int)i).ToStdString();
+                                    const std::string k2 = std::format("s{:03d}", (int)i);
                                     for (const auto it : model_info->GetStateInfoNodes().find(outlineState)->second.find(k2)->second) {
                                         buffer.SetNodePixel(it, colour, true);
                                     }

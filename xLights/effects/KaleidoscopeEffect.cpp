@@ -8,7 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <sstream>
+#include <cassert>
+#include <format>
 
 #include "../../include/kaleidoscope-64.xpm"
 #include "../../include/kaleidoscope-48.xpm"
@@ -17,17 +18,14 @@
 #include "../../include/kaleidoscope-16.xpm"
 
 #include "KaleidoscopeEffect.h"
-#include "KaleidoscopePanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsMain.h"
-#include "../xLightsApp.h"
-#include "../TimingPanel.h"
+#include "../models/Model.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "UtilFunctions.h"
 
-#include "../Parallel.h"
-#include <log4cpp/Category.hh>
+#include "Parallel.h"
+#include <log.h>
 
 KaleidoscopeEffect::KaleidoscopeEffect(int i) : RenderableEffect(i, "Kaleidoscope", kaleidoscope_16, kaleidoscope_24, kaleidoscope_32, kaleidoscope_48, kaleidoscope_64)
 {
@@ -37,43 +35,16 @@ KaleidoscopeEffect::~KaleidoscopeEffect()
 {
 }
 
-xlEffectPanel *KaleidoscopeEffect::CreatePanel(wxWindow *parent)
-{
-    return new KaleidoscopePanel(parent);
-}
-
 std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0")
     {
-        res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a Kaleidoscope effect. Without canvas mode Kaleidoscope won't do anything. Effect: Kaleidoscope, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Canvas mode not enabled on a Kaleidoscope effect. Without canvas mode Kaleidoscope won't do anything. Effect: Kaleidoscope, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-void KaleidoscopeEffect::SetDefaultParameters()
-{
-    KaleidoscopePanel *p = (KaleidoscopePanel *)panel;
-
-    p->BitmapButton_Kaleidoscope_X->SetActive(false);
-    p->BitmapButton_Kaleidoscope_Y->SetActive(false);
-    p->BitmapButton_Kaleidoscope_Size->SetActive(false);
-    p->BitmapButton_Kaleidoscope_Rotation->SetActive(false);
-
-    p->Choice_Kaleidoscope_Type->SetSelection(0);
-
-    SetSliderValue(p->Slider_Kaleidoscope_X, 50);
-    SetSliderValue(p->Slider_Kaleidoscope_Y, 50);
-    SetSliderValue(p->Slider_Kaleidoscope_Size, 5);
-    SetSliderValue(p->Slider_Kaleidoscope_Rotation, 0);
-
-    // Turn on canvas mode as this really only makes sense in canvas mode
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
-    layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
 class KaleidoscopeRenderCache : public EffectRenderCache {
@@ -128,7 +99,7 @@ public:
             }
             else
             {
-                wxASSERT(false);
+                assert(false);
             }
         }
     }
@@ -151,7 +122,7 @@ public:
             if (bl == tl && bl == tr && bl == br) return false;
         }
 
-        _edges.push_back(KaleidoscopeEdge(wxPoint(x1, y1), wxPoint(x2, y2)));
+        _edges.push_back(KaleidoscopeEdge(xlPoint(x1, y1), xlPoint(x2, y2)));
         return true;
     }
 
@@ -284,7 +255,7 @@ public:
                 if (CreateEdge(p3.first, p3.second, p1.first, p1.second)) added++;
                 if (rotation == 0)
                 {
-                    wxASSERT(p2.second == p3.second);
+                    assert(p2.second == p3.second);
                 }
             }
             else
@@ -337,7 +308,7 @@ std::pair<int, int> KaleidoscopeEffect::GetSourceLocation(int x, int y, const Ka
 
 void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int height)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     for (int y = height - 1; y >= 0; y--)
     {
@@ -345,9 +316,9 @@ void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int heig
         for (int x = 0; x < width; x++)
         {
             bool b = current[x][y];
-            row += wxString::Format(" %d", (int)b);
+            row += std::format(" {}", (int)b);
         }
-        logger_base.debug(row);
+        spdlog::debug(row);
     }
 }
 
@@ -604,7 +575,7 @@ void KaleidoscopeEffect::RenderNew(const std::string& type, int xCentre, int yCe
 
 void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
     std::string type = SettingsMap.Get("CHOICE_Kaleidoscope_Type", "Triangle");
@@ -641,12 +612,12 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
     auto &edges = cache->_edges;
 
     auto edge = edges.begin();
-    //logger_base.debug("frame. Edges %d", (int)edges.size());
+    //spdlog::debug("frame. Edges {}", (int)edges.size());
     std::atomic_int setSinceBegin;
     setSinceBegin = 0;
     while (!KaleidoscopeDone(currentUsed) && edges.size() > 0)
     {
-        //logger_base.debug("   iterate");
+        //spdlog::debug("   iterate");
         //int set = 0;
 
         //DumpUsed(currentUsed, buffer.BufferWi, buffer.BufferHt);
@@ -666,7 +637,7 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
                 }
             }
         });
-        //logger_base.debug("   set this iteration %d", set);
+        //spdlog::debug("   set this iteration {}", set);
         ++edge;
         if (edge == edges.end()) {
             if (setSinceBegin == 0)

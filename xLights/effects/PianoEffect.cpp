@@ -8,27 +8,28 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cstdlib>
+#include <format>
 #include <vector>
 
 #include "../../include/piano-16.xpm"
 #include "../../include/piano-64.xpm"
 
 #include "PianoEffect.h"
-#include "PianoPanel.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
-#include "../sequencer/Effect.h"
-#include "../xLightsXmlFile.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
+#include "../render/Effect.h"
+#include "../render/SequenceFile.h"
+#include "../render/SequenceElements.h"
 #include "models/Model.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 PianoEffect::PianoEffect(int id) :
     RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
 {
     // ctor
-    _panel = nullptr;
 }
 
 PianoEffect::~PianoEffect()
@@ -41,102 +42,24 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "") == "") {
-        res.push_back(wxString::Format("    ERR: Piano effect needs a timing track. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Piano effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         std::map<int, std::list<std::pair<float, float>>> timings = LoadTimingTrack(settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), 50, false);
         if (timings.size() == 0) {
-            res.push_back(wxString::Format("    ERR: Piano effect timing track '%s' has no notes. Model '%s', Start %s", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Piano effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
     return res;
 }
 
-void PianoEffect::SetPanelStatus(Model* cls)
-{
-    SetPanelTimingTracks();
-}
-
-void PianoEffect::SetPanelTimingTracks()
-{
-    PianoPanel* fp = (PianoPanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    if (mSequenceElements == nullptr) {
-        return;
-    }
-
-    // Load the names of the timing tracks
-    std::string timingtracks = GetTimingTracks(1);
-    wxCommandEvent event(EVT_SETTIMINGTRACKS);
-    event.SetString(timingtracks);
-    wxPostEvent(fp, event);
-}
-
-void PianoEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
-{
-    // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-
-    if (IsVersionOlder("2016.45", version)) {
-        SettingsMap& settings = effect->GetSettings();
-        wxString oldsettings = settings.Get("E_CHOICE_Piano_Notes_Source", "newsettings");
-
-        if (oldsettings != "newsettings") {
-            if (oldsettings == "Timing Track") {
-                DisplayWarning("Piano effect has changed. Old settings have been removed but you should be ok.");
-            } else {
-                DisplayWarning("Piano effect has changed. Old settings have been removed. Please create a notes timing track using 'import notes' by right clicking on the timing track in the sequencer and then adjust piano settings.");
-            }
-
-            // strip out old settings
-            settings.erase("E_CHOICE_Piano_Notes_Source");
-            settings.erase("E_TEXTCTRL_Piano_File");
-            settings.erase("E_SLIDER_Piano_MIDI_Start");
-            settings.erase("E_SLIDER_Piano_MIDI_Speed");
-        }
-    }
-}
-
-xlEffectPanel* PianoEffect::CreatePanel(wxWindow* parent)
-{
-    _panel = new PianoPanel(parent);
-    return _panel;
-}
-
-void PianoEffect::SetDefaultParameters()
-{
-    PianoPanel* pp = (PianoPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    pp->BitmapButton_Piano_ScaleVC->SetActive(false);
-
-    SetChoiceValue(pp->Choice_Piano_Type, "True Piano");
-    SetSpinValue(pp->SpinCtrl_Piano_StartMIDI, 60);
-    SetSpinValue(pp->SpinCtrl_Piano_EndMIDI, 72);
-    SetCheckBoxValue(pp->CheckBox_Piano_ShowSharps, true);
-    SetCheckBoxValue(pp->CheckBox_FadeNotes, false);
-    SetSliderValue(pp->Slider_Piano_Scale, 100);
-    SetSliderValue(pp->Slider_Piano_XOffset, 0);
-
-    SetPanelTimingTracks();
-}
-
 void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
 
-    if (timing.ToStdString() == oldname) {
-        effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = wxString(newname);
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = newname;
     }
-
-    SetPanelTimingTracks();
 }
 
 void PianoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -178,9 +101,6 @@ void PianoEffect::RenderPiano(RenderBuffer& buffer, SequenceElements* elements, 
     std::string& _MIDITrack = cache->_MIDItrack;
 
     if (buffer.needToInit) {
-        // just in case the timing tracks have changed
-        SetPanelTimingTracks();
-
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack) {
             _timings.clear();
@@ -520,18 +440,18 @@ void PianoEffect::DrawBarsPiano(RenderBuffer& buffer, std::list<std::pair<float,
     }
 }
 
-std::vector<float> PianoEffect::Parse(wxString& l)
+std::vector<float> PianoEffect::Parse(const std::string& l)
 {
     std::vector<float> res;
-    wxString s = l;
-    while (s.Len() != 0) {
-        int end = s.First('\t');
-        if (end > 0) {
-            res.push_back(wxAtof(s.SubString(0, end - 1)));
-            s = s.Right(s.Len() - end - 1);
+    std::string s = l;
+    while (!s.empty()) {
+        auto end = s.find('\t');
+        if (end != std::string::npos) {
+            res.push_back(std::strtod(s.substr(0, end).c_str(), nullptr));
+            s = s.substr(end + 1);
         } else {
-            res.push_back(wxAtof(s));
-            s = "";
+            res.push_back(std::strtod(s.c_str(), nullptr));
+            s.clear();
         }
     }
 
@@ -597,7 +517,7 @@ int PianoEffect::ConvertNote(const std::string& note)
         nletter = 7;
         break;
     default: {
-        int number = wxAtoi(n);
+        int number = std::strtol(n.c_str(), nullptr, 10);
         if (number < 0)
             number = 0;
         if (number > 127)
@@ -625,7 +545,7 @@ int PianoEffect::ConvertNote(const std::string& note)
     }
 
     if (n != "") {
-        octave = wxAtoi(n);
+        octave = std::strtol(n.c_str(), nullptr, 10);
     }
 
     int number = 12 + (octave * 12) + nletter + sharp;
@@ -648,13 +568,12 @@ std::tuple<int, int, int>* FindTracker(std::list<std::tuple<int, int, int>>& tra
 
 std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(const std::string& track, int intervalMS, bool fadeNotes)
 {
-    static log4cpp::Category& logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<std::pair<float, float>>> res;
 
-    logger_pianodata.debug("Loading timings from timing track " + track);
+    spdlog::debug("Loading timings from timing track " + track);
 
     if (mSequenceElements == nullptr) {
-        logger_pianodata.debug("No timing tracks found.");
+        spdlog::debug("No timing tracks found.");
         return res;
     }
 
@@ -662,7 +581,7 @@ std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(c
     EffectLayer* el = GetTiming(track);
 
     if (el == nullptr) {
-        logger_pianodata.debug("Timing track not found.");
+        spdlog::debug("Timing track not found.");
         return res;
     }
 

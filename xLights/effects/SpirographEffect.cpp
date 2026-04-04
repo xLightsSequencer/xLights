@@ -8,12 +8,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "SpirographEffect.h"
-#include "SpirographPanel.h"
+#include <cassert>
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "SpirographEffect.h"
+
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/spirograph-16.xpm"
 #include "../../include/spirograph-24.xpm"
@@ -30,34 +31,6 @@ SpirographEffect::~SpirographEffect()
 {
     //dtor
 }
-xlEffectPanel *SpirographEffect::CreatePanel(wxWindow *parent) {
-    return new SpirographPanel(parent);
-}
-
-void SpirographEffect::SetDefaultParameters()
-{
-    SpirographPanel *sp = (SpirographPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Spirograph_AnimateVC->SetActive(false);
-    sp->BitmapButton_Spirograph_LengthVC->SetActive(false);
-    sp->BitmapButton_Spirograph_WidthVC->SetActive(false);
-    sp->BitmapButton_Spirograph_dVC->SetActive(false);
-    sp->BitmapButton_Spirograph_RVC->SetActive(false);
-    sp->BitmapButton_Spirograph_rVC->SetActive(false);
-    sp->BitmapButton_Spirograph_SpeedrVC->SetActive(false);
-
-    SetSliderValue(sp->Slider_Spirograph_Speed, 10);
-    SetSliderValue(sp->Slider_Spirograph_R, 20);
-    SetSliderValue(sp->Slider_Spirograph_r, 10);
-    SetSliderValue(sp->Slider_Spirograph_d, 30);
-    SetSliderValue(sp->Slider_Spirograph_Animate, 0);
-    SetSliderValue(sp->Slider_Spirograph_Length, 20);
-    SetSliderValue(sp->Slider_Spirograph_Width, 1);
-}
-
 void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
@@ -105,8 +78,8 @@ void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
     if (Animate) d = d_orig + animateState * d_orig; // should we modify the distance variable each pass through?
     float step = 1.0 / width;
     float stepw = 1.0 / (log10(width) + 1);
-    wxASSERT(step != 0);
-    wxASSERT(stepw != 0);
+    assert(step != 0);
+    assert(stepw != 0);
     for (float i = 1.0; i <= length; i += step)
     {
         float t = (i + mod1440) * M_PI / 180.0;
@@ -121,7 +94,7 @@ void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
         double hyp = (sqrt(x2 + y2) / buffer.BufferWi) * 100.0;
         int ColorIdx = (int)(hyp / d_mod); // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
 
-        if (ColorIdx >= colorcnt) ColorIdx = colorcnt - 1;
+        if (ColorIdx >= (int)colorcnt) ColorIdx = (int)colorcnt - 1;
 
         buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
 

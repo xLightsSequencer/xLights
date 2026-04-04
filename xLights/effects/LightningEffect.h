@@ -31,7 +31,6 @@ class LightningEffect : public RenderableEffect
 public:
     LightningEffect(int id);
     virtual ~LightningEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -72,6 +71,4 @@ public:
 
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

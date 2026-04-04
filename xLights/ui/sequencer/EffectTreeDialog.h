@@ -1,0 +1,194 @@
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+//(*Headers(EffectTreeDialog)
+#include <wx/button.h>
+#include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/statbmp.h>
+#include <wx/textctrl.h>
+#include <wx/timer.h>
+#include <wx/treectrl.h>
+//*)
+#include <pugixml.hpp>
+#include <wx/filename.h>
+#include <wx/dnd.h>
+
+#include <mutex>
+#include <memory>
+
+#include "utils/AnimatedImage.h"
+#include "ui/effects/EffectPresetManager.h"
+
+class xLightsFrame;
+
+class EffectTreeDialog : public wxDialog
+{
+    void ValidateWindow();
+
+	public:
+
+		EffectTreeDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~EffectTreeDialog();
+
+		//(*Declarations(EffectTreeDialog)
+		wxButton* Button_Bottom;
+		wxButton* Button_MoveDown;
+		wxButton* Button_MoveUp;
+		wxButton* Button_Top;
+		wxButton* ETButton1;
+		wxButton* btAddGroup;
+		wxButton* btApply;
+		wxButton* btDelete;
+		wxButton* btExport;
+		wxButton* btImport;
+		wxButton* btNewPreset;
+		wxButton* btRename;
+		wxButton* btUpdate;
+		wxStaticBitmap* StaticBitmapGif;
+		wxTextCtrl* TextCtrl1;
+		wxTimer TimerGif;
+		wxTreeCtrl* TreeCtrl1;
+		//*)
+        wxTreeItemId treeRootID;
+        void InitItems(EffectPresetManager& manager);
+        bool NameCollissionInGroup(wxTreeItemId groupId, std::string name);
+        static const long ID_GRID_MNU_SORT_ASC;
+        static const long ID_GRID_MNU_SORT_ALL_ASC;
+        void MoveNode(wxTreeItemId& srcItem, wxTreeItemId& destItem, bool selSrc);
+        void SortTreeCtrl(wxTreeCtrl* treeCtrl, const wxTreeItemId& itemId);
+  
+	protected:
+
+		//(*Identifiers(EffectTreeDialog)
+		static const wxWindowID ID_TREECTRL1;
+		static const wxWindowID ID_BUTTON11;
+		static const wxWindowID ID_BUTTON9;
+		static const wxWindowID ID_BUTTON10;
+		static const wxWindowID ID_BUTTON12;
+		static const wxWindowID ID_STATICBITMAP_GIF;
+		static const wxWindowID ID_BUTTON6;
+		static const wxWindowID ID_BUTTON7;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_BUTTON4;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON8;
+		static const wxWindowID ID_BUTTON3;
+		static const wxWindowID ID_BUTTON5;
+		static const wxWindowID ID_TEXTCTRL_SEARCH;
+		static const wxWindowID ID_BUTTON_SEARCH;
+		static const wxWindowID ID_TIMER_GIF;
+		//*)
+
+	private:
+
+		//(*Handlers(EffectTreeDialog)
+		void OnbtApplyClick(wxCommandEvent& event);
+		void OnbtNewPresetClick(wxCommandEvent& event);
+		void OnbtUpdateClick(wxCommandEvent& event);
+		void OnbtRenameClick(wxCommandEvent& event);
+		void OnbtDeleteClick(wxCommandEvent& event);
+		void OnbtAddGroupClick(wxCommandEvent& event);
+		void OnTreeCtrl1ItemActivated(wxTreeEvent& event);
+		void OnButton_OKClick(wxCommandEvent& event);
+		void OnTreeCtrl1BeginDrag(wxTreeEvent& event);
+		void OnbtImportClick(wxCommandEvent& event);
+		void OnbtExportClick(wxCommandEvent& event);
+		void OnTreeCtrl1SelectionChanged(wxTreeEvent& event);
+		void OnETButton1Click(wxCommandEvent& event);
+		void OnTextCtrl1TextEnter(wxCommandEvent& event);
+		void OnTimerGifTrigger(wxTimerEvent& event);
+		void OnTreeCtrl1KeyDown(wxTreeEvent& event);
+		void OnButton_TopClick(wxCommandEvent& event);
+		void OnButton_MoveUpClick(wxCommandEvent& event);
+		void OnButton_MoveDownClick(wxCommandEvent& event);
+		void OnButton_BottomClick(wxCommandEvent& event);
+		void OnTreeCtrl1ItemRightClick(wxTreeEvent& event);
+		//*)
+
+        void DeleteSelectedItem();
+
+		std::unique_ptr<wxBitmap> _blankGIFImage;
+        std::unique_ptr<AnimatedImage> gifImage;
+        int frameCount = 0;
+        xLightsFrame* xLightParent = nullptr;
+		EffectPresetManager* _presetManager = nullptr;
+        wxTreeItemId m_draggedItem;
+        std::mutex preset_mutex;
+        bool _effectsFixed = false;
+        void OnGridPopup(wxCommandEvent& event);
+        void AddTreeElementsRecursive(EffectPresetGroup& group, wxTreeItemId curGroupID);
+        void ApplyEffect(bool dblClick=false);
+        void AddEffect(pugi::xml_node ele, wxTreeItemId curGroupID);
+        void AddGroup(pugi::xml_node ele, wxTreeItemId curGroupID);
+        void EffectsFileDirty();
+        int GetOptimalPreviewSize();
+    
+        wxTreeItemId findTreeItem(wxTreeCtrl* pTreeCtrl, const wxTreeItemId& root, const wxTreeItemId& startID, const wxString& text, bool &startfound);
+
+        void SearchForText();
+
+		DECLARE_EVENT_TABLE()
+
+        wxString ParseLayers(wxString name, wxString settings);
+        wxString ParseDuration(wxString name, wxString settings);
+
+		wxString generatePresetName(wxTreeItemId itemID);
+        void GenerateGifImage(wxTreeItemId itemID, bool regenerate = false);
+        void LoadGifImage(wxString const& path);
+        void PlayGifImage();
+        void StopGifImage();
+        void DeleteGifImage(wxTreeItemId itemID);
+        bool FixName(std::string& name);
+        void FixDuplicatesInGroup(wxTreeItemId parent);
+        wxTreeItemId FindGroupItem(wxTreeItemId parent, std::string name);
+        std::string GetFullPathOfGroup(wxTreeItemId itemId);
+        std::vector<std::string> GetGifFileNamesRecursive(wxTreeItemId itemId);
+        void DeleteGifsRecursive(wxTreeItemId parentId);
+        void PurgeDanglingGifs();
+        bool PromptForName(wxWindow* parent, wxString& name, bool isNew, bool isGroup);
+        void OnDropEffect(wxCommandEvent& event);
+
+};
+
+class MyTreeItemData : public wxTreeItemData
+{
+public:
+    MyTreeItemData(EffectPresetItem* item) : _item(item) {}
+
+    EffectPresetItem* GetItem() { return _item; }
+    bool IsGroup() { return _item != nullptr && _item->IsGroup(); }
+    EffectPreset* AsPreset() { return (!_item || _item->IsGroup()) ? nullptr : static_cast<EffectPreset*>(_item); }
+    EffectPresetGroup* AsGroup() { return (!_item || !_item->IsGroup()) ? nullptr : static_cast<EffectPresetGroup*>(_item); }
+private:
+    EffectPresetItem* _item = nullptr;
+};
+
+class EffectTreeDialogTextDropTarget : public wxTextDropTarget
+{
+    public:
+        EffectTreeDialogTextDropTarget(EffectTreeDialog* owner, wxTreeCtrl* tree, wxString type) {
+            _owner = owner;
+            _tree = tree;
+            _type = type;
+        };
+
+        virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
+        virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+        void UpdateItemFeedback(wxTreeItemId currItem);
+        EffectTreeDialog* _owner;
+        wxTreeCtrl* _tree;
+        wxString _type;
+        wxTreeItemId _lastDragOverItem;
+        wxLongLong _dragOverHoldTime;
+};
+

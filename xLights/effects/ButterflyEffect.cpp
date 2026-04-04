@@ -10,11 +10,9 @@
 
 #include "ButterflyEffect.h"
 
-#include "ButterflyPanel.h"
-
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/butterfly-16.xpm"
 #include "../../include/butterfly-24.xpm"
@@ -22,7 +20,7 @@
 #include "../../include/butterfly-48.xpm"
 #include "../../include/butterfly-64.xpm"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include "ispc/ButterflyFunctions.ispc.h"
 
@@ -36,10 +34,6 @@ ButterflyEffect::~ButterflyEffect()
     //dtor
 }
 
-
-xlEffectPanel *ButterflyEffect::CreatePanel(wxWindow *parent) {
-    return new ButterflyPanel(parent);
-}
 
 /*
  01) x*y^3-y*x^3
@@ -58,26 +52,6 @@ static inline int GetButterflyColorScheme(const std::string &color) {
     }
     return 0;
 }
-
-void ButterflyEffect::SetDefaultParameters() {
-    ButterflyPanel *bp = (ButterflyPanel*)panel;
-    if (bp == nullptr) {
-        return;
-    }
-
-    SetChoiceValue(bp->Choice_Butterfly_Colors, "Rainbow");
-    SetChoiceValue(bp->Choice_Butterfly_Direction, "Normal");
-
-    bp->BitmapButton_Butterfly_Chunks->SetActive(false);
-    bp->BitmapButton_Butterfly_Skip->SetActive(false);
-    bp->BitmapButton_Butterfly_Speed->SetActive(false);
-
-    SetSliderValue(bp->Slider_Butterfly_Style, 1);
-    SetSliderValue(bp->Slider_Butterfly_Chunks, 1);
-    SetSliderValue(bp->Slider_Butterfly_Skip, 2);
-    SetSliderValue(bp->Slider_Butterfly_Speed, 10);
-}
-
 
 void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
@@ -103,7 +77,7 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     data.width = buffer.BufferWi;
     data.height = buffer.BufferHt;
     data.numColors = colorcnt;
-    for (int x = 0; x < colorcnt; x++) {
+    for (int x = 0; x < (int)colorcnt; x++) {
         const xlColor &c = buffer.palette.GetColor(x);
         data.colors[x].v[0] = c.red;
         data.colors[x].v[1] = c.green;

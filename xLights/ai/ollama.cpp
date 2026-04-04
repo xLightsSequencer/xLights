@@ -1,7 +1,7 @@
 #include "ollama.h"
 #include <nlohmann/json.hpp>
 #include "ServiceManager.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
 
 #include <wx/propgrid/propgrid.h>
@@ -9,31 +9,41 @@
 #include <vector>
 #include <string>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 #include <Color.h>
 
 bool ollama::IsAvailable() const {
-    return !host.empty() && _enabled;
+    return !host.empty() && !_enabledTypes.empty();
 }
 
 void ollama::SaveSettings() const {
-    _sm->setServiceSetting("ollamaEnable", _enabled);
     _sm->setServiceSetting("ollamaHost", host);
     _sm->setServiceSetting("ollamaPort", port_num);
     _sm->setServiceSetting("ollamaModel", model);
+    for (auto t : GetTypes()) {
+        _sm->setServiceSetting(std::string("ollamaEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
+    }
 }
 
 void ollama::LoadSettings() {
-    _enabled = _sm->getServiceSetting("ollamaEnable", _enabled);
     host = _sm->getServiceSetting("ollamaHost", host);
     model = _sm->getServiceSetting("ollamaModel", model);
     port_num = _sm->getServiceSetting("ollamaPort", port_num);
+    bool oldEnabled = _sm->getServiceSetting("ollamaEnable", false);
+    for (auto t : GetTypes()) {
+        bool enabled = _sm->getServiceSetting(std::string("ollamaEnable_") + aiType::TypeSettingsSuffix(t), oldEnabled);
+        SetEnabledForType(t, enabled);
+    }
 }
 
 void ollama::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("ollama"));
-    auto p = page->Append(new wxBoolProperty("Enabled", "ollama.Enabled", _enabled));
-    p->SetEditor("CheckBox");
+    for (auto t : GetTypes()) {
+        auto p = page->Append(new wxBoolProperty(wxString("Enable ") + aiType::TypeName(t),
+                                                  wxString("ollama.Enable_") + aiType::TypeSettingsSuffix(t),
+                                                  IsEnabledForType(t)));
+        p->SetEditor("CheckBox");
+    }
     page->Append(new wxStringProperty("Host", "ollama.Host", host));
     page->Append(new wxIntProperty("Port", "ollama.Port", port_num));
     auto pp = page->Append(new wxBoolProperty("Https", "ollama.Https", https));
@@ -42,9 +52,13 @@ void ollama::PopulateLLMSettings(wxPropertyGrid* page) {
 }
 
 void ollama::SetSetting(const std::string& key, const wxVariant& value) {
-	if (key == "ollama.Enabled") {
-		_enabled = value.GetBool();
-	} else if (key == "ollama.Host") {
+    for (auto t : GetTypes()) {
+        if (key == std::string("ollama.Enable_") + aiType::TypeSettingsSuffix(t)) {
+            SetEnabledForType(t, value.GetBool());
+            return;
+        }
+    }
+    if (key == "ollama.Host") {
 		host = value.GetString();
 	} else if (key == "ollama.Port") {
 		port_num = value.GetLong();
@@ -57,10 +71,10 @@ void ollama::SetSetting(const std::string& key, const wxVariant& value) {
 
 std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	
 
 	if (host.empty()) {
-		logger_base.error("ollama: host is empty");
+		spdlog::error("ollama: host is empty");
 		return {"ollama: host is empty", false};
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
@@ -78,11 +92,11 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 	*/
     std::string const request = "{ \"model\": \"" + model + "\", \"prompt\": \"" + JSONSafe(p) + "\",\"stream\": false }";
 
-    logger_base.debug("ollama: %s", request.c_str());
+    spdlog::debug("ollama: {}", request.c_str());
     int responseCode { 0 };	
-	std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60 * 10, {}, &responseCode);
+	std::string response = CurlManager::HTTPSPost(url, request, "", "", "JSON", 60 * 10, {}, &responseCode);
 
-    logger_base.debug("ollama Response %d: %s", responseCode, response.c_str());
+    spdlog::debug("ollama Response {}: {}", responseCode, response.c_str());
 
 	if (responseCode != 200) {
         return { response , false};
@@ -94,21 +108,21 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
             response = resp_json.at("response").get<std::string>();
         }
     } catch (const std::exception& ex) {
-        logger_base.error("ollama: Invalid JSON response: %s", ex.what());
+        spdlog::error("ollama: Invalid JSON response: {}", ex.what());
         return { "ollama: Invalid JSON response", false };
     }
 
-	logger_base.debug("ollama: %s", response.c_str());
+	spdlog::debug("ollama: {}", response.c_str());
 
     return { response, true};
 }
 
 aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) const {
     
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     
     if (host.empty()) {
-        logger_base.error("ollama: host is empty");
+        spdlog::error("ollama: host is empty");
         return {};
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
@@ -164,11 +178,11 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     // Create a wxString to store the JSON text
     auto json_payload_str = request_payload.dump(3);
 
-    logger_base.debug("ollama: %s", (const char *)json_payload_str.c_str());
+    spdlog::debug("ollama: {}", json_payload_str);
     int responseCode{ 0 };
-    std::string const response = Curl::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
+    std::string const response = CurlManager::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
 
-    logger_base.debug("ollama Response %d: %s", responseCode, response.c_str());
+    spdlog::debug("ollama Response {}: {}", responseCode, response);
 
     if (responseCode != 200) {
         return {};
@@ -180,7 +194,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
         if (root.contains("response") && root["response"].is_string()) {
             auto const color_responce = root["response"].get<std::string>();
 
-            logger_base.debug("ollama Response %s", (const char*)color_responce.c_str());
+            spdlog::debug("ollama Response {}", (const char*)color_responce.c_str());
             try {
                 // Check if the response is valid JSON
                 nlohmann::json const color_root = nlohmann::json::parse(color_responce);
@@ -190,7 +204,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
                     if (color_root.contains("description")) {
                         ret.description = color_root["description"].get<std::string>();
                     }
-                    for (int x = 0; x < color_root["colors"].size(); x++) {
+                    for (size_t x = 0; x < color_root["colors"].size(); x++) {
                         auto& color = color_root["colors"][x];
                         ret.colors.push_back(aiBase::AIColor());
                         ret.colors.back().hexValue = color["hex_code"].get<std::string>();
@@ -200,14 +214,14 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
                     return ret;
                 }
             } catch (const std::exception& ex) {
-                logger_base.error(ex.what());
+                spdlog::error(ex.what());
             }
-            logger_base.error("Response does not contain 'colors' array or is not in expected format.");
+            spdlog::error("Response does not contain 'colors' array or is not in expected format.");
         } else {
-            logger_base.error("Invalid response from Ollama API.");
+            spdlog::error("Invalid response from Ollama API.");
         }
     } catch (const std::exception& e) {
-        logger_base.error(e.what());
+        spdlog::error(e.what());
     }
     return {};
 }

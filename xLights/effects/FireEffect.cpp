@@ -9,14 +9,17 @@
  **************************************************************/
 
 #include "FireEffect.h"
-#include "FirePanel.h"
+#include "render/ValueCurve.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include <format>
+
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+#include "../utils/xlSize.h"
 
 #include "../../include/fire-16.xpm"
 #include "../../include/fire-24.xpm"
@@ -39,39 +42,10 @@ std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settin
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fire_GrowWithMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Fire effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Fire effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-xlEffectPanel *FireEffect::CreatePanel(wxWindow *parent) {
-    return new FirePanel(parent);
-}
-
-bool FireEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2018.44", version);
-}
-
-void FireEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
-{
-    SettingsMap& settings = effect->GetSettings();
-
-    wxString growthcycles = settings.Get("E_VALUECURVE_Fire_GrowthCycles", "");
-
-    if (growthcycles.Contains("Active=TRUE")) {
-        ValueCurve vc(growthcycles);
-        vc.SetLimits(FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
-        vc.SetDivisor(FIRE_GROWTHCYCLES_DIVISOR);
-        vc.FixScale(10);
-        settings["E_VALUECURVE_Fire_GrowthCycles"] = vc.Serialise();
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
 }
 
 class FirePaletteClass {
@@ -158,7 +132,7 @@ public:
     virtual ~FireRenderCache() {};
 
     std::vector<int> FireBuffer;
-    wxPoint maxBuffer;
+    xlSize maxBuffer;
 };
 
 static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
@@ -168,24 +142,6 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
         buffer.infoCache[id] = cache;
     }
     return cache;
-}
-
-void FireEffect::SetDefaultParameters()
-{
-    FirePanel* fp = (FirePanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    fp->BitmapButton_Fire_GrowthCyclesVC->SetActive(false);
-    fp->BitmapButton_Fire_HeightVC->SetActive(false);
-    fp->BitmapButton_Fire_HueShiftVC->SetActive(false);
-
-    SetSliderValue(fp->Slider_Fire_Height, 50);
-    SetSliderValue(fp->Slider_Fire_HueShift, 0);
-    SetSliderValue(fp->Slider_Fire_GrowthCycles, 0);
-
-    SetCheckBoxValue(fp->CheckBox_Fire_GrowWithMusic, false);
 }
 
 // 10 <= HeightPct <= 100
@@ -231,23 +187,20 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
 
     FireRenderCache* cache = GetCache(buffer, id);
 
-    float mod_state = 4.0;
     if (buffer.needToInit) {
         buffer.needToInit = false;
 
         cache->maxBuffer = buffer.GetMaxBuffer(SettingsMap);
-        int w = std::max(buffer.BufferWi, cache->maxBuffer.x);
-        int h = std::max(buffer.BufferHt, cache->maxBuffer.y);
+        int w = std::max(buffer.BufferWi, cache->maxBuffer.width);
+        int h = std::max(buffer.BufferHt, cache->maxBuffer.height);
 
         cache->FireBuffer.resize(w * h);
         for (size_t i = 0; i < cache->FireBuffer.size(); ++i) {
             cache->FireBuffer[i] = 0;
         }
-    } else {
-        mod_state = 4 / (buffer.curPeriod % 4 + 1);
     }
-    int maxMWi = cache->maxBuffer.x == -1 ? buffer.BufferWi : cache->maxBuffer.x;
-    int maxMHt = cache->maxBuffer.y == -1 ? buffer.BufferHt : cache->maxBuffer.y;
+    int maxMWi = cache->maxBuffer.width == -1 ? buffer.BufferWi : cache->maxBuffer.width;
+    int maxMHt = cache->maxBuffer.height == -1 ? buffer.BufferHt : cache->maxBuffer.height;
     if (loc == 2 || loc == 3) {
         std::swap(maxMHt, maxMWi);
     }
@@ -255,7 +208,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         maxMHt = 1;
     }
 
-    if ((maxMHt * maxMWi) > cache->FireBuffer.size()) {
+    if ((maxMHt * maxMWi) > (int)cache->FireBuffer.size()) {
         // this shouldn't happen, but just in case we'll do this as a safety measure
         cache->FireBuffer.resize(maxMHt * maxMWi);
     }

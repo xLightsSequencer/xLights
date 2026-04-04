@@ -26,6 +26,8 @@
 //#define XLIGHTS_SCHEDULE_FILE      "xlights_schedule.xml"
 #define XLIGHTS_RGBEFFECTS_FILE    "xlights_rgbeffects.xml"
 #define XLIGHTS_RGBEFFECTS_FILE_BACKUP    "xlights_rgbeffects.xbkp"
+#define XLIGHTS_PRESETS_FILE       "xlights_effectpresets.json"
+#define XLIGHTS_PRESETS_FILE_BACKUP "xlights_effectpresets.jbkp"
 #define XLIGHTS_KEYBINDING_FILE    "xlights_keybindings.xml"
 #define XLIGHTS_PGOFACES_FILE      "xlights_papagayo.xml"
 #define XLIGHTS_RGBEFFECTS_VERSION "0007"
@@ -33,4 +35,4 @@
 #define XLIGHTS_SEQ_STATIC_COLUMNS 2
 
 #define XLIGHTS_DESCRIPTION "Use xLights to control you holiday light display"
-#define XLIGHTS_LICENSE "xLights Copyright 2010-2013 Matt Brown\nNutcracker Copyright 2012-2013 Sean Meighan\n\nThis file is part of xLights.\n\nxLights is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. xLights is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with xLights.  If not, see <http://www.gnu.org/licenses/>.\n\nxLights website is http://xlights.org\n\nAcknowledgements\n\nxLights relies on several open-source libraries: wxWidgets, libav, sdl, log4cpp, box2d and irrXML.\n\nCode for serial port communication was inspired by the ctb library written by Joachim Buermann. Code for base64 encoding and decoding was written by Rene Nyffenegger."
+#define XLIGHTS_LICENSE "xLights Copyright 2010-2013 Matt Brown\nNutcracker Copyright 2012-2013 Sean Meighan\n\nThis file is part of xLights.\n\nxLights is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. xLights is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with xLights.  If not, see <http://www.gnu.org/licenses/>.\n\nxLights website is http://xlights.org\n\nAcknowledgements\n\nxLights relies on several open-source libraries: wxWidgets, libav, sdl, spdlog, box2d and irrXML.\n\nCode for serial port communication was inspired by the ctb library written by Joachim Buermann. Code for base64 encoding and decoding was written by Rene Nyffenegger."

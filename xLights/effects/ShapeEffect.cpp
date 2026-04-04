@@ -9,23 +9,30 @@
  **************************************************************/
 
 #include "ShapeEffect.h"
-#include "ShapePanel.h"
+
+#include "../utils/xlPoint.h"
+#include <cassert>
+#include <cstdlib>
+#include <filesystem>
+#include <format>
 #include "TextEffect.h" // FontMapLock
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/SequenceElements.h"
+#include "../render/SequenceMedia.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
-#include "../ExternalHooks.h"
-#include "../xLightsMain.h" 
+#include "utils/ExternalHooks.h"
+#include "../render/RenderContext.h"
 
-#include "nanosvg/src/nanosvg.h"
+#include "../utils/nanosvg_xl.h"
+#include "nanosvgrast_impl.h"
 
 #include <regex>
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include "../../include/shape-16.xpm"
 #include "../../include/shape-24.xpm"
@@ -50,18 +57,26 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Shape_UseMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Shape effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Shape effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     std::string object = settings["E_CHOICE_Shape_ObjectToDraw"];
     if (object == "SVG") {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
 
-        if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Shape effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        if (svgFilename.empty()) {
+            res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
-            if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Shape effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            auto svgEntry = mm.GetSVG(svgFilename);
+            if (svgEntry->GetSVGContent().empty()) {
+                res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            } else {
+                if (!svgEntry->IsEmbedded()) {
+                    if (!IsFileInShowDir(std::string(), svgFilename)) {
+                        res.push_back(std::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
+                }
             }
         }
     }
@@ -78,13 +93,13 @@ std::list<std::string> ShapeEffect::GetFileReferences(Model* model, const Settin
     return res;
 }
 
-bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool ShapeEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_SVG"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_SVG"];
     if (FileExists(file)) {
-        if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_SVG"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+        if (!ctx->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKERCTRL_SVG"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }
@@ -94,53 +109,12 @@ bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Setting
 
 void ShapeEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Shape_FireTimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Shape_FireTimingTrack", "");
 
-    if (timing.ToStdString() == oldname)
+    if (timing == oldname)
     {
-        effect->GetSettings()["E_CHOICE_Shape_FireTimingTrack"] = wxString(newname);
+        effect->GetSettings()["E_CHOICE_Shape_FireTimingTrack"] = newname;
     }
-
-    SetPanelTimingTracks();
-}
-
-void ShapeEffect::SetPanelStatus(Model *cls)
-{
-    SetPanelTimingTracks();
-}
-
-void ShapeEffect::SetPanelTimingTracks() const
-{
-    ShapePanel *fp = (ShapePanel*)panel;
-    if (fp == nullptr)
-    {
-        return;
-    }
-
-    if (mSequenceElements == nullptr)
-    {
-        return;
-    }
-
-    // Load the names of the timing tracks
-    std::string timingtracks = "";
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-        {
-            if (timingtracks != "") timingtracks += "|";
-            timingtracks += e->GetName();
-        }
-    }
-
-    wxCommandEvent event(EVT_SETTIMINGTRACKS);
-    event.SetString(timingtracks);
-    wxPostEvent(fp, event);
-}
-
-xlEffectPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
-    return new ShapePanel(parent);
 }
 
 #define RENDER_SHAPE_CIRCLE     0
@@ -160,58 +134,14 @@ xlEffectPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_SHAPE_EMOJI 14
 #define RENDER_SHAPE_SVG 15
 
-void ShapeEffect::SetDefaultParameters() {
-    ShapePanel *sp = (ShapePanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Shape_ThicknessVC->SetActive(false);
-    sp->BitmapButton_Shape_CentreXVC->SetActive(false);
-    sp->BitmapButton_Shape_CentreYVC->SetActive(false);
-    sp->BitmapButton_Shapes_Velocity->SetActive(false);
-    sp->BitmapButton_Shapes_Direction->SetActive(false);
-    sp->BitmapButton_Shape_LifetimeVC->SetActive(false);
-    sp->BitmapButton_Shape_GrowthVC->SetActive(false);
-    sp->BitmapButton_Shape_CountVC->SetActive(false);
-    sp->BitmapButton_Shape_StartSizeVC->SetActive(false);
-    sp->BitmapButton_Shape_RotationVC->SetActive(false);
-
-    SetChoiceValue(sp->Choice_Shape_ObjectToDraw, "Circle");
-
-    SetSliderValue(sp->Slider_Shape_Thickness, 1);
-    SetSliderValue(sp->Slider_Shape_StartSize, 1);
-    SetSliderValue(sp->Slider_Shape_CentreX, 50);
-    SetSliderValue(sp->Slider_Shape_CentreY, 50);
-    SetSliderValue(sp->Slider_Shape_Points, 5);
-    SetSliderValue(sp->Slider_Shape_Count, 5);
-    SetSliderValue(sp->Slider_Shape_Growth, 10);
-    SetSliderValue(sp->Slider_Shape_Lifetime, 5);
-    SetSliderValue(sp->Slider_Shape_Sensitivity, 50);
-    SetSliderValue(sp->Slider_Shape_Rotation, 0);
-    SetSliderValue(sp->Slider_Shapes_Velocity, 0);
-    SetSliderValue(sp->Slider_Shapes_Direction, 90);
-
-    SetCheckBoxValue(sp->CheckBox_Shape_RandomLocation, true);
-    SetCheckBoxValue(sp->CheckBox_Shape_FadeAway, true);
-    SetCheckBoxValue(sp->CheckBox_Shape_UseMusic, false);
-    SetCheckBoxValue(sp->CheckBox_Shape_FireTiming, false);
-    SetCheckBoxValue(sp->CheckBox_Shape_RandomInitial, true);
-    SetCheckBoxValue(sp->CheckBox_Shape_HoldColour, true);
-    SetCheckBoxValue(sp->CheckBox_FilterLabelReg, false);
-
-    sp->TextCtrl_Shape_FilterLabel->SetValue("");
-
-    sp->FilePickerCtrl_SVG->SetFileName(wxFileName(""));
-}
 
 struct ShapeData
 {
 private:
     xlColor _color;
 public:
-    wxPoint _centre;
-    wxSize _movement;
+    xlPoint _centre;
+    xlPoint _movement;
     float _size;
     int _oset;
     int _shape;
@@ -220,7 +150,7 @@ public:
     int _colourIndex;
     bool _holdColour;
 
-    ShapeData(wxPoint centre, float size, int oset, xlColor color, int shape, int angle, int speed, bool holdColour, int colourIndex)
+    ShapeData(xlPoint centre, float size, int oset, xlColor color, int shape, int angle, int speed, bool holdColour, int colourIndex)
     {
         _holdColour = holdColour;
         _colourIndex = colourIndex;
@@ -257,7 +187,7 @@ public:
         _centre.y += y;
     }
 
-    void SetCentre(wxPoint centre)
+    void SetCentre(xlPoint centre)
     {
         _centre = centre;
         _centre.x += _movement.x;
@@ -281,13 +211,19 @@ public:
             nsvgDelete(_svgImage);
             _svgImage = nullptr;
         }
+        if (_svgRasterizer != nullptr) {
+            nsvgDeleteRasterizer(_svgRasterizer);
+            _svgRasterizer = nullptr;
+        }
     }
 
     std::list<ShapeData*> _shapes;
     int _lastColorIdx = 0;
     int _sinceLastTriggered = 0;
-    wxFontInfo _font;
+    TextFontInfo _font;
     NSVGimage* _svgImage = nullptr;
+    NSVGrasterizer* _svgRasterizer = nullptr;
+    std::vector<uint8_t> _rasterBuf;
     std::string _svgFilename;
     float _svgScaleBase = 1.0f;
     std::string _filterLabel;
@@ -329,7 +265,7 @@ public:
         return false;
     }
 
-    void InitialiseSVG(const std::string filename)
+    void InitialiseSVG(const std::string filename, RenderBuffer& buffer)
     {
         if (_svgImage != nullptr) {
             nsvgDelete(_svgImage);
@@ -337,14 +273,26 @@ public:
         }
 
         _svgFilename = filename;
-        _svgImage = nsvgParseFromFile(_svgFilename.c_str(), "px", 96);
+        auto* seqMedia = buffer.GetSequenceMedia();
+        if (seqMedia) {
+            auto svgEntry = seqMedia->GetSVG(filename);
+            if (svgEntry) {
+                svgEntry->MarkIsUsed();
+                std::string content = svgEntry->GetSVGContent();
+                if (!content.empty()) {
+                    char* svgCopy = strdup(content.c_str());
+                    _svgImage = nsvgParse(svgCopy, "px", 96);
+                    free(svgCopy);
+                }
+            }
+        }
         if (_svgImage != nullptr) {
             auto max = std::max(_svgImage->height, _svgImage->width);
             _svgScaleBase = 1.0f / (float)max;
         }
     }
 
-    void AddShape(wxPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement, bool holdColour, int colourIndex)
+    void AddShape(xlPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement, bool holdColour, int colourIndex)
     {
         if (randomMovement)
         {
@@ -357,6 +305,14 @@ public:
     NSVGimage* GetImage()
     {
         return _svgImage;
+    }
+
+    NSVGrasterizer* GetRasterizer()
+    {
+        if (_svgRasterizer == nullptr) {
+            _svgRasterizer = nsvgCreateRasterizer();
+        }
+        return _svgRasterizer;
     }
 
     void DeleteShapes()
@@ -474,7 +430,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     bool useMusic = SettingsMap.GetBool("CHECKBOX_Shape_UseMusic", false);
     float sensitivity = (float)SettingsMap.GetInt("SLIDER_Shape_Sensitivity", 50) / 100.0;
     bool useTiming = SettingsMap.GetBool("CHECKBOX_Shape_FireTiming", false);
-    wxString timing = SettingsMap.Get("CHOICE_Shape_FireTimingTrack", "");
+    std::string timing = SettingsMap.Get("CHOICE_Shape_FireTimingTrack", "");
     if (timing == "") useTiming = false;
     if (useMusic) {
         if (buffer.GetMedia() != nullptr) {
@@ -494,7 +450,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     std::list<ShapeData*>& _shapes = cache->_shapes;
     int& _lastColorIdx = cache->_lastColorIdx;
     int& _sinceLastTriggered = cache->_sinceLastTriggered;
-    wxFontInfo& _font = cache->_font;
+    TextFontInfo& _font = cache->_font;
 
     float lifetimeFrames = (float)(buffer.curEffEndPer - buffer.curEffStartPer) * lifetime / 100.0;
     if (lifetimeFrames < 1) lifetimeFrames = 1;
@@ -510,7 +466,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
             _font = TextDrawingContext::GetShapeFont(font);
         } else if (Object_To_Draw == RENDER_SHAPE_SVG) {
-            cache->InitialiseSVG(svgFilename);
+            cache->InitialiseSVG(svgFilename, buffer);
         }
 
         cache->DeleteShapes();
@@ -518,14 +474,14 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
         if (!useTiming && !useMusic) {
             for (int i = _shapes.size(); i < count; ++i) {
-                wxPoint pt;
+                xlPoint pt;
                 if (randomLocation) {
-                    pt = wxPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                    pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
                 } else {
-                    pt = wxPoint(xc, yc);
+                    pt = xlPoint(xc, yc);
                 }
 
-                size_t colorcnt = buffer.GetColorCount();
+                int colorcnt = (int)buffer.GetColorCount();
                 _lastColorIdx++;
                 if (_lastColorIdx >= colorcnt) {
                     _lastColorIdx = 0;
@@ -576,17 +532,17 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                     Effect* ef = el->GetEffect(j);
                     if (buffer.curPeriod == ef->GetStartTimeMS() / buffer.frameTimeInMs && cache->IsLabelAMatch(ef->GetEffectName()))
                     {
-                        wxPoint pt;
+                        xlPoint pt;
                         if (randomLocation)
                         {
-                            pt = wxPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                            pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
                         }
                         else
                         {
-                            pt = wxPoint(xc, yc);
+                            pt = xlPoint(xc, yc);
                         }
 
-                        size_t colorcnt = buffer.GetColorCount();
+                        int colorcnt = (int)buffer.GetColorCount();
                         _lastColorIdx++;
                         if (_lastColorIdx >= colorcnt)
                         {
@@ -608,17 +564,17 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             // trigger if it was not previously triggered or has been triggered for REPEATTRIGGER frames
             if (_sinceLastTriggered == 0 || _sinceLastTriggered > REPEATTRIGGER)
             {
-                wxPoint pt;
+                xlPoint pt;
                 if (randomLocation)
                 {
-                    pt = wxPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                    pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
                 }
                 else
                 {
-                    pt = wxPoint(xc, yc);
+                    pt = xlPoint(xc, yc);
                 }
 
-                size_t colorcnt = buffer.GetColorCount();
+                int colorcnt = (int)buffer.GetColorCount();
                 _lastColorIdx++;
                 if (_lastColorIdx >= colorcnt)
                 {
@@ -645,17 +601,17 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     {
         for (int i = _shapes.size(); i < count; ++i)
         {
-            wxPoint pt;
+            xlPoint pt;
             if (randomLocation)
             {
-                pt = wxPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
             }
             else
             {
-                pt = wxPoint(xc, yc);
+                pt = xlPoint(xc, yc);
             }
 
-            size_t colorcnt = buffer.GetColorCount();
+            int colorcnt = (int)buffer.GetColorCount();
             _lastColorIdx++;
             if (_lastColorIdx >= colorcnt)
             {
@@ -668,8 +624,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
     if (Object_To_Draw == RENDER_SHAPE_EMOJI || Object_To_Draw == RENDER_SHAPE_SVG) {
         if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0 || buffer.BufferWi > 15000) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Shape Effect (Emoji): Invalid buffer size: width=%d, height=%d", buffer.BufferWi, buffer.BufferHt);
+            
+            spdlog::error("Shape Effect (Emoji/SVG): Invalid buffer size: width={}, height={}", buffer.BufferWi, buffer.BufferHt);
             return;
         }
         auto context = buffer.GetTextDrawingContext();
@@ -681,7 +637,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         // as it may be value curve controlled
         if (!randomLocation)
         {
-            it->SetCentre(wxPoint(xc, yc));
+            it->SetCentre(xlPoint(xc, yc));
         }
 
         xlColor color = it->GetColour(buffer.palette);
@@ -752,7 +708,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 			Drawellipse(buffer, it->_centre.x, it->_centre.y, it->_size, points, color, thickness, rotation);
 			break;
         default:
-            wxASSERT(false);
+            assert(false);
             break;
         }
 
@@ -765,32 +721,19 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     }
 
     if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
-        wxImage *i = buffer.GetTextDrawingContext()->FlushAndGetImage();
-        unsigned char* data = i->GetData();
-        unsigned char* alpha = i->HasAlpha() ? i->GetAlpha() : nullptr;
-        int w = i->GetWidth();
-        int h = i->GetHeight();
+        int w, h;
+        const uint8_t* rgba = buffer.GetTextDrawingContext()->FlushAndGetImage(&w, &h);
         int cur = 0;
-        int curA = 0;
         xlColor c, c2;
         for (int y = h - 1; y >= 0; y--) {
             for (int x = 0; x < w; x++) {
-                xlColor c(data[cur], data[cur + 1], data[cur + 2]);
-                if (alpha) {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2], alpha[curA]);
-                } else {
-                    c.Set(data[cur], data[cur + 1], data[cur + 2]);
-                    if (c == xlBLACK) {
-                        c.alpha = 0;
-                    }
-                }
+                c.Set(rgba[cur], rgba[cur + 1], rgba[cur + 2], rgba[cur + 3]);
                 buffer.GetPixel(x, y, c2);
                 if (c2 != xlBLACK) {
                     c.AlphaBlend(c2);
                 }
                 buffer.SetPixel(x, y, c);
-                cur += 3;
-                ++curA;
+                cur += 4;
             }
         }
     }
@@ -820,22 +763,6 @@ void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius
         }
         radius -= interpolation;
     }
-}
-
-bool ShapeEffect::areSame(double a, double b, float eps) const
-{
-    return std::fabs(a - b) < eps;
-}
-
-bool ShapeEffect::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const
-{
-    // use dot product to determine if point are in a strait line
-    auto [a_x, a_y] = a;
-    auto [b_x, b_y] = b;
-    auto [c_x, c_y] = c;
-
-    auto test = (b_x - a_x) * (c_y - a_y) - (c_x - a_x) * (b_y - a_y);
-    return std::abs(test) < eps;
 }
 
 void ShapeEffect::Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation) const
@@ -1045,30 +972,30 @@ void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, 
 {
     struct line
     {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = {line(wxPoint(3,0), wxPoint(5,0)),
-                           line(wxPoint(5,0), wxPoint(5,3)),
-                           line(wxPoint(3,0), wxPoint(3,3)),
-                           line(wxPoint(0,3), wxPoint(8,3)),
-                           line(wxPoint(0,3), wxPoint(2,6)),
-                           line(wxPoint(8,3), wxPoint(6,6)),
-                           line(wxPoint(1,6), wxPoint(2,6)),
-                           line(wxPoint(6,6), wxPoint(7,6)),
-                           line(wxPoint(1,6), wxPoint(3,9)),
-                           line(wxPoint(7,6), wxPoint(5,9)),
-                           line(wxPoint(2,9), wxPoint(3,9)),
-                           line(wxPoint(5,9), wxPoint(6,9)),
-                           line(wxPoint(6,9), wxPoint(4,11)),
-                           line(wxPoint(2,9), wxPoint(4,11))
+    const line points[] = {line(xlPoint(3,0), xlPoint(5,0)),
+                           line(xlPoint(5,0), xlPoint(5,3)),
+                           line(xlPoint(3,0), xlPoint(3,3)),
+                           line(xlPoint(0,3), xlPoint(8,3)),
+                           line(xlPoint(0,3), xlPoint(2,6)),
+                           line(xlPoint(8,3), xlPoint(6,6)),
+                           line(xlPoint(1,6), xlPoint(2,6)),
+                           line(xlPoint(6,6), xlPoint(7,6)),
+                           line(xlPoint(1,6), xlPoint(3,9)),
+                           line(xlPoint(7,6), xlPoint(5,9)),
+                           line(xlPoint(2,9), xlPoint(3,9)),
+                           line(xlPoint(5,9), xlPoint(6,9)),
+                           line(xlPoint(6,9), xlPoint(4,11)),
+                           line(xlPoint(2,9), xlPoint(4,11))
     };
     int count = sizeof(points) / sizeof(line);
 
@@ -1107,28 +1034,28 @@ void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radi
 {
     struct line
     {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = {line(wxPoint(2,0), wxPoint(2,6)),
-                           line(wxPoint(2,6), wxPoint(0,6)),
-                           line(wxPoint(0,6), wxPoint(0,7)),
-                           line(wxPoint(0,7), wxPoint(2,7)),
-                           line(wxPoint(2,7), wxPoint(2,10)),
-                           line(wxPoint(2,10), wxPoint(3,10)),
-                           line(wxPoint(3,10), wxPoint(3,7)),
-                           line(wxPoint(3,7), wxPoint(5,7)),
-                           line(wxPoint(5,7), wxPoint(5,6)),
-                           line(wxPoint(5,6), wxPoint(3,6)),
-                           line(wxPoint(3,6), wxPoint(3,0)),
-                           line(wxPoint(3,0), wxPoint(2,0))
+    const line points[] = {line(xlPoint(2,0), xlPoint(2,6)),
+                           line(xlPoint(2,6), xlPoint(0,6)),
+                           line(xlPoint(0,6), xlPoint(0,7)),
+                           line(xlPoint(0,7), xlPoint(2,7)),
+                           line(xlPoint(2,7), xlPoint(2,10)),
+                           line(xlPoint(2,10), xlPoint(3,10)),
+                           line(xlPoint(3,10), xlPoint(3,7)),
+                           line(xlPoint(3,7), xlPoint(5,7)),
+                           line(xlPoint(5,7), xlPoint(5,6)),
+                           line(xlPoint(5,6), xlPoint(3,6)),
+                           line(xlPoint(3,6), xlPoint(3,0)),
+                           line(xlPoint(3,0), xlPoint(2,0))
     };
     int count = sizeof(points) / sizeof(line);
 
@@ -1166,25 +1093,25 @@ void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radi
 void ShapeEffect::Drawpresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
 {
     struct line {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = { line(wxPoint(0, 0), wxPoint(0, 9)),
-                            line(wxPoint(0, 9), wxPoint(10, 9)),
-                            line(wxPoint(10, 9), wxPoint(10, 0)),
-                            line(wxPoint(10, 0), wxPoint(0, 0)),
-                            line(wxPoint(5, 0), wxPoint(5, 9)),
-                            line(wxPoint(5, 9), wxPoint(2, 11)),
-                            line(wxPoint(2, 11), wxPoint(2, 9)),
-                            line(wxPoint(5, 9), wxPoint(8, 11)),
-                            line(wxPoint(8, 11), wxPoint(8, 9)) };
+    const line points[] = { line(xlPoint(0, 0), xlPoint(0, 9)),
+                            line(xlPoint(0, 9), xlPoint(10, 9)),
+                            line(xlPoint(10, 9), xlPoint(10, 0)),
+                            line(xlPoint(10, 0), xlPoint(0, 0)),
+                            line(xlPoint(5, 0), xlPoint(5, 9)),
+                            line(xlPoint(5, 9), xlPoint(2, 11)),
+                            line(xlPoint(2, 11), xlPoint(2, 9)),
+                            line(xlPoint(5, 9), xlPoint(8, 11)),
+                            line(xlPoint(8, 11), xlPoint(8, 9)) };
     int count = sizeof(points) / sizeof(line);
 
     double interpolation = 0.75;
@@ -1232,181 +1159,83 @@ void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, boo
             std::string val = settings.Get("E_SLIDER_Shape_CentreY", "");
             // int val = effect->GetSettings().GetInt("E_SLIDER_Shape_CentreY", 0);
             if (val != "") {
-                settings["E_SLIDER_Shape_CentreY"] = wxString::Format(wxT("%d"), 100 - wxAtoi(val));
+                settings["E_SLIDER_Shape_CentreY"] = std::to_string(100 - std::strtol(val.c_str(), nullptr, 10));
             }
         }
     }
+
+    // Convert absolute file paths to relative for portability
+    std::string file = settings["E_FILEPICKERCTRL_SVG"];
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_SVG"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_SVG"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetSVG(settings["E_FILEPICKERCTRL_SVG"]);
+    }
 }
 
-void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const
+// Convert a Unicode code point to a UTF-8 std::string
+static std::string CodePointToUTF8(int cp) {
+    std::string result;
+    if (cp < 0x80) {
+        result += (char)cp;
+    } else if (cp < 0x800) {
+        result += (char)(0xC0 | (cp >> 6));
+        result += (char)(0x80 | (cp & 0x3F));
+    } else if (cp < 0x10000) {
+        result += (char)(0xE0 | (cp >> 12));
+        result += (char)(0x80 | ((cp >> 6) & 0x3F));
+        result += (char)(0x80 | (cp & 0x3F));
+    } else {
+        result += (char)(0xF0 | (cp >> 18));
+        result += (char)(0x80 | ((cp >> 12) & 0x3F));
+        result += (char)(0x80 | ((cp >> 6) & 0x3F));
+        result += (char)(0x80 | (cp & 0x3F));
+    }
+    return result;
+}
+
+void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font) const
 {
     if (radius < 1)
         return;
 
     auto context = buffer.GetTextDrawingContext();
 
-    wxFontInfo fi(wxSize(0, radius));
-    fi.FaceName(font.GetFaceName());
-    fi.Light(font.GetWeight() == wxFONTWEIGHT_LIGHT);
-    fi.AntiAliased(font.IsAntiAliased());
-    fi.Encoding(font.GetEncoding());
+    TextFontInfo fi = font;
+    fi.pixelSize = (int)radius;
 
     context->SetFont(fi, color);
 
-    wxUniChar ch = emoji;
-    auto text = wxString(ch);
+    std::string textStr = CodePointToUTF8(emoji);
     if (emojiTone) {
-        wxUniChar ch2 = emojiTone;
-        text.Append(wxString(ch2));
+        textStr += CodePointToUTF8(emojiTone);
     }
 
     double width;
     double height;
-    context->GetTextExtent(text, &width, &height);
+    context->GetTextExtent(textStr, &width, &height);
 
     context->SetOverlayMode(true);
-    context->DrawText(text, std::round((float)xc - width / 2.0), std::round((float)(buffer.BufferHt - yc) - height / 2.0));
+    context->DrawText(textStr, std::round((float)xc - width / 2.0), std::round((float)(buffer.BufferHt - yc) - height / 2.0));
     context->SetOverlayMode(false);
-}
-
-static inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo)
-{
-    return centre + ((pt - imageCentre) * factor * scaleTo * 10);
-}
-
-static inline uint8_t GetSVGRed(uint32_t colour)
-{
-    return (colour);
-}
-
-static inline uint8_t GetSVGGreen(uint32_t colour)
-{
-    return (colour >> 8);
-}
-
-static inline uint8_t GetSVGBlue(uint32_t colour)
-{
-    return (colour >> 16);
-}
-
-static inline uint8_t GetSVGAlpha(uint32_t colour)
-{
-    return (colour >> 24);
 }
 
 void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
-    auto image = cache->GetImage();
-    if (image == nullptr) {
-        for (size_t x = 0; x < buffer.BufferWi; ++x) {
-            for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(x, y, xlRED);
-            }
-        }
-    } else {
-        auto context = buffer.GetPathDrawingContext();
-        context->Clear();
-
-        wxPoint2DDouble centre((float)xc, (float)yc);
-        wxPoint2DDouble imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
-
-        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
-
-            wxGraphicsPath cpath = context->CreatePath();
-            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
-                for (int i = 0; i < path->npts - 1; i += 3) {
-                    float* p = &path->pts[i * 2];
-                    auto ih = image->height;
-                    wxPoint2DDouble start = ScaleMovePoint(wxPoint2DDouble(p[0], ih - p[1]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble cp1 = ScaleMovePoint(wxPoint2DDouble(p[2], ih - p[3]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble cp2 = ScaleMovePoint(wxPoint2DDouble(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble end = ScaleMovePoint(wxPoint2DDouble(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
-
-                    if (i == 0) cpath.MoveToPoint(start);
-
-                    if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
-                        cpath.AddLineToPoint(end);
-                    } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
-                        cpath.AddQuadCurveToPoint(cp1.m_x, cp1.m_y, end.m_x, end.m_y);
-                    } else {
-                        cpath.AddCurveToPoint(cp1.m_x, cp1.m_y, cp2.m_x, cp2.m_y, end.m_x, end.m_y);
-                    }
-                }
-                if (path->closed) {
-                    cpath.CloseSubpath();
-                }
-            }
-
-            // Fill setup: Use SVG's gradient with ABGR extraction
-            if (shape->fill.type == NSVG_PAINT_LINEAR_GRADIENT && shape->fill.gradient->nstops >= 2) {
-                wxGraphicsGradientStops stops;
-                for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
-                    uint32_t c = shape->fill.gradient->stops[i].color;
-                    // Extract ABGR (NanoSVG's order)
-                    uint8_t a = (c >> 24) & 0xFF;
-                    uint8_t b = (c >> 16) & 0xFF;  // Blue
-                    uint8_t g = (c >> 8) & 0xFF;   // Green
-                    uint8_t r = c & 0xFF;          // Red
-                    wxColor sc(r, g, b, a * color.alpha / 255);
-                    if (i == 0) {
-                        stops.SetStartColour(sc);
-                    } else if (i == shape->fill.gradient->nstops - 1) {
-                        stops.SetEndColour(sc);
-                    } else {
-                        stops.Add(sc, shape->fill.gradient->stops[i].offset);
-                    }
-                }
-
-                float minX = shape->bounds[0], maxX = shape->bounds[2];
-                float minY = shape->bounds[1], maxY = shape->bounds[3];
-                wxPoint2DDouble gstart(minX, (minY + maxY) / 2.0);
-                wxPoint2DDouble gend(maxX, (minY + maxY) / 2.0);
-                gstart = ScaleMovePoint(wxPoint2DDouble(gstart.m_x, image->height - gstart.m_y), imageCentre, centre, cache->_svgScaleBase, radius);
-                gend = ScaleMovePoint(wxPoint2DDouble(gend.m_x, image->height - gend.m_y), imageCentre, centre, cache->_svgScaleBase, radius);
-
-                wxGraphicsBrush brush = context->CreateLinearGradientBrush(gstart.m_x, gstart.m_y, gend.m_x, gend.m_y, stops);
-                context->SetBrush(brush);
-            } else if (shape->fill.type == NSVG_PAINT_COLOR) {
-                wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), GetSVGAlpha(shape->fill.color) * color.alpha / 255);
-                wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                context->SetBrush(brush);
-            } else {
-                wxBrush brush(color.asWxColor(), wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                context->SetBrush(brush);
-            }
-
-            if (shape->stroke.type == NSVG_PAINT_NONE) {
-                context->SetPen(wxNullPen);
-            } else if (shape->stroke.type == NSVG_PAINT_COLOR) {
-                wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
-                wxPen pen(pc, thickness);
-                context->SetPen(pen);
-            } else {
-                // Fallback to effect color if stroke type is unexpected
-                wxPen pen(color.asWxColor(), thickness);
-                context->SetPen(pen);
-            }
-
-            context->FillPath(cpath, shape->fillRule == NSVG_FILLRULE_EVENODD ? wxODDEVEN_RULE : wxWINDING_RULE);
-            context->StrokePath(cpath);
-        }
-
-        wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();
-        bool hasAlpha = image->HasAlpha();
-
-        xlColor cc;
-        for (int y = 0; y < buffer.BufferHt; ++y) {
-            for (int x = 0; x < buffer.BufferWi; ++x) {
-                if (hasAlpha) {
-                    cc = xlColor(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), image->GetAlpha(x, y));
-                    cc = cc.AlphaBlend(buffer.GetPixel(x, y));
-                } else {
-                    cc.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
-                }
-                buffer.SetPixel(x, y, cc);
-            }
-        }
-    }
+    RasterizeSVGToBuffer(cache->GetRasterizer(), cache->GetImage(),
+                         cache->_rasterBuf, buffer,
+                         xc, yc, radius, cache->_svgScaleBase, color);
 }
 
 void ShapeEffect::Drawcandycane(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const

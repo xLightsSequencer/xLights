@@ -8,16 +8,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
-#include "../OutputModelManager.h"
+#include "../models/OutputModelManager.h"
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 CandyCaneModel::CandyCaneModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -31,191 +27,19 @@ CandyCaneModel::~CandyCaneModel()
 {
 }
 
-static const char *LEFT_RIGHT_VALUES[] = {
-    "Green Square", 
-    "Blue Square"
-};
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
-
-void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 20);
-    p->SetEditor("SpinCtrl");
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights Per Cane", "CandyCaneNodes", parm3));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 250);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes Per Cane", "CandyCaneNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 250);
-        p->SetEditor("SpinCtrl");
-    }
-    p = grid->Append(new wxUIntProperty("Lights Per Node", "CandyCaneLights", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-    if (SingleNode) {
-        p->Hide(true);
-    }
-    p = grid->Append(new wxFloatProperty("Height", "CandyCaneHeight", _caneheight));
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Cane Rotation", "CandyCaneSkew", screenLocation.GetAngle()));
-    p->SetAttribute("Min", -180 );
-    p->SetAttribute("Max", 180);
-    p->SetEditor("SpinCtrl");
-
-	p = grid->Append(new wxBoolProperty("Reverse", "CandyCaneReverse", _reverse));
-	p->SetEditor("CheckBox");
-    p->Enable(!_sticks);
-
-	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
-	p->SetEditor("CheckBox");
-
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
-    p->SetEditor("CheckBox");
-    if (SingleNode) {
-        p->Enable(false);
-    }
-
-    grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-}
-
-void CandyCaneModel::UpdateTypeProperties(wxPropertyGridInterface* grid) {
-    if (SingleNode) {
-        grid->GetPropertyByName("CandyCaneLights")->Hide(true);
-        grid->GetPropertyByName("AlternateNodes")->Enable(false);
-    }
-    else
-    {
-        grid->GetPropertyByName("CandyCaneLights")->Hide(false);
-        grid->GetPropertyByName("AlternateNodes")->Enable();
-    }
-
-    grid->GetPropertyByName("CandyCaneReverse")->Enable(!_sticks);
-}
-
-int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("CandyCaneCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        return 0;
-    } else if ("CandyCaneNodes" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        return 0;
-    } else if ("CandyCaneLights" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        return 0;
-    } else if ("CandyCaneReverse" == event.GetPropertyName()) {
-        _reverse = event.GetPropertyValue().GetBool() ? true : false;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        return 0;
-    } else if ("CandyCaneSkew" == event.GetPropertyName()) {
-        screenLocation.SetAngle(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        return 0;
-    } else if ("CandyCaneHeight" == event.GetPropertyName()) {
-        _caneheight = event.GetPropertyValue().GetDouble();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        return 0;
-    } else if ("CandyCaneSticks" == event.GetPropertyName()) {
-        _sticks = event.GetPropertyValue().GetBool() ? true : false;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        return 0;
-    } else if ("AlternateNodes" == event.GetPropertyName()) {
-        _alternateNodes = event.GetPropertyValue().GetBool() ? true : false;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        return 0;
-    } else if ("CandyCaneStart" == event.GetPropertyName()) {
-        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-    } else if (event.GetPropertyName() == "ModelStringType") {
-        wxPGProperty *p = grid->GetPropertyByName("CandyCaneLights");
-        p->Hide(SingleNode);
-        p = grid->GetPropertyByName("CandyCaneNodes");
-        if (SingleNode) {
-            p->SetLabel("Lights Per Cane");
-        } else {
-            p->SetLabel("Nodes Per Cane");
-        }
-    }
-    return Model::OnPropertyGridChange(grid, event);
-}
 
 bool CandyCaneModel::IsNodeFirst(int n) const
 {
-    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - parm2);
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == (int)Nodes.size() - _nodesPerCane);
 }
 
 // Canes are 3 high per width of each indivudual cane, then multiply by 2 because standard ThreePointLocation applies a / 2 for heights
 std::string CandyCaneModel::GetDimension() const
 {
-    if (parm1 != 0) {
-        return GetModelScreenLocation().GetDimension(6.0 / parm1);
+    if (_numCanes != 0) {
+        return GetModelScreenLocation().GetDimension(6.0 / _numCanes);
     }
     return GetModelScreenLocation().GetDimension(6.0);
-}
-
-void CandyCaneModel::AddDimensionProperties(wxPropertyGridInterface* grid)
-{
-    if (parm1 != 0) {
-        GetModelScreenLocation().AddDimensionProperties(grid, 6.0 / parm1);
-    }
-    else {
-        GetModelScreenLocation().AddDimensionProperties(grid, 6.0);
-    }
 }
 
 void CandyCaneModel::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
@@ -236,8 +60,8 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &tp, const std::str
         BufferHi = 1;
         BufferWi = GetNodeCount();
 
-        int NumCanes=parm1;
-        int SegmentsPerCane=parm2;
+        int NumCanes=_numCanes;
+        int SegmentsPerCane=_nodesPerCane;
         int cur = 0;
         for (int y=0; y < NumCanes; y++) {
             for(int x=0; x<SegmentsPerCane; x++) {
@@ -257,20 +81,27 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &tp, const std::str
 }
 
 void CandyCaneModel::InitModel() {
-    int NumCanes = parm1;
-    int SegmentsPerCane = parm2;
+    int NumCanes = _numCanes;
+    int SegmentsPerCane = _nodesPerCane;
+
+    // When a SingleNode model is saved, _nodesPerCane is stored as 1 and _lightsPerNode holds lights per cane.
+    // On reload, restore _nodesPerCane from _lightsPerNode so SetNodeCount gets the correct count.
+    if (SingleNode && _nodesPerCane <= 1 && _lightsPerNode > 1) {
+        SegmentsPerCane = _lightsPerNode;
+        _nodesPerCane = _lightsPerNode;
+    }
 
     SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
     if (SingleNode) {
         SegmentsPerCane = 1;
-        parm3 = parm2;
-        parm2 = 1;
+        _lightsPerNode = _nodesPerCane;
+        _nodesPerCane = 1;
     } else {
-        if (parm3 > 1)
+        if (_lightsPerNode > 1)
 		{
             for (size_t x = 0; x < Nodes.size(); x++)
 			{
-                Nodes[x]->Coords.resize(parm3);
+                Nodes[x]->Coords.resize(_lightsPerNode);
             }
         }
     }
@@ -291,7 +122,7 @@ void CandyCaneModel::InitModel() {
             Nodes[idx]->StringNum=y;
             for(size_t c=0; c < GetCoordCount(idx); c++) {
                 Nodes[idx]->Coords[c].bufX=y;
-                if (_alternateNodes)
+                if (HasAlternateNodes())
                 {
                     if (x + 1 <= (SegmentsPerCane + 1) / 2)
                     {
@@ -313,18 +144,29 @@ void CandyCaneModel::InitModel() {
 }
 
 int CandyCaneModel::MapToNodeIndex(int strand, int node) const {
-    return strand * parm2 + node;
+    return strand * _nodesPerCane + node;
 }
 
 int CandyCaneModel::GetNumStrands() const {
-     return parm1;
+     return _numCanes;
 }
 
 int CandyCaneModel::CalcChannelsPerString() {
     if (SingleNode) {
         return GetNodeChannelCount(StringType);
     }
-    return GetNodeChannelCount(StringType) * parm2;
+    return GetNodeChannelCount(StringType) * _nodesPerCane;
+}
+
+int CandyCaneModel::NodesPerString() const {
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerCane;
+    }
+    return _nodesPerCane * ts;
 }
 
 static void rotate_point(float cx,float cy, float angle, float &x, float &y)
@@ -347,11 +189,11 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 
 void CandyCaneModel::SetCaneCoord() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    int NumCanes = parm1;
-    size_t SegmentsPerCane = parm2;
-    int LightsPerNode = parm3;
+    int NumCanes = _numCanes;
+    size_t SegmentsPerCane = _nodesPerCane;
+    int LightsPerNode = _lightsPerNode;
 
     int lightspercane = SegmentsPerCane * LightsPerNode;
     float angle = toRadians(screenLocation.GetAngle());
@@ -362,9 +204,9 @@ void CandyCaneModel::SetCaneCoord() {
 
     double caneGap = 2.0;
     int upright = SegmentsPerCane * 6.0 / 9.0;
-    upright *= parm3;
+    upright *= _lightsPerNode;
     if (SingleNode) {
-        upright = parm3 * 6.0 / 9.0;
+        upright = _lightsPerNode * 6.0 / 9.0;
     }
     double widthPerCane = double(lightspercane)*3.0/9.0;
     width = (double)NumCanes*widthPerCane + (NumCanes - 1) * caneGap;
@@ -391,11 +233,11 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, y / parm3);
+                    auto node = FindNodeAtXY(i, y / _lightsPerNode);
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
-                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, y);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, y);
                         }
                         else
                         {
@@ -447,11 +289,11 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, y / parm3);
+                    auto node = FindNodeAtXY(i, y / _lightsPerNode);
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
-                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, y);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, y);
                         }
                         else
                         {
@@ -498,7 +340,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, curLight / parm3);
+                    auto node = FindNodeAtXY(i, curLight / _lightsPerNode);
                     for (; c < CoordCount; c++)
                     {
                         // drawing left to right
@@ -507,7 +349,7 @@ void CandyCaneModel::SetCaneCoord() {
                         double x2 = cos(aangle) * widthPerCane / 2 * screenLocation.GetMHeight();
                         if (node == -1)
                         {
-                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, curLight);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, curLight);
                         }
                         else
                         {

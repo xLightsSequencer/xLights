@@ -8,22 +8,23 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include "ThreePointScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
+#include "../utils/DisplayMessages.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 extern void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, xlVertexColorAccumulator &va);
 extern void rotate_point(float cx, float cy, float angle, float &x, float &y);
@@ -41,7 +42,7 @@ ThreePointScreenLocation::ThreePointScreenLocation()
 ThreePointScreenLocation::~ThreePointScreenLocation() {
 }
 
-wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if( preview->Is3D() ) {
@@ -53,35 +54,20 @@ wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y,
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
-    return wxCURSOR_SIZING;
+    return CursorType::Sizing;
 }
 
 void ThreePointScreenLocation::Init() {
     TwoPointScreenLocation::Init();
-    /*height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
-    angle = wxAtoi(node->GetAttribute("Angle", "0"));
-    shear = wxAtof(node->GetAttribute("Shear", "0.0"));
-    rotatex = wxAtof(node->GetAttribute("RotateX", "0"));*/
-}
-
-void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
-    TwoPointScreenLocation::AddDimensionProperties(propertyEditor, 1.0);
-    float width = RulerObject::Measure(origin, point2);
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", 
-                                                                     (width * height) / 2.0 * factor
-                                                                    ));
-    prop->ChangeFlag(wxPGFlags::ReadOnly, true);
-    prop->SetAttribute("Precision", 2);
-    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }
 
 std::string ThreePointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
     float width = RulerObject::Measure(origin, point2);
-    return wxString::Format("Length %s Height %s", RulerObject::MeasureLengthDescription(origin, point2), 
-        RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor)).ToStdString();
+    return std::format("Length {} Height {}",
+        RulerObject::MeasureLengthDescription(origin, point2),
+        RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor));
 }
 
 float ThreePointScreenLocation::GetRealWidth() const
@@ -93,76 +79,6 @@ float ThreePointScreenLocation::GetRealHeight() const
 {
     float width = RulerObject::Measure(origin, point2);
     return (width * height) / 2.0 * 1.0;
-}
-
-void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    TwoPointScreenLocation::AddSizeLocationProperties(propertyEditor);
-    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", height));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    if (supportsShear) {
-        prop = propertyEditor->Append(new wxFloatProperty("Shear", "ModelShear", shear));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.1);
-        prop->SetEditor("SpinCtrl");
-    }
-    prop = propertyEditor->Append(new wxFloatProperty("RotateX", "RotateX", rotatex));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1);
-    prop->SetEditor("SpinCtrl");
-}
-
-int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    wxString name = event.GetPropertyName();
-    if (!_locked && "ModelHeight" == name) {
-        height = event.GetValue().GetDouble();
-        if (std::abs(height) < 0.01f) {
-            if (height < 0.0f) {
-                height = -0.01f;
-            }
-            else {
-                height = 0.01f;
-            }
-        }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        return 0;
-    }
-    else if (_locked && "ModelHeight" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelShear" == name) {
-        shear = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        return 0;
-    }
-    else if (_locked && "ModelShear" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateX" == name) {
-        rotatex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        return 0;
-    }
-    else if (_locked && "RotateX" == name) {
-        event.Veto();
-        return 0;
-    }
-
-    return TwoPointScreenLocation::OnPropertyGridChange(grid, event);
 }
 
 inline float toRadians(int degrees) {
@@ -225,7 +141,7 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     draw_3d = is_3d;
 }
 
-bool ThreePointScreenLocation::IsContained(ModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
+bool ThreePointScreenLocation::IsContained(IModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
     int xs = x1_ < x2_ ? x1_ : x2_;
     int xf = x1_ > x2_ ? x1_ : x2_;
     int ys = y1_ < y2_ ? y1_ : y2_;
@@ -423,7 +339,7 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
     DrawBoundingBoxLines(Box3dColor, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, *vac);
 }
 
-int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int ThreePointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -499,7 +415,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
     return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
 }
 
-int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int ThreePointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
 

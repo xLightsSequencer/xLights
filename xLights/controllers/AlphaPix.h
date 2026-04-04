@@ -15,7 +15,7 @@
 
 #include "BaseController.h"
 #include "ControllerUploadData.h"
-#include "../UtilClasses.h"
+#include "UtilClasses.h"
 
 class AlphaPixData;
 class AlphaPixOutput;
@@ -24,7 +24,7 @@ class AlphaPixSerial;
 class AlphaPix : public BaseController
 {
     #pragma region Member Variables
-    wxString _page;
+    std::string _page;
     int _modelnum = -1;
     int _revision = 1;
     std::vector<AlphaPixOutput*> _pixelOutputs;
@@ -35,34 +35,34 @@ class AlphaPix : public BaseController
     void UpdatePortData(AlphaPixOutput* pd, UDControllerPort* stringData, bool& changeColor) const;
     void UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData) const;
 
-    wxString BuildStringPortRequest(AlphaPixOutput* po) const;
-    wxString BuildStringPortRequestV2(AlphaPixOutput* po) const;
+    std::string BuildStringPortRequest(AlphaPixOutput* po) const;
+    std::string BuildStringPortRequestV2(AlphaPixOutput* po) const;
 
     AlphaPixOutput* FindPortData(int port);
     AlphaPixSerial* FindSerialData(int port);
 
-    bool ParseWebpage(const wxString& page, AlphaPixData &data);
+    bool ParseWebpage(const std::string& page, AlphaPixData& data);
 
-    AlphaPixOutput* ExtractOutputData(const wxString& page, int port);
-    AlphaPixOutput* ExtractOutputDataV2(const wxString& page, int port);
-    AlphaPixSerial* ExtractSerialData(const wxString& page, int port);
-    std::string ExtractName(const wxString& page);
-    int ExtractInputType(const wxString& page);
-    bool ExtractDMXEnabled(const wxString& page, const wxString& name);
-    int ExtractDMXUniverse(const wxString& page, const wxString& name);
-    int ExtractProtocol(const wxString& page);
-    int ExtractColorType(const wxString& page);
-    int ExtractColor(const wxString& page);
-    int ExtractSingleColor(const wxString& page, const int output);
+    AlphaPixOutput* ExtractOutputData(std::string const& page, int port);
+    AlphaPixOutput* ExtractOutputDataV2(std::string const& page, int port);
+    AlphaPixSerial* ExtractSerialData(std::string const& page, int port);
+    std::string ExtractName(const std::string& page);
+    int ExtractInputType(const std::string& page);
+    bool ExtractDMXEnabled(const std::string& page, const std::string& name);
+    int ExtractDMXUniverse(const std::string& page, const std::string& name);
+    int ExtractProtocol(const std::string& page);
+    int ExtractColorType(const std::string& page);
+    int ExtractColor(const std::string& page);
+    int ExtractSingleColor(const std::string& page, const int output);
 
-    std::string ExtractFromPage(const wxString& page, const std::string& parameter, const std::string& type, int start = 0);
-    int ExtractIntFromPage(const wxString& page, const std::string& parameter, const std::string& type, int defaultValue = 0, int start = 0);
-    bool ExtractBoolFromPage(const wxString& page, const std::string& parameter, const std::string& type, bool defaultValue = false, int start = 0);
+    std::string ExtractFromPage(const std::string& page, const std::string& parameter, const std::string& type, int start = 0);
+    int ExtractIntFromPage(const std::string& page, const std::string& parameter, const std::string& type, int defaultValue = 0, int start = 0);
+    bool ExtractBoolFromPage(const std::string& page, const std::string& parameter, const std::string& type, bool defaultValue = false, int start = 0);
 
     int EncodeColorOrder(const std::string& colorOrder) const;
     bool EncodeDirection(const std::string& direction) const;
     int EncodeStringPortProtocol(const std::string& protocol) const;
-    std::string SafeDescription(const std::string description) const;
+    std::string SafeDescription(const std::string& description) const;
 
     void UploadPixelOutputs(bool& worked);
     void UploadFlexPixelOutputs(bool& worked);
@@ -114,7 +114,7 @@ public:
     
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
     virtual bool needsHTTP_0_9() const override { return true; }

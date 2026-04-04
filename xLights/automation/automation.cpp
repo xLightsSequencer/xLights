@@ -16,9 +16,12 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
-#include "../utils/Curl.h"
+#include "../utils/CurlManager.h"
 #include <wx/sckaddr.h>
-#include "../UtilFunctions.h"
+#include "../utils/UtilFunctions.h"
+#include "../ui/wxUtilities.h"
+
+#include <log.h>
 
 #ifdef xlDO
 static int GetxFadePort(int xfp)
@@ -51,17 +54,21 @@ void xlDo_Output(const std::string& script, const std::string& resp, bool verbos
                             c = wxString::Format("%s %s=%ld\n", set, key, value.get<int>());
                         }
                         f.Write(c);
-                        if (verbose)
-                            fprintf(stderr, "\u001b[36;1m%s\u001b[0m", (const char*)c.c_str());
+                        if (verbose) {
+                            spdlog::info("{}", c.ToStdString());
+                            //fprintf(stderr, "\u001b[36;1m%s\u001b[0m", (const char*)c.c_str());
+                        }
                     }
                 } catch (std::exception&) { 
-                    fprintf(stderr, "\u001b[31;1mFailed to parse response %s.\u001b[0m\n", (const char*)resp.c_str());
+                    spdlog::error("Failed to parse response {}.", resp);
+                    //fprintf(stderr, "\u001b[31;1mFailed to parse response %s.\u001b[0m\n", (const char*)resp.c_str());
                 }
             } else {
                 f.Write(resp);
             }
         } else {
-            fprintf(stderr, "\u001b[31;1mFailed to write to script file %s.\u001b[0m\n", (const char*)script.c_str());
+            spdlog::error("Failed to write to script file {}.", script);
+            //fprintf(stderr, "\u001b[31;1mFailed to write to script file %s.\u001b[0m\n", (const char*)script.c_str());
         }
     }
 
@@ -74,7 +81,8 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 
     if (templateFile != "") {
         if (!wxFile::Exists(templateFile)) {
-            fprintf(stderr, "\u001b[31;1mTemplate file %s not found.\u001b[0m\n", (const char*)templateFile.c_str());
+            spdlog::error("Template file {} not found.", templateFile);
+            //fprintf(stderr, "\u001b[31;1mTemplate file %s not found.\u001b[0m\n", (const char*)templateFile.c_str());
             return 1;
         }
 
@@ -82,24 +90,30 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
         if (f.Open(templateFile)) {
             f.ReadAll(&command);
             if (verbose) {
-                fprintf(stderr, "\u001b[36;1mCommand read from template file: %s.\u001b[0m\n", (const char*)command.c_str());
+                spdlog::info("Command read from template file: {}.", command.ToStdString());
+                //fprintf(stderr, "\u001b[36;1mCommand read from template file: %s.\u001b[0m\n", (const char*)command.c_str());
             }
         } else {
-            fprintf(stderr, "\u001b[31;1mUnable to open template file %s.\u001b[0m\n", (const char*)templateFile.c_str());
+            spdlog::error("Unable to open template file: {}.", templateFile);
+            //fprintf(stderr, "\u001b[31;1mUnable to open template file %s.\u001b[0m\n", (const char*)templateFile.c_str());
             return 1;
         }
     } else if (command == "") {
         char s[4096];
         memset(s, 0x00, sizeof(s));
-        fgets(s, sizeof(s) - 1, stdin);
+        if (fgets(s, sizeof(s) - 1, stdin) == nullptr) {
+            s[0] = '\0';
+        }
         command = wxString(s);
         if (verbose) {
-            fprintf(stderr, "\u001b[36;1mCommand read from stdin: %s.\u001b[0m\n", (const char*)command.c_str());
+            spdlog::info("Command read from stdin: {}.", command.ToStdString());
+            //fprintf(stderr, "\u001b[36;1mCommand read from stdin: %s.\u001b[0m\n", (const char*)command.c_str());
         }
     }
 
     if (command == "") {
-        fprintf(stderr, "\u001b[31;1mNo command found to execute.\u001b[0m\n");
+        spdlog::error("No command found to execute.");
+        //fprintf(stderr, "\u001b[31;1mNo command found to execute.\u001b[0m\n");
         return 1;
     }
 
@@ -111,7 +125,8 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
     }
 
     if (verbose) {
-        fprintf(stderr, "\u001b[32;1mCommand after parameter replacement: %s.\u001b[0m\n", (const char*)command.c_str());
+        spdlog::info("Command after parameter replacement: {}.", command.ToStdString());
+        //fprintf(stderr, "\u001b[32;1mCommand after parameter replacement: %s.\u001b[0m\n", (const char*)command.c_str());
     }
 
     {
@@ -125,7 +140,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 
                 std::string url = "http://" + ip + ":" + std::to_string(::GetxFadePort(ab + 1)) + "/getVersion";
                 if (val["ifNotRunning"].get<std::string>() == "true") {
-                    std::string resp = Curl::HTTPSGet(url, command.ToStdString());
+                    std::string resp = CurlManager::HTTPSGet(url, command.ToStdString());
                     if (resp != "") {
                         xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights was already running.\"}", verbose, false);
                         return 0;
@@ -138,7 +153,8 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 wxString cmdline(appPath + wxT("/xLights") + params + " &");
 
                 if (system((const char*)cmdline.c_str()) < 0) {
-                    fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
+                    spdlog::error("Unable to start xLights.");
+                    //fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
                     return 1;
                 }
 #elif defined(__WXOSX__)
@@ -151,30 +167,33 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 p = p.substr(0, idx);
                 wxString s = "open -a " + p + " --args " + params;
                 if (system(s.c_str()) < 0) {
-                    fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
+                    spdlog::error("Unable to start xLights.");
+                    //fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
                     return 1;
                 }
 #else
                 long pid = wxExecute("xLights.exe" + params);
                 if (pid == 0) {
-                    fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
+                    spdlog::error("Unable to start xLights.");
+                    //fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
                     return 1;
                 }
 #endif
 
                 int loop = 0;
-                std::string resp = Curl::HTTPSGet(url, command.ToStdString());
+                std::string resp = CurlManager::HTTPSGet(url, command.ToStdString());
                 while (resp == "") {
                     // dont wait more than a minute
                     if (loop++ > 60)
                         break;
 
                     wxSleep(1);
-                    resp = Curl::HTTPSGet(url, command.ToStdString());
+                    resp = CurlManager::HTTPSGet(url, command.ToStdString());
                 }
 
                 if (loop > 60) {
-                    fprintf(stderr, "\u001b[31;1mTimeout waiting for xLights to start.\u001b[0m\n");
+                    spdlog::error("Timeout waiting for xLights to start.");
+                    //fprintf(stderr, "\u001b[31;1mTimeout waiting for xLights to start.\u001b[0m\n");
                     return 1;
                 }
 
@@ -203,8 +222,8 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
     }
     //30 minute timeout?  Some of the automations like batchRender may take a LONG time
     int responseCode = 0;
-    std::string resp = command.empty() ? Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode)
-        : Curl::HTTPSPost(url, command, "", "", mime, 30*60, {}, &responseCode);
+    std::string resp = command.empty() ? CurlManager::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode)
+        : CurlManager::HTTPSPost(url, command, "", "", mime, 30*60, {}, &responseCode);
 
 
     if (command.empty()) {
@@ -219,17 +238,19 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 resp = "{\"res\":" + std::to_string(responseCode) + "," + resp.substr(1);
             }
             if (!val.contains("res")) {
-                fprintf(stderr, "\u001b[31;1mxLights response missing result code: %s.\u001b[0m\n", (const char*)resp.c_str());
+                spdlog::error("xLights response missing result code: {}.", resp);
                 return 1;
             }
             auto res = val["res"].get<int>();
             if (res != 200) {
-                fprintf(stderr, "\u001b[31;1mxLights response has error code: %d.\u001b[0m %s\n", (int)res, (const char*)resp.c_str());
+                spdlog::error("xLights response has error code: {}. {}", (int)res, resp);
+                //fprintf(stderr, "\u001b[31;1mxLights response has error code: %d.\u001b[0m %s\n", (int)res, (const char*)resp.c_str());
                 return 2;
             }
         }
         catch (const std::exception& e) {
-            fprintf(stderr, "\u001b[31;1mError parsing xLights response.\u001b[0m\n");
+            spdlog::error("Error parsing xLights response.");
+            //fprintf(stderr, "\u001b[31;1mError parsing xLights response.\u001b[0m\n");
             return 1;
         }
     }
@@ -308,58 +329,68 @@ int DoXLDoCommands(int argc, char **argv) {
                 verbose = true;
             }
             if (parser.Found("A") && parser.Found("B")) {
-                fprintf(stderr, "\u001b[31;1mCannot specify both -A and -B.\u001b[0m\n");
+                spdlog::error("Cannot specify both -A and -B.");
+                //fprintf(stderr, "\u001b[31;1mCannot specify both -A and -B.\u001b[0m\n");
                 return 1;
             }
 
             if (parser.Found("A")) {
                 ab = 0;
                 if (verbose) {
-                    fprintf(stderr, "\u001b[36;1mConnecting to xLights A.\u001b[0m\n");
+                    spdlog::info("Connecting to xLights A.");
+                    //fprintf(stderr, "\u001b[36;1mConnecting to xLights A.\u001b[0m\n");
                 }
             }
             else if (parser.Found("B")) {
                 ab = 1;
                 if (verbose) {
-                    fprintf(stderr, "\u001b[36;1mConnecting to xLights B.\u001b[0m\n");
+                    spdlog::info("Connecting to xLights B.");
+                    //fprintf(stderr, "\u001b[36;1mConnecting to xLights B.\u001b[0m\n");
                 }
             }
 
             if (parser.Found("i", &ip)) {
                 if (verbose) {
-                    fprintf(stderr, "\u001b[36;1mConnecting to xLights on ip: %s.\u001b[0m\n", (const char*)ip.c_str());
+                    spdlog::info("Connecting to xLights on ip: {}.", ip.ToStdString());
+                    //fprintf(stderr, "\u001b[36;1mConnecting to xLights on ip: %s.\u001b[0m\n", (const char*)ip.c_str());
                 }
             }
 
             if (parser.Found("s", &script)) {
                 if (verbose) {
-                    fprintf(stderr, "\u001b[36;1mCreating script: %s.\u001b[0m\n", (const char*)script.c_str());
+                    spdlog::info("Creating script: {}.", script.ToStdString());
+                    //fprintf(stderr, "\u001b[36;1mCreating script: %s.\u001b[0m\n", (const char*)script.c_str());
                 }
             }
 
             if (parser.Found("t") && parser.Found("c")) {
-                fprintf(stderr, "\u001b[31;1mCannot specify both -t and -c.\u001b[0m\n");
+                spdlog::error("Cannot specify both -t and -c.");
+                //fprintf(stderr, "\u001b[31;1mCannot specify both -t and -c.\u001b[0m\n");
             }
 
             if (parser.Found("t", &templateFile)) {
                 if (verbose) {
-                    fprintf(stderr, "\u001b[36;1mTemplate file: %s.\u001b[0m\n", (const char*)templateFile.c_str());
+                    spdlog::info("Template file: {}.", templateFile.ToStdString());
+                    //fprintf(stderr, "\u001b[36;1mTemplate file: %s.\u001b[0m\n", (const char*)templateFile.c_str());
                 }
             }
             else if (parser.Found("c", &command)) {
                 if (verbose) {
-                    fprintf(stderr, "\u001b[36;1mCommand: %s.\u001b[0m\n", (const char*)command.c_str());
+                    spdlog::info("Command: {}.", command.ToStdString());
+                    //fprintf(stderr, "\u001b[36;1mCommand: %s.\u001b[0m\n", (const char*)command.c_str());
                 }
             } else {
                 if (verbose) {
-                    fprintf(stderr, "\u001b[36;1mReading command from stdin.\u001b[0m\n");
+                    spdlog::info("Reading command from stdin.");
+                    //fprintf(stderr, "\u001b[36;1mReading command from stdin.\u001b[0m\n");
                 }
             }
 
             for (uint8_t i = 0; i < 9; i++) {
                 if (parser.Found(wxString::Format("p%d", i + 1), &parameters[i])) {
                     if (verbose) {
-                        fprintf(stderr, "\u001b[36;1mParameter %d: %s.\u001b[0m\n", i + 1, (const char*)parameters[i].c_str());
+                        spdlog::info("Parameter {}: {}.", i + 1, parameters[i].ToStdString());
+                        //fprintf(stderr, "\u001b[36;1mParameter %d: %s.\u001b[0m\n", i + 1, (const char*)parameters[i].c_str());
                     }
                 }
             }

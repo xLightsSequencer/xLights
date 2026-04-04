@@ -16,7 +16,9 @@
 #include <list>
 #include <tuple>
 
-#include "../ControllerConnection.h"
+class BaseSerializingVisitor;
+
+#include "ControllerConnection.h"
 #include "ModelScreenLocation.h"
 #include "BoxedScreenLocation.h"
 #include "TwoPointScreenLocation.h"
@@ -24,26 +26,21 @@
 #include "PolyPointScreenLocation.h"
 #include "PWMOutput.h"
 
-#include "../Color.h"
+#include "Color.h"
 #include "BaseObject.h"
-#include "../UtilFunctions.h"
-#include <wx/gdicmn.h>
-#include <wx/propgrid/props.h>
+#include "UtilFunctions.h"
+
+#include "../utils/xlPoint.h"
 
 
-class wxProgressDialog;
 class DimmingCurve;
-class wxXmlNode;
-class ModelPreview;
-class wxArrayString;
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
+#include <pugixml.hpp>
+class IModelPreview;
 class ModelScreenLocation;
 class ModelManager;
 class SubModel;
 class xLightsFrame;
 class OutputManager;
-class wxPGProperty;
 class ControllerCaps;
 class NodeBaseClass;
 class xlGraphicsProgram;
@@ -71,23 +68,12 @@ enum {
     //GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
 };
 
-// only allows 0-9,- characters
-class wxDropPatternProperty : public wxStringProperty
-{
-public:
-    wxDropPatternProperty(const wxString& label = wxPG_LABEL,
-        const wxString& name = wxPG_LABEL,
-        const wxString& value = wxEmptyString
-    ) : wxStringProperty(label, name, value)
-    { }
-    virtual bool ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const override;
-};
-
 class Model : public BaseObject
 {
     friend class LayoutPanel;
     friend class ModelManager;
     friend class SubModel;
+    friend class ModelPropertyAdapter;
 
 public:
 
@@ -98,40 +84,25 @@ public:
         PIXEL_STYLE_BLENDED_CIRCLE
     };
 
-    static wxArrayString CONTROLLER_COLORORDER;
+    static std::vector<std::string> CONTROLLER_COLORORDER;
 
     Model(const ModelManager& manager);
     virtual ~Model();
-    static wxArrayString GetLayoutGroups(const ModelManager& mm);
+    static std::vector<std::string> GetLayoutGroups(const ModelManager& mm);
     static std::string SafeModelName(const std::string& name)
     {
-        wxString n(Trim(name).c_str());
-        n.Replace(",", "", true);
-        n.Replace("~", "", true);
-        n.Replace("!", "", true);
-        n.Replace(";", "", true);
-        n.Replace("<", "", true);
-        n.Replace(">", "", true);
-        n.Replace("\"", "", true);
-        n.Replace("\'", "", true);
-        n.Replace("&", "", true);
-        n.Replace(":", "", true);
-        n.Replace("|", "", true);
-        //n.Replace("#", "", true);
-        n.Replace("@", "", true);
-        n.Replace("/", "", true);
-        n.Replace("\\", "", true);
-        n.Replace("\t", "", true);
-        n.Replace("\r", "", true);
-        n.Replace("\n", "", true);
+        std::string n = Trim(name);
+        for (char c : {',', '~', '!', ';', '<', '>', '"', '\'', '&', ':', '|', '@', '/', '\\', '\t', '\r', '\n'}) {
+            std::erase(n, c);
+        }
         // Other characters I could remove
         // $%^*()?|][{}`.
-        return n.ToStdString();
+        return n;
     }
 
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
-    virtual int GetNumStrings() const { return HasOneString(DisplayAs) ? 1 : parm1; }
+    virtual int GetNumStrings() const { return 1; }
     PIXEL_STYLE GetPixelStyle() const { return _pixelStyle; }
     void SetPixelStyle(PIXEL_STYLE style);
     static std::string GetPixelStyleDescription(PIXEL_STYLE pixelStyle);
@@ -143,12 +114,7 @@ public:
     std::string GetModelStartChannel() const { return ModelStartChannel; }
     const std::string GetStartSide() const { return _startSide; }
     const std::string GetDirection() const { return _dir; }
-    long GetParm1() const { return parm1; }
-    long GetParm2() const { return parm2; }
-    long GetParm3() const { return parm3; }
-    void SetParm1(long val) {parm1 = val;}
-    void SetParm2(long val) {parm2 = val;}
-    void SetParm3(long val) {parm3 = val;}
+    // parm1/2/3 removed - use model-specific named accessors instead
     int GetTransparency() const { return transparency; }
     int GetBlackTransparency() const { return blackTransparency; }
     std::string GetDescription() const { return description; }
@@ -183,22 +149,21 @@ public:
     void SetPixelType(const std::string &pt) { _pixelType = pt; }
     void SetPixelSpacing(const std::string &ps) { _pixelSpacing = ps; }
 
-    wxString ExportSuperStringColors() const;
+    std::string ExportSuperStringColors() const;
     void ApplyDimensions(const std::string& units, float width, float height, float depth);
-    void ExportDimensions(wxFile& f) const;
     std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
-    static void WriteFaceInfo(wxXmlNode* fiNode, const FaceStateData& faceInfo);
-    wxString SerialiseFace() const;
-    wxString SerialiseState() const;
-    void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask);
-    void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
+    static void WriteFaceInfo(pugi::xml_node fiNode, const FaceStateData& faceInfo);
+    std::string SerialiseFace() const;
+    std::string SerialiseState() const;
+    void AddModelGroups(pugi::xml_node n, int w, int h, const std::string& name, bool& merge, bool& ask);
+    void ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, IModelPreview* modelPreview, const std::string& layoutGroup);
 
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
-     static void WriteStateInfo(wxXmlNode* fiNode, const FaceStateData& stateInfo, bool customColours = false);
+     static void WriteStateInfo(pugi::xml_node fiNode, const FaceStateData& stateInfo, bool customColours = false);
 
     [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
     [[nodiscard]] virtual FaceStateNodes const& GetFaceInfoNodes() const { return faceInfoNodes; };
@@ -245,10 +210,10 @@ public:
     }
     
     void AddSubmodel(SubModel* sm);
-    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const;
+    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, IModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const;
 
-    [[nodiscard]] wxString SerialiseSubmodel() const;
-    [[nodiscard]] virtual wxString CreateBufferAsSubmodel() const;
+    [[nodiscard]] std::string SerialiseSubmodel() const;
+    [[nodiscard]] virtual std::string CreateBufferAsSubmodel() const;
     bool importAliases = false;
     bool skipImportAliases = false;
 
@@ -266,7 +231,7 @@ public:
     [[nodiscard]] const ModelManager& GetModelManager() const {
         return modelManager;
     }
-    static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm);
+    // GetXlightsModel moved to LayoutPanel.cpp (UI-layer only)
     bool FourChannelNodes() const;
     bool FiveChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;
@@ -284,35 +249,13 @@ public:
     int GetDefaultBufferHt() const { return BufferHt; }
     virtual bool IsDMXModel() const { return false; }
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    void GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cp, int& idx) const;
-    void GetControllerProtocols(wxArrayString& cp, int& idx);
-    virtual void AddControllerProperties(wxPropertyGridInterface* grid);
-    virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
-    virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override{};
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {};
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
-    virtual void OnPropertyGridChanging(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
-    virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) { return 0; };
-    virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
-    virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
+    void GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std::string>& cp, int& idx) const;
+    void GetControllerProtocols(std::vector<std::string>& cp, int& idx);
     virtual std::string GetDimension() const override;
     virtual bool IsNodeFirst(int n) const
     {
         return n == 0;
     }
-    /**
-     * Returns a combination of:
-     *     0x0001  -  Refresh displays
-     *     0x0002  -  Mark settings as "dirty"/"changed"
-     *     0x0004  -  Rebuild the property grid
-     *     0x0008  -  Rebuild the model list
-     *     0x0010  -  Update all model lists
-     */
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation& GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
 
@@ -331,7 +274,7 @@ public:
     [[nodiscard]] int GetIndivStartNodesCount() const { return _indivStartNodes.size(); }
     void AddIndivStartNode(int node) { _indivStartNodes.push_back(node); }
     void SetIndivStartNode(int index, int node) { _indivStartNodes[index] = node; }
-    const std::string StartNodeAttrName(int idx) const { return ""; }
+    virtual const std::string StartNodeAttrName(int idx) const { return ""; }
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 
@@ -339,9 +282,11 @@ public:
     
     
     virtual bool SupportsModelScreenLocation() const { return true; }
-protected:
-    void AdjustStringProperties(wxPropertyGridInterface* grid, int newNum);
+
     std::string ComputeStringStartChannel(int x);
+    int ComputeStringStartNode(int x) const;
+
+protected:
     void ApplyTransform(const std::string& transform,
         std::vector<NodeBaseClassPtr>& Nodes,
         int& bufferWi, int& bufferHi, int startNode = 0) const;
@@ -360,7 +305,6 @@ protected:
     virtual void InitModel() {}
     virtual int CalcChannelsPerString();
     virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString);
-    int ComputeStringStartNode(int x) const;
     void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);
@@ -369,7 +313,7 @@ protected:
 
     bool FindCustomModelScale(int scale) const;
 
-    void ImportSuperStringColours(wxXmlNode* root);
+    void ImportSuperStringColours(pugi::xml_node root);
 
     void SetLineCoord();
     std::string GetNextName();
@@ -378,7 +322,8 @@ protected:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
-    wxColour _modelTagColour = wxNullColour;
+    xlColor _modelTagColour = xlBLACK;
+    bool _modelTagColourValid = false;
     std::string _modelTagColourString = xlEMPTY_STRING;
     uint8_t _lowDefFactor = 100;
     std::string _startSide = "B";
@@ -391,9 +336,7 @@ protected:
     std::vector<std::string> nodeNames;
     std::string _nodeNamesString;
     std::string _strandNamesString;
-    long parm1 = 0;         /* Number of strings in the model or number of arches or canes (except for frames & custom) */
-    long parm2 = 0;         /* Number of nodes per string in the model or number of segments per arch or cane (except for frames & custom) */
-    long parm3 = 0;         /* Number of strands per string in the model or number of lights per arch or cane segment (except for frames & custom) */
+    // parm1/2/3 removed - each model subclass now has its own named member variables
     bool IsLtoR = true;     // true = left to right, false = right to left
     std::vector<int32_t> stringStartChan;
     bool isBotToTop = true;
@@ -415,7 +358,6 @@ protected:
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;
     std::string _modelChain = "";
-    void ColourClashingChains(wxPGProperty* p);
     [[nodiscard]] uint32_t ApplyLowDefinition(uint32_t val) const;
 
     FaceStateData faceInfo;
@@ -431,9 +373,9 @@ public:
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
     std::string DecodeSmartRemote(int sr) const;
 
-    void SetTagColour(wxColour colour);
+    void SetTagColour(const xlColor& colour);
     void SetTagColourAsString(std::string const& colour);
-    [[nodiscard]] wxColour GetTagColour();
+    [[nodiscard]] xlColor GetTagColour();
     [[nodiscard]] std::string GetTagColourAsString() const; // used by XmlSerializer
     [[nodiscard]] int32_t GetStringStartChan(int x) const;
 
@@ -448,6 +390,13 @@ public:
     [[nodiscard]] std::string GetRGBWHandling() const;
     void SetRGBWHandling(std::string const& handling);
     void SetLowDefFactor(int factor) { _lowDefFactor = factor; }
+    [[nodiscard]] int GetLowDefFactor() const { return _lowDefFactor; }
+    [[nodiscard]] int GetRGBWHandlingType() const { return rgbwHandlingType; }
+    [[nodiscard]] const std::vector<xlColor>& GetSuperStringColours() const { return superStringColours; }
+    void InitSuperStringColours() { if (superStringColours.empty()) superStringColours.push_back(xlRED); }
+    [[nodiscard]] size_t IndivStartChannelCount() const { return _indivStartChannels.size(); }
+    void AddIndivStartChannel(const std::string& ch) { _indivStartChannels.push_back(ch); }
+    void PopIndivStartChannel() { _indivStartChannels.pop_back(); }
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
@@ -475,7 +424,7 @@ public:
 
     virtual std::vector<PWMOutput> GetPWMOutputs() const;
 
-    wxArrayString GetSmartRemoteValues(int smartRemoteCount) const;
+    std::vector<std::string> GetSmartRemoteValues(int smartRemoteCount) const;
 
     [[nodiscard]] unsigned long GetChangeCount() const {
         return changeCount;
@@ -517,47 +466,49 @@ public:
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;
 
-    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+    virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                       bool highlightFirst = false, int highlightpixel = 0,
                                       float *boundingBox = nullptr);
-    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
+    virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize);
 
 
 
     virtual int NodeRenderOrder() { return 0; }
-    float GetPreviewDimScale(ModelPreview* preview, int& w, int& h);
+    float GetPreviewDimScale(IModelPreview* preview, int& w, int& h);
     void GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale);
-    bool GetScreenLocations(ModelPreview *preview, std::map<int, std::pair<float, float>>& coords);
-    wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
-    std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
+    bool GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<float, float>>& coords);
+    std::string GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip);
+    std::vector<int> GetNodesInBoundingBox(IModelPreview* preview, xlPoint start, xlPoint end);
     bool IsMultiCoordsPerNode() const;
 
-    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx) override;
+    void AddASAPWork(uint32_t work, const std::string& from) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
-    glm::vec3 MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
+    glm::vec3 MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
     int GetSelectedHandle();
     int GetNumHandles();
     int GetSelectedSegment();
     bool SupportsCurves();
     bool HasCurve(int segment);
     void SetCurve(int segment, bool create);
-    void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
+    void AddHandle(IModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle, float zoom, int scale);
     virtual void DeleteHandle(int handle);
 
     bool HasState(std::string const& state) const;
 
-    bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
+    bool HitTest(IModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType() const { return StringType; }
     void SetStringType(std::string const& st) { StringType = st; }
 
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const;
     virtual int MapPhysicalStringToLogicalString(int string) const;
-    virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
-    wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);
+    virtual int GetLightsPerNode() const { return 1; }
+    virtual int GetStrandsPerString() const { return 1; }
+    CursorType InitializeLocation(int& handle, int x, int y, IModelPreview* preview);
 
     int32_t NodeStartChannel(size_t nodenum) const;
     int32_t NodeEndChannel(size_t nodenum) const;
@@ -569,14 +520,14 @@ public:
     xlColor GetNodeColor(size_t nodenum) const;
     virtual const xlColor &GetNodeMaskColor(size_t nodenum) const;
     void SetNodeColor(size_t nodenum, const xlColor& c);
-    wxChar GetChannelColorLetter(wxByte chidx);
+    char GetChannelColorLetter(uint8_t chidx);
     std::string GetRGBOrder() const { return rgbOrder; }
     static char EncodeColour(const xlColor& c);
     char GetAbsoluteChannelColorLetter(int32_t absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
     std::string GetControllerPortSortString() const;
 
-    virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
-    virtual void ExportAsCustomXModel() const;
+    virtual std::string ChannelLayoutHtml(OutputManager* outputManager, bool darkMode = false);
+    virtual void ExportAsCustomXModel(BaseSerializingVisitor& visitor) const;
     virtual std::string GetStartLocation() const;
     bool IsCustom();
     virtual bool SupportsExportAsCustom() const = 0;
@@ -584,12 +535,12 @@ public:
     {
         return false;
     }
-    virtual void ExportAsCustomXModel3D() const
+    virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     {}
     virtual bool SupportsWiringView() const = 0;
-    size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
-    static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
-    static bool ParseStateElement(const std::string& str, std::vector<wxPoint>& first_xy);
+    size_t GetChannelCoords(std::vector<std::string>& choices);
+    static bool ParseFaceElement(const std::string& str, std::vector<xlPoint>& first_xy);
+    static bool ParseStateElement(const std::string& str, std::vector<xlPoint>& first_xy);
     virtual bool SupportsLowDefinitionRender() const
     {
         return false;
@@ -597,13 +548,14 @@ public:
     std::string GetNodeXY(const std::string& nodenumstr);
     std::string GetNodeXY(int nodeinx);
 
-    void GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts);
+    void GetNodeCoords(int nodeidx, std::vector<xlPoint>& pts);
     void GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, float, float>>& pts);
 
     bool GetIsLtoR() const { return IsLtoR; }
     bool GetIsBtoT() const { return isBotToTop; }
     void SetIsBtoT(bool val) { isBotToTop = val; }
     void SetIsLtoR(bool val) { IsLtoR = val; }
+    bool IsSingleNode() const { return SingleNode; }
     virtual int GetStrandLength(int strand) const;
 
     float _savedWidth{ 0.0F };
@@ -650,7 +602,7 @@ public:
         return std::string("String") + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
 
-    // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
+    // returns true for models that only have 1 string (e.g., WindowFrame, Cube)
     static bool HasOneString(const DisplayAsType DispAs)
     {
         return (DispAs == DisplayAsType::WindowFrame || DispAs == DisplayAsType::Cube);
@@ -717,23 +669,19 @@ public:
         }
     }
     size_t GetLayerSizeCount() const { return layerSizes.size(); }
-    void SetLayerSize(int layer, int size)
+    void SetLayerSize(size_t layer, int size)
     {
         if (GetLayerSizeCount() > layer && size != 0) {
             layerSizes[layer] = size;
         }
-        //else wxASSERT(false);
     }
-    int GetLayerSize(int layer) const
+    int GetLayerSize(size_t layer) const
     {
         if (GetLayerSizeCount() > layer) {
             return layerSizes[layer];
         }
-        wxASSERT(false);
         return 0;
     }
-    void AddLayerSizeProperty(wxPropertyGridInterface* grid);
-    bool HandleLayerSizePropertyChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event);
     std::string SerialiseLayerSizes() const
     {
         std::string res;
@@ -750,23 +698,21 @@ public:
     virtual void OnLayerSizesChange(bool countChanged) {}
     static const long ID_LAYERSIZE_DELETE;
     static const long ID_LAYERSIZE_INSERT;
-    void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) override;
-    void HandlePropertyGridContextMenu(wxCommandEvent& event) override;
 
     // reverse is used for conversion scenarios where the old format was reversed
     void DeserializeLayerSizes(std::string const& ls, bool reverse)
     {
         layerSizes.resize(0);
-        auto lss = wxSplit(ls, ',');
+        auto lss = Split(ls, ',');
         if (reverse) {
             for (auto it = lss.rbegin(); it != lss.rend(); ++it) {
-                int l = wxAtoi(*it);
+                int l = (int)std::strtol(it->c_str(), nullptr, 10);
                 if (l > 0) layerSizes.push_back(l);
             }
         }
         else {
             for (const auto& it : lss) {
-                int l = wxAtoi(it);
+                int l = (int)std::strtol(it.c_str(), nullptr, 10);
                 if (l > 0) layerSizes.push_back(l);
             }
         }
@@ -824,10 +770,10 @@ public:
     // Smart Remote Functions
     void GetPortSR(int string, int& outport, int& outsr) const { return _controllerConnection.GetPortSR(string, outport, outsr); }
     [[nodiscard]] char GetSmartRemoteLetter() const { return _controllerConnection.GetSmartRemoteLetter(); }
-    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const { return _controllerConnection.GetSmartRemoteLetterForString(); }
+    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const { return _controllerConnection.GetSmartRemoteLetterForString(string); }
     [[nodiscard]] int GetSortableSmartRemote() const { return _controllerConnection.GetSortableSmartRemote(); }
     [[nodiscard]] int GetSmartTs() const { return _controllerConnection.GetSmartTs(); }
-    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const { return _controllerConnection.GetSmartRemoteForString(); }
+    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const { return _controllerConnection.GetSmartRemoteForString(string); }
     void SetSmartRemote(int sr) { return _controllerConnection.SetSmartRemote(sr); }
     void SetSmartRemoteTs(int ts ) { _controllerConnection.SetSmartRemoteTs(ts); }
     void SetSRCascadeOnPort(bool cascade) { return _controllerConnection.SetSRCascadeOnPort(cascade); }

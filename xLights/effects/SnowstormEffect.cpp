@@ -9,11 +9,11 @@
  **************************************************************/
 
 #include "SnowstormEffect.h"
-#include "SnowstormPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../utils/xlPoint.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/snowstorm-16.xpm"
 #include "../../include/snowstorm-24.xpm"
@@ -28,14 +28,10 @@ SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm", sno
 
 SnowstormEffect::~SnowstormEffect() {}
 
-xlEffectPanel *SnowstormEffect::CreatePanel(wxWindow *parent) {
-    return new SnowstormPanel(parent);
-}
-
 class SnowstormClass
 {
 public:
-    std::vector<wxPoint> points;
+    std::vector<xlPoint> points;
     HSVValue hsv;
     int idx,ssDecay;
     ~SnowstormClass()
@@ -45,9 +41,9 @@ public:
 };
 
 // 0 <= idx <= 7
-static wxPoint SnowstormVector(int idx)
+static xlPoint SnowstormVector(int idx)
 {
-    wxPoint xy;
+    xlPoint xy;
     switch (idx) {
     case 0:
         xy.x = -1;
@@ -89,7 +85,7 @@ static void SnowstormAdvance(RenderBuffer& buffer, SnowstormClass& ssItem)
 {
     const int cnt = 8;  // # of integers in each set in arr[]
     const int arr[] = { 30,20,10,5,0,5,10,20,20,15,10,10,10,10,10,15 }; // 2 sets of 8 numbers, each of which add up to 100
-    wxPoint adv = SnowstormVector(7);
+    xlPoint adv = SnowstormVector(7);
     int i0 = ssItem.idx % 7 <= 4 ? 0 : cnt;
     int r = rand() % 100;
     for (int i = 0, val = 0; i < cnt; i++)
@@ -107,7 +103,7 @@ static void SnowstormAdvance(RenderBuffer& buffer, SnowstormClass& ssItem)
         adv.y *= 2;
     }
 
-    wxPoint xy = ssItem.points.back() + adv;
+    xlPoint xy = ssItem.points.back() + adv;
     xy.x %= buffer.BufferWi;
     xy.y %= buffer.BufferHt;
     if (xy.x < 0) xy.x += buffer.BufferWi;
@@ -123,18 +119,6 @@ public:
     int LastSnowstormCount;
     std::list<SnowstormClass> SnowstormItems;
 };
-
-void SnowstormEffect::SetDefaultParameters()
-{
-    SnowstormPanel *sp = (SnowstormPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(sp->Slider_Snowstorm_Count, 50);
-    SetSliderValue(sp->Slider_Snowstorm_Length, 50);
-    SetSliderValue(sp->Slider_Snowstorm_Speed, 10);
-}
 
 void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
@@ -173,7 +157,7 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
             // start in a random state
             int r = rand() % (2 * TailLength);
             if (r > 0) {
-                wxPoint xy;
+                xlPoint xy;
                 xy.x = rand() % buffer.BufferWi;
                 xy.y = rand() % buffer.BufferHt;
                 ssItem.points.push_back(xy);
@@ -201,7 +185,7 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     // render Snowstorm Items
     for (auto& it : SnowstormItems) {
         
-        if (it.points.size() > TailLength) {
+        if ((int)it.points.size() > TailLength) {
             if (it.ssDecay > TailLength) {
                 it.points.clear();  // start over
                 it.ssDecay = 0;
@@ -212,7 +196,7 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         }
 
         if (it.points.empty()) {
-            wxPoint xy;
+            xlPoint xy;
             xy.x = rand() % buffer.BufferWi;
             xy.y = rand() % buffer.BufferHt;
             it.points.push_back(xy);

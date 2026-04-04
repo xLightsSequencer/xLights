@@ -8,21 +8,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/sstream.h>
-
 #include <algorithm>
 #include <filesystem>
 
 #include "DmxModel.h"
 #include "Mesh.h"
-#include "../../UtilFunctions.h"
-#include "../../ExternalHooks.h"
-#include "../../ModelPreview.h"
-#include "../../xLightsMain.h"
-#include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
+#include "utils/ExternalHooks.h"
+#include "../../graphics/IModelPreview.h"
+#include <log.h>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -81,247 +75,12 @@ void Mesh::Init(BaseObject* base, bool set_size) {
     }
 }
 
-void Mesh::AddTypeProperties(wxPropertyGridInterface *grid) {
-    grid->Append(new wxPropertyCategory(base_name, base_name + "Properties"));
-    
-    wxPGProperty * prop = grid->Append(new wxFileProperty("ObjFile", base_name + "ObjFile", _objFile));
-    prop->SetAttribute(wxPG_FILE_WILDCARD, "Wavefront files|*.obj|All files (*.*)|*.*");
-
-    prop = grid->Append(new wxBoolProperty("Mesh Only", base_name + "MeshOnly", mesh_only));
-    prop->SetAttribute("UseCheckbox", true);
-    prop = grid->Append(new wxUIntProperty("Brightness", base_name + "Brightness", brightness));
-    prop->SetAttribute("Min", 0);
-    prop->SetAttribute("Max", 100);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("Offset X", base_name + "OffsetX", offset_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("Offset Y", base_name + "OffsetY", offset_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("Offset Z", base_name + "OffsetZ", offset_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("ScaleX", base_name + "ScaleX", scalex));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("ScaleY", base_name + "ScaleY", scaley));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("ScaleZ", base_name + "ScaleZ", scalez));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("RotateX", base_name + "RotateX", rotatex));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("RotateY", base_name + "RotateY", rotatey));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = grid->Append(new wxFloatProperty("RotateZ", base_name + "RotateZ", rotatez));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-
-    grid->Collapse(base_name + "Properties");
-}
-
-int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {
-    std::string name = event.GetPropertyName().ToStdString();
-    if (!locked && base_name + "ObjFile" == name) {
-        obj_loaded = false;
-        obj_exists = false;
-        if (controls_size) {
-            recalc_size = true;
-        }
-        _objFile = event.GetValue().GetString();
-        ObtainAccessToURL(_objFile);
-        
-        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
-        bool hasSpaces = false;
-        std::filesystem::path path(_objFile);
-        for (auto &mtf : mtfs) {
-            if (mtf.find(' ') != std::string::npos) {
-                std::filesystem::path mtlpath(path);
-                mtlpath.replace_filename(mtf);
-                if (std::filesystem::exists(mtlpath)) {
-                    // has spaces, but is found so we can fix it
-                    hasSpaces = true;
-                }
-            }
-        }
-        if (hasSpaces) {
-            if (wxMessageBox("The OBJ file contains materials with spaces in the filename.  This will prevent the materials from working.  Should we attempt to fix the file?",
-                         "Files with spaces",
-                             wxYES_NO | wxCENTRE | wxICON_WARNING) == wxYES) {
-                
-                xlMesh::FixMaterialFilenamesInOBJ(_objFile);
-            }
-        }
-
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ObjFile");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ObjFile");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ObjFile");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ObjFile");
-        return 0;
-    }
-    else if (locked && base_name + "ObjFile" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "Brightness" == name) {
-        brightness = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::Brightness");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::Brightness");
-        return 0;
-    }
-    else if (locked && base_name + "Brightness" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "MeshOnly" == name) {
-        mesh_only = event.GetValue().GetBool();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::MeshOnly");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::MeshOnly");
-        return 0;
-    }
-    else if (locked && base_name + "MeshOnly" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "ScaleX" == name) {
-        scalex = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleX");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleX");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleX");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ScaleX");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (locked && base_name + "ScaleX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "ScaleY" == name) {
-        scaley = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleY");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleY");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleY");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ScaleY");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (locked && base_name + "ScaleY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "ScaleZ" == name) {
-        scalez = event.GetValue().GetDouble();
-
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleZ");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleZ");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleZ");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ScaleZ");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (locked && base_name + "ScaleZ" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "OffsetX" == name) {
-        offset_x = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelX");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelX");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelX");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ModelX");
-        return 0;
-    }
-    else if (locked && base_name + "OffsetX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "OffsetY" == name) {
-        offset_y = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelY");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelY");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelY");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ModelY");
-        return 0;
-    }
-    else if (locked && base_name + "OffsetY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "OffsetZ" == name) {
-        offset_z = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelZ");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelZ");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelZ");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ModelZ");
-        return 0;
-    }
-    else if (locked && base_name + "OffsetZ" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "RotateX" == name) {
-        rotatex = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateX");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateX");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateX");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::RotateX");
-        return 0;
-    }
-    else if (locked && base_name + "RotateX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "RotateY" == name) {
-        rotatey = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateY");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateY");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateY");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::RotateY");
-        return 0;
-    }
-    else if (locked && base_name + "RotateY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!locked && base_name + "RotateZ" == name) {
-        rotatez = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateZ");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateZ");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateZ");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::RotateZ");
-        return 0;
-    }
-    else if (locked && base_name + "RotateZ" == name) {
-        event.Veto();
-        return 0;
-    }
-
-    return -1;
-}
-
 void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
     if (FileExists(_objFile)) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         obj_exists = true;
                 
-        logger_base.debug("Loading mesh model file %s.",
-                          (const char *)_objFile.c_str());
+        spdlog::debug("Loading mesh model file {}.", _objFile);
         mesh3d = ctx->loadMeshFromObjFile(_objFile);
         width = mesh3d->GetXMax() - mesh3d->GetXMin();
         height = mesh3d->GetYMax() - mesh3d->GetYMin();
@@ -340,12 +99,12 @@ bool Mesh::GetExists(BaseObject* base, xlGraphicsContext *ctx) {
     return mesh3d != nullptr;
 }
 
-void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& base_matrix, glm::mat4& motion_matrix, bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
+void Mesh::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& base_matrix, glm::mat4& motion_matrix, bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
 {
     Draw(base, preview, sprogram, tprogram, base_matrix, motion_matrix, 0, 0, 0, show_empty, pivot_offset_x, pivot_offset_y, pivot_offset_z, rotation, use_pivot);
 }
 
-void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& base_matrix, glm::mat4& trans_matrix, float xrot, float yrot, float zrot, bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
+void Mesh::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& base_matrix, glm::mat4& trans_matrix, float xrot, float yrot, float zrot, bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
 {
     if (!obj_loaded) {
         loadObject(base, preview->getCurrentGraphicsContext());

@@ -31,7 +31,7 @@ public:
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return parent->GetModelScreenLocation(); };
-    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects) override {
+    virtual glm::vec3 MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects) override {
         return glm::vec3(0, 0, 0);
     }
     virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects) override {
@@ -41,9 +41,6 @@ public:
 
     virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override {}
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
     virtual bool SupportsExportAsCustom() const override { return false; }
     virtual bool SupportsWiringView() const override { return false; }
     bool IsNodesAllValid() const { return _nodesAllValid; }
@@ -77,8 +74,8 @@ public:
     std::string GetSubModelLines() const { return _propertyGridDisplay; }
 
     // Functions for adding the different buffer types
-    void AddDefaultBuffer( wxString const& nodes );
-    void AddRangeXY( wxString const& nodes );
+    void AddDefaultBuffer( std::string const& nodes );
+    void AddRangeXY( std::string const& nodes );
     void AddSubbuffer(std::string const& range );
     
     int GetNumRanges() const { return _ranges.size(); }

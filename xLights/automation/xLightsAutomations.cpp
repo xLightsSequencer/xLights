@@ -13,27 +13,28 @@
 
 #include "nlohmann/json.hpp"
 
-#include "../FSEQFile.h"
+#include "../render/FSEQFile.h"
 #include "../outputs/Controller.h"
 #include "../outputs/ControllerEthernet.h"
-#include "../LayoutPanel.h"
-#include "../ViewsModelsPanel.h"
+#include "ui/layout/LayoutPanel.h"
+#include "ui/layout/ViewsModelsPanel.h"
 #include "../controllers/ControllerCaps.h"
 #include "../controllers/FPP.h"
 #include "../controllers/Falcon.h"
-#include "../UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "UtilFunctions.h"
+#include "utils/ExternalHooks.h"
+#include "../ui/wxUtilities.h"
 #include "../xLightsApp.h"
-#include "../JukeboxPanel.h"
+#include "ui/media/JukeboxPanel.h"
 #include "../outputs/E131Output.h"
-#include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
-#include "../sequencer/MainSequencer.h"
-#include "../ModelPreview.h"
+#include "../../dependencies/wxHTTPServer/wxhttpserver.h"
+#include "../ui/sequencer/MainSequencer.h"
+#include "../ui/layout/ModelPreview.h"
 #include <wx/uri.h>
 
 #include "LuaRunner.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
@@ -392,8 +393,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("Sequence not found.", "msg", 503, false);
         }
 
-        auto fseq = xLightsXmlFile::GetFSEQForXSQ(xsq, GetFseqDirectory());
-        auto m2 = xLightsXmlFile::GetMediaForXSQ(xsq, CurrentDir, GetMediaFolders());
+        auto fseq = SequenceFile::GetFSEQForXSQ(xsq, GetFseqDirectory());
+        auto m2 = SequenceFile::GetMediaForXSQ(xsq, CurrentDir, GetMediaFolders());
 
         if (!FileExists(fseq)) {
             return sendResponse("Unable to find sequence FSEQ file.", "msg", 503, false);
@@ -451,7 +452,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     FSEQFile::FrameData* f = seq->getFrame(frame);
                     if (f != nullptr) {
                         if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
-                            //logger_base.error("FPPConnect FSEQ file corrupt.");
+                            //spdlog::error("FPPConnect FSEQ file corrupt.");
                             res = false;
                         }
                         delete f;
@@ -835,20 +836,20 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int layer = 0;
 
         if (!params["layer"].empty()) {
-            layer = std::stoi(params["layer"]);
+            layer = (int)std::strtol(params["layer"].c_str(), nullptr, 10);
         }
         if (!params["startTime"].empty()) {
-            startTime = std::stoi(params["startTime"]);
+            startTime = (int)std::strtol(params["startTime"].c_str(), nullptr, 10);
         }
         if (!params["endTime"].empty()) {
-            endTime = std::stoi(params["endTime"]);
+            endTime = (int)std::strtol(params["endTime"].c_str(), nullptr, 10);
         }
 
         if (to == nullptr) {
             return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         _sequenceElements.get_undo_mgr().CreateUndoStep();
-        while (to->GetEffectLayerCount() < layer + 1) {
+        while ((int)to->GetEffectLayerCount() < layer + 1) {
             to->AddEffectLayer();
         }
         auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect, settings, palette,
@@ -983,7 +984,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         std::string layers = "[";
-        for (int i = 0; i < ele->GetEffectLayerCount(); ++i) {
+        for (size_t i = 0; i < ele->GetEffectLayerCount(); ++i) {
             std::string ids;
             auto effects = ele->GetEffectLayer(i)->GetAllEffects();
             for (auto* eff : effects) {
@@ -1024,10 +1025,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int layer = 0;
 
         if (!params["id"].empty()) {
-            id = std::stoi(params["id"]);
+            id = (int)std::strtol(params["id"].c_str(), nullptr, 10);
         }
         if (!params["layer"].empty()) {
-            layer = std::stoi(params["layer"]);
+            layer = (int)std::strtol(params["layer"].c_str(), nullptr, 10);
         }
         auto const& model = params["model"];
         Element* ele = _sequenceElements.GetElement(model);
@@ -1048,7 +1049,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                                ",\"endTime\":" + std::to_string(eff->GetEndTimeMS()) +
                                 ",\"selected\":" + std::to_string(eff->GetSelected()) + "}";
             return sendResponse(json, "", 200, true);
-        }        
+        }
         return sendResponse("target effect doesn't exists.", "msg", 503, false);
     } else if (cmd == "setEffectSettings") {
         if (CurrentSeqXmlFile == nullptr) {
@@ -1058,10 +1059,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int layer = 0;
 
         if (!params["id"].empty()) {
-            id = std::stoi(params["id"]);
+            id = (int)std::strtol(params["id"].c_str(), nullptr, 10);
         }
         if (!params["layer"].empty()) {
-            layer = std::stoi(params["layer"]);
+            layer = (int)std::strtol(params["layer"].c_str(), nullptr, 10);
         }
         auto const& model = params["model"];
         Element* ele = _sequenceElements.GetElement(model);
@@ -1079,10 +1080,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 eff->SetEffectName(params["name"]);
             }
             if (!params["startTime"].empty()) {
-                eff->SetStartTimeMS(std::stoi(params["startTime"]));
+                eff->SetStartTimeMS((int)std::strtol(params["startTime"].c_str(), nullptr, 10));
             }
             if (!params["endTime"].empty()) {
-                eff->SetEndTimeMS(std::stoi(params["endTime"]));
+                eff->SetEndTimeMS((int)std::strtol(params["endTime"].c_str(), nullptr, 10));
             }
             if (!params["settings"].empty()) {
                 eff->SetSettings(params["settings"], true , true);
@@ -1199,7 +1200,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                     } else if (v.is_boolean()) {
                         paramMap[mn] = v.get<bool>() ? "true" : "false";
                     } else if (v.is_array()) {
-                        for (int x = 0; x < v.size(); x++) {
+                        for (size_t x = 0; x < v.size(); x++) {
                             std::string k = mn + "_" + std::to_string(x);
                             paramMap[k] = v[x].get<std::string>();
                         }
@@ -1213,7 +1214,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                 }
             }
         }
-        catch(std::exception ex) {
+        catch(const std::exception& ex) {
             
         }
        
@@ -1225,7 +1226,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
     }
 
     return ProcessAutomation(paths, paramMap, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
         resp.AddHeader("access-control-allow-origin", "*");
 
@@ -1253,7 +1254,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
             connection.SendResponse(resp);
             return true;
         } else {
-            logger_base.warn("Automation did not send result because connection lost.");
+            spdlog::warn("Automation did not send result because connection lost.");
         }
         return false;
     });
@@ -1261,7 +1262,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
 
 void xLightsFrame::StartAutomationListener()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_automationServer != nullptr) {
         _automationServer->Stop();
@@ -1284,11 +1285,11 @@ void xLightsFrame::StartAutomationListener()
     ctx.ErrorPage404 = HTTP_ERROR_PAGE;
 
     if (!server->Start(ctx)) {
-        logger_base.debug("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
+        spdlog::debug("xLights Automation could not listen on {}", ::GetxFadePort(_xFadePort));
         delete server;
         return;
     }
-    logger_base.debug("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
+    spdlog::debug("xLights Automation listening on {}", ::GetxFadePort(_xFadePort));
     _automationServer = server;
 }
 
@@ -1316,7 +1317,7 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
                 } else if (v.is_boolean()) {
                     paramMap[mn] = v.get<bool>() ? "true" : "false";
                 } else if (v.is_array()) {
-                    for (int x = 0; x < v.size(); x++) {
+                    for (size_t x = 0; x < v.size(); x++) {
                         std::string k = mn + "_" + std::to_string(x);
                         paramMap[k] = v[x].get<std::string>();
                     }

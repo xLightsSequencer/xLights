@@ -10,89 +10,32 @@
  **************************************************************/
 
 #include "LOROptimisedOutput.h"
+#include <cstring>
 #include "Controller.h"
-#include "../OutputModelManager.h"
-#include "../UtilFunctions.h"
+#include "../models/OutputModelManager.h"
+#include "UtilFunctions.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
+#include "serial.h"
 
-#include <log4cpp/Category.hh>
+#include <cassert>
+#include <cstdlib>
+
+#include <log.h>
 
 #define MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE 100
 
-#pragma region Delete Controller Property
-// This is a fake dialog but it allows the delete to work
-class DeleteLorControllerDialogAdapter : public wxPGEditorDialogAdapter {
-public:
-    DeleteLorControllerDialogAdapter() : wxPGEditorDialogAdapter() { }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
-        wxVariant v("");
-        SetValue(v);
-        return true;
-    }
-};
 
-class DeleteLorControllerProperty : public wxStringProperty {
-    LorControllers& _lc;
-public:
-    DeleteLorControllerProperty(LorControllers& lc, const wxString& label, const wxString& name)
-        : wxStringProperty(label, name, wxEmptyString), _lc(lc) { }
-    virtual ~DeleteLorControllerProperty() { }
-    
-    const wxPGEditor* DoGetEditorClass() const override {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
-        // extract the index of the LOR device to delete
-        int pos = wxAtoi(GetName().AfterLast('/'));
-
-        // get an iterator pointing to it
-        auto it = _lc.GetControllers().begin();
-        std::advance(it, pos);
-        wxASSERT(it != _lc.GetControllers().end());
-
-        // now erase it
-        _lc.GetControllers().erase(it);
-
-        // return a dummy dialog which just does enough to register that a change has happened so we can trigger the refresh
-        return new DeleteLorControllerDialogAdapter();
-    }
-};
-#pragma endregion
-
-#pragma region Property Grid Choices
-wxPGChoices LOROptimisedOutput::__lorDeviceTypes;
-wxPGChoices LOROptimisedOutput::__lorAddressModes;
-
+// Property grid choices moved to ui/controllerproperties/OutputPropertyAdapters
 void LOROptimisedOutput::InitialiseTypes() {
-    if (__lorAddressModes.GetCount() == 0) {
-        __lorAddressModes.Add("Normal");
-        __lorAddressModes.Add("Legacy");
-        __lorAddressModes.Add("Split");
-    }
-
-    if (__lorDeviceTypes.GetCount() == 0) {
-        __lorDeviceTypes.Add("AC Controller");
-        __lorDeviceTypes.Add("RGB Controller");
-        __lorDeviceTypes.Add("CCR");
-        __lorDeviceTypes.Add("CCB");
-        __lorDeviceTypes.Add("Pixie2");
-        __lorDeviceTypes.Add("Pixie4");
-        __lorDeviceTypes.Add("Pixie8");
-        __lorDeviceTypes.Add("Pixie16");
-    }
+    // Choices initialization moved to LOROptimisedOutputPropertyAdapter
 }
-#pragma endregion
 
 #pragma region Private Functions
-void LOROptimisedOutput::Save(wxXmlNode* node) {
+void LOROptimisedOutput::SaveAttr(pugi::xml_node node) {
 
-    wxXmlNode* cntrl_node = new wxXmlNode(wxXML_ELEMENT_NODE, "controllers");
-    node->AddChild(cntrl_node);
+    pugi::xml_node cntrl_node = node.append_child("controllers");
     _controllers.Save(cntrl_node);
-    SerialOutput::Save(node);
+    SerialOutput::SaveAttr(node);
 }
 
 void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl) {
@@ -105,7 +48,7 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
     if ((type == "Pixie2") || (type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
         std::size_t found = type.find("Pixie");
         if (found != std::string::npos) {
-            int outputs_per_card = wxAtoi(type.substr(found + 5, type.length() - found - 5));
+            int outputs_per_card = (int)std::strtol(type.substr(found + 5, type.length() - found - 5).c_str(), nullptr, 10);
             channels_per_pass = channel_count;
             channel_count = outputs_per_card * channels_per_pass;
             controller_channels_to_process = channel_count;
@@ -206,7 +149,7 @@ LOROptimisedOutput::LOROptimisedOutput(const LOROptimisedOutput& from) :
     SetupHistory();
 }
 
-LOROptimisedOutput::LOROptimisedOutput(wxXmlNode* node) : LOROutput(node), _controllers(node) {
+LOROptimisedOutput::LOROptimisedOutput(pugi::xml_node node) : LOROutput(node), _controllers(node) {
     InitialiseTypes();
     SetupHistory();
     CalcTotalChannels();
@@ -256,25 +199,25 @@ void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data) {
         // Don't try to only send changes since this is used for test mode
         // and not all channels are written every frame
         SetupHistory();
-        wxASSERT(sizeof(_curData) <= sizeof(_lastSent));
+        assert(sizeof(_curData) <= sizeof(_lastSent));
         memset(_curData, 0x00, sizeof(_curData));
         memset(_lastSent, 0xFF, sizeof(_curData));
         _changed = true;
     }
 
-    wxASSERT(channel < sizeof(_curData));
+    assert((size_t)channel < sizeof(_curData));
     _curData[channel] = data;
 }
 
 #define LOR_FORCE_SEND_FRAMES 20
 void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled || _serial == nullptr || !_ok) return;
 
     if (!TxEmpty()) {
-        logger_base.debug("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
+        spdlog::debug("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
         return;
     }
 
@@ -292,7 +235,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
         while (controller_channels_to_process > 0) {
             size_t idx = 0;  // running index for placing next byte
             uint8_t d[8192];
-            std::vector< std::vector<std::pair<uint8_t, wxWord>> > lorBankData;
+            std::vector< std::vector<std::pair<uint8_t, uint16_t>> > lorBankData;
             lorBankData.resize((channels_per_pass / 16) + 1);
 
             bool bank_changed = false;
@@ -313,14 +256,15 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             while (channels_to_process > 0) {
                 bool processed = false;
 
-                wxASSERT(cur_channel < sizeof(_curData));
+                assert((size_t)cur_channel < sizeof(_curData));
                 if ((data[cur_channel] > 0) && (data[cur_channel] < 0xFF)) {
-                    wxASSERT(shift_offset < sizeof(color_mode));
-                    color_mode[shift_offset] = true;
+                    if ((unsigned int)shift_offset < MAX_BANKS) {
+                        color_mode[shift_offset] = true;
+                    }
                 }
 
-                wxASSERT(shift_offset < sizeof(lorBankData));
-                for (int i = 0; i < lorBankData[shift_offset].size(); ++i) {
+                assert((size_t)shift_offset < sizeof(lorBankData));
+                for (int i = 0; i < (int)lorBankData[shift_offset].size(); ++i) {
                     if (lorBankData[shift_offset][i].first == data[cur_channel]) {
                         lorBankData[shift_offset][i].second |= (1 << chan_offset);
                         processed = true;
@@ -329,8 +273,8 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                 }
 
                 if (!processed) {
-                    // std::pair<uint8_t, wxWord> first = value, second = bits
-                    lorBankData[shift_offset].push_back(std::pair<uint8_t, wxWord>({ data[cur_channel], 1 << chan_offset }));
+                    // std::pair<uint8_t, uint16_t> first = value, second = bits
+                    lorBankData[shift_offset].push_back(std::pair<uint8_t, uint16_t>({ data[cur_channel], 1 << chan_offset }));
                 }
 
                 if (data[cur_channel] != _lastSent[cur_channel]) {
@@ -345,15 +289,17 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                     banks_changed[shift_offset] = bank_changed;
                     bank_changed = false;
                     ++shift_offset;
-                    color_mode[shift_offset] = false;
+                    if ((unsigned int)shift_offset < MAX_BANKS) {
+                        color_mode[shift_offset] = false;
+                    }
                 }
                 --channels_to_process;
                 ++cur_channel;
             }
 
             // now build the commands to send out the serial port
-            for (int bank = lorBankData.size() - 1; bank >= 0; --bank) {
-                wxASSERT(bank < sizeof(banks_changed));
+            for (int bank = (int)lorBankData.size() - 1; bank >= 0; --bank) {
+                assert((size_t)bank < sizeof(banks_changed));
                 if (banks_changed[bank]) {
                     int num_bank_records = lorBankData[bank].size();
 
@@ -429,11 +375,11 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             if (_serial != nullptr && frame_changed) {
                 _serial->Write((char*)d, idx);
                 // After we output we dont want to close too early as that causes crashes
-                SetDontDieUntil(wxGetUTCTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
+                SetDontDieUntil(GetCurrentTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
                 total_bytes_sent += idx;
             }
 
-            for (int bank = 0; bank < lorBankData.size(); bank++) {
+            for (int bank = 0; bank < (int)lorBankData.size(); bank++) {
                 lorBankData[bank].clear();
             }
             lorBankData.clear();
@@ -441,13 +387,13 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             ++unit_id;
         }
     }
-    //logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
+    //spdlog::debug("    LOROptimisedOutput: Sent {} bytes", total_bytes_sent);
 }
 
 void LOROptimisedOutput::AllOff() {
 
-    //log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("    LOROptimisedOutput: AllOff starting");
+    //
+    //spdlog::debug("    LOROptimisedOutput: AllOff starting");
 
     if (!_enabled) return;
 
@@ -483,7 +429,7 @@ void LOROptimisedOutput::AllOff() {
             if (_serial != nullptr) {
                 _serial->Write((char*)d, idx);
                 // After we output we dont want to close too early as that causes crashes
-                SetDontDieUntil(wxGetUTCTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
+                SetDontDieUntil(GetCurrentTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
             }
             controller_channels_to_process -= channels_per_pass;
             ++unit_id;
@@ -496,161 +442,7 @@ void LOROptimisedOutput::AllOff() {
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
 
-    //logger_base.debug("    LOROptimisedOutput: AllOff finished");
+    //spdlog::debug("    LOROptimisedOutput: AllOff finished");
 }
 #pragma endregion
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
-
-    auto devs = GetControllers().GetControllers();
-    auto p = propertyGrid->Insert(before, new wxUIntProperty("Devices", "Devices", devs.size()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    int i = 0;
-    for (const auto& it : devs) {
-
-        auto isPixie = StartsWith(it->GetType(), "Pixie");
-
-        wxPGProperty* p2 = propertyGrid->Insert(before, new wxPropertyCategory(it->GetType() + " : " + it->GetDescription(), wxString::Format("Device%d", i)));
-
-        p = propertyGrid->AppendIn(p2, new DeleteLorControllerProperty(GetControllers(), _("Delete this device"), wxString::Format("DeleteDevice/%d", i)));
-        propertyGrid->LimitPropertyEditing(p);
-
-        propertyGrid->AppendIn(p2, new wxEnumProperty("Device Type", wxString::Format("DeviceType/%d", i), __lorDeviceTypes, Controller::EncodeChoices(__lorDeviceTypes, it->GetType())));
-
-        std::string ch = "Channels";
-        if (isPixie) {
-            ch = "Channels Per Port";
-        }
-        p = propertyGrid->AppendIn(p2, new wxUIntProperty(ch, wxString::Format("DeviceChannels/%d", i), it->GetNumChannels()));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", it->GetMaxChannels());
-        p->SetEditor("SpinCtrl");
-
-        p = propertyGrid->AppendIn(p2, new wxUIntProperty("Unit ID", wxString::Format("DeviceUnitID/%d", i), it->GetUnitId()));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", it->GetMaxUnitId());
-        p->SetEditor("SpinCtrl");
-
-        p = propertyGrid->AppendIn(p2, new wxStringProperty("Unit ID - Hex", wxString::Format("DeviceUnitIDHex/%d", i), wxString::Format("0x%02x", it->GetUnitId())));
-        p->ChangeFlag(wxPGFlags::ReadOnly , true);
-        p->SetBackgroundColour(*wxLIGHT_GREY);
-
-        if (!isPixie) {
-            propertyGrid->AppendIn(p2, new wxEnumProperty("Address Mode", wxString::Format("DeviceAddressMode/%d", i), __lorAddressModes, (int)it->GetAddressMode()));
-        }
-
-        propertyGrid->AppendIn(p2, new wxStringProperty("Description", wxString::Format("DeviceDescription/%d", i), it->GetDescription()));
-
-        if (it->IsExpanded()) expandProperties.push_back(p2);
-
-        ++i;
-    }
-}
-
-void LOROptimisedOutput::HandleExpanded(wxPropertyGridEvent& event, bool expanded)
-{
-    wxString name = event.GetPropertyName();
-
-    if (name.StartsWith("Device") && isdigit(name[name.size()-1])) {
-        int index = wxAtoi(name.substr(6));
-        auto it = GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != GetControllers().GetControllers().end());
-        (*it)->SetExpanded(expanded);
-    }
-}
-
-bool LOROptimisedOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c) {
-
-    wxString name = event.GetPropertyName();
-
-    if (StartsWith(name, "DeleteDevice/")) {
-        CalcTotalChannels();
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeleteDevice");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeleteDevice");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::DeleteDevice");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeleteDevice");
-        return true;
-    }
-    else if (name == "Devices") {
-        while (event.GetValue().GetLong() < GetControllers().GetControllers().size()) {
-            delete GetControllers().GetControllers().back();
-            GetControllers().GetControllers().pop_back();
-        }
-        while (event.GetValue().GetLong() > GetControllers().GetControllers().size()) {
-            GetControllers().GetControllers().push_back(new LorController());
-        }
-        CalcTotalChannels();
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Devices");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Devices");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::Devices");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::Devices");
-    }
-    else if (StartsWith(name, "DeviceType/")) {
-        int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != GetControllers().GetControllers().end());
-        (*it)->SetType(Controller::DecodeChoices(__lorDeviceTypes, event.GetValue().GetLong()));
-        CalcTotalChannels();
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceType");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceType");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::DeviceType");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceType");
-    }
-    else if (StartsWith(name, "DeviceChannels/")) {
-        int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != GetControllers().GetControllers().end());
-        (*it)->SetNumChannels(event.GetValue().GetLong());
-        CalcTotalChannels();
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceChannels");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceChannels");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::DeviceChannels");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceChannels");
-    }
-    else if (StartsWith(name, "DeviceUnitID/")) {
-        int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != GetControllers().GetControllers().end());
-        (*it)->SetUnitID(event.GetValue().GetLong());
-        CalcTotalChannels();
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceUnitID");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceUnitID");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::DeviceUnitID");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceUnitID");
-    }
-    else if (StartsWith(name, "DeviceAddressMode/")) {
-        int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != GetControllers().GetControllers().end());
-        (*it)->SetMode((LorController::AddressMode)event.GetValue().GetLong());
-        CalcTotalChannels();
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceAddressMode");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceAddressMode");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::DeviceAddressMode");
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceAddressMode");
-    }
-    else if (StartsWith(name, "DeviceDescription/")) {
-        int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != GetControllers().GetControllers().end());
-        (*it)->SetDescription(event.GetValue().GetString());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceDescription");
-    }
-
-    if (Output::HandlePropertyEvent(event, outputModelManager, c)) return true;
-
-    return false;
-}
-#endif
-#pragma endregion UI

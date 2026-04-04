@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include <string>
 #include <list>
 #include <vector>
@@ -29,7 +29,6 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     void Render(RenderBuffer& buffer,
                 int bars, const std::string& type, int sensitivity, bool scale, const std::string& scalenotes, int offsetx, int startnote, int endnote, const std::string& colourtreatment, bool fade, bool logarithmicX);
-    virtual void SetDefaultParameters() override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
     // Currently not possible but I think changes could be made to make it support partial
@@ -50,7 +49,6 @@ public:
 
 protected:
     void CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity, bool logarithmicX);
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     int DecodeType(const std::string& type);
     int DecodeColourTreatment(const std::string& colourtreatment);
     void RenderMorph(RenderBuffer& buffer, int x, int bars, int startNote, int endNote, std::list<MusicEvent*>& events, int colourTreatment, bool bounce, bool fade);

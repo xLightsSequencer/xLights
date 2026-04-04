@@ -11,9 +11,7 @@
  **************************************************************/
 
 #include "IPOutput.h"
-
-#include <wx/sckaddr.h>
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 #include <nlohmann/json.hpp>
 
@@ -52,8 +50,8 @@ class DDPOutput : public IPOutput
     #pragma region Member Variables
     uint8_t _data[DDP_PACKET_LEN];
     uint8_t _sequenceNum;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket *_datagram;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram;
     uint8_t* _fulldata;
     int _channelsPerPacket;
     bool _keepChannelNumbers;
@@ -69,11 +67,11 @@ class DDPOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    DDPOutput(wxXmlNode* node, bool isActive);
+    DDPOutput(pugi::xml_node node, bool isActive);
     DDPOutput();
     DDPOutput(const DDPOutput& from);
     virtual ~DDPOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new DDPOutput(*this);
@@ -124,12 +122,4 @@ public:
     virtual void AllOff() override;
     #pragma endregion
 
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
-    #endif
-    #pragma endregion UI
 };

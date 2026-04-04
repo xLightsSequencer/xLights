@@ -1,6 +1,7 @@
 #include "ServiceManager.h"
 #include "aiBase.h"
 #include "chatGPT.h"
+#include "claude.h"
 #include "gemini.h"
 #include "ollama.h"
 #include "GenericClient.h"
@@ -10,8 +11,9 @@
 #endif
 
 #include "xLightsMain.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 #include <wx/secretstore.h>
 
@@ -19,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 ServiceManager::ServiceManager(xLightsFrame* xl)
 {
@@ -29,6 +31,7 @@ ServiceManager::ServiceManager(xLightsFrame* xl)
     }
 #endif
     m_services.push_back(std::make_unique<chatGPT>(this));
+    m_services.push_back(std::make_unique<claude>(this));
     m_services.push_back(std::make_unique<ollama>(this));
     m_services.push_back(std::make_unique<gemini>(this));
     m_services.push_back(std::make_unique<GenericClient>(this));
@@ -56,7 +59,7 @@ void ServiceManager::addService(std::unique_ptr<aiBase> service) {
 aiBase* ServiceManager::findService(aiType::TYPE serviceType) {
     for (auto& service : m_services) {
         for (auto &t : service->GetTypes()) {
-            if (t == serviceType && service->IsEnabled()) {
+            if (t == serviceType && service->IsEnabledForType(serviceType)) {
                 return service.get();
             }
         }
@@ -67,7 +70,7 @@ std::vector<aiBase*> ServiceManager::findServices(aiType::TYPE serviceType) {
     std::vector<aiBase*> ret;
     for (auto& service : m_services) {
         for (auto &t : service->GetTypes()) {
-            if (t == serviceType && service->IsEnabled()) {
+            if (t == serviceType && service->IsEnabledForType(serviceType)) {
                 ret.push_back(service.get());
             }
         }

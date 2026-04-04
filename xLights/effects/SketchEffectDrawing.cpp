@@ -1,8 +1,6 @@
 #include "SketchEffectDrawing.h"
 
-#include <log4cpp/Category.hh>
-
-#include <wx/graphics.h>
+#include <log.h>
 
 #include <algorithm>
 #include <iterator>
@@ -22,22 +20,22 @@ namespace
         return start * u * u + control * 2 * u * t + end * t * t;
     }
 
-    wxPoint2DDouble bezierPoint(double t,
-                                const wxPoint2DDouble& startPt,
-                                const wxPoint2DDouble& ctrlPt1,
-                                const wxPoint2DDouble& ctrlPt2,
-                                const wxPoint2DDouble& endPt)
+    xlPointD bezierPoint(double t,
+                                const xlPointD& startPt,
+                                const xlPointD& ctrlPt1,
+                                const xlPointD& ctrlPt2,
+                                const xlPointD& endPt)
     {
-        return wxPoint2DDouble(bezier(t, startPt.m_x, ctrlPt1.m_x, ctrlPt2.m_x, endPt.m_x),
-                               bezier(t, startPt.m_y, ctrlPt1.m_y, ctrlPt2.m_y, endPt.m_y));
+        return xlPointD(bezier(t, startPt.x, ctrlPt1.x, ctrlPt2.x, endPt.x),
+                               bezier(t, startPt.y, ctrlPt1.y, ctrlPt2.y, endPt.y));
     }
-    wxPoint2DDouble bezierPoint(double t,
-                                const wxPoint2DDouble& startPt,
-                                const wxPoint2DDouble& ctrlPt,
-                                const wxPoint2DDouble& endPt)
+    xlPointD bezierPoint(double t,
+                                const xlPointD& startPt,
+                                const xlPointD& ctrlPt,
+                                const xlPointD& endPt)
     {
-        return wxPoint2DDouble(bezier(t, startPt.m_x, ctrlPt.m_x, endPt.m_x),
-                               bezier(t, startPt.m_y, ctrlPt.m_y, endPt.m_y));
+        return xlPointD(bezier(t, startPt.x, ctrlPt.x, endPt.x),
+                               bezier(t, startPt.y, ctrlPt.y, endPt.y));
     }
 
     // number of steps to use for approximating bezier segment length
@@ -47,55 +45,55 @@ namespace
     // doesn't seem to affect render times very much.
     const int NUM_STEPS = /*50*/ 500;
 
-    double bezierLength(const wxPoint2DDouble& startPt,
-                        const wxPoint2DDouble& ctrlPt1,
-                        const wxPoint2DDouble& ctrlPt2,
-                        const wxPoint2DDouble& endPt)
+    double bezierLength(const xlPointD& startPt,
+                        const xlPointD& ctrlPt1,
+                        const xlPointD& ctrlPt2,
+                        const xlPointD& endPt)
     {
-        wxPoint2DDouble previousPt(startPt);
+        xlPointD previousPt(startPt);
         double length = 0.;
 
         for (int i = 1; i <= NUM_STEPS; ++i) {
             double t = double(i) / NUM_STEPS;
-            wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt1, ctrlPt2, endPt));
-            length += pt.GetDistance(previousPt);
+            xlPointD pt(bezierPoint(t, startPt, ctrlPt1, ctrlPt2, endPt));
+            length += pt.distance(previousPt);
             previousPt = pt;
         }
         return length;
     }
-    double bezierLength(const wxPoint2DDouble& startPt,
-                        const wxPoint2DDouble& ctrlPt,
-                        const wxPoint2DDouble& endPt)
+    double bezierLength(const xlPointD& startPt,
+                        const xlPointD& ctrlPt,
+                        const xlPointD& endPt)
     {
-        wxPoint2DDouble previousPt(startPt);
+        xlPointD previousPt(startPt);
         double length = 0.;
 
         for (int i = 1; i <= NUM_STEPS; ++i) {
             double t = double(i) / NUM_STEPS;
-            wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt, endPt));
-            length += pt.GetDistance(previousPt);
+            xlPointD pt(bezierPoint(t, startPt, ctrlPt, endPt));
+            length += pt.distance(previousPt);
             previousPt = pt;
         }
         return length;
     }
-    void bezierProgressPosition(const wxPoint2DDouble& startPt,
-                                const wxPoint2DDouble& ctrlPt,
-                                const wxPoint2DDouble& endPt,
+    void bezierProgressPosition(const xlPointD& startPt,
+                                const xlPointD& ctrlPt,
+                                const xlPointD& endPt,
                                 const double targetLength,
                                 double& x,
                                 double& y)
     {
-        wxPoint2DDouble previousPt(startPt);
+        xlPointD previousPt(startPt);
         double curLength = targetLength;
 
         for (int i = 1; i <= NUM_STEPS; ++i) {
             double t = double(i) / NUM_STEPS;
-            wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt, endPt));
-            double length = pt.GetDistance(previousPt);
+            xlPointD pt(bezierPoint(t, startPt, ctrlPt, endPt));
+            double length = pt.distance(previousPt);
             if( length >= curLength ) {
                 double percent = curLength / length;
-                x = previousPt.m_x + percent * (pt.m_x - previousPt.m_x);
-                y = previousPt.m_y + percent * (pt.m_y - previousPt.m_y);
+                x = previousPt.x + percent * (pt.x - previousPt.x);
+                y = previousPt.y + percent * (pt.y - previousPt.y);
                 return;
             } else {
                 curLength -= length;
@@ -103,25 +101,25 @@ namespace
             previousPt = pt;
         }
     }
-    void bezierProgressPosition(const wxPoint2DDouble& startPt,
-                                const wxPoint2DDouble& ctrlPt1,
-                                const wxPoint2DDouble& ctrlPt2,
-                                const wxPoint2DDouble& endPt,
+    void bezierProgressPosition(const xlPointD& startPt,
+                                const xlPointD& ctrlPt1,
+                                const xlPointD& ctrlPt2,
+                                const xlPointD& endPt,
                                 const double targetLength,
                                 double& x,
                                 double& y)
     {
-        wxPoint2DDouble previousPt(startPt);
+        xlPointD previousPt(startPt);
         double curLength = targetLength;
 
         for (int i = 1; i <= NUM_STEPS; ++i) {
             double t = double(i) / NUM_STEPS;
-            wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt1, ctrlPt2, endPt));
-            double length = pt.GetDistance(previousPt);
+            xlPointD pt(bezierPoint(t, startPt, ctrlPt1, ctrlPt2, endPt));
+            double length = pt.distance(previousPt);
             if( length >= curLength ) {
                 double percent = curLength / length;
-                x = previousPt.m_x + percent * (pt.m_x - previousPt.m_x);
-                y = previousPt.m_y + percent * (pt.m_y - previousPt.m_y);
+                x = previousPt.x + percent * (pt.x - previousPt.x);
+                y = previousPt.y + percent * (pt.y - previousPt.y);
                 return;
             } else {
                 curLength -= length;
@@ -130,44 +128,44 @@ namespace
         }
     }
 
-    std::vector<wxPoint2DDouble> piecewiseLinearApproximation(const wxPoint2DDouble& startPt,
-                                                              const wxPoint2DDouble& ctrlPt1,
-                                                              const wxPoint2DDouble& ctrlPt2,
-                                                              const wxPoint2DDouble& endPt,
+    std::vector<xlPointD> piecewiseLinearApproximation(const xlPointD& startPt,
+                                                              const xlPointD& ctrlPt1,
+                                                              const xlPointD& ctrlPt2,
+                                                              const xlPointD& endPt,
                                                               int numSteps = NUM_STEPS)
     {
-        std::vector<wxPoint2DDouble> pts(numSteps);
+        std::vector<xlPointD> pts(numSteps);
         for (int i = 1; i <= numSteps; ++i)
             pts[i - 1] = bezierPoint(i / float(numSteps), startPt, ctrlPt1, ctrlPt2, endPt);
 
         return pts;
     }
-    std::vector<wxPoint2DDouble> piecewiseLinearApproximation(const wxPoint2DDouble& startPt,
-                                                              const wxPoint2DDouble& ctrlPt,
-                                                              const wxPoint2DDouble& endPt,
+    std::vector<xlPointD> piecewiseLinearApproximation(const xlPointD& startPt,
+                                                              const xlPointD& ctrlPt,
+                                                              const xlPointD& endPt,
                                                               int numSteps = NUM_STEPS)
     {
-        std::vector<wxPoint2DDouble> pts(numSteps);
+        std::vector<xlPointD> pts(numSteps);
         for (int i = 1; i <= numSteps; ++i)
             pts[i - 1] = bezierPoint(i / float(numSteps), startPt, ctrlPt, endPt);
 
         return pts;
     }
 
-    double minDistSqrPointToLineSegment(const wxPoint2DDouble& v, const wxPoint2DDouble& w, const wxPoint2DDouble& p)
+    double minDistSqrPointToLineSegment(const xlPointD& v, const xlPointD& w, const xlPointD& p)
     {
-        double l2 = v.GetDistanceSquare(w);
+        double l2 = (w - v).dot(w - v);
         if (l2 == 0.) //  v == w case
-            return p.GetDistance(v);
+            return p.distance(v);
 
         // Consider the line extending the segment, parameterized as v + t (w - v).
         // We find projection of point p onto the line.
         // It falls where t = [(p-v) . (w-v)] / |w-v|^2
         // We clamp t from [0,1] to handle points outside the segent vw.
-        double dot = wxPoint2DDouble(p - v).GetDotProduct(wxPoint2DDouble(w - v));
+        double dot = (p - v).dot(w - v);
         double t = std::clamp(dot / l2, 0., 1.);
-        wxPoint2DDouble projection(v + t * (w - v));
-        return p.GetDistanceSquare(projection);
+        xlPointD projection(v + t * (w - v));
+        return (p - projection).dot(p - projection);
     }
 
     double calcPercentage(double v, double s, double e)
@@ -176,36 +174,44 @@ namespace
     }
 
     const double HIT_TEST_DIST_SQR_LIMIT = 0.0075 * 0.0075;
+
 }
 
 
-void SketchLine::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const
+void SketchLine::DrawEntireSegment(SketchPathData& pathData, int w, int h) const
 {
-    path.AddLineToPoint(sz.x * m_toPt.m_x, sz.y * m_toPt.m_y);
+    float fromX = (float)(w * m_fromPt.x);
+    float fromY = (float)(h * m_fromPt.y);
+    float toX = (float)(w * m_toPt.x);
+    float toY = (float)(h * m_toPt.y);
+    pathData.lineTo(fromX, fromY, toX, toY);
 }
 
-void SketchLine::DrawPartialSegment(wxGraphicsPath& path, const wxSize&sz, std::optional<double> startPercentage, double endPercentage) const
+void SketchLine::DrawPartialSegment(SketchPathData& pathData, int w, int h,
+                                     std::optional<double> startPercentage, double endPercentage) const
 {
     if (!startPercentage.has_value()) {
         if (endPercentage <= 0. || endPercentage > 1.)
             return;
         auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
-        path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+        pathData.lineTo((float)(w * m_fromPt.x), (float)(h * m_fromPt.y),
+                        (float)(w * pt.x), (float)(h * pt.y));
     } else {
         double percentage = std::clamp(startPercentage.value(), 0., 1.);
         endPercentage = std::clamp(endPercentage, 0., 1.);
         if (percentage == endPercentage)
             return;
 
-        auto pt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
+        auto endPt = (1 - endPercentage) * m_fromPt + endPercentage * m_toPt;
         auto startPt = (1 - percentage) * m_fromPt + percentage * m_toPt;
-        
-        path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
-        path.AddLineToPoint(sz.x * pt.m_x, sz.y * pt.m_y);
+
+        pathData.moveTo((float)(w * startPt.x), (float)(h * startPt.y));
+        pathData.lineTo((float)(w * startPt.x), (float)(h * startPt.y),
+                        (float)(w * endPt.x), (float)(h * endPt.y));
     }
 }
 
-bool SketchLine::HitTest(const wxPoint2DDouble& pt) const
+bool SketchLine::HitTest(const xlPointD& pt) const
 {
     double distSqr = minDistSqrPointToLineSegment(m_fromPt, m_toPt, pt);
     return distSqr <= HIT_TEST_DIST_SQR_LIMIT;
@@ -213,7 +219,7 @@ bool SketchLine::HitTest(const wxPoint2DDouble& pt) const
 
 void SketchLine::ReverseSegment()
 {
-    wxPoint2DDouble tmp = m_fromPt;
+    xlPointD tmp = m_fromPt;
     m_fromPt = m_toPt;
     m_toPt = tmp;
 }
@@ -224,44 +230,67 @@ double SketchQuadraticBezier::Length() const
     return bezierLength(m_fromPt, m_cp, m_toPt);
 }
 
-void SketchQuadraticBezier::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const
+void SketchQuadraticBezier::DrawEntireSegment(SketchPathData& pathData, int w, int h) const
 {
-    path.AddQuadCurveToPoint(sz.x * m_cp.m_x, sz.y  * m_cp.m_y, sz.x * m_toPt.m_x, sz.y * m_toPt.m_y);
+    // Quadratic→Cubic degree elevation: cp1 = (P0+2*CP)/3, cp2 = (2*CP+P1)/3
+    float p0x = (float)(w * m_fromPt.x), p0y = (float)(h * m_fromPt.y);
+    float cpx = (float)(w * m_cp.x),     cpy = (float)(h * m_cp.y);
+    float p1x = (float)(w * m_toPt.x),   p1y = (float)(h * m_toPt.y);
+    pathData.cubicTo((p0x + 2.0f * cpx) / 3.0f, (p0y + 2.0f * cpy) / 3.0f,
+                     (2.0f * cpx + p1x) / 3.0f, (2.0f * cpy + p1y) / 3.0f,
+                     p1x, p1y);
 }
 
-void SketchQuadraticBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage) const
+void SketchQuadraticBezier::DrawPartialSegment(SketchPathData& pathData, int w, int h,
+                                                std::optional<double> startPercentage, double endPercentage) const
 {
     if (!startPercentage.has_value()) {
-        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
+        auto approxPts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
         int i = 0;
-        double increment = 1. / pts.size();
-        for (double t = 0.; t <= endPercentage; t += increment, ++i)
-            path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+        double increment = 1. / approxPts.size();
+        float prevX = (float)(w * m_fromPt.x);
+        float prevY = (float)(h * m_fromPt.y);
+        for (double t = 0.; t <= endPercentage; t += increment, ++i) {
+            if (i >= (int)approxPts.size()) break;
+            float px = (float)(w * approxPts[i].x);
+            float py = (float)(h * approxPts[i].y);
+            pathData.lineTo(prevX, prevY, px, py);
+            prevX = px;
+            prevY = py;
+        }
     } else {
         double percentage = std::clamp(startPercentage.value(), 0., 1.);
         endPercentage = std::clamp(endPercentage, 0., 1.);
         if (percentage == endPercentage)
             return;
 
-        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
+        auto approxPts = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt);
         int i = 0;
-        double increment = 1. / pts.size();
+        double increment = 1. / approxPts.size();
         bool started = false;
+        float prevX = 0, prevY = 0;
         for (double t = 0.; t <= endPercentage; t += increment, ++i) {
+            if (i >= (int)approxPts.size()) break;
+            float px = (float)(w * approxPts[i].x);
+            float py = (float)(h * approxPts[i].y);
             if (t >= startPercentage && !started) {
-                path.MoveToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+                pathData.moveTo(px, py);
                 started = true;
+                prevX = px;
+                prevY = py;
             } else if (t >= startPercentage && t <= endPercentage) {
-                path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+                pathData.lineTo(prevX, prevY, px, py);
+                prevX = px;
+                prevY = py;
             }
         }
     }
 }
 
-bool SketchQuadraticBezier::HitTest(const wxPoint2DDouble& pt) const
+bool SketchQuadraticBezier::HitTest(const xlPointD& pt) const
 {
     auto points = piecewiseLinearApproximation(m_fromPt, m_cp, m_toPt, 40);
-    wxPoint2DDouble startPt(points.front());
+    xlPointD startPt(points.front());
     for (size_t i = 1; i < points.size(); ++i) {
         double distSqr = minDistSqrPointToLineSegment(startPt, points[i], pt);
         if (distSqr < HIT_TEST_DIST_SQR_LIMIT)
@@ -273,7 +302,7 @@ bool SketchQuadraticBezier::HitTest(const wxPoint2DDouble& pt) const
 
 void SketchQuadraticBezier::ReverseSegment()
 {
-    wxPoint2DDouble tmp = m_fromPt;
+    xlPointD tmp = m_fromPt;
     m_fromPt = m_toPt;
     m_toPt = tmp;
 }
@@ -284,43 +313,63 @@ double SketchCubicBezier::Length() const
     return bezierLength(m_fromPt, m_cp1, m_cp2, m_toPt);
 }
 
- void SketchCubicBezier::DrawEntireSegment(wxGraphicsPath& path, const wxSize& sz) const
+void SketchCubicBezier::DrawEntireSegment(SketchPathData& pathData, int w, int h) const
 {
-    path.AddCurveToPoint(sz.x*m_cp1.m_x, sz.y*m_cp1.m_y, sz.x*m_cp2.m_x, sz.y*m_cp2.m_y, sz.x*m_toPt.m_x, sz.y*m_toPt.m_y);
+    pathData.cubicTo((float)(w * m_cp1.x), (float)(h * m_cp1.y),
+                     (float)(w * m_cp2.x), (float)(h * m_cp2.y),
+                     (float)(w * m_toPt.x), (float)(h * m_toPt.y));
 }
-void SketchCubicBezier::DrawPartialSegment(wxGraphicsPath& path, const wxSize& sz, std::optional<double> startPercentage, double endPercentage) const
+
+void SketchCubicBezier::DrawPartialSegment(SketchPathData& pathData, int w, int h,
+                                            std::optional<double> startPercentage, double endPercentage) const
 {
     if (!startPercentage.has_value()) {
-        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
+        auto approxPts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
         int i = 0;
-        double increment = 1. / pts.size();
-        for (double t = 0.; t <= endPercentage; t += increment, ++i)
-            path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+        double increment = 1. / approxPts.size();
+        float prevX = (float)(w * m_fromPt.x);
+        float prevY = (float)(h * m_fromPt.y);
+        for (double t = 0.; t <= endPercentage; t += increment, ++i) {
+            if (i >= (int)approxPts.size()) break;
+            float px = (float)(w * approxPts[i].x);
+            float py = (float)(h * approxPts[i].y);
+            pathData.lineTo(prevX, prevY, px, py);
+            prevX = px;
+            prevY = py;
+        }
     } else {
         double percentage = std::clamp(startPercentage.value(), 0., 1.);
         endPercentage = std::clamp(endPercentage, 0., 1.);
         if (percentage == endPercentage)
             return;
 
-        auto pts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
+        auto approxPts = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt);
         int i = 0;
-        double increment = 1. / pts.size();
+        double increment = 1. / approxPts.size();
         bool started = false;
+        float prevX = 0, prevY = 0;
         for (double t = 0.; t <= endPercentage; t += increment, ++i) {
+            if (i >= (int)approxPts.size()) break;
+            float px = (float)(w * approxPts[i].x);
+            float py = (float)(h * approxPts[i].y);
             if (t >= startPercentage && !started) {
-                path.MoveToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+                pathData.moveTo(px, py);
                 started = true;
+                prevX = px;
+                prevY = py;
             } else if (t >= startPercentage && t <= endPercentage) {
-                path.AddLineToPoint(sz.x * pts[i].m_x, sz.y * pts[i].m_y);
+                pathData.lineTo(prevX, prevY, px, py);
+                prevX = px;
+                prevY = py;
             }
         }
     }
 }
 
-bool SketchCubicBezier::HitTest(const wxPoint2DDouble& pt) const
+bool SketchCubicBezier::HitTest(const xlPointD& pt) const
 {
     auto points = piecewiseLinearApproximation(m_fromPt, m_cp1, m_cp2, m_toPt, 40);
-    wxPoint2DDouble startPt(points.front());
+    xlPointD startPt(points.front());
     for (size_t i = 1; i < points.size(); ++i) {
         double distSqr = minDistSqrPointToLineSegment(startPt, points[i], pt);
         if (distSqr < HIT_TEST_DIST_SQR_LIMIT)
@@ -332,7 +381,7 @@ bool SketchCubicBezier::HitTest(const wxPoint2DDouble& pt) const
 
 void SketchCubicBezier::ReverseSegment()
 {
-    wxPoint2DDouble tmp = m_fromPt;
+    xlPointD tmp = m_fromPt;
     m_fromPt = m_toPt;
     m_toPt = tmp;
 
@@ -358,21 +407,19 @@ void SketchEffectPath::appendSegment(std::shared_ptr<SketchPathSegment> segment)
     m_segments.push_back(segment);
 }
 
-void SketchEffectPath::drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const
+void SketchEffectPath::collectEntirePath(SketchPathData& pathData, int w, int h) const
 {
     if (m_segments.empty())
         return;
     auto startPt(m_segments.front()->StartPoint());
-    wxGraphicsPath path(gc->CreatePath());
-    path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
+    pathData.moveTo((float)(w * startPt.x), (float)(h * startPt.y));
 
     for (const auto& segment : m_segments)
-        segment->DrawEntireSegment(path, sz);
-
-    gc->StrokePath(path);
+        segment->DrawEntireSegment(pathData, w, h);
 }
 
-void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, std::optional<double> startPercentage, double endPercentage) const
+void SketchEffectPath::collectPartialPath(SketchPathData& pathData, int w, int h,
+                                           std::optional<double> startPercentage, double endPercentage) const
 {
     if (m_segments.empty())
         return;
@@ -381,61 +428,59 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
         return;
     double cumulativeLength = 0.;
 
-    auto startPt(m_segments.front()->StartPoint());
-    wxGraphicsPath path(gc->CreatePath());
-    path.MoveToPoint(sz.x * startPt.m_x, sz.y * startPt.m_y);
-
     if (!startPercentage.has_value()) {
+        // No startPercentage: emit initial moveTo, then draw from start to endPercentage
+        auto startPt(m_segments.front()->StartPoint());
+        pathData.moveTo((float)(w * startPt.x), (float)(h * startPt.y));
+
         for (const auto& segment : m_segments) {
             double length = segment->Length();
             double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
             if (endPercentage > percentageAtEndOfSegment) {
-                segment->DrawEntireSegment(path, sz);
+                segment->DrawEntireSegment(pathData, w, h);
             } else {
                 double percentageAtStartOfSegment = cumulativeLength / totalLength;
                 if (endPercentage >= percentageAtStartOfSegment && endPercentage < percentageAtEndOfSegment) {
                     double segmentPercentage = calcPercentage(endPercentage, percentageAtStartOfSegment, percentageAtEndOfSegment);
-                    segment->DrawPartialSegment(path, sz, std::nullopt, segmentPercentage);
+                    segment->DrawPartialSegment(pathData, w, h, std::nullopt, segmentPercentage);
                 }
             }
             cumulativeLength += length;
         }
     } else {
+        // With startPercentage: each segment's DrawPartialSegment emits its own moveTo
         for (const auto& segment : m_segments) {
             double length = segment->Length();
             if (length != 0.0) {
-                //if length is 0, skip (partially because you get divide by 0 for the two percentages below
                 double percentageAtStartOfSegment = cumulativeLength / totalLength;
                 double percentageAtEndOfSegment = (cumulativeLength + length) / totalLength;
 
                 double segmentPercentage = calcPercentage(endPercentage, percentageAtStartOfSegment, percentageAtEndOfSegment);
                 double segmentDrawPercentage = calcPercentage(startPercentage.value(), percentageAtStartOfSegment, percentageAtEndOfSegment);
-                
-                segment->DrawPartialSegment(path, sz, segmentDrawPercentage, segmentPercentage);
+
+                segment->DrawPartialSegment(pathData, w, h, segmentDrawPercentage, segmentPercentage);
 
                 cumulativeLength += length;
             }
         }
     }
-
-    gc->StrokePath(path);
 }
 
 void SketchEffectPath::closePath(bool updateSegments, SketchCanvasPathState state)
 {
     if (!m_isClosed && m_segments.size() >= 1) {
         if( updateSegments ) {
-            wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
-            wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
+            xlPointD startPt( m_segments.back()->EndPoint() );
+            xlPointD endPt( m_segments.front()->StartPoint() );
 
             if( state == SketchCanvasPathState::LineToNewPoint ) {
                 m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
             } else if( state == SketchCanvasPathState::QuadraticCurveToNewPoint ) {
-                wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
+                xlPointD cp = 0.5 * startPt + 0.5 * endPt;
                 m_segments.push_back(std::make_shared <SketchQuadraticBezier>(startPt, cp, endPt));
             } else if( state == SketchCanvasPathState::CubicCurveToNewPoint ) {
-                wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
-                wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
+                xlPointD cp1 = 0.75 * startPt + 0.25 * endPt;
+                xlPointD cp2 = 0.25 * startPt + 0.75 * endPt;
                 m_segments.push_back(std::make_shared <SketchCubicBezier>(startPt, cp1, cp2, endPt));
             }
         }
@@ -469,7 +514,6 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
     //  * paths are separated by '|'
     //  * within a path, ';' is the separator
     //  * paths always begin with a start point (followed by the ';' separator)
-    //  * paths with a start point and no segments... probably do not work currently
     //  * within a path, only three "commands" (in SVG syntax) are supported currently:
     //      - 'L' for line segments
     //      - 'Q' for quadratic-curve segments
@@ -491,57 +535,56 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
     auto paths_begin = sregex_iterator(sketchDef.cbegin(), sketchDef.cend(), pathsRegex);
     for (sregex_iterator iter = paths_begin; iter != sregex_iterator(); ++iter) {
         auto path = std::make_shared<SketchEffectPath>();
-        wxPoint2DDouble prevPt;
+        xlPointD prevPt;
 
         std::string path_str((*iter).str());
         auto pathComponents_begin = sregex_iterator(path_str.cbegin(), path_str.cend(), pathComponentsRegex);
         try {
             for (sregex_iterator iter2 = pathComponents_begin; iter2 != sregex_iterator(); ++iter2) {
                 std::string pathComponents_str((*iter2).str());
-                // Path always begins with a start point
                 if (iter2 == pathComponents_begin) {
                     auto startPt_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), pathStartRegex);
                     if (std::distance(startPt_begin, sregex_iterator()) == 1 && (*startPt_begin).size() == 3) {
-                        prevPt.m_x = std::stod((*startPt_begin)[1]);
-                        prevPt.m_y = std::stod((*startPt_begin)[2]);
+                        prevPt.x = std::strtod((*startPt_begin)[1].str().c_str(), nullptr);
+                        prevPt.y = std::strtod((*startPt_begin)[2].str().c_str(), nullptr);
                     }
                 } else if (pathComponents_str.at(0) == 'L') {
-                    wxPoint2DDouble toPt;
+                    xlPointD toPt;
                     auto line_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), lineRegex);
                     if (std::distance(line_begin, sregex_iterator()) == 1 && (*line_begin).size() == 3) {
-                        toPt.m_x = std::stod((*line_begin)[1]);
-                        toPt.m_y = std::stod((*line_begin)[2]);
+                        toPt.x = std::strtod((*line_begin)[1].str().c_str(), nullptr);
+                        toPt.y = std::strtod((*line_begin)[2].str().c_str(), nullptr);
                         path->appendSegment(std::make_shared<SketchLine>(prevPt, toPt));
                         prevPt = toPt;
                     }
                 } else if (pathComponents_str.at(0) == 'Q') {
-                    wxPoint2DDouble ctrlPt, toPt;
+                    xlPointD ctrlPt, toPt;
                     auto curve_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), quadraticRegex);
                     if (std::distance(curve_begin, sregex_iterator()) == 1 && (*curve_begin).size() == 5) {
-                        ctrlPt.m_x = std::stod((*curve_begin)[1]);
-                        ctrlPt.m_y = std::stod((*curve_begin)[2]);
-                        toPt.m_x = std::stod((*curve_begin)[3]);
-                        toPt.m_y = std::stod((*curve_begin)[4]);
+                        ctrlPt.x = std::strtod((*curve_begin)[1].str().c_str(), nullptr);
+                        ctrlPt.y = std::strtod((*curve_begin)[2].str().c_str(), nullptr);
+                        toPt.x = std::strtod((*curve_begin)[3].str().c_str(), nullptr);
+                        toPt.y = std::strtod((*curve_begin)[4].str().c_str(), nullptr);
                         path->appendSegment(std::make_shared<SketchQuadraticBezier>(prevPt, ctrlPt, toPt));
                         prevPt = toPt;
                     }
 
                 } else if (pathComponents_str.at(0) == 'C') {
-                    wxPoint2DDouble ctrlPt1, ctrlPt2, toPt;
+                    xlPointD ctrlPt1, ctrlPt2, toPt;
                     auto curve_begin = sregex_iterator(pathComponents_str.cbegin(), pathComponents_str.cend(), cubicRegex);
                     if (std::distance(curve_begin, sregex_iterator()) == 1 && (*curve_begin).size() == 7) {
-                        ctrlPt1.m_x = std::stod((*curve_begin)[1]);
-                        ctrlPt1.m_y = std::stod((*curve_begin)[2]);
-                        ctrlPt2.m_x = std::stod((*curve_begin)[3]);
-                        ctrlPt2.m_y = std::stod((*curve_begin)[4]);
-                        toPt.m_x = std::stod((*curve_begin)[5]);
-                        toPt.m_y = std::stod((*curve_begin)[6]);
+                        ctrlPt1.x = std::strtod((*curve_begin)[1].str().c_str(), nullptr);
+                        ctrlPt1.y = std::strtod((*curve_begin)[2].str().c_str(), nullptr);
+                        ctrlPt2.x = std::strtod((*curve_begin)[3].str().c_str(), nullptr);
+                        ctrlPt2.y = std::strtod((*curve_begin)[4].str().c_str(), nullptr);
+                        toPt.x = std::strtod((*curve_begin)[5].str().c_str(), nullptr);
+                        toPt.y = std::strtod((*curve_begin)[6].str().c_str(), nullptr);
                         path->appendSegment(std::make_shared<SketchCubicBezier>(prevPt, ctrlPt1, ctrlPt2, toPt));
                         prevPt = toPt;
                     }
                 } else if (pathComponents_str.at(0) == 'c') {
                     if( pathComponents_str.size() == 2) {
-                        int type = wxAtoi(pathComponents_str.at(1));
+                        int type = pathComponents_str.at(1) - '0';
                         path->closePath(false, SketchCanvasPathState(type));
                     } else {
                         path->closePath(false, SketchCanvasPathState::LineToNewPoint);
@@ -549,8 +592,8 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
                 }
             }
         } catch (...) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Error parsing sketch path : \"%s\"", path_str.c_str());
+
+            spdlog::error("Error parsing sketch path : \"{}\"", path_str.c_str());
         }
 
         if (!path->segments().empty())
@@ -573,26 +616,26 @@ std::string SketchEffectSketch::toString() const
             continue;
 
         auto startPt(segments[0]->StartPoint());
-        stream << startPt.m_x << ',' << startPt.m_y << ';';
+        stream << startPt.x << ',' << startPt.y << ';';
         for (size_t ii = 0; ii < segments.size(); ++ii) {
             std::shared_ptr<SketchCubicBezier> cubic;
             std::shared_ptr<SketchQuadraticBezier> quadratic;
 
             if (std::dynamic_pointer_cast<SketchLine>(segments[ii]) != nullptr) {
                 auto endPt(segments[ii]->EndPoint());
-                stream << 'L' << endPt.m_x << ',' << endPt.m_y << ';';
+                stream << 'L' << endPt.x << ',' << endPt.y << ';';
             } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(segments[ii]))) {
                 auto ctrlPt(quadratic->ControlPoint());
                 auto endPt(quadratic->EndPoint());
-                stream << 'Q' << ctrlPt.m_x << ',' << ctrlPt.m_y
-                       << ',' << endPt.m_x << ',' << endPt.m_y << ';';
+                stream << 'Q' << ctrlPt.x << ',' << ctrlPt.y
+                       << ',' << endPt.x << ',' << endPt.y << ';';
             } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(segments[ii]))) {
                 auto ctrlPt1(cubic->ControlPoint1());
                 auto ctrlPt2(cubic->ControlPoint2());
                 auto endPt(cubic->EndPoint());
-                stream << 'C' << ctrlPt1.m_x << ',' << ctrlPt1.m_y << ','
-                       << ctrlPt2.m_x << ',' << ctrlPt2.m_y << ','
-                       << endPt.m_x << ',' << endPt.m_y << ';';
+                stream << 'C' << ctrlPt1.x << ',' << ctrlPt1.y << ','
+                       << ctrlPt2.x << ',' << ctrlPt2.y << ','
+                       << endPt.x << ',' << endPt.y << ';';
             }
         }
         if (path->isClosed())
@@ -605,14 +648,14 @@ std::string SketchEffectSketch::toString() const
 
 void SketchEffectSketch::updatePath(int index, std::shared_ptr<SketchEffectPath> path)
 {
-    if (index < 0 || index >= m_paths.size())
+    if (index < 0 || index >= (int)m_paths.size())
         return;
     m_paths[index] = path;
 }
 
 void SketchEffectSketch::reversePath(int pathIndex)
 {
-    if (pathIndex < 0 || pathIndex >= m_paths.size())
+    if (pathIndex < 0 || pathIndex >= (int)m_paths.size())
         return;
 
     m_paths[pathIndex]->reversePath();
@@ -620,7 +663,7 @@ void SketchEffectSketch::reversePath(int pathIndex)
 
 void SketchEffectSketch::deletePath(int pathIndex)
 {
-    if (pathIndex < 0 || pathIndex >= m_paths.size())
+    if (pathIndex < 0 || pathIndex >= (int)m_paths.size())
         return;
 
     auto iter = m_paths.begin();
@@ -631,7 +674,7 @@ void SketchEffectSketch::deletePath(int pathIndex)
 
 void SketchEffectSketch::swapPaths(int pathIndex0, int pathIndex1)
 {
-    if (pathIndex0 < 0 || pathIndex1 < 0 || pathIndex0 >= m_paths.size() || pathIndex1 >= m_paths.size())
+    if (pathIndex0 < 0 || pathIndex1 < 0 || pathIndex0 >= (int)m_paths.size() || pathIndex1 >= (int)m_paths.size())
         return;
 
     std::swap(m_paths[pathIndex0], m_paths[pathIndex1]);
@@ -654,9 +697,7 @@ void SketchEffectSketch::getProgressPosition( double progress, double& x, double
 
     for (const auto& path : m_paths)
     {
-        // find the path target falls inside
         if( path->Length() >= targetLength ) {
-            // find the segment target falls inside
             for(const auto& segment : path->segments() ) {
                 if( segment->Length() >= targetLength ) {
                     segment->getProgressPosition( targetLength, x, y );
@@ -674,8 +715,8 @@ void SketchEffectSketch::getProgressPosition( double progress, double& x, double
 void SketchLine::getProgressPosition( double partialLength, double& x, double& y )
 {
     double percent = partialLength / Length();
-    x = m_fromPt.m_x + percent * (m_toPt.m_x - m_fromPt.m_x);
-    y = m_fromPt.m_y + percent * (m_toPt.m_y - m_fromPt.m_y);
+    x = m_fromPt.x + percent * (m_toPt.x - m_fromPt.x);
+    y = m_fromPt.y + percent * (m_toPt.y - m_fromPt.y);
 }
 
 void SketchQuadraticBezier::getProgressPosition( double partialLength, double& x, double& y )

@@ -9,18 +9,17 @@
  **************************************************************/
 
 #include "MorphEffect.h"
-#include "MorphPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "assist/AssistPanel.h"
-#include "assist/xlGridCanvasMorph.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
 
 #include "../../include/morph-16.xpm"
 #include "../../include/morph-64.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+
+#include <format>
 
 
 MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph_16, morph_64, morph_64, morph_64, morph_64)
@@ -58,17 +57,6 @@ bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, Se
     return false;
 }
 
-xlEffectPanel *MorphEffect::CreatePanel(wxWindow *parent) {
-    return new MorphPanel(parent);
-}
-
-AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
-    AssistPanel *assist_panel = new AssistPanel(parent);
-    xlGridCanvas* grid = new xlGridCanvasMorph(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("MorphGrid"));
-    assist_panel->SetGridCanvas(grid);
-    return assist_panel;
-}
-
 std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -96,55 +84,11 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
         int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
 
         if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel) {
-            res.push_back(wxString::Format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
     return res;
-}
-
-void MorphEffect::SetDefaultParameters() {
-    MorphPanel *mp = (MorphPanel*)panel;
-    if (mp == nullptr) {
-        return;
-    }
-
-    mp->BitmapButton_MorphAccel->SetActive(false);
-    mp->BitmapButton_MorphDuration->SetActive(false);
-    mp->BitmapButton_MorphEndLength->SetActive(false);
-    mp->BitmapButton_MorphStartLength->SetActive(false);
-    mp->BitmapButton_Morph_End_X1->SetActive(false);
-    mp->BitmapButton_Morph_End_Y1->SetActive(false);
-    mp->BitmapButton_Morph_End_X2->SetActive(false);
-    mp->BitmapButton_Morph_End_Y2->SetActive(false);
-    mp->BitmapButton_Morph_Start_X1->SetActive(false);
-    mp->BitmapButton_Morph_Start_Y1->SetActive(false);
-    mp->BitmapButton_Morph_Start_X2->SetActive(false);
-    mp->BitmapButton_Morph_Start_Y2->SetActive(false);
-    mp->BitmapButton_Morph_Stagger->SetActive(false);
-    mp->BitmapButton_Morph_Repeat_Count->SetActive(false);
-    mp->BitmapButton_Morph_Repeat_Skip->SetActive(false);
-
-    SetSliderValue(mp->Slider_MorphAccel, 0);
-    SetSliderValue(mp->Slider_MorphDuration, 20);
-    SetSliderValue(mp->Slider_MorphEndLength, 1);
-    SetSliderValue(mp->Slider_MorphStartLength, 1);
-    SetSliderValue(mp->Slider_Morph_End_X1, 0);
-    SetSliderValue(mp->Slider_Morph_End_X2, 100);
-    SetSliderValue(mp->Slider_Morph_End_Y1, 100);
-    SetSliderValue(mp->Slider_Morph_End_Y2, 100);
-    SetSliderValue(mp->Slider_Morph_Repeat_Count, 0);
-    SetSliderValue(mp->Slider_Morph_Repeat_Skip, 1);
-    SetSliderValue(mp->Slider_Morph_Stagger, 0);
-    SetSliderValue(mp->Slider_Morph_Start_X1, 0);
-    SetSliderValue(mp->Slider_Morph_Start_X2, 100);
-    SetSliderValue(mp->Slider_Morph_Start_Y1, 0);
-    SetSliderValue(mp->Slider_Morph_Start_Y2, 0);
-
-    SetCheckBoxValue(mp->CheckBox_Morph_End_Link, false);
-    SetCheckBoxValue(mp->CheckBox_Morph_Start_Link, false);
-    SetCheckBoxValue(mp->CheckBox_ShowHeadAtStart, false);
-    SetCheckBoxValue(mp->CheckBox_Morph_AutoRepeat, false);
 }
 
 void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {

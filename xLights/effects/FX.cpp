@@ -29,17 +29,20 @@
 #define XLIGHTS_FX
 
 #ifdef XLIGHTS_FX
-#include "../UtilFunctions.h"
-#include "../RenderBuffer.h"
+#include "UtilFunctions.h"
+#include "../render/RenderBuffer.h"
+#include "../utils/string_utils.h"
 #include <math.h>
 #endif
 
+#include <cassert>
+#include <chrono>
 #include <mutex>
 #include "FX.h"
 
 #ifdef XLIGHTS_FX
 #define boolean bool
-#define GET_MILLIS() ((uint32_t) wxGetLocalTimeMillis().GetLo())
+#define GET_MILLIS() ((uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()))
 #define max std::max
 #define min std::min
 
@@ -139,7 +142,7 @@ void WS2812FX::copyPixels(uint16_t dest, uint16_t src, uint16_t count)
     }
     for (size_t i = 0; i < count; i++) {
         xlColor c = cols[i];
-        for (size_t y = 0; y < _buffer->BufferHt; y++) {
+        for (int y = 0; y < _buffer->BufferHt; y++) {
             _buffer->SetPixel(dest + i, y, c);
         }
         _buffer->SetTempPixel(dest + i, 0, c);
@@ -424,6 +427,7 @@ void WS2812FX::service()
                 }
                 //if (!cctFromRgb || correctWB)
                 //    busses.setSegmentCCT(_cct_t, correctWB);
+                (void)_cct_t;
                 //for (uint8_t c = 0; c < NUM_COLORS; c++)
                 //    _colors_t[c] = gamma32(_colors_t[c]);
                 handle_palette();
@@ -493,25 +497,25 @@ uint8_t DecodeMode(const std::string& mode)
         i++;
     }
 
-    wxASSERT(false);
+    assert(false);
     return -1;
 }
 
 uint8_t DecodePalette(const std::string& palette)
 {
-    static wxArrayString palettes;
+    static std::vector<std::string> palettes;
 
     {
         static std::mutex mtx;
         std::unique_lock lk(mtx);
 
         if (palettes.size() == 0) {
-            wxString names = JSON_palette_names;
-            names.Replace("\n", "");
-            names.Replace("\"", "");
-            names.Replace("[", "");
-            names.Replace("]", "");
-            palettes = wxSplit(names, ',');
+            std::string names = JSON_palette_names;
+            std::erase(names, '\n');
+            std::erase(names, '"');
+            std::erase(names, '[');
+            std::erase(names, ']');
+            palettes = Split(names, ',');
         }
     }
 
@@ -522,7 +526,7 @@ uint8_t DecodePalette(const std::string& palette)
         i++;
     }
 
-    wxASSERT(false);
+    assert(false);
     return 0;
 }
 
@@ -565,7 +569,7 @@ uint16_t random16(uint16_t limit = 0xFFFF)
 
 uint32_t WS2812FX::millis() const
 {
-    wxASSERT(_buffer != nullptr);
+    assert(_buffer != nullptr);
     return (_buffer->curPeriod - _buffer->curEffStartPer) * _buffer->frameTimeInMs;
 }
 
@@ -1168,7 +1172,6 @@ CRGB ColorFromPalette(const CRGBPalette16& pal,
     const CRGB* entry = &pal[hi4];
 
     //const CRGB* e1 = entry;
-    const CRGB* e2 = nullptr;
 
     uint8_t blend = lo4 && (blendType != NOBLEND);
 
@@ -1182,7 +1185,6 @@ CRGB ColorFromPalette(const CRGBPalette16& pal,
         } else {
             ++entry;
         }
-        e2 = entry;
 
         uint8_t f2 = lo4 << 4;
         uint8_t f1 = 255 - f2;
@@ -1235,8 +1237,6 @@ CRGB ColorFromPalette(const CRGBPalette16& pal,
             blue1 = 0;
         }
     }
-
-    auto x = CRGB(red1, green1, blue1);
 
     return CRGB(red1, green1, blue1);
 }
@@ -1312,7 +1312,7 @@ void WS2812FX::fade_out(uint8_t rate, uint32_t toColour)
 
 uint32_t WS2812FX::getPixelColor(uint16_t n)
 {
-    wxASSERT(_buffer != nullptr);
+    assert(_buffer != nullptr);
     return _buffer->GetTempPixel(n, 0).GetRGB(false);
 }
 
@@ -1399,7 +1399,8 @@ void WS2812FX::resetSegments()
         if (_segments[i].name)
             delete[] _segments[i].name;
     mainSegment = 0;
-    memset(_segments, 0, sizeof(_segments));
+    for (uint8_t i = 0; i < MAX_NUM_SEGMENTS; i++)
+        _segments[i] = segment{};
     //memset(_segment_runtimes, 0, sizeof(_segment_runtimes));
     _segment_index = 0;
     _segments[0]._fx = this;
@@ -1592,7 +1593,7 @@ void WS2812FX::SetBuffer(RenderBuffer* buffer)
 void WS2812FX::setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b, uint8_t w)
 {
     xlColor c(r, g, b);
-    for (size_t y = 0; y < _buffer->BufferHt; y++) {
+    for (int y = 0; y < _buffer->BufferHt; y++) {
         _buffer->SetPixel(n, y, c);
     }
     _buffer->SetTempPixel(n, 0, c);

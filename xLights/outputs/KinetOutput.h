@@ -11,8 +11,7 @@
  **************************************************************/
 
 #include "IPOutput.h"
-
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 #pragma region KINET Constants
 #define KINET_V1_PACKET_HEADERLEN 21
@@ -26,8 +25,8 @@ class KinetOutput : public IPOutput
     #pragma region Member Variables
     uint8_t _data[KINET_PACKET_LEN];
     uint32_t _sequenceNum = 0;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket *_datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
     int _version = 2;
     #pragma endregion
 
@@ -43,11 +42,11 @@ class KinetOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    KinetOutput(wxXmlNode* node, bool isActive);
+    KinetOutput(pugi::xml_node node, bool isActive);
     KinetOutput();
     KinetOutput(const KinetOutput& from);
     virtual ~KinetOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new KinetOutput(*this);
@@ -88,11 +87,4 @@ public:
     virtual void AllOff() override;
     #pragma endregion
     
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
-    #endif
-    #pragma endregion UI
 };

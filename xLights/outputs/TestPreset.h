@@ -13,7 +13,7 @@
 #include <vector>
 #include <string>
 
-class wxXmlNode;
+#include <pugixml.hpp>
 
 class TestPreset
 {
@@ -27,12 +27,12 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    TestPreset(wxXmlNode* node);
+    TestPreset(pugi::xml_node node);
     TestPreset(const std::string& name);
     virtual ~TestPreset() {};
     #pragma endregion Constructors and Destructors
 
-    wxXmlNode* Save();
+    pugi::xml_node Save(pugi::xml_node parent);
 
     #pragma region Getters and Setters
     std::string GetName() { return _name; }

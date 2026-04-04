@@ -12,7 +12,9 @@
 
 #include "RenderableEffect.h"
 
-#include "../Color.h"
+#include "Color.h"
+#include "../render/TextDrawingContext.h"
+#include "../utils/xlPoint.h"
 
 #define SHAPE_THICKNESS_MIN 1
 #define SHAPE_THICKNESS_MAX 100
@@ -51,9 +53,7 @@ class ShapeEffect : public RenderableEffect
 public:
     ShapeEffect(int id);
     virtual ~ShapeEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    virtual void SetPanelStatus(Model* cls) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override
@@ -67,7 +67,7 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 #ifdef LINUX
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override
     {
@@ -125,11 +125,8 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-
 private:
     static int DecodeShape(const std::string& shape);
-    void SetPanelTimingTracks() const;
     void Drawcircle(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
     void Drawheart(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
     void Drawstar(RenderBuffer& buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation = 0) const;
@@ -139,9 +136,7 @@ private:
     void Drawcandycane(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
     void Drawcrucifix(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
     void Drawpresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
-    void Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const;
+    void Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font) const;
     void Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
     void DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-    bool areSame(double a, double b, float eps) const;
-    bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const;
 };

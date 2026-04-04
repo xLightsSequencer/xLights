@@ -1,20 +1,156 @@
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <list>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include "CurlManager.h"
 
 
-#include <wx/string.h>
-#include <wx/app.h>
 #include "../xLightsVersion.h"
 #include "string_utils.h"
+
+static std::string resolveContentType(const std::string& type)
+{
+    if (type == "JSON")
+        return "application/json; charset=utf-8";
+    if (type == "XML")
+        return "application/xml";
+    if (type == "TEXT XML")
+        return "text/xml";
+    if (type == "HTML")
+        return "text/html";
+    if (type == "TEXT")
+        return "text/plain";
+    return "application/x-www-form-urlencoded";
+}
+
+
+std::string CurlManager::HTTPSPost(const std::string& url, const std::string& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
+{
+    SyncRequestOptions options;
+    options.method = "POST";
+    options.body = body;
+    options.contentType = resolveContentType(contentType);
+    options.username = user;
+    options.password = password;
+    options.timeoutSeconds = timeout;
+    options.disableSSLVerification = true;
+    options.responseCode = responseCode;
+    for (const auto& it : customHeaders) {
+        options.headers.push_back(it.first + ": " + it.second);
+    }
+    return INSTANCE.doRequest(url, options);
+}
+
+std::string CurlManager::HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user, const std::string& password, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders)
+{
+    auto logger_curl = spdlog::get("curl");
+    CURL* curl = curl_easy_init();
+    if (curl == nullptr) {
+        return "";
+    }
+
+    struct curl_httppost* formpost = nullptr;
+    struct curl_httppost* lastptr = nullptr;
+    for (const auto& it : vars) {
+        curl_formadd(&formpost,
+                     &lastptr,
+                     CURLFORM_COPYNAME, it.key.c_str(),
+                     CURLFORM_COPYCONTENTS, it.value.c_str(),
+                     CURLFORM_END);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    if (!user.empty() || !password.empty()) {
+        std::string sAuth = user + ":" + password;
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
+    }
+
+    struct curl_slist* headerlist = nullptr;
+    headerlist = curl_slist_append(headerlist, "Expect:");
+    for (const auto& it : customHeaders) {
+        std::string h = it.first + ": " + it.second;
+        headerlist = curl_slist_append(headerlist, h.c_str());
+    }
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+
+    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+    std::string buffer;
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](void* ptr, size_t size, size_t nmemb, void* userdata) {
+        auto* out = static_cast<std::string*>(userdata);
+        out->append(static_cast<char*>(ptr), size * nmemb);
+        return size * nmemb;
+    });
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+    curl_formfree(formpost);
+    if (headerlist != nullptr) {
+        curl_slist_free_all(headerlist);
+    }
+
+    if (res == CURLE_OK) {
+        return buffer;
+    }
+    logger_curl->error("Curl post form failed: {}", static_cast<int>(res));
+    return "";
+}
+
+std::string CurlManager::HTTPSDelete(const std::string& url, const std::string& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
+{
+    SyncRequestOptions options;
+    options.method = "DELETE";
+    options.body = body;
+    options.contentType = resolveContentType(contentType);
+    options.username = user;
+    options.password = password;
+    options.timeoutSeconds = timeout;
+    options.disableSSLVerification = true;
+    options.responseCode = responseCode;
+    for (const auto& it : customHeaders) {
+        options.headers.push_back(it.first + ": " + it.second);
+    }
+    return INSTANCE.doRequest(url, options);
+}
+
+std::string CurlManager::HTTPSGet(const std::string& s, const std::string& user, const std::string& password, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
+{
+    SyncRequestOptions options;
+    options.method = "GET";
+    options.username = user;
+    options.password = password;
+    options.timeoutSeconds = timeout;
+    options.disableSSLVerification = true;
+    options.responseCode = responseCode;
+    for (const auto& it : customHeaders) {
+        options.headers.push_back(it.first + ": " + it.second);
+    }
+    return INSTANCE.doRequest(s, options);
+}
+
+bool CurlManager::HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user, const std::string& password, int timeout, std::function<bool(int)> progress)
+{
+    return INSTANCE.doGetFile(s, filename, user, password, timeout, progress);
+}
+
+bool CurlManager::HTTPUploadFile(const std::string& url, const std::string& filename, const std::string& file, std::function<bool(int, std::string)> progress, const std::string& username, const std::string& password)
+{
+    return INSTANCE.doUploadFile(url, filename, file, progress, username, password);
+}
 
 
 CurlManager CurlManager::INSTANCE;
@@ -43,7 +179,7 @@ void CurlManager::addCURL(const std::string& furl, CURL* curl, std::function<voi
     i->cleanCurl = autoCleanCurl;
     curl_multi_add_handle(curlMulti, curl);
     numCurls++;
-    for (int x = 0; x < curls.size(); x++) {
+    for (size_t x = 0; x < curls.size(); x++) {
         if (curls[x] == nullptr) {
             curls[x] = i;
             return;
@@ -62,7 +198,7 @@ static size_t urlWriteData(void* buffer, size_t size, size_t nmemb, void* userp)
 static size_t urlReadData(void* ptr, size_t size, size_t nmemb, void* userp) {
     size_t buffer_size = size * nmemb;
     CurlManager::CurlPrivateData* dt = (CurlManager::CurlPrivateData*)userp;
-    int numb = dt->req->size() - dt->curPos;
+    size_t numb = dt->req->size() - dt->curPos;
     if (numb > buffer_size) {
         numb = buffer_size;
     }
@@ -76,7 +212,7 @@ static int urlSeekData(void *userp, curl_off_t offset, int origin) {
     return CURL_SEEKFUNC_OK;
 }
 CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd, bool upload) {
-    static std::string USERAGENT = wxAppConsole::GetInstance()->GetAppName().ToStdString() + "-" + xlights_version_string;
+    static std::string USERAGENT = "xLights-" + xlights_version_string;
 
     const std::string host = getHost(fullUrl);
     HostData* hd = getHostData(host);
@@ -118,7 +254,7 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
         *cpd = data;
     }
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     if (StartsWith(fullUrl, "https")) {
         // FIXME - curl on Windows is broken... Likely need to update to a newer version or one with  proper
         // options compiled in.  Alternatively, drop support for Windows 8 and use curl provided by Win 10/11
@@ -133,8 +269,8 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
 void CurlManager::add(const std::string& furl, const std::string& method, const std::string& data,
                       const std::list<std::string>& extraHeaders,
                       std::function<void(int rc, const std::string& resp)>&& callback) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    logger_curl.info("Adding CURL - URL: %s    Method: %s", furl.c_str(), method.c_str());
+    auto logger_curl = spdlog::get("curl");
+    logger_curl->info("Adding CURL - URL: {}    Method: {}", furl.c_str(), method.c_str());
     
     CURL* curl = createCurl(furl);
 
@@ -171,8 +307,8 @@ void CurlManager::add(const std::string& furl, const std::string& method, const 
         curl_easy_getinfo(c, CURLINFO_PRIVATE, &data);
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
 
-        static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-        logger_curl.info("    CURL Callback - URL: %s    Response Code: %d", furl.c_str(), rc);
+        auto logger_curl = spdlog::get("curl");
+        logger_curl->info("    CURL Callback - URL: {}    Response Code: {}", furl.c_str(), rc);
 
         char* urlp = nullptr;
         curl_easy_getinfo(c, CURLINFO_EFFECTIVE_URL, &urlp);
@@ -194,16 +330,475 @@ void CurlManager::addPut(const std::string& url, const std::string& data, const 
     add(url, "PUT", data, { "Content-Type: " + contentType }, [callback](int rc, const std::string& resp) { callback(rc, resp); });
 }
 
+std::string CurlManager::doRequest(const std::string& furl, const SyncRequestOptions& options)
+{
+    auto logger_curl = spdlog::get("curl");
+    logger_curl->info("Adding Synchronous CURL - URL: {}    Method: {}", furl.c_str(), options.method.c_str());
+
+    CURL* curl = createCurl(furl);
+    if (curl == nullptr) {
+        return "";
+    }
+
+    if (options.timeoutSeconds > 0) {
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, options.timeoutSeconds);
+    }
+
+    if (!options.username.empty() || !options.password.empty()) {
+        std::string sAuth = options.username + ":" + options.password;
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
+    }
+
+    if (options.disableSSLVerification) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
+
+    struct curl_slist* headerlist = nullptr;
+    if (!options.contentType.empty()) {
+        std::string ct = "Content-Type: " + options.contentType;
+        headerlist = curl_slist_append(headerlist, ct.c_str());
+    }
+    for (const auto& h : options.headers) {
+        headerlist = curl_slist_append(headerlist, h.c_str());
+    }
+
+    if (options.method == "POST") {
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    } else if (options.method == "PUT" || options.method == "PATCH" || options.method == "DELETE") {
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, options.method.c_str());
+    }
+
+    if (!options.body.empty()) {
+        headerlist = curl_slist_append(headerlist, "Expect:");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)options.body.size());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, options.body.c_str());
+    }
+
+    if (headerlist != nullptr) {
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+    }
+
+    CURLcode res = curl_easy_perform(curl);
+
+    CurlPrivateData* data = nullptr;
+    long rc = 0;
+    curl_easy_getinfo(curl, CURLINFO_PRIVATE, &data);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
+    if (options.responseCode != nullptr) {
+        *options.responseCode = static_cast<int>(rc);
+    }
+
+    std::string resp;
+    if (res == CURLE_OK && data != nullptr) {
+        resp.assign(reinterpret_cast<char*>(data->resp.data()), data->resp.size());
+    } else {
+        const char* err = curl_easy_strerror(res);
+        logger_curl->error("Curl request failed: {} {}", static_cast<int>(res), (err ? err : ""));
+    }
+
+    if (headerlist != nullptr) {
+        curl_slist_free_all(headerlist);
+    }
+    if (data != nullptr) {
+        delete data;
+    }
+    curl_easy_cleanup(curl);
+
+    return resp;
+}
+
+struct HTTPGetFileProgressData {
+    std::function<bool(int)> progress;
+    int lastPosition = -1;
+};
+
+static int http_get_file_progress_callback(void* userp,
+                                           double total,
+                                           double now,
+                                           double ultotal,
+                                           double ulnow)
+{
+    HTTPGetFileProgressData* data = static_cast<HTTPGetFileProgressData*>(userp);
+    if (data != nullptr && data->progress != nullptr) {
+        int pos = 0;
+        if (total > 0) {
+            pos = static_cast<int>((now * 1000.0) / total);
+        }
+        if (pos < 0) {
+            pos = 0;
+        }
+        if (pos > 1000) {
+            pos = 1000;
+        }
+        if (pos != data->lastPosition) {
+            data->lastPosition = pos;
+            if (!data->progress(pos)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+static size_t http_get_file_write_callback(void* ptr, size_t size, size_t nmemb, FILE* stream)
+{
+    if (ptr == nullptr || stream == nullptr) {
+        return 0;
+    }
+    return fwrite(ptr, size, nmemb, stream);
+}
+
+bool CurlManager::doGetFile(const std::string& url,
+                            const std::string& filename,
+                            const std::string& user,
+                            const std::string& password,
+                            int timeoutSeconds,
+                            std::function<bool(int)> progress)
+{
+    auto logger_curl = spdlog::get("curl");
+
+    FILE* fp = fopen(filename.c_str(), "wb");
+    if (fp == nullptr) {
+        logger_curl->error("doGetFile: Failure to create file {}.", filename);
+        return false;
+    }
+
+    bool res = true;
+    CURL* curl = createCurl(url);
+    if (curl == nullptr) {
+        fclose(fp);
+        return false;
+    }
+
+    if (!user.empty() || !password.empty()) {
+        std::string sAuth = user + ":" + password;
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
+    }
+
+    if (timeoutSeconds > 0) {
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeoutSeconds);
+    }
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+
+    struct curl_slist* headers = nullptr;
+    headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:21.0) Gecko/20130401 Firefox/21.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    HTTPGetFileProgressData progressData;
+    progressData.progress = progress;
+    if (progress != nullptr) {
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressData);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, http_get_file_progress_callback);
+    } else {
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_get_file_write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+    CURLcode r = curl_easy_perform(curl);
+    if (r != CURLE_OK) {
+        logger_curl->error("Failure to access {} -> {}: {}.", url, filename, curl_easy_strerror(r));
+        res = false;
+    } else {
+        long response_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        if (response_code >= 400) {
+            logger_curl->error("Error getting file {} -> {}: {}.", url, filename, response_code);
+            res = false;
+        }
+    }
+
+    if (headers != nullptr) {
+        curl_slist_free_all(headers);
+    }
+    CurlPrivateData* data = nullptr;
+    curl_easy_getinfo(curl, CURLINFO_PRIVATE, &data);
+    if (data != nullptr) {
+        delete data;
+    }
+    curl_easy_cleanup(curl);
+
+    fclose(fp);
+    if (!res) {
+        remove(filename.c_str());
+    }
+
+    return res;
+}
+
+static std::string GetServerFromUrl(const std::string& url)
+{
+    size_t start = 0;
+    size_t scheme = url.find("://");
+    if (scheme != std::string::npos) {
+        start = scheme + 3;
+    }
+
+    size_t end = url.find('/', start);
+    std::string host = url.substr(start, end == std::string::npos ? std::string::npos : end - start);
+    size_t atPos = host.rfind('@');
+    if (atPos != std::string::npos) {
+        host = host.substr(atPos + 1);
+    }
+
+    if (!host.empty() && host.front() == '[') {
+        size_t bracketEnd = host.find(']');
+        if (bracketEnd != std::string::npos) {
+            return host.substr(1, bracketEnd - 1);
+        }
+        return host;
+    }
+
+    size_t colon = host.find(':');
+    if (colon != std::string::npos) {
+        host = host.substr(0, colon);
+    }
+    return host;
+}
+
+struct HTTPUploadData {
+    const uint8_t* data = nullptr;
+    size_t dataSize = 0;
+    size_t curPos = 0;
+    FILE* file = nullptr;
+    size_t fileSize = 0;
+    const uint8_t* postData = nullptr;
+    size_t postDataSize = 0;
+    std::function<bool(int, std::string)> progress = nullptr;
+    std::string progressString;
+    size_t totalWritten = 0;
+    size_t lastDone = 0;
+    bool cancelled = false;
+
+    size_t readData(void* ptr, size_t buffer_size)
+    {
+        if (data != nullptr) {
+            size_t remaining = dataSize - curPos;
+            if (remaining) {
+                size_t copy_this_much = remaining;
+                if (copy_this_much > buffer_size) {
+                    copy_this_much = buffer_size;
+                }
+                if (copy_this_much > 8 * 1024 * 1024) {
+                    copy_this_much = 8 * 1024 * 1024;
+                }
+                memcpy(ptr, &data[curPos], copy_this_much);
+                curPos += copy_this_much;
+                return copy_this_much;
+            }
+            curPos = 0;
+            if (file == nullptr) {
+                data = postData;
+                dataSize = postDataSize;
+            } else {
+                data = nullptr;
+                dataSize = 0;
+            }
+        }
+
+        if (file != nullptr) {
+            size_t t = fread(ptr, 1, buffer_size, file);
+            totalWritten += t;
+
+            if (progress != nullptr) {
+                size_t donePct = totalWritten;
+                donePct *= 1000;
+                if (fileSize != 0) {
+                    donePct /= fileSize;
+                }
+                if (donePct != lastDone) {
+                    lastDone = donePct;
+                    cancelled = !progress(static_cast<int>(donePct), progressString);
+                    std::this_thread::yield();
+                }
+            }
+
+            if (t == 0 || feof(file)) {
+                fclose(file);
+                curPos = 0;
+                data = postData;
+                dataSize = postDataSize;
+                file = nullptr;
+            }
+
+            if (cancelled) {
+                return CURL_READFUNC_ABORT;
+            }
+            return t;
+        }
+        return 0;
+    }
+};
+
+static size_t http_upload_read_callback(void* ptr, size_t size, size_t nmemb, void* userp)
+{
+    size_t buffer_size = size * nmemb;
+    HTTPUploadData* dt = static_cast<HTTPUploadData*>(userp);
+    return dt->readData(ptr, buffer_size);
+}
+
+bool CurlManager::doUploadFile(const std::string& url,
+                               const std::string& filename,
+                               const std::string& file,
+                               std::function<bool(int, std::string)> progress,
+                               const std::string& username,
+                               const std::string& password)
+{
+    auto logger_curl = spdlog::get("curl");
+    logger_curl->info("URL: {}", url);
+
+    std::string escapedFilename;
+    for (char ch : filename) {
+        if (ch == '"') {
+            escapedFilename += "\\\"";
+        } else {
+            escapedFilename += ch;
+        }
+    }
+
+    const std::string fileBaseName = std::filesystem::path(file).filename().string();
+    const std::string serverName = GetServerFromUrl(url);
+
+    bool cancelled = false;
+    if (progress != nullptr) {
+        cancelled |= !progress(0, "Transferring " + fileBaseName + " to " + serverName);
+    }
+
+    CURL* curl = curl_easy_init();
+    if (curl == nullptr) {
+        return false;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, urlWriteData);
+    std::vector<uint8_t> responseBuffer;
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseBuffer);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000L);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000 * 15 * 60);
+
+    char error[1024] = { 0 };
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    if (!username.empty()) {
+        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+    }
+
+    const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
+    struct curl_slist* chunk = nullptr;
+    std::string ctMime = "Content-Type: multipart/form-data; boundary=" + bound;
+    chunk = curl_slist_append(chunk, ctMime.c_str());
+    chunk = curl_slist_append(chunk, "X-Requested-With: FPPConnect");
+    chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+    chunk = curl_slist_append(chunk, "Expect:");
+
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
+    std::string memBuffPost;
+    std::string memBuffPre;
+    memBuffPost.append("\r\n--").append(bound).append("--\r\n");
+
+    std::string cd = "Content-Disposition: form-data; name=\"avatar\"; filename=\"";
+    cd += file;
+    cd += "\"\r\n";
+    memBuffPre.append("--").append(bound).append("\r\n").append(cd)
+             .append("Content-Type: application/octet-stream")
+             .append("\r\n\r\n");
+
+    FILE* fileobj = fopen(escapedFilename.c_str(), "rb");
+    if (fileobj == nullptr) {
+        logger_curl->error("Could not open upload file {}.", escapedFilename);
+        curl_slist_free_all(chunk);
+        curl_easy_cleanup(curl);
+        return false;
+    }
+    if (fseek(fileobj, 0, SEEK_END) != 0) {
+        fclose(fileobj);
+        curl_slist_free_all(chunk);
+        curl_easy_cleanup(curl);
+        return false;
+    }
+    long fileLength = ftell(fileobj);
+    if (fileLength < 0 || fseek(fileobj, 0, SEEK_SET) != 0) {
+        fclose(fileobj);
+        curl_slist_free_all(chunk);
+        curl_easy_cleanup(curl);
+        return false;
+    }
+
+    size_t contentLength = static_cast<size_t>(fileLength) + memBuffPre.size() + memBuffPost.size();
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, contentLength);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+    HTTPUploadData data;
+    data.data = reinterpret_cast<const uint8_t*>(memBuffPre.data());
+    data.dataSize = memBuffPre.size();
+    data.progress = progress;
+    data.file = fileobj;
+    data.fileSize = static_cast<size_t>(fileLength);
+    data.postData = reinterpret_cast<const uint8_t*>(memBuffPost.data());
+    data.postDataSize = memBuffPost.size();
+    data.progressString = "Transferring " + fileBaseName + " to " + serverName;
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, http_upload_read_callback);
+    curl_easy_setopt(curl, CURLOPT_READDATA, &data);
+
+    CURLcode i = curl_easy_perform(curl);
+    curl_slist_free_all(chunk);
+
+    long response_code = 0;
+    bool ok = true;
+    if (i == CURLE_OK) {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        if (response_code != 200) {
+            ok = false;
+        }
+    } else {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        logger_curl->warn("Curl did not upload file: {} {}", response_code, error);
+        ok = false;
+    }
+
+    if (progress != nullptr) {
+        cancelled |= !progress(1000, "");
+    }
+
+    if (data.file != nullptr) {
+        fclose(data.file);
+        data.file = nullptr;
+    }
+
+    CurlPrivateData* privateData = nullptr;
+    curl_easy_getinfo(curl, CURLINFO_PRIVATE, &privateData);
+    if (privateData != nullptr) {
+        delete privateData;
+    }
+    curl_easy_cleanup(curl);
+
+    return ok && !data.cancelled && !cancelled;
+}
+
 std::string CurlManager::doGet(const std::string& furl, int& rc) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+    auto logger_curl = spdlog::get("curl");
     CURL* curl = createCurl(furl);
 
-    logger_curl.info("Adding Synchronous CURL - URL: %s    Method: GET", furl.c_str());
+    logger_curl->info("Adding Synchronous CURL - URL: {}    Method: GET", furl.c_str());
     
     bool done = false;
     addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
     while (!done && processCurls()) {
-        wxYieldIfNeeded();
+        CurlManager::INSTANCE.yield();
     }
 
     CurlPrivateData* data = nullptr;
@@ -217,7 +812,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     } else {
         resp = data->errorResp;
     }
-    logger_curl.info("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? data->resp.size() : 0);
+    logger_curl->info("    CURL Synchronous Response - URL: {}    Response Code: {}     Size: {}", furl.c_str(), rc, rc ? data->resp.size() : 0);
     delete data;
     curl_easy_cleanup(curl);
 
@@ -248,8 +843,8 @@ static int seek_callback(void *userp, curl_off_t offset, int origin) {
     return CURL_SEEKFUNC_OK;
 }
 std::string CurlManager::doPost(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    logger_curl.info("Adding Synchronous CURL - URL: %s    Method: POST", furl.c_str());
+    auto logger_curl = spdlog::get("curl");
+    logger_curl->info("Adding Synchronous CURL - URL: {}    Method: POST", furl.c_str());
 
     CURL* curl = createCurl(furl);
 
@@ -276,7 +871,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     bool done = false;
     addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
     while (!done && processCurls()) {
-        wxYieldIfNeeded();
+        CurlManager::INSTANCE.yield();
     }
 
     CurlPrivateData* cdata = nullptr;
@@ -290,7 +885,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     } else {
         resp = cdata->errorResp;
     }
-    logger_curl.info("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
+    logger_curl->info("    CURL Synchronous Response - URL: {}    Response Code: {}     Size: {}", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
     delete cdata;
     curl_slist_free_all(head);
     curl_easy_cleanup(curl);
@@ -306,8 +901,8 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
 }
 
 std::string CurlManager::doPut(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    logger_curl.info("Adding Synchronous CURL - URL: %s    Method: PUT", furl.c_str());
+    auto logger_curl = spdlog::get("curl");
+    logger_curl->info("Adding Synchronous CURL - URL: {}    Method: PUT", furl.c_str());
     CURL* curl = createCurl(furl);
 
     struct curl_slist* head = nullptr;
@@ -332,7 +927,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
 
     addCURL(furl, curl, [](CURL* c) {}, false);
     while (processCurls()) {
-        wxYieldIfNeeded();
+        CurlManager::INSTANCE.yield();
     }
 
     CurlPrivateData* cdata = nullptr;
@@ -346,7 +941,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     } else {
         resp = cdata->errorResp;
     }
-    logger_curl.info("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
+    logger_curl->info("    CURL Synchronous Response - URL: {}    Response Code: {}     Size: {}", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
     delete cdata;
     curl_slist_free_all(head);
     curl_easy_cleanup(curl);
@@ -360,10 +955,9 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
 }
 
 bool CurlManager::doProcessCurls() {
-    CURLMcode mc;
     int stillRunning = 0;
     std::unique_lock<std::mutex> l(lock);
-    mc = curl_multi_perform(curlMulti, &stillRunning);
+    curl_multi_perform(curlMulti, &stillRunning);
     if (doCurlCallbacks && stillRunning != numCurls) {
         CURLMsg* m = nullptr;
         do {
@@ -373,7 +967,7 @@ bool CurlManager::doProcessCurls() {
                 CURL* e = m->easy_handle;
                 curl_multi_remove_handle(curlMulti, e);
                 CurlInfo* ci = nullptr;
-                for (int x = 0; x < curls.size(); x++) {
+                for (size_t x = 0; x < curls.size(); x++) {
                     if (curls[x] && curls[x]->curl == e) {
                         ci = curls[x];
                         curls[x] = nullptr;

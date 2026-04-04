@@ -9,20 +9,19 @@
  **************************************************************/
 
 #include "TwinkleEffect.h"
-#include "TwinklePanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/twinkle-16.xpm"
 #include "../../include/twinkle-24.xpm"
 #include "../../include/twinkle-32.xpm"
 #include "../../include/twinkle-48.xpm"
 #include "../../include/twinkle-64.xpm"
-#include "ValueCurve.h"
+#include "render/ValueCurve.h"
 
-#include "../Parallel.h"
+#include "Parallel.h"
 
 #include <random>
 #include <cmath>
@@ -40,10 +39,6 @@ TwinkleEffect::~TwinkleEffect()
 {
     //dtor
 }
-xlEffectPanel *TwinkleEffect::CreatePanel(wxWindow *parent) {
-    return new TwinklePanel(parent);
-}
-
 class StrobeClass
 {
 public:
@@ -65,23 +60,6 @@ public:
     int curNumStrobe = 0;
     std::atomic_int lights_to_renew = 0;
 };
-
-void TwinkleEffect::SetDefaultParameters()
-{
-    TwinklePanel *tp = (TwinklePanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    tp->BitmapButton_Twinkle_CountVC->SetActive(false);
-    tp->BitmapButton_Twinkle_StepsVC->SetActive(false);
-
-    SetSliderValue(tp->Slider_Twinkle_Count, 3);
-    SetSliderValue(tp->Slider_Twinkle_Steps, 30);
-    SetCheckBoxValue(tp->CheckBox_Twinkle_Strobe, false);
-    SetCheckBoxValue(tp->CheckBox_Twinkle_ReRandom, false);
-    SetChoiceValue(tp->Choice_Twinkle_Style, "New Render Method");
-}
 
 bool TwinkleEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
@@ -187,7 +165,7 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
 
 static void place_twinkles(int lights_to_place, int &curIndex, std::vector<StrobeClass>& strobe, RenderBuffer& buffer,
                            int max_modulo, size_t colorcnt) {
-    while (lights_to_place > 0 && (curIndex < strobe.size())) {
+    while (lights_to_place > 0 && (curIndex < (int)strobe.size())) {
         int idx = dist(eng) % (strobe.size() - curIndex) + curIndex;
         if (idx != curIndex) {
             std::swap(strobe[idx], strobe[curIndex]);
@@ -294,7 +272,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 }
             }
             //randomize the locations
-            for (int s = 0; s < strobe.size(); ++s) {
+            for (int s = 0; s < (int)strobe.size(); ++s) {
                 int r = dist(eng) % strobe.size();
                 if (r != s) {
                     std::swap(strobe[r], strobe[s]);

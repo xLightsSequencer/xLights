@@ -14,7 +14,7 @@
 #include "BoxedScreenLocation.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
-class ModelPreview;
+class IModelPreview;
 
 class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
@@ -24,20 +24,18 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
     virtual std::list<std::string> GetFileReferences() override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx) override;
     virtual std::list<std::string> CheckModelSettings() override;
 
     void SetImageFile(const std::string & imageFile);
+    void SetImageFileDirect(const std::string& file) { _imageFile = file; }
     void SetTransparency(int val) { transparency = val; }
     void SetBrightness(float val) { brightness = val; }
+    void ClearImages();
 
     const std::string& GetImageFile() const { return _imageFile; }
     int GetTransparency() const { return transparency; }

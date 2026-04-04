@@ -10,8 +10,14 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+
 #include "RenderableEffect.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+#include "../utils/xlPoint.h"
+#include <format>
+#include <map>
+#include <string>
 
 class SequenceElements;
 
@@ -55,26 +61,26 @@ enum class ShaderCtrlType
 
 struct ShaderPass
 {
-    wxString _target;
+    std::string _target;
     bool _persistent;
 };
 
 struct ShaderParm
 {
-    wxString _name;
-    wxString _label;
+    std::string _name;
+    std::string _label;
     ShaderParmType _type;
     double _min = 0.0f;
     double _max = 0.0f;
     double _default = 0.0f;
-    wxRealPoint _minPt = { 0,0 };
-    wxRealPoint _maxPt = { 0,0 };
-    wxRealPoint _defaultPt = { 0,0 };
-    std::map<int, wxString> _valueOptions;
+    xlPointD _minPt = { 0,0 };
+    xlPointD _maxPt = { 0,0 };
+    xlPointD _defaultPt = { 0,0 };
+    std::map<int, std::string> _valueOptions;
 
-    std::vector<wxString> GetChoices() const
+    std::vector<std::string> GetChoices() const
     {
-        std::vector<wxString> res;
+        std::vector<std::string> res;
 
         for (const auto& it : _valueOptions)
         {
@@ -84,7 +90,7 @@ struct ShaderParm
         return res;
     }
 
-    int EncodeChoice(const wxString& value) const
+    int EncodeChoice(const std::string& value) const
     {
         for (const auto& it : _valueOptions)
         {
@@ -93,14 +99,14 @@ struct ShaderParm
         return -1;
     }
 
-    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type)
+    ShaderParm(const std::string& name, const std::string& label, ShaderParmType type)
     {
         _name = name;
         _label = label;
         _type = type;
     }
 
-    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type, double min, double max, double dfault)
+    ShaderParm(const std::string& name, const std::string& label, ShaderParmType type, double min, double max, double dfault)
     {
         _name = name;
         _label = label;
@@ -110,7 +116,7 @@ struct ShaderParm
         _default = dfault;
     }
 
-    ShaderParm(const wxString& name, const wxString& label, ShaderParmType type, wxRealPoint min, wxRealPoint max, wxRealPoint dfault)
+    ShaderParm(const std::string& name, const std::string& label, ShaderParmType type, xlPointD min, xlPointD max, xlPointD dfault)
     {
         _name = name;
         _label = label;
@@ -120,36 +126,38 @@ struct ShaderParm
         _defaultPt = dfault;
     }
 
-    wxString GetId(ShaderCtrlType ctrl) const
+    std::string GetId(ShaderCtrlType ctrl) const
     {
         switch (ctrl)
         {
         case ShaderCtrlType::SHADER_CTRL_CHECKBOX:
-            return wxString::Format("ID_CHECKBOX_SHADERXYZZY_%s", _name);
+            return std::format("ID_CHECKBOX_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_SLIDER:
-            return wxString::Format("ID_SLIDER_SHADERXYZZY_%s", _name);
+            return std::format("ID_SLIDER_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_TEXTCTRL:
-            return wxString::Format("IDD_TEXTCTRL_SHADERXYZZY_%s", _name);
+            return std::format("IDD_TEXTCTRL_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_STATIC:
-            return wxString::Format("ID_STATICTEXT_SHADERXYZZY_%s", _name);
+            return std::format("ID_STATICTEXT_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_VALUECURVE:
-            return wxString::Format("ID_VALUECURVE_SHADERXYZZY_%s", _name);
+            return std::format("ID_VALUECURVE_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_CHOICE:
-            return wxString::Format("ID_CHOICE_SHADERXYZZY_%s", _name);
+            return std::format("ID_CHOICE_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_TIMING:
-            return wxString::Format("ID_CHOICE_SHADERXYZZY_%s", _name);
+            return std::format("ID_CHOICE_SHADERXYZZY_{}", _name);
         }
-        wxASSERT(false);
+        assert(false);
         return "NONAME";
     }
     // These are the labels that will be in the settings map
-    wxString GetUndecoratedId(ShaderCtrlType ctrl) const
+    std::string GetUndecoratedId(ShaderCtrlType ctrl) const
     {
         if (ctrl == ShaderCtrlType::SHADER_CTRL_VALUECURVE) return "SHADERXYZZY_" + _name;
 
-        return GetId(ctrl).AfterFirst('_');
+        const std::string id = GetId(ctrl);
+        const auto pos = id.find('_');
+        return (pos != std::string::npos) ? id.substr(pos + 1) : id;
     }
-    wxString GetLabel() const { if (_label != "") return _label; return _name; }
+    std::string GetLabel() const { if (!_label.empty()) return _label; return _name; }
     bool ShowParm() const
     {
         return _type == ShaderParmType::SHADER_PARM_FLOAT ||
@@ -175,7 +183,7 @@ class ShaderConfig
     bool _hasCoord = false;
 
 public:
-    ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements);
+    ShaderConfig(const std::string& filename, const std::string& code, const std::string& json, SequenceElements* sequenceElements);
     const std::list<ShaderPass> &GetPasses() const { return _passes; }
     const std::list<ShaderParm> &GetParms() const { return _parms; }
     const std::string &GetFilename() const { return _filename; }
@@ -201,15 +209,15 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
-    virtual void SetDefaultParameters() override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
 
     static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
+    static ShaderConfig* ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements);
     static bool IsShaderFile(std::string filename);
 
     static void SetBackgroundRender(bool b) { useBackgroundRender = b; }
@@ -255,9 +263,6 @@ public:
 protected:
     bool SetGLContext(ShaderRenderCache*);
     void UnsetGLContext(ShaderRenderCache*);
-
-    virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
     void sizeForRenderBuffer(const RenderBuffer& rb,
         bool& s_shadersInit,

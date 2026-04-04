@@ -11,7 +11,8 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
+#include "../utils/xlPoint.h"
 
 #include <string>
 #include <list>
@@ -22,6 +23,8 @@
 #define VUMETER_GAIN_MIN -100
 #define VUMETER_GAIN_MAX 100
 
+// Use prefixed nanosvg type to avoid conflicts with wxWidgets' bundled version
+#define NSVGimage xl_NSVGimage
 struct NSVGimage;
 
 class VUMeterEffect : public RenderableEffect
@@ -30,14 +33,12 @@ public:
     VUMeterEffect(int id);
     virtual ~VUMeterEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    virtual void SetDefaultParameters() override;
-    virtual void SetPanelStatus(Model* cls) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
     virtual double GetSettingVCMin(const std::string& name) const override
     {
@@ -58,13 +59,12 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     static int DecodeType(const std::string& type);
     static int DecodeShape(const std::string& shape);
 
     void Render(RenderBuffer& buffer, SequenceElements* elements,
                 int bars, const std::string& type, const std::string& timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, int gain, bool logarithmicX, const std::string& filter, bool regex, const std::string& svgFile);
-    void RenderSpectrogramFrame(RenderBuffer& buffer, int bars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const;
+    void RenderSpectrogramFrame(RenderBuffer& buffer, int bars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<xlPoint>>& lineHistory) const;
     void RenderVolumeBarsFrame(RenderBuffer& buffer, int bars, int gain);
     void RenderWaveformFrame(RenderBuffer& buffer, int bars, int yoffset, int gain, bool frameDetail);
     void RenderTimingEventFrame(RenderBuffer& buffer, int bars, int type, std::string timingtrack, std::list<int>& timingmarks, const std::string& filter, bool regex);

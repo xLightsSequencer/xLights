@@ -12,6 +12,9 @@
 
 #include "RenderableEffect.h"
 
+#include <string>
+#include <vector>
+
 #define MOVING_HEAD_MIN -1800
 #define MOVING_HEAD_MAX  1800
 #define MOVING_HEAD_DIVISOR 10
@@ -23,7 +26,6 @@
 #define MOVING_HEAD_SCALE_MAX 100
 
 class DmxMotor;
-class MovingHeadPanel;
 class DmxColorAbility;
 
 class MovingHeadEffect : public RenderableEffect
@@ -37,9 +39,6 @@ public:
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-    virtual void SetPanelStatus(Model* cls) override;
-    virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs) override;
-    virtual void SetDefaultParameters() override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return false;
@@ -112,7 +111,6 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     virtual bool needToAdjustSettings(const std::string& version) override
     {
         return false;
@@ -120,13 +118,13 @@ protected:
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer& buffer);
     std::list<const Model*> GetModels(const Model* model);
     void UpdateFixturePositions(const Model* cls){};//missing function body
-    void RenderMovingHeads(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer);
+    void RenderMovingHeads(const Model* model_info, const SettingsMap& SettingsMap, RenderBuffer& buffer);
     void RenderMovingHead(std::string mh_settings, int loc, const Model* model_info, RenderBuffer &buffer);
-    xlColor GetMultiColorBlend(double eff_pos, const wxArrayString& colors, RenderBuffer &buffer);
-    xlColor GetWheelColor(double eff_pos, const wxArrayString& colors);
+    xlColor GetMultiColorBlend(double eff_pos, const std::vector<std::string>& colors, RenderBuffer &buffer);
+    xlColor GetWheelColor(double eff_pos, const std::vector<std::string>& colors);
     void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);
-    void CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta );
+    void CalculatePosition(int location, float& position, std::vector<std::string>& heads, int groupings, float offset, float& delta );
     void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);
-    void CalculateDimmer(double eff_pos, wxArrayString&dimmers, uint32_t dimmer_channel, RenderBuffer &buffer);
-    void CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const wxArrayString& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer);
+    void CalculateDimmer(double eff_pos, std::vector<std::string>& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer);
+    void CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const std::vector<std::string>& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer);
 };

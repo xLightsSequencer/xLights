@@ -8,19 +8,16 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-
 #include "DmxFloodlight.h"
 #include "DmxBeamAbility.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
-#include "../../controllers/ControllerCaps.h"
-#include "../../ModelPreview.h"
-#include "../../UtilFunctions.h"
-#include "../../xLightsMain.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
+#include "UtilFunctions.h"
 #include "../../xLightsVersion.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
@@ -35,53 +32,6 @@ DmxFloodlight::DmxFloodlight(const ModelManager &manager)
 
 DmxFloodlight::~DmxFloodlight()
 {
-}
-
-void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-
-    DmxModel::AddTypeProperties(grid, outputManager);
-    ControllerCaps *caps = GetControllerCaps();
-    color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    shutter_ability->AddShutterTypeProperties(grid);
-    beam_ability->AddBeamTypeProperties(grid);
-    grid->Collapse("DmxShutterProperties");
-    grid->Collapse("DmxBeamProperties");
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
-{
-    // disable these because the size of the object is determined by the size of the bounding box
-    wxPGProperty* p = grid->GetPropertyByName("ModelPixelSize");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelStyle");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    DmxModel::DisableUnusedProperties(grid);
-}
-
-int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if (color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
 }
 
 void DmxFloodlight::InitModel()
@@ -104,7 +54,7 @@ void DmxFloodlight::DrawModel(xlVertexColorAccumulator* vac, xlColor& center, xl
     vac->AddCircleAsTriangles(0, 0, 0, 0.5, center, edge, beam_length);
 }
 
-void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxFloodlight::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                          xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
                                          const xlColor* c, bool allowSelected, bool wiring,
                                          bool highlightFirst, int highlightpixel,
@@ -167,7 +117,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     }
 }
 
-void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxFloodlight::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -196,7 +146,7 @@ void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
         int end = vac->getCount();
 
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
 
@@ -230,7 +180,7 @@ void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
 void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (shutter_ability->GetShutterChannel() != 0 && shutter_ability->GetShutterOnValue() != 0) {
-        if (Nodes.size() > shutter_ability->GetShutterChannel() - 1) {
+        if ((int)Nodes.size() > shutter_ability->GetShutterChannel() - 1) {
             xlColor c(shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue());
             pixelVector[shutter_ability->GetShutterChannel() - 1] = c;
         }
@@ -242,7 +192,7 @@ std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < names.size()) {
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < (int)names.size()) {
         names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
     return names;

@@ -8,27 +8,24 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/sstream.h>
+#include <cstdlib>
 
 #include "MhChannel.h"
 #include <glm/gtc/type_ptr.hpp>
 
-MhChannel::MhChannel(wxXmlNode* node, wxString pretty_name)
+MhChannel::MhChannel(pugi::xml_node node, const std::string& pretty_name)
 : node_xml(node), name(pretty_name)
 {
 }
 
 void MhChannel::Init() {
-    channel_coarse = wxAtoi(node_xml->GetAttribute("ChannelCoarse", "0"));
-    channel_fine = wxAtoi(node_xml->GetAttribute("ChannelFine", "0"));
-    
-    wxXmlNode* n = node_xml->GetChildren();
-    while (n != nullptr) {
-        std::string node_name = n->GetName();
-        std::string range_name = n->GetAttribute("Name", node_name);
+    channel_coarse = (int)std::strtol(node_xml.attribute("ChannelCoarse").as_string("0"), nullptr, 10);
+    channel_fine = (int)std::strtol(node_xml.attribute("ChannelFine").as_string("0"), nullptr, 10);
+
+    pugi::xml_node n = node_xml.first_child();
+    while (n) {
+        std::string node_name = n.name();
+        std::string range_name = n.attribute("Name").as_string(node_name.c_str());
         bool range_found {false};
         for (auto it = ranges.begin(); it != ranges.end(); ++it) {
             if( (*it)->GetName() == range_name ) {
@@ -42,45 +39,44 @@ void MhChannel::Init() {
             newRange->Init();
             ranges.push_back(std::move(newRange));
         }
-        n = n->GetNext();
+        n = n.next_sibling();
     }
 }
 
 void MhChannel::SetChannelCoarse(std::string& val) {
-    node_xml->DeleteAttribute("ChannelCoarse");
-    node_xml->AddAttribute("ChannelCoarse", val);
+    node_xml.remove_attribute("ChannelCoarse");
+    node_xml.append_attribute("ChannelCoarse") = val;
 }
 
 void MhChannel::SetChannelFine(std::string& val) {
-    node_xml->DeleteAttribute("ChannelFine");
-    node_xml->AddAttribute("ChannelFine", val);
+    node_xml.remove_attribute("ChannelFine");
+    node_xml.append_attribute("ChannelFine") = val;
 }
 
 void MhChannel::AddRange(std::string& name)
 {
-    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "range");
-    new_node->AddAttribute("Name", name);
-    node_xml->AddChild(new_node);
+    pugi::xml_node new_node = node_xml.append_child("range");
+    new_node.append_attribute("Name") = name;
     std::unique_ptr<MhChannel::MhRange> newRange(new MhChannel::MhRange(new_node, name));
     ranges.push_back(std::move(newRange));
 }
 
-MhChannel::MhRange::MhRange(wxXmlNode* node, wxString pretty_name)
+MhChannel::MhRange::MhRange(pugi::xml_node node, const std::string& pretty_name)
     : range_node(node), name(pretty_name)
 {
 }
 
 void MhChannel::MhRange::SetRangeMin(std::string& val) {
-    range_node->DeleteAttribute("Min");
-    range_node->AddAttribute("Min", val);
+    range_node.remove_attribute("Min");
+    range_node.append_attribute("Min") = val;
 }
 
 void MhChannel::MhRange::SetRangeMax(std::string& val) {
-    range_node->DeleteAttribute("Max");
-    range_node->AddAttribute("Max", val);
+    range_node.remove_attribute("Max");
+    range_node.append_attribute("Max") = val;
 }
 
 void MhChannel::MhRange::Init() {
-    min = wxAtoi(range_node->GetAttribute("Min", "0"));
-    max = wxAtoi(range_node->GetAttribute("Max", "255"));
+    min = (int)std::strtol(range_node.attribute("Min").as_string("0"), nullptr, 10);
+    max = (int)std::strtol(range_node.attribute("Max").as_string("255"), nullptr, 10);
 }

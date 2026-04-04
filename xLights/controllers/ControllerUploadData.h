@@ -18,9 +18,9 @@
 #include <set>
 #include <vector>
 
-#include "../ExportSettings.h"
-#include "../UtilFunctions.h"
-#include "../Pixels.h"
+#include "ExportSettings.h"
+#include "UtilFunctions.h"
+#include "../models/Pixels.h"
 
 class UDControllerPort;
 class UDController;
@@ -28,7 +28,6 @@ class Model;
 class ModelManager;
 class OutputManager;
 class Output;
-class wxWindow;
 class Controller;
 class ControllerCaps;
 

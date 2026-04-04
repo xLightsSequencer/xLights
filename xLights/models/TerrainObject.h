@@ -14,7 +14,7 @@
 #include "TerrainScreenLocation.h"
 #include <mutex>
 
-class ModelPreview;
+class IModelPreview;
 class xlTexture;
 class xlVertexAccumulator;
 class xlVertexTextureAccumulator;
@@ -27,15 +27,12 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
 
     void SetImageFile(const std::string & imageFile);
+    void SetImageFileDirect(const std::string& file) { _imageFile = file; }
     void SetTransparency(int val) { transparency = val; }
     void SetBrightness(float val) { brightness = val; }
     void SetSpacing(int val) { spacing = val; }
@@ -43,7 +40,12 @@ public:
     void SetDepth(int val) { depth = val; }
     void SetHideGrid(bool val) { hide_grid = val; }
     void SetHideImage(bool val) { hide_image = val; }
+    void SetBrushSize(int val) { brush_size = val; }
+    void SetEditTerrain(bool val) { editTerrain = val; }
     void SetGridColor(const std::string& color) { gridColor.SetFromString(color); }
+    void SetGridColor(const xlColor& color) { gridColor = color; }
+    void ClearImages();
+    void UpdateSize();
 
     const std::string& GetImageFile() const { return _imageFile; }
     int GetSpacing() const { return spacing; }
@@ -52,6 +54,9 @@ public:
     int GetDepth() const { return depth; }
     bool IsHideImage() const { return hide_image; }
     bool IsHideGrid() const { return hide_grid; }
+    int GetBrushSize() const { return brush_size; }
+    bool IsEditTerrain() const { return editTerrain; }
+    const xlColor& GetGridColorObj() const { return gridColor; }
     int GetImgWidth() const { return img_width; }
     int GetImgHeight() const { return img_height; }
     int GetTransparency() const { return transparency; }
@@ -60,7 +65,6 @@ public:
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
-    void UpdateSize();
 
 private:
     std::string _imageFile {""};

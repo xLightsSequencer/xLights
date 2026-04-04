@@ -15,10 +15,7 @@
 #include <vector>
 #include <regex>
 
-#include <wx/string.h>
-
 extern const std::string xlEMPTY_STRING;
-extern const wxString xlEMPTY_WXSTRING;
 
 //namespace string_utils
 //{
@@ -41,7 +38,7 @@ extern const wxString xlEMPTY_WXSTRING;
     }
 
     inline int CountChar(const std::string& s, char c) {
-        return std::count(begin(s), end(s), c);
+        return static_cast<int>(std::count(begin(s), end(s), c));
     }
 
     inline size_t CountStrings(const std::string& what, const std::string& in)
@@ -183,7 +180,7 @@ extern const wxString xlEMPTY_WXSTRING;
 
     inline std::string Capitalise(const std::string& input) noexcept
     {
-        std::string res = "";
+        std::string res;
         char last = ' ';
         for (const auto c : input)
         {
@@ -203,10 +200,18 @@ extern const wxString xlEMPTY_WXSTRING;
 
     inline std::string Lower(const std::string& input) noexcept
     {
-        std::string res = "";
+        std::string res;
         for (const auto c : input)
         {
             res += ::tolower(c);
+        }
+        return res;
+    }
+
+    inline std::string Upper(const std::string& input) noexcept {
+        std::string res;
+        for (const auto c : input) {
+            res += ::toupper(c);
         }
         return res;
     }
@@ -216,11 +221,12 @@ extern const wxString xlEMPTY_WXSTRING;
         if (input.empty()) return "";
 
         size_t firstnonblank = 0;
-        int lastnonblank = input.size()-1;
+        size_t lastnonblank = input.size();
 
         while (firstnonblank < input.size() && (input[firstnonblank] == ' ' || input[firstnonblank] == '\t')) { firstnonblank++; }
+        if (firstnonblank == input.size()) return "";
+        lastnonblank = input.size() - 1;
         while (lastnonblank > 0 && (input[lastnonblank] == ' ' || input[lastnonblank] == '\t')) { --lastnonblank; }
-        if (lastnonblank < firstnonblank) return "";
         return input.substr(firstnonblank, lastnonblank - firstnonblank + 1);
     }
     inline void Split(const std::string &frag, char splitBy, std::vector<std::string>& tokens, bool trim = false)

@@ -8,19 +8,23 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+#include <cmath>
+#include <format>
 #include "PolyPointScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "Shapes.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 extern void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, xlVertexColorAccumulator &va);
 
@@ -55,7 +59,7 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
 }
 
 PolyPointScreenLocation::~PolyPointScreenLocation() {
-    for( int i = 0; i < mPos.size(); ++i ) {
+    for( int i = 0; i < (int)mPos.size(); ++i ) {
         if (mPos[i].matrix != nullptr) {
             delete mPos[i].matrix;
         }
@@ -95,17 +99,17 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create)
 
 void PolyPointScreenLocation::Init()
 {
-    if (isnan(worldPos_x)) worldPos_x = 0.0;
-    if (isnan(worldPos_y)) worldPos_y = 0.0;
-    if (isnan(worldPos_z)) worldPos_z = 0.0;
+    if (std::isnan(worldPos_x)) worldPos_x = 0.0;
+    if (std::isnan(worldPos_y)) worldPos_y = 0.0;
+    if (std::isnan(worldPos_z)) worldPos_z = 0.0;
 
-    if (scalex <= 0 || std::isinf(scalex) || isnan(scalex)) {
+    if (scalex <= 0 || std::isinf(scalex) || std::isnan(scalex)) {
         scalex = 1.0f;
     }
-    if (scaley <= 0 || std::isinf(scaley) || isnan(scaley)) {
+    if (scaley <= 0 || std::isinf(scaley) || std::isnan(scaley)) {
         scaley = 1.0f;
     }
-    if (scalez <= 0 || std::isinf(scalez) || isnan(scalez)) {
+    if (scalez <= 0 || std::isinf(scalez) || std::isnan(scalez)) {
         scalez = 1.0f;
     }
 
@@ -222,7 +226,7 @@ void PolyPointScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) con
     ctx->SetModelMatrix(main_matrix);
 }
 
-bool PolyPointScreenLocation::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const
+bool PolyPointScreenLocation::IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const
 {
     int sx1 = std::min(x1, x2);
     int sx2 = std::max(x1, x2);
@@ -338,13 +342,13 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
     return ret_value;
 }
 
-wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
+CursorType PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
 {
-    wxCursor return_value = wxCURSOR_DEFAULT;
+    CursorType return_value = CursorType::Default;
     handle = NO_HANDLE;
 
     if (_locked) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
@@ -357,7 +361,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
         if (selected_segment != -1) {
             // add control point handles for selected segments
             int s = selected_segment;
-            if (mPos.size() > s && mPos[s].has_curve && mPos[s].curve != nullptr) {
+            if ((int)mPos.size() > s && mPos[s].has_curve && mPos[s].curve != nullptr) {
                 glm::vec3 cp_handle_aabb_min[2];
                 glm::vec3 cp_handle_aabb_max[2];
                 cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX) * scalex - hw;
@@ -388,7 +392,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
                         if (intersection_distance < distance) {
                             distance = intersection_distance;
                             handle = ((i == 0) ? s | HANDLE_CP0 : s | HANDLE_CP1);
-                            return_value = wxCURSOR_HAND;
+                            return_value = CursorType::Hand;
                         }
                     }
                 }
@@ -402,7 +406,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
         handle = -1;
 
         // Test each each Oriented Bounding Box (OBB).
-        for (size_t i = 0; i < mSelectableHandles; i++) {
+        for (int i = 0; i < mSelectableHandles; i++) {
             float intersection_distance; // Output of TestRayOBBIntersection()
 
             if (VectorMath::TestRayOBBIntersection(
@@ -416,7 +420,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
                 if (intersection_distance < distance) {
                     distance = intersection_distance;
                     handle = i;
-                    return_value = wxCURSOR_HAND;
+                    return_value = CursorType::Hand;
                 }
             }
         }
@@ -432,7 +436,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
             if (mPos[i].has_curve && mPos[i].curve != nullptr) {
                 if (mPos[i].curve->HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                     handle = i | HANDLE_SEGMENT;
-                    return_value = wxCURSOR_DEFAULT;
+                    return_value = CursorType::Default;
                 }
             }
             else {
@@ -449,7 +453,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
                         if (distance < intersection_distance) {
                             intersection_distance = distance;
                             handle = i | HANDLE_SEGMENT;
-                            return_value = wxCURSOR_DEFAULT;
+                            return_value = CursorType::Default;
                         }
                     }
                 }
@@ -460,11 +464,11 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
     return return_value;
 }
 
-wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int& handle, int x, int y) const
+CursorType PolyPointScreenLocation::CheckIfOverHandles(IModelPreview* preview, int& handle, int x, int y) const
 {
-    wxASSERT(!preview->Is3D());
+    assert(!preview->Is3D());
 
-    wxCursor return_value = wxCURSOR_DEFAULT;
+    CursorType return_value = CursorType::Default;
 
     if (preview == nullptr) return return_value;
 
@@ -473,7 +477,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
     int scale = preview->GetHandleScale();
 
     if (_locked) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     //Get a world position for the mouse
@@ -519,7 +523,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
                         ModelMatrix)
                         ) {
                         handle = ((i == 0) ? s | HANDLE_CP0 : s | HANDLE_CP1);
-                        return_value = wxCURSOR_HAND;
+                        return_value = CursorType::Hand;
                         break;
                     }
                 }
@@ -530,7 +534,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
     // test the normal handles
     if (handle == NO_HANDLE) {
         // Test each each Oriented Bounding Box (OBB).
-        for (size_t i = 1; i < mSelectableHandles; i++) {
+        for (int i = 1; i < mSelectableHandles; i++) {
             if (VectorMath::TestRayOBBIntersection2D(
                 ray_origin,
                 handle_aabb_min[i],
@@ -538,7 +542,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
                 ModelMatrix)
                 ) {
                 handle = i;
-                return_value = wxCURSOR_HAND;
+                return_value = CursorType::Hand;
                 break;
             }
         }
@@ -551,7 +555,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
                 if (mPos[i].curve->HitTest(ray_origin)) {
                     if (i != selected_segment) {
                         handle = i | HANDLE_SEGMENT;
-                        return_value = wxCURSOR_BULLSEYE;
+                        return_value = CursorType::Bullseye;
                     }
                     break;
                 }
@@ -566,7 +570,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
                         ) {
                         if (i != selected_segment) {
                             handle = i | HANDLE_SEGMENT;
-                            return_value = wxCURSOR_BULLSEYE;
+                            return_value = CursorType::Bullseye;
                         }
                         break;
                     }
@@ -578,7 +582,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
     // test for clicking a boundary handle
     if (handle == NO_HANDLE) {
         float hw = GetRectHandleWidth(zoom, scale);
-        for (size_t h = num_points + 1; h < num_points + 5; h++) {
+        for (int h = num_points + 1; h < num_points + 5; h++) {
             handle_aabb_min[h].x = mHandlePosition[h].x - hw;
             handle_aabb_min[h].y = mHandlePosition[h].y - hw;
             handle_aabb_min[h].z = mHandlePosition[h].z - hw;
@@ -594,7 +598,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int&
                 Identity)
                 ) {
                 handle = h;
-                return_value = wxCURSOR_HAND;
+                return_value = CursorType::Hand;
                 break;
             }
         }
@@ -910,7 +914,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     vac->AddRectAsTriangles(x1, y2, x1 + hw, y2 + hw, handleColor);
     vac->AddRectAsTriangles(x2, y1, x2 + hw, y1 + hw, handleColor);
     vac->AddRectAsTriangles(x2, y2, x2 + hw, y2 + hw, handleColor);
-    while (mHandlePosition.size() < num_points + 5) { // not sure this is the best way to do this but it stops a crash
+    while ((int)mHandlePosition.size() < num_points + 5) { // not sure this is the best way to do this but it stops a crash
         xlPoint pt;
         mHandlePosition.push_back(pt);
     }
@@ -933,7 +937,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         int x2_pos = mPos[i + 1].x * scalex + worldPos_x;
         int y1_pos = mPos[i].y * scaley + worldPos_y;
         int y2_pos = mPos[i + 1].y * scaley + worldPos_y;
-        int z1_pos = mPos[i].z * scalez + worldPos_z;
+        [[maybe_unused]] int z1_pos = mPos[i].z * scalez + worldPos_z;
         int z2_pos = mPos[i + 1].z * scalez + worldPos_z;
 
         if (i == selected_segment) {
@@ -1030,7 +1034,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         if (mPos[i].has_curve && mPos[i].curve != nullptr) {
             float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - hw / 2;
             float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - hw / 2;
-            float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
+            [[maybe_unused]] float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
             vac->AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
             mPos[i].cp0.x = mPos[i].curve->get_cp0x();
             mPos[i].cp0.y = mPos[i].curve->get_cp0y();
@@ -1054,7 +1058,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     return true;
 }
 
-int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int PolyPointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
     std::unique_lock<std::mutex> locker(_mutex);
@@ -1073,9 +1077,9 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             if (scalex == 0) scalex = 0.001f;
             if (scaley == 0) scaley = 0.001f;
             if (scalez == 0) scalez = 0.001f;
-            if (isnan(scalex)) scalex = 1.0f;
-            if (isnan(scaley)) scaley = 1.0f;
-            if (isnan(scalez)) scalez = 1.0f;
+            if (std::isnan(scalex)) scalex = 1.0f;
+            if (std::isnan(scaley)) scaley = 1.0f;
+            if (std::isnan(scalez)) scalez = 1.0f;
 
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
@@ -1084,7 +1088,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             // check for control point handles
             if (handle & HANDLE_CP0) {
                 int seg = handle & HANDLE_MASK;
-                if (seg < mPos.size()) {
+                if (seg < (int)mPos.size()) {
                     switch (active_axis) {
                     case MSLAXIS::X_AXIS:
                         mPos[seg].cp0.x = newx;
@@ -1103,7 +1107,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             }
             else if (handle & HANDLE_CP1) {
                 int seg = handle & HANDLE_MASK;
-                if (seg < mPos.size()) {
+                if (seg < (int)mPos.size()) {
                     switch (active_axis) {
                     case MSLAXIS::X_AXIS:
                         mPos[seg].cp1.x = newx;
@@ -1123,7 +1127,7 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
             }
             else {
                 int point = handle - 1;
-                if (point < mPos.size()) {
+                if (point < (int)mPos.size()) {
                     switch (active_axis) {
                     case MSLAXIS::X_AXIS:
                         mPos[point].x = newx;
@@ -1151,13 +1155,13 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
 
             if (scalex == 0) scalex = 0.001f;
             if (scaley == 0) scaley = 0.001f;
-            if (isnan(scalex)) scalex = 1.0f;
-            if (isnan(scaley)) scaley = 1.0f;
+            if (std::isnan(scalex)) scalex = 1.0f;
+            if (std::isnan(scaley)) scaley = 1.0f;
 
             float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
             float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
                 mPos[point].x = newx;
                 mPos[point].y = newy;
             }
@@ -1331,7 +1335,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
     } else {
         if (handle & HANDLE_CP0) {
             int seg = handle & HANDLE_MASK;
-            if (seg < mPos.size()) {
+            if (seg < (int)mPos.size()) {
                 mPos[seg].cp0.x += mov.x * scale;
                 mPos[seg].cp0.y -= mov.z * scale;
                 mPos[seg].cp0.z += mov.y * scale;
@@ -1340,7 +1344,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
             }
         } else if (handle & HANDLE_CP1) {
             int seg = handle & HANDLE_MASK;
-            if (seg < mPos.size()) {
+            if (seg < (int)mPos.size()) {
                 mPos[seg].cp1.x += mov.x * scale;
                 mPos[seg].cp1.y -= mov.z * scale;
                 mPos[seg].cp1.z += mov.y * scale;
@@ -1349,7 +1353,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
             }
         } else {
             int point = handle - 1;
-            if (point < mPos.size()) {
+            if (point < (int)mPos.size()) {
                 mPos[point].x += mov.x * scale;
                 mPos[point].y -= mov.z * scale;
                 mPos[point].z += mov.y * scale;
@@ -1361,7 +1365,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
     return MODEL_UNCHANGED;
 }
 
-int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int PolyPointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -1381,8 +1385,8 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
 
     if (scalex == 0) scalex = 0.001f;
     if (scaley == 0) scaley = 0.001f;
-    if (isnan(scalex)) scalex = 1.0f;
-    if (isnan(scaley)) scaley = 1.0f;
+    if (std::isnan(scalex)) scalex = 1.0f;
+    if (std::isnan(scaley)) scaley = 1.0f;
 
     float newx = (ray_origin.x - worldPos_x) / scalex;
     float newy = (ray_origin.y - worldPos_y) / scaley;
@@ -1486,7 +1490,7 @@ void PolyPointScreenLocation::SelectSegment(int segment) {
     }
 }
 
-void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
+void PolyPointScreenLocation::AddHandle(IModelPreview* preview, int mouseX, int mouseY) {
     std::unique_lock<std::mutex> locker(_mutex);
 
     glm::vec3 ray_origin;
@@ -1600,7 +1604,7 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int sca
 void PolyPointScreenLocation::DeleteHandle(int handle) {
     
     // this can happen if you click one one of the box handles
-    if (handle >= mPos.size()) return;
+    if (handle >= (int)mPos.size()) return;
 
     // delete any curves associated with this handle
     if( mPos[handle].has_curve ) {
@@ -1628,7 +1632,7 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
     selected_segment = -1;
 }
 
-wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     float zoom = 1.0;
     int scale = 1;
     if (preview != nullptr) {
@@ -1678,31 +1682,7 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
     handle_aabb_max[2].z = hw;
 
     handle = 2;
-    return wxCURSOR_SIZING;
-}
-
-void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
-    float len = 0;
-    auto last = mPos[0].AsVector();
-    for (int i = 1; i < mPos.size(); i++) {
-        len += RulerObject::Measure(last, mPos[i].AsVector());
-        last = mPos[i].AsVector();
-    }
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", len));
-    prop->ChangeFlag(wxPGFlags::ReadOnly, true);
-    prop->SetAttribute("Precision", 2);
-    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    
-    last = mPos[0].AsVector();
-    for (int i = 1; i < mPos.size(); i++) {
-        len = RulerObject::Measure(last, mPos[i].AsVector());
-        last = mPos[i].AsVector();
-
-        auto seg = wxString::Format("Segment %d (%s)", i, RulerObject::GetUnitDescription());
-        prop = propertyEditor->Append(new wxFloatProperty(seg, "REAL" + seg, len));
-        prop->SetAttribute("Precision", 2);
-    }
+    return CursorType::Sizing;
 }
 
 std::string PolyPointScreenLocation::GetDimension(float factor) const
@@ -1710,147 +1690,11 @@ std::string PolyPointScreenLocation::GetDimension(float factor) const
     if (RulerObject::GetRuler() == nullptr) return "";
     float len = 0;
     auto last = mPos[0].AsVector();
-    for (int i = 1; i < mPos.size(); i++) {
+    for (int i = 1; i < (int)mPos.size(); i++) {
         len += RulerObject::Measure(last, mPos[i].AsVector());
         last = mPos[i].AsVector();
     }
-    return wxString::Format("Length %s", RulerObject::PrescaledMeasureDescription(len)).ToStdString();
-}
-
-void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-
-    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
-    prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", mPos[0].x + worldPos_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Y1", "ModelY1", mPos[0].y + worldPos_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Z1", "ModelZ1", mPos[0].z + worldPos_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-
-    for( int i = 1; i < num_points; ++i ) {
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("X%d",i+1), wxString::Format("ModelX%d",i+1), mPos[i].x + worldPos_x));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.5);
-        prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(BlueOrLightBlue());
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d", i+1), wxString::Format("ModelY%d", i+1), mPos[i].y + worldPos_y));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.5);
-        prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(BlueOrLightBlue());
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Z%d", i+1), wxString::Format("ModelZ%d", i+1), mPos[i].z + worldPos_z));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.5);
-        prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(BlueOrLightBlue());
-    }
-}
-
-int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    std::string name = event.GetPropertyName().ToStdString();
-    if (StartsWith(name, "REALSegment ")) {
-        if (_locked)
-        {
-            event.Veto();
-            return 0;
-        }
-        else {
-            auto o = name.find(" ", 12);
-            wxASSERT(o != std::string::npos);
-
-            selected_handle = wxAtoi(name.substr(12, o - 12)) - 1;
-
-            wxASSERT(selected_handle + 1 < mPos.size());
-
-            float oldLen = 0.0f;
-            oldLen = RulerObject::UnMeasure(RulerObject::Measure(mPos[selected_handle].AsVector(), mPos[selected_handle + 1].AsVector()));
-            float len = RulerObject::UnMeasure(event.GetValue().GetDouble());
-
-            float dx = (mPos[selected_handle + 1].x - mPos[selected_handle].x) * len / oldLen - (mPos[selected_handle + 1].x - mPos[selected_handle].x);
-            float dy = (mPos[selected_handle + 1].y - mPos[selected_handle].y) * len / oldLen - (mPos[selected_handle + 1].y - mPos[selected_handle].y);
-            float dz = (mPos[selected_handle + 1].z - mPos[selected_handle].z) * len / oldLen - (mPos[selected_handle + 1].z - mPos[selected_handle].z);
-
-            // if this resulted in a divide by zero then set it to one ... setting it to zero leaves you stuck unable to change it further ... this will be weird but fixable
-            if (isnan(dx))
-                dx = 1.0f;
-            if (isnan(dy))
-                dy = 1.0f;
-            if (isnan(dz))
-                dz = 1.0f;
-
-            for (auto i = selected_handle + 1; i < mPos.size(); i++) {
-                    mPos[i].x += dx;
-                    mPos[i].y += dy;
-                    mPos[i].z += dz;
-                }
-
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            return 0;
-        }
-    }
-    else if( name.length() > 6 ) {
-        selected_handle = wxAtoi(name.substr(6, name.length()-6)) - 1;
-        selected_segment = -1;
-        if (!_locked && name.find("ModelX") != std::string::npos) {
-            mPos[selected_handle].x = event.GetValue().GetDouble() - worldPos_x;
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            return 0;
-        }
-        else if (_locked && name.find("ModelX") != std::string::npos) {
-            event.Veto();
-            return 0;
-        }
-        else if (!_locked && name.find("ModelY") != std::string::npos) {
-            mPos[selected_handle].y = event.GetValue().GetDouble() - worldPos_y;
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            return 0;
-        }
-        else if (_locked && name.find("ModelY") != std::string::npos) {
-            event.Veto();
-            return 0;
-        }
-        else if (!_locked && name.find("ModelZ") != std::string::npos) {
-            mPos[selected_handle].z = event.GetValue().GetDouble() - worldPos_z;
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            return 0;
-        }
-        else if (_locked && name.find("ModelZ") != std::string::npos) {
-            event.Veto();
-            return 0;
-        }
-    }
-    else if ("Locked" == name)
-    {
-        _locked = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
-        return 0;
-    }
-
-    return 0;
+    return std::format("Length {}", RulerObject::PrescaledMeasureDescription(len));
 }
 
 void PolyPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
@@ -1960,7 +1804,7 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
     }
 }
 
-glm::vec2 PolyPointScreenLocation::GetScreenOffset(ModelPreview* preview) const
+glm::vec2 PolyPointScreenLocation::GetScreenOffset(IModelPreview* preview) const
 {
     float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
     float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;
@@ -2182,14 +2026,14 @@ void PolyPointScreenLocation::SetDataFromString(const std::string& point_data)
 {
     mPos.clear();
     mPos.resize(num_points);
-    wxArrayString point_array = wxSplit(point_data, ',');
-    while (point_array.size() < num_points * 3) {
+    auto point_array = Split(point_data, ',');
+    while (point_array.size() < (size_t)(num_points * 3)) {
         point_array.push_back("0.0");
     }
     for (int i = 0; i < num_points; ++i) {
-        mPos[i].x = wxAtof(point_array[i * 3]);
-        mPos[i].y = wxAtof(point_array[i * 3 + 1]);
-        mPos[i].z = wxAtof(point_array[i * 3 + 2]);
+        mPos[i].x = std::strtof(point_array[i * 3].c_str(), nullptr);
+        mPos[i].y = std::strtof(point_array[i * 3 + 1].c_str(), nullptr);
+        mPos[i].z = std::strtof(point_array[i * 3 + 2].c_str(), nullptr);
         mPos[i].has_curve = false;
         mPos[i].curve = nullptr;
     }
@@ -2199,9 +2043,9 @@ std::string PolyPointScreenLocation::GetPointDataAsString() const
 {
     std::string point_data = "";
     for (int i = 0; i < num_points; ++i) {
-        point_data += wxString::Format("%f,", mPos[i].x);
-        point_data += wxString::Format("%f,", mPos[i].y);
-        point_data += wxString::Format("%f", mPos[i].z);
+        point_data += std::format("{:f},", mPos[i].x);
+        point_data += std::format("{:f},", mPos[i].y);
+        point_data += std::format("{:f}", mPos[i].z);
         if (i != num_points - 1) {
             point_data += ",";
         }
@@ -2211,20 +2055,20 @@ std::string PolyPointScreenLocation::GetPointDataAsString() const
 
 void PolyPointScreenLocation::SetCurveDataFromString(const std::string& cpoint_data)
 {
-    wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-    int num_curves = cpoint_array.size() / 7;
+    auto cpoint_array = Split(cpoint_data, ',');
+    int num_curves = (int)cpoint_array.size() / 7;
     glm::vec3 scaling(scalex, scaley, scalez);
     glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
     for (int i = 0; i < num_curves; ++i) {
-        int seg_num = wxAtoi(cpoint_array[i * 7]);
+        int seg_num = (int)std::strtol(cpoint_array[i * 7].c_str(), nullptr, 10);
         mPos[seg_num].has_curve = true;
         if (mPos[seg_num].curve == nullptr) {
             mPos[seg_num].curve = new BezierCurveCubic3D();
         }
         mPos[seg_num].curve->set_p0(mPos[seg_num].x, mPos[seg_num].y, mPos[seg_num].z);
         mPos[seg_num].curve->set_p1(mPos[seg_num + 1].x, mPos[seg_num + 1].y, mPos[seg_num + 1].z);
-        mPos[seg_num].curve->set_cp0(wxAtof(cpoint_array[i * 7 + 1]), wxAtof(cpoint_array[i * 7 + 2]), wxAtof(cpoint_array[i * 7 + 3]));
-        mPos[seg_num].curve->set_cp1(wxAtof(cpoint_array[i * 7 + 4]), wxAtof(cpoint_array[i * 7 + 5]), wxAtof(cpoint_array[i * 7 + 6]));
+        mPos[seg_num].curve->set_cp0(std::strtof(cpoint_array[i * 7 + 1].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 2].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 3].c_str(), nullptr));
+        mPos[seg_num].curve->set_cp1(std::strtof(cpoint_array[i * 7 + 4].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 5].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 6].c_str(), nullptr));
         mPos[seg_num].curve->SetPositioning(scaling, world_pos);
         mPos[seg_num].curve->UpdatePoints();
         mPos[seg_num].curve->UpdateMatrices();
@@ -2236,8 +2080,8 @@ std::string PolyPointScreenLocation::GetCurveDataAsString() const
     std::string cpoint_data = "";
     for (int i = 0; i < num_points; ++i) {
         if (mPos[i].has_curve) {
-            cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
-                                            mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y(), mPos[i].curve->get_cp1z());
+            cpoint_data += std::format("{},{:f},{:f},{:f},{:f},{:f},{:f},", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
+                                       mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y(), mPos[i].curve->get_cp1z());
         }
     }
     return cpoint_data;

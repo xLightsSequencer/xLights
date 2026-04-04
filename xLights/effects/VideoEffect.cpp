@@ -14,22 +14,31 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
-#include "VideoEffect.h"
-#include "VideoPanel.h"
-#include "../VideoReader.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsXmlFile.h"
-#include "../xLightsMain.h" 
-#include "../models/Model.h"
-#include "../UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include <filesystem>
+#include <format>
 
-#include "../Parallel.h"
+#include "VideoEffect.h"
+#include "UtilFunctions.h"
+#include "AudioManager.h"
+#include "../ui/effectpanels/VideoPanel.h"
+#include "../render/VideoReader.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "../render/SequenceFile.h"
+#include "../render/SequenceMedia.h"
+#include "../render/RenderContext.h"
+#include "../render/EffectLayer.h"
+#include "../render/Element.h"
+#include "../render/SequenceElements.h"
+#include "../models/Model.h"
+#include "UtilFunctions.h"
+#include "utils/ExternalHooks.h"
+
+#include "Parallel.h"
 #include "ispc/VideoFunctions.ispc.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
@@ -43,7 +52,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
+    std::string filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
 
     if (settings.GetBool("E_CHECKBOX_SynchroniseWithAudio", 0) == 1) {
         if (media != nullptr) {
@@ -51,66 +60,64 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
-    if (filename == "" || !FileExists(filename))
-    {
-        res.push_back(wxString::Format("    ERR: Video effect video file '%s' does not exist. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else
-    {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename.ToStdString()))
-        {
-            res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-        }
+    if (filename.empty()) {
+        res.push_back(std::format("    ERR: Video effect video file '{}' does not exist. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else {
+        auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        auto videoEntry = mm.GetVideo(filename);
+        videoEntry->MarkIsUsed();
 
-        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true, true);
-        if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
-        {
-            res.push_back(wxString::Format("    ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-        }
-        else if (videoreader != nullptr)
-        {
-            double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
-            wxString treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
-
-            if (treatment == "Normal")
-            {
-                int videoduration = videoreader->GetLengthMS() - starttime;
-                int effectduration = eff->GetEndTimeMS() - eff->GetStartTimeMS();
-                if (videoduration < effectduration)
-                {
-                    res.push_back(wxString::Format("    WARN: Video effect video file '%s' is shorter %s than effect duration %s. Model '%s', Start %s", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        if (videoEntry->GetResolvedPath().empty()) {
+            res.push_back(std::format("    ERR: Video effect video file '{}' does not exist. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        } else {
+            if (!videoEntry->IsEmbedded()) {
+                if (!IsFileInShowDir(std::string(), filename)) {
+                    res.push_back(std::format("    WARN: Video effect video file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
 
-            if (!renderCache)
-            {
-                int vh = videoreader->GetHeight();
-                int vw = videoreader->GetHeight();
+            VideoReader* videoreader = new VideoReader(videoEntry->GetResolvedPath(), 100, 100, false, true, true);
+            if (videoreader == nullptr || videoreader->GetLengthMS() == 0) {
+                res.push_back(std::format("    ERR: Video effect video file '{}' could not be understood. Format may not be supported. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            } else if (videoreader != nullptr) {
+                double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
+                std::string treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
+
+                if (treatment == "Normal") {
+                    int videoduration = videoreader->GetLengthMS() - starttime;
+                    int effectduration = eff->GetEndTimeMS() - eff->GetStartTimeMS();
+                    if (videoduration < effectduration) {
+                        res.push_back(std::format("    WARN: Video effect video file '{}' is shorter {} than effect duration {}. Model '{}', Start {}", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
+                }
+
+                if (!renderCache) {
+                    int vh = videoreader->GetHeight();
+                    int vw = videoreader->GetHeight();
 
 #define VIDEOSIZETHRESHOLD 10
-                if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi())
-                {
-                    float scale = std::max((float)vh / model->GetDefaultBufferHt(), (float)vw / model->GetDefaultBufferWi());
-                    res.push_back(wxString::Format("    WARN: Video effect video file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '%s', Start %s", filename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                    if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi()) {
+                        float scale = std::max((float)vh / model->GetDefaultBufferHt(), (float)vw / model->GetDefaultBufferWi());
+                        res.push_back(std::format("    WARN: Video effect video file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '{}', Start {}", filename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
                 }
             }
-        }
 
-        if (videoreader != nullptr)
-        {
-            delete videoreader;
+            if (videoreader != nullptr) {
+                delete videoreader;
+            }
         }
     }
 
-    wxString bufferstyle = settings.Get("B_CHOICE_BufferStyle", "Default");
-    wxString transform = settings.Get("B_CHOICE_BufferTransform", "None");
-    wxString camera = settings.Get("B_CHOICE_PerPreviewCamera", "2D");
+    std::string bufferstyle = settings.Get("B_CHOICE_BufferStyle", "Default");
+    std::string transform = settings.Get("B_CHOICE_BufferTransform", "None");
+    std::string camera = settings.Get("B_CHOICE_PerPreviewCamera", "2D");
     int w, h;
-    model->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h, settings.GetInt("B_SPINCTRL_BufferStagger", 0));
+    model->GetBufferSize(bufferstyle, camera, transform, w, h, settings.GetInt("B_SPINCTRL_BufferStagger", 0));
 
     if (w < 2 || h < 2)
     {
-        res.push_back(wxString::Format("    ERR: Video effect video file '%s' cannot render onto model as it is not high or wide enough (%d,%d). Model '%s', Start %s", filename, w, h, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Video effect video file '{}' cannot render onto model as it is not high or wide enough ({},{}). Model '{}', Start {}", filename, w, h, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -119,10 +126,6 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 bool VideoEffect::IsVideoFile(std::string filename)
 {
     return VideoReader::IsVideoFile(filename);
-}
-
-xlEffectPanel *VideoEffect::CreatePanel(wxWindow *parent) {
-    return new VideoPanel(parent);
 }
 
 void VideoEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
@@ -143,44 +146,35 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
         settings.erase("E_CHECKBOX_Video_Loop");
     }
 
-    std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
-
-    if (file != "") {
-        if (!FileExists(file, false)) {
-            settings["E_FILEPICKERCTRL_Video_Filename"] = FixFile("", file);
-        }
-    }
-
     if (settings.Contains("E_SLIDER_Video_Starttime")) {
         settings.erase("E_SLIDER_Video_Starttime");
-        //long st = wxAtol(settings["E_SLIDER_Video_Starttime"]);
-        //settings["E_SLIDER_Video_Starttime"] = wxString::Format(wxT("%i"), st / 10);
-    }
-}
-
-void VideoEffect::SetDefaultParameters()
-{
-    VideoPanel *vp = (VideoPanel*)panel;
-    if (vp == nullptr) {
-        return;
     }
 
-    vp->FilePicker_Video_Filename->SetFileName(wxFileName());
-    SetSliderValue(vp->Slider_Video_Starttime, 0);
-    SetSliderValue(vp->Slider_Video_CropBottom, 0);
-    SetSliderValue(vp->Slider_Video_CropLeft, 0);
-    SetSliderValue(vp->Slider_Video_CropRight, 100);
-    SetSliderValue(vp->Slider_Video_CropTop, 100);
-    vp->BitmapButton_Video_CropLeftVC->SetActive(false);
-    vp->BitmapButton_Video_CropRightVC->SetActive(false);
-    vp->BitmapButton_Video_CropTopVC->SetActive(false);
-    vp->BitmapButton_Video_CropBottomVC->SetActive(false);
-    vp->BitmapButton_Video_Speed->SetActive(false);
-    SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
-    SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
-
-    SetCheckBoxValue(vp->CheckBox_TransparentBlack, false);
-    SetSliderValue(vp->Slider1, 0);
+    // Resolve broken paths first, then convert to relative for portability
+    std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
+    if (!file.empty() && !FileExists(file)) {
+        std::string fixed = FixFile("", file);
+        if (!fixed.empty() && fixed != file) {
+            settings["E_FILEPICKERCTRL_Video_Filename"] = fixed;
+            file = fixed;
+        }
+    }
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_Video_Filename"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_Video_Filename"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetVideo(settings["E_FILEPICKERCTRL_Video_Filename"]);
+    }
 }
 
 std::list<std::string> VideoEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
@@ -192,15 +186,15 @@ std::list<std::string> VideoEffect::GetFileReferences(Model* model, const Settin
     return res;
 }
 
-bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+bool VideoEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
     if (FileExists(file))
     {
-        if (!frame->IsInShowFolder(file))
+        if (!ctx->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Videos");
+            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Videos");
             rc = true;
         }
     }
@@ -261,7 +255,7 @@ public:
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel, double speed, uint32_t sampleSpacing)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (cropLeft > cropRight)
     {
@@ -326,76 +320,86 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         _loops = 0;
         _nextManualMS = 0;
         _frameMS = buffer.frameTimeInMs;
-        if (_videoreader != nullptr)
-        {
+        if (_videoreader != nullptr) {
             delete _videoreader;
             _videoreader = nullptr;
         }
 
-        if (buffer.BufferHt == 1)
-        {
-            logger_base.warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
-        }
-        else if (FileExists(filename))
-        {
-            // have to open the file
-            int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
-            int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+        if (buffer.BufferHt == 1) {
+            spdlog::warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
+        } else if (auto* sm = buffer.GetSequenceMedia(); sm != nullptr) {
+            auto vidEntry = sm->GetVideo(filename);
+            if (!vidEntry) {
+                spdlog::warn("VideoEffect: No video file specified.");
+            } else {
+                vidEntry->MarkIsUsed();
+                std::string resolved = vidEntry->GetResolvedPath();
+                if (resolved.empty() || !FileExists(resolved)) {
+                    spdlog::warn("VideoEffect: Cannot find video file '{}'.", filename);
+                } else {
+                    filename = resolved;
+                    // have to open the file
+                    int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
+                    int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
 
-            bool useNativeResolution = (sampleSpacing > 0);
+                    bool useNativeResolution = (sampleSpacing > 0);
 
-            _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
+                    _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
 
-            if (_videoreader == nullptr)
-            {
-                logger_base.warn("VideoEffect: Failed to load video file %s.", (const char *)filename.c_str());
-            }
-            else
-            {
-                // extract the video length
-                int videolen = _videoreader->GetLengthMS();
+                    if (_videoreader == nullptr)
+                    {
+                        spdlog::warn("VideoEffect: Failed to load video file {}.", (const char *)filename.c_str());
+                    }
+                    else
+                    {
+                        // extract the video length
+                        int videolen = _videoreader->GetLengthMS();
 
-                if (videolen == 0)
-                {
-                    logger_base.warn("VideoEffect: Video %s was read as 0 length.", (const char *)filename.c_str());
+                        if (videolen == 0)
+                        {
+                            spdlog::warn("VideoEffect: Video {} was read as 0 length.", (const char *)filename.c_str());
+                        }
+
+                        // read the first frame ... if i dont it thinks the first frame i read is the first frame
+                        _videoreader->GetNextFrame(0);
+
+                        // TODO: Future cleanup needed - this code accesses the panel from the render
+                        // thread which is not safe. Need to find an alternative way to communicate
+                        // video details back to the panel (e.g., via an event to the main thread).
+                        // VideoPanel *fp = static_cast<VideoPanel*>(panel);
+                        // if (fp != nullptr)
+                        // {
+                        //     wxCommandEvent event(EVT_VIDEODETAILS);
+                        //     event.SetInt(videolen);
+                        //     event.SetString(filename);
+                        //     wxPostEvent(fp, event);
+                        // }
+
+                        if (starttime != 0)
+                        {
+                            spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
+                            _videoreader->Seek(starttime * 1000);
+                        }
+
+                        if (durationTreatment == "Slow/Accelerate")
+                        {
+                            int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+                            int videoFrames = (videolen - (starttime * 1000)) / buffer.frameTimeInMs;
+                            float speedFactor = (float)videoFrames / (float)effectFrames;
+                            _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
+                        }
+                        spdlog::debug("Video effect length: {}, video length: {}, startoffset: {}, duration treatment: {}.",
+                            (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
+                            durationTreatment);
+                    }
                 }
-
-                // read the first frame ... if i dont it thinks the first frame i read is the first frame
-                _videoreader->GetNextFrame(0);
-
-                VideoPanel *fp = static_cast<VideoPanel*>(panel);
-                if (fp != nullptr)
-                {
-                    wxCommandEvent event(EVT_VIDEODETAILS);
-                    event.SetInt(videolen);
-                    event.SetString(filename);
-                    wxPostEvent(fp, event);
-                    //fp->addVideoTime(filename, videolen);
-                }
-
-                if (starttime != 0)
-                {
-                    logger_base.debug("Video effect initialising ... seeking to start location for the video %f.", (float)starttime);
-                    _videoreader->Seek(starttime * 1000);
-                }
-
-                if (durationTreatment == "Slow/Accelerate")
-                {
-                    int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-                    int videoFrames = (videolen - (starttime * 1000)) / buffer.frameTimeInMs;
-                    float speedFactor = (float)videoFrames / (float)effectFrames;
-                    _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
-                }
-                logger_base.debug("Video effect length: %d, video length: %d, startoffset: %f, duration treatment: %s.",
-                    (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
-                    (const char *)durationTreatment.c_str());
             }
         }
         else
         {
             if (buffer.curPeriod == buffer.curEffStartPer)
             {
-                logger_base.warn("VideoEffect: Video file '%s' not found.", (const char *)filename.c_str());
+                spdlog::warn("VideoEffect: Video file '{}' not found.", filename);
             }
         }
     }
@@ -460,7 +464,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             {
                 frame = 0;
             }
-            logger_base.debug("Video effect loop #%d at frame %d to video frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer, frame);
+            spdlog::debug("Video effect loop #{} at frame {} to video frame {}.", _loops, buffer.curPeriod - buffer.curEffStartPer, frame);
 
             _videoreader->Seek(0);
             image = _videoreader->GetNextFrame(frame);
@@ -477,9 +481,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
                     int startx = (buffer.BufferWi - _videoreader->GetWidth() * (cropRight - cropLeft) / 100) / 2;
                     int starty = (buffer.BufferHt - _videoreader->GetHeight() * (cropTop - cropBottom) / 100) / 2;
-
-                    // wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
-                    // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
                     ispc::VideoData rdata;
                     rdata.width = _videoreader->GetWidth() - xoffset - xtail;
@@ -526,9 +527,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     int yoffset = cropBottom * _videoreader->GetHeight() / 100;
                     int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
                     int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
-
-                    // wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
-                    // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
                     ispc::VideoData rdata;
                     rdata.width = buffer.BufferWi;

@@ -1,7 +1,9 @@
 #include "GenericSerialOutput.h"
+#include <cstring>
 
-#include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include "serial.h"
+
+#include <log.h>
 
 #define MAX_PREFIX_POSTFIX 256
 
@@ -12,7 +14,7 @@ GenericSerialOutput::GenericSerialOutput(const GenericSerialOutput& from) : Seri
     _data = std::vector<uint8_t>(GENERICSERIAL_MAX_CHANNELS + MAX_PREFIX_POSTFIX);
 }
 
-GenericSerialOutput::GenericSerialOutput(wxXmlNode* node) : SerialOutput(node)
+GenericSerialOutput::GenericSerialOutput(pugi::xml_node node) : SerialOutput(node)
 {
     _datalen = 0;
     _data = std::vector<uint8_t>(GENERICSERIAL_MAX_CHANNELS + MAX_PREFIX_POSTFIX);

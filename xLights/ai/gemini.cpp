@@ -2,42 +2,55 @@
 #include "AIImageDialog.h"
 #include <nlohmann/json.hpp>
 #include "ServiceManager.h"
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/mstream.h>
 #include <wx/base64.h>
+#include <wx/msgdlg.h>
+#include <wx/choice.h>
 
 #include <vector>
 #include <string>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 //#define TEST_WITH_LOCAL_IMAGE
 
 bool gemini::IsAvailable() const {
-    return !api_key.empty() && _enabled;
+    return !api_key.empty() && !_enabledTypes.empty();
 }
 
 void gemini::SaveSettings() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _sm->setServiceSetting("GeminiModel", model);
-    _sm->setServiceSetting("GeminiEnable", _enabled);
     _sm->setSecretServiceToken("GeminiApiKey", api_key);
-    logger_base.info("Gemini settings saved successfully");
+    for (auto t : GetTypes()) {
+        _sm->setServiceSetting(std::string("GeminiEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
+    }
+    spdlog::info("Gemini settings saved successfully");
 }
 
 void gemini::LoadSettings() {
     model = _sm->getServiceSetting("GeminiModel", model);
-    _enabled = _sm->getServiceSetting("GeminiEnable", _enabled);
     api_key = _sm->getSecretServiceToken("GeminiApiKey");
+    bool oldEnabled = _sm->getServiceSetting("GeminiEnable", false);
+    for (auto t : GetTypes()) {
+        bool enabled = _sm->getServiceSetting(std::string("GeminiEnable_") + aiType::TypeSettingsSuffix(t), oldEnabled);
+        SetEnabledForType(t, enabled);
+    }
 }
 
 void gemini::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("Gemini"));
-    auto p = page->Append(new wxBoolProperty("Enabled", "Gemini.Enabled", _enabled));
-    p->SetEditor("CheckBox");
+    for (auto t : GetTypes()) {
+        auto p = page->Append(new wxBoolProperty(wxString("Enable ") + aiType::TypeName(t),
+                                                  wxString("Gemini.Enable_") + aiType::TypeSettingsSuffix(t),
+                                                  IsEnabledForType(t)));
+        p->SetEditor("CheckBox");
+    }
     auto* apiKeyProp = page->Append(new wxStringProperty("API Key", "Gemini.Key", api_key));
     apiKeyProp->SetAttribute(wxPG_STRING_PASSWORD, true);
     apiKeyProp->SetHelpString("Your Google Gemini API key (masked for security)");
@@ -45,9 +58,13 @@ void gemini::PopulateLLMSettings(wxPropertyGrid* page) {
 }
 
 void gemini::SetSetting(const std::string& key, const wxVariant& value) {
-    if (key == "Gemini.Enabled") {
-        _enabled = value.GetBool();
-    } else if (key == "Gemini.Key") {
+    for (auto t : GetTypes()) {
+        if (key == std::string("Gemini.Enable_") + aiType::TypeSettingsSuffix(t)) {
+            SetEnabledForType(t, value.GetBool());
+            return;
+        }
+    }
+    if (key == "Gemini.Key") {
         api_key = value.GetString();
     } else if (key == "Gemini.Model") {
         model = value.GetString();
@@ -55,7 +72,7 @@ void gemini::SetSetting(const std::string& key, const wxVariant& value) {
 }
 
 std::pair<std::string, bool> gemini::CallLLM(const std::string& prompt) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string apiKey = api_key;
 
@@ -64,7 +81,7 @@ std::pair<std::string, bool> gemini::CallLLM(const std::string& prompt) const {
     }
 
     if (api_key.empty() && apiKey.empty()) {
-        wxMessageBox("You must set a Gemini API Key in the Preferences on the Services Panel", "Error", wxICON_ERROR);
+        //wxMessageBox("You must set a Gemini API Key in the Preferences on the Services Panel", "Error", wxICON_ERROR);
         return { "Gemini: API Key is empty", false };
     }
 
@@ -78,12 +95,12 @@ std::pair<std::string, bool> gemini::CallLLM(const std::string& prompt) const {
         { "Authorization", "Bearer " + apiKey }
     };
 
-    logger_base.debug("Gemini: %s", request.c_str());
+    spdlog::debug("Gemini: {}", request.c_str());
 
     int responseCode = 0;	
-    std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60, customHeaders, &responseCode);
+    std::string response = CurlManager::HTTPSPost(url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
-    logger_base.debug("Gemini Response %d: %s", responseCode, response.c_str());
+    spdlog::debug("Gemini Response {}: {}", responseCode, response.c_str());
 
     if (responseCode != 200) {
         return { response, false };
@@ -93,25 +110,25 @@ std::pair<std::string, bool> gemini::CallLLM(const std::string& prompt) const {
     try {
         root = nlohmann::json::parse(response);
     } catch (const std::exception&) {
-        logger_base.error("Gemini: Invalid JSON response: %s", response.c_str());
+        spdlog::error("Gemini: Invalid JSON response: {}", response.c_str());
         return { "Gemini: Invalid JSON response", false };
     }
 
     auto choices = root["choices"];
     if (choices.is_null() || choices.size() == 0) {
-        logger_base.error("Gemini: No choices in response");
+        spdlog::error("Gemini: No choices in response");
         return { "Gemini: No choices in response", false };
     }
 
     auto choice = choices[0];
     auto text = choice["message"]["content"];
     if (text.is_null()) {
-        logger_base.error("Gemini: No text in response");
+        spdlog::error("Gemini: No text in response");
         return { "Gemini: No text in response", false };
     }
 
     response = text.get<std::string>();
-    logger_base.debug("Gemini: %s", response.c_str());
+    spdlog::debug("Gemini: {}", response.c_str());
 
     return { response, true };
 }
@@ -180,25 +197,24 @@ public:
             {"Content-Type", "application/json"}
         };
 
-        static log4cpp::Category& logger = log4cpp::Category::getInstance("log_base");
-        logger.debug("Gemini image request: %s", jsonBody.c_str());
+       spdlog::debug("Gemini image request: {}", jsonBody.c_str());
 
 #ifdef TEST_WITH_LOCAL_IMAGE
         // Load test image from file
         wxImage wxImg("F:\\ShowFolderQA\\Gemini_Generated_Image.png", wxBITMAP_TYPE_PNG);
         if (!wxImg.IsOk()) {
-            logger.error("Failed to load test image");
+            spdlog::error("Failed to load test image");
             cb(wxBitmap(), "Failed to load test image.");
             return;
         }
 
-        logger.debug("Test image loaded with image size: %dx%d", wxImg.GetWidth(), wxImg.GetHeight());
+        spdlog::debug("Test image loaded with image size: {}x{}", wxImg.GetWidth(), wxImg.GetHeight());
         cb(wxImg, jsonBody.c_str());
 #else
         int httpCode = 0;
-        std::string response = Curl::HTTPSPost(endpoint, jsonBody, "", "", "JSON", 120, headers, &httpCode);
+        std::string response = CurlManager::HTTPSPost(endpoint, jsonBody, "", "", "JSON", 120, headers, &httpCode);
 
-        logger.debug("Gemini image response code: %d, body length: %zu", httpCode, response.size());
+        spdlog::debug("Gemini image response code: {}, body length: {}", httpCode, response.size());
 
         if (httpCode != 200) {
             cb(wxBitmap(), "Gemini API error " + std::to_string(httpCode) + ": " + response.substr(0, 300));
@@ -209,7 +225,7 @@ public:
         try {
             root = nlohmann::json::parse(response);
         } catch (const std::exception& e) {
-            logger.error("Gemini image JSON parse failed: %s", e.what());
+            spdlog::error("Gemini image JSON parse failed: {}", e.what());
             cb(wxBitmap(), "Invalid response from Gemini");
             return;
         }
@@ -228,7 +244,7 @@ public:
             }
         } catch (...) {
             std::string errMsg = root.contains("error") ? root["error"]["message"].get<std::string>() : "No image data found";
-            logger.error("Gemini image: %s", errMsg.c_str());
+            spdlog::error("Gemini image: {}", errMsg.c_str());
             cb(wxBitmap(), "Gemini: " + errMsg);
             return;
         }
@@ -255,7 +271,7 @@ public:
             return;
         }
 
-        logger.debug("Generated image size: %dx%d", wxImg.GetWidth(), wxImg.GetHeight());
+        spdlog::debug("Generated image size: {}x{}", wxImg.GetWidth(), wxImg.GetHeight());
         wxBitmap bmp(wxImg);
         cb(bmp, "");
 #endif

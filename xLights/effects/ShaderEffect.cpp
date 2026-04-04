@@ -14,19 +14,23 @@
 #include "../../include/shader_24.xpm"
 #include "../../include/shader_16.xpm"
 #include <wx/wx.h>
-#include <wx/config.h>
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <cstdlib>
+#include <thread>
+#include <ctime>
+#include <filesystem>
+#include <fstream>
+#include <format>
 #include <semaphore>
-#include <algorithm> 
+#include <sstream>
 
-#ifndef __WXOSX__
+#ifndef __APPLE__
     #include <GL/gl.h>
-    #ifdef _MSC_VER
-        #include "graphics\opengl\GL\glext.h"
-    #else
-        #include <GL/glext.h>
-    #endif
+    #include <GL/glext.h>
 
-    #ifdef __WXMSW__
+    #ifdef _WIN32
         extern PFNGLACTIVETEXTUREPROC glActiveTexture;
     #endif
     extern PFNGLGENBUFFERSPROC glGenBuffers;
@@ -70,23 +74,26 @@
 #endif
 
 #include "ShaderEffect.h"
-#include "ShaderPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsMain.h"
+#include "AudioManager.h"
+#include "../ui/effectpanels/ShaderPanel.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "../render/SequenceElements.h"
+#include "../render/SequenceMedia.h"
+#include "../models/Model.h"
+#include "UtilClasses.h"
+#include "../render/RenderContext.h"
 #include "../xLightsApp.h"
-#include "../TimingPanel.h"
+#include "../xLightsMain.h"
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
-#include "graphics/opengl/DrawGLUtils.h"
-//#include <nlohmann/json.hpp>
-#include "../../xSchedule/wxJSON/jsonreader.h"
+#include "utils/ExternalHooks.h"
+#include "ui/graphics/opengl/DrawGLUtils.h"
+#include <nlohmann/json.hpp>
 
-#include <wx/regex.h>
+#include <regex>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include <fstream>
 #include <map>
@@ -193,8 +200,9 @@ bool ShaderEffect::useBackgroundRender = false;
 
 bool ShaderEffect::IsShaderFile(std::string filename)
 {
-    wxFileName fn(filename);
-    auto ext = fn.GetExt().Lower().ToStdString();
+    auto ext = std::filesystem::path(filename).extension().string();
+    if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
     if (ext == "fs") {
         return true;
@@ -203,21 +211,26 @@ bool ShaderEffect::IsShaderFile(std::string filename)
     return false;
 }
 
-xlEffectPanel *ShaderEffect::CreatePanel(wxWindow *parent)
-{
-    return new ShaderPanel(parent);
-}
-
 std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
+    std::string ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
 
-    if (ifsFilename == "" || !FileExists(ifsFilename)) {
-        res.push_back(wxString::Format("    ERR: Shader effect cant find file '%s'. Model '%s', Start %s", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, ifsFilename.ToStdString())) {
-        res.push_back(wxString::Format("    WARN: Shader effect file '%s' not under show directory. Model '%s', Start %s", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (ifsFilename.empty()) {
+        res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else {
+        auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        auto entry = mm.GetShader(ifsFilename);
+        entry->MarkIsUsed();
+
+        if (entry->GetShaderSource().empty()) {
+            res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        } else if (!entry->IsEmbedded()) {
+            if (!IsFileInShowDir(std::string(), ifsFilename)) {
+                res.push_back(std::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            }
+        }
     }
 
     return res;
@@ -232,15 +245,15 @@ std::list<std::string> ShaderEffect::GetFileReferences(Model* model, const Setti
     return res;
 }
 
-bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool ShaderEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_0FILEPICKERCTRL_IFS"];
+    std::string file = SettingsMap["E_0FILEPICKERCTRL_IFS"];
     if (FileExists(file))
     {
-        if (!frame->IsInShowFolder(file))
+        if (!ctx->IsInShowFolder(file))
         {
-            SettingsMap["E_0FILEPICKERCTRL_IFS"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Shaders", true);
+            SettingsMap["E_0FILEPICKERCTRL_IFS"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Shaders", true);
             rc = true;
         }
     }
@@ -248,25 +261,14 @@ bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
     return rc;
 }
 
-ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
-    if (!FileExists(filename))
-        return nullptr;
-
-    wxFile f(filename);
-    if (!f.IsOpened()) {
+ShaderConfig* ShaderEffect::ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements) {
+    if (source.empty()) {
         return nullptr;
     }
 
-    wxString code;
-    f.ReadAll(&code);
-    f.Close();
-
-    if (code.empty()) {
-        return nullptr;
-    }
-
+    std::string code = source;
     if (code[0] == '{' && code[1] == '"') {
-        nlohmann::json root = nlohmann::json::parse(code.ToStdString());
+        nlohmann::json root = nlohmann::json::parse(code);
         if (root.contains("rawFragmentSource")) {
             code = root["rawFragmentSource"].get<std::string>();
             if (code.empty()) {
@@ -275,59 +277,21 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
         }
     }
 
-    wxRegEx re("\\/\\*(.*?)\\*\\/", wxRE_ADVANCED);
-    if (!re.Matches(code)){
+    std::smatch match;
+    std::regex re("\\/\\*([\\s\\S]*?)\\*\\/", std::regex_constants::ECMAScript);
+    if (!std::regex_search(code, match, re)) {
         return nullptr;
     }
-    return new ShaderConfig(filename, code, re.GetMatch(code, 1), sequenceElements);
+    return new ShaderConfig(filename, code, match[1].str(), sequenceElements);
 }
 
-void ShaderEffect::SetDefaultParameters()
-{
-    ShaderPanel* fp = (ShaderPanel*)panel;
-    if (fp == nullptr) {
-        return;
+ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceElements* sequenceElements) {
+    auto shader = sequenceElements->GetSequenceMedia().GetShader(filename);
+    if (!shader) {
+        return nullptr;
     }
-
-    fp->BitmapButton_Shader_Speed->SetActive(false);
-    fp->BitmapButton_Shader_Offset_X->SetActive(false);
-    fp->BitmapButton_Shader_Offset_Y->SetActive(false);
-    fp->BitmapButton_Shader_Zoom->SetActive(false);
-
-    SetSliderValue(fp->Slider_Shader_LeadIn, 0);
-    SetSliderValue(fp->Slider_Shader_Speed, 100);
-    fp->FilePickerCtrl1->SetFileName(wxFileName());
-    SetSliderValue(fp->Slider_Shader_Offset_X, 0);
-    SetSliderValue(fp->Slider_Shader_Offset_Y, 0);
-    SetSliderValue(fp->Slider_Shader_Zoom, 0);
-    
-    if (fp->_shaderConfig != nullptr) {
-        for (const auto& it : fp->_shaderConfig->GetParms()) {
-            if (it.ShowParm()) {
-                if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
-                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X";
-                    wxWindow *c = fp->FindWindow(id);
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                    id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y";
-                    c = fp->FindWindow(id);
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                } else {
-                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE);
-                    wxWindow *c = fp->FindWindow(id);
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                }
-            }
-        }
-    }
+    std::string code = shader->GetShaderSource();
+    return ParseShaderFromSource(filename, code, sequenceElements);
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
@@ -343,13 +307,6 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     }
 
     SettingsMap& settings = effect->GetSettings();
-
-    std::string file = settings["E_0FILEPICKERCTRL_IFS"];
-    if (file != "") {
-        if (!FileExists(file)) {
-            settings["E_0FILEPICKERCTRL_IFS"] = FixFile("", file);
-        }
-    }
 
     // The way we used to do names allowed for potential settings name clashes ... this should minimise them
     std::list<std::pair<std::string, std::string>> renames;
@@ -377,14 +334,35 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
         settings[it.second] = settings[it.first];
         settings.erase(it.first);
     }
+
+    // Resolve broken paths first, then convert to relative for portability
+    std::string file = settings["E_0FILEPICKERCTRL_IFS"];
+    if (!file.empty() && !FileExists(file)) {
+        std::string fixed = FixFile("", file);
+        if (!fixed.empty() && fixed != file) {
+            settings["E_0FILEPICKERCTRL_IFS"] = fixed;
+            file = fixed;
+        }
+    }
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_0FILEPICKERCTRL_IFS"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_0FILEPICKERCTRL_IFS"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetShader(settings["E_0FILEPICKERCTRL_IFS"]);
+    }
 }
 
-void ShaderEffect::RemoveDefaults(const std::string &version, Effect *effect)
-{
-    RenderableEffect::RemoveDefaults(version, effect);
-}
-
-#ifdef __WXMSW__
+#ifdef _WIN32
 typedef HGLRC(WINAPI * wglCreateContextAttribsARB_t)
 (HDC hDC, HGLRC hShareContext, const int *attribList);
 template <typename T>
@@ -419,7 +397,6 @@ public:
 class GLContextInfo {
 public:
     GLContextInfo(xlGLCanvas* win) : _canvas(nullptr), _context(nullptr) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         //we need a valid context to get the ARB
         win->SetCurrentGLContext();
         wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
@@ -443,7 +420,7 @@ public:
            newAttrs.PlatformDefaults().OGLVersion(3, 1).CoreProfile().EndList();
            _context = wglCreateContextAttribsARB(_hdc, shared, newAttrs.GetGLAttrs());
         }
-        logger_opengl.debug("ShaderEffect Thread %d created open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
+        spdlog::debug("ShaderEffect Thread {} created open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
 
         //now unset this as current on the main thread
         UnsetCurrent();
@@ -454,29 +431,27 @@ public:
         //delete _canvas;
     }
     void SetCurrent() {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         for (int x = 0; x < 10; x++) {
             if (wglMakeCurrent(_hdc, _context)) {
-                logger_opengl.debug("ShaderEffect Thread %d given open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
+                spdlog::debug("ShaderEffect Thread {} given open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
                 return;
             }
-            wxMilliSleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        wxASSERT(false);
-        logger_opengl.error("ShaderEffect unable to give thread %d open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
+        assert(false);
+        spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
     }
     void UnsetCurrent() {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         for (int x = 0; x < 10; x++) {
             if (wglMakeCurrent(_hdc, nullptr))
             {
-                logger_opengl.debug("ShaderEffect Thread %d has no current GL Context.", wxThread::GetCurrentId());
+                spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
                 return;
             }
-            wxMilliSleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        wxASSERT(false);
-        logger_opengl.error("ShaderEffect Thread %d tried to set no current GL Context but failed.", wxThread::GetCurrentId());
+        assert(false);
+        spdlog::error("ShaderEffect Thread {} tried to set no current GL Context but failed.", wxThread::GetCurrentId());
     }
 
     HGLRC _context;
@@ -498,7 +473,6 @@ public:
     }
 
     GLContextInfo *GetContext(xlGLCanvas *parent) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
         {
@@ -514,15 +488,14 @@ public:
             std::unique_lock<std::mutex> locker(lock);
             GLContextInfo *ret = contexts.front();
             contexts.pop();
-            logger_opengl.debug("Shader opengl context taken from pool 0x%llx", (uint64_t)ret);
+            spdlog::debug("Shader opengl context taken from pool 0x{:#x}", (uint64_t)ret);
             return ret;
         }
     }
     void ReleaseContext(GLContextInfo *pctx) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         std::unique_lock<std::mutex> locker(lock);
         contexts.push(pctx);
-        logger_opengl.debug("Shader opengl context released 0x%llx", (uint64_t)pctx);
+        spdlog::debug("Shader opengl context released 0x{:#x}", (uint64_t)pctx);
     }
 
     GLContextInfo *create(xlGLCanvas *canv) {
@@ -547,10 +520,10 @@ private:
     std::mutex lock;
     std::queue<GLContextInfo*> contexts;
 } GL_CONTEXT_POOL;
-#endif /* __WXMSW__*/
+#endif /* _WIN32 */
 
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
 constexpr int osxMaxSharedContextCount = 24;
 constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 24;
 static WXGLContext sharedContext = 0;
@@ -652,12 +625,12 @@ public:
             s_programId = 0;
         }
         if (_shaderConfig != nullptr) delete _shaderConfig;
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
         std::unique_lock<std::mutex> lock(sharedContextsLock);
         WXGLSetCurrentContext(sharedContext);
         DestroyResources();
         WXGLUnsetCurrentContext();
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
         if (glContextInfo) {
             glContextInfo->SetCurrent();
             DestroyResources();
@@ -754,7 +727,7 @@ public:
     int s_rbHeight = 0;
     long _timeMS = 0;
 
-    void InitialiseShaderConfig(const wxString& filename, SequenceElements* sequenceElements) {
+    void InitialiseShaderConfig(const std::string& filename, SequenceElements* sequenceElements) {
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename, sequenceElements);
         s_shaderInfo = nullptr;
@@ -801,9 +774,9 @@ public:
         }
     }
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     WXGLContext s_glContext = nullptr;
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
     GLContextInfo *glContextInfo = nullptr;
 #else
     xlGLCanvas *preview;
@@ -827,14 +800,14 @@ ShaderEffect::~ShaderEffect()
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     // if we create a specific OpenGL context for this thread and not try to share contexts between threads,
     // the OSX GL engine is thread safe.
     //
     // on windows, we need to create the GL contexts on the main thread, but then can use them
     // on the background thread.  Similar to the Path and text drawing contexts
     return true;
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
     return useBackgroundRender;
 #else
     return false;
@@ -842,7 +815,7 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
 }
 
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     WXGLUnsetCurrentContext();
     
     std::unique_lock<std::mutex> lock(sharedContextsLock);
@@ -850,7 +823,7 @@ void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
     cache->s_glContext = nullptr;
     lock.unlock();
     sharedContextsNotifier.notify_all();
-#elif defined(__WXMSW__)
+#elif defined(_WIN32)
     if (cache->glContextInfo != nullptr) {
         // release it from the thread every time so we never find ourselves in a situation where it has not been released by a thread
         cache->glContextInfo->UnsetCurrent();
@@ -858,7 +831,7 @@ void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
 #endif
 }
 
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
 void adjustWGLContext(WXGLContext ctx) {
     struct GLRendererInfo {
       GLint rendererID;       // RendererID number
@@ -951,13 +924,13 @@ void adjustWGLContext(WXGLContext ctx) {
     const GLubyte* str = glGetString(GL_VERSION);
     const GLubyte* rendn = glGetString(GL_RENDERER);
     const GLubyte* vend = glGetString(GL_VENDOR);
-    wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
-                                        (const char *)str,
-                                        (const char *)rendn,
-                                        (const char *)vend);
+    std::string configs = std::format("ShaderEffect - glVer:  {}  ({})({})",
+                                      (const char *)str,
+                                      (const char *)rendn,
+                                      (const char *)vend);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info(configs);
+    
+    spdlog::info(configs);
     WXGLUnsetCurrentContext();
 }
 WXGLContext createContext() {
@@ -993,7 +966,7 @@ WXGLContext createContext() {
 
 
 bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
-#if defined(__WXOSX__)
+#if defined(__APPLE__)
     if (cache->s_glContext == nullptr) {
         std::unique_lock<std::mutex> lock(sharedContextsLock);
         if (sharedContext == 0) {
@@ -1011,8 +984,8 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     }
     WXGLSetCurrentContext(cache->s_glContext);
     return true;
-#elif defined(__WXMSW__)
-    ShaderPanel *p = (ShaderPanel *)panel;
+#elif defined(_WIN32)
+    ShaderPanel *p = static_cast<ShaderPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
     if (!ShaderEffect::IsBackgroundRender()) {
         p->_preview->SetCurrentGLContext();
     } else if (cache->glContextInfo == nullptr) {
@@ -1023,20 +996,20 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
         const GLubyte* vend = glGetString(GL_VENDOR);
-        wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
-                                            (const char *)str,
-                                            (const char *)rend,
-                                            (const char *)vend);
+        std::string configs = std::format("ShaderEffect - glVer:  {}  ({})({})",
+                                          (const char *)str,
+                                          (const char *)rend,
+                                          (const char *)vend);
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info(configs);
+        
+        spdlog::info(configs);
     } else {
         // we still need to grab the gl context to this thread
         cache->glContextInfo->SetCurrent();
     }
     return true;
 #else
-    ShaderPanel *p = (ShaderPanel *)panel;
+    ShaderPanel *p = static_cast<ShaderPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
     cache->preview = p->_preview;
     p->_preview->SetCurrentGLContext();
     return true;
@@ -1046,12 +1019,16 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 
 void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // Bail out right away if we don't have the necessary OpenGL support
     if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport()) {
         setRenderBufferAll(buffer, xlCYAN);
-        logger_base.error("ShaderEffect::Render() - missing OpenGL support!!");
+        spdlog::error("ShaderEffect::Render() - missing OpenGL support!!");
+        return;
+    }
+
+    // No shader file configured - render red just like video/pictures effect
+    if (SettingsMap.Get("0FILEPICKERCTRL_IFS", "").empty()) {
+        setRenderBufferAll(buffer, xlRED);
         return;
     }
 
@@ -1104,9 +1081,11 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
-            programId = programIdForShaderCode(_shaderConfig, cache);
+            if (_shaderConfig != nullptr) {
+                programId = programIdForShaderCode(_shaderConfig, cache);
+            }
         } else {
-            logger_base.warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
+            spdlog::warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
     } else {
         if (!contextSet) {
@@ -1115,8 +1094,6 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         }
         if (_shaderConfig != nullptr) {
             programId = cache->RefreshProgramId();
-        } else if (programId == 0) {
-            programId = programIdForShaderCode(_shaderConfig, cache);
         }
         _timeMS += buffer.frameTimeInMs * timeRate;
     }
@@ -1180,29 +1157,36 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     int colourIndex = 0;
     if (!si->SetUniform2f("RENDERSIZE", buffer.BufferWi, buffer.BufferHt)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
-            logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
+            spdlog::warn("Unable to bind to RENDERSIZE\n{}", (const char*)_shaderConfig->GetCode().c_str());
         }
     }
     if (!si->SetUniform2f("XL_OFFSET", offsetX, offsetY)) {
-        logger_base.warn("Unable to bind to XL_OFFSET");
+        spdlog::warn("Unable to bind to XL_OFFSET");
     }
     if (!si->SetUniform1f("XL_ZOOM", zoom)) {
-        logger_base.warn("Unable to bind to XL_ZOOM");
+        spdlog::warn("Unable to bind to XL_ZOOM");
     }
     if (!si->SetUniform1f("XL_DURATION", (GLfloat)((buffer.GetEndTimeMS() - buffer.GetStartTimeMS()) / 1000.0))) {
         // This may just have been optimized out of the shader program.  If it cannot be set, it is not worth logging.
-        //logger_base.warn("Unable to bind to XL_DURATION");
+        //spdlog::warn("Unable to bind to XL_DURATION");
     }
     if (!si->SetUniform1f("TIME", (GLfloat)(_timeMS) / 1000.0)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime()) {
-            logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
+            spdlog::warn("Unable to bind to TIME\n{}", (const char*)_shaderConfig->GetCode().c_str());
         }
     }
     si->SetUniform1f("TIMEDELTA", (GLfloat)(buffer.frameTimeInMs /1000.f));
 
     if (si->HasUniform("DATE")) {
-        wxDateTime dt = wxDateTime::Now();
-        si->SetUniform4f("DATE", dt.GetYear(), dt.GetMonth() + 1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute() * 60 + dt.GetSecond());
+        auto now = std::chrono::system_clock::now();
+        std::time_t nowt = std::chrono::system_clock::to_time_t(now);
+        std::tm tmbuf;
+#ifdef _MSC_VER
+        localtime_s(&tmbuf, &nowt);
+#else
+        localtime_r(&nowt, &tmbuf);
+#endif
+        si->SetUniform4f("DATE", tmbuf.tm_year + 1900, tmbuf.tm_mon + 1, tmbuf.tm_mday, tmbuf.tm_hour * 3600 + tmbuf.tm_min * 60 + tmbuf.tm_sec);
     }
     si->SetUniformInt("NUMCOLORS", buffer.GetColorCount());
     si->SetUniformInt("PASSINDEX", 0);
@@ -1274,17 +1258,17 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             {
                 xlColor c = buffer.palette.GetColor(colourIndex);
                 colourIndex++;
-                if (colourIndex > buffer.GetColorCount()) colourIndex = 0;
+                if (colourIndex > (int)buffer.GetColorCount()) colourIndex = 0;
                 si->SetUniform4f(it._name, (double)c.red / 255.0, (double)c.green / 255.0, (double)c.blue / 255.0, 1.0);
                 break;
             }
             default:
-                logger_base.warn("No binding supported for %s ... we have more work to do.", (const char*)it._name.c_str());
+                spdlog::warn("No binding supported for {} ... we have more work to do.", (const char*)it._name.c_str());
                 break;
             }
         } else {
             if (buffer.curPeriod == buffer.curEffStartPer)
-                logger_base.warn("Unable to bind to %s", (const char*)it._name.c_str());
+                spdlog::warn("Unable to bind to {}", (const char*)it._name.c_str());
         }
     }
 
@@ -1315,7 +1299,7 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
     unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!s_shadersInit) {
         VertexTex vt[4] =
@@ -1336,17 +1320,17 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - {}", err );
         }
 
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
         if ((err = glGetError()) != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - {}", err );
         }
 
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
         if ((err = glGetError()) != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - {}", err );
         }
 
         s_rbWidth = rb.BufferWi;
@@ -1367,11 +1351,11 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - {}", err );
         }
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);;
         if ((err = glGetError()) != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - {}", err );
         }
 
         s_rbWidth = rb.BufferWi;
@@ -1381,10 +1365,10 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 
 unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCache *cache)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (cfg == nullptr) {
-        logger_base.error("ShaderEffect::programIdForShaderCode() - NULL ShaderConfig!");
+        spdlog::error("ShaderEffect::programIdForShaderCode() - NULL ShaderConfig!");
         return 0u;
     }
 
@@ -1403,9 +1387,9 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
             unsigned programId = shaderInfo->programIds.front();
             shaderInfo->programIds.pop_front();
             if (!glIsProgram(programId)) {
-                logger_base.error("ShaderEffect::programIdForShaderCode() - program id %u is not a shader program!", programId);
+                spdlog::error("ShaderEffect::programIdForShaderCode() - program id {} is not a shader program!", programId);
             } else {
-                //logger_base.debug("ShaderEffect::programIdForShaderCode() - shader program %s unchanged -- id %u", (const char*)cfg->GetFilename().c_str(), programId);
+                //spdlog::debug("ShaderEffect::programIdForShaderCode() - shader program {} unchanged -- id {}", (const char*)cfg->GetFilename().c_str(), programId);
                 cache->SetProgramId(programId, shaderInfo);
                 return programId;
             }
@@ -1416,11 +1400,11 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc, cfg->GetFilename());
     if (programId == 0u) {
         lock.lock();
-        logger_base.error("ShaderEffect::programIdForShaderCode() - failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
+        spdlog::error("ShaderEffect::programIdForShaderCode() - failed to compile shader program {}", (const char *)cfg->GetFilename().c_str());
         ShaderRenderCache::failedShaders.emplace(fragmentShaderSrc);
         lock.unlock();
     } else {
-        logger_base.debug("ShaderEffect::programIdForShaderCode() - fragment shader %s compiled successfully", (const char*)cfg->GetFilename().c_str());
+        spdlog::debug("ShaderEffect::programIdForShaderCode() - fragment shader {} compiled successfully", (const char*)cfg->GetFilename().c_str());
         if (shaderInfo == nullptr) {
             lock.lock();
             shaderInfo = ShaderRenderCache::shaderMap[fragmentShaderSrc];
@@ -1435,32 +1419,30 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     return programId;
 }
 
-wxString SafeFloat(const wxString& s)
+std::string SafeFloat(const std::string& s)
 {
-    if (s.StartsWith(".")) {
+    if (!s.empty() && s[0] == '.') {
         return "0" + s;
-    } else if (!s.Contains(".")) {
+    } else if (s.find('.') == std::string::npos) {
         return s + ".0";
     }
     return s;
 }
 
-wxString SafeValueOption(wxString value)
+std::string SafeValueOption(std::string value)
 {
-    wxString res = value;
-    res.Replace(",", "");
-    return res;
+    value.erase(std::remove(value.begin(), value.end(), ','), value.end());
+    return value;
 }
 
-ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) :
+ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code, const std::string& json, SequenceElements* sequenceElements) :
     _filename(filename) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    /*
+    
     std::string canvasImgName;
     std::string audioFFTName;
 
     auto getNumberProperty = [](nlohmann::json const& item, std::string const& name, double defaultVal) {
-        if (!item.contains(name)) {
+        if (!item.contains(name) || item.at(name).is_null()) {
             return defaultVal;
         }
         if (item.at(name).is_number()) {
@@ -1470,50 +1452,61 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             return static_cast<double>(item.at(name).get<bool>());
         }
         if (item.at(name).is_string()) {
-            try {
-                return std::stod(item.at(name).get<std::string>());
-            } catch (std::exception const& ex) {
-                logger_base.warn("Error parsing shader Property : %s.", (const char*)ex.what());
+            const auto& s = item.at(name).get<std::string>();
+            char* end;
+            double val = std::strtod(s.c_str(), &end);
+            if (end != s.c_str()) {
+                return val;
             }
+            spdlog::warn("Error parsing shader Property : {} (not a number).", name);
+        }
+        return defaultVal;
+    };
+
+    auto getStringProperty = [](nlohmann::json const& item, std::string const& name, const std::string& defaultVal = "") {
+        if (!item.contains(name) || item.at(name).is_null()) {
+            return defaultVal;
+        }
+        if (item.at(name).is_string()) {
+            return item.at(name).get<std::string>();
         }
         return defaultVal;
     };
 
     auto getPointProperty = [](nlohmann::json const& item, std::string const& name, double defaultX, double defaultY) {
-        if (!item.contains(name) || item.at(name).empty()) {
-            return wxRealPoint(defaultX, defaultY);
+        if (!item.contains(name) || item.at(name).is_null() || item.at(name).empty()) {
+            return xlPointD(defaultX, defaultY);
         }
-        if (item.at(name)[0].is_number()) {
-            defaultX = item.at(name)[0].get<double>();
-        }
-        if (item.at(name)[1].is_number()) {
-            defaultY = item.at(name)[1].get<double>();
-        }
-        if (item.at(name)[0].is_string()) {
-            try {
-                defaultX = std::stod(item.at(name)[0].get<std::string>());
-            } catch (std::exception const& ex) {
-                logger_base.warn("Error parsing shader Property : %s.", (const char*)ex.what());
+        const auto& arr = item.at(name);
+        auto getComponent = [](const nlohmann::json& v, double def) {
+            if (v.is_number()) {
+                return v.get<double>();
             }
-        }
-        if (item.at(name)[1].is_string()) {
-            try {
-                defaultY = std::stod(item.at(name)[1].get<std::string>());
-            } catch (std::exception const& ex) {
-                logger_base.warn("Error parsing shader Property : %s.", (const char*)ex.what());
+            if (v.is_string()) {
+                char* end;
+                double val = std::strtod(v.get<std::string>().c_str(), &end);
+                if (end != v.get<std::string>().c_str()) {
+                    return val;
+                }
             }
+            return def;
+        };
+        if (arr.size() >= 2) {
+            defaultX = getComponent(arr[0], defaultX);
+            defaultY = getComponent(arr[1], defaultY);
         }
-        return wxRealPoint(defaultX, defaultY);
+        return xlPointD(defaultX, defaultY);
     };
 
     try {
-        nlohmann::json root = nlohmann::json::parse(json.ToStdString(),
+        nlohmann::json root = nlohmann::json::parse(json,
                                                     nullptr,
-                                                    true,
-                                                    false,
-                                                    true);
+                                                    true,    // allow_exceptions
+                                                    true,    // ignore_comments
+                                                    true,    // ignore_trailing_commas
+                                                    true);   // ignore_missing_values
         if (root.contains("DESCRIPTION")) {
-            _description = root["DESCRIPTION"].get<std::string>();
+            _description = getStringProperty(root, "DESCRIPTION");
         }
         if (_description == "xLights AudioFFT") {
             _audioFFTMode = true;
@@ -1521,27 +1514,21 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             _audioIntensityMode = true;
         }
         if (root.contains("INPUTS")) {
-            nlohmann::json inputs = root["INPUTS"];
+            const auto& inputs = root["INPUTS"];
 
             for (const auto& input : inputs) {
-                std::string const name = input.contains("NAME") ? input["NAME"].get<std::string>() : "";
+                std::string const name = getStringProperty(input, "NAME");
 
                 // we ignore these as xlights provides these settings
-                if (name == "XL_OFFSET") {
-                    continue;
-                }
-                if (name == "XL_DURATION") {
-                    continue;
-                }
-                if (name == "XL_ZOOM") {
+                if (name == "XL_OFFSET" || name == "XL_DURATION" || name == "XL_ZOOM") {
                     continue;
                 }
 
-                std::string const type = input["TYPE"].get<std::string>();
+                std::string const type = getStringProperty(input, "TYPE");
                 if (type == "float") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_FLOAT,
                         getNumberProperty(input, "MIN", 0.0),
                         getNumberProperty(input, "MAX", 1.0),
@@ -1549,87 +1536,77 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 } else if (type == "long") {
                     if (input.contains("MIN")) {
                         _parms.emplace_back(
-                            input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                            input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                            name,
+                            getStringProperty(input, "LABEL"),
                             ShaderParmType::SHADER_PARM_LONG,
                             getNumberProperty(input, "MIN", 0.0),
                             getNumberProperty(input, "MAX", 1.0),
                             getNumberProperty(input, "DEFAULT", 0.0));
                     } else if (input.contains("LABELS") && input.contains("VALUES")) {
                         _parms.emplace_back(
-                            input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                            input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                            name,
+                            getStringProperty(input, "LABEL"),
                             ShaderParmType::SHADER_PARM_LONGCHOICE,
                             0.0,
                             0.0,
-                            (input.contains("DEFAULT") ? input["DEFAULT"].get<double>() : 0.0));
-                        auto ls = input["LABELS"];
-                        auto vs = input["VALUES"];
+                            getNumberProperty(input, "DEFAULT", 0.0));
+                        const auto& ls = input["LABELS"];
+                        const auto& vs = input["VALUES"];
                         int const no = std::min(ls.size(), vs.size());
-                        for (int i = 0; i < no; i++) {
+                        for (int i = 0; i < static_cast<int>(no); i++) {
                             _parms.back()._valueOptions[vs[i].get<int>()] = SafeValueOption(ls[i].get<std::string>());
                         }
                     } else {
-                        wxASSERT(false);
+                        assert(false);
                     }
                 } else if (type == "color") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_COLOUR);
                 } else if (type == "audio") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_AUDIO);
                 } else if (type == "bool") {
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_BOOL,
                         0.0,
                         0.0,
                         getNumberProperty(input, "DEFAULT", 0.0));
                 } else if (type == "point2D") {
-                    wxRealPoint const minPt = getPointProperty(input, "MIN", 0.0, 0.0);
-                    wxRealPoint const maxPt = getPointProperty(input, "MAX", 1.0, 1.0);
-                    wxRealPoint const defPt = getPointProperty(input, "DEFAULT", 0.0, 0.0);
+                    xlPointD const minPt = getPointProperty(input, "MIN", 0.0, 0.0);
+                    xlPointD const maxPt = getPointProperty(input, "MAX", 1.0, 1.0);
+                    xlPointD const defPt = getPointProperty(input, "DEFAULT", 0.0, 0.0);
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_POINT2D,
                         minPt,
                         maxPt,
                         defPt);
                 } else if (type == "image") {
                     // ignore these as we will use the existing buffer content
-                    //_parms.push_back({
-                    //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    //        ShaderParmType::SHADER_PARM_IMAGE,
-                    //        0.0f,
-                    //        0.0f,
-                    //        0.0f
-                    //    });
-                    if (input.contains("NAME")) {
-                        canvasImgName = input["NAME"].get<std::string>();
-                        //_canvasMode = true;
+                    if (!name.empty()) {
+                        canvasImgName = name;
                     }
                 } else if (type == "audioFFT") {
-                    if (input.contains("NAME")) {
-                        audioFFTName = input["NAME"].get<std::string>();
-                        logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char*>(audioFFTName.c_str()));
+                    if (!name.empty()) {
+                        audioFFTName = name;
+                        spdlog::info("ShaderEffect - found audioFFT shader with name '{}'", audioFFTName.c_str());
                     }
                 } else if (type == "text") {
                     // ignore these
-                    if (input.contains("NAME")) {
-                        logger_base.warn("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(input["NAME"].get<std::string>().c_str()));
+                    if (!name.empty()) {
+                        spdlog::warn("ShaderEffect - found text property with name '{}' ... ignored", name.c_str());
                     }
                 } else if (type == "event") {
-                    // ignore these
                     _parms.emplace_back(
-                        input.contains("NAME") ? input["NAME"].get<std::string>() : "",
-                        input.contains("LABEL") ? input["LABEL"].get<std::string>() : "",
+                        name,
+                        getStringProperty(input, "LABEL"),
                         ShaderParmType::SHADER_PARM_EVENT,
                         0.0,
                         0.0,
@@ -1638,7 +1615,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                     // Add timing tracks
                     if (sequenceElements != nullptr) {
                         int tt = 0;
-                        for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+                        for (int i = 0; i < static_cast<int>(sequenceElements->GetElementCount()); i++) {
                             Element* e = sequenceElements->GetElement(i);
                             if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
                                 _parms.back()._valueOptions[tt++] = e->GetName();
@@ -1646,173 +1623,28 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                         }
                     }
                 } else {
-                    logger_base.warn("Unknown type parsing shader JSON : %s.", (const char*)type.c_str());
-                    wxASSERT(false);
+                    spdlog::warn("Unknown type parsing shader JSON : {}.", type.c_str());
+                    assert(false);
                 }
             }
             if (root.contains("PASSES")) {
-                nlohmann::json passes = root["PASSES"];
-                for (int i = 0; i < passes.size(); i++) {
-                    _passes.push_back({ inputs[i].contains("TARGET") ? inputs[i]["TARGET"].get<std::string>() : "",
-                                        passes[i].contains("PERSISTENT") ? passes[i]["PERSISTENT"].get<std::string>() == "true" : false });
+                const auto& inputs2 = root["INPUTS"];
+                const auto& passes = root["PASSES"];
+                for (int i = 0; i < static_cast<int>(passes.size()); i++) {
+                    _passes.push_back({ (i < static_cast<int>(inputs2.size()) && inputs2[i].contains("TARGET")) ? inputs2[i]["TARGET"].get<std::string>() : "",
+                                        passes[i].contains("PERSISTENT") ? getStringProperty(passes[i], "PERSISTENT") == "true" : false });
                 }
             }
         }
     } catch (const nlohmann::json::exception& e) {
-        logger_base.warn("Error parsing shader JSON :  %s %s.", (const char*)filename.c_str(), (const char*)e.what());
+        spdlog::warn("Error parsing shader JSON :  {} {}.", filename.c_str(), e.what());
     } catch (std::exception& ex) {
-        logger_base.warn("Error parsing shader JSON :  %s %s.", (const char*)filename.c_str(), (const char*)ex.what());
-    }*/
-
-    wxJSONReader reader;
-    wxJSONValue root;
-    reader.Parse(json, &root);
-    _description = root["DESCRIPTION"].AsString();
-    if (_description == "xLights AudioFFT")
-        _audioFFTMode = true;
-    else if (_description == "xLights Audio2")
-        _audioIntensityMode = true;
-    wxJSONValue inputs = root["INPUTS"];
-    wxString canvasImgName, audioFFTName;
-    for (int i = 0; i < inputs.Size(); i++) {
-        wxString name = inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "";
-
-        // we ignore these as xlights provides these settings
-        if (name == "XL_OFFSET")
-            continue;
-        if (name == "XL_DURATION")
-            continue;
-        if (name == "XL_ZOOM")
-            continue;
-
-        wxString type = inputs[i]["TYPE"].AsString();
-        if (type == "float") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_FLOAT,
-                (double)(inputs[i].HasMember("MIN") ? wxAtof(SafeFloat(inputs[i]["MIN"].AsString())) : 0.0),
-                (double)(inputs[i].HasMember("MAX") ? wxAtof(SafeFloat(inputs[i]["MAX"].AsString())) : 1.0),
-                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0)));
-        } else if (type == "long") {
-            if (inputs[i].HasMember("MIN")) {
-                _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    ShaderParmType::SHADER_PARM_LONG,
-                    (double)(inputs[i].HasMember("MIN") ? wxAtol(inputs[i]["MIN"].AsString()) : 0.0),
-                    (double)(inputs[i].HasMember("MAX") ? wxAtol(inputs[i]["MAX"].AsString()) : 1.0),
-                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)));
-            } else if (inputs[i].HasMember("LABELS") && inputs[i].HasMember("VALUES")) {
-                _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                    ShaderParmType::SHADER_PARM_LONGCHOICE,
-                    0.0,
-                    0.0,
-                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)));
-                auto ls = inputs[i]["LABELS"];
-                auto vs = inputs[i]["VALUES"];
-                int no = std::min(ls.Size(), vs.Size());
-                for (int i = 0; i < no; i++) {
-                    _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString());
-                }
-            } else {
-                wxASSERT(false);
-            }
-        } else if (type == "color") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_COLOUR));
-        } else if (type == "audio") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_AUDIO));
-        } else if (type == "bool") {
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_BOOL,
-                0.0,
-                0.0,
-                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0f)));
-        } else if (type == "point2D") {
-            wxRealPoint minPt = wxRealPoint(
-                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][0].IsDouble() ? inputs[i]["MIN"][0].AsDouble() : inputs[i]["MIN"][0].AsInt()) : 0.0f,
-                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][1].IsDouble() ? inputs[i]["MIN"][1].AsDouble() : inputs[i]["MIN"][1].AsInt()) : 0.0f);
-            wxRealPoint maxPt = wxRealPoint(
-                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][0].IsDouble() ? inputs[i]["MAX"][0].AsDouble() : inputs[i]["MAX"][0].AsInt()) : 1.0f,
-                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][1].IsDouble() ? inputs[i]["MAX"][1].AsDouble() : inputs[i]["MAX"][1].AsInt()) : 1.0f);
-            wxRealPoint defPt = wxRealPoint(
-                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][0].IsDouble() ? inputs[i]["DEFAULT"][0].AsDouble() : inputs[i]["DEFAULT"][0].AsInt()) : 0.0f,
-                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][1].IsDouble() ? inputs[i]["DEFAULT"][1].AsDouble() : inputs[i]["DEFAULT"][1].AsInt()) : 0.0f);
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_POINT2D,
-                minPt,
-                maxPt,
-                defPt));
-        } else if (type == "image") {
-            // ignore these as we will use the existing buffer content
-            //_parms.push_back({
-            //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-            //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-            //        ShaderParmType::SHADER_PARM_IMAGE,
-            //        0.0,
-            //        0.0,
-            //        0.0
-            //    });
-            if (inputs[i].HasMember("NAME")) {
-                canvasImgName = inputs[i]["NAME"].AsString();
-                //_canvasMode = true;
-            }
-        } else if (type == "audioFFT") {
-            if (inputs[i].HasMember("NAME")) {
-                audioFFTName = inputs[i]["NAME"].AsString();
-                logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char*>(audioFFTName.c_str()));
-            }
-        } else if (type == "text") {
-            // ignore these
-            if (inputs[i].HasMember("NAME")) {
-                logger_base.warn("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(inputs[i]["NAME"].AsString().c_str()));
-            }
-        } else if (type == "event") {
-            // ignore these
-            _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-                ShaderParmType::SHADER_PARM_EVENT,
-                0.0,
-                0.0,
-                0.0));
-
-            // Add timing tracks
-            if (sequenceElements != nullptr) {
-                int tt = 0;
-                for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
-                    Element* e = sequenceElements->GetElement(i);
-                    if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-                        _parms.back()._valueOptions[tt++] = e->GetName();
-                    }
-                }
-            }
-        } else {
-            logger_base.warn("Unknown type parsing shader JSON : %s.", (const char*)type.c_str());
-            wxASSERT(false);
-        }
-    }
-    wxJSONValue passes = root["PASSES"];
-    for (int i = 0; i < passes.Size(); i++) {
-        _passes.push_back({ inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString() : "",
-                            passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false });
+        spdlog::warn("Error parsing shader JSON :  {} {}.", filename.c_str(), ex.what());
     }
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
-    wxString prependText = _(
+    std::string prependText =
         "uniform float TIME;\n"
         "uniform float TIMEDELTA;\n"
         "uniform vec2 RENDERSIZE;\n"
@@ -1834,37 +1666,31 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         "out vec4 fragmentColor;\n"
         "uniform vec4 DATE;\n\n"
         "// USE THIS IN PUBLIC SHADERS FOR CODE WHICH ONLY RUNS IN XLIGHTS\n"
-        "#define XL_SHADER\n\n");
+        "#define XL_SHADER\n\n";
 
     for (const auto& p : _parms) {
-        wxString name(p._name);
-        wxString str;
+        const std::string& name = p._name;
         switch (p._type) {
         case ShaderParmType::SHADER_PARM_FLOAT: {
-            str = wxString::Format("uniform float %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform float {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_BOOL:
         case ShaderParmType::SHADER_PARM_EVENT: {
-            str = wxString::Format("uniform bool %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform bool {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_LONG:
         case ShaderParmType::SHADER_PARM_LONGCHOICE: {
-            str = wxString::Format("uniform int %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform int {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_POINT2D: {
-            str = wxString::Format("uniform vec2 %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform vec2 {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_COLOUR: {
-            str = wxString::Format("uniform vec4 %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform vec4 {};\n", name);
             break;
         }
         default: {
@@ -1873,57 +1699,56 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
     }
 
-    prependText += _("vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n");
-    prependText += _("vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
-    prependText += _("vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
-    prependText += _("ivec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n");
+    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
+    prependText += "ivec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n";
 
 #ifdef __DEBUG
     int i = 0;
     for (auto c : code) {
         if ((int)c < 32 || (int)c > 127) {
             if (c != 13 && c != 10 && c != 9)
-                logger_base.debug("%d 0x%x %c", i, (int)c, c);
-            wxASSERT(false);
+                spdlog::debug("{} {:X} {}", i, (int)c, c);
+            assert(false);
         }
         i++;
     }
 #endif
 
-    wxUniChar ch133(133);
-    wxString shaderCode = wxString(code.mb_str(wxConvUTF8));
-    for (int x = 0; x < shaderCode.size(); x++) {
-        if (shaderCode[x] == ch133) {
-            shaderCode[x] = '.';
+    std::string shaderCode = code;
+    for (char& c : shaderCode) {
+        if ((unsigned char)c == 133) {
+            c = '.';
         }
     }
-    int pos = shaderCode.Find("*/");
-    if (pos > 0) {
+    auto pos = shaderCode.find("*/");
+    if (pos != std::string::npos && pos > 0) {
         shaderCode = shaderCode.substr(pos + 2);
     }
-    shaderCode.Replace("gl_FragColor", "fragmentColor");
-    shaderCode.Replace("vv_FragNormCoord", "xl_FragNormCoord");
-    shaderCode.Replace("isf_FragNormCoord", "xl_FragNormCoord");
-    shaderCode.Replace("isf_FragCoord", "xl_FragCoord");
-    shaderCode.Replace("gl_FragCoord", "xl_FragCoord");
-    shaderCode.Replace("gl_FragNormCoord", "xl_FragNormCoord");
-    shaderCode.Replace("varying ", "uniform ");
-    shaderCode.Replace("texture2D(", "texture(");
-    shaderCode.Replace("texture2D (", "texture(");
+    Replace(shaderCode, "gl_FragColor", "fragmentColor");
+    Replace(shaderCode, "vv_FragNormCoord", "xl_FragNormCoord");
+    Replace(shaderCode, "isf_FragNormCoord", "xl_FragNormCoord");
+    Replace(shaderCode, "isf_FragCoord", "xl_FragCoord");
+    Replace(shaderCode, "gl_FragCoord", "xl_FragCoord");
+    Replace(shaderCode, "gl_FragNormCoord", "xl_FragNormCoord");
+    Replace(shaderCode, "varying ", "uniform ");
+    Replace(shaderCode, "texture2D(", "texture(");
+    Replace(shaderCode, "texture2D (", "texture(");
     if (!audioFFTName.empty()) {
-        shaderCode.Replace(audioFFTName, "texSampler");
+        Replace(shaderCode, audioFFTName, "texSampler");
         _audioFFTMode = true;
     } else if (!canvasImgName.empty()) {
-        shaderCode.Replace(canvasImgName, "texSampler");
+        Replace(shaderCode, canvasImgName, "texSampler");
         _canvasMode = true;
     }
 
@@ -1939,9 +1764,9 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         _code += "\n";
         shaderCode = shaderCode.substr(nidx);
     }
-    _code += prependText.ToStdString();
-    _code += shaderCode.ToStdString();
-    wxASSERT(_code != "");
+    _code += prependText;
+    _code += shaderCode;
+    assert(_code != "");
 #if 0
     std::ofstream s("C:\\Temp\\shader.txt");
     if (s.good())
@@ -1958,6 +1783,6 @@ bool ShaderConfig::UsesEvents() const
                        [](const ShaderParm& p) { return p._type == ShaderParmType::SHADER_PARM_EVENT; });
 }
 
-#ifdef __WXOSX__
+#ifdef __APPLE__
 #pragma clang diagnostic push
 #endif

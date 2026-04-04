@@ -9,15 +9,14 @@
  **************************************************************/
 
 #include "ColorWashEffect.h"
-#include "ColorWashPanel.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/EffectLayer.h"
-#include "../sequencer/Element.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/EffectLayer.h"
+#include "../render/Element.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "../../include/ColorWash.xpm"
 
-#include <sstream>
+#include <format>
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
@@ -51,108 +50,6 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
         bg.AddHBlendedRectangleAsTriangles(x1, y1, x2, y2, colorMask, 0, e->GetPalette());
     }
     return 2;
-}
-
-void ColorWashEffect::SetDefaultParameters() {
-    ColorWashPanel *p = (ColorWashPanel*)panel;
-    if (p == nullptr) {
-        return;
-    }
-    p->CyclesTextCtrl->SetValue("1.0");
-    SetCheckBoxValue(p->HFadeCheckBox, false);
-    SetCheckBoxValue(p->VFadeCheckBox, false);
-    SetCheckBoxValue(p->ReverseFadesCheckBox, false);
-    SetCheckBoxValue(p->ShimmerCheckBox, false);
-    SetCheckBoxValue(p->CircularPaletteCheckBox, false);
-    p->BitmapButton_ColorWash_CyclesVC->SetActive(false);
-}
-
-wxString ColorWashEffect::GetEffectString() {
-    ColorWashPanel *p = (ColorWashPanel*)panel;
-    std::stringstream ret;
-
-    // You must always include value curves or they wont update correctly
-    if (p->BitmapButton_ColorWash_CyclesVC->GetValue()->IsActive()) {
-        ret << "E_VALUECURVE_ColorWash_Cycles=";
-        ret << p->BitmapButton_ColorWash_CyclesVC->GetValue()->Serialise();
-        ret << ",";
-    }
-
-    if (10 != p->SliderCycles->GetValue()) {
-        ret << "E_TEXTCTRL_ColorWash_Cycles=";
-        ret << p->CyclesTextCtrl->GetValue();
-        ret << ",";
-    }
-    if (p->VFadeCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_VFade=1,";
-    }
-    if (p->HFadeCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_HFade=1,";
-    }
-    if (p->ReverseFadesCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_ReverseFades=1,";
-    }
-    if (p->ShimmerCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_Shimmer=1,";
-    }
-    if (p->CircularPaletteCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_CircularPalette=1,";
-    }
-    return ret.str();
-}
-
-xlEffectPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
-    return new ColorWashPanel(parent);
-}
-
-bool ColorWashEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2016.34", version) || RenderableEffect::needToAdjustSettings(version);
-}
-void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-    if (!effect->GetSettings().GetBool("E_CHECKBOX_ColorWash_EntireModel", true) ) {
-        float x1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X1", 0);
-        float y1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_Y1", 0);
-        float x2 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X2", 100);
-        float y2 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_Y2", 100);
-        if (std::abs(x1) > 0.001f
-            || std::abs(y1) > 0.001f
-            || std::abs(100.0f - x2) > 0.001f
-            || std::abs(100.0f - y2) > 0.001f) {
-            std::string val = wxString::Format("%.2fx%.2fx%.2fx%.2f", x1, y1, x2, y2).ToStdString();
-            effect->GetSettings()["B_CUSTOM_SubBuffer"] = val;
-        }
-    }
-    effect->GetSettings().erase("E_CHECKBOX_ColorWash_EntireModel");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_X1");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_X2");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_Y1");
-    effect->GetSettings().erase("E_SLIDER_ColorWash_Y2");
-}
-
-void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect) {
-    SettingsMap &settingsMap = effect->GetSettings();
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_HFade", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_HFade");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_VFade", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_VFade");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWashColorWash_ReverseFades", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_ColorWash_ReverseFades");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_Shimmer", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_Shimmer");
-    }
-    if (settingsMap.Get("E_CHECKBOX_ColorWash_CircularPalette", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_ColorWash_CircularPalette");
-    }
-    if (settingsMap.GetFloat("E_TEXTCTRL_ColorWash_Cycles", 0.0f) == 1.0f) {
-        settingsMap.erase("E_TEXTCTRL_ColorWash_Cycles");
-    }
-    RenderableEffect::RemoveDefaults(version, effect);
 }
 
 void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

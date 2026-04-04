@@ -8,12 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
+#include <format>
 
 #include "DmxColorAbilityRGB.h"
-#include "../BaseObject.h"
 #include "../Model.h"
 
 
@@ -81,16 +78,16 @@ std::list<std::string> DmxColorAbilityRGB::CheckModelSettings(Model *m) const
     auto nodeCount = m->GetNodeCount();
 
     if (red_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s red channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), red_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} red channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), red_channel, nodeCount));
     }
     if (green_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s green channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), green_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} green channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), green_channel, nodeCount));
     }
     if (blue_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s blue channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), blue_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} blue channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), blue_channel, nodeCount));
     }
     if (white_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s white channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), white_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} white channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), white_channel, nodeCount));
     }
     return res;
 }
@@ -103,193 +100,6 @@ bool DmxColorAbilityRGB::IsValidModelSettings(Model* m) const
         green_channel < nodeCount + 1 &&
         blue_channel < nodeCount + 1 &&
         white_channel < nodeCount + 1);
-}
-
-void DmxColorAbilityRGB::AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm) const {
-
-    auto p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-    if (pwm) {
-        p = grid->Append(new wxUIntProperty("   PWM Red Brightness", "DmxRedBrightness", red_brightness));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 200);
-        p->SetEditor("SpinCtrl");
-        
-        p = grid->Append(new wxFloatProperty("   PWM Red Gamma", "DmxRedGamma", red_gamma));
-        p->SetAttribute("Min", 0.1F);
-        p->SetAttribute("Max", 5.0F);
-        p->SetEditor("SpinCtrlDouble");
-    }
-
-    p = grid->Append(new wxUIntProperty("Green Channel", "DmxGreenChannel", green_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-    if (pwm) {
-        p = grid->Append(new wxUIntProperty("   PWM Green Brightness", "DmxGreenBrightness", green_brightness));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 200);
-        p->SetEditor("SpinCtrl");
-        
-        p = grid->Append(new wxFloatProperty("   PWM Green Gamma", "DmxGreenGamma", green_gamma));
-        p->SetAttribute("Min", 0.1F);
-        p->SetAttribute("Max", 5.0F);
-        p->SetEditor("SpinCtrlDouble");
-    }
-
-    p = grid->Append(new wxUIntProperty("Blue Channel", "DmxBlueChannel", blue_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-    if (pwm) {
-        p = grid->Append(new wxUIntProperty("   PWM Blue Brightness", "DmxBlueBrightness", blue_brightness));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 200);
-        p->SetEditor("SpinCtrl");
-        
-        p = grid->Append(new wxFloatProperty("   PWM Blue Gamma", "DmxBlueGamma", blue_gamma));
-        p->SetAttribute("Min", 0.1F);
-        p->SetAttribute("Max", 5.0F);
-        p->SetEditor("SpinCtrlDouble");
-    }
-
-    p = grid->Append(new wxUIntProperty("White Channel", "DmxWhiteChannel", white_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-    if (pwm) {
-        p = grid->Append(new wxUIntProperty("   PWM White Brightness", "DmxWhiteBrightness", white_brightness));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 200);
-        p->SetEditor("SpinCtrl");
-        
-        p = grid->Append(new wxFloatProperty("   PWM White Gamma", "DmxWhiteGamma", white_gamma));
-        p->SetAttribute("Min", 0.1F);
-        p->SetAttribute("Max", 5.0F);
-        p->SetEditor("SpinCtrlDouble");
-    }
-
-}
-
-static std::string mapColorString(const std::string &s) {
-    if (StartsWith(s, "Red")) {
-        return "Red";
-    }
-    if (StartsWith(s, "Green")) {
-        return "Green";
-    }
-    if (StartsWith(s, "Blue")) {
-        return "Blue";
-    }
-    if (StartsWith(s, "White")) {
-        return "White";
-    }
-    return xlEMPTY_STRING;
-}
-
-int DmxColorAbilityRGB::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) {
-
-    std::string propName = event.GetPropertyName();
-
-    if ("DmxRedChannel" == propName) {
-        red_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxGreenChannel" == propName) {
-        green_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxBlueChannel" == propName) {
-        blue_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxWhiteChannel" == propName) {
-        white_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxRedBrightness" == propName) {
-        red_brightness = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxGreenBrightness" == propName) {
-        green_brightness = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxBlueBrightness" == propName) {
-        blue_brightness = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxWhiteBrightness" == propName) {
-        white_brightness = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxRedGamma" == propName) {
-        red_gamma = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxGreenGamma" == propName) {
-        green_gamma = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxBlueGamma" == propName) {
-        blue_gamma = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    else if ("DmxWhiteGamma" == propName) {
-        white_gamma = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityRGB::OnColorPropertyGridChange::" + propName);
-        return 0;
-    }
-    return -1;
 }
 
 xlColor DmxColorAbilityRGB::GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const

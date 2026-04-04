@@ -9,16 +9,26 @@
  **************************************************************/
 
 #include "RippleEffect.h"
-#include "RipplePanel.h"
+#include "../utils/xlPoint.h"
+#include "render/ValueCurve.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../ExternalHooks.h"
+#include "../utils/string_utils.h"
+
+#include <cassert>
+#include <filesystem>
+#include <format>
+
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
+#include "utils/ExternalHooks.h"
 #include "../models/Model.h"
-#include "../xLightsMain.h"
+#include "../render/SequenceElements.h"
+#include "../render/SequenceMedia.h"
+#include "../render/RenderContext.h"
 
-#include "nanosvg/src/nanosvg.h"
+#include "../utils/nanosvg_xl.h"
 
 #include "../../include/ripple-16.xpm"
 #include "../../include/ripple-24.xpm"
@@ -35,10 +45,6 @@ RippleEffect::~RippleEffect()
 {
     //dtor
 }
-xlEffectPanel *RippleEffect::CreatePanel(wxWindow *parent) {
-    return new RipplePanel(parent);
-}
-
 #define RENDER_RIPPLE_CIRCLE     0
 #define RENDER_RIPPLE_SQUARE     1
 #define RENDER_RIPPLE_TRIANGLE   2
@@ -55,49 +61,6 @@ xlEffectPanel *RippleEffect::CreatePanel(wxWindow *parent) {
 #define MOVEMENT_EXPLODE    0
 #define MOVEMENT_IMPLODE    1
 #define MOVEMENT_NONE       2
-
-void RippleEffect::SetDefaultParameters()
-{
-    RipplePanel* rp = (RipplePanel*)panel;
-    if (rp == nullptr) {
-        return;
-    }
-
-    rp->BitmapButton_Ripple_CyclesVC->SetActive(false);
-    rp->BitmapButton_Ripple_ThicknessVC->SetActive(false);
-    rp->BitmapButton_Ripple_RotationVC->SetActive(false);
-    rp->BitmapButton_Ripple_XCVC->SetActive(false);
-    rp->BitmapButton_Ripple_YCVC->SetActive(false);
-
-    rp->BitmapButton_Ripple_SpacingVC->SetActive(false);
-    rp->BitmapButton_Ripple_ScaleVC->SetActive(false);
-    rp->BitmapButton_Ripple_TwistVC->SetActive(false);
-    rp->BitmapButton_Ripple_VelocityVC->SetActive(false);
-    rp->BitmapButton_Ripple_DirectionVC->SetActive(false);
-    rp->BitmapButton_Ripple_OutlineVC->SetActive(false);
-
-    SetChoiceValue(rp->Choice_Ripple_Object_To_Draw, "Circle");
-    SetChoiceValue(rp->Choice_Ripple_Movement, "Explode");
-
-    SetSliderValue(rp->Slider_Ripple_Thickness, 3);
-    SetSliderValue(rp->Slider_Ripple_Cycles, 10);
-    SetSliderValue(rp->Slider_Ripple_Points, 5);
-    SetSliderValue(rp->Slider_Ripple_Rotation, 0);
-    SetSliderValue(rp->Slider_Ripple_XC, 0);
-    SetSliderValue(rp->Slider_Ripple_YC, 0);
-
-    SetSliderValue(rp->Slider_Ripple_Scale, 100);
-    SetSliderValue(rp->Slider_Ripple_Direction, 0);
-    SetSliderValue(rp->Slider_Ripple_Velocity, 0);
-    SetSliderValue(rp->Slider_Ripple_Twist, 0);
-    SetSliderValue(rp->Slider_Ripple_Spacing, 10);
-    SetSliderValue(rp->Slider_Ripple_Outline, 10);
-
-    rp->FilePickerCtrl_Ripple_SVG->SetFileName(wxFileName(""));
-
-    SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
-    SetChoiceValue(rp->Choice_Ripple_Draw_Style, "Old");
-}
 
 typedef std::pair<double, double> dpoint;
 typedef std::pair<int, int> ipoint;
@@ -157,18 +120,18 @@ static void getCirclePoints(dpointvec& ppts)
 
 static void getCrossPoints(dpointvec& ppts)
 {
-    const wxPoint points[] = { wxPoint(2, 0),
-                               wxPoint(2, 6),
-                               wxPoint(0, 6),
-                               wxPoint(0, 7),
-                               wxPoint(2, 7),
-                               wxPoint(2, 10),
-                               wxPoint(3, 10),
-                               wxPoint(3, 7),
-                               wxPoint(5, 7),
-                               wxPoint(5, 6),
-                               wxPoint(3, 6),
-                               wxPoint(3, 0) };
+    const xlPoint points[] = { xlPoint(2, 0),
+                               xlPoint(2, 6),
+                               xlPoint(0, 6),
+                               xlPoint(0, 7),
+                               xlPoint(2, 7),
+                               xlPoint(2, 10),
+                               xlPoint(3, 10),
+                               xlPoint(3, 7),
+                               xlPoint(5, 7),
+                               xlPoint(5, 6),
+                               xlPoint(3, 6),
+                               xlPoint(3, 0) };
     ppts.clear();
     for (const auto& pt : points) {
         ppts.push_back({ (pt.x - 2.5) / 7.0, (pt.y - 6.5) / 10 });
@@ -177,22 +140,22 @@ static void getCrossPoints(dpointvec& ppts)
 
 static void getTreePoints(dpointvec& ppts)
 {
-    const wxPoint points[] = {
-        wxPoint(3, 3),
-        wxPoint(3, 0),
-        wxPoint(5, 0),
-        wxPoint(5, 3),
-        wxPoint(0, 3),
-        wxPoint(2, 6),
-        wxPoint(1, 6),
-        wxPoint(3, 9),
-        wxPoint(2, 9),
-        wxPoint(4, 11),
-        wxPoint(6, 9),
-        wxPoint(5, 9),
-        wxPoint(7, 6),
-        wxPoint(6, 6),
-        wxPoint(8, 3)
+    const xlPoint points[] = {
+        xlPoint(3, 3),
+        xlPoint(3, 0),
+        xlPoint(5, 0),
+        xlPoint(5, 3),
+        xlPoint(0, 3),
+        xlPoint(2, 6),
+        xlPoint(1, 6),
+        xlPoint(3, 9),
+        xlPoint(2, 9),
+        xlPoint(4, 11),
+        xlPoint(6, 9),
+        xlPoint(5, 9),
+        xlPoint(7, 6),
+        xlPoint(6, 6),
+        xlPoint(8, 3)
     };
     ppts.clear();
     for (const auto& pt : points) {
@@ -202,20 +165,20 @@ static void getTreePoints(dpointvec& ppts)
 
 static void getPresentPoints(dpointvec& ppts)
 {
-    const wxPoint points[] = {
-        wxPoint(5, 9),
-        wxPoint(2, 11),
-        wxPoint(2, 9),
-        wxPoint(5, 9),
-        wxPoint(8, 11),
-        wxPoint(8, 9),
-        wxPoint(5, 9),
-        wxPoint(0, 9),
-        wxPoint(0, 0),
-        wxPoint(10, 0),
-        wxPoint(10, 9),
-        wxPoint(5, 9),
-        wxPoint(5, 0)
+    const xlPoint points[] = {
+        xlPoint(5, 9),
+        xlPoint(2, 11),
+        xlPoint(2, 9),
+        xlPoint(5, 9),
+        xlPoint(8, 11),
+        xlPoint(8, 9),
+        xlPoint(5, 9),
+        xlPoint(0, 9),
+        xlPoint(0, 0),
+        xlPoint(10, 0),
+        xlPoint(10, 9),
+        xlPoint(5, 9),
+        xlPoint(5, 0)
     };
 
     for (const auto& pt : points) {
@@ -729,7 +692,7 @@ static void drawRippleNew(
                 const dpointvec& points = shapes.shapes[sn].points;
                 bool closedShape = shapes.shapes[sn].closedShape;
                 xlColor fadeColor(fhsv);
-                if (cidxFill >= buffer.palette.ExplicitSize()) {
+                if (cidxFill >= (int)buffer.palette.ExplicitSize()) {
                     fadeColor = shapes.shapes[sn].defColor;
                 } else {
                     if (buffer.palette.IsSpatial(cidxFill)) {
@@ -738,7 +701,7 @@ static void drawRippleNew(
                 }
 
                 xlColor lineColor(lhsv);
-                if (cidxLines >= buffer.palette.ExplicitSize())
+                if (cidxLines >= (int)buffer.palette.ExplicitSize())
                 {
                     lineColor = shapes.shapes[sn].defColor;
                 } else {
@@ -796,7 +759,7 @@ static void drawRippleNew(
             if (oldptsinner[sn].size() > 0 && oldptsouter[sn].size() > 0) {
                 bool closedShape = shapes.shapes[sn].closedShape;
                 xlColor fadeColor(fhsv);
-                if (cidxFill >= buffer.palette.ExplicitSize()) {
+                if (cidxFill >= (int)buffer.palette.ExplicitSize()) {
                     fadeColor = shapes.shapes[sn].defColor;
                 } else {
                     if (buffer.palette.IsSpatial(cidxFill)) {
@@ -819,7 +782,7 @@ static void drawRippleNew(
                 delta *= spacing;
 
                 xlColor lineColor(lhsv);
-                if (cidxLines >= buffer.palette.ExplicitSize()) {
+                if (cidxLines >= (int)buffer.palette.ExplicitSize()) {
                     lineColor = shapes.shapes[sn].defColor;
                 } else {
                     if (buffer.palette.IsSpatial(cidxLines)) {
@@ -859,7 +822,7 @@ static void drawRippleNew(
 
         int cidxShp = 0;
         xlColor hsvs;
-        if (cidxShp < colorcnt) {
+        if (cidxShp < (int)colorcnt) {
             if (buffer.palette.IsSpatial(cidxShp)) {
                 buffer.palette.GetSpatialColor(cidxShp, 0, 0, 0, 0, 0, thickness, hsvs);
             } else {
@@ -907,10 +870,22 @@ public:
     std::string _svgFilename;
     double _svgScaleBase = 1.0f;
 
-    void InitialiseSVG(const std::string filename)
+    void InitialiseSVG(const std::string filename, RenderBuffer& buffer)
     {
         _svgFilename = filename;
-        _svgImage = nsvgParseFromFile(_svgFilename.c_str(), "px", 96);
+        auto* seqMedia = buffer.GetSequenceMedia();
+        if (seqMedia) {
+            auto svgEntry = seqMedia->GetSVG(filename);
+            if (svgEntry) {
+                svgEntry->MarkIsUsed();
+                std::string content = svgEntry->GetSVGContent();
+                if (!content.empty()) {
+                    char* svgCopy = strdup(content.c_str());
+                    _svgImage = nsvgParse(svgCopy, "px", 96);
+                    free(svgCopy);
+                }
+            }
+        }
         if (_svgImage != nullptr) {
             auto max = std::max(_svgImage->height, _svgImage->width);
             _svgScaleBase = 1.0 / max;
@@ -1025,7 +1000,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool drawLines = false;
     bool rippleSpaced = false;
 
-    auto swords = wxSplit(StyleStr, ' ');
+    auto swords = Split(StyleStr, ' ');
     if (swords.size() > 1) {
         drawNew = true;
         if (swords[0] == "Lines") {
@@ -1058,7 +1033,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         buffer.needToInit = false;
 
         if (Object_To_Draw == RENDER_RIPPLE_SVG) {
-            cache->InitialiseSVG(svgFilename);
+            cache->InitialiseSVG(svgFilename, buffer);
         }
     }
 
@@ -1093,7 +1068,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     }
 
     ColorIdx = static_cast<int>(rx * colorcnt);
-    if (ColorIdx == colorcnt)
+    if (ColorIdx == (int)colorcnt)
         ColorIdx--; // ColorIdx goes from 0-3 when colorcnt goes from 1-4. Make sure that is true
 
     double radius;
@@ -1153,7 +1128,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         Drawpresent(buffer, Movement, xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
         break;
     default:
-        wxASSERT(false);
+        assert(false);
         break;
     }
 }
@@ -1278,7 +1253,7 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
         offsetangle = 90.0 - 360.0 / 8;
         break;
     default:
-        wxASSERT(false);
+        assert(false);
         break;
     }
 
@@ -1465,30 +1440,30 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
 void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
     struct line {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = { line(wxPoint(3, 0), wxPoint(5, 0)),
-                            line(wxPoint(5, 0), wxPoint(5, 3)),
-                            line(wxPoint(3, 0), wxPoint(3, 3)),
-                            line(wxPoint(0, 3), wxPoint(8, 3)),
-                            line(wxPoint(0, 3), wxPoint(2, 6)),
-                            line(wxPoint(8, 3), wxPoint(6, 6)),
-                            line(wxPoint(1, 6), wxPoint(2, 6)),
-                            line(wxPoint(6, 6), wxPoint(7, 6)),
-                            line(wxPoint(1, 6), wxPoint(3, 9)),
-                            line(wxPoint(7, 6), wxPoint(5, 9)),
-                            line(wxPoint(2, 9), wxPoint(3, 9)),
-                            line(wxPoint(5, 9), wxPoint(6, 9)),
-                            line(wxPoint(6, 9), wxPoint(4, 11)),
-                            line(wxPoint(2, 9), wxPoint(4, 11)) };
+    const line points[] = { line(xlPoint(3, 0), xlPoint(5, 0)),
+                            line(xlPoint(5, 0), xlPoint(5, 3)),
+                            line(xlPoint(3, 0), xlPoint(3, 3)),
+                            line(xlPoint(0, 3), xlPoint(8, 3)),
+                            line(xlPoint(0, 3), xlPoint(2, 6)),
+                            line(xlPoint(8, 3), xlPoint(6, 6)),
+                            line(xlPoint(1, 6), xlPoint(2, 6)),
+                            line(xlPoint(6, 6), xlPoint(7, 6)),
+                            line(xlPoint(1, 6), xlPoint(3, 9)),
+                            line(xlPoint(7, 6), xlPoint(5, 9)),
+                            line(xlPoint(2, 9), xlPoint(3, 9)),
+                            line(xlPoint(5, 9), xlPoint(6, 9)),
+                            line(xlPoint(6, 9), xlPoint(4, 11)),
+                            line(xlPoint(2, 9), xlPoint(4, 11)) };
     int count = sizeof(points) / sizeof(line);
 
     xlColor color(hsv);
@@ -1524,28 +1499,28 @@ void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, 
 void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
     struct line {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = { line(wxPoint(2, 0), wxPoint(2, 6)),
-                            line(wxPoint(2, 6), wxPoint(0, 6)),
-                            line(wxPoint(0, 6), wxPoint(0, 7)),
-                            line(wxPoint(0, 7), wxPoint(2, 7)),
-                            line(wxPoint(2, 7), wxPoint(2, 10)),
-                            line(wxPoint(2, 10), wxPoint(3, 10)),
-                            line(wxPoint(3, 10), wxPoint(3, 7)),
-                            line(wxPoint(3, 7), wxPoint(5, 7)),
-                            line(wxPoint(5, 7), wxPoint(5, 6)),
-                            line(wxPoint(5, 6), wxPoint(3, 6)),
-                            line(wxPoint(3, 6), wxPoint(3, 0)),
-                            line(wxPoint(3, 0), wxPoint(2, 0)) };
+    const line points[] = { line(xlPoint(2, 0), xlPoint(2, 6)),
+                            line(xlPoint(2, 6), xlPoint(0, 6)),
+                            line(xlPoint(0, 6), xlPoint(0, 7)),
+                            line(xlPoint(0, 7), xlPoint(2, 7)),
+                            line(xlPoint(2, 7), xlPoint(2, 10)),
+                            line(xlPoint(2, 10), xlPoint(3, 10)),
+                            line(xlPoint(3, 10), xlPoint(3, 7)),
+                            line(xlPoint(3, 7), xlPoint(5, 7)),
+                            line(xlPoint(5, 7), xlPoint(5, 6)),
+                            line(xlPoint(5, 6), xlPoint(3, 6)),
+                            line(xlPoint(3, 6), xlPoint(3, 0)),
+                            line(xlPoint(3, 0), xlPoint(2, 0)) };
     int count = sizeof(points) / sizeof(line);
 
     xlColor color(hsv);
@@ -1581,25 +1556,25 @@ void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int 
 void RippleEffect::Drawpresent(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
     struct line {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = { line(wxPoint(0, 0), wxPoint(0, 9)),
-                            line(wxPoint(0, 9), wxPoint(10, 9)),
-                            line(wxPoint(10, 9), wxPoint(10, 0)),
-                            line(wxPoint(10, 0), wxPoint(0, 0)),
-                            line(wxPoint(5, 0), wxPoint(5, 9)),
-                            line(wxPoint(5, 9), wxPoint(2, 11)),
-                            line(wxPoint(2, 11), wxPoint(2, 9)),
-                            line(wxPoint(5, 9), wxPoint(8, 11)),
-                            line(wxPoint(8, 11), wxPoint(8, 9)) };
+    const line points[] = { line(xlPoint(0, 0), xlPoint(0, 9)),
+                            line(xlPoint(0, 9), xlPoint(10, 9)),
+                            line(xlPoint(10, 9), xlPoint(10, 0)),
+                            line(xlPoint(10, 0), xlPoint(0, 0)),
+                            line(xlPoint(5, 0), xlPoint(5, 9)),
+                            line(xlPoint(5, 9), xlPoint(2, 11)),
+                            line(xlPoint(2, 11), xlPoint(2, 9)),
+                            line(xlPoint(5, 9), xlPoint(8, 11)),
+                            line(xlPoint(8, 11), xlPoint(8, 9)) };
     int count = sizeof(points) / sizeof(line);
 
     xlColor color(hsv);
@@ -1688,11 +1663,19 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
     std::string object = settings["E_CHOICE_Ripple_Object_To_Draw"];
     if (object == "SVG") {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "");
-        if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        if (svgFilename.empty()) {
+            res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
-            if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Ripple effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            auto svgEntry = mm.GetSVG(svgFilename);
+            if (svgEntry->GetSVGContent().empty()) {
+                res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            } else {
+                if (!svgEntry->IsEmbedded()) {
+                    if (!IsFileInShowDir(std::string(), svgFilename)) {
+                        res.push_back(std::format("    WARN: Ripple effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    }
+                }
             }
         }
     }
@@ -1700,13 +1683,13 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-bool RippleEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+bool RippleEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"];
     if (FileExists(file)) {
-        if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+        if (!ctx->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] = ctx->MoveToShowFolder(file, std::string(1, std::filesystem::path::preferred_separator) + "Images");
             rc = true;
         }
     }
@@ -1730,8 +1713,8 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
     /*
     SettingsMap& settings = effect->GetSettings();
 
-    wxString rr = settings.Get("E_VALUECURVE_Ripple_Rotation", "");
-    if (rr.Contains("Active=TRUE")) {
+    std::string rr = settings.Get("E_VALUECURVE_Ripple_Rotation", "");
+    if (Contains(rr, "Active=TRUE")) {
         // For some reason, the current VC code will expand the values through the whole range
         //   and will have already done so by the time it reaches here... 
         // It's already too late to get the original min/max.  A ramp from 0 - 360 is now already -360 - 360.
@@ -1745,5 +1728,24 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
     // also give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    // Convert absolute file paths to relative for portability
+    std::string file = settings["E_FILEPICKERCTRL_Ripple_SVG"];
+    if (!file.empty()) {
+        if (std::filesystem::path(file).is_absolute()) {
+            if (!FileExists(file, false)) {
+                std::string fixed = FixFile("", file);
+                std::string rel = MakeRelativeFile(fixed);
+                settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel.empty() ? fixed : rel;
+            } else {
+                std::string rel = MakeRelativeFile(file);
+                if (!rel.empty())
+                    settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel;
+            }
+        }
+        // Register with SequenceMedia so it appears in the Media tab
+        auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        media.GetSVG(settings["E_FILEPICKERCTRL_Ripple_SVG"]);
     }
 }

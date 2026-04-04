@@ -8,19 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/filedlg.h>
-#include <wx/file.h>
-#include <wx/log.h>
-#include <wx/msgdlg.h>
-
 #include "StarModel.h"
 #include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <math.h>
@@ -108,7 +99,7 @@ void StarModel::InitRenderBufferNodes(const std::string& tp,
         }
 
         int start = 0;
-        for (int cur = 0; cur < GetLayerSizeCount(); cur++) {
+        for (int cur = 0; cur < (int)GetLayerSizeCount(); cur++) {
 
             int layer = cur;
             if (!Contains(_starStartLocation, "Inside")) {
@@ -120,14 +111,14 @@ void StarModel::InitRenderBufferNodes(const std::string& tp,
                 continue;
             }
 
-            for (size_t cnt = 0; cnt < numlights; cnt++) {
+            for (size_t cnt = 0; cnt < (size_t)numlights; cnt++) {
                 int n;
                 if (!SingleNode) {
                     n = cnt + start;
                 } else {
                     n = cur;
                 }
-                if (n >= Nodes.size()) {
+                if (n >= (int)Nodes.size()) {
                     n = Nodes.size() - 1;
                 }
                 for (auto& it : newNodes[n]->Coords) {
@@ -205,40 +196,52 @@ bool StarModel::AllNodesAllocated() const
         allocated += it;
     }
 
-    return (allocated == GetNodeCount());
+    return (allocated == (int)GetNodeCount());
 }
 
-// parm3 is number of points
+// _starPoints is number of points
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
-wxRealPoint StarModel::GetPointOnCircle(double radius, double angle)
+StarModel::xlRealPoint StarModel::GetPointOnCircle(double radius, double angle)
 {
-    return wxRealPoint(radius * std::sin(angle), radius * std::cos(angle));
+    return xlRealPoint(radius * std::sin(angle), radius * std::cos(angle));
 }
 
-double StarModel::LineLength(wxRealPoint start, wxRealPoint end)
+double StarModel::LineLength(const xlRealPoint& start, const xlRealPoint& end)
 {
     return std::sqrt((end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y));
 }
 
-wxRealPoint StarModel::GetPositionOnLine(wxRealPoint start, wxRealPoint end, double distance)
+StarModel::xlRealPoint StarModel::GetPositionOnLine(const xlRealPoint& start, const xlRealPoint& end, double distance)
 {
     if (LineLength(start, end) == 0) return start;
     double t = distance / LineLength(start, end);
-    return wxRealPoint(((1.0 - t) * start.x + t * end.x), ((1.0 - t) * start.y + t * end.y));
+    return xlRealPoint(((1.0 - t) * start.x + t * end.x), ((1.0 - t) * start.y + t * end.y));
+}
+
+int StarModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
 }
 
 void StarModel::InitModel()
 {
-    if (parm3 < 2) parm3 = 2; // need at least 2 arms
-    SetNodeCount(parm1, parm2, rgbOrder);
+    if (_starPoints < 2) _starPoints = 2; // need at least 2 arms
+    SetNodeCount(_numStrings, _nodesPerString, rgbOrder);
 
     // Found a problem where a user had multiple layer sizes but just 1 string and set to RGB dumb string type.
     // I think the commented out code would fix this but I am not sure it would work in all situations.
     // It needs more testing and late november is not a good time to be doing it. So throwing an assertion in
     // If this fires for us a lot when there is nothing wrong with our models then we will know the code is bad and we wont implement it.
     // Maybe you can help fix the condition at that time ... rather than just commenting out the assert.
-    // wxASSERT(starSizes.size() <= Nodes.size());
+    // assert(starSizes.size() <= Nodes.size());
     //if (starSizes.size() > Nodes.size())
     //{
     //    starSizes.resize(Nodes.size());
@@ -249,7 +252,7 @@ void StarModel::InitModel()
     // each layer is then applied inside the prior one by some factor
     // the radius of the outer circle starts are bufferWi / 2
 
-    int numlights = parm1 * parm2;
+    int numlights = _numStrings * _nodesPerString;
     if (numlights == 0) return;
     if (GetLayerSizeCount() == 0) {
         SetLayerSizeCount(1);
@@ -259,7 +262,7 @@ void StarModel::InitModel()
     }
 
     int maxLightsOnLayer = 0;
-    for (int l = 0; l < GetLayerSizeCount(); l++) {
+    for (int l = 0; l < (int)GetLayerSizeCount(); l++) {
         // we inflate a layer for every layer outside it by 1 / number of layers ... so 5th layer of 10 should be inflated by 50%
         int layersoutside = GetLayerSizeCount() - l - 1;
         maxLightsOnLayer = std::max(maxLightsOnLayer, 1 + (int)((float)GetLayerSize(l) * (1.0 + ((float)layersoutside / (float)GetLayerSizeCount()))));
@@ -277,8 +280,8 @@ void StarModel::InitModel()
         }
         layerRadiusDelta = (outerRadius * (float)(100.0f-_innerPercent)) / (100.0f * ((float)layerCount - 1.0f)); // space between the outer layer radii
     }
-    if (parm3 == 0) parm3 = 1;
-    double pointAngleGap = (M_PI * 2.0) / parm3; // angle between star points
+    if (_starPoints == 0) _starPoints = 1;
+    double pointAngleGap = (M_PI * 2.0) / _starPoints;
     double directionUnit = Contains(_starStartLocation, "-CCW") ? -1.0 : 1.0; // which way the angle should be applied
     double startAngle;
     if (Contains(_starStartLocation, "Top")) { // head
@@ -287,16 +290,16 @@ void StarModel::InitModel()
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
     } else if (Contains(_starStartLocation, "Left")) { // left leg
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
-        if (parm3 % 2 == 1) {
+        if (_starPoints % 2 == 1) {
             startAngle += pointAngleGap / 2.0;
         }
     } else { // Right leg
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
-        if (parm3 % 2 == 1) {
+        if (_starPoints % 2 == 1) {
             startAngle -= pointAngleGap / 2.0;
         }
     }
-    int starSegments = 2 * parm3; // parm3 is points
+    int starSegments = 2 * _starPoints;
     int channelsPerNode = GetNodeChannelCount(StringType);
     int coordsPerNode = GetCoordCount(0);
     if (coordsPerNode == 0) return;
@@ -320,7 +323,7 @@ void StarModel::InitModel()
     if (!SingleNode) {
         for (int l = startLayer; l != endLayer; l+= layerIncr) {
 
-            if (currentNode >= Nodes.size()) break;
+            if (currentNode >= (int)Nodes.size()) break;
 
             int layerNodes = GetLayerSize(l);
             int endNodeForLayer = currentNode + layerNodes;
@@ -330,8 +333,8 @@ void StarModel::InitModel()
             bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
 
             // segments are all the same length so i can calculate length once
-            wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
-            wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
+            xlRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
+            xlRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
             double segmentLength = LineLength(start, end);
             double totalSegmentLength = starSegments * segmentLength;
             double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
@@ -342,7 +345,7 @@ void StarModel::InitModel()
             double segEndLen = 0;
             for (int s = 0; s < starSegments; s++) {
 
-                if (currentNode >= Nodes.size()) break;
+                if (currentNode >= (int)Nodes.size()) break;
 
                 start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, curAngle);
                 end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, curAngle + (pointAngleGap * directionUnit) / 2.0);
@@ -355,15 +358,15 @@ void StarModel::InitModel()
 
                 while (curPos < segEndLen && currentNode < endNodeForLayer) {
 
-                    int currentString = currentNode / parm2;
-                    int nodeInString = currentNode % parm2;
+                    int currentString = currentNode / _nodesPerString;
+                    int nodeInString = currentNode % _nodesPerString;
                     if (nodeInString == 0 && currentString < GetNumStrings()) {
                         chan = stringStartChan[currentString];
                     }
                     Nodes[currentNode]->ActChan = chan;
 
                     for (int c = 0; c < coordsPerNode; c++) {
-                        wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+                        xlRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
 
                         Nodes[currentNode]->Coords[c].bufX = point.x + BufferWi / 2;
                         Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2 - 1;
@@ -378,7 +381,7 @@ void StarModel::InitModel()
 
 
                     currentNode++;
-                    if (currentNode >= Nodes.size()) break;
+                    if (currentNode >= (int)Nodes.size()) break;
                 }
 
                 // move to the next arm
@@ -392,9 +395,9 @@ void StarModel::InitModel()
         }
 
         // handle any left over nodes
-        for (int n = currentNode; n < Nodes.size(); n++) {
-            int currentString = n / parm2;
-            int nodeInString = n % parm2;
+        for (int n = currentNode; n < (int)Nodes.size(); n++) {
+            int currentString = n / _nodesPerString;
+            int nodeInString = n % _nodesPerString;
             if (nodeInString == 0) {
                 chan = stringStartChan[currentString];
             }
@@ -412,9 +415,9 @@ void StarModel::InitModel()
     } else {
         for (int l = startLayer; l != endLayer; l += layerIncr) {
 
-            wxRealPoint lastCoord; // we remember this so any excess coords are placed with the last coord
+            xlPoint lastCoord; // we remember this so any excess coords are placed with the last coord
 
-            if (currentNode >= Nodes.size()) break;
+            if (currentNode >= (int)Nodes.size()) break;
 
             int layerNodes = 1;
 
@@ -427,8 +430,8 @@ void StarModel::InitModel()
             bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
 
             // segments are all the same length so i can calculate length once
-            wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
-            wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
+            xlRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
+            xlRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
             double segmentLength = LineLength(start, end);
             double totalSegmentLength = starSegments * segmentLength;
             double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
@@ -449,13 +452,13 @@ void StarModel::InitModel()
 
                     Nodes[currentNode]->ActChan = chan;
 
-                    wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+                    xlRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
 
                     Nodes[currentNode]->Coords[currentCoord].bufX = point.x + BufferWi / 2;
                     Nodes[currentNode]->Coords[currentCoord].bufY = point.y + BufferHt / 2 - 1;
                     Nodes[currentNode]->Coords[currentCoord].screenX = point.x;
                     Nodes[currentNode]->Coords[currentCoord].screenY = point.y;
-                    lastCoord = wxPoint(Nodes[currentNode]->Coords[currentCoord].bufX, Nodes[currentNode]->Coords[currentCoord].bufY);
+                    lastCoord = xlPoint(Nodes[currentNode]->Coords[currentCoord].bufX, Nodes[currentNode]->Coords[currentCoord].bufY);
 
                     curPos += coordGap;
 
@@ -491,150 +494,17 @@ void StarModel::InitModel()
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
-static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
-        "Top Ctr-CCW",
-        "Top Ctr-CW",
-        "Top Ctr-CCW Inside",
-        "Top Ctr-CW Inside",
-        "Bottom Ctr-CW",
-        "Bottom Ctr-CCW",
-        "Bottom Ctr-CW Inside",
-        "Bottom Ctr-CCW Inside",
-        "Left Bottom-CW",
-        "Left Bottom-CCW",
-        "Right Bottom-CW",
-        "Right Bottom-CCW"
-};
-
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUES));
-
-void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-    }
-
-    p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-
-    int ssl = 0;
-    for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
-        if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation) {
-            ssl = i;
-            break;
-        }
-    }
-
-    grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, ssl));
-    AddLayerSizeProperty(grid);
-
-    p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio", _starRatio));
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-
-    if (GetLayerSizeCount() > 1) {
-        p = grid->Append(new wxUIntProperty("Inner Layer %", "StarCenterPercent", _innerPercent));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 100);
-        p->SetEditor("SpinCtrl");
-    }
-}
-
-int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("StarStringCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "StarModel::OnPropertyGridChange::StarStringCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarStringCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStringCount");
-        return 0;
-    } else if ("StarLightCount" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "StarModel::OnPropertyGridChange::StarLightCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarLightCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarLightCount");
-        return 0;
-    } else if ("StarStrandCount" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStrandCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarStrandCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarStrandCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "StarModel::OnPropertyGridChange::StarStrandCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarStrandCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::StarStrandCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStrandCount");
-        return 0;
-    } else if ("StarStart" == event.GetPropertyName()) {
-        _starStartLocation = TOP_BOT_LEFT_RIGHT_VALUES[event.GetValue().GetLong()];
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarStart");
-        return 0;
-    } else if ("StarCenterPercent" == event.GetPropertyName()) {
-        _innerPercent = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::CircleCenterPercent");
-        return 0;
-    } else if ("StarRatio" == event.GetPropertyName()) {
-        _starRatio = event.GetValue().GetDouble();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarRatio");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarRatio");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarRatio");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarRatio");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
 
 void StarModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1) {
-        parm2 = (int)GetLayerSizesTotalNodes();
+    if (_numStrings == 1) {
+        _nodesPerString = (int)GetLayerSizesTotalNodes();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "StarModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "StarModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "StarModel::OnLayerSizesChange");
     }
 }

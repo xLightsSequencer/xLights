@@ -30,7 +30,7 @@ class PixelNetOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    PixelNetOutput(wxXmlNode* node);
+    PixelNetOutput(pugi::xml_node node);
     PixelNetOutput(const PixelNetOutput& from);
     PixelNetOutput();
     virtual ~PixelNetOutput() override {};

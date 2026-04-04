@@ -11,19 +11,14 @@
 
 #include "ControllerCaps.h"
 
-#include <wx/xml/xml.h>
-#include <wx/filename.h>
-#include <wx/stdpaths.h>
-#include <wx/dir.h>
+#include <cassert>
+#include <filesystem>
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
-#include "../UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "UtilFunctions.h"
+#include "utils/ExternalHooks.h"
 #include "../outputs/Controller.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
@@ -43,16 +38,15 @@ inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const s
     return nullptr;
 }
 
-static void merge(std::map<std::string, wxXmlNode *> &abstracts, const std::string &base, wxXmlNode *t) {
-    wxXmlNode *baseNode = abstracts[base];
+static void merge(std::map<std::string, pugi::xml_node> &abstracts, const std::string &base, pugi::xml_node t) {
+    pugi::xml_node baseNode = abstracts[base];
     if (baseNode) {
-        for (wxXmlNode* nn = baseNode->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-            if (!DoesXmlNodeExist(t, nn->GetName())) {
-                wxXmlNode *newNode = new wxXmlNode(*nn);
-                t->AddChild(newNode);
+        for (pugi::xml_node nn = baseNode.first_child(); nn; nn = nn.next_sibling()) {
+            if (!DoesXmlNodeExist(t, nn.name())) {
+                t.append_copy(nn);
             }
         }
-        auto newBase = baseNode->GetAttribute("Base");
+        std::string newBase = baseNode.attribute("Base").as_string("");
         if (newBase != "") {
             merge(abstracts, newBase, t);
         }
@@ -61,58 +55,54 @@ static void merge(std::map<std::string, wxXmlNode *> &abstracts, const std::stri
 
 void ControllerCaps::LoadControllers() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (__controllers.size() != 0) return;
 
-    wxString d;
-    wxStandardPaths stdp = wxStandardPaths::Get();
-
-#ifndef __WXMSW__
-    d = wxStandardPaths::Get().GetResourcesDir() + "/controllers";
-#else
-    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/controllers";
-#endif
+    std::string d = GetResourcesDir() + "/controllers";
 
     // in debug look in the master folder
-    if (!wxDir::Exists(d)) {
+    std::error_code ec;
+    if (!std::filesystem::exists(d, ec)) {
 #ifdef _DEBUG
-#ifdef __WXMSW__
-        d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../controllers";
+#ifdef _WIN32
+        d = GetResourcesDir() + "/../../../controllers";
 #endif
 #endif
 #ifdef LINUX
-        d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../controllers";
+        d = GetResourcesDir() + "/../controllers";
 #endif
     }
 
-    if (wxDir::Exists(d)) {
-        wxDir dir(d);
-        wxArrayString files;
-        GetAllFilesInDir(d, files, "*.xcontroller");
-        std::vector<wxXmlDocument> docs;
+    if (std::filesystem::exists(d, ec)) {
+        std::vector<std::string> files;
+        for (const auto& entry : std::filesystem::directory_iterator(d, ec)) {
+            if (entry.is_regular_file() && entry.path().extension() == ".xcontroller") {
+                files.push_back(entry.path().string());
+            }
+        }
+        std::vector<pugi::xml_document> docs;
         docs.resize(files.size());
         int count = 0;
-        for (auto &filename : files) {
-            wxFileName fn(filename);
-            if (FileExists(fn.GetFullPath())) {
-                wxXmlDocument doc;
-                docs[count].Load(fn.GetFullPath());
-                if (!docs[count].IsOk()) {
-                    wxASSERT(false);
-                    logger_base.error("Problem loading " + fn.GetFullPath());
+        for (const auto& filename : files) {
+            if (FileExists(filename)) {
+                pugi::xml_parse_result result = docs[count].load_file(filename.c_str());
+                if (!result) {
+                    assert(false);
+                    spdlog::error("Problem loading " + filename);
                 }
                 count++;
             }
         }
-        std::map<std::string, wxXmlNode *> abstracts;
+        std::map<std::string, pugi::xml_node> abstracts;
         for (auto &doc : docs) {
-            if (doc.IsOk()) {
-                for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "Vendor") {
-                        auto vendor = n->GetAttribute("Name");
-                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                            if (nn->GetName() == "AbstractVariant") {
-                                auto var = nn->GetAttribute("Name");
+            pugi::xml_node root = doc.document_element();
+            if (root) {
+                for (pugi::xml_node n = root; n; n = n.next_sibling()) {
+                    if (std::string_view(n.name()) == "Vendor") {
+                        std::string vendor = n.attribute("Name").as_string("");
+                        for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                            if (std::string_view(nn.name()) == "AbstractVariant") {
+                                std::string var = nn.attribute("Name").as_string("");
                                 abstracts[vendor + ":" + var] = nn;
                             }
                         }
@@ -121,10 +111,11 @@ void ControllerCaps::LoadControllers() {
             }
         }
         for (auto &doc : docs) {
-            if (doc.IsOk()) {
-                for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "Vendor") {
-                        auto vendor = n->GetAttribute("Name");
+            pugi::xml_node root = doc.document_element();
+            if (root) {
+                for (pugi::xml_node n = root; n; n = n.next_sibling()) {
+                    if (std::string_view(n.name()) == "Vendor") {
+                        std::string vendor = n.attribute("Name").as_string("");
 
                         if (__controllers.find(vendor) == end(__controllers)) {
                             __controllers[vendor] = std::map<std::string, std::list<ControllerCaps*>>();
@@ -132,18 +123,18 @@ void ControllerCaps::LoadControllers() {
 
                         auto& v = __controllers[vendor];
 
-                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                            if (nn->GetName() == "Controller") {
-                                auto controller = nn->GetAttribute("Name");
+                        for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                            if (std::string_view(nn.name()) == "Controller") {
+                                std::string controller = nn.attribute("Name").as_string("");
                                 if (v.find(controller) == v.end()) {
                                     v[controller] = std::list<ControllerCaps*>();
                                 }
 
                                 auto& c = v[controller];
-                                for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                    if (nnn->GetName() == "Variant") {
-                                        if (nnn->HasAttribute("Base")) {
-                                            auto base = nnn->GetAttribute("Base");
+                                for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                                    if (std::string_view(nnn.name()) == "Variant") {
+                                        if (!nnn.attribute("Base").empty()) {
+                                            std::string base = nnn.attribute("Base").as_string("");
                                             merge(abstracts, base, nnn);
                                         }
                                         c.push_back(new ControllerCaps(vendor, controller, nnn));
@@ -156,13 +147,13 @@ void ControllerCaps::LoadControllers() {
             }
         }
     } else {
-        logger_base.error("Controllers folder not found " + d);
+        spdlog::error("Controllers folder not found " + d);
     }
 }
 
 void ControllerCaps::UnloadControllers() {
 
-    // delete all the wxXmlNodes
+    // delete all the ControllerCaps
     for (const auto& it : __controllers) {
         for (const auto& it2 : it.second) {
             for (auto it3 : it2.second) {
@@ -549,33 +540,33 @@ bool ControllerCaps::SupportsPixelPortCommonSettings() const {
 
 int ControllerCaps::GetMaxInputE131Universes() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverses"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxInputUniverses").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetSmartRemoteCount() const
 {
 
-    return wxAtoi(GetXmlNodeContent(_config, "SupportsSmartRemotes"));
+    return (int)strtol(GetXmlNodeContent(_config, "SupportsSmartRemotes").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxPixelPort() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxPixelPort"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxPixelPort").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxSerialPort() const {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxSerialPort"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxSerialPort").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxPWMPort() const {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxPWMPort"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxPWMPort").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxVirtualMatrixPort() const {
     //for now, use 1 if supported.  Technially FPP supports unlimitted Virtual Matrices,
     //on one port, but has two HDMI ports on the Pi4 so some of this may need to
     //be adjusted at some point
-    return SupportsVirtualMatrix() ? wxAtoi(GetXmlNodeContent(_config, "MaxVirtualMatrixPorts", "1")): 0;
+    return SupportsVirtualMatrix() ? (int)strtol(GetXmlNodeContent(_config, "MaxVirtualMatrixPorts", "1").c_str(), nullptr, 10): 0;
 }
 int ControllerCaps::GetMaxLEDPanelMatrixPort() const {
     //FPP 9 supports up to 5 PanelMatrices defined
@@ -584,64 +575,64 @@ int ControllerCaps::GetMaxLEDPanelMatrixPort() const {
 
 int ControllerCaps::GetMaxPixelPortChannels() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxPixelPortChannels"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxPixelPortChannels").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxSerialPortChannels() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxSerialPortChannels"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxSerialPortChannels").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxInputUniverseChannels() const {
 
-    return wxAtoi(GetXmlNodeContent(_config, "MaxInputUniverseChannels", "512"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxInputUniverseChannels", "512").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMinInputUniverseChannels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MinInputUniverseChannels", "1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MinInputUniverseChannels", "1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetNumberOfBanks() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "NumberOfBanks", "1"));
+    return (int)strtol(GetXmlNodeContent(_config, "NumberOfBanks", "1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetBankSize() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "BankSize", "16"));
+    return (int)strtol(GetXmlNodeContent(_config, "BankSize", "16").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxStartNullPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxStartNulls", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxStartNulls", "-1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxEndNullPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxEndNulls", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxEndNulls", "-1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxGroupPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxGroup", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxGroup", "-1").c_str(), nullptr, 10);
 }
 
 int ControllerCaps::GetMaxZigZagPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MaxZigZag", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MaxZigZag", "-1").c_str(), nullptr, 10);
 }
 
 // Maximum pixels on a local port or dumb remotes and achieve 40 FPS
 int ControllerCaps::GetMaxPixelsAt40FPS() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "FPS40Pixels", "-1").c_str(), nullptr, 10);
 }
 
 // Maximum pixels on a port using smart remotes and achieve 40 FPS
 int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
 {
-    int res = wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels_SR", "-1"));
+    int res = (int)strtol(GetXmlNodeContent(_config, "FPS40Pixels_SR", "-1").c_str(), nullptr, 10);
 
     if (res == -1)
         return GetMaxPixelsAt40FPS();
@@ -650,7 +641,7 @@ int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
 
 int ControllerCaps::GetMinGroupPixels() const
 {
-    return wxAtoi(GetXmlNodeContent(_config, "MinGroup", "-1"));
+    return (int)strtol(GetXmlNodeContent(_config, "MinGroup", "-1").c_str(), nullptr, 10);
 }
 
 bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {
@@ -724,12 +715,10 @@ std::vector<std::string> ControllerCaps::GetAllProtocols() const
 }
 
 std::string ControllerCaps::GetVariantName() const {
-    auto name = _config->GetAttribute("Name");
-    return name.ToStdString();
+    return _config.attribute("Name").as_string();
 }
 std::string ControllerCaps::GetID() const {
-    auto name = _config->GetAttribute("ID");
-    return name.ToStdString();
+    return _config.attribute("ID").as_string();
 }
 
 std::string ControllerCaps::GetPreferredInputProtocol() const
@@ -777,88 +766,59 @@ std::vector<std::string> ControllerCaps::GetAlternativeNames() const {
 
 void ControllerCaps::Dump() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Controller Capabilities " + _vendor + ":" + _model + ":" + GetVariantName());
+    
+    spdlog::debug("Controller Capabilities " + _vendor + ":" + _model + ":" + GetVariantName());
 
-    if (SupportsUpload()) logger_base.debug("   Supports upload.");
-    if (SupportsInputOnlyUpload()) logger_base.debug("   Supports input only upload.");
-    if (SupportsLEDPanelMatrix()) logger_base.debug("   Supports LED panel matrices.");
-    if (SupportsVirtualStrings()) logger_base.debug("   Supports virtual strings.");
+    if (SupportsUpload()) spdlog::debug("   Supports upload.");
+    if (SupportsInputOnlyUpload()) spdlog::debug("   Supports input only upload.");
+    if (SupportsLEDPanelMatrix()) spdlog::debug("   Supports LED panel matrices.");
+    if (SupportsVirtualStrings()) spdlog::debug("   Supports virtual strings.");
     if (SupportsSmartRemotes()) {
-        logger_base.debug("   Supports smart remotes.");
-        logger_base.debug("   Supported smart remotes types:");
+        spdlog::debug("   Supports smart remotes.");
+        spdlog::debug("   Supported smart remotes types:");
         for (auto const& it : GetSmartRemoteTypes()) {
-            logger_base.debug("      " + it);
+            spdlog::debug("      " + it);
         }
     }
-    if (SupportsMultipleSimultaneousOutputProtocols()) logger_base.debug("   Supports multiple simultaneous output protocols.");
-    if (AllInputUniversesMustBeSameSize()) logger_base.debug("   All input universes must be the same size.");
-    if (UniversesMustBeInNumericalOrder()) logger_base.debug("   All input universes must be in numerical order.");
-    logger_base.debug("   Inputs: maximum of %d universes.", GetMaxInputE131Universes());
-    logger_base.debug("   Input protocols supported:");
+    if (SupportsMultipleSimultaneousOutputProtocols()) spdlog::debug("   Supports multiple simultaneous output protocols.");
+    if (AllInputUniversesMustBeSameSize()) spdlog::debug("   All input universes must be the same size.");
+    if (UniversesMustBeInNumericalOrder()) spdlog::debug("   All input universes must be in numerical order.");
+    spdlog::debug("   Inputs: maximum of {} universes.", GetMaxInputE131Universes());
+    spdlog::debug("   Input protocols supported:");
     for (const auto& it : GetInputProtocols()) {
-        logger_base.debug("      " + it);
+        spdlog::debug("      " + it);
     }
-    logger_base.debug("   Pixel ports: %d ports with a maximum of %d channels per port.", GetMaxPixelPort(), GetMaxPixelPortChannels());
-    logger_base.debug("   Pixel protocols supported:");
+    spdlog::debug("   Pixel ports: {} ports with a maximum of {} channels per port.", GetMaxPixelPort(), GetMaxPixelPortChannels());
+    spdlog::debug("   Pixel protocols supported:");
     for (const auto& it : GetPixelProtocols()) {
-        logger_base.debug("      " + it);
+        spdlog::debug("      " + it);
     }
-    logger_base.debug("   Serial ports: %d ports with a maximum of %d channels per port.", GetMaxSerialPort(), GetMaxSerialPortChannels());
-    logger_base.debug("   Serial protocols supported:");
+    spdlog::debug("   Serial ports: {} ports with a maximum of {} channels per port.", GetMaxSerialPort(), GetMaxSerialPortChannels());
+    spdlog::debug("   Serial protocols supported:");
     for (const auto& it : GetSerialProtocols()) {
-        logger_base.debug("      " + it);
+        spdlog::debug("      " + it);
     }
 }
 
 
-void ControllerCaps::AddProperties(Controller *controller, wxPropertyGrid* propertyGrid) {
-    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "ExtraProperties") {
-            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
-                std::string name = pnode->GetAttribute("name");
-                std::string label = pnode->GetAttribute("label");
-                std::string def = GetXmlNodeContent(pnode, "Default");
-                std::string type = GetXmlNodeContent(pnode, "Type", "String");
-                if (type == "Enum") {
-                    std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
-                    wxPGChoices pgcValues;
-                    for (auto &v : values) {
-                        pgcValues.Add(v);
-                    }
-                    int idx = pgcValues.Index(controller->GetExtraProperty(name, def));
-                    propertyGrid->Append(new wxEnumProperty(label, "Controller" + name, pgcValues, idx));
-                } else if (type == "String") {
-                    propertyGrid->Append(new wxStringProperty(label, "Controller" + name, controller->GetExtraProperty(name, def)));
+std::vector<ControllerCaps::ExtraPropertyDef> ControllerCaps::GetExtraPropertyDefs() const {
+    std::vector<ExtraPropertyDef> result;
+    for (pugi::xml_node n = _config.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == "ExtraProperties") {
+            for (pugi::xml_node pnode = n.first_child(); pnode; pnode = pnode.next_sibling()) {
+                ExtraPropertyDef def;
+                def.name = pnode.attribute("name").as_string("");
+                def.label = pnode.attribute("label").as_string("");
+                def.defaultValue = GetXmlNodeContent(pnode, "Default");
+                def.type = GetXmlNodeContent(pnode, "Type", "String");
+                if (def.type == "Enum") {
+                    def.values = GetXmlNodeListContent(pnode, "Values", "Value");
                 }
+                result.push_back(std::move(def));
             }
         }
     }
-}
-bool ControllerCaps::HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event) {
-    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "ExtraProperties") {
-            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
-                std::string name = pnode->GetAttribute("name");
-                std::string type = GetXmlNodeContent(pnode, "Type", "String");
-                if (event.GetPropertyName() == "Controller" + name) {
-                    if (type == "String") {
-                        controller->SetExtraProperty(name, event.GetPropertyValue().GetString());
-                        return true;
-                    }
-                    if (type == "Enum") {
-                        std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
-                        int idx = event.GetPropertyValue().GetLong();
-                        if (idx < values.size()) {
-                            controller->SetExtraProperty(name, values[idx]);
-                        }
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
+    return result;
 }
 
 #pragma endregion

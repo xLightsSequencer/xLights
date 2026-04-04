@@ -13,15 +13,11 @@
 #include "LOROutput.h"
 #include "LorControllers.h"
 
-#include <wx/propgrid/advprops.h>
-
 // Should be called with: 0 <= chindex <= 3839 (max channels=240*16)
 
 class LOROptimisedOutput : public LOROutput
 {
     static const unsigned int MAX_BANKS = 64;
-    static wxPGChoices __lorDeviceTypes;
-    static wxPGChoices __lorAddressModes;
 
     #pragma region Member Variables
     uint8_t _unit_id = 0x01;
@@ -34,7 +30,7 @@ class LOROptimisedOutput : public LOROutput
 
     #pragma region Private Functions
     void InitialiseTypes();
-    virtual void Save(wxXmlNode* node) override;
+    virtual void SaveAttr(pugi::xml_node node) override;
 	void CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl);
     void CalcTotalChannels();
     void GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb);
@@ -43,7 +39,7 @@ class LOROptimisedOutput : public LOROutput
 public:
 
     #pragma region Constructors and Destructors
-    LOROptimisedOutput(wxXmlNode* node);
+    LOROptimisedOutput(pugi::xml_node node);
     LOROptimisedOutput(const LOROptimisedOutput& from);
     LOROptimisedOutput();
     virtual ~LOROptimisedOutput() override {}
@@ -58,6 +54,9 @@ public:
     LorControllers& GetControllers() { return _controllers; }
 
     virtual std::string GetType() const override { return OUTPUT_LOR_OPT; }
+
+    void EnsureTypesInitialised() { InitialiseTypes(); }
+    void RecalcTotalChannels() { CalcTotalChannels(); }
     #pragma endregion 
 
     virtual bool Open() override;
@@ -72,11 +71,4 @@ public:
     virtual void AllOff() override;
     #pragma endregion 
 
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
-    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) override;
-    #endif
-    #pragma endregion
 };

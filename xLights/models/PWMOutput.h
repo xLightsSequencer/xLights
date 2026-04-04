@@ -35,8 +35,8 @@ public:
 
     uint32_t startChannel;
     
-    int channels = 2;
     Type type = Type::SERVO;
+    int channels = 2;
     std::string label;
 
     //LED properties

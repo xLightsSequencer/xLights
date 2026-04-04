@@ -9,10 +9,9 @@
  **************************************************************/
 
 #include "CirclesEffect.h"
-#include "CirclesPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/circles-16.xpm"
 #include "../../include/circles-24.xpm"
@@ -28,38 +27,6 @@ CirclesEffect::CirclesEffect(int i) : RenderableEffect(i, "Circles", circles_16,
 CirclesEffect::~CirclesEffect()
 {
     //dtor
-}
-
-xlEffectPanel *CirclesEffect::CreatePanel(wxWindow *parent) {
-    return new CirclesPanel(parent);
-}
-
-
-
-void CirclesEffect::SetDefaultParameters() {
-    CirclesPanel *cp = (CirclesPanel*)panel;
-    if (cp == nullptr) {
-        return;
-    }
-
-    cp->BitmapButton_Circles_Count->SetActive(false);
-    cp->BitmapButton_Circles_Size->SetActive(false);
-    cp->BitmapButton_Circles_Speed->SetActive(false);
-
-    SetSliderValue(cp->Slider_Circles_Count, 3);
-    SetSliderValue(cp->Slider_Circles_Size, 5);
-    SetSliderValue(cp->Slider_Circles_Speed, 10);
-    SetSliderValue(cp->Slider_Circles_XC, 0);
-    SetSliderValue(cp->Slider_Circles_YC, 0);
-
-    SetCheckBoxValue(cp->CheckBox_Circles_Bounce, false);
-    SetCheckBoxValue(cp->CheckBox_Circles_Radial, false);
-    SetCheckBoxValue(cp->CheckBox_Circles_Plasma, false);
-    SetCheckBoxValue(cp->CheckBox_Circles_Radial_3D, false);
-    SetCheckBoxValue(cp->CheckBox_Circles_Bubbles, false);
-    SetCheckBoxValue(cp->CheckBox_Circles_Collide, false);
-    SetCheckBoxValue(cp->CheckBox_Circles_Random_m, false);
-    SetCheckBoxValue(cp->CheckBox_Circles_Linear_Fade, false);
 }
 
 CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)

@@ -12,11 +12,7 @@
 #include "ModelManager.h"
 #include "ModelGroup.h"
 
-#include <wx/xml/xml.h>
-#include <wx/tokenzr.h>
-#include <wx/propgrid/propgrid.h>
-
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 static const std::string DEFAULT("Default");
 static const std::string STACKED_STRANDS("Stacked Strands");
@@ -41,10 +37,6 @@ SubModel::SubModel(Model *p, const std::string _name, bool vertical, bool ranges
     DisplayAs = DisplayAsType::SubModel;
 
     name = _name;
-    parm1 = 1;
-    parm2 = 1;
-    parm3 = 1;
-    
     StringType = p->StringType;
 
      // inherit pixel properties from parent model
@@ -73,10 +65,6 @@ SubModel::SubModel(Model *newParent, const SubModel* source) :
     DisplayAs = DisplayAsType::SubModel;
 
     name = source->name;
-    parm1 = source->parm1;
-    parm2 = source->parm2;
-    parm3 = source->parm3;
-    
     StringType = newParent->StringType;
 
     // Inherit pixel properties from new parent model
@@ -107,60 +95,6 @@ SubModel::SubModel(Model *newParent, const SubModel* source) :
 
 bool SubModel::IsXYBufferStyle() { return _bufferStyle == KEEP_XY; }
 
-void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p = grid->Append(new wxStringProperty("SubModel Type", "SMT", _type));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    p = grid->Append(new wxStringProperty("SubModel Layout", "SML", _layout));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    p = grid->Append(new wxStringProperty("SubModel Buffer Style", "SMBS", _bufferStyle));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    p = grid->Append(new wxStringProperty("SubModel", "SMN", _propertyGridDisplay));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    auto modelGroups = parent->GetModelManager().GetGroupsContainingModel(this);
-    if (modelGroups.size() > 0) {
-        std::string mgs;
-        std::string mgscr;
-        for (const auto& it : modelGroups) {
-            if (mgs != "") {
-                mgs += ", ";
-                mgscr += "\n";
-            }
-            mgs += it;
-            mgscr += it;
-        }
-        p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
-        p->SetHelpString(mgscr);
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGFlags::ReadOnly, true);
-    }
-    auto smaliases = parent->GetSubModel(this->GetName())->GetAliases();
-    if (smaliases.size() > 0) {
-        std::string sma;
-        std::string smacr;
-        for (const auto& it : smaliases) {
-            if (sma != "") {
-                sma += ", ";
-                smacr += "\n";
-            }
-            sma += it;
-            smacr += it;
-        }
-        p = grid->Append(new wxStringProperty("SubModel Aliases", "SMA", sma));
-        p->SetHelpString(smacr);
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGFlags::ReadOnly, true);
-    }
-  
-}
 
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
@@ -218,10 +152,10 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
         std::vector<int> hsizes;
         for (auto &n : Nodes) {
             for (auto &c : n->Coords) {
-                while (c.bufX >= hsizes.size()) {
+                while (c.bufX >= (int)hsizes.size()) {
                     hsizes.push_back(-1);
                 }
-                while (c.bufY >= vsizes.size()) {
+                while (c.bufY >= (int)vsizes.size()) {
                     vsizes.push_back(-1);
                 }
                 hsizes[c.bufX] = std::max(hsizes[c.bufX], c.bufY);
@@ -282,10 +216,10 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         std::vector<int> hsizes;
         for (auto &n : Nodes) {
             for (auto &c : n->Coords) {
-                while (c.bufX >= hsizes.size()) {
+                while (c.bufX >= (int)hsizes.size()) {
                     hsizes.push_back(-1);
                 }
-                while (c.bufY >= vsizes.size()) {
+                while (c.bufY >= (int)vsizes.size()) {
                     vsizes.push_back(-1);
                 }
                 hsizes[c.bufX] = std::max(hsizes[c.bufX], c.bufY);
@@ -305,7 +239,7 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         BufferHi = 1;
         BufferWi = total;
         
-        for (int n = firstNode; n < newNodes.size(); n++) {
+        for (int n = firstNode; n < (int)newNodes.size(); n++) {
             for (auto &c : newNodes[n]->Coords) {
                 int curX = c.bufX;
                 int curY = c.bufY;
@@ -373,13 +307,13 @@ void SubModel::CheckDuplicates()
     for (int node : sameDupNodes) {
         if (_sameLineDuplicates != "")
             _sameLineDuplicates += ", ";
-        _sameLineDuplicates += wxString::Format("%d", node + 1);
+        _sameLineDuplicates += std::to_string(node + 1);
     }
 
     for (int node : crossDupNodes) {
         if (_crossLineDuplicates != "")
             _crossLineDuplicates += ", ";
-        _crossLineDuplicates += wxString::Format("%d", node + 1);
+        _crossLineDuplicates += std::to_string(node + 1);
     }
 }
 
@@ -391,7 +325,7 @@ void SubModel::CalcRangeXYBufferSize()
     float maxy = -1;
     for (auto const& idx : _nodeIdx) {
         // ignore nodes indexes if they are out of range
-        if (idx < parent->Nodes.size()) {
+        if (idx < (int)parent->Nodes.size()) {
             NodeBaseClass* node = parent->Nodes[idx]->clone();
             for (const auto& c : node->Coords) {
                 if (c.bufX < minx)
@@ -408,7 +342,7 @@ void SubModel::CalcRangeXYBufferSize()
     }
     for (auto const& idx : _nodeIdx) {
         // ignore nodes indexes if they are out of range
-        if (idx < parent->Nodes.size()) {
+        if (idx < (int)parent->Nodes.size()) {
             NodeBaseClass* node = parent->Nodes[idx]->clone();
             _startChannel = (std::min)(_startChannel, node->ActChan);
             Nodes.push_back(NodeBaseClassPtr(node));
@@ -428,16 +362,17 @@ void SubModel::CalcRangeXYBufferSize()
     }
 }
 
-auto getRange = [](wxString const& a) {
-    if (a.Contains("-")) {
-        int idx = a.Index('-');
-        return std::make_pair(wxAtoi(a.Left(idx)), wxAtoi(a.Right(a.size() - idx - 1)));
+auto getRange = [](std::string const& a) {
+    auto pos = a.find('-');
+    if (pos != std::string::npos) {
+        return std::make_pair((int)std::strtol(a.substr(0, pos).c_str(), nullptr, 10),
+                              (int)std::strtol(a.substr(pos + 1).c_str(), nullptr, 10));
     }
-    int i = wxAtoi(a);
+    int i = (int)std::strtol(a.c_str(), nullptr, 10);
     return std::make_pair(i, i);
 };
 
-void SubModel::AddRangeXY( wxString const& nodes ) {
+void SubModel::AddRangeXY( std::string const& nodes ) {
     _ranges.push_back(nodes);
     if (_propertyGridDisplay == "") {
         _propertyGridDisplay = nodes;
@@ -447,9 +382,7 @@ void SubModel::AddRangeXY( wxString const& nodes ) {
     initRangeXY(nodes);
 }
 void SubModel::initRangeXY(std::string const& nodes) {
-    wxStringTokenizer wtkz(nodes, ",");
-    while (wtkz.HasMoreTokens()) {
-        wxString valstr = wtkz.GetNextToken();
+    for (const auto& valstr : Split(nodes, ',')) {
         auto [start, end] = getRange(valstr);
         if (start != 0) {
             if (start > end) {//order is always lowest to highest for grid
@@ -464,12 +397,12 @@ void SubModel::initRangeXY(std::string const& nodes) {
         }
     }
     _nodeIndexes.push_back(-1);
-    
+
     //ModelStartChannel is 1 based
-    this->ModelStartChannel = wxString::Format("%u", (_startChannel + 1));
+    this->ModelStartChannel = std::to_string(_startChannel + 1);
 }
 
-void SubModel::AddDefaultBuffer( wxString const& nodes )
+void SubModel::AddDefaultBuffer( std::string const& nodes )
 {
     _ranges.push_back(nodes);
     if (_propertyGridDisplay == "") {
@@ -481,9 +414,7 @@ void SubModel::AddDefaultBuffer( wxString const& nodes )
 }
 
 void SubModel::initDefaultBuffer(const std::string &nodes) {
-    wxStringTokenizer wtkz(nodes, ",");
-    while (wtkz.HasMoreTokens()) {
-        wxString valstr = wtkz.GetNextToken();
+    for (const auto& valstr : Split(nodes, ',')) {
         auto [start, end] = getRange(valstr);
         if (start == 0) {
             if (_vert) {
@@ -495,7 +426,7 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
             start--;
             end--;
             bool done = false;
-            wxInt32 nn = start;
+            int nn = start;
             while (!done) {
                 if ((uint32_t)nn < parent->GetNodeCount()) {
                     _nodeIndexes.push_back(nn);
@@ -563,7 +494,7 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
     SetBufferSize(_maxRow + 1, _maxCol + 1);
 
     //ModelStartChannel is 1 based
-    this->ModelStartChannel = wxString::Format("%u", (_startChannel + 1));
+    this->ModelStartChannel = std::to_string(_startChannel + 1);
 }
 
 void SubModel::AddSubbuffer(std::string const& range )
@@ -578,11 +509,11 @@ void SubModel::initSubbufferRange(std::string const& range) {
     float y1 = 0;
     float y2 = 100;
     if (range != "") {
-        wxArrayString v = wxSplit(range, 'x');
-        x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
-        y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
-        x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
-        y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
+        auto v = Split(range, 'x');
+        x1 = v.size() > 0 ? std::strtof(v[0].c_str(), nullptr) : 0.0f;
+        y1 = v.size() > 1 ? std::strtof(v[1].c_str(), nullptr) : 0.0f;
+        x2 = v.size() > 2 ? std::strtof(v[2].c_str(), nullptr) : 100.0f;
+        y2 = v.size() > 3 ? std::strtof(v[3].c_str(), nullptr) : 100.0f;
     }
     
     if (x1 > x2) std::swap(x1, x2);
@@ -640,7 +571,7 @@ void SubModel::initSubbufferRange(std::string const& range) {
     }
     
     //ModelStartChannel is 1 based
-    this->ModelStartChannel = wxString::Format("%u", (_startChannel + 1));
+    this->ModelStartChannel = std::to_string(_startChannel + 1);
 }
 
 

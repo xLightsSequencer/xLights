@@ -8,22 +8,17 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
-#include <wx/msgdlg.h>
+#include <format>
 
 #include "MatrixModel.h"
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "ModelManager.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -34,153 +29,13 @@ MatrixModel::~MatrixModel()
 {
 }
 
-static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
-    "Top Left",
-    "Top Right",
-    "Bottom Left",
-    "Bottom Right"
-};
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
-
-static const char* MATRIX_STYLES_VALUES[] = {
-    "Horizontal",
-    "Vertical"
-};
-
-static wxPGChoices MATRIX_STYLES(wxArrayString(2, MATRIX_STYLES_VALUES));
-
-void MatrixModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-
-    AddStyleProperties(grid);
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "MatrixStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 10000);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller. *This would also be the 'Height' of a Horizontal Virtual Matrix.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "MatrixLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String. \n *This would also be the 'Width' of a Horizontal Virtual Matrix.");
-    }
-
-    p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 2500);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically how many times the #String ZigZags.");
-    if (parm2 % parm3 != 0) {
-        p->SetBackgroundColour(*wxRED);
-        p->SetHelpString("Strands/String must divide into Nodes/String evenly.");
-    }
-    else {
-        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-    }
-
-    grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
-}
-
-void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-    grid->Append(new wxEnumProperty("Direction", "MatrixStyle", MATRIX_STYLES, _vMatrix ? 1 : 0));
-    wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
-    p->SetEditor("CheckBox");
-    p->Enable(_noZigZag == false);
-
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
-    p->SetEditor("CheckBox");
-    p->Enable(_alternateNodes == false);
-}
-
-int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("MatrixStyle" == event.GetPropertyName()) {
-        _vMatrix = event.GetPropertyValue().GetLong();
-        // AdjustStringProperties(grid, parm1);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStyle");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStyle");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixStyle");
-        return 0;
-    } else if ("MatrixStringCount" == event.GetPropertyName()) {
-        parm1 = static_cast<int>(event.GetPropertyValue().GetLong());
-        // AdjustStringProperties(grid, parm1);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
-        return 0;
-    } else if ("MatrixLightCount" == event.GetPropertyName()) {
-        parm2 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
-        return 0;
-    } else if ("MatrixStrandCount" == event.GetPropertyName()) {
-        parm3 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
-        return 0;
-    } else if ("MatrixStart" == event.GetPropertyName()) {
-        _dir = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R";
-        _startSide = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B";
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStart");
-        return 0;
-    } else if (event.GetPropertyName() == "AlternateNodes") {
-        _alternateNodes = event.GetPropertyValue().GetBool();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::AlternateNodes");
-        grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
-        return 0;
-    } else if (event.GetPropertyName() == "NoZig") {
-        _noZigZag = event.GetPropertyValue().GetBool();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::NoZig");
-        grid->GetPropertyByName("AlternateNodes")->Enable(event.GetPropertyValue().GetBool() == false);
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
-
 std::list<std::string> MatrixModel::CheckModelSettings()
 {
    std::list<std::string> res;
 
-   if (!StartsWith(StringType, "Single Color") && parm2 % parm3 != 0)
+   if (!StartsWith(StringType, "Single Color") && _nodesPerString % _strandsPerString != 0)
    {
-       res.push_back(wxString::Format("    ERR: Model %s strands are not equally sized %d does not divide into string length %d evenly. As a result only %d of %d nodes are initialised.", GetName(), parm3, parm2, (int)GetNodeCount(), parm1 * parm2));
+       res.push_back(std::format("    ERR: Model {} strands are not equally sized {} does not divide into string length {} evenly. As a result only {} of {} nodes are initialised.", GetName(), _strandsPerString, _nodesPerString, (int)GetNodeCount(), _numStrings * _nodesPerString));
    }
 
    res.splice(res.end(), Model::CheckModelSettings());
@@ -189,18 +44,30 @@ std::list<std::string> MatrixModel::CheckModelSettings()
 
 int MatrixModel::GetNumStrands() const {
     if (SingleChannel || SingleNode) {
-        return parm1;
+        return _numStrings;
     }
-    return parm1*parm3;
+    return _numStrings*_strandsPerString;
+}
+
+int MatrixModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
 }
 
 bool MatrixModel::ChangeStringCount(long count, std::string & message)
 {
-    if (count == parm1) {
+    if (count == _numStrings) {
         return true;
     }
-    auto oldTotalPix = parm1 * parm2;
-    auto oldTotalStands = parm1 * parm3;
+    auto oldTotalPix = _numStrings * _nodesPerString;
+    auto oldTotalStands = _numStrings * _strandsPerString;
     if (oldTotalPix % count != 0) {
         message = "Pixel Count (" + std::to_string(oldTotalPix) + ") is not divisible by " + std::to_string(count);
         return false;
@@ -210,19 +77,16 @@ bool MatrixModel::ChangeStringCount(long count, std::string & message)
         return false;
     }
 
-    auto nparm2 = oldTotalPix / count;
-    auto nparm3 = oldTotalStands / count;
+    auto newNodesPerString = oldTotalPix / count;
+    auto newStrandsPerString = oldTotalStands / count;
 
-    parm1 = (int)count;
-    parm2 = (int)nparm2;
-    parm3 = (int)nparm3;
-    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ChangeStringCount::MatrixStringCount");
-    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::ChangeStringCount::MatrixStringCount");
-    AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::ChangeStringCount::MatrixStringCount");
-    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "MatrixModel::ChangeStringCount::MatrixStringCount");
-    AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::ChangeStringCount::MatrixStringCount");
-    AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "MatrixModel::ChangeStringCount::MatrixStringCount");
-    AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::ChangeStringCount::MatrixStringCount");
+    _numStrings = (int)count;
+    _nodesPerString = (int)newNodesPerString;
+    _strandsPerString = (int)newStrandsPerString;
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                OutputModelManager::WORK_RELOAD_MODELLIST |
+                OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::ChangeStringCount::MatrixStringCount");
     return true;
 }
 
@@ -233,11 +97,11 @@ void MatrixModel::InitSingleChannelModel()
     // rework bufX/bufY for singleChannel
     if (SingleNode)
     {
-        int NumStrands = parm1 * parm3;
-        int PixelsPerStrand = parm2 / parm3;
+        int NumStrands = _numStrings * _strandsPerString;
+        int PixelsPerStrand = _nodesPerString / _strandsPerString;
         if (_vMatrix)
         {
-            SetBufferSize(SingleNode ? 1 : PixelsPerStrand, SingleNode ? parm1 : NumStrands);
+            SetBufferSize(SingleNode ? 1 : PixelsPerStrand, SingleNode ? _numStrings : NumStrands);
             int x = 0;
             for (size_t n = 0; n < Nodes.size(); n++) {
                 for (auto& c : Nodes[n]->Coords)
@@ -250,7 +114,7 @@ void MatrixModel::InitSingleChannelModel()
         }
         else
         {
-            SetBufferSize(SingleNode ? parm1 : NumStrands, SingleNode ? 1 : PixelsPerStrand);
+            SetBufferSize(SingleNode ? _numStrings : NumStrands, SingleNode ? 1 : PixelsPerStrand);
             int y = 0;
             for (size_t n = 0; n < Nodes.size(); n++) {
                 for (auto& c : Nodes[n]->Coords)
@@ -275,21 +139,21 @@ void MatrixModel::InitModel() {
 }
 
 // initialize buffer coordinates
-// parm1=NumStrings
-// parm2=PixelsPerString
-// parm3=StrandsPerString
+// _numStrings=number of strings
+// _nodesPerString=pixels per string
+// _strandsPerString=strands per string
 void MatrixModel::InitVMatrix(int firstExportStrand)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int stringnum, segmentnum;
-    if (parm3 > parm2) {
-        parm3 = parm2;
+    if (_strandsPerString > _nodesPerString) {
+        _strandsPerString = _nodesPerString;
     }
-    int NumStrands = parm1 * parm3;
-    int PixelsPerStrand = parm2 / parm3;
-    int PixelsPerString = PixelsPerStrand * parm3;
+    int NumStrands = _numStrings * _strandsPerString;
+    int PixelsPerStrand = _nodesPerString / _strandsPerString;
+    int PixelsPerString = PixelsPerStrand * _strandsPerString;
     SetBufferSize(ApplyLowDefinition(PixelsPerStrand), ApplyLowDefinition(NumStrands));
-    SetNodeCount(parm1, PixelsPerString, rgbOrder);
+    SetNodeCount(_numStrings, PixelsPerString, rgbOrder);
     screenLocation.SetRenderSize(NumStrands, PixelsPerStrand, 2.0f);
     int chanPerNode = GetNodeChannelCount(StringType);
 
@@ -314,7 +178,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 
             int y = 0;
             int yincr = 1;
-            for (size_t c = 0; c < PixelsPerString; c++) {
+            for (int c = 0; c < PixelsPerString; c++) {
                 Nodes[n]->Coords[c].bufX = IsLtoR ? x : NumStrands - x - 1;
                 Nodes[n]->Coords[c].bufY = y;
                 y += yincr;
@@ -332,8 +196,8 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
         strandStartChan.clear();
         strandStartChan.resize(NumStrands);
         for (int x2 = 0; x2 < NumStrands; x2++) {
-            stringnum = x2 / parm3;
-            segmentnum = x2 % parm3;
+            stringnum = x2 / _strandsPerString;
+            segmentnum = x2 % _strandsPerString;
             strandStartChan[x2] = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode;
         }
         if (firstExportStrand > 0 && firstExportStrand < NumStrands) {
@@ -346,16 +210,16 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             }
         }
 
-        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
+        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().IsLowDefinitionRender()) {
             for (int x = 0; x < NumStrands; x++) {
-                stringnum = x / parm3;
-                segmentnum = x % parm3;
+                stringnum = x / _strandsPerString;
+                segmentnum = x % _strandsPerString;
                 for (int y = 0; y < PixelsPerStrand; y++) {
                     int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
                     Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
                     Nodes[idx]->Coords[0].bufX = IsLtoR ? x : NumStrands - x - 1;
                     Nodes[idx]->StringNum = stringnum;
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (isBotToTop) {
                             if (y + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufY = y * 2;
@@ -370,7 +234,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
@@ -381,20 +245,20 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+            spdlog::debug("Building low definition buffer at {}%", _lowDefFactor);
 
             int xoffset = NumStrands / 2;
             int yoffset = PixelsPerStrand / 2;
 
             for (int x = 0; x < NumStrands; x++) {
-                stringnum = x / parm3;
-                segmentnum = x % parm3;
+                stringnum = x / _strandsPerString;
+                segmentnum = x % _strandsPerString;
                 for (int y = 0; y < PixelsPerStrand; y++) {
                     int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
                     Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
                     Nodes[idx]->Coords[0].bufX = IsLtoR ? x : NumStrands - x - 1;
                     Nodes[idx]->StringNum = stringnum;
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (isBotToTop) {
                             if (y + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufY = y * 2;
@@ -409,7 +273,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
@@ -431,20 +295,20 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 }
 
 // initialize buffer coordinates
-// parm1=NumStrings
-// parm2=PixelsPerString
-// parm3=StrandsPerString
+// _numStrings=number of strings
+// _nodesPerString=pixels per string
+// _strandsPerString=strands per string
 void MatrixModel::InitHMatrix() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int idx,stringnum,segmentnum,xincr;
-    if (parm3 > parm2) {
-        parm3 = parm2;
+    if (_strandsPerString > _nodesPerString) {
+        _strandsPerString = _nodesPerString;
     }
-    int NumStrands=parm1*parm3;
-    int PixelsPerStrand=parm2/parm3;
-    int PixelsPerString=PixelsPerStrand*parm3;
+    int NumStrands=_numStrings*_strandsPerString;
+    int PixelsPerStrand=_nodesPerString/_strandsPerString;
+    int PixelsPerString=PixelsPerStrand*_strandsPerString;
     SetBufferSize(ApplyLowDefinition(NumStrands), ApplyLowDefinition(PixelsPerStrand));
-    SetNodeCount(parm1,PixelsPerString,rgbOrder);
+    SetNodeCount(_numStrings,PixelsPerString,rgbOrder);
     screenLocation.SetRenderSize(PixelsPerStrand, NumStrands, 2.0f);
     
     int chanPerNode = GetNodeChannelCount(StringType);
@@ -472,7 +336,7 @@ void MatrixModel::InitHMatrix() {
 
             int x = 0;
             xincr = 1;
-            for (size_t c = 0; c < PixelsPerString; c++) {
+            for (int c = 0; c < PixelsPerString; c++) {
                 Nodes[n]->Coords[c].bufX = x;
                 Nodes[n]->Coords[c].bufY = isBotToTop ? y : NumStrands - y - 1;
                 x += xincr;
@@ -486,10 +350,10 @@ void MatrixModel::InitHMatrix() {
         GetModelScreenLocation().SetRenderSize(PixelsPerStrand, NumStrands, GetModelScreenLocation().GetRenderDp());
 
     } else {
-        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
+        if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().IsLowDefinitionRender()) {
             for (int y = 0; y < NumStrands; y++) {
-                stringnum = y / parm3;
-                segmentnum = y % parm3;
+                stringnum = y / _strandsPerString;
+                segmentnum = y % _strandsPerString;
                 for (int x = 0; x < PixelsPerStrand; x++) {
                     idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
                     Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode + x * chanPerNode;
@@ -497,7 +361,7 @@ void MatrixModel::InitHMatrix() {
                     Nodes[idx]->Coords[0].bufY = isBotToTop ? y : NumStrands - y - 1;
                     Nodes[idx]->StringNum = stringnum;
 
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (IsLtoR) {
                             if (x + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufX = x * 2;
@@ -512,7 +376,7 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {
@@ -523,14 +387,14 @@ void MatrixModel::InitHMatrix() {
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+            spdlog::debug("Building low definition buffer at {}%", _lowDefFactor);
 
             int xoffset = PixelsPerStrand / 2;
             int yoffset = NumStrands / 2;
 
             for (int y = 0; y < NumStrands; y++) {
-                stringnum = y / parm3;
-                segmentnum = y % parm3;
+                stringnum = y / _strandsPerString;
+                segmentnum = y % _strandsPerString;
                 for (int x = 0; x < PixelsPerStrand; x++) {
                     idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
                     Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode + x * chanPerNode;
@@ -538,7 +402,7 @@ void MatrixModel::InitHMatrix() {
                     Nodes[idx]->Coords[0].bufY = isBotToTop ? y : NumStrands - y - 1;
                     Nodes[idx]->StringNum = stringnum;
 
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (IsLtoR) {
                             if (x + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufX = x * 2;
@@ -553,7 +417,7 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {

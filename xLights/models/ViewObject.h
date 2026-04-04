@@ -14,7 +14,7 @@
 #include "ModelScreenLocation.h"
 #include "ViewObjectManager.h"
 
-class ModelPreview;
+class IModelPreview;
 class xlGraphicsProgram;
 class xlGraphicsContext;
 
@@ -24,18 +24,9 @@ public:
     ViewObject(const ObjectManager &manager);
     virtual ~ViewObject();
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override {}
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override
-    {}
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
-    virtual std::string GetDimension() const override
-    {
-        return "";
-    }
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
+    virtual std::string GetDimension() const override { return ""; }
     void Setup() override;
+    void AddASAPWork(uint32_t work, const std::string& from) override;
     virtual void InitModel() = 0;
 
     void ReloadModel() override {
@@ -48,10 +39,14 @@ public:
     virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
 
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) { return false; }
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) { return false; }
+
+    const ObjectManager& GetObjectManager() const { return objectManager; }
+
 protected:
 
 private:
+    const ObjectManager& objectManager;
     bool only_3d {true};
 };
 

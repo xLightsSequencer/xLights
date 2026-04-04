@@ -12,19 +12,11 @@
 
 #include "../Model.h"
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
-
 class DmxBeamAbility
 {
     public:
         DmxBeamAbility();
         virtual ~DmxBeamAbility();
-
-        void AddBeamTypeProperties(wxPropertyGridInterface *grid);
-        int OnBeamPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base);
 
         [[nodiscard]] float GetBeamLength() const { return beam_length; }
         [[nodiscard]] float GetDefaultBeamLength() const { return default_beam_length; }
@@ -41,8 +33,8 @@ class DmxBeamAbility
         void SetBeamWidth( float width ) {
             beam_width = width; }
         void SetDefaultBeamWidth( float width ) { default_beam_width = width; }
-        void SetBeamYOffset(float offset) { default_beam_y_offset = offset; }
-        void SetDefaultBeamYOffset(float offset) { beam_y_offset = offset; }
+        void SetBeamYOffset(float offset) { beam_y_offset = offset; }
+        void SetDefaultBeamYOffset(float offset) { default_beam_y_offset = offset; }
         void SetBeamOrient(int orient) { beam_orient = orient; }
 
         void SetSupportsOrient(bool val) { supports_orient = val; }

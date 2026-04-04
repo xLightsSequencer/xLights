@@ -9,7 +9,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include "Output.h"
 #include "E131Output.h"
@@ -31,23 +31,23 @@
 #include "OpenPixelNetOutput.h"
 #include "OpenDMXOutput.h"
 #include "GenericSerialOutput.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "OutputManager.h"
 #include "../utils/ip_utils.h"
 #include "Controller.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #pragma region Private Functions
-void Output::Save(wxXmlNode* node) {
+void Output::SaveAttr(pugi::xml_node node) {
 
-    node->AddAttribute("NetworkType", wxString(GetType().c_str()));
+    node.append_attribute("NetworkType") = GetType();
 
-    node->AddAttribute("MaxChannels", wxString::Format("%d", _channels));
+    node.append_attribute("MaxChannels") = _channels;
 
-    node->DeleteAttribute("FPPProxy");
+    node.remove_attribute("FPPProxy");
     if (IsUsingFPPProxy()) {
-        node->AddAttribute("FPPProxy", _fppProxy);
+        node.append_attribute("FPPProxy") = _fppProxy;
     }
 
     _dirty = false;
@@ -70,17 +70,17 @@ Output::Output(const Output& from) {
     _enabled = from.IsEnabled();
 }
 
-Output::Output(wxXmlNode* node) {
+Output::Output(pugi::xml_node node) {
     _ok = true;
 
-    _channels = wxAtoi(node->GetAttribute("MaxChannels", "0"));
+    _channels = node.attribute("MaxChannels").as_int(0);
 
     // Only kept for conversion
-    _autoSize_CONVERT = node->GetAttribute("AutoSize", "FALSE") == "TRUE";
-    _fppProxy = UnXmlSafe(node->GetAttribute("FPPProxy"));
-    _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
-    _suppressDuplicateFrames = (node->GetAttribute("SuppressDuplicates", "No") == "Yes");
-    _description_CONVERT = UnXmlSafe(node->GetAttribute("Description"));
+    _autoSize_CONVERT = std::string_view(node.attribute("AutoSize").as_string("FALSE")) == "TRUE";
+    _fppProxy = UnXmlSafe(node.attribute("FPPProxy").as_string(""));
+    _enabled = (std::string_view(node.attribute("Enabled").as_string("Yes")) == "Yes");
+    _suppressDuplicateFrames = (std::string_view(node.attribute("SuppressDuplicates").as_string("No")) == "Yes");
+    _description_CONVERT = UnXmlSafe(node.attribute("Description").as_string(""));
 
     _dirty = false;
 }
@@ -97,20 +97,20 @@ Output::~Output() {
     }
 }
 
-wxXmlNode* Output::Save() {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Save(node);
+pugi::xml_node Output::Save(pugi::xml_node parent) {
+    pugi::xml_node node = parent.append_child("network");
+    SaveAttr(node);
     return node;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region Static Functions
-Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
+Output* Output::Create(Controller* c, pugi::xml_node node, std::string showDir) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    wxString type = node->GetAttribute("NetworkType", "");
-    if (type.EndsWith(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
+    std::string type = node.attribute("NetworkType").as_string("");
+    if (type.ends_with(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
 
     if (type == OUTPUT_E131) {
         return new E131Output(node, c && c->IsActive());
@@ -169,8 +169,8 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
         return new TwinklyOutput(node, c && c->IsActive());
     }
 
-    logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());
-    wxASSERT(false);
+    spdlog::warn("Unknown network type {} ignored.", type.c_str());
+    assert(false);
     return nullptr;
 }
 #pragma endregion
@@ -211,7 +211,7 @@ std::string Output::GetForceLocalIPToUse() const
 }
 
 void Output::SetTransientData(int32_t& startChannel, int nullnumber) {
-    wxASSERT(startChannel != -1);
+    assert(startChannel != -1);
     _startChannel = startChannel;
     if (GetType() == OUTPUT_NULL) {
         _nullNumber = nullnumber++;
@@ -291,7 +291,7 @@ void Output::SetManyChannels(int32_t channel, unsigned char* data, size_t size) 
 
 #pragma region Frame Handling
 void Output::FrameOutput() {
-    _lastOutputTime = wxGetUTCTimeMillis();
+    _lastOutputTime = GetCurrentTimeMillis();
     _skippedFrames = 0;
     _changed = false;
     OutputManager::RegisterSentPacket();

@@ -10,16 +10,14 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/thread.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
+#include <functional>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 #include <vector>
-
-class wxWindow;
-class wxXmlNode;
 
 class Output;
 class Controller;
@@ -45,7 +43,7 @@ class OutputManager
     bool _didConvert = false;
     std::string _globalFPPProxy;
     std::string _globalForceLocalIP;
-    wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
+    std::mutex _outputCriticalSection; // used to protect areas that must be single threaded
     std::string _baseShowDir = "";
     bool _autoUpdateFromBaseShowDir = false;
     #pragma endregion 
@@ -58,10 +56,11 @@ class OutputManager
     static int _currentSecondCount;
     static bool _isRetryOpen;
     static bool _isInteractive;
-    #pragma endregion 
+    // Callback for user confirmation prompts (replaces wxMessageBox in non-UI code)
+    static std::function<bool(const std::string& message, const std::string& title)> _confirmCallback;
+    #pragma endregion
 
     #pragma region Private Functions
-    bool SetGlobalOutputtingFlag(bool state, bool force = false);
     bool ConvertStartChannel(const std::string sc, std::string& newsc) const;
     void AsyncPingAll();
     #pragma endregion 
@@ -76,9 +75,9 @@ public:
     #pragma region Save and Load
     bool Load(const std::string& showdir, bool syncEnabled = false);
     bool Save();
-    wxXmlDocument SaveToXML();
+    void SaveToXML(pugi::xml_document& doc);
     bool DidConvert() const { return _didConvert; }
-    bool ConvertModelStartChannels(wxXmlNode* modelsNode) const;
+    bool ConvertModelStartChannels(pugi::xml_node modelsNode) const;
     #pragma endregion 
 
     #pragma region Static Functions
@@ -88,6 +87,12 @@ public:
     static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
     static bool IsInteractive() { return _isInteractive; }
     static void SetInteractive(bool interactive) { _isInteractive = interactive; }
+    static void SetConfirmCallback(std::function<bool(const std::string&, const std::string&)> cb) { _confirmCallback = std::move(cb); }
+    // Ask user for confirmation. Returns true if confirmed, false if declined or non-interactive.
+    static bool Confirm(const std::string& message, const std::string& title) {
+        if (_isInteractive && _confirmCallback) return _confirmCallback(message, title);
+        return false;
+    }
     static std::vector<std::string> GetExportHeaders();
     #pragma endregion
 

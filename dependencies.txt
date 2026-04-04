@@ -11,15 +11,6 @@ Version:     Latest Tag [wxWidgets 3.2.x plus a few patches]
 License:     wxWindows Library License
 Strategy:    Windows: wxWidgets source is not included in the xLights repository. Builders are expected to grab the appropriate version from Git and build it.
 
-Library:     log4cpp
-Usage:       Logging
-Link:        http://log4cpp.sourceforge.net/
-Source:      https://sourceforge.net/p/log4cpp/codegit/ci/master/tree/
-Last Pulled: July 13 2017
-Version:     1.1.3 [As at Jan 2021 this is the latest version]
-License:     LGPL
-Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
-
 Library:     libcurl
 Usage:       HTTPS
 Link:        https://curl.haxx.se/libcurl/

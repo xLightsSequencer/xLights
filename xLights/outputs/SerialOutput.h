@@ -10,8 +10,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <vector>
+
 #include "Output.h"
-#include "serial.h"
+
+class SerialPort;
 
 class SerialOutput : public Output
 {
@@ -20,24 +23,24 @@ protected:
     #pragma region Member Variables
     SerialPort* _serial = nullptr;
     char _serialConfig[4];
-    wxLongLong _dieTime = 0;
+    int64_t _dieTime = 0;
     std::vector<uint8_t> _prefix;
     std::vector<uint8_t> _postfix;
 #pragma endregion
 
     #pragma region Private Functions
-    virtual void Save(wxXmlNode* node) override;
-    void SetDontDieUntil(wxLongLong dieTime) { _dieTime = dieTime; }
+    virtual void SaveAttr(pugi::xml_node node) override;
+    void SetDontDieUntil(int64_t dieTime) { _dieTime = dieTime; }
     #pragma endregion
 
 public:
 
     #pragma region Constructors and Destructors
-    SerialOutput(wxXmlNode* node);
+    SerialOutput(pugi::xml_node node);
     SerialOutput(const SerialOutput& from);
     SerialOutput();
     virtual ~SerialOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     #pragma endregion 
 
     #pragma region Static Functions

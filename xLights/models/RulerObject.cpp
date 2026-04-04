@@ -8,12 +8,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
+#include <format>
 #include "RulerObject.h"
-#include "ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "Model.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
@@ -40,39 +39,8 @@ void RulerObject::InitModel() {
     screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));
 }
 
-static const char *UNITS_VALUES[] = {
-    "Meters", "Centimeters", "Millimeters", "Yards", "Feet",
-    "Inches"};
-static wxArrayString RULER_UNITS(6, UNITS_VALUES);
 
-void RulerObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-	wxPGProperty* p = grid->Append(new wxEnumProperty("Units", "Units", RULER_UNITS, wxArrayInt(), _units));
-
-    p = grid->Append(new wxFloatProperty("Real Length", "Length", _realLength));
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.5);
-    p->SetAttribute("Min", 0.01);
-    p->SetEditor("SpinCtrl");
-}
-
-int RulerObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("Units" == event.GetPropertyName()) {
-        _units = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "RulerObject::OnPropertyGridChange::Units");
-        return 0;
-    }
-    else if ("Length" == event.GetPropertyName()) {
-        _realLength = event.GetPropertyValue().GetDouble();
-        if (_realLength < 0.01) _realLength = 0.01f;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridWidth");
-        return 0;
-    }
-
-    return ViewObject::OnPropertyGridChange(grid, event);
-}
-
-bool RulerObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+bool RulerObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
     if (!IsActive()) { return true; }
@@ -163,25 +131,25 @@ float RulerObject::MeasureDepth(glm::vec3 p1, glm::vec3 p2)
 std::string RulerObject::MeasureLengthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", Measure(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", Measure(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", MeasureWidth(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", MeasureWidth(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", MeasureHeight(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", MeasureHeight(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", MeasureDepth(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", MeasureDepth(p1,p2), GetUnitDescription());
 }
 
 float RulerObject::Convert(const std::string& fromUnits, int toUnits, float measure) {
@@ -434,11 +402,11 @@ float RulerObject::GetPerUnit() const
 std::string RulerObject::MeasureDescription(float length)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", Measure(length), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", Measure(length), GetUnitDescription());
 }
 
 std::string RulerObject::PrescaledMeasureDescription(float length)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", length, GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", length, GetUnitDescription());
 }

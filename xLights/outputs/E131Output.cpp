@@ -10,19 +10,38 @@
  **************************************************************/
 
 #include "E131Output.h"
+#include <algorithm>
+#include <cctype>
+#include <cstring>
+#ifdef _WIN32
+#include <process.h>
+#define getpid _getpid
+#else
+#include <unistd.h>
+#endif
 #include "OutputManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../utils/ip_utils.h"
 #include "ControllerEthernet.h"
-#ifndef EXCLUDENETWORKUI
-#include "../models/ModelManager.h"
-#endif
 
-#include <wx/xml/xml.h>
-#include <wx/process.h>
-#include <wx/propgrid/propgrid.h>
+#include <format>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
+
+// Parse a UUID string (e.g. "c0de0080-c69b-...") into 16 raw bytes at dest[0..15].
+static void ParseUUIDBytes(const char* uuid, uint8_t* dest) {
+    std::string id(uuid);
+    std::erase(id, '-');
+    for (auto& c : id) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    assert(id.size() == 32);
+    for (int i = 0, j = 0; i < 32; i += 2) {
+        char msb = id[i];
+        char lsb = id[i + 1];
+        msb -= std::isdigit(static_cast<unsigned char>(msb)) ? 0x30 : 0x57;
+        lsb -= std::isdigit(static_cast<unsigned char>(lsb)) ? 0x30 : 0x57;
+        dest[j++] = (uint8_t)((msb << 4) | lsb);
+    }
+}
 
 #pragma region Private Functions
 void E131Output::CreateMultiUniverses_CONVERT(int num) {
@@ -50,29 +69,16 @@ void E131Output::CreateMultiUniverses_CONVERT(int num) {
 
 void E131Output::OpenDatagram() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_datagram != nullptr) return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIPToUse());
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+    _datagram = new sockets::UDPSocket();
     if (_datagram == nullptr) {
-        logger_base.error("E131Output: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("E131Output: Error creating datagram object.");
     }
-    else if (!_datagram->IsOk()) {
-        logger_base.error("E131Output: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-    }
-    else if (_datagram->Error()) {
-        logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+    else if (!_datagram->Bind(GetForceLocalIPToUse(), 0, false)) {
+        spdlog::error("E131Output: Error opening datagram. {}", _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -80,12 +86,12 @@ void E131Output::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-E131Output::E131Output(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+E131Output::E131Output(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
-    _numUniverses_CONVERT = wxAtoi(node->GetAttribute("NumUniverses", "1"));
-    _priority = wxAtoi(node->GetAttribute("Priority","100"));
+    _numUniverses_CONVERT = node.attribute("NumUniverses").as_int(1);
+    _priority = node.attribute("Priority").as_int(100);
     if (_numUniverses_CONVERT > 1) {
         CreateMultiUniverses_CONVERT(_numUniverses_CONVERT);
     }
@@ -133,13 +139,13 @@ E131Output::~E131Output()
     }
 }
 
-wxXmlNode* E131Output::Save() {
+pugi::xml_node E131Output::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    IPOutput::Save(node);
+    pugi::xml_node node = parent.append_child("network");
+    IPOutput::SaveAttr(node);
 
     if (_priority != E131_DEFAULT_PRIORITY) {
-        node->AddAttribute("Priority", wxString::Format(wxT("%i"), _priority));
+        node.append_attribute("Priority") = _priority;
     }
 
     return node;
@@ -149,17 +155,17 @@ wxXmlNode* E131Output::Save() {
 #pragma region Static Functions
 void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static uint8_t syncdata[E131_SYNCPACKET_LEN];
     static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
-    static wxUint16 _lastsyncuniverse = 0;
-    static wxIPV4address syncremoteAddr;
-    static wxDatagramSocket *syncdatagram = nullptr;
+    static uint16_t _lastsyncuniverse = 0;
+    static std::string syncremoteIp;
+    static sockets::UDPSocket* syncdatagram = nullptr;
 
     if (!initialised) {
 
-        logger_base.debug("Initialising e131 Sync.");
+        spdlog::debug("Initialising e131 Sync.");
         initialised = true;
 
         memset(syncdata, 0x00, sizeof(syncdata));
@@ -178,17 +184,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
         syncdata[17] = 0x21;  // 0x021 = 49 - 16
         syncdata[21] = 0x08;
 
-        wxString id = XLIGHTS_UUID;
-        id.Replace("-", "");
-        id.MakeLower();
-        if (id.Len() != 32) throw "invalid CID";
-        for (int i = 0, j = 22; i < 32; i += 2) {
-            wxChar msb = id.GetChar(i);
-            wxChar lsb = id.GetChar(i + 1);
-            msb -= isdigit(msb) ? 0x30 : 0x57;
-            lsb -= isdigit(lsb) ? 0x30 : 0x57;
-            syncdata[j++] = (uint8_t)((msb << 4) | lsb);
-        }
+        ParseUUIDBytes(XLIGHTS_UUID, &syncdata[22]);
 
         syncdata[38] = 0x70;  // Framing Protocol flags and length (high)
         syncdata[39] = 0x0b;  // 0x00B = 49 - 38
@@ -202,40 +198,24 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
             syncdata[45] = syncUniverse >> 8;
             syncdata[46] = syncUniverse & 0xff;
 
-            wxIPV4address localaddr;
-            if (localIP == "") {
-                localaddr.AnyAddress();
-            }
-            else {
-                localaddr.Hostname(localIP);
-            }
-
             if (syncdatagram != nullptr) {
                 delete syncdatagram;
             }
 
-            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+            syncdatagram = new sockets::UDPSocket();
 
             if (syncdatagram == nullptr) {
-                logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error creating E131 sync datagram object.");
             }
-            else if (!syncdatagram->IsOk()) {
-                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE %s", (const char *)localaddr.IPAddress().c_str());
-                delete syncdatagram;
-                syncdatagram = nullptr;
-            }
-            else if (syncdatagram->Error()) {
-                logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+            else if (!syncdatagram->Bind(localIP, 0, false)) {
+                spdlog::error("Error initialising E131 sync datagram: {}", syncdatagram->LastError());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
 
             // multicast - universe number must be in lower 2 bytes
-            wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, syncdata[45], syncdata[46]);
-            syncremoteAddr.Hostname(ipaddrWithUniv);
-            syncremoteAddr.Service(E131_PORT);
-
-            logger_base.debug("e131 Sync sync universe changed to %d => %s:%d.", syncUniverse, (const char *)ipaddrWithUniv.c_str(), E131_PORT);
+            syncremoteIp = std::format("239.255.{}.{}", syncdata[45], syncdata[46]);
+            spdlog::debug("e131 Sync sync universe changed to {} => {}:{}.", syncUniverse, syncremoteIp, E131_PORT);
         }
 
         syncdata[44] = syncSequenceNum++;   // sequence number
@@ -244,35 +224,35 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
         // bail if we dont have a datagram to use
         if (syncdatagram != nullptr) {
-            syncdatagram->SendTo(syncremoteAddr, syncdata, E131_SYNCPACKET_LEN);
+            syncdatagram->SendTo(syncremoteIp, E131_PORT, syncdata, E131_SYNCPACKET_LEN);
         }
     }
 }
 
 std::string E131Output::GetTag() {
     // creates a unique tag per running instance of xLights on this machine
-    return "xLights " + wxString::Format("%ld", wxGetProcessId());
+    return "xLights " + std::to_string(getpid());
 }
 #pragma endregion
 
 #pragma region Getters and Setters
 std::string E131Output::GetLongDescription() const {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "E1.31 {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ")";
+    res += "E1.31 {" + std::to_string(_universe) + "} ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ")";
 
     return res;
 }
 
 std::string E131Output::GetExport() const {
 
-    return wxString::Format(",%d,%d,,%s,%s,,,,%d,%d",
+    return std::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),
@@ -283,13 +263,13 @@ std::string E131Output::GetExport() const {
 
 void E131Output::SetTransientData(int32_t& startChannel, int nullnumber) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (_fppProxyOutput) {
         _fppProxyOutput->SetTransientData(startChannel, nullnumber);
     }
 
-    wxASSERT(startChannel != -1);
+    assert(startChannel != -1);
     _startChannel = startChannel;
     startChannel += GetChannels();
 }
@@ -298,7 +278,7 @@ void E131Output::SetTransientData(int32_t& startChannel, int nullnumber) {
 #pragma region Start and Stop
 bool E131Output::Open() {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return true;
     if (_ip == "") return false;
@@ -330,17 +310,7 @@ bool E131Output::Open() {
 
     // CID/UUID
 
-    wxString id = XLIGHTS_UUID;
-    id.Replace("-", "");
-    id.MakeLower();
-    if (id.Len() != 32) throw "invalid CID";
-    for (int i = 0, j = 22; i < 32; i += 2) {
-        wxChar msb = id.GetChar(i);
-        wxChar lsb = id.GetChar(i + 1);
-        msb -= isdigit(msb) ? 0x30 : 0x57;
-        lsb -= isdigit(lsb) ? 0x30 : 0x57;
-        _data[j++] = (uint8_t)((msb << 4) | lsb);
-    }
+    ParseUUIDBytes(XLIGHTS_UUID, &_data[22]);
 
     _data[38] = 0x72;  // Framing Protocol flags and length (high)
     _data[39] = 0x58;  // 0x258 = 638 - 38
@@ -360,15 +330,13 @@ bool E131Output::Open() {
 
     OpenDatagram();
 
-    if (wxString(_ip).StartsWith("239.255.") || _ip == "MULTICAST") {
+    if (GetResolvedIP().rfind("239.255.", 0) == 0 || _ip == "MULTICAST") {
         // multicast - universe number must be in lower 2 bytes
-        wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", 239, 255, (int)UnivHi, (int)UnivLo);
-        _remoteAddr.Hostname(ipaddrWithUniv);
+        _remoteIp = std::format("239.255.{}.{}", (int)UnivHi, (int)UnivLo);
     }
     else {
-        _remoteAddr.Hostname(_ip.c_str());
+        _remoteIp = GetResolvedIP();
     }
-    _remoteAddr.Service(E131_PORT);
 
     uint8_t NumHi = (_channels + 1) >> 8;   // Channels (high)
     uint8_t NumLo = (_channels + 1) & 0xff; // Channels (low)
@@ -411,9 +379,9 @@ void E131Output::Close() {
 #pragma region Frame Handling
 void E131Output::StartFrame(long msec) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
     if (_fppProxyOutput) {
@@ -423,7 +391,7 @@ void E131Output::StartFrame(long msec) {
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("E131Output: Open retry successful");
+            spdlog::debug("E131Output: Open retry successful");
         }
     }
 
@@ -432,7 +400,7 @@ void E131Output::StartFrame(long msec) {
 
 void E131Output::EndFrame(int suppressFrames) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled || _suspend || _tempDisable) return;
 
@@ -445,7 +413,7 @@ void E131Output::EndFrame(int suppressFrames) {
 
     if (_changed || NeedToOutput(suppressFrames)) {
         _data[111] = _sequenceNum;
-        _datagram->SendTo(_remoteAddr, _data, E131_PACKET_LEN - (512 - _channels));
+        _datagram->SendTo(_remoteIp, E131_PORT, _data, E131_PACKET_LEN - (512 - _channels));
         _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
         FrameOutput();
     }
@@ -456,7 +424,7 @@ void E131Output::EndFrame(int suppressFrames) {
 
 void E131Output::ResetFrame() {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
     if (_fppProxyOutput) {
@@ -469,7 +437,7 @@ void E131Output::ResetFrame() {
 #pragma region Data Setting
 void E131Output::SetOneChannel(int32_t channel, unsigned char data) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
     if (_fppProxyOutput) {
@@ -485,7 +453,7 @@ void E131Output::SetOneChannel(int32_t channel, unsigned char data) {
 
 void E131Output::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
 
@@ -506,7 +474,7 @@ void E131Output::SetManyChannels(int32_t channel, unsigned char* data, size_t si
 
 void E131Output::AllOff() {
 
-    wxASSERT(!IsOutputCollection_CONVERT());
+    assert(!IsOutputCollection_CONVERT());
 
     if (!_enabled) return;
 
@@ -521,154 +489,3 @@ void E131Output::AllOff() {
 #pragma endregion
 
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-void E131Output::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
-    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
-
-    auto p = propertyGrid->GetProperty("Universes");
-    if (p) {
-        p->SetValue((int)c->GetOutputs().size());
-        if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
-        } else {
-            p->ChangeFlag(wxPGFlags::ReadOnly , false);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            p->SetHelpString("");
-            p->SetEditor("SpinCtrl");
-        }
-    }
-    p = propertyGrid->GetProperty("UniversePerString");
-    if (p) {
-        p->SetValue(ce->IsUniversePerString());
-        if (ce->IsAutoSize() && ce->SupportsUniversePerString()) {
-            p->Hide(false);
-        } else {
-            p->Hide(true);
-        }
-    }
-    p = propertyGrid->GetProperty("UniversesDisplay");
-    if (p) {
-        if (ce->GetOutputs().size() > 1) {
-            p->SetValue(ce->GetOutputs().front()->GetUniverseString() + " - " + ce->GetOutputs().back()->GetUniverseString());
-            p->Hide(false);
-        } else {
-            p->Hide(true);
-        }
-    }
-    p = propertyGrid->GetProperty("IndivSizes");
-    if (p) {
-        if (ce->IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
-        } else {
-            bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
-            p->SetValue(v);
-            p->ChangeFlag(wxPGFlags::ReadOnly , false);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            p->SetHelpString("");
-        }
-    }
-    if (!ce->AllSameSize() || ce->IsForcingSizes()) {
-        p = propertyGrid->GetProperty("Channels");
-        if (p) {
-            p->Hide(true);
-        }
-        auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
-                }
-            }
-        }
-    } else {
-        p = propertyGrid->GetProperty("Channels");
-        if (p) {
-            p->Hide(false);
-            p->SetValue(GetChannels());
-            if (ce->IsAutoSize()) {
-                p->ChangeFlag(wxPGFlags::ReadOnly , true);
-                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
-            } else {
-                p->SetEditor("SpinCtrl");
-                p->ChangeFlag(wxPGFlags::ReadOnly , false);
-                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-                p->SetHelpString("");
-            }
-        }
-        auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(true);
-        }
-    }
-}
-void E131Output::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
-    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
-
-    auto p = propertyGrid->Insert(before, new wxUIntProperty("Start Universe", "Universe", GetUniverse()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 64000);
-    p->SetEditor("SpinCtrl");
-    
-    
-    p = propertyGrid->Insert(before, new wxUIntProperty("Universe Count", "Universes", c->GetOutputs().size()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 1000);
-
-    p = propertyGrid->Insert(before, new wxBoolProperty("Universe Per String", "UniversePerString", false));
-    p->SetEditor("CheckBox");
-
-    p = propertyGrid->Insert(before, new wxStringProperty("Universes", "UniversesDisplay", ""));
-    p->ChangeFlag(wxPGFlags::ReadOnly , true);
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-
-
-    p = propertyGrid->Insert(before, new wxBoolProperty("Individual Sizes", "IndivSizes", false));
-    p->SetEditor("CheckBox");
-    
-    p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Universe", "Channels", GetChannels()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", GetMaxChannels());
-    
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
-
-}
-bool E131Output::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
-    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
-    return false;
-}
-void E131Output::RemoveProperties(wxPropertyGrid* propertyGrid) {
-    IPOutput::RemoveProperties(propertyGrid);
-    propertyGrid->DeleteProperty("Universe");
-    propertyGrid->DeleteProperty("Universes");
-    propertyGrid->DeleteProperty("UniversePerString");
-    propertyGrid->DeleteProperty("UniversesDisplay");
-    propertyGrid->DeleteProperty("IndivSizes");
-    propertyGrid->DeleteProperty("Channels");
-    propertyGrid->DeleteProperty("Sizes");
-}
-#endif
-#pragma endregion UI

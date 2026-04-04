@@ -1,9 +1,9 @@
 #pragma once
 
-#include <wx/image.h>
 #include <vector>
 
 #include "xlGraphicsAccumulators.h"
+#include "../utils/xlImage.h"
 
 class FontInfoStruct;
 
@@ -17,7 +17,7 @@ public:
     int getSize() const { return size; }
     float widthOf(const std::string &text, float factor = 1.0) const;
     void populate(xlVertexTextureAccumulator &va, float x, float yBase, const std::string &text, float factor = 1.0) const;
-    const wxImage &getImage() const { return image; }
+    const xlImage &getImage() const { return image; }
 
     static const xlFontInfo &FindFont(int size);
 private:
@@ -29,7 +29,7 @@ private:
 
     int size;
     int id;
-    wxImage image;
+    xlImage image;
     float maxD, maxW, maxH;
     std::vector<float> widths;
 };

@@ -11,7 +11,6 @@
  **************************************************************/
 
 #include <nlohmann/json.hpp>
-#include <wx/xml/xml.h>
 
 #include <string>
 #include <vector>
@@ -86,7 +85,7 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
     #pragma endregion

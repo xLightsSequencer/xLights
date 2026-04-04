@@ -9,18 +9,14 @@
  **************************************************************/
 
 #include "TendrilEffect.h"
-#include "TendrilPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 
-#include <wx/graphics.h>
-#if wxUSE_GRAPHICS_CONTEXT == 0
-  #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
-  #error You will also need to rebuild wxWidgets once the change is made.
-#endif
+#include <cmath>
+#include <algorithm>
 
 #include "../../include/tendril-16.xpm"
 #include "../../include/tendril-24.xpm"
@@ -30,55 +26,6 @@
 
 #define wrdebug(...)
 
-bool TendrilEffect::needToAdjustSettings(const std::string &version)
-{
-	return IsVersionOlder("2016.8", version);
-}
-
-void TendrilEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
-{
-    SettingsMap& settings = effect->GetSettings();
-    int movement = settings.GetInt("E_SLIDER_Tendril_Movement", -1);
-
-    if (movement != -1) {
-        settings.erase("E_SLIDER_Tendril_Movement");
-        switch (movement) {
-        case 1:
-            settings["E_CHOICE_Tendril_Movement"] = "Random";
-            break;
-        case 2:
-            settings["E_CHOICE_Tendril_Movement"] = "Square";
-            break;
-        case 3:
-            settings["E_CHOICE_Tendril_Movement"] = "Circle";
-            break;
-        case 4:
-            settings["E_CHOICE_Tendril_Movement"] = "Horizontal Zig Zag";
-            break;
-        case 5:
-            settings["E_CHOICE_Tendril_Movement"] = "Vertical Zig Zag";
-            break;
-        case 6:
-            settings["E_CHOICE_Tendril_Movement"] = "Music Line";
-            break;
-        case 7:
-            settings["E_CHOICE_Tendril_Movement"] = "Music Circle";
-            break;
-        case 8:
-            settings["E_CHOICE_Tendril_Movement"] = "Vert. Zig Zag Return";
-            break;
-        case 9:
-            settings["E_CHOICE_Tendril_Movement"] = "Horiz. Zig Zag Return";
-            break;
-        }
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-}
-
 TendrilNode::TendrilNode(float x_, float y_)
 {
     x = x_;
@@ -87,10 +34,9 @@ TendrilNode::TendrilNode(float x_, float y_)
     vy = 0;
 }
 
-// Note callers of this function have to delete the returned wxPoint
-wxPoint* TendrilNode::Point()
+xlPoint TendrilNode::Point()
 {
-    return new wxPoint(rint(x) ,rint(y));
+    return xlPoint(rint(x) ,rint(y));
 }
 
 ATendril::~ATendril()
@@ -104,7 +50,7 @@ ATendril::~ATendril()
     }
 }
 
-ATendril::ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start)
+ATendril::ATendril(float friction, int size, float dampening, float tension, float spring, const xlPoint& start)
 {
     _size = 60;
     if (size > 0) {
@@ -138,7 +84,7 @@ ATendril::ATendril(float friction, int size, float dampening, float tension, flo
     }
 }
 
-void ATendril::Update(wxPoint* target, int tunemovement, int width, int height)
+void ATendril::Update(const xlPoint& target, int tunemovement, int width, int height)
 {
     if (_lastWidth == -1)
         _lastWidth = width;
@@ -164,11 +110,11 @@ void ATendril::Update(wxPoint* target, int tunemovement, int width, int height)
         } else {
             node->vy *= 1.0 + (float)(height - _lastHeight) * 2.0 * tunemovement / 20.0;
             if (node->vy == 0)
-                node->vx = 0.01 * ySign;
+                node->vy = 0.01 * ySign;
         }
 
-        node->vx += (target->x - node->x) * spring;
-        node->vy += (target->y - node->y) * spring;
+        node->vx += (target.x - node->x) * spring;
+        node->vy += (target.y - node->y) * spring;
 
         TendrilNode* prev = nullptr;
         for (const auto& ci : _nodes) {
@@ -203,46 +149,77 @@ void ATendril::Update(wxPoint* target, int tunemovement, int width, int height)
     _lastHeight = height;
 }
 
-void ATendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
+void ATendril::Draw(RenderBuffer& buffer, xlColor colour, int thickness)
 {
-    wxColor c(colour);
-    wxPen pen(c, thickness);
-    gc->SetPen(pen);
+    if (_nodes.size() < 3) return;
 
-    wxGraphicsPath path = gc->CreatePath();
-    path.MoveToPoint(_nodes.front()->x, _nodes.front()->y);
+    // Evaluate a quadratic Bezier at parameter t
+    auto bezier = [](float t, float p0, float p1, float p2) -> float {
+        float mt = 1.0f - t;
+        return mt * mt * p0 + 2.0f * mt * t * p1 + t * t * p2;
+    };
 
-    std::list<TendrilNode*>::const_iterator ci = _nodes.begin();
+    float radius = thickness * 0.5f;
+
+    // Draw a quadratic Bezier segment by stamping AA circles along the curve.
+    // This naturally handles joins and tight turns with consistent width.
+    // skipFirst: avoid double-stamping shared endpoints between chained segments
+    auto drawSegment = [&](float x0, float y0, float cx, float cy, float x1, float y1, bool skipFirst) {
+        int steps = std::max(4, (int)(std::max(std::abs(x1 - x0), std::abs(y1 - y0)) * 2 + 1));
+        int start = skipFirst ? 1 : 0;
+        float px = x0, py = y0;
+        for (int i = start; i <= steps; ++i) {
+            float t = (float)i / steps;
+            float nx = bezier(t, x0, cx, x1);
+            float ny = bezier(t, y0, cy, y1);
+            if (thickness <= 1) {
+                if (i > 0) {
+                    buffer.DrawAALine(px, py, nx, ny, colour);
+                }
+            } else {
+                buffer.DrawAACircle(nx, ny, radius, colour);
+            }
+            px = nx;
+            py = ny;
+        }
+    };
+
+    float x0 = _nodes.front()->x;
+    float y0 = _nodes.front()->y;
+
+    auto ci = _nodes.begin();
     ++ci; // move to second node
 
-    std::list<TendrilNode*>::const_iterator ci_second_last = _nodes.end();
+    auto ci_second_last = _nodes.end();
     --ci_second_last;
     --ci_second_last;
 
+    bool first = true;
     for (; ci != ci_second_last; ++ci) {
         TendrilNode* a = *ci;
-        std::list<TendrilNode*>::const_iterator cinext = ci;
+        auto cinext = ci;
         ++cinext;
         TendrilNode* b = *cinext;
-        float x = (a->x + b->x) * 0.5;
-        float y = (a->y + b->y) * 0.5;
-        path.AddQuadCurveToPoint(a->x, a->y, x, y);
+        float ex = (a->x + b->x) * 0.5f;
+        float ey = (a->y + b->y) * 0.5f;
+        drawSegment(x0, y0, a->x, a->y, ex, ey, !first);
+        first = false;
+        x0 = ex;
+        y0 = ey;
     }
 
     TendrilNode* a = *ci;
     TendrilNode* b = *(++ci);
-    path.AddQuadCurveToPoint(a->x, a->y, b->x, b->y);
-    gc->StrokePath(path);
+    drawSegment(x0, y0, a->x, a->y, b->x, b->y, true);
 }
 
-wxPoint* ATendril::LastLocation()
+xlPoint ATendril::LastLocation()
 {
     TendrilNode* last = _nodes.back();
     if (last != nullptr) {
         return last->Point();
-    } else {
-        return nullptr;
     }
+    return xlPoint(0, 0);
 }
 
 Tendril::~Tendril()
@@ -256,7 +233,7 @@ Tendril::~Tendril()
     }
 }
 
-Tendril::Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start)
+Tendril::Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const xlPoint& start)
 {
     float sb = 0.45f;
     if (springbase >= 0) {
@@ -298,69 +275,56 @@ void Tendril::UpdateRandomMove(int tunemovement, int width, int height)
 
     ATendril* t = _tendrils.front();
     if (t != nullptr) {
-        wxPoint* current = t->LastLocation();
+        xlPoint current = t->LastLocation();
 
-        if (current != nullptr) {
-            int realminmovex = minmovex;
-            if (minmovex < 0) {
-                realminmovex = -1 * std::min(current->x, minmovex * -1);
-            }
-            int realmaxmovex = maxmovex;
-            if (maxmovex > 0) {
-                realmaxmovex = std::min(maxx - current->x, maxmovex);
-            }
-            int realminmovey = minmovey;
-            if (minmovey < 0) {
-                realminmovey = -1 * std::min(current->y, minmovey * -1);
-            }
-            int realmaxmovey = maxmovey;
-            if (maxmovey > 0) {
-                realmaxmovey = std::min(maxy - current->y, maxmovey);
-            }
-
-            int xmove = -1 * realminmovex + realmaxmovex;
-            int ymove = -1 * realminmovey + realmaxmovey;
-            int x = 0;
-            if (xmove > 0) {
-                x = (rand() % xmove) + realminmovex;
-            }
-            int y = 0;
-            if (ymove > 0) {
-                y = (rand() % ymove) + realminmovey;
-            }
-
-            current->x = current->x + x;
-            current->y = current->y + y;
-
-            if (current->x < minx) {
-                current->x = minx;
-            }
-            if (current->x > maxx) {
-                current->x = maxx;
-            }
-            if (current->y < miny) {
-                current->y = miny;
-            }
-            if (current->y > maxy) {
-                current->y = maxy;
-            }
-            Update(current, tunemovement, width, height);
-            delete current;
+        int realminmovex = minmovex;
+        if (minmovex < 0) {
+            realminmovex = -1 * std::min(current.x, minmovex * -1);
         }
-#ifdef _DEBUG
-        else {
-            int a = 0;
+        int realmaxmovex = maxmovex;
+        if (maxmovex > 0) {
+            realmaxmovex = std::min(maxx - current.x, maxmovex);
         }
-#endif
+        int realminmovey = minmovey;
+        if (minmovey < 0) {
+            realminmovey = -1 * std::min(current.y, minmovey * -1);
+        }
+        int realmaxmovey = maxmovey;
+        if (maxmovey > 0) {
+            realmaxmovey = std::min(maxy - current.y, maxmovey);
+        }
+
+        int xmove = -1 * realminmovex + realmaxmovex;
+        int ymove = -1 * realminmovey + realmaxmovey;
+        int x = 0;
+        if (xmove > 0) {
+            x = (rand() % xmove) + realminmovex;
+        }
+        int y = 0;
+        if (ymove > 0) {
+            y = (rand() % ymove) + realminmovey;
+        }
+
+        current.x = current.x + x;
+        current.y = current.y + y;
+
+        if (current.x < minx) {
+            current.x = minx;
+        }
+        if (current.x > maxx) {
+            current.x = maxx;
+        }
+        if (current.y < miny) {
+            current.y = miny;
+        }
+        if (current.y > maxy) {
+            current.y = maxy;
+        }
+        Update(current, tunemovement, width, height);
     }
-#ifdef _DEBUG
-    else {
-        int a = 0;
-    }
-#endif
 }
 
-void Tendril::Update(wxPoint* target, int tunemovement, size_t width, size_t height)
+void Tendril::Update(const xlPoint& target, int tunemovement, size_t width, size_t height)
 {
     for (const auto& ci : _tendrils) {
         ci->Update(target, tunemovement, width, height);
@@ -369,14 +333,14 @@ void Tendril::Update(wxPoint* target, int tunemovement, size_t width, size_t hei
 
 void Tendril::Update(int x, int y, int tunemovement, size_t width, size_t height)
 {
-    wxPoint pt(x,y);
-    Update(&pt, tunemovement, width, height);
+    xlPoint pt(x,y);
+    Update(pt, tunemovement, width, height);
 }
 
-void Tendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
+void Tendril::Draw(RenderBuffer& buffer, xlColor colour, int thickness)
 {
     for (const auto& ci : _tendrils) {
-        ci->Draw(gc, colour, thickness);
+        ci->Draw(buffer, colour, thickness);
     }
 }
 
@@ -386,39 +350,6 @@ TendrilEffect::TendrilEffect(int id) : RenderableEffect(id, "Tendril", tendril_1
 
 TendrilEffect::~TendrilEffect()
 {
-}
-
-xlEffectPanel *TendrilEffect::CreatePanel(wxWindow *parent) {
-    return new TendrilPanel(parent);
-}
-
-void TendrilEffect::SetDefaultParameters()
-{
-    TendrilPanel* tp = (TendrilPanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    tp->BitmapButton_Tendril_ManualXVC->SetActive(false);
-    tp->BitmapButton_Tendril_ManualYVC->SetActive(false);
-    tp->BitmapButton_Tendril_ThicknessVC->SetActive(false);
-    tp->BitmapButton_Tendril_TuneMovementVC->SetActive(false);
-    tp->BitmapButton_Tendril_XOffsetVC->SetActive(false);
-    tp->BitmapButton_Tendril_YOffsetVC->SetActive(false);
-
-    SetChoiceValue(tp->Choice_Tendril_Movement, "Random");
-    SetSliderValue(tp->Slider_Tendril_TuneMovement, 10);
-    SetSliderValue(tp->Slider_Tendril_Speed, 10);
-    SetSliderValue(tp->Slider_Tendril_Thickness, 1);
-    SetSliderValue(tp->Slider_Tendril_Friction, 10);
-    SetSliderValue(tp->Slider_Tendril_Dampening, 10);
-    SetSliderValue(tp->Slider_Tendril_Tension, 20);
-    SetSliderValue(tp->Slider_Tendril_Trails, 1);
-    SetSliderValue(tp->Slider_Tendril_Length, 60);
-    SetSliderValue(tp->Slider_Tendril_XOffset, 0);
-    SetSliderValue(tp->Slider_Tendril_YOffset, 0);
-    SetSliderValue(tp->Slider_Tendril_ManualX, 0);
-    SetSliderValue(tp->Slider_Tendril_ManualY, 0);
 }
 
 void TendrilEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -495,7 +426,6 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
                            float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    buffer.GetPathDrawingContext()->Clear();
 
     if (friction < 0.4f) {
         friction = 0.4f;
@@ -536,10 +466,10 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
 
     if (_tendril == nullptr || buffer.needToInit) {
         buffer.needToInit = false;
-        wxPoint startmiddle(buffer.BufferWi / 2 + truexoffset / 2, buffer.BufferHt / 2 + trueyoffset / 2);
-        wxPoint startmiddlebottom(buffer.BufferWi / 2 + truexoffset / 2, 0 + trueyoffset);
-        wxPoint startbottomleft(0 + truexoffset, 0 + trueyoffset);
-        wxPoint startmiddleleft(0 + truexoffset, buffer.BufferHt / 2 + trueyoffset / 2);
+        xlPoint startmiddle(buffer.BufferWi / 2 + truexoffset / 2, buffer.BufferHt / 2 + trueyoffset / 2);
+        xlPoint startmiddlebottom(buffer.BufferWi / 2 + truexoffset / 2, 0 + trueyoffset);
+        xlPoint startbottomleft(0 + truexoffset, 0 + trueyoffset);
+        xlPoint startmiddleleft(0 + truexoffset, buffer.BufferHt / 2 + trueyoffset / 2);
 
         if (_tendril != nullptr) {
             delete _tendril;
@@ -626,7 +556,7 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
             _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft);
             break;
         case 10:
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, wxPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100));
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, xlPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100));
             break;
         }
     }
@@ -636,9 +566,11 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
     case 3:
         // circles
         _mv2 = std::min(buffer.BufferWi, buffer.BufferHt) / 2; // radius
+        break;
     case 7:
         // circle movement based on music
         _mv2 = std::min(buffer.BufferWi, buffer.BufferHt) / 2; // max radius
+        break;
     }
 
     const double PI = 3.141592653589793238463;
@@ -824,20 +756,6 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
     }
 
     if (_tendril != nullptr) {
-        _tendril->Draw(buffer.GetPathDrawingContext(), colour, thickness);
-    }
-    wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();
-    bool hasAlpha = image->HasAlpha();
-
-    xlColor c;
-    for (int y = 0; y < std::min(buffer.BufferHt, image->GetHeight()); ++y) {
-        for (int x = 0; x < std::min(buffer.BufferWi, image->GetWidth()); ++x) {
-            if (hasAlpha) {
-                c.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), image->GetAlpha(x, y));
-            } else {
-                c.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
-            }
-            buffer.SetPixel(x, y, c);
-        }
+        _tendril->Draw(buffer, colour, thickness);
     }
 }

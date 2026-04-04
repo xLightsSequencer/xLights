@@ -18,10 +18,9 @@ public:
     SphereModel(const ModelManager &manager);
     virtual ~SphereModel();
 
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool SupportsWiringView() const override { return false; }
     virtual int NodeRenderOrder() override { return 1; }
-    virtual void ExportAsCustomXModel3D() const override;
+    virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const override;
     bool Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const;
     virtual bool SupportsExportAsCustom3D() const override { return true; }
     int GetStartLatitude() const { return _startLatitude; }
@@ -35,7 +34,6 @@ public:
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
-    virtual void AddStyleProperties(wxPropertyGridInterface *grid) override;
     virtual void InitModel() override;
 private:
     void SetSphereCoord();

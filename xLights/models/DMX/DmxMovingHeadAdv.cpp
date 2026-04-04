@@ -8,10 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/stdpaths.h>
+#include <filesystem>
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -30,12 +27,13 @@
 #include "DmxShutterAbility.h"
 #include "Mesh.h"
 #include "MovingHeads/MhFeature.h"
-#include "MovingHeads/MhFeatureDialog.h"
-#include "../../controllers/ControllerCaps.h"
-#include "../../ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../xLightsVersion.h"
-#include "../../xLightsMain.h"
-#include "../../UtilFunctions.h"
+#include "../../render/RenderBuffer.h"
+#include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 enum MOTION_LINK {
@@ -55,8 +53,8 @@ public:
     dmxPoint3(float x_, float y_, float z_, float pan_angle_, float tilt_angle_ = 0)
         : x(x_), y(y_), z(z_)
     {
-        float pan_angle = wxDegToRad(pan_angle_);
-        float tilt_angle = wxDegToRad(tilt_angle_);
+        float pan_angle = glm::radians(pan_angle_);
+        float tilt_angle = glm::radians(tilt_angle_);
 
         glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
 
@@ -69,22 +67,11 @@ public:
     }
 };
 
-static wxPGChoices DMX_COLOR_TYPES(wxArrayString(4, DMX_COLOR_TYPES_VALUES));
-
 DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
     DisplayAs = DisplayAsType::DmxMovingHeadAdv;
-    wxStandardPaths stdp = wxStandardPaths::Get();
-#ifndef __WXMSW__
-    obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
-#else
-#ifdef _DEBUG
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../meshobjects/SimpleMovingHead/";
-#else
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/";
-#endif
-#endif
+    obj_path = GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
     color_ability = std::make_unique<DmxColorAbilityRGB>();
     dimmer_ability = std::make_unique<DmxDimmerAbility>();
     shutter_ability = std::make_unique<DmxShutterAbility>();
@@ -137,213 +124,7 @@ Mesh* DmxMovingHeadAdv::CreateHeadMesh(const std::string& name)
     return head_mesh.get();
 }
 
-static wxPGChoices DMX_FIXTURES;
-
-static const std::string CLICK_TO_EDIT("--Click To Edit--");
-class MhConfigDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    MhConfigDialogAdapter(DmxMovingHeadAdv* model, std::vector<std::unique_ptr<MhFeature>>& _features, wxXmlNode* _node_xml) :
-        wxPGEditorDialogAdapter(), m_model(model), features(_features), node_xml(_node_xml)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        MhFeatureDialog dlg(features, node_xml, propGrid);
-
-        if (dlg.ShowModal() == wxID_OK) {
-            bool changed = true;
-
-            if (changed) {
-                m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-            }
-
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    DmxMovingHeadAdv* m_model;
-    std::vector<std::unique_ptr<MhFeature>>& features;
-    wxXmlNode* node_xml;
-};
-
-class MhPopupDialogProperty : public wxStringProperty
-{
-public:
-    MhPopupDialogProperty(DmxMovingHeadAdv* m,
-                          std::vector<std::unique_ptr<MhFeature>>& _features,
-                          wxXmlNode* _node_xml,
-                          const wxString& label,
-                          const wxString& name,
-                          const wxString& value,
-                          int type) :
-        wxStringProperty(label, name, value), m_model(m), features(_features), features_xml_node(_node_xml), m_tp(type)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        switch (m_tp) {
-        case 1:
-            return new MhConfigDialogAdapter(m_model, features, features_xml_node);
-        default:
-            break;
-        }
-        return nullptr;
-    }
-
-protected:
-    DmxMovingHeadAdv* m_model = nullptr;
-    std::vector<std::unique_ptr<MhFeature>>& features;
-    wxXmlNode* features_xml_node;
-    int m_tp;
-};
-
-
-void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    // Disable until features are active
-    //auto p = grid->Append(new MhPopupDialogProperty(this, features, features_xml_node, "Moving Head Config", "MHConfig", CLICK_TO_EDIT, 1));
-    //grid->LimitPropertyEditing(p);
-
-    if (DMX_FIXTURES.GetCount() == 0) {
-        DMX_FIXTURES.Add("MH1");
-        DMX_FIXTURES.Add("MH2");
-        DMX_FIXTURES.Add("MH3");
-        DMX_FIXTURES.Add("MH4");
-        DMX_FIXTURES.Add("MH5");
-        DMX_FIXTURES.Add("MH6");
-        DMX_FIXTURES.Add("MH7");
-        DMX_FIXTURES.Add("MH8");
-    }
-
-    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
-
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    pan_motor->AddTypeProperties(grid);
-    tilt_motor->AddTypeProperties(grid);
-
-    grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
-    int selected = 3; // show Unused if not selected
-    if (nullptr != color_ability) {
-        selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
-    }
-    grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
-    if (nullptr != color_ability) {
-        ControllerCaps *caps = GetControllerCaps();
-        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    }
-    grid->Collapse("DmxColorAbility");
-
-    dimmer_ability->AddDimmerTypeProperties(grid);
-    shutter_ability->AddShutterTypeProperties(grid);
-    beam_ability->AddBeamTypeProperties(grid);
-    grid->Collapse("DmxDimmerProperties");
-    grid->Collapse("DmxShutterProperties");
-    grid->Collapse("DmxBeamProperties");
-
-    base_mesh->AddTypeProperties(grid);
-    yoke_mesh->AddTypeProperties(grid);
-    head_mesh->AddTypeProperties(grid);
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-void DmxMovingHeadAdv::DisableUnusedProperties(wxPropertyGridInterface* grid)
-{
-    // rotation around the Z axis causes issues when the pan and tilt rotations are applied
-    // users should be able to achieve any desired position with only X and Y rotations
-    auto p = grid->GetPropertyByName("c");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-    p = grid->GetPropertyByName("YokeMeshRotateZ");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-    p = grid->GetPropertyByName("HeadMeshRotateZ");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-
-    DmxModel::DisableUnusedProperties(grid);
-}
-
-int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    std::string name = event.GetPropertyName().ToStdString();
-
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (dimmer_ability->OnDimmerPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if ("DmxFixture" == event.GetPropertyName()) {
-        fixture_val = event.GetPropertyValue().GetLong();
-        dmx_fixture = FixtureIDtoString(fixture_val); 
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
-        return 0;
-    }
-    else if ("DmxColorType" == event.GetPropertyName()) {
-        int color_type = event.GetPropertyValue().GetInteger();
-        InitColorAbility(color_type);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        return 0;
-    }
-
-    if (pan_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (tilt_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (base_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (yoke_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (head_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
-}
-
-void DmxMovingHeadAdv::MapChannelName(wxArrayString& array, int chan, std::string name)
+void DmxMovingHeadAdv::MapChannelName(std::vector<std::string>& array, int chan, std::string name)
 {
     if (chan > 0) {
         array[chan-1] = name;
@@ -358,8 +139,7 @@ void DmxMovingHeadAdv::InitModel()
     if (base_mesh == nullptr) {
         std::string new_name = "BaseMesh";
         base_mesh = std::make_unique<Mesh>(new_name);
-        wxString f = obj_path + "MovingHeadBase.obj";
-        base_mesh->SetObjFile(f);
+        base_mesh->SetObjFile(obj_path + "MovingHeadBase.obj");
         base_mesh->SetBrightness(40);
     }
 
@@ -367,8 +147,7 @@ void DmxMovingHeadAdv::InitModel()
     if (yoke_mesh == nullptr) {
         std::string new_name = "YokeMesh";
         yoke_mesh = std::make_unique<Mesh>(new_name);
-        wxString f = obj_path + "MovingHeadYoke.obj";
-        yoke_mesh->SetObjFile(f);
+        yoke_mesh->SetObjFile(obj_path + "MovingHeadYoke.obj");
         yoke_mesh->SetBrightness(50);
         yoke_mesh->SetRotateY(90);
     }
@@ -377,8 +156,7 @@ void DmxMovingHeadAdv::InitModel()
     if (head_mesh == nullptr) {
         std::string new_name = "HeadMesh";
         head_mesh = std::make_unique<Mesh>(new_name);
-        wxString f = obj_path + "MovingHead.obj";
-        head_mesh->SetObjFile(f);
+        head_mesh->SetObjFile(obj_path + "MovingHead.obj");
         head_mesh->SetBrightness(80);
         head_mesh->SetRotateX(90);
         head_mesh->SetRotateY(90);
@@ -401,7 +179,7 @@ void DmxMovingHeadAdv::InitModel()
 
     // create node names
     std::string names = "";
-    wxArrayString nodestrings;
+    std::vector<std::string> nodestrings;
     nodestrings.resize(GetNumChannels());
     if (nodeNames.size() == 0) {
         int chan = pan_motor->GetChannelCoarse();
@@ -440,7 +218,10 @@ void DmxMovingHeadAdv::InitModel()
                 MapChannelName(nodestrings, chan, "White");
             }
         }
-        names = wxJoin( nodestrings, ',');
+        for (size_t i = 0; i < nodestrings.size(); i++) {
+            if (i > 0) names += ',';
+            names += nodestrings[i];
+        }
     }
     SetNodeNames(names, update_node_names);
     
@@ -456,7 +237,7 @@ void DmxMovingHeadAdv::CorrectDefaultColorChannels()
     if (nullptr != color_ability) {
         if (color_ability->GetColorType() == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
             DmxColorAbilityRGB* crgb = dynamic_cast<DmxColorAbilityRGB*>(color_ability.get());
-            if (pan_motor->GetChannelCoarse() == crgb->GetRedChannel() && crgb->GetRedChannel() == 1) {
+            if (pan_motor->GetChannelCoarse() == (int)crgb->GetRedChannel() && crgb->GetRedChannel() == 1) {
                 crgb->SetRedChannel(5);
                 crgb->SetGreenChannel(6);
                 crgb->SetBlueChannel(7);
@@ -465,7 +246,7 @@ void DmxMovingHeadAdv::CorrectDefaultColorChannels()
     }
 }
 
-void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxMovingHeadAdv::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                             xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                             const xlColor* c, bool allowSelected, bool wiring,
                                             bool highlightFirst, int highlightpixel,
@@ -518,7 +299,7 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
     }
 }
 
-void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxMovingHeadAdv::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -535,7 +316,7 @@ void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double point
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
         float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
         if (GetModelScreenLocation().RenderDp > 1) {
@@ -597,58 +378,58 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
     int nodeCount = Nodes.size();
     int min_channels = GetMinChannels();
     if (min_channels > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " requires more channels " + std::to_string(min_channels) + " than have been allocated to it " + std::to_string(nodeCount) + ".");
     }
     
     if (pan_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " pan motor coarse is assigned to channel " + std::to_string(pan_motor->GetChannelCoarse()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     if (pan_motor->GetChannelFine() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan motor fine is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " pan motor fine is assigned to channel " + std::to_string(pan_motor->GetChannelFine()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     if (tilt_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " tilt motor coarse is assigned to channel " + std::to_string(tilt_motor->GetChannelCoarse()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     if (tilt_motor->GetChannelFine() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt motor fine is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " tilt motor fine is assigned to channel " + std::to_string(tilt_motor->GetChannelFine()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     res.splice(res.end(), Model::CheckModelSettings());
     return res;
 }
 
-void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active, const xlColor* c)
+void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active, const xlColor* c)
 {
     // crash protection
     int min_channels = GetMinChannels();
-    if (min_channels > Nodes.size()) {
+    if (min_channels > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (pan_motor->GetChannelCoarse() > Nodes.size()) {
+    if (pan_motor->GetChannelCoarse() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (pan_motor->GetChannelFine() > Nodes.size()) {
+    if (pan_motor->GetChannelFine() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (tilt_motor->GetChannelCoarse() > Nodes.size()) {
+    if (tilt_motor->GetChannelCoarse() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (tilt_motor->GetChannelFine() > Nodes.size()) {
+    if (tilt_motor->GetChannelFine() > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     size_t NodeCount = Nodes.size();
     if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
         !preset_ability->IsValidModelSettings(this) ||
-        shutter_ability->GetShutterChannel() > NodeCount ||
-        dimmer_ability->GetDimmerChannel() > NodeCount)
+        shutter_ability->GetShutterChannel() > (int)NodeCount ||
+        dimmer_ability->GetDimmerChannel() > (int)NodeCount)
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
@@ -659,7 +440,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     float old_tilt_angle = 0.0f;
     uint32_t old_ms = 0;
 
-    PanTiltState &st = panTiltStates[preview->GetName().ToStdString()];
+    PanTiltState &st = panTiltStates[preview->getName()];
     if (active) {
         old_ms = st.ms;
         old_pan_angle = st.pan_angle;
@@ -754,7 +535,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
-    if (shutter_ability->GetShutterChannel() > 0 && shutter_ability->GetShutterChannel() <= NodeCount && active) {
+    if (shutter_ability->GetShutterChannel() > 0 && shutter_ability->GetShutterChannel() <= (int)NodeCount && active) {
         xlColor proxy;
         Nodes[shutter_ability->GetShutterChannel() - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
@@ -862,19 +643,19 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
 std::vector<std::string> DmxMovingHeadAdv::GenerateNodeNames() const {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < names.size()) {
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < (int)names.size()) {
         names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
-    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < names.size()) {
+    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < (int)names.size()) {
         names[pan_motor->GetChannelCoarse() - 1] = "Pan";
     }
-    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < names.size()) {
+    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < (int)names.size()) {
         names[tilt_motor->GetChannelCoarse() - 1] = "Tilt";
     }
-    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < names.size()) {
+    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < (int)names.size()) {
         names[pan_motor->GetChannelFine() - 1] = "Pan Fine";
     }
-    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < names.size()) {
+    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < (int)names.size()) {
         names[tilt_motor->GetChannelFine() - 1] = "Tilt Fine";
     }
 

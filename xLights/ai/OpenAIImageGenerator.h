@@ -26,7 +26,7 @@ private:
 
 public:
     OpenAIImageGenerator(const std::string& base_url_, const std::string& token_, const std::string& modelName) :
-        token(token_), image_model(modelName), base_url(base_url_) {
+        base_url(base_url_), token(token_), image_model(modelName) {
     }
 
     virtual ~OpenAIImageGenerator() {

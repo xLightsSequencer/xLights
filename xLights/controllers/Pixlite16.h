@@ -123,7 +123,7 @@ protected:
 
     static void CreateDiscovery(uint8_t* buffer);
     bool GetConfig();
-    bool GetConfig(wxIPV4address localAddr, std::string ip, const std::string& desiredip);
+    bool GetConfig(const std::string& localIp, std::string ip, const std::string& desiredip);
 
     bool SendConfig(bool logresult = false) const;
     bool SendMk3Config(bool logresult = false) const;
@@ -141,7 +141,7 @@ public:
 
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+    virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return false; }
     static void PrepareDiscovery(Discovery &discovery);

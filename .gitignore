@@ -37,7 +37,6 @@ xLights/xLights_l4cpp.log
 .objs_debug
 .objs
 wxWidgets*
-log4cpp*
 ispc-*
 ispc
 xLights/xLights.VC.db
@@ -55,3 +54,6 @@ xScanner/x64
 /xLights/enc_temp_folder
 *~
 /.vs/xLights/v17
+*.cbp.mak
+.claude
+.mcp.json

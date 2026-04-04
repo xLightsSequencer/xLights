@@ -8,18 +8,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-
 #include "DmxGeneral.h"
 #include "../ModelScreenLocation.h"
-#include "../../controllers/ControllerCaps.h"
-#include "../../ModelPreview.h"
-#include "../../RenderBuffer.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
+#include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
-#include "../../xLightsMain.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
@@ -35,32 +32,13 @@ DmxGeneral::~DmxGeneral()
 {
 }
 
-void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    if (nullptr != color_ability) {
-        ControllerCaps *caps = GetControllerCaps();
-        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    }
-}
-
-int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
-}
-
 void DmxGeneral::InitModel()
 {
     DmxModel::InitModel();
     screenLocation.SetRenderSize(1, 1, 1);
 }
 
-void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
+void DmxGeneral::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
     size_t nodeCount = Nodes.size();
 
@@ -130,17 +108,17 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     float lineSize = 1.7f / ((float)nodeCount);
     float barSize = lineSize * 0.8f;
     float lineStart = 0.825f;
-    for (int i = 1; i <= nodeCount; ++i) {
+    for (int i = 1; i <= (int)nodeCount; ++i) {
         Nodes[i - 1]->GetColor(proxy);
         float val = (float)proxy.red;
         float offsetx = val / 255.0f * 1.8f;
-        if (i == rgbColor->GetRedChannel()) {
+        if (i == (int)rgbColor->GetRedChannel()) {
             proxy = red;
-        } else if (i == rgbColor->GetGreenChannel()) {
+        } else if (i == (int)rgbColor->GetGreenChannel()) {
             proxy = green;
-        } else if (i == rgbColor->GetBlueChannel()) {
+        } else if (i == (int)rgbColor->GetBlueChannel()) {
             proxy = blue;
-        } else if (i == rgbColor->GetWhiteChannel()) {
+        } else if (i == (int)rgbColor->GetWhiteChannel()) {
             proxy = white;
         } else {
             proxy = ccolor;
@@ -160,7 +138,7 @@ void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     });
 }
 
-void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxGeneral::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                          xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                          const xlColor* c, bool allowSelected, bool wiring,
                                          bool highlightFirst, int highlightpixel,
@@ -214,7 +192,7 @@ void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
     }
 }
 
-void DmxGeneral::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxGeneral::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -231,7 +209,7 @@ void DmxGeneral::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
         float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
         if (GetModelScreenLocation().RenderDp > 1) {

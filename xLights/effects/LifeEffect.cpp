@@ -9,18 +9,17 @@
  **************************************************************/
 
 #include "LifeEffect.h"
-#include "LifePanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/life-16.xpm"
 #include "../../include/life-24.xpm"
 #include "../../include/life-32.xpm"
 #include "../../include/life-48.xpm"
 #include "../../include/life-64.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life", life_16, life_24, life_32, life_48, life_48)
 {
@@ -30,11 +29,6 @@ LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life", life_16, life_24, 
 LifeEffect::~LifeEffect()
 {
     //dtor
-}
-
-xlEffectPanel* LifeEffect::CreatePanel(wxWindow* parent)
-{
-    return new LifePanel(parent);
 }
 
 static size_t Life_CountNeighbors(RenderBuffer& buffer, int x0, int y0)
@@ -66,17 +60,6 @@ public:
     int LastLifeType;
     int LastLifeState;
 };
-
-void LifeEffect::SetDefaultParameters() {
-    LifePanel *lp = (LifePanel*)panel;
-    if (lp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(lp->Slider_Life_Count, 50);
-    SetSliderValue(lp->Slider_Life_Seed, 0);
-    SetSliderValue(lp->Slider_Life_Speed, 10);
-}
 
 void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {

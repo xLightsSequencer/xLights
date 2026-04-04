@@ -9,13 +9,14 @@
  **************************************************************/
 
 #include "FillEffect.h"
-#include "FillPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+
+#include <format>
 
 #include "../../include/fill-16.xpm"
 #include "../../include/fill-64.xpm"
@@ -30,42 +31,15 @@ FillEffect::~FillEffect()
     //dtor
 }
 
-void FillEffect::SetDefaultParameters() {
-    FillPanel *fp = static_cast<FillPanel*>(panel);
-    if (fp == nullptr) {
-        return;
-    }
-
-    fp->BitmapButton_Fill_Band_Size->SetActive(false);
-    fp->BitmapButton_Fill_Offset->SetActive(false);
-    fp->BitmapButton_Fill_Position->SetActive(false);
-    fp->BitmapButton_Fill_Skip_Size->SetActive(false);
-
-    SetSliderValue(fp->Slider_Fill_Band_Size, 0);
-    SetSliderValue(fp->Slider_Fill_Offset, 0);
-    SetSliderValue(fp->Slider_Fill_Position, 100);
-    SetSliderValue(fp->Slider_Fill_Skip_Size, 0);
-
-    SetChoiceValue(fp->Choice_Fill_Direction, "Up");
-
-    SetCheckBoxValue(fp->CheckBox_Fill_Color_Time, false);
-    SetCheckBoxValue(fp->CheckBox_Fill_Offset_In_Pixels, true);
-    SetCheckBoxValue(fp->CheckBox_Fill_Wrap, true);
-}
-
 std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_VALUECURVE_Fill_Position", "").find("Active=FALSE") != std::string::npos) {
-        res.push_back(wxString::Format("    WARN: Fill effect without a position value curve. Was that intentional? Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Fill effect without a position value curve. Was that intentional? Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-xlEffectPanel *FillEffect::CreatePanel(wxWindow *parent) {
-    return new FillPanel(parent);
 }
 
 bool FillEffect::needToAdjustSettings(const std::string &version)

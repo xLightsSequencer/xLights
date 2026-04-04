@@ -11,46 +11,40 @@
 
 #include "IPOutput.h"
 
-#include <wx/socket.h>
-#include <wx/xml/xml.h>
-#include <wx/regex.h>
-#include <wx/protocol/http.h>
-
-// This must be below the wx includes
-#ifdef __WXMSW__
+#ifdef _WIN32
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
 #endif
 
-#include "utils/Curl.h"
+#include "utils/CurlManager.h"
 #include "utils/ip_utils.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #pragma region Private Functions
-void IPOutput::Save(wxXmlNode* node) {
+void IPOutput::SaveAttr(pugi::xml_node node) {
 
     if (_ip != "") {
-        node->AddAttribute("ComPort", _ip);
+        node.append_attribute("ComPort") = _ip;
     }
-    node->AddAttribute("BaudRate", wxString::Format("%d", _universe));
+    node.append_attribute("BaudRate") = _universe;
 
-    Output::Save(node);
+    Output::SaveAttr(node);
 }
 #pragma endregion
 
 #pragma region Constructors and Destructors
-IPOutput::IPOutput(wxXmlNode* node, bool isActive) : Output(node) {
-    _ip = node->GetAttribute("ComPort", "").ToStdString();
+IPOutput::IPOutput(pugi::xml_node node, bool isActive) : Output(node) {
+    _ip = node.attribute("ComPort").as_string("");
     if (isActive) {
         SetResolvedIP(_ip);
         ip_utils::ResolveIP(_ip, [this](const std::string &r) {
             SetResolvedIP(r);
         });
     }
-    _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
+    _universe = node.attribute("BaudRate").as_int(1);
 }
 
 IPOutput::IPOutput() : Output() {
@@ -69,17 +63,17 @@ IPOutput::~IPOutput() {
     ip_utils::waitForAllToResolve();
 }
 
-wxXmlNode* IPOutput::Save() {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Save(node);
+pugi::xml_node IPOutput::Save(pugi::xml_node parent) {
+    pugi::xml_node node = parent.append_child("network");
+    SaveAttr(node);
     return node;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region Static Functions
 Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy) {
 
-#ifdef __WXMSW__
+#ifdef _WIN32
     if (proxy == "") {
         unsigned long ipaddr = inet_addr(ip.c_str());
         //unsigned long ipaddr = 0;
@@ -120,12 +114,12 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
             url += (ip_utils::IsIPv6(proxy) ? "[" + proxy + "]" : proxy) + "/proxy/";
         }
         url += ip + "/";
-        if (Curl::HTTPSGet(url, "", "", 2) != "") {
+        if (CurlManager::HTTPSGet(url, "", "", 2) != "") {
             return Output::PINGSTATE::PING_WEBOK;
         } else {
             return Output::PINGSTATE::PING_ALLFAILED;
         }
-#ifdef __WXMSW__
+#ifdef _WIN32
     }
 #endif
 }

@@ -8,20 +8,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/tokenzr.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
+#include <cassert>
+
+#include "../XmlSerializer/FileSerializingVisitor.h"
 
 #include "TreeModel.h"
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
 #include "CustomModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
@@ -35,12 +30,6 @@ TreeModel::TreeModel(const ModelManager &manager) : MatrixModel(manager)
 TreeModel::~TreeModel()
 {
 }
-
-static const char* TREE_DIRECTION_VALUES[] = {
-    "Horizontal",
-    "Vertical"
-};
-static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
 
 void TreeModel::InitModel() {
     if (_firstStrand < 0) {
@@ -91,7 +80,7 @@ void TreeModel::SetTreeCoord(long _degrees)
 
         std::vector<float> yPos(BufferHt);
         std::vector<float> xInc(BufferHt);
-        for (size_t x = 0; x < BufferHt; ++x) {
+        for (int x = 0; x < BufferHt; ++x) {
             yPos[x] = x;
             xInc[x] = 0;
         }
@@ -230,127 +219,6 @@ void TreeModel::SetTreeCoord(long _degrees)
     screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
 }
 
-int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if (event.GetPropertyName() == "TreeStyle") {
-        _treeType = event.GetPropertyValue().GetLong();
-        wxPGProperty *p = grid->GetPropertyByName("TreeDegrees");
-        if (p != nullptr) {
-            p->Enable(_treeType == 0);
-        }
-        p = grid->GetPropertyByName("TreeRotation");
-        if (p != nullptr) {
-            p->Enable(_treeType == 0);
-        }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeStyle");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeStyle");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeStyle");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeDegrees") {
-        _degrees = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeRotation") {
-        _rotation = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeRotation");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeRotation");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeRotation");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeRotation");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeSpiralRotations") {
-        _spiralRotations = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
-        _botTopRatio = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        return 0;
-    } else if (event.GetPropertyName() == "TreePerspective") {
-        _perspective = (float)(event.GetPropertyValue().GetDouble()/10.0);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreePerspective");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreePerspective");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreePerspective");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreePerspective");
-        return 0;
-    } else if ("StrandDir" == event.GetPropertyName()) {
-        _vMatrix =  event.GetPropertyValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::StrandDir");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::StrandDir");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::StrandDir");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::StrandDir");
-        return 0;
-    }
-    return MatrixModel::OnPropertyGridChange(grid, event);
-}
-
-static const char* TREE_STYLES_VALUES[] = {
-    "Round",
-    "Flat",
-    "Ribbon"
-};
-
-static wxPGChoices TREE_STYLES(wxArrayString(3, TREE_STYLES_VALUES));
-
-void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-    grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, _treeType));
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", _treeType == 0 ? _degrees : 180));
-    p->SetAttribute("Min", "1");
-    p->SetAttribute("Max", "360");
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Rotation", "TreeRotation", _treeType == 0 ? _rotation : 3));
-    p->SetAttribute("Min", "-360");
-    p->SetAttribute("Max", "360");
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Spiral Wraps", "TreeSpiralRotations", _treeType == 0 ? _spiralRotations : 0.0));
-    p->SetAttribute("Min", "-200");
-    p->SetAttribute("Max", "200");
-    p->SetAttribute("Precision", 2);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Bottom/Top Ratio", "TreeBottomTopRatio", _treeType == 0 ? _botTopRatio : 6.0));
-    p->SetAttribute("Min", "-50");
-    p->SetAttribute("Max", "50");
-    p->SetAttribute("Step", 0.5);
-    p->SetAttribute("Precision", 2);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Perspective", "TreePerspective", _treeType == 0 ? _perspective*10 : 2));
-    p->SetAttribute("Min", "0");
-    p->SetAttribute("Max", "10");
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
-    p->SetEditor("CheckBox");
-    p->Enable(_noZigZag == false);
-
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
-    p->SetEditor("CheckBox");
-    p->Enable(_alternateNodes == false);
-
-    grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, _vMatrix ? 1 : 0));
-}
-
 #define SCALE_FACTOR_3D (1.1)
 
 // Helper function to build 3D custom model data from node coordinates
@@ -399,103 +267,47 @@ static std::vector<std::vector<std::vector<int>>> BuildTreeCustomModelData(
         int xx = SCALE_FACTOR_3D * w * (n->Coords[0].screenX - minx) / w;
         int yy = (SCALE_FACTOR_3D * h) - (SCALE_FACTOR_3D * h * (n->Coords[0].screenY - miny) / h);
         int zz = SCALE_FACTOR_3D * d * (maxz - n->Coords[0].screenZ) / d;
-        wxASSERT(xx >= 0 && xx < width);
-        wxASSERT(yy >= 0 && yy < height);
-        wxASSERT(zz >= 0 && zz < depth);
-        wxASSERT(data[zz][yy][xx] == -1);
+        assert(xx >= 0 && xx < width);
+        assert(yy >= 0 && yy < height);
+        assert(zz >= 0 && zz < depth);
+        assert(data[zz][yy][xx] == -1);
         data[zz][yy][xx] = i++;
     }
 
     return data;
 }
 
-// Helper function to write custom model XML attributes
-static void WriteCustomModelAttributes(wxFile& f, const Model* model, 
-    int width, int height, int depth, long parm3,
-    const std::vector<std::vector<std::vector<int>>>& data)
+void TreeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 {
-    wxString name = model->GetName();
-    wxString p1 = wxString::Format("%i", width);
-    wxString p2 = wxString::Format("%i", height);
-    wxString dd = wxString::Format("%i", depth);
-    wxString p3 = wxString::Format("%i", parm3);
-    wxString st = model->GetStringType();
-    wxString ps = std::to_string(model->GetPixelSize());
-    wxString t = model->GetTransparency() ? "1" : "0";
-    int a = (int)model->GetPixelStyle();
-    wxString sn = model->GetStrandNames();
-    wxString nn = model->GetNodeNames();
-    wxString pc = model->GetPixelCount();
-    wxString pt = model->GetPixelType();
-    wxString psp = model->GetPixelSpacing();
-    wxString v = xlights_version_string;
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("Depth=\"%s\" ", dd));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("Antialias=\"%d\" ", a));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    if (!pc.empty())
-        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
-    if (!pt.empty())
-        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
-    if (!psp.empty())
-        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
-    f.Write("CustomModel=\"");
-    f.Write(CustomModel::ToCustomModel(data));
-    f.Write("\" ");
-    f.Write("CustomModelCompressed=\"");
-    f.Write(CustomModel::ToCompressed(data));
-    f.Write("\" ");
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(model->ExportSuperStringColors());
-    f.Write(" >\n");
-}
-
-void TreeModel::ExportAsCustomXModel3D() const
-{
-    wxString name = GetName();
-    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, 
-        "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty())
-        return;
-
-    wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
     // Build the 3D custom model data from node coordinates
     int width, height, depth;
     auto data = BuildTreeCustomModelData(Nodes, width, height, depth);
 
-    // Write XML attributes
-    WriteCustomModelAttributes(f, this, width, height, depth, parm3, data);
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", GetName());
+    attrs.Add("CustomWidth", std::to_string(width));
+    attrs.Add("CustomHeight", std::to_string(height));
+    attrs.Add("StrandsPerString", std::to_string(_strandsPerString));
+    attrs.Add("Depth", std::to_string(depth));
+    attrs.Add("StringType", GetStringType());
+    attrs.Add("Transparency", GetTransparency() ? "1" : "0");
+    attrs.Add("PixelSize", std::to_string(GetPixelSize()));
+    attrs.Add("Antialias", std::to_string((int)GetPixelStyle()));
+    attrs.Add("StrandNames", GetStrandNames());
+    attrs.Add("NodeNames", GetNodeNames());
+    std::string pc = GetPixelCount();
+    if (!pc.empty()) attrs.Add("PixelCount", pc);
+    std::string pt = GetPixelType();
+    if (!pt.empty()) attrs.Add("PixelType", pt);
+    std::string psp = GetPixelSpacing();
+    if (!psp.empty()) attrs.Add("PixelSpacing", psp);
+    attrs.Add("CustomModel", CustomModel::ToCustomModel(data));
+    attrs.Add("CustomModelCompressed", CustomModel::ToCompressed(data));
+    attrs.Add("SourceVersion", xlights_version_string);
+    visitor.AddSuperStrings(*this, attrs);
 
-    // Write face, state, and submodel information
-    wxString face = SerialiseFace();
-    if (!face.empty()) {
-        f.Write(face);
-    }
-    wxString state = SerialiseState();
-    if (!state.empty()) {
-        f.Write(state);
-    }
-    wxString submodel = SerialiseSubmodel();
-    if (!submodel.empty()) {
-        f.Write(submodel);
-    }
-    
-    f.Write("</custommodel>");
-    f.Close();
+    visitor.WriteOpenTag("custommodel", attrs);
+    visitor.WriteFacesAndStates(this);
+    visitor.WriteSubmodels(this);
+    visitor.WriteCloseTag();
 }

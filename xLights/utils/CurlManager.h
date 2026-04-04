@@ -5,11 +5,38 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 class CurlManager {
 public:
     static CurlManager INSTANCE;
+
+    struct Var {
+        std::string key;
+        std::string value;
+        Var(const std::string& k, const std::string& v)
+            : key(k)
+            , value(v)
+        {
+        }
+    };
+
+    // Compatibility static API replacing the old Curl facade.
+    static std::string HTTPSPost(const std::string& url, const std::string& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
+    static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {});
+    static std::string HTTPSDelete(const std::string& url, const std::string& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
+    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
+    static bool HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user = "", const std::string& password = "", int timeout = 10, std::function<bool(int)> progress = nullptr);
+    static bool HTTPUploadFile(const std::string& url, const std::string& filename, const std::string& file, std::function<bool(int, std::string)> progress = nullptr, const std::string& username = "", const std::string& password = "");
+
+    // Callback invoked during synchronous curl operations to keep the
+    // caller responsive (e.g. pump the UI event loop).  The UI layer
+    // should set this to something like wxYieldIfNeeded(); non-UI
+    // callers can leave the default which just yields the CPU.
+    using YieldFunction = std::function<void()>;
+    void setYieldFunction(YieldFunction fn) { yieldFn = std::move(fn); }
+    void yield() { if (yieldFn) yieldFn(); }
 
     class CurlPrivateData {
     public:
@@ -41,7 +68,33 @@ public:
     void addPost(const std::string& furl, const std::string& data, const std::string& contentType, std::function<void(int rc, const std::string& resp)>&& callback);
     void addPut(const std::string& furl, const std::string& data, const std::string& contentType, std::function<void(int rc, const std::string& resp)>&& callback);
 
+    class SyncRequestOptions {
+    public:
+        std::string method = "GET";
+        std::string body;
+        std::string contentType;
+        std::list<std::string> headers;
+        std::string username;
+        std::string password;
+        int timeoutSeconds = 10;
+        bool disableSSLVerification = false;
+        int* responseCode = nullptr;
+    };
+
     // Synchronous methods
+    std::string doRequest(const std::string& furl, const SyncRequestOptions& options);
+    bool doGetFile(const std::string& url,
+                   const std::string& filename,
+                   const std::string& user = "",
+                   const std::string& password = "",
+                   int timeoutSeconds = 10,
+                   std::function<bool(int)> progress = nullptr);
+    bool doUploadFile(const std::string& url,
+                      const std::string& filename,
+                      const std::string& file,
+                      std::function<bool(int, std::string)> progress = nullptr,
+                      const std::string& username = "",
+                      const std::string& password = "");
     std::string doGet(const std::string& furl, int& rc);
     std::string doPost(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc);
     std::string doPut(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc);
@@ -95,4 +148,6 @@ private:
     };
     std::map<std::string, HostData*> hostData;
     HostData* getHostData(const std::string& host);
+
+    YieldFunction yieldFn = [] { std::this_thread::yield(); };
 };

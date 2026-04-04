@@ -22,11 +22,7 @@ on:
       - 'songs/**'
       - 'TipOfDay/**'
       - 'valuecurves/**'
-      - 'xCapture/**'
-      - 'xFade/**'
       - 'xlDo/**'
-      - 'xScanner/**'
-      - 'xSchedule/**'
       - '*.md'
       - '*.yml'
       - '*.txt'
@@ -51,17 +47,18 @@ on:
       - 'songs/**'
       - 'TipOfDay/**'
       - 'valuecurves/**'
-      - 'xCapture/**'
-      - 'xFade/**'
       - 'xlDo/**'
-      - 'xScanner/**'
-      - 'xSchedule/**'
       - '*.md'
       - '*.yml'
       - '*.txt'
       - '*.docx'
       - 'README.*'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+  
 jobs:
   build:
     runs-on: windows-2022

@@ -8,13 +8,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+
 #include "SingleStrandEffect.h"
-#include "SingleStrandPanel.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/EffectLayer.h"
-#include "../sequencer/Element.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "render/ValueCurve.h"
+#include "../render/Effect.h"
+#include "../render/EffectLayer.h"
+#include "../render/Element.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #define XLIGHTS_FX 
 #include "FX.h"
@@ -32,10 +34,6 @@ SingleStrandEffect::SingleStrandEffect(int id)
 SingleStrandEffect::~SingleStrandEffect()
 {
     //dtor
-}
-
-xlEffectPanel *SingleStrandEffect::CreatePanel(wxWindow *parent) {
-    return new SingleStrandPanel(parent);
 }
 
 int mapX(int x, int max, int direction, int &second) {
@@ -57,7 +55,7 @@ int mapX(int x, int max, int direction, int &second) {
     return -1;
 }
 
-int mapDirection(const wxString & d) {
+int mapDirection(const std::string& d) {
     if ("Left" == d) {
         return 1;
     }
@@ -72,41 +70,6 @@ int mapDirection(const wxString & d) {
     }
 
     return 0;
-}
-
-void SingleStrandEffect::SetDefaultParameters()
-{
-    SingleStrandPanel *sp = (SingleStrandPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Color_Mix1VC->SetActive(false);
-    sp->BitmapButton_Number_ChasesVC->SetActive(false);
-    sp->BitmapButton_Chase_Rotations->SetActive(false);
-    sp->BitmapButton_Chase_OffsetVC->SetActive(false);
-    sp->BitmapButton_FX_IntensityVC->SetActive(false);
-    sp->BitmapButton_FX_SpeedVC->SetActive(false);
-
-    SetChoiceValue(sp->Choice_SingleStrand_Colors, "Palette");
-    SetChoiceValue(sp->Choice_Skips_Direction, "Left");
-    SetChoiceValue(sp->Choice_Chase_Type1, "Left-Right");
-    SetChoiceValue(sp->Choice_SingleStrand_FX, "Fireworks 1D");
-    SetChoiceValue(sp->Choice_FX_Palette, "* Colors Only");
-
-    SetSliderValue(sp->Slider_Number_Chases, 1);
-    SetSliderValue(sp->Slider_Color_Mix1, 10);
-    SetSliderValue(sp->Slider_Chase_Rotations, 10);
-    SetSliderValue(sp->Slider_Chase_Offset, 0);
-    SetSliderValue(sp->Slider_Skips_BandSize, 1);
-    SetSliderValue(sp->Slider_Skips_SkipSize, 1);
-    SetSliderValue(sp->Slider_Skips_StartPos, 1);
-    SetSliderValue(sp->Slider_Skips_Advance, 0);
-    SetSliderValue(sp->Slider_FX_Intensity, 128);
-    SetSliderValue(sp->Slider_FX_Speed, 128);
-
-    SetChoiceValue(sp->Choice_Fade_Type, "None");
-    SetCheckBoxValue(sp->CheckBox_Chase_Group_All, false);
 }
 
 bool SingleStrandEffect::needToAdjustSettings(const std::string& version) {
@@ -162,13 +125,13 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
     }
     if (IsVersionOlder("2021.40", version)) {
         SettingsMap& sm = effect->GetSettings();
-        wxString rzRotations = sm.Get("E_VALUECURVE_Chase_Rotations", "");
-        if (rzRotations.Contains("VALUECURVE") && !rzRotations.Contains("RV=TRUE")) {
+        std::string rzRotations = sm.Get("E_VALUECURVE_Chase_Rotations", "");
+        if (Contains(rzRotations, "VALUECURVE") && !Contains(rzRotations, "RV=TRUE")) {
             ValueCurve vc;
             vc.SetLimits(1, 500);
             vc.Deserialise(rzRotations);
             sm["E_VALUECURVE_Chase_Rotations"] = vc.Serialise();
-            wxASSERT(vc.IsRealValue());
+            assert(vc.IsRealValue());
         }
     }
 }
@@ -214,7 +177,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
         max /= 2;
     }
 
-    size_t colorcnt = buffer.GetColorCount();
+    int colorcnt = (int)buffer.GetColorCount();
     double position = buffer.GetEffectTimeIntervalPosition() * (advances + 1.0) * 0.99;
 
     x += int(position) * Skips_BandSize;
@@ -327,7 +290,7 @@ void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff,
     }
 
     auto pfx = cache->_fx;
-    wxASSERT(pfx != nullptr);
+    assert(pfx != nullptr);
 
     pfx->SetBuffer(&buffer);
 
@@ -417,7 +380,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
     if (!eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         rects = 0;
     }
-    if (buffer.needToInit || rects >= eff->GetBackgroundDisplayList().size()) {
+    if (buffer.needToInit || rects >= (int)eff->GetBackgroundDisplayList().size()) {
         buffer.needToInit = false;
         if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
             std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
@@ -566,13 +529,13 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                                     const std::string& Fade_Type,
                                     int ChaseDirection,
                                     bool mirror) {
-    size_t colorcnt = buffer.GetColorCount();
+    int colorcnt = (int)buffer.GetColorCount();
 
     int max_chase_width = width * Chase_Width / 100.0;
     int middle_chase_index = 0; 
     if (max_chase_width < 1) max_chase_width = 1;
 
-    wxASSERT(Number_Chases != 0);
+    assert(Number_Chases != 0);
 
     int pixels_per_chase = width / Number_Chases;
     if (pixels_per_chase < 1) {

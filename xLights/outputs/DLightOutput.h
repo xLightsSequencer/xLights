@@ -18,7 +18,7 @@ class DLightOutput : public LOROutput
 public:
 
     #pragma region Constructors and Destructors
-    DLightOutput(wxXmlNode* node) : LOROutput(node) {};
+    DLightOutput(pugi::xml_node node) : LOROutput(node) {};
     DLightOutput(const DLightOutput& from) : LOROutput(from) {};
     DLightOutput() : LOROutput() {};
     virtual ~DLightOutput() override {};

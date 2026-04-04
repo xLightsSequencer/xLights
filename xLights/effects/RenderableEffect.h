@@ -10,27 +10,20 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/bmpbndl.h>
+#include <cassert>
 #include <string>
-#include "../Color.h"
-#include "assist/AssistPanel.h"
+#include "Color.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
-class wxPanel;
-class wxWindow;
-class wxBitmap;
 class Model;
 class SequenceElements;
 class Effect;
 class SettingsMap;
 class RenderBuffer;
-class wxSlider;
-class wxCheckBox;
 class AudioManager;
-class wxSpinCtrl;
-class xlEffectPanel;
 class EffectManager;
 class EffectLayer;
+class RenderContext;
 
 class RenderableEffect
 {
@@ -54,7 +47,10 @@ public:
         return tooltip;
     };
 
-    virtual const wxBitmapBundle& GetEffectIcon(int defSize = 16) const;
+    const char* const* GetIconData(int sizeIndex) const
+    {
+        return iconData[sizeIndex];
+    }
     virtual int GetId() const
     {
         return id;
@@ -79,7 +75,7 @@ public:
     {
         return std::list<std::string>();
     }
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap)
     {
         return false;
     }
@@ -100,15 +96,6 @@ public:
     {
         mSequenceElements = els;
     }
-
-    xlEffectPanel* GetPanel(wxWindow* parent);
-    virtual void SetDefaultParameters()
-    {}
-    virtual void SetPanelStatus(Model* cls)
-    {}
-    virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs)
-    {}
-    virtual wxString GetEffectString();
 
     // Methods for rendering the effect
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
@@ -136,29 +123,16 @@ public:
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true);
     virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) {}
 
-    virtual AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame);
-    virtual bool HasAssistPanel()
-    {
-        return false;
-    }
-
     static std::string UpgradeValueCurve(EffectManager* effectManager, const std::string& name, const std::string& value, const std::string& effectName);
 protected:
-    static void SetSliderValue(wxSlider* slider, int value);
-    static void SetSpinValue(wxSpinCtrl* spin, int value);
-    static void SetChoiceValue(wxChoice* choice, std::string value);
-    static void SetRadioValue(wxRadioButton* radio);
-    static void SetTextValue(wxTextCtrl* choice, std::string value);
-    static void SetCheckBoxValue(wxCheckBox* w, bool b);
-
     virtual double GetSettingVCMin(const std::string& name) const
     {
-        wxASSERT(false);
+        assert(false);
         return 0.0;
     }
     virtual double GetSettingVCMax(const std::string& name) const
     {
-        wxASSERT(false);
+        assert(false);
         return 100.0;
     }
     virtual int GetSettingVCDivisor(const std::string& name) const
@@ -173,25 +147,12 @@ protected:
     Effect* GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const;
     std::string GetTimingTracks(const int maxLayers = 0, const int absoluteLayers = 0) const;
     bool IsVersionOlder(const std::string& compare, const std::string& version);
-    void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap& settings, int startMS, int endMS, xlColorVector& colors);
-    virtual void RemoveDefaults(const std::string& version, Effect* effect);
 
-    void initBitmaps(const char** data16,
-                     const char** data24,
-                     const char** data32,
-                     const char** data48,
-                     const char** data64);
-
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) = 0;
     std::string name;
     std::string tooltip;
     int id;
-    xlEffectPanel* panel;
     SequenceElements* mSequenceElements;
-    wxBitmapBundle icon16;
-    wxBitmapBundle icon24;
-    wxBitmapBundle icon32;
-    wxBitmapBundle icon48;
+    const char** iconData[5];
 
 private:
 };

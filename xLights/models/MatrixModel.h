@@ -24,8 +24,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
 
         // we cant do low def on single node matrices
@@ -33,6 +31,15 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] bool isVerticalMatrix() const { return _vMatrix; }
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+        virtual int GetNumStrings() const override { return _numStrings; }
+        virtual int NodesPerString() const override;
+        [[nodiscard]] int GetNumMatrixStrings() const { return _numStrings; }
+        [[nodiscard]] int GetNodesPerString() const { return _nodesPerString; }
+        [[nodiscard]] int GetStrandsPerString() const override { return _strandsPerString; }
+        void SetNumMatrixStrings(int val) { _numStrings = val; }
+        void SetNodesPerString(int val) { _nodesPerString = val; }
+        void SetStrandsPerString(int val) { _strandsPerString = val; }
+
         [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
         [[nodiscard]] bool IsNoZigZag() const { return _noZigZag; }
         [[nodiscard]] int GetLowDefFactor() const { return _lowDefFactor; }
@@ -42,14 +49,15 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetVertical(bool val) { _vMatrix = val; }
 
     protected:
-        virtual void AddStyleProperties(wxPropertyGridInterface *grid);
-    
         virtual void InitModel() override;
         void InitSingleChannelModel();
 
         void InitVMatrix(int firstExportStrand = 0);
         void InitHMatrix();
     
+        int _numStrings = 1;
+        int _nodesPerString = 1;
+        int _strandsPerString = 1;
         bool _vMatrix = false;
         bool _alternateNodes = false;
         bool _noZigZag = false;

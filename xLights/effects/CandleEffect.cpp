@@ -9,17 +9,19 @@
  **************************************************************/
 
 #include "CandleEffect.h"
-#include "CandlePanel.h"
 
+#include <cassert>
+#include <format>
 #include <map>
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 #include "../models/Model.h"
-#include "../UtilFunctions.h"
-#include "../Parallel.h"
+#include "UtilFunctions.h"
+#include "Parallel.h"
+#include "../utils/xlSize.h"
 
 #include "../../include/candle-16.xpm"
 #include "../../include/candle-24.xpm"
@@ -42,14 +44,10 @@ std::list<std::string> CandleEffect::CheckEffectSettings(const SettingsMap& sett
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Candle_GrowWithMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Candle effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Candle effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
-}
-
-xlEffectPanel *CandleEffect::CreatePanel(wxWindow *parent) {
-    return new CandlePanel(parent);
 }
 
 class CandleState {
@@ -63,11 +61,11 @@ public:
         flameprimeg = rand01() * flameprimer;
         wind = rand01() * 255;
     }
-    wxByte flameprimer;
-    wxByte flamer;
-    wxByte wind;
-    wxByte flameprimeg;
-    wxByte flameg;
+    uint8_t flameprimer;
+    uint8_t flamer;
+    uint8_t wind;
+    uint8_t flameprimeg;
+    uint8_t flameg;
 };
 
 class CandleRenderCache : public EffectRenderCache
@@ -92,32 +90,12 @@ static CandleRenderCache* GetCache(RenderBuffer& buffer, int id)
     return cache;
 }
 
-void CandleEffect::SetDefaultParameters()
-{
-    CandlePanel* fp = (CandlePanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
 
-    fp->BitmapButton_Candle_FlameAgilityVC->SetActive(false);
-    fp->BitmapButton_Candle_WindBaselineVC->SetActive(false);
-    fp->BitmapButton_Candle_WindVariabilityVC->SetActive(false);
-    fp->BitmapButton_Candle_WindCalmnessVC->SetActive(false);
-
-    SetSliderValue(fp->Slider_Candle_FlameAgility, 2);
-    SetSliderValue(fp->Slider_Candle_WindBaseline, 30);
-    SetSliderValue(fp->Slider_Candle_WindCalmness, 2);
-    SetSliderValue(fp->Slider_Candle_WindVariability, 5);
-
-    SetCheckBoxValue(fp->CheckBox_PerNode, false);
-    SetCheckBoxValue(fp->CheckBox_UsePalette, false);
-}
-
-void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
+void CandleEffect::Update(uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
 {
     // We simulate a gust of wind by setting the wind var to a random value
-    if (wxByte(rand01() * 255.0) < windVariability) {
-        wind = wxByte(rand01() * 255.0);
+    if (uint8_t(rand01() * 255.0) < windVariability) {
+        wind = uint8_t(rand01() * 255.0);
     }
 
     // The wind constantly settles towards its baseline value
@@ -132,8 +110,8 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
 
     // Depending on the wind strength and the calmness modifier we calculate the odds
     // of the wind knocking down the flame by setting it to random values
-    if (wxByte(rand01() * 255) < (wind >> windCalmness)) {
-        flame = wxByte(rand01() * 255);
+    if (uint8_t(rand01() * 255) < (wind >> windCalmness)) {
+        flame = uint8_t(rand01() * 255);
     }
 
     // Real flames ook like they have inertia so we use this constant-aproach-rate filter
@@ -185,13 +163,13 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
         int numStates = 1;
         if (perNode) {
-            wxPoint maxBuffer = buffer.GetMaxBuffer(SettingsMap);
-            int maxMWi = maxBuffer.x == -1 ? buffer.BufferWi : maxBuffer.x;
-            int maxMHt = maxBuffer.y == -1 ? buffer.BufferHt : maxBuffer.y;
+            xlSize maxBuffer = buffer.GetMaxBuffer(SettingsMap);
+            int maxMWi = maxBuffer.width == -1 ? buffer.BufferWi : maxBuffer.width;
+            int maxMHt = maxBuffer.height == -1 ? buffer.BufferHt : maxBuffer.height;
             cache->maxWid = maxMWi;
             numStates = maxMWi * maxMHt;
         }
-        if (numStates > states.size()) {
+        if (numStates > (int)states.size()) {
             states.resize(numStates);
         }
         for (int x = 0; x < numStates; x++) {
@@ -202,11 +180,11 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     if (perNode) {
         int maxW = cache->maxWid;
         parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, usePalette, c1, c2, this](int y) {
-            for (size_t x = 0; x < buffer.BufferWi; x++) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
                 size_t index = y * maxW + x;
                 if (index >= states.size()) {
                     // this should never happen
-                    wxASSERT(false);
+                    assert(false);
                 } else {
                     CandleState* state = &states[index];
 
@@ -221,9 +199,9 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                     xlColor c;
                     if (usePalette) {
                         float t = float(state->flameprimer) / 255.0f;
-                        c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
-                        c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
-                        c.blue = wxByte(c1.blue * (1.0f - t) + c2.blue * t);
+                        c.red = uint8_t(c1.red * (1.0f - t) + c2.red * t);
+                        c.green = uint8_t(c1.green * (1.0f - t) + c2.green * t);
+                        c.blue = uint8_t(c1.blue * (1.0f - t) + c2.blue * t);
                     } else {
                         c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
                     }
@@ -246,14 +224,14 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         xlColor c;
         if (usePalette) {
             float t = float(state->flameprimer) / 255.0f;
-            c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
-            c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
-            c.blue = wxByte(c1.blue * (1.0f - t) + c2.blue * t);
+            c.red = uint8_t(c1.red * (1.0f - t) + c2.red * t);
+            c.green = uint8_t(c1.green * (1.0f - t) + c2.green * t);
+            c.blue = uint8_t(c1.blue * (1.0f - t) + c2.blue * t);
         } else {
             c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
         }
-        for (size_t y = 0; y < buffer.BufferHt; y++) {
-            for (size_t x = 0; x < buffer.BufferWi; x++) {
+        for (int y = 0; y < buffer.BufferHt; y++) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
                 buffer.SetPixel(x, y, c);
             }
         }

@@ -29,7 +29,7 @@ class OpenPixelNetOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    OpenPixelNetOutput(wxXmlNode* node);
+    OpenPixelNetOutput(pugi::xml_node node);
     OpenPixelNetOutput(const OpenPixelNetOutput& from);
     OpenPixelNetOutput();
     virtual ~OpenPixelNetOutput() override {};

@@ -10,7 +10,9 @@
  **************************************************************/
 
 #include "J1Sys.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
+#include "../utils/DisplayMessages.h"
+#include "../utils/string_utils.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
@@ -19,12 +21,14 @@
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
 
-#include <wx/msgdlg.h>
-#include <wx/regex.h>
-#include <wx/xml/xml.h>
-#include <wx/sstream.h>
+#include <regex>
 
-#include <log4cpp/Category.hh>
+#include "../render/UICallbacks.h"
+
+#include <cassert>
+#include <cstdlib>
+#include <format>
+#include <log.h>
 
 // This code has been tested with
 // ECG-P12S App Version 3.3
@@ -71,8 +75,7 @@ static std::string J1SYS_MODEL_P12D = "ECG-P12D";
 
 #pragma region Encode and Decode
 char J1Sys::EncodeStringPortProtocol(std::string protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
 
     if (p == "ws2811") return '4';
     if (p == "tm180x") return '2';
@@ -85,8 +88,7 @@ char J1Sys::EncodeStringPortProtocol(std::string protocol) const {
 }
 
 char J1Sys::EncodeSerialPortProtocol(std::string protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
 
     if (p == "dmx") return 'D';
     if (p == "renard") return 'R';
@@ -95,9 +97,7 @@ char J1Sys::EncodeSerialPortProtocol(std::string protocol) const {
 }
 
 int J1Sys::DecodeProtocolSpeed(std::string protocol) const {
-
-    wxString p(protocol);
-    p = p.Lower();
+    const std::string p = Lower(protocol);
 
     if (p == "ws2811") return 3200;
     if (p == "ws2801") return 750;
@@ -108,22 +108,22 @@ int J1Sys::DecodeProtocolSpeed(std::string protocol) const {
 #pragma endregion
 
 #pragma region String Port Handling
-std::string J1Sys::BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels, wxWindow* parent) const {
+std::string J1Sys::BuildStringPort(bool active, int string, char protocol, int speed, int startChannel, int universe, int pixels) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int out = 65 + string;
 
-    logger_base.debug("     Output String %d, Protocol %c Universe %d StartChannel %d Pixels %d",
+    spdlog::debug("     Output String {}, Protocol {} Universe {} StartChannel {} Pixels {}",
         string, protocol, universe, startChannel, pixels);
 
-    return wxString::Format("sA%c=%d&sT%c=%c&sB%c=%d&sU%c=%d&sS%c=%d&sC%c=%d",
+    return std::format("sA{:c}={}&sT{:c}={:c}&sB{:c}={}&sU{:c}={}&sS{:c}={}&sC{:c}={}",
         out, active ? 1 : 0,
         out, protocol,
         out, speed,
         out, universe,
         out, startChannel,
-        out, pixels).ToStdString();
+        out, pixels);
 }
 
 void J1Sys::ResetStringOutputs() {
@@ -136,22 +136,21 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
     std::string config = GetURL("/protect/stringConfig.htm");
 
     if (!config.empty()) {
-        for (auto i = 0; i < j.size(); i++) {
+        for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
-            wxString activeRegex = wxString::Format("sA%c[^>]*checked", i + 65);
-            wxRegEx ar(activeRegex);
-            j[i].active = ar.Matches(wxString(config));
+            std::regex ar(std::format("sA{:c}[^>]*checked", (char)(i + 65)));
+            j[i].active = std::regex_search(config, ar);
 
             if (i % GetBankSize() == 0) {
-                wxString protocolRegex = wxString::Format("sT%c>[^#]*selected>([^<]*)", i + 65);
-                wxRegEx pr(protocolRegex);
-                if (pr.Matches(wxString(config))) {
-                    j[i].protocol = EncodeStringPortProtocol(pr.GetMatch(wxString(config), 1));
+                std::regex pr(std::format("sT{:c}>[^#]*selected>([^<]*)", (char)(i + 65)));
+                std::smatch pm;
+                if (std::regex_search(config, pm, pr)) {
+                    j[i].protocol = EncodeStringPortProtocol(pm[1].str());
                 }
-                wxString speedRegex = wxString::Format("sB%c[^>]*value=\"([^\"]*)\"", i + 65);
-                wxRegEx sr(speedRegex);
-                if (sr.Matches(wxString(config))) {
-                    j[i].speed = wxAtoi(sr.GetMatch(wxString(config), 1));
+                std::regex sr(std::format("sB{:c}[^>]*value=\"([^\"]*)\"", (char)(i + 65)));
+                std::smatch sm;
+                if (std::regex_search(config, sm, sr)) {
+                    j[i].speed = (int)std::strtol(sm[1].str().c_str(), nullptr, 10);
                 }
             }
             else {
@@ -159,20 +158,20 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
                 j[i].speed = j[i / GetBankSize() * GetBankSize()].speed;
             }
 
-            wxString universeRegex = wxString::Format("sU%c[^>]*value=\"([0-9]*)", i + 65);
-            wxRegEx ur(universeRegex);
-            if (ur.Matches(wxString(config))) {
-                j[i].universe = wxAtoi(ur.GetMatch(wxString(config), 1));
+            std::regex ur(std::format("sU{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::smatch um;
+            if (std::regex_search(config, um, ur)) {
+                j[i].universe = (int)std::strtol(um[1].str().c_str(), nullptr, 10);
             }
-            wxString startChannelRegex = wxString::Format("sS%c[^>]*value=\"([0-9]*)", i + 65);
-            wxRegEx scr(startChannelRegex);
-            if (scr.Matches(wxString(config))) {
-                j[i].startChannel = wxAtoi(scr.GetMatch(wxString(config), 1));
+            std::regex scr(std::format("sS{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::smatch scm;
+            if (std::regex_search(config, scm, scr)) {
+                j[i].startChannel = (int)std::strtol(scm[1].str().c_str(), nullptr, 10);
             }
-            wxString pixelsRegex = wxString::Format("sC%c[^>]*value=\"([0-9]*)", i + 65);
-            wxRegEx pxr(pixelsRegex);
-            if (pxr.Matches(wxString(config))) {
-                j[i].pixels = wxAtoi(pxr.GetMatch(wxString(config), 1));
+            std::regex pxr(std::format("sC{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::smatch pxm;
+            if (std::regex_search(config, pxm, pxr)) {
+                j[i].pixels = (int)std::strtol(pxm[1].str().c_str(), nullptr, 10);
             }
         }
     }
@@ -180,9 +179,9 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
 
 void J1Sys::DumpConfig(const std::vector<J1SysPixelOutput>& outputs) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     for (const auto& j : outputs) {
-        logger_base.debug("   Port %c, Active: %d, Protocol: %c, Speed %d, Universe %d, StartChannel %d, Pixels %d", j.port + 65, j.active, j.protocol, j.speed, j.universe, j.startChannel, j.pixels);
+        spdlog::debug("   Port {}, Active: {}, Protocol: {}, Speed {}, Universe {}, StartChannel {}, Pixels {}", j.port + 65, j.active, j.protocol, j.speed, j.universe, j.startChannel, j.pixels);
     }
 }
 
@@ -194,18 +193,18 @@ int J1Sys::GetBankSize() const {
 #pragma endregion
 
 #pragma region Serial Port Handling
-std::string J1Sys::BuildSerialPort(bool active, int port, char protocol, int speed, int universe, wxWindow* parent) const {
+std::string J1Sys::BuildSerialPort(bool active, int port, char protocol, int speed, int universe) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("     Output Serial %d, Protocol %c Universe %d",
+    spdlog::debug("     Output Serial {}, Protocol {} Universe {}",
         port, protocol, universe);
 
-    return wxString::Format("pA%d=%d&pP%d=%c&pB%d=%d&pU%d=%d",
+    return std::format("pA{}={}&pP{}={:c}&pB{}={}&pU{}={}",
         port, active ? 1 : 0,
         port, protocol,
         port, speed,
-        port, universe).ToStdString();
+        port, universe);
 }
 
 void J1Sys::ResetSerialOutputs() {
@@ -217,9 +216,9 @@ void J1Sys::ResetSerialOutputs() {
 
 void J1Sys::DumpConfig(const std::vector<J1SysSerialOutput>& outputs) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     for (const auto& j : outputs) {
-        logger_base.debug("   Port %c, Active: %d, Protocol: %c, Speed %d, Universe %d", j.port + 65, j.active, j.protocol, j.speed, j.universe);
+        spdlog::debug("   Port {}, Active: {}, Protocol: {}, Speed {}, Universe {}", j.port + 65, j.active, j.protocol, j.speed, j.universe);
     }
 }
 
@@ -228,27 +227,26 @@ void J1Sys::ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j) {
     std::string config = GetURL("/protect/portConfig.htm");
 
     if (!config.empty()) {
-        for (auto i = 0; i < j.size(); i++) {
+        for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
-            wxString activeRegex = wxString::Format("pA%d[^>]*checked", i + 1);
-            wxRegEx ar(activeRegex);
-            j[i].active = ar.Matches(wxString(config));
+            std::regex ar(std::format("pA{}[^>]*checked", i + 1));
+            j[i].active = std::regex_search(config, ar);
 
-            wxString protocolRegex = wxString::Format("pP%d.+?value=\\\"(.)\\\" selected", i + 1);
-            wxRegEx pr(protocolRegex, wxRE_ADVANCED);
-            if (pr.Matches(wxString(config))) {
-                j[i].protocol = pr.GetMatch(wxString(config), 1)[0];
+            std::regex pr(std::format("pP{}.+?value=\"(.)\" selected", i + 1));
+            std::smatch pm;
+            if (std::regex_search(config, pm, pr)) {
+                j[i].protocol = pm[1].str()[0];
             }
-            wxString speedRegex = wxString::Format("pB%d.+?value=\\\"([0-9]+)\\\" selected", i + 1);
-            wxRegEx sr(speedRegex, wxRE_ADVANCED);
-            if (sr.Matches(wxString(config))) {
-                j[i].speed = wxAtoi(sr.GetMatch(wxString(config), 1));
+            std::regex sr(std::format("pB{}.+?value=\"([0-9]+)\" selected", i + 1));
+            std::smatch sm;
+            if (std::regex_search(config, sm, sr)) {
+                j[i].speed = (int)std::strtol(sm[1].str().c_str(), nullptr, 10);
             }
 
-            wxString universeRegex = wxString::Format("pU%d[^>]*value=\\\"([0-9]*)", i + 1);
-            wxRegEx ur(universeRegex);
-            if (ur.Matches(wxString(config))) {
-                j[i].universe = wxAtoi(ur.GetMatch(wxString(config), 1));
+            std::regex ur(std::format("pU{}[^>]*value=\"([0-9]*)", i + 1));
+            std::smatch um;
+            if (std::regex_search(config, um, ur)) {
+                j[i].universe = (int)std::strtol(um[1].str().c_str(), nullptr, 10);
             }
         }
     }
@@ -265,35 +263,38 @@ void J1Sys::Reboot() {
 #pragma region Constructors and Destructors
 J1Sys::J1Sys(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _outputs = 0;
 
-    logger_base.debug("J1Sys upload tested to work with:");
-    logger_base.debug("    ECG-P2 App Version 2.9b");
-    logger_base.debug("    ECG-P12S App Version 3.3");
+    spdlog::debug("J1Sys upload tested to work with:");
+    spdlog::debug("    ECG-P2 App Version 2.9b");
+    spdlog::debug("    ECG-P12S App Version 3.3");
 
     _connected = true;
     std::string page = GetURL("/sysinfo.htm");
     if (page != "") {
-        static wxRegEx versionregex("(App Version:\\<\\/b\\>\\<\\/td\\>\\<td\\>.nbsp;\\<\\/td\\>\\<td\\>)([^\\<]*)\\<", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (versionregex.Matches(wxString(page))) {
-            _version = versionregex.GetMatch(wxString(page), 2).ToStdString();
-            logger_base.debug("Connected to J1Sys controller version %s.", (const char*)_version.c_str());
+        static std::regex versionregex("(App Version:\\<\\/b\\>\\<\\/td\\>\\<td\\>.nbsp;\\<\\/td\\>\\<td\\>)([^\\<]*)\\<");
+        std::smatch verm;
+        if (std::regex_search(page, verm, versionregex)) {
+            _version = verm[2].str();
+            spdlog::debug("Connected to J1Sys controller version {}.", (const char*)_version.c_str());
         }
-        static wxRegEx modelregex("(document\\.getElementById\\(.titleRight.\\)\\.innerHTML = .)([^\"]*)\"", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (modelregex.Matches(wxString(page))) {
-            _model = modelregex.GetMatch(wxString(page), 2).ToStdString();
-            logger_base.debug("     model %s.", (const char*)_model.c_str());
-            static wxRegEx outputsregex("([0-9]+)", wxRE_ADVANCED);
-            if (outputsregex.Matches(wxString(_model))) {
-                _outputs = wxAtoi(outputsregex.GetMatch(wxString(_model), 1));
-                logger_base.debug("     outputs %d.", _outputs);
+        static std::regex modelregex("(document\\.getElementById\\(.titleRight.\\)\\.innerHTML = .)([^\"]*)\"");
+        std::smatch modm;
+        if (std::regex_search(page, modm, modelregex)) {
+            _model = modm[2].str();
+            spdlog::debug("     model {}.", (const char*)_model.c_str());
+            static std::regex outputsregex("([0-9]+)");
+            std::smatch outm;
+            if (std::regex_search(_model, outm, outputsregex)) {
+                _outputs = (int)std::strtol(outm[1].str().c_str(), nullptr, 10);
+                spdlog::debug("     outputs {}.", _outputs);
             }
         }
     }
     else {
         _connected = false;
-        logger_base.error("Error connecting to J1Sys controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to J1Sys controller on {}.", (const char*)_ip.c_str());
     }
 }
 #pragma endregion
@@ -301,7 +302,7 @@ J1Sys::J1Sys(const std::string& ip, const std::string& proxy) : BaseController(i
 #pragma region Getters and Setters
 bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManager) {
 
-    wxASSERT(_outputs != 0);
+    assert(_outputs != 0);
 
     bool e131 = false;
     bool artnet = false;
@@ -321,19 +322,19 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
 
     if (_outputs == 2) {
         if (outputs.size() > 8) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to j1Sys P2 controller but only 8 are supported.", (int)outputs.size()).ToStdString());
+            DisplayError(std::format("Attempt to upload {} universes to j1Sys P2 controller but only 8 are supported.", (int)outputs.size()));
             return false;
         }
     }
     else if (_outputs == 12) {
         int maxUniverses = 12;
-        if (_model != J1SYS_MODEL_P12R && wxAtof(_version) >= 3.4)
+        if (_model != J1SYS_MODEL_P12R && std::strtod(_version.c_str(), nullptr) >= 3.4)
         {
             maxUniverses = 26;
         }
-        if (outputs.size() > maxUniverses)
+        if ((int)outputs.size() > maxUniverses)
         {
-            DisplayError(wxString::Format("Attempt to upload %d universes to j1Sys P12 controller but only %d are supported.", (int)outputs.size(), maxUniverses).ToStdString());
+            DisplayError(std::format("Attempt to upload {} universes to j1Sys P12 controller but only {} are supported.", (int)outputs.size(), maxUniverses));
             return false;
         }
     }
@@ -342,12 +343,12 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
     {
         if (o->GetChannels() > 510)
         {
-            DisplayError(wxString::Format("Attempt to upload universe %d to j1Sys controller of size %ld but maximum is 510.", o->GetUniverse(), o->GetChannels()).ToStdString());
+            DisplayError(std::format("Attempt to upload universe {} to j1Sys controller of size {} but maximum is 510.", o->GetUniverse(), o->GetChannels()));
             return false;
         }
     }
 
-    std::string request = wxString::Format("an=0&e1en=%d&anen=%d", (e131) ? 1 : 0, (artnet) ? 1 : 0).ToStdString();
+    std::string request = std::format("an=0&e1en={}&anen={}", (e131) ? 1 : 0, (artnet) ? 1 : 0);
     std::string res = PutURL("/protect/ipConfig.htm", request, _username, _password);
     if (res != "" && !StartsWith(res, "401 "))
     {
@@ -357,7 +358,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
     return false;
 }
 
-bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui)
 {
     if (!SetInputUniverses(controller, outputManager)) {
         return false;
@@ -366,8 +367,8 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
     //ResetStringOutputs(); // this shouldnt be used normally
     //ResetSerialOutputs(); // this shouldnt be used normally
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("J1Sys Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("J1Sys Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -377,14 +378,14 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
 
     cud.Dump();
 
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     if (success && cud.GetMaxPixelPort() > 0) {
         // one per config row
         std::vector<J1SysPixelOutput> j1SysOutputs(_outputs * GetBankSize());
 
         ReadCurrentConfig(j1SysOutputs);
-        logger_base.debug("Existing config:");
+        spdlog::debug("Existing config:");
         DumpConfig(j1SysOutputs);
 
         for (int pp = 1; pp <= _outputs; pp++) {
@@ -407,8 +408,8 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                         int channels = m->Channels();
                         while (channels > 0) {
                             if (output >= bankStart + GetBankSize()) {
-                                DisplayError("Controller " + _ip + " too many outputs required for port " + wxString::Format("%d", pp) + ".");
-                                logger_base.debug("Erroneous config:");
+                                ui->ShowMessage("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".", "Error");
+                                spdlog::debug("Erroneous config:");
                                 DumpConfig(j1SysOutputs);
                                 return false;
                             }
@@ -440,8 +441,8 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                         int channels = m->Channels();
                         while (channels > 0) {
                             if (output >= bankStart + GetBankSize()) {
-                                DisplayError("Controller " + _ip + " too many outputs required for port " + wxString::Format("%d", pp) + ".");
-                                logger_base.debug("Erroneous config:");
+                                ui->ShowMessage("Controller " + _ip + " too many outputs required for port " + std::to_string(pp) + ".", "Error");
+                                spdlog::debug("Erroneous config:");
                                 DumpConfig(j1SysOutputs);
                                 return false;
                             }
@@ -492,14 +493,14 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
             port++;
         }
 
-        logger_base.debug("Uploading pixel config:");
+        spdlog::debug("Uploading pixel config:");
         DumpConfig(j1SysOutputs);
 
-        logger_base.debug("Building pixel upload:");
+        spdlog::debug("Building pixel upload:");
         std::string requestString;
         for (const auto& j : j1SysOutputs) {
             if (requestString != "") requestString += "&";
-            requestString += BuildStringPort(j.active, j.port, j.protocol, j.speed, j.startChannel, j.universe, j.pixels, parent);
+            requestString += BuildStringPort(j.active, j.port, j.protocol, j.speed, j.startChannel, j.universe, j.pixels);
         }
 
         if (requestString != "") {
@@ -514,7 +515,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
         std::vector<J1SysSerialOutput> j1SysOutputs(caps->GetMaxSerialPort());
 
         ReadCurrentSerialConfig(j1SysOutputs);
-        logger_base.debug("Existing config:");
+        spdlog::debug("Existing config:");
         DumpConfig(j1SysOutputs);
 
         for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
@@ -533,32 +534,32 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Co
                 auto o2 = outputManager->GetOutput(port->GetEndChannel(), sc2);
 
                 if (o != o2) {
-                    DisplayError("Controller " + _ip + " serial port " + wxString::Format("%d", sp) + "requires more than 1 universe.");
-                    logger_base.debug("Erroneous config:");
+                    ui->ShowMessage("Controller " + _ip + " serial port " + std::to_string(sp) + " requires more than 1 universe.", "Error");
+                    spdlog::debug("Erroneous config:");
                     DumpConfig(j1SysOutputs);
                     return false;
                 }
 
                 if (sc != 1) {
-                    DisplayError("Controller " + _ip + " serial port " + wxString::Format("%d", sp) + "does not start on channel 1 of universe " +
-                        wxString::Format("%d", port->GetUniverse()) + ". It starts at " +
-                        wxString::Format("%d", port->GetStartChannel()) + ".");
-                    logger_base.debug("Erroneous config:");
+                    ui->ShowMessage("Controller " + _ip + " serial port " + std::to_string(sp) + " does not start on channel 1 of universe " +
+                        std::to_string(port->GetUniverse()) + ". It starts at " +
+                        std::to_string(port->GetStartChannel()) + ".", "Error");
+                    spdlog::debug("Erroneous config:");
                     DumpConfig(j1SysOutputs);
                     return false;
                 }
             }
         }
 
-        logger_base.debug("Uploading serial config:");
+        spdlog::debug("Uploading serial config:");
         DumpConfig(j1SysOutputs);
 
-        logger_base.debug("Building serial upload:");
+        spdlog::debug("Building serial upload:");
         std::string requestString;
         for (const auto& j : j1SysOutputs) {
             if (requestString != "")
                 requestString += "&";
-            requestString += BuildSerialPort(j.active, j.port + 1, j.protocol, j.speed, j.universe, parent);
+            requestString += BuildSerialPort(j.active, j.port + 1, j.protocol, j.speed, j.universe);
         }
 
         if (requestString != "") {

@@ -9,11 +9,10 @@
  **************************************************************/
 
 #include "GarlandsEffect.h"
-#include "GarlandsPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/garlands-16.xpm"
 #include "../../include/garlands-24.xpm"
@@ -29,10 +28,6 @@ GarlandsEffect::GarlandsEffect(int id) : RenderableEffect(id, "Garlands", garlan
 GarlandsEffect::~GarlandsEffect()
 {
     //dtor
-}
-
-xlEffectPanel *GarlandsEffect::CreatePanel(wxWindow *parent) {
-    return new GarlandsPanel(parent);
 }
 
 int GetDirection(const std::string &direction) {
@@ -54,22 +49,6 @@ int GetDirection(const std::string &direction) {
         return 7;
     }
     return 0;
-}
-
-void GarlandsEffect::SetDefaultParameters() {
-    GarlandsPanel *fp = (GarlandsPanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    fp->BitmapButton_Garlands_CyclesVC->SetActive(false);
-    fp->BitmapButton_Garlands_SpacingVC->SetActive(false);
-
-    SetSliderValue(fp->Slider_Garlands_Type, 0);
-    SetSliderValue(fp->Slider_Garlands_Spacing, 10);
-    SetSliderValue(fp->Slider_Garlands_Cycles, 10);
-
-    SetChoiceValue(fp->Choice_Garlands_Direction, "Up");
 }
 
 void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

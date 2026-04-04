@@ -1,0 +1,405 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include "ControllerConnection.h"
+#include "Pixels.h"
+#include "../controllers/ControllerCaps.h"
+#include "ModelManager.h"
+#include "models/Model.h"
+
+static const int PORTS_PER_SMARTREMOTE = 4;
+
+ControllerConnection::ControllerConnection(Model* model)
+: _model(model)
+{
+}
+
+ControllerConnection::~ControllerConnection()
+{
+}
+
+int ControllerConnection::GetCtrlPort(int string) const
+{
+    int port;
+    int sr;
+    GetPortSR(string, port, sr);
+    return port;
+}
+
+// This is deliberately ! serial so that it defaults to thinking it is pixel
+bool ControllerConnection::IsPixelProtocol() const
+{
+    return GetCtrlPort(1) != 0 && !::IsSerialProtocol(_protocol) && !::IsMatrixProtocol(_protocol) && !::IsPWMProtocol(_protocol);
+}
+bool ControllerConnection::IsSerialProtocol() const
+{
+    return GetCtrlPort(1) != 0 && ::IsSerialProtocol(_protocol);
+}
+bool ControllerConnection::IsMatrixProtocol() const
+{
+    return GetCtrlPort(1) != 0 && ::IsMatrixProtocol(_protocol);
+}
+bool ControllerConnection::IsLEDPanelMatrixProtocol() const
+{
+    return GetCtrlPort(1) != 0 && ::IsLEDPanelMatrixProtocol(_protocol);
+}
+bool ControllerConnection::IsVirtualMatrixProtocol() const
+{
+    return GetCtrlPort(1) != 0 && ::IsVirtualMatrixProtocol(_protocol);
+}
+bool ControllerConnection::IsPWMProtocol() const
+{
+    return GetCtrlPort(1) != 0 && ::IsPWMProtocol(_protocol);
+}
+
+bool ControllerConnection::IsValid() const
+{
+    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetCtrlPort(1) > 0);
+}
+
+void ControllerConnection::SetProtocol(const std::string& protocol)
+{
+    if (protocol == _protocol) return;
+    _protocol = protocol;
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetProtocol");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetSerialProtocolSpeed(int speed) {
+    if (speed == _protocolSpeed) return;
+    if (speed != 0) {
+        _protocolSpeed = speed;
+    }
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSerialProtocolSpeed");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetCtrlPort(int port)
+{
+    if (port == _port) return;
+    if (port == -999) return;
+
+    if (port > 0) {
+        _port = port;
+    }
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetCtrlPort");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetBrightness(int brightness)
+{
+     if (brightness == _brightness) return;
+    _brightness = brightness;
+    _brightnessIsSet = true;
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetBrightness");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetStartNulls(int nulls)
+{
+    if (nulls == _startNulls ) return;
+    _startNulls = nulls;
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetStartNulls");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetEndNulls(int nulls)
+{
+    if (nulls == _endNulls ) return;
+   _endNulls = nulls;
+   _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetEndNulls");
+   _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetColorOrder(std::string const& color_order)
+{
+    if (color_order == _colorOrder) return;
+    _colorOrder = color_order;
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetColorOrder");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetGroupCount(int grouping)
+{
+    if (grouping == _groupCount) return;
+    _groupCount = grouping;
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetGroupCount");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetGamma(float gamma)
+{
+    if (abs(gamma - _gamma) < 0.01) return;
+    _gamma = gamma;
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetGamma");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetReverse(int reverse)
+{
+    if (_reverse == reverse) return;
+    _reverse = reverse;
+    _model->IncrementChangeCount();
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetReverse");
+}
+
+void ControllerConnection::SetZigZag(int zigzag)
+{
+    if (_zigzag == zigzag) return;
+    _zigzag = zigzag;
+    _model->IncrementChangeCount();
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetZigZag");
+}
+
+void ControllerConnection::SetDMXChannel(int ch)
+{
+    if (_dmxChannel == ch) return;
+    if (ch > 0) {
+        _dmxChannel = ch;
+    }
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_RELOAD_MODELLIST |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetDMXChannel");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::GetPortSR(int string, int& outport, int& outsr) const
+{
+    // we need to work with 0 based strings
+    string = string - 1;
+
+    int sr = GetSmartRemote();
+
+    if (_port == 0 || string <= 0) {
+        outport = _port;
+        outsr = sr;
+    } else if (sr == 0) {
+        outport = _port + string;
+        outsr = 0;
+    } else {
+        bool cascadeOnPort = GetSRCascadeOnPort();
+        int max = GetSRMaxCascade();
+
+        if (cascadeOnPort) {
+            outport = _port + string / max;
+            outsr = sr + (string % max);
+        } else {
+            int currp = _port;
+            int currsr = sr;
+
+            for (int p = 0; p < string; ++p) {
+                int newp = currp + 1;
+                if ((newp - 1) / PORTS_PER_SMARTREMOTE != (currp - 1) / PORTS_PER_SMARTREMOTE) {
+                    int newsr = currsr + 1;
+                    if (newsr - sr >= max) {
+                        currsr = sr;
+                        currp = newp;
+                    } else {
+                        currsr = newsr;
+                        currp = ((currp - 1) / PORTS_PER_SMARTREMOTE) * PORTS_PER_SMARTREMOTE + 1;
+                    }
+                } else {
+                    currp = newp;
+                }
+            }
+
+            outport = currp;
+            outsr = currsr;
+        }
+    }
+}
+
+// string is one based
+int ControllerConnection::GetSmartRemoteForString(int string) const
+{
+    int port;
+    int sr;
+    GetPortSR(string, port, sr);
+    return sr;
+}
+
+char ControllerConnection::GetSmartRemoteLetter() const
+{
+    if (_smartRemote == 0)
+        return ' ';
+    return char('A' + _smartRemote - 1);
+}
+
+char ControllerConnection::GetSmartRemoteLetterForString(int string) const
+{
+    auto sr = GetSmartRemoteForString(string);
+    if (sr == 0)
+        return ' ';
+    return char('A' + sr - 1);
+}
+
+// This sorts the special A->B->C and B->C first to ensure that anything on a particular smart remote comes after things that span multiple ports
+int ControllerConnection::GetSortableSmartRemote() const
+{
+    int sr = GetSmartRemote();
+    int max = GetSRMaxCascade();
+    if (max == 1)
+        return sr + 200;
+    return sr;
+}
+
+void ControllerConnection::SetSRCascadeOnPort(bool cascade)
+{
+    if (_smartRemoteCascadeOnPort == cascade) return;
+    _smartRemoteCascadeOnPort = cascade;
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSRCascadeOnPort");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetSRMaxCascade(int max)
+{
+    if (_smartRemoteMaxCascade == max) return;
+    _smartRemoteMaxCascade = max;
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSRMaxCascade");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::LoadSmartRemote(int sr)
+{
+    if (_smartRemote == sr) return;
+    if (sr != 0) {
+        _smartRemote = sr;
+        active_props[USE_SMART_REMOTE] = true;
+    } else {
+        _smartRemote = 0;
+        active_props[USE_SMART_REMOTE] = false;
+        SetSRMaxCascade(1);
+        SetSRCascadeOnPort(false);
+    }
+}
+
+void ControllerConnection::SetSmartRemote(int sr)
+{
+    if (_smartRemote == sr) return;
+    // Find the last model on this smart remote and update the chain
+    if (!_name.empty()) {
+        _model->SetModelChain(_model->modelManager.GetLastModelOnPort(_name, _port, _model->GetName(), _protocol, sr));
+    }
+    LoadSmartRemote(sr);
+
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSmartRemote");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetSmartRemoteType(const std::string& type)
+{
+    if (_smartRemoteType == type) return;
+    if (!type.empty()) {
+        _smartRemoteType = type;
+    }
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST |
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSmartRemoteType");
+    _model->IncrementChangeCount();
+}
+
+void ControllerConnection::SetSmartRemoteTs(int ts)
+{
+    if (_smartRemoteTs == ts) return;
+    _smartRemoteTs = ts;
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetSmartRemoteTs");
+    _model->IncrementChangeCount();
+}
+
+std::vector<std::string> ControllerConnection::GetSmartRemoteTypes() const
+{
+    auto caps = _model->GetControllerCaps();
+    if (caps == nullptr) {
+        return { "" };
+    }
+    return caps->GetSmartRemoteTypes();
+}
+
+std::string ControllerConnection::GetSmartRemoteType() const
+{
+    auto types = GetSmartRemoteTypes();
+    if (types.empty()) {
+        return "";
+    }
+    if (std::find(types.begin(), types.end(), _smartRemoteType) == types.end()) {
+        return types.front();
+    }
+    return _smartRemoteType;
+}
+
+int ControllerConnection::GetSmartRemoteTypeIndex(const std::string& srType) const
+{
+    auto caps = _model->GetControllerCaps();
+    int i = 0;
+    if (caps != nullptr) {
+        for (const auto& it : caps->GetSmartRemoteTypes()) {
+            if (srType == Lower(it)) {
+                return i;
+            }
+            i++;
+        }
+    }
+
+    return 0;
+}
+
+std::string ControllerConnection::GetSmartRemoteTypeName(int idx) const
+{
+    auto caps = _model->GetControllerCaps();
+    if (caps != nullptr) {
+        const auto srList = caps->GetSmartRemoteTypes();
+        if (idx < (int)srList.size() && idx >= 0) {
+            auto it = srList.begin();
+            std::advance(it, idx);
+            return *it;
+        }
+    }
+
+    return std::string();
+}
+
+int ControllerConnection::GetSmartRemoteCount() const
+{
+    auto caps = _model->GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->GetSmartRemoteCount();
+    }
+    return 3;
+}

@@ -1,0 +1,1453 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <wx/settings.h>
+#include <wx/textdlg.h>
+#include <wx/numdlg.h>
+#include <wx/choicdlg.h>
+
+#include "ui/shared/controls/BulkEditControls.h"
+#include "xLightsMain.h"
+#include "xLightsApp.h"
+#include "ui/sequencer/EffectsPanel.h"
+#include "ui/sequencer/MainSequencer.h"
+#include "ui/sequencer/BulkEditSliderDialog.h"
+#include "ui/sequencer/BulkEditFontPickerDialog.h"
+#include "ui/sequencer/BulkEditColourPickerDialog.h"
+#include "ui/sequencer/BulkEditComboDialog.h"
+#include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
+#include "utils/ExternalHooks.h"
+#include "render/SequenceMedia.h"
+#include "render/SequenceElements.h"
+
+#include <filesystem>
+
+#include <log.h>
+
+// Here is how the sliders, labels, value curves and text boxes all work together.
+//
+// ID_ vs IDD_ ... whichever is ID_ is the value that will be stored as the setting. The IDD is ignored
+// All sliders start with ID[D]_SLIDER
+// All text boxes start with ID[D]_TEXTCTRL
+// All labels start with ID_STATICTEXT
+// All value curve buttons start with ID_VALUECURVE
+// Whatever occurs after the above strings must match for the controls to be associated and work correctly
+// Even for associated controls where you dont want bulk edit you can still use these classes
+
+#pragma region Bulk Edit Control Constructors
+BulkEditSlider::BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxSlider(parent, id, value, minValue, maxValue, pos, size, style, validator, name)
+{
+    _default = value;
+    _supportsBulkEdit = true;
+    _type = BESLIDERTYPE::BE_INT;
+    ID_SLIDER_BULKEDIT = wxNewId();
+    Connect(wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&BulkEditSlider::OnSlider_SliderUpdated);
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditSlider::OnRightDown, nullptr, this);
+    Connect(wxEVT_RIGHT_DCLICK, (wxObjectEventFunction)& BulkEditSlider::OnDClick, nullptr, this);
+}
+
+BulkEditFontPicker::BulkEditFontPicker(wxWindow* parent, wxWindowID id, const wxFont& initial, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name)
+    : wxFontPickerCtrl(parent, id, initial, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_FONTPICKER_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)& BulkEditFontPicker::OnRightDown, nullptr, this);
+    this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)& BulkEditFontPicker::OnRightDown, nullptr, this);
+}
+
+BulkEditColourPickerCtrl::BulkEditColourPickerCtrl(wxWindow* parent, wxWindowID id, const wxColour& initial, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name)
+    : wxColourPickerCtrl(parent, id, initial, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_COLOURPICKER_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
+    wxControl *c = this->GetPickerCtrl();
+    wxBitmapButton *b = dynamic_cast<wxBitmapButton*>(c);
+    if (b) {
+        b->SetBitmapMargins(0, 0);
+    }
+    this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
+}
+
+BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxTextCtrl(parent, id, value, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    _type = BESLIDERTYPE::BE_INT;
+    ID_TEXTCTRL_BULKEDIT = wxNewId();
+    Connect(wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&BulkEditTextCtrl::OnTextCtrl_TextUpdated);
+    Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&BulkEditTextCtrl::OnTextCtrl_TextLoseFocus);
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditTextCtrl::OnRightDown, nullptr, this);
+}
+
+BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) :
+    wxFilePickerCtrl(parent, id, path, message, wildcard, pos, size, style, validator, name)
+{
+    _wildcard = wildcard;
+    _supportsBulkEdit = true;
+    ID_FILEPICKERCTRL_BULKEDIT_FN = wxNewId();
+    ID_FILEPICKERCTRL_BULKEDIT_PN = wxNewId();
+    ID_FILEPICKERCTRL_BULKEDIT_SF = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
+    Connect(wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged);
+    this->GetTextCtrl()->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus, nullptr, this);
+    this->GetTextCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
+    ValidateControl();
+}
+
+void BulkEditFilePickerCtrl::ValidateControl()
+{
+    if (!IsEnabled()) {
+        if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
+            SetToolTip("");
+        }
+        GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    } else {
+        auto file = GetFileName().GetFullPath();
+        if (!FileExists(file)) {
+            GetTextCtrl()->SetBackgroundColour(*wxRED);
+            SetToolTip("File " + file + " does not exist.");
+        } else if (!file.empty() && !IsXmlSafe(file)) {
+            GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
+            SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+        } else {
+            if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
+                SetToolTip("");
+            }
+            GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
+}
+
+static bool IsVideoExtension(const std::string& ext) {
+    return ext == ".mp4" || ext == ".avi" || ext == ".mov" || ext == ".mkv" ||
+           ext == ".mts" || ext == ".m2ts" || ext == ".wmv" || ext == ".flv" ||
+           ext == ".mpg" || ext == ".mpeg" || ext == ".m4v" || ext == ".asf";
+}
+
+static bool IsGlediatorExtension(const std::string& ext) {
+    return ext == ".gled" || ext == ".csv" || ext == ".out";
+}
+
+// Determine a reasonable subdirectory for the media type based on file extension
+static std::string SubdirectoryForFile(const std::string& filepath) {
+    std::string ext = std::filesystem::path(filepath).extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    std::string sep(1, std::filesystem::path::preferred_separator);
+    if (ext == ".fs") return sep + "Shaders";
+    if (ext == ".svg") return sep + "Images";
+    if (IsGlediatorExtension(ext)) return sep + "Glediator";
+    if (IsVideoExtension(ext)) return sep + "Videos";
+    if (ext == ".txt") return sep;
+    return sep + "Images";
+}
+
+void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
+{
+    wxString file = GetFileName().GetFullPath();
+    if (!file.IsEmpty()) {
+        std::string filepath = file.ToStdString();
+
+        // Check if file is outside show/media directories and prompt user
+        if (FileExists(filepath) && !IsFileInShowDir(std::string(), filepath)) {
+            // Find xLightsFrame via parent chain
+            xLightsFrame* xl = nullptr;
+            for (wxWindow* w = GetParent(); w != nullptr; w = w->GetParent()) {
+                xl = dynamic_cast<xLightsFrame*>(w);
+                if (xl) break;
+            }
+
+            if (xl) {
+                // If an effect-grid drag operation is in progress, release mouse capture
+                // before opening a modal dialog so the drag state does not remain stuck.
+                if (xl->GetMainSequencer() != nullptr &&
+                    xl->GetMainSequencer()->PanelEffectGrid != nullptr) {
+                    xl->GetMainSequencer()->PanelEffectGrid->CancelMouseOperations();
+                }
+
+                wxString msg = wxString::Format(
+                    "The selected file is not in the show directory or media directories:\n\n%s\n\n"
+                    "What would you like to do?",
+                    file);
+                // Check if this is a video file (too large to embed)
+                std::string ext = std::filesystem::path(filepath).extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                bool canEmbed = !IsVideoExtension(ext) && !IsGlediatorExtension(ext);
+
+                wxArrayString choices;
+                choices.Add("Copy to show folder");
+                if (canEmbed)
+                    choices.Add("Embed in sequence");
+                choices.Add("Use from current location");
+
+                wxSingleChoiceDialog dlg(this, msg, "File Outside Show Directory", choices);
+                dlg.SetSelection(0);
+                if (dlg.ShowModal() == wxID_OK) {
+                    wxString chosen = dlg.GetStringSelection();
+                    if (chosen == "Copy to show folder") {
+                        std::string subdir = SubdirectoryForFile(filepath);
+                        std::string newPath = xl->MoveToShowFolder(filepath, subdir);
+                        if (!newPath.empty()) {
+                            SetFileName(wxFileName(newPath));
+                        }
+                    } else if (chosen == "Embed in sequence") {
+                        auto& elements = xl->GetSequenceElements();
+                        auto& media = elements.GetSequenceMedia();
+
+                        // Load the file into the cache, then embed it.
+                        // Use a clean embedded name so the cache key matches
+                        // what gets stored in effect settings.
+                        std::string fname = std::filesystem::path(filepath).filename().string();
+                        if (ext == ".fs") {
+                            media.GetShader(filepath);
+                            media.EmbedMedia(filepath);
+                            SetFileName(wxFileName(filepath));
+                        } else if (ext == ".svg") {
+                            media.GetSVG(filepath);
+                            media.EmbedMedia(filepath);
+                            SetFileName(wxFileName(filepath));
+                        } else if (ext == ".txt") {
+                            media.GetTextFile(filepath);
+                            media.EmbedMedia(filepath);
+                            SetFileName(wxFileName(filepath));
+                        } else {
+                            // Image: use the existing rename+embed pattern
+                            media.GetImage(filepath);
+                            std::string embeddedName = "Images/" + fname;
+                            if (!media.RenameImage(filepath, embeddedName)) {
+                                embeddedName = filepath;
+                            }
+                            media.EmbedImage(embeddedName);
+                            SetFileName(wxFileName(embeddedName));
+                        }
+                    }
+                    // choice == 2: keep as-is, no action needed
+                }
+            }
+        }
+
+        ValidateControl();
+    }
+    event.Skip();
+}
+
+bool BulkEditFilePickerCtrl::Enable(bool enable)
+{
+    bool rc = wxFilePickerCtrl::Enable(enable);
+    ValidateControl();
+    return rc;
+}
+
+void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
+{
+    if (!GetFileName().GetFullPath().IsEmpty()) {
+        ValidateControl();
+    }
+    event.Skip();
+}
+
+BulkEditSpinCtrl::BulkEditSpinCtrl(wxWindow *parent, wxWindowID id, const wxString &value, const wxPoint &pos, const wxSize &size, long style, int min, int max, int initial, const wxString &name) : wxSpinCtrl(parent, id, value, pos, size, style, min, max, initial, name)
+{
+    _supportsBulkEdit = true;
+    ID_SPINCTRL_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditSpinCtrl::OnRightDown, nullptr, this);
+#ifdef __WXOSX__
+    if (min > 1 && max > 10) {
+        // at least a 2 digit number.  We need to keep the min a 1
+        // or we won't be able to type numbers into the field.  For example
+        // min:50 max:1000
+        // if you try  to type "100" into the field, the validator
+        // fires on the first "1", it's out of range, and thus
+        // blocks the entry preventing typing the number
+        SetRange(1, max);
+    }
+#endif
+}
+
+BulkEditValueCurveButton::BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : ValueCurveButton(parent, id, bitmap, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_VALUECURVE_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditValueCurveButton::OnRightDown, nullptr, this);
+}
+
+BulkEditButton::BulkEditButton(wxWindow *parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : wxButton(parent, id, label, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_BUTTON_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditButton::OnRightDown, nullptr, this);
+}
+
+BulkEditComboBox::BulkEditComboBox(wxWindow* parent, wxWindowID id, const wxString& value, const wxPoint& pos, const wxSize& size, int n, const wxString choices[], long style, const wxValidator& validator, const wxString& name) :
+    wxComboBox(parent, id, value, pos, size, n, choices, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_COMBOBOX_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditComboBox::OnRightDown, nullptr, this);
+
+    if (choices != nullptr) {
+        // not implemented ... should add to the defaultOptions
+        wxASSERT(false);
+    }
+}
+
+BulkEditChoice::BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int n, const wxString choices[], long style, const wxValidator &validator, const wxString &name) : wxChoice(parent, id, pos, size, n, choices, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_CHOICE_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditChoice::OnRightDown, nullptr, this);
+}
+
+BulkEditFaceChoice::BulkEditFaceChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int n, const wxString choices[], long style, const wxValidator &validator, const wxString &name) : BulkEditChoice(parent, id, pos, size, n, choices, style, validator, name)
+{
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFaceChoice::OnRightDown, nullptr, this);
+}
+
+BulkEditStateChoice::BulkEditStateChoice(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, int n, const wxString choices[], long style, const wxValidator& validator, const wxString& name) :
+    BulkEditChoice(parent, id, pos, size, n, choices, style, validator, name)
+{
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditStateChoice::OnRightDown, nullptr, this);
+}
+
+BulkEditCheckBox::BulkEditCheckBox(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) :
+    wxCheckBox(parent, id, label, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_CHECKBOX_BULKEDIT_CHECKED = wxNewId();
+    ID_CHECKBOX_BULKEDIT_UNCHECKED = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditCheckBox::OnRightDown, nullptr, this);
+}
+
+BulkEditSliderF1::BulkEditSliderF1(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditSlider(parent, id, value, minValue, maxValue, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT1;
+}
+
+BulkEditTextCtrlF1::BulkEditTextCtrlF1(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditTextCtrl(parent, id, value, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT1;
+}
+
+BulkEditSliderF2::BulkEditSliderF2(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditSlider(parent, id, value, minValue, maxValue, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT2;
+}
+
+BulkEditSliderF360::BulkEditSliderF360(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditSlider(parent, id, value, minValue, maxValue, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT360;
+}
+
+BulkEditTextCtrlF2::BulkEditTextCtrlF2(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditTextCtrl(parent, id, value, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT2;
+}
+
+BulkEditTextCtrlF360::BulkEditTextCtrlF360(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditTextCtrl(parent, id, value, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT360;
+}
+#pragma endregion
+
+#pragma region Bulk Edit Right Click Handlers
+void BulkEditSlider::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_SLIDER_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditSlider::OnSliderPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditFontPicker::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_FONTPICKER_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& BulkEditFontPicker::OnFontPickerPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditColourPickerCtrl::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_COLOURPICKER_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnColourPickerPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditValueCurveButton::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_VALUECURVE_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditValueCurveButton::OnValueCurvePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditButton::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_BUTTON_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditButton::OnButtonPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditTextCtrl::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_TEXTCTRL_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditTextCtrl::OnTextCtrlPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditFilePickerCtrl::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_FN, "Bulk Edit Filename");
+    mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_PN, "Bulk Edit Path");
+    mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_SF, "Bulk Edit Show Folder");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrlPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditSpinCtrl::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_SPINCTRL_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditSpinCtrl::OnSpinCtrlPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditComboBox::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit)
+        return;
+    if (!IsBulkEditAvailable(GetParent(), false))
+        return;
+
+    wxMenu mnu;
+    mnu.Append(ID_COMBOBOX_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditComboBox::OnComboBoxPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditChoice::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditChoice::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditFaceChoice::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), true)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditChoice::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditStateChoice::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit)
+        return;
+    if (!IsBulkEditAvailable(GetParent(), true))
+        return;
+
+    wxMenu mnu;
+    mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditChoice::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditCheckBox::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu* cc = new wxMenu();
+    cc->Append(ID_CHECKBOX_BULKEDIT_CHECKED, "Checked");
+    cc->Append(ID_CHECKBOX_BULKEDIT_UNCHECKED, "Unchecked");
+    cc->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&BulkEditCheckBox::OnCheckBoxPopup, nullptr, this);
+    wxMenu mnu;
+    mnu.AppendSubMenu(cc, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditCheckBox::OnCheckBoxPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+#pragma endregion
+
+// Allows associated controls to reuse the slider function for bulk edit
+void BulkEditSlider::BulkEdit()
+{
+    wxCommandEvent event;
+    event.SetId(ID_SLIDER_BULKEDIT);
+    OnSliderPopup(event);
+}
+
+#pragma region Do the bulk edit
+void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
+{
+    if (event.GetId() == ID_SLIDER_BULKEDIT)
+    {
+        // Logging this because these dont happen often and I have seen crashes here and I would like to know which slider is crashing
+        spdlog::debug("BulkEditSlider::OnSliderPopup {}", GetName().ToStdString());
+
+        // does it support a value curve - this function should be common
+        ValueCurveButton* vcb = GetSettingValueCurveButton(GetParent(), GetName().ToStdString(), "SLIDER");
+
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "SLIDER");
+        if (l != nullptr)
+        {
+            label = l->GetLabel();
+        }
+
+        BulkEditSliderDialog dlg(this, label, GetValue(), GetMin(), GetMax(), GetPageSize(), _type, vcb);
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            SetValue(dlg.Slider_BulkEdit->GetValue());
+            wxTextCtrl* t = GetSettingTextControl(GetParent(), GetName().ToStdString(), "SLIDER");
+            if (t != nullptr)
+            {
+                t->SetValue(dlg.TextCtrl_BulkEdit->GetValue());
+            }
+            else
+            {
+                spdlog::critical("BulkEditSlider::OnSliderPopup text control not found {}", GetName().ToStdString());
+                wxASSERT(false);
+            }
+
+            std::string vcid = "";
+            if (vcb != nullptr)
+            {
+                if (vcb->GetValue() == nullptr)
+                {
+                    spdlog::critical("BulkEditSlider::OnSliderPopup value curve not present.");
+                    wxASSERT(false);
+                }
+
+                vcid = vcb->GetValue()->GetId();
+                dlg.BitmapButton_VC->GetValue()->SetId(vcid);
+                vcid = FixIdForPanel(GetPanelName(GetParent()), vcid);
+
+                if (dlg.BitmapButton_VC->GetValue()->IsActive())
+                {
+                    vcb->SetValue(dlg.BitmapButton_VC->GetValue()->Serialise());
+                }
+                else
+                {
+                    vcb->SetActive(false);
+                }
+            }
+
+            std::string id = "";
+            std::string value = "";
+            if (GetName().StartsWith("ID_"))
+            {
+                id = GetName().ToStdString();
+                value = wxString::Format("%d", GetValue()).ToStdString();
+            }
+            else
+            {
+                if (t != nullptr)
+                {
+                    id = t->GetName().ToStdString();
+                    value = t->GetValue().ToStdString();
+                }
+            }
+
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, dlg.BitmapButton_VC->GetValue(), vcid);
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, dlg.BitmapButton_VC->GetValue(), vcid);
+            }
+        }
+    }
+}
+
+std::string BulkEditFontPicker::GetValue() const
+{
+    wxFont f = GetSelectedFont();
+    if (f.IsOk()) {
+        wxString FontDesc = f.GetNativeFontInfoUserDesc();
+        FontDesc.Replace(" unknown-90", "");
+        return FontDesc.ToStdString();
+    }
+    return "";
+}
+
+wxColour BulkEditColourPickerCtrl::GetValue() const
+{
+    return GetColour();
+}
+
+void BulkEditFontPicker::OnFontPickerPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_FONTPICKER_BULKEDIT)
+    {
+        // Get the label
+        std::string label = "Font";
+
+        BulkEditFontPickerDialog dlg(this, label, GetValue());
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            wxFont oldfont;
+            oldfont.SetNativeFontInfoUserDesc(dlg.GetValue());
+            SetSelectedFont(oldfont);
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, GetValue(), nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, GetValue(), nullptr, "");
+            }
+        }
+    }
+}
+
+void BulkEditColourPickerCtrl::OnColourPickerPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_COLOURPICKER_BULKEDIT)
+    {
+        // Get the label
+        std::string label = "Colour";
+
+        BulkEditColourPickerDialog dlg(this, label, GetValue());
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            SetColour(dlg.GetValue());
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, GetValue().GetAsString(wxC2S_HTML_SYNTAX), nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, GetValue().GetAsString(wxC2S_HTML_SYNTAX), nullptr, "");
+            }
+        }
+    }
+}
+
+std::string BulkEditColourPickerCtrl::GetStringValue() const
+{
+    return GetValue().GetAsString(wxC2S_HTML_SYNTAX);
+}
+
+void BulkEditValueCurveButton::OnValueCurvePopup(wxCommandEvent &event)
+{
+    if (event.GetId() == ID_VALUECURVE_BULKEDIT)
+    {
+        if (IsSliderTextPair(GetParent(), GetName(), "VALUECURVE"))
+        {
+            BulkEditSlider* slider = GetSettingSliderControl(GetParent(), GetName().ToStdString(), "VALUECURVE");
+
+            if (slider == nullptr)
+            {
+                wxASSERT(false);
+            }
+            else
+            {
+                slider->BulkEdit();
+            }
+        }
+    }
+}
+
+void BulkEditButton::OnButtonPopup(wxCommandEvent &event)
+{
+    if (event.GetId() == ID_BUTTON_BULKEDIT)
+    {
+        std::string id = GetName().ToStdString();
+        id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+        if (GetPanelName(GetParent()) == "Effect")
+        {
+            std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+            xLightsApp::GetFrame()->GetMainSequencer()->ApplyButtonPressToSelected(effect, id);
+        }
+        else
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->ApplyButtonPressToSelected("", id);
+        }
+
+        // unselect and select effect to update the panel
+        auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (effect != nullptr)
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->RaiseSelectedEffectChanged(effect, true, true);
+        }
+    }
+}
+
+void BulkEditTextCtrl::OnTextCtrlPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_TEXTCTRL_BULKEDIT)
+    {
+        if (IsSliderTextPair(GetParent(), GetName().ToStdString(), "TEXTCTRL"))
+        {
+            BulkEditSlider* slider = GetSettingSliderControl(GetParent(), GetName().ToStdString(), "TEXTCTRL");
+            if (slider == nullptr)
+            {
+                wxASSERT(false);
+            }
+            else
+            {
+                slider->BulkEdit();
+            }
+        }
+        else
+        {
+            // Get the label
+            std::string label = "Bulk Edit";
+            wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "TEXTCTRL");
+            if (l != nullptr)
+            {
+                label = l->GetLabel();
+            }
+
+            wxTextEntryDialog dlg(this, "", label, GetValue());
+            OptimiseDialogPosition(&dlg);
+
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                SetValue(dlg.GetValue());
+
+                std::string id = GetName().ToStdString();
+                std::string value = GetValue().ToStdString();
+                id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+                if (GetPanelName(GetParent()) == "Effect")
+                {
+                    std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                    xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
+                }
+                else
+                {
+                    xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+                }
+            }
+        }
+    }
+}
+
+void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_FILEPICKERCTRL_BULKEDIT_FN)
+    {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "FILEPICKERCTRL");
+        if (l != nullptr)
+        {
+            label = l->GetLabel();
+        }
+
+        wxFileName fn(GetFileName());
+
+        wxString filename = wxFileSelector(label, GetPath(), GetFileName().GetName(), "*" + fn.GetExt(), _wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+        if (filename.empty())
+        {
+            // editing cancelled
+        }
+        else
+        {
+            ObtainAccessToURL(filename);
+            SetFileName(filename);
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id+"_FN", filename, nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id+"_FN", filename, nullptr, "");
+            }
+        }
+    }
+    else if (event.GetId() == ID_FILEPICKERCTRL_BULKEDIT_PN)
+    {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "FILEPICKERCTRL");
+        if (l != nullptr)
+        {
+            label = l->GetLabel();
+        }
+
+        wxFileName fn(GetFileName());
+
+        wxDirDialog dlg(this, label, fn.GetPath(), wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            fn.SetPath(dlg.GetPath());
+            SetFileName(fn.GetFullPath());
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id + "_PN", dlg.GetPath(), nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id+"_PN", dlg.GetPath(), nullptr, "");
+            }
+        }
+    }
+    else if (event.GetId() == ID_FILEPICKERCTRL_BULKEDIT_SF) {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "FILEPICKERCTRL");
+        if (l != nullptr) {
+            label = l->GetLabel();
+        }
+
+        wxFileName fn(GetFileName());
+
+        wxDirDialog dlg(this, label, fn.GetPath(), wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK) {
+            fn.SetPath(dlg.GetPath());
+
+            Effect* e = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect") {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id + "_SF", dlg.GetPath(), nullptr, "");
+            }
+            else {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id + "_SF", dlg.GetPath(), nullptr, "");
+            }
+
+            if (e != nullptr) {
+                SetFileName(wxFileName(e->GetSettings().Get(id, GetFileName().GetFullPath())));
+            }
+            else                 {
+                SetFileName(GetFileName());
+            }
+        }
+    }
+}
+
+void BulkEditSpinCtrl::OnSpinCtrlPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_SPINCTRL_BULKEDIT)
+    {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "SPINCTRL");
+        if (l != nullptr)
+        {
+            label = l->GetLabel();
+        }
+
+        wxNumberEntryDialog dlg(this, "", label, label, GetValue(), GetMin(), GetMax());
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            SetValue(dlg.GetValue());
+
+            std::string id = GetName().ToStdString();
+            std::string value = wxString::Format("%d", GetValue()).ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+            }
+        }
+    }
+}
+
+void BulkEditComboBox::OnComboBoxPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_COMBOBOX_BULKEDIT) {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "COMBOBOX");
+        if (l != nullptr) {
+            label = l->GetLabel();
+        }
+
+        PopulateComboBox();
+
+        auto value = wxString::Format("%0.02f", wxAtof(GetValue()));
+
+        wxArrayString choices;
+        for (size_t i = 0; i < GetCount(); i++) {
+            choices.push_back(GetString(i));
+        }
+
+        BulkEditComboDialog dlg(GetParent(), value, label, choices);
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK) {
+
+            std::string value = dlg.GetValue();
+
+            // as a new item may have been added we need to update our options
+            PopulateComboBox();
+            SetValue(value);
+
+            std::string id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect") {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
+            } else {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+            }
+        }
+    }
+}
+
+void BulkEditComboBox::PopulateComboBox()
+{
+    // scan all the effects looking for unique values and add them to the list
+
+    auto value = GetValue();
+    std::vector<std::string> comboBoxItems;
+    Clear();
+
+    for (const auto& it : _defaultOptions) {
+        AppendString(it);
+        comboBoxItems.push_back(it);
+    }
+
+    SetValue(value);
+    auto id = FixIdForPanel(GetPanelName(GetParent()), GetName());
+
+    auto values = xLightsApp::GetFrame()->GetMainSequencer()->GetUniqueEffectPropertyValues(id);
+    for (const auto& it : values) {
+        auto v = wxString::Format("%0.02f", wxAtof(it));
+        if (std::find(begin(comboBoxItems), end(comboBoxItems), v) == end(comboBoxItems)) {
+            AppendString(v);
+            comboBoxItems.push_back(v);
+        }
+    }
+}
+
+void BulkEditComboBox::AppendDefault(const std::string& def)
+{
+    if (std::find(begin(_defaultOptions), end(_defaultOptions), def) == end(_defaultOptions)) {
+        _defaultOptions.push_back(def);
+    }
+}
+
+void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_CHOICE_BULKEDIT)
+    {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "CHOICE");
+        if (l != nullptr)
+        {
+            label = l->GetLabel();
+        }
+
+        wxArrayString choices;
+        for (size_t i = 0; i < GetCount(); i++)
+        {
+            choices.push_back(GetString(i));
+        }
+
+        wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
+        auto sel = GetSelection();
+        if (sel >= 0 && sel < (int)choices.size()) {
+            dlg.SetSelection(sel);
+        }
+        OptimiseDialogPosition(&dlg);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            SetSelection(dlg.GetSelection());
+
+            std::string id = GetName().ToStdString();
+            std::string value = GetString(dlg.GetSelection());
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect") {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
+            } else {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+                if (GetPanelName(GetParent()) == "Buffer") {
+                    xLightsApp::GetFrame()->ValidatePanels();
+                }
+            }
+        }
+    }
+}
+
+void BulkEditCheckBox::OnCheckBoxPopup(wxCommandEvent& event)
+{
+    bool checked = false;
+
+    if (event.GetId() == ID_CHECKBOX_BULKEDIT_CHECKED)
+    {
+        checked = true;
+    }
+    else if (event.GetId() == ID_CHECKBOX_BULKEDIT_UNCHECKED)
+    {
+    }
+    else
+    {
+        return;
+    }
+
+    SetValue(checked);
+
+    std::string id = GetName().ToStdString();
+    std::string value = checked ? "1" : "0";
+    id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+    if (GetPanelName(GetParent()) == "Effect")
+    {
+        std::string effect = static_cast<EffectsPanel*>(GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+        xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
+    }
+    else
+    {
+        xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+    }
+}
+#pragma endregion
+
+#pragma region Keep associated controls in sync
+void BulkEditSlider::OnDClick(wxMouseEvent& event)
+{
+    SetValue(_default);
+    wxScrollEvent e;
+    OnSlider_SliderUpdated(e);
+}
+
+void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
+{
+    BulkEditValueCurveButton* vc = GetSettingValueCurveButton(GetParent(), GetName().ToStdString(), "SLIDER");
+    if (vc != nullptr)
+    {
+        if (vc->GetValue()->GetType() == "Flat")
+        {
+            vc->GetValue()->SetParameter1((float)GetValue());
+        }
+    }
+
+    wxTextCtrl* t = GetSettingTextControl(GetParent(), GetName().ToStdString(), "SLIDER");
+    if (t == nullptr)
+    {
+        //wxASSERT(false);
+    }
+    else
+    {
+        switch (_type)
+        {
+        case BESLIDERTYPE::BE_INT:
+        {
+            auto s = wxString::Format("%d", GetValue());
+            if (t->GetValue() != s)
+            {
+                t->ChangeValue(s);
+            }
+        }
+        break;
+        case BESLIDERTYPE::BE_FLOAT1:
+        {
+            auto s = wxString::Format("%.1f", (float)GetValue() / 10.0);
+            if (t->GetValue() != s)
+            {
+                t->ChangeValue(s);
+            }
+        }
+        break;
+        case BESLIDERTYPE::BE_FLOAT2:
+        {
+            auto s = wxString::Format("%.2f", (float)GetValue() / 100.0);
+            if (t->GetValue() != s)
+            {
+                t->ChangeValue(s);
+            }
+        }
+        break;
+        case BESLIDERTYPE::BE_FLOAT360:
+        {
+            auto s = wxString::Format("%.2f", (float)GetValue() / 360.0);
+            if (t->GetValue() != s)
+            {
+                t->ChangeValue(s);
+            }
+        }
+        break;
+        }
+    }
+    GetParent()->HandleWindowEvent(event);
+}
+
+void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
+{
+    TextUpdate(false);
+    GetParent()->HandleWindowEvent(event);
+}
+
+void BulkEditTextCtrl::OnTextCtrl_TextLoseFocus(wxFocusEvent& event)
+{
+    TextUpdate(true);
+    event.Skip();
+}
+
+void BulkEditTextCtrl::TextUpdate(bool force)
+{
+    if (IsSliderTextPair(GetParent(), GetName().ToStdString(), "TEXTCTRL"))
+    {
+        wxSlider* s = GetSettingSliderControl(GetParent(), GetName().ToStdString(), "TEXTCTRL");
+
+        if (s == nullptr)
+        {
+            wxASSERT(false);
+        }
+        else
+        {
+            switch (_type)
+            {
+            case BESLIDERTYPE::BE_INT:
+            {
+                auto t = wxAtoi(GetValue());
+                if (s->GetValue() != t)
+                {
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    {
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%d", s->GetValue()));
+                        }
+                    }
+                }
+            }
+            break;
+            case BESLIDERTYPE::BE_FLOAT1:
+            {
+                auto t = wxAtof(GetValue()) * 10;
+                if (s->GetValue() != t)
+                {
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    {
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%.1f", (float)s->GetValue() / 10.0));
+                        }
+                    }
+                }
+            }
+            break;
+            case BESLIDERTYPE::BE_FLOAT2:
+            {
+                auto t = wxAtof(GetValue()) * 100.0;
+                if (s->GetValue() != t)
+                {
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    {
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 100.0));
+                        }
+                    }
+                }
+            }
+            break;
+            case BESLIDERTYPE::BE_FLOAT360:
+            {
+                auto t = wxAtof(GetValue()) * 360.0;
+                if (s->GetValue() != t)
+                {
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    {
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 360.0));
+                        }
+                    }
+                }
+            }
+            break;
+            }
+        }
+    }
+}
+#pragma endregion
+
+#pragma region Bulk edit helper functions
+// Convert a control ID into the appropriate setting id
+std::string FixIdForPanel(std::string panel, std::string id)
+{
+    wxString i = id;
+    if (panel == "Effect")
+    {
+        i.Replace("ID_", "E_");
+    }
+    else if (panel == "Color")
+    {
+        i.Replace("ID_", "C_");
+    }
+    else if (panel == "Timing")
+    {
+        i.Replace("ID_", "T_");
+    }
+    else if (panel == "Buffer")
+    {
+        i.Replace("ID_", "B_");
+    }
+    else
+    {
+        wxASSERT(false);
+    }
+
+    return i.ToStdString();
+}
+
+// Walk up the window tree until we find one of the settings panels
+wxWindow* GetPanel(wxWindow* w)
+{
+    while (w != nullptr)
+    {
+        wxString name = w->GetName();
+        if (name == "Effect" ||
+            name == "Color" ||
+            name == "Buffer" ||
+            name == "Timing")
+        {
+            return w;
+        }
+        w = w->GetParent();
+    }
+
+    return nullptr;
+}
+
+// Find the name of the owning settings panel
+std::string GetPanelName(wxWindow* w)
+{
+    w = GetPanel(w);
+    if (w != nullptr) return w->GetName().ToStdString();
+    return "";
+}
+
+// Find an associated control from a SLIDER/VALUECURVE/TEXTCTRL set
+wxWindow* GetAssociatedWindow(wxWindow* w, wxString ourName, wxString ourType, wxString desiredType)
+{
+    wxString name1 = ourName;
+    wxString name2 = ourName;
+    name1.Replace(ourType, desiredType);
+    name2.Replace(ourType, desiredType);
+    if (name2.StartsWith("IDD"))
+    {
+        name2.Replace("IDD", "ID", false);
+    }
+    else if (name2.StartsWith("ID"))
+    {
+        name2.Replace("ID", "IDD", false);
+    }
+
+    wxWindow* res = wxWindow::FindWindowByName(name1, w);
+    if (res == nullptr)
+    {
+        res = wxWindow::FindWindowByName(name2, w);
+    }
+
+    return res;
+}
+
+bool IsAssociatedControl(wxWindow* source, wxWindow* target)
+{
+    wxArrayString names;
+    names.push_back("ID_SLIDER");
+    names.push_back("IDD_SLIDER");
+    names.push_back("ID_TEXTCTRL");
+    names.push_back("IDD_TEXTCTRL");
+    names.push_back("ID_VALUECURVE");
+    names.push_back("ID_CHOICE");
+    names.push_back("ID_CHECKBOX");
+
+    wxString tail = "";
+    wxString sourceName = source->GetName();
+
+    for (const auto& it : names)
+    {
+        if (sourceName.StartsWith(it))
+        {
+            tail = sourceName.SubString(it.size(), sourceName.size() - it.size());
+            break;
+        }
+    }
+
+    if (tail == "")
+    {
+        return false;
+    }
+
+    return target->GetName().EndsWith(tail);
+}
+
+BulkEditValueCurveButton* GetSettingValueCurveButton(wxWindow* w, std::string ourName, std::string ourType)
+{
+    return (BulkEditValueCurveButton*)GetAssociatedWindow(w, ourName, ourType, "VALUECURVE");
+}
+
+wxStaticText* GetSettingLabelControl(wxWindow* w, std::string ourName, std::string ourType)
+{
+    return (wxStaticText*)GetAssociatedWindow(w, ourName, ourType, "STATICTEXT");
+}
+
+BulkEditTextCtrl* GetSettingTextControl(wxWindow* w, std::string ourName, std::string ourType)
+{
+    return (BulkEditTextCtrl*)GetAssociatedWindow(w, ourName, ourType, "TEXTCTRL");
+}
+
+BulkEditSlider* GetSettingSliderControl(wxWindow* w, std::string ourName, std::string ourType)
+{
+    return (BulkEditSlider*)GetAssociatedWindow(w, ourName, ourType, "SLIDER");
+}
+
+bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType)
+{
+    if (ourType == "SLIDER")
+    {
+        return (GetSettingTextControl(w, ourName.ToStdString(), ourType.ToStdString()) != nullptr);
+    }
+    else if (ourType == "TEXTCTRL")
+    {
+        return (GetSettingSliderControl(w, ourName.ToStdString(), ourType.ToStdString()) != nullptr);
+    }
+    else if (ourType == "VALUECURVE")
+    {
+        return (GetSettingTextControl(w, ourName.ToStdString(), ourType.ToStdString()) != nullptr &&
+            GetSettingSliderControl(w, ourName.ToStdString(), ourType.ToStdString()) != nullptr);
+    }
+
+    return false;
+}
+
+// Check if bulk edit is appropriate ... ie sequence is open and suitable effects are selected
+bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
+{
+    if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) {
+        spdlog::debug("Bulk edit refused ... no sequencer.");
+        return false;
+    }
+
+    // i should only display the menu if more than one effect is selected
+    int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
+    if (alleffects < 2)
+    {
+        spdlog::debug("Bulk edit refused ... insufficient effects selected.");
+        return false;
+    }
+
+    // if it is an effect setting maybe i should check more than 1 of that effect are selected
+    if (GetPanelName(w) == "Effect")
+    {
+        std::string effect = xLightsApp::GetFrame()->GetEffectManager().GetEffectName(((EffectsPanel*)GetPanel(w))->EffectChoicebook->GetSelection());
+
+        int thiseffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect);
+        if (thiseffect < 2)
+        {
+            spdlog::debug("Bulk edit refused ... insufficient effects of type {} selected.", effect);
+            return false;
+        }
+
+        if (requireOneElement)
+        {
+            if (!xLightsApp::GetFrame()->GetMainSequencer()->AreAllSelectedEffectsOnTheSameElement())
+            {
+                return false;
+            }
+        }
+
+        // mixed effect types is ok ... we will just skip those that dont match the current effect panel
+    }
+
+    return true;
+}
+#pragma endregion

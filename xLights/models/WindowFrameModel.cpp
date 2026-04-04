@@ -8,15 +8,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
+#include <cassert>
 
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 WindowFrameModel::WindowFrameModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -47,9 +45,9 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 {
     // sides - left, top, right, bottom
 
-    float top = parm1;
-    float height = parm2;
-    float bottom = parm3;
+    float top = _topNodes;
+    float height = _sideNodes;
+    float bottom = _bottomNodes;
 
     float width = std::max(top, bottom) + 2;
 
@@ -104,21 +102,21 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 }
 
 // initialize buffer coordinates
-// parm1=Nodes on Top
-// parm2=Nodes left and right
-// parm3=Nodes on Bottom
+// _topNodes=Nodes on Top
+// _sideNodes=Nodes left and right
+// _bottomNodes=Nodes on Bottom
 void WindowFrameModel::InitFrame()
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
 
-    SetNodeCount(1, parm1 + 2 * parm2 + parm3, rgbOrder);
+    SetNodeCount(1, _topNodes + 2 * _sideNodes + _bottomNodes, rgbOrder);
 
-    int left = parm2;
-    int top = parm1;
-    int bottom = parm3;
+    int left = _sideNodes;
+    int top = _topNodes;
+    int bottom = _bottomNodes;
 
     int width = std::max(top, bottom) + 2;
-    int height = parm2;
+    int height = _sideNodes;
 
     SetBufferSize(height, width);   // treat as outside of matrix
     screenLocation.SetRenderSize(width, height);
@@ -158,8 +156,8 @@ void WindowFrameModel::InitFrame()
     if (bottom == 0) bot_incr = -(width - 1);
     else if (bottom + wadj + 1 != 0) bot_incr = -1.0 * (float)(width + wadj) / (float)(bottom + wadj + 1);
 
-    wxASSERT(top_incr >= 1.0);
-    wxASSERT(bot_incr <= -1.0);
+    assert(top_incr >= 1.0);
+    assert(bot_incr <= -1.0);
 
     int lengths[] = { left + hadj, top + wadj, left + hadj , bottom + wadj };
     float xscreenincr[] = { 0, top_screenincr, 0, bot_screenincr };
@@ -345,16 +343,16 @@ void WindowFrameModel::InitFrame()
     size_t loops = GetNodeCount();
     size_t coordCount = 1;
     if (SingleNode) {
-        wxASSERT(GetNodeCount() == 1);
+        assert(GetNodeCount() == 1);
         coordCount = GetCoordCount(0);
         loops = coordCount;
     }
     else {
-        wxASSERT(GetCoordCount(0) == 1); // only one coord supported by this code
+        assert(GetCoordCount(0) == 1); // only one coord supported by this code
     }
 
     for (size_t n = 0; n < loops; n++) {
-        wxASSERT(curLen > 0);
+        assert(curLen > 0);
 
         Nodes[nd]->ActChan = chan;
 
@@ -368,7 +366,7 @@ void WindowFrameModel::InitFrame()
             chan += ChanIncr;
         }
 
-        //logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
+        //spdlog::debug("Node {} ({:.3f},{:.3f}) -> {}, {}", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
         Nodes[nd]->Coords[cd].screenX = screenx;
         Nodes[nd]->Coords[cd].screenY = screeny;
 
@@ -400,88 +398,3 @@ void WindowFrameModel::InitFrame()
     }
 }
 
-static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
-        "Top Left",
-        "Top Right",
-        "Bottom Left",
-        "Bottom Right"
-};
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
-
-static const char* CLOCKWISE_ANTI_VALUES[] = {
-        "Clockwise",
-        "Counter Clockwise"
-};
-static wxPGChoices CLOCKWISE_ANTI(wxArrayString(2, CLOCKWISE_ANTI_VALUES));
-
-void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", parm1));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("# Lights Left/Right", "WFLeftRightCount", parm2));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("# Lights Bottom", "WFBottomCount", parm3));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-
-    grid->Append(new wxEnumProperty("Starting Location", "WFStartLocation", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
-
-    grid->Append(new wxEnumProperty("Direction", "WFDirection", CLOCKWISE_ANTI, _rotation));
-}
-
-int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("WFTopCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
-        return 0;
-    } else if ("WFLeftRightCount" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
-        return 0;
-    } else if ("WFBottomCount" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
-        return 0;
-    } else if ("WFStartLocation" == event.GetPropertyName()) {
-        _dir = (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2) ? "L" : "R";
-        _startSide = (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1) ? "T" : "B";
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
-        return 0;
-    } else if ("WFDirection" == event.GetPropertyName()) {
-        _rotation = event.GetValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFDirection");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFDirection");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFDirection");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFDirection");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}

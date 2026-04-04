@@ -10,11 +10,9 @@
 
 #include "TestPreset.h"
 
-#include <wx/xml/xml.h>
-#include "Output.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #pragma region Constructors and Destructors
 TestPreset::TestPreset(const std::string& name)
@@ -22,25 +20,25 @@ TestPreset::TestPreset(const std::string& name)
 	_name = name;
 }
 
-TestPreset::TestPreset(wxXmlNode* node)
+TestPreset::TestPreset(pugi::xml_node node)
 {
-    _name = UnXmlSafe(node->GetAttribute("name", ""));
+    _name = UnXmlSafe(node.attribute("name").as_string(""));
 
-    for (wxXmlNode* e = node->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "channel") {
-            AddChannel(wxAtoi(e->GetAttribute("id", "")));
-        } else if (e->GetName() == "channelr") {
-            AddChannelRange(wxAtoi(e->GetAttribute("start", "")), wxAtoi(e->GetAttribute("end", "")));
+    for (pugi::xml_node e = node.first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "channel") {
+            AddChannel(e.attribute("id").as_int(0));
+        } else if (std::string_view(e.name()) == "channelr") {
+            AddChannelRange(e.attribute("start").as_int(0), e.attribute("end").as_int(0));
         }
     }
 }
 #pragma endregion Constructors and Destructors
 
 #pragma region Save
-wxXmlNode* TestPreset::Save()
+pugi::xml_node TestPreset::Save(pugi::xml_node parent)
 {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "testpreset");
-    node->AddAttribute("name", XmlSafe(_name));
+    pugi::xml_node node = parent.append_child("testpreset");
+    node.append_attribute("name") = XmlSafe(_name);
 
     std::sort(_channels.begin(), _channels.end());
 
@@ -54,7 +52,7 @@ wxXmlNode* TestPreset::Save()
             start = *it;
             last = start;
         }
- 
+
         auto next = it;
         ++next;
 
@@ -62,16 +60,14 @@ wxXmlNode* TestPreset::Save()
         {
             if (*it - start == 0)
             {
-                wxXmlNode* one = new wxXmlNode(wxXML_ELEMENT_NODE, "channel");
-                one->AddAttribute("id", wxString::Format("%d", *it));
-                node->AddChild(one);
+                pugi::xml_node one = node.append_child("channel");
+                one.append_attribute("id") = *it;
             }
             else
             {
-                wxXmlNode* range = new wxXmlNode(wxXML_ELEMENT_NODE, "channelr");
-                range->AddAttribute("start", wxString::Format("%d", start));
-                range->AddAttribute("end", wxString::Format("%d", *it));
-                node->AddChild(range);
+                pugi::xml_node range = node.append_child("channelr");
+                range.append_attribute("start") = start;
+                range.append_attribute("end") = *it;
             }
             start = -1;
             last = -1;

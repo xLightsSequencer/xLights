@@ -3,7 +3,8 @@
 #include "MetalEffects.hpp"
 #include "MetalEffectDataTypes.h"
 
-#include "../../RenderBuffer.h"
+#include "../../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include <array>
 

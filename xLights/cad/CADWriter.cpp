@@ -13,6 +13,7 @@
 
 
 #include "UtilFunctions.h"
+#include "ui/wxUtilities.h"
 
 CADWriter::CADWriter(std::string fileName) :
 	m_fileName(std::move(fileName))

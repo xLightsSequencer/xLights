@@ -9,12 +9,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/msgdlg.h>
-#include <wx/config.h>
-#include <wx/filename.h>
-#include <wx/dir.h>
-#include <wx/wfstream.h>
+#include <pugixml.hpp>
 
 #include "IPOutput.h"
 #include "OutputManager.h"
@@ -29,15 +24,35 @@
 #include "xxxEthernetOutput.h"
 #include "OPCOutput.h"
 #include "TestPreset.h"
-#include "../Parallel.h"
-#include "../UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "Parallel.h"
+#include "UtilFunctions.h"
+#include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
-#include <wx/regex.h>
-
+#include <cassert>
+#include <cstdlib>
+#include <format>
 #include <numeric>
+#include <chrono>
 
-#include <log4cpp/Category.hh>
+#ifdef _WIN32
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
+#include <unistd.h>
+#endif
+
+#include <log.h>
+
+namespace {
+    std::string GetHostName() {
+        char buf[256];
+        if (gethostname(buf, sizeof(buf)) == 0) {
+            buf[sizeof(buf) - 1] = '\0';
+            return std::string(buf);
+        }
+        return {};
+    }
+}
 
 #pragma region Static Variables
 int OutputManager::_lastSecond = -10;
@@ -47,34 +62,21 @@ int OutputManager::_currentSecondCount = 0;
 bool OutputManager::__isSync = false;
 bool OutputManager::_isRetryOpen = false;
 bool OutputManager::_isInteractive = true;
+std::function<bool(const std::string&, const std::string&)> OutputManager::_confirmCallback;
 #pragma endregion
 
 #pragma region Private Functions
-bool OutputManager::SetGlobalOutputtingFlag(bool state, bool force) {
-
-    if (state != _outputting && !force) return false;
-
-    wxConfig* xlconfig = new wxConfig(_("xLights"));
-    if (xlconfig != nullptr) {
-        xlconfig->Write(_("OutputActive"), state);
-        delete xlconfig;
-        return true;
-    }
-    return false;
-}
 
 bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc) const {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool changed = false;
 
     // if it is of form <number>:<number> then we need to fix it
-    auto parts = wxSplit(sc, ':');
+    auto parts = Split(sc, ':');
     if (parts.size() == 2 && parts[0].size() > 0) {
         if (isdigit(parts[0][0])) {
-            int on = wxAtoi(parts[0]);
-            int scc = wxAtoi(parts[1]);
+            int const on = std::stoi(parts[0]);
+            int scc = std::stoi(parts[1]);
 
             if (on > 0) {
                 auto it = _conversionOutputs.begin();
@@ -85,31 +87,31 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         auto ipo = dynamic_cast<IPOutput*>(it->first);
 
                         if (ipo->GetIP() == "MULTICAST") {
-                            newsc = wxString::Format("#%d:%d", it->first->GetUniverse(), scc);
+                            newsc = std::format("#{}:{}", it->first->GetUniverse(), scc);
                             changed = true;
-                            logger_base.debug("Networks conversion MULTICAST %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            spdlog::debug("Networks conversion MULTICAST {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                         }
                         else {
-                            newsc = wxString::Format("#%s:%d:%d", it->first->GetIP(), it->first->GetUniverse(), scc);
+                            newsc = std::format("#{}:{}:{}", it->first->GetIP(), it->first->GetUniverse(), scc);
                             changed = true;
-                            logger_base.debug("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                         }
                     }
                     else {
                         // these convert to a controller 1:1 so just use the referenced controller
 
                         // convert to !name:sc if description isnt blank
-                        newsc = wxString::Format("!%s:%d", it->second->GetName(), scc);
+                        newsc = std::format("!{}:{}", it->second->GetName(), scc);
                         changed = true;
-                        logger_base.debug("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                        spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                     }
                 }
             }
         }
         else if (parts[0][0] == '!') {
             // output name may need to be updated
-            auto on = parts[0].substr(1);
-            int scc = wxAtoi(parts[1]);
+            auto const on = parts[0].substr(1);
+            int const scc = std::stoi(parts[1]);
 
             for (const auto& it : _conversionOutputs) {
                 if (it.first->GetDescription_CONVERT() == on) {
@@ -121,9 +123,9 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         nsc += it2->GetChannels();
                     }
 
-                    newsc = wxString::Format("!%s:%d", it.second->GetName(), nsc + scc);
+                    newsc = std::format("!{}:{}", it.second->GetName(), nsc + scc);
                     changed = true;
-                    logger_base.debug("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it.first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                    spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it.first->GetType(), sc, newsc);
                     break;
                 }
             }
@@ -160,39 +162,39 @@ OutputManager::~OutputManager()
 #pragma region Save and Load
 bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // Remove any existing outputs
     DeleteAllControllers();
 
     DeleteTestPreset();
 
-    wxFileName fn(showdir + GetPathSeparator() + GetNetworksFileName());
-    _filename = fn.GetFullPath();
+    _filename = (std::filesystem::path(showdir) / GetNetworksFileName()).string();
     ObtainAccessToURL(_filename);
     FileExists(_filename, true);
 
-    wxXmlDocument doc;
-    doc.Load(fn.GetFullPath());
-    
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(_filename.c_str());
+
     Controller* cu = nullptr;
     std::string lasttype = "";
     std::string lastport = "";
     int lastuniv = -1;
 
-    if (doc.IsOk()) {
-        _globalFPPProxy = doc.GetRoot()->GetAttribute("GlobalFPPProxy");
-        _globalForceLocalIP = doc.GetRoot()->GetAttribute("GlobalForceLocalIP");
+    if (result) {
+        pugi::xml_node root = doc.document_element();
+        _globalFPPProxy = root.attribute("GlobalFPPProxy").as_string("");
+        _globalForceLocalIP = root.attribute("GlobalForceLocalIP").as_string("");
 
-        _autoUpdateFromBaseShowDir = doc.GetRoot()->GetAttribute("AutoUpdateFromBase", "0") == "1";
-        _baseShowDir = doc.GetRoot()->GetAttribute("BaseShowDir", "");
+        _autoUpdateFromBaseShowDir = std::string_view(root.attribute("AutoUpdateFromBase").as_string("0")) == "1";
+        _baseShowDir = root.attribute("BaseShowDir").as_string("");
 
         std::map<std::string, bool> multiip;
-        for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == "network")
+        for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+            if (std::string_view(e.name()) == "network")
             {
-                auto port = e->GetAttribute("ComPort");
-                auto univ = wxAtoi(e->GetAttribute("BaudRate", "-1"));
+                std::string port = e.attribute("ComPort").as_string("");
+                int univ = e.attribute("BaudRate").as_int(-1);
 
                 if (multiip.find(port) == multiip.end()) {
                     multiip[port] = false;
@@ -209,17 +211,17 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
         lastuniv = -1;
         lastport = "";
-        for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == "network") {
+        for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+            if (std::string_view(e.name()) == "network") {
                 Output* conversionOutput = Output::Create(nullptr, e, showdir);
 
-                wxString type = e->GetAttribute("NetworkType", "");
-                auto port = e->GetAttribute("ComPort");
-                int univ = wxAtoi(e->GetAttribute("BaudRate", "-1"));
-                int univcount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-                if (type.EndsWith(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
+                std::string type = e.attribute("NetworkType").as_string("");
+                std::string port = e.attribute("ComPort").as_string("");
+                int univ = e.attribute("BaudRate").as_int(-1);
+                int univcount = e.attribute("NumUniverses").as_int(1);
+                if (type.ends_with(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
                 if (type == OUTPUT_xxxETHERNET) {
-                    univ = wxAtoi(e->GetAttribute("Port", "1"));
+                    univ = e.attribute("Port").as_int(1);
                 }
                 bool dups = multiip[port];
 
@@ -265,7 +267,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                         cu = new ControllerSerial(this);
                     }
                     else {
-                        wxASSERT(false);
+                        assert(false);
                     }
                     AddController(cu, -1);
                     cu->DeleteAllOutputs();
@@ -281,14 +283,14 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                 lastuniv = univ + univcount - 1;
                 _didConvert = true;
             }
-            else if (e->GetName() == "e131sync") {
-                _syncUniverse = wxAtoi(e->GetAttribute("universe"));
+            else if (std::string_view(e.name()) == "e131sync") {
+                _syncUniverse = e.attribute("universe").as_int(0);
             }
-            else if (e->GetName() == "suppressframes") {
-                _suppressFrames = wxAtoi(e->GetAttribute("frames"));
+            else if (std::string_view(e.name()) == "suppressframes") {
+                _suppressFrames = e.attribute("frames").as_int(0);
             }
-            else if (e->GetName() == "testpreset") {
-                logger_base.debug("Loading test presets.");
+            else if (std::string_view(e.name()) == "testpreset") {
+                spdlog::debug("Loading test presets.");
                 TestPreset* tp = new TestPreset(e);
 
                 bool exists = false;
@@ -307,7 +309,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                     _testPresets.push_back(tp);
                 }
             }
-            else if (e->GetName() == "Controller") {
+            else if (std::string_view(e.name()) == "Controller") {
                 _controllers.push_back(Controller::Create(this, e, showdir));
                 // remove any that were not created ... usually as this version does not have that controller supported
                 if (_controllers.back() == nullptr) _controllers.pop_back();
@@ -315,7 +317,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         }
     }
     else {
-        logger_base.warn("Error loading networks file: %s.", (const char*)fn.GetFullPath().c_str());
+        spdlog::warn("Error loading networks file: {}.", _filename);
         return false;
     }
 
@@ -325,7 +327,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
             dynamic_cast<ControllerEthernet*>(it)->SetGlobalForceLocalIP(_globalForceLocalIP);
     }
 
-    logger_base.debug("Networks loaded.");
+    spdlog::debug("Networks loaded.");
 
     AsyncPingAll();
     UpdateUnmanaged();
@@ -337,7 +339,6 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
 bool OutputManager::MergeFromBase(bool prompt)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool changed = false;
 
     OutputManager baseOM;
@@ -346,12 +347,12 @@ bool OutputManager::MergeFromBase(bool prompt)
 
         if (_globalFPPProxy == "" && baseOM.GetGlobalFPPProxy() != "") {
             SetGlobalFPPProxy(baseOM.GetGlobalFPPProxy());
-            logger_base.debug("Updating global FPP Proxy from base show folder.");
+            spdlog::debug("Updating global FPP Proxy from base show folder.");
         }
 
         if (_globalForceLocalIP == "" && baseOM.GetGlobalForceLocalIP() != "") {
             SetGlobalForceLocalIP(baseOM.GetGlobalForceLocalIP());
-            logger_base.debug("Updating global Force Local IP from base show folder.");
+            spdlog::debug("Updating global Force Local IP from base show folder.");
         }
 
         for (const auto& baseit : baseOM.GetControllers())
@@ -368,17 +369,17 @@ bool OutputManager::MergeFromBase(bool prompt)
 
                     bool force = false;
                     if (prompt && !it->IsFromBase()) {
-                        force = wxMessageBox(wxString::Format("Controller %s found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash", wxICON_QUESTION | wxYES_NO, nullptr) == wxYES;
+                        force = Confirm(std::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash");
                     }
 
                     // we only update if controller originally came from base
                     if (force || it->IsFromBase()) {
                         if (force) it->SetFromBase(true);
-                        bool thischanged = it->UpdateFrom(baseit);
+                        bool const thischanged = it->UpdateFrom(baseit);
                         changed = thischanged || changed;
-                        if (thischanged) logger_base.debug("Controller '%s' updated from base show folder.", (const char*)it->GetName().c_str());
+                        if (thischanged) spdlog::debug("Controller '{}' updated from base show folder.", (const char*)it->GetName().c_str());
                     } else {
-                        logger_base.debug("Controller '%s' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
+                        spdlog::debug("Controller '{}' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
                     }
                 }
             }
@@ -388,7 +389,7 @@ bool OutputManager::MergeFromBase(bool prompt)
                 c->SetFromBase(true);
                 AddController(c);
                 changed = true;
-                logger_base.debug("Adding controller '%s' from base show folder.", (const char*)c->GetName().c_str());
+                spdlog::debug("Adding controller '{}' from base show folder.", (const char*)c->GetName().c_str());
             }
         }
 
@@ -396,88 +397,90 @@ bool OutputManager::MergeFromBase(bool prompt)
         return false;
     }
 
+    if (changed) {
+        SomethingChanged();
+    }
+
     return changed;
 }
 
-wxXmlDocument OutputManager::SaveToXML() {
-    wxXmlDocument doc;
-    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "Networks");
+void OutputManager::SaveToXML(pugi::xml_document& doc) {
+    pugi::xml_node decl = doc.prepend_child(pugi::node_declaration);
+    decl.append_attribute("version") = "1.0";
+    decl.append_attribute("encoding") = "UTF-8";
 
-    root->AddAttribute("computer", wxGetHostName());
-    root->AddAttribute("GlobalFPPProxy", _globalFPPProxy);
-    root->AddAttribute("GlobalForceLocalIP", _globalForceLocalIP);
+    pugi::xml_node root = doc.append_child("Networks");
 
-    root->AddAttribute("AutoUpdateFromBase", _autoUpdateFromBaseShowDir  ? "1" : "0");
-    root->AddAttribute("BaseShowDir", _baseShowDir);
+    root.append_attribute("computer") = GetHostName();
+    root.append_attribute("GlobalFPPProxy") = _globalFPPProxy;
+    root.append_attribute("GlobalForceLocalIP") = _globalForceLocalIP;
 
-    doc.SetRoot(root);
+    root.append_attribute("AutoUpdateFromBase") = _autoUpdateFromBaseShowDir ? "1" : "0";
+    root.append_attribute("BaseShowDir") = _baseShowDir;
 
     if (_syncUniverse != 0) {
-        wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "e131sync");
-        newNode->AddAttribute("universe", wxString::Format("%d", _syncUniverse));
-        root->AddChild(newNode);
+        pugi::xml_node newNode = root.append_child("e131sync");
+        newNode.append_attribute("universe") = _syncUniverse;
     }
 
     if (_suppressFrames != 0) {
-        wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "suppressframes");
-        newNode->AddAttribute("frames", wxString::Format("%d", _suppressFrames));
-        root->AddChild(newNode);
+        pugi::xml_node newNode = root.append_child("suppressframes");
+        newNode.append_attribute("frames") = _suppressFrames;
     }
 
     for (const auto& it : _controllers) {
-        root->AddChild(it->Save());
+        it->Save(root);
     }
 
     for (const auto& it : _testPresets) {
-        root->AddChild(it->Save());
+        it->Save(root);
     }
-    return doc;
 }
 
 bool OutputManager::Save() {
-    wxXmlDocument doc = SaveToXML();
+    pugi::xml_document doc;
+    SaveToXML(doc);
 
-    wxFileOutputStream fout(_filename);
-    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
-    if (doc.Save(*bout)) {
+    if (doc.save_file(_filename.c_str())) {
         _dirty = false;
-    }
-    delete bout;
-    if (!fout.Close()) {
-        _dirty = true;
     }
 
     return (_dirty == false);
 }
 
 // This function is used purely to locate and fix any outputnumber:startchannel model start channels when the networks file is first converted
-bool OutputManager::ConvertModelStartChannels(wxXmlNode* modelsNode) const {
+bool OutputManager::ConvertModelStartChannels(pugi::xml_node modelsNode) const {
 
     // check if any conversion has been done
     if (_conversionOutputs.size() == 0) return false;
 
     bool changed = false;
 
-    for (wxXmlNode* model = modelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
-        if (model->GetName() == "model") {
+    for (pugi::xml_node model = modelsNode.first_child(); model; model = model.next_sibling()) {
+        if (std::string_view(model.name()) == "model") {
 
             // Do main model start channel
-            std::string sc = UnXmlSafe(model->GetAttribute("StartChannel").ToStdString());
+            std::string sc = UnXmlSafe(model.attribute("StartChannel").as_string(""));
             std::string newsc;
             if (ConvertStartChannel(sc, newsc)) {
-                model->DeleteAttribute("StartChannel");
-                model->AddAttribute("StartChannel", XmlSafe(newsc));
+                SetXmlNodeAttribute(model, "StartChannel", XmlSafe(newsc));
                 changed = true;
             }
 
-            if (model->GetAttribute("Advanced", "0") == "1") {
-                int strings = wxAtoi(model->GetAttribute("parm1", "0"));
+            if (std::string_view(model.attribute("Advanced").as_string("0")) == "1") {
+                // Try new attribute names first, fall back to old parm names
+                std::string strAttr = model.attribute("NumStrings").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("NumArches").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("NumCanes").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("NumChannels").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("DmxChannelCount").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("parm1").as_string("0");
+                int strings = std::strtol(strAttr.c_str(), nullptr, 10);
                 for (int i = 1; i <= strings; i++) {
-                    auto s = wxString::Format("String%d", i);
-                    std::string sc = UnXmlSafe(model->GetAttribute(s).ToStdString());
+                    auto s = std::format("String{}", i);
+                    std::string sc = UnXmlSafe(model.attribute(s).as_string(""));
                     if (ConvertStartChannel(sc, newsc)) {
-                        model->DeleteAttribute(s);
-                        model->AddAttribute(s, XmlSafe(newsc));
+                        SetXmlNodeAttribute(model, s, XmlSafe(newsc));
                         changed = true;
                     }
                 }
@@ -491,7 +494,12 @@ bool OutputManager::ConvertModelStartChannels(wxXmlNode* modelsNode) const {
 #pragma region Static Functions
 void OutputManager::RegisterSentPacket() {
 
-    int second = wxGetLocalTime() % 60;
+    auto const now = std::chrono::system_clock::now();
+    auto const duration = now.time_since_epoch();
+    auto const aseconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+    long long const total_seconds = aseconds.count();
+    // 4. Get 0-59 range using modulo
+    int const second = total_seconds % 60;
 
     if (second == _currentSecond) {
         _currentSecondCount++;
@@ -553,7 +561,7 @@ void OutputManager::AddController(Controller* controller, int pos)
     // Make sure global FPP proxy has been set
     controller->SetGlobalFPPProxy(_globalFPPProxy);
 
-    if (pos < 0 || pos > _controllers.size()) {
+    if (pos < 0 || (size_t)pos > _controllers.size()) {
         _controllers.push_back(controller);
     }
     else {
@@ -619,7 +627,7 @@ void OutputManager::MoveController(Controller* controller, int toControllerNumbe
 
 Controller* OutputManager::GetController(const std::string& name) const {
 
-    auto n = Trim(name);
+    auto const n = Trim(name);
     for (const auto& it : _controllers) {
         if (it->GetName() == n) return it;
     }
@@ -859,11 +867,11 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
 
     if (startChannelString.find(':') != std::string::npos) {
         if (startChannelString[0] == '#') {
-            auto parts = wxSplit(&startChannelString[1], ':');
+            auto parts = Split(startChannelString.substr(1), ':');
             if (parts.size() > 3) return 0;
             if (parts.size() == 2) {
-                int uni = wxAtoi(parts[0]);
-                long sc = wxAtol(parts[1]);
+                int uni = (int)strtol(parts[0].c_str(), nullptr, 10);
+                long sc = strtol(parts[1].c_str(), nullptr, 10);
                 if (uni < 1) return 0;
                 if (sc < 1) return 0;
                 Output* o = GetOutput(uni, "");
@@ -871,9 +879,9 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
                 return o->GetStartChannel() + sc - 1;
             }
             else {
-                std::string ip = parts[0].ToStdString();
-                int uni = wxAtoi(parts[1]);
-                long sc = wxAtol(parts[2]);
+                std::string ip = parts[0];
+                int uni = (int)strtol(parts[1].c_str(), nullptr, 10);
+                long sc = strtol(parts[2].c_str(), nullptr, 10);
                 if (ip == "") return 0;
                 if (uni < 1) return 0;
                 if (sc < 1) return 0;
@@ -883,11 +891,11 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
             }
         }
         else if (startChannelString[0] == '!') {
-            auto parts = wxSplit(&startChannelString[1], ':');
+            auto parts = Split(startChannelString.substr(1), ':');
             if (parts.size() == 2) {
                 auto controller = GetController(parts[0]);
                 if (controller == nullptr) return 0;
-                long sc = wxAtol(parts[1]);
+                long sc = strtol(parts[1].c_str(), nullptr, 10);
                 if (sc < 1) return 0;
                 return controller->GetStartChannel() + sc - 1;
             }
@@ -896,10 +904,10 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
             }
         }
         else {
-            auto parts = wxSplit(startChannelString, ':');
+            auto parts = Split(startChannelString, ':');
             if (parts.size() > 2) return 0;
-            int output = wxAtoi(parts[0]);
-            long sc = wxAtol(parts[1]);
+            int output = (int)strtol(parts[0].c_str(), nullptr, 10);
+            long sc = strtol(parts[1].c_str(), nullptr, 10);
             if (output < 1) return 0;
             if (sc < 1) return 0;
             Output* o = GetOutput_CONVERT(output - 1);
@@ -908,7 +916,7 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
         }
     }
     else {
-        return wxAtol(startChannelString);
+        return strtol(startChannelString.c_str(), nullptr, 10);
     }
 }
 #pragma endregion
@@ -944,7 +952,7 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const {
     std::list<int> res;
     for (const auto& it : GetAllOutputs()) {
         if (ip == "" || (ip == it->GetIP() || ip == it->GetResolvedIP())) {
-            wxASSERT(!it->IsOutputCollection_CONVERT());
+            assert(!it->IsOutputCollection_CONVERT());
             if (std::find(res.begin(), res.end(), it->GetUniverse()) == res.end()) {
                 res.push_back(it->GetUniverse());
             }
@@ -990,8 +998,7 @@ void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
 
 void OutputManager::SetShowDir(const std::string& showDir) {
 
-    wxFileName fn(showDir + GetPathSeparator() + GetNetworksFileName());
-    _filename = fn.GetFullPath();
+    _filename = (std::filesystem::path(showDir) / GetNetworksFileName()).string();
 }
 
 void OutputManager::SuspendAll(bool suspend) {
@@ -1046,7 +1053,7 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
 
     if (GetController(prefix) == nullptr) return prefix;
 
-    wxString n;
+    std::string n;
     std::string nprefix { BeforeLast(prefix, '_') };
     if (nprefix.empty()) {
         nprefix = prefix;
@@ -1058,9 +1065,9 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
     }
 
     do {
-        n = wxString::Format("%s_%d", nprefix, i++);
+        n = std::format("{}_{}", nprefix, i++);
     } while (GetController(n) != nullptr);
-    return n.ToStdString();
+    return n;
 }
 
 bool OutputManager::IsIDUsed(int id)
@@ -1079,7 +1086,7 @@ int OutputManager::UniqueId() {
     return i;
 }
 
-// Need to call this whenever something may have changed in an output to ensure all the transient data it updated
+// Need to call this whenever something may have changed in an output to ensure all the transient data is updated
 void OutputManager::SomethingChanged() const {
     int nullcnt = 0;
     int start = 1;
@@ -1126,47 +1133,28 @@ std::string OutputManager::GetChannelName(int32_t channel) {
 
     auto c = GetController(channel, startChannel);
     if (c == nullptr) {
-        return wxString::Format(wxT("Ch %ld: invalid"), channel).ToStdString();
+        return std::format("Ch {}: invalid", channel);
     }
     else {
-        return wxString::Format(wxT("Ch %ld: Net %i #%ld"),
+        return std::format("Ch {}: Net {} #{}",
             channel,
             GetControllerIndex(c) + 1,
-            (long)(channel - c->GetStartChannel() + 1)).ToStdString();
+            channel - c->GetStartChannel() + 1);
     }
 }
 
-bool OutputManager::IsOutputOpenInAnotherProcess() {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    wxConfig* xlconfig = new wxConfig(_("xLights"));
-    if (xlconfig != nullptr) {
-        if (xlconfig->HasEntry(_("OutputActive"))) {
-            bool state;
-            xlconfig->Read(_("OutputActive"), &state);
-            delete xlconfig;
-
-            if (state) {
-                logger_base.warn("Output already seems to be happening. This may generate odd results.");
-            }
-
-            return state;
-        }
-    }
-    return false;
-}
 #pragma endregion
+
 
 #pragma region Start and Stop
 bool OutputManager::StartOutput() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_outputting) return false;
-    if (!_outputCriticalSection.TryEnter()) return false;
+    if (!_outputCriticalSection.try_lock()) return false;
 
-    logger_base.debug("Starting light output.");
+    spdlog::debug("Starting light output.");
 
     int started = 0;
     bool ok = true;
@@ -1191,9 +1179,9 @@ bool OutputManager::StartOutput() {
             auto name = it->GetIP();
             if (name == "") name = it->GetCommPort();
 
-            logger_base.error("An error occurred opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
-            if (OutputManager::IsInteractive()) {
-                if (wxMessageBox(wxString::Format(wxT("An error occurred opening output %d (%s). Do you want to continue trying to start output?"), started + 1, name), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            spdlog::error("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
+            if (!Confirm(std::format("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, name), "Continue?")) {
+                return _outputting;
             }
             err = true;
         }
@@ -1206,23 +1194,19 @@ bool OutputManager::StartOutput() {
         _outputting = true;
     }
 
-    _outputCriticalSection.Leave();
-
-    if (_outputting) {
-        SetGlobalOutputtingFlag(true);
-    }
+    _outputCriticalSection.unlock();
 
     return _outputting; // even partially started is ok
 }
 
 void OutputManager::StopOutput() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
-    logger_base.debug("Stopping light output.");
+    spdlog::debug("Stopping light output.");
 
     _outputting = false;
 
@@ -1230,8 +1214,7 @@ void OutputManager::StopOutput() {
         it->Close();
     }
 
-    SetGlobalOutputtingFlag(false);
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 size_t OutputManager::TxNonEmptyCount() {
@@ -1256,29 +1239,29 @@ bool OutputManager::TxEmpty() {
 void OutputManager::StartFrame(long msec) {
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
     
     for (const auto& it : GetAllOutputs()) {
         it->StartFrame(msec);
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 void OutputManager::ResetFrame() {
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
     for (const auto& it : GetAllOutputs()) {
         it->ResetFrame();
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 void OutputManager::EndFrame() {
 
     if (!_outputting) return;
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
     auto outputs = GetAllOutputs();
     if (_parallelTransmission) {
@@ -1316,7 +1299,7 @@ void OutputManager::EndFrame() {
                 ZCPPOutput::SendSync(it);
         }
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 
 void OutputManager::SendHeartbeat() {
@@ -1358,7 +1341,7 @@ void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t
 
     size_t left = size;
     while (left > 0 && o != nullptr) {
-        wxASSERT(!o->IsOutputCollection_CONVERT());
+        assert(!o->IsOutputCollection_CONVERT());
         size_t mx = o->GetChannels() - stch + 1;
         size_t send = std::min(left, mx);
         if (o->IsEnabled()) {
@@ -1380,7 +1363,7 @@ void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t
 
 void OutputManager::AllOff(bool send) {
 
-    if (!_outputCriticalSection.TryEnter()) return;
+    if (!_outputCriticalSection.try_lock()) return;
 
     for (const auto& it : GetAllOutputs()) {
         it->AllOff();
@@ -1388,7 +1371,7 @@ void OutputManager::AllOff(bool send) {
             it->EndFrame(_suppressFrames);
         }
     }
-    _outputCriticalSection.Leave();
+    _outputCriticalSection.unlock();
 }
 #pragma endregion 
 

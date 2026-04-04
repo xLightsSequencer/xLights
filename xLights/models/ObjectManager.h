@@ -12,8 +12,13 @@
 
 #include <string>
 
-class wxXmlNode;
 class BaseObject;
+class OutputModelManager;
+class UICallbacks;
+
+#ifdef GetObject
+#undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
+#endif
 
 class ObjectManager
 {
@@ -24,12 +29,6 @@ public:
     std::string GenerateObjectName(const std::string& candidateName) const;
 
     virtual BaseObject *GetObject(const std::string &name) const = 0;
-
-protected:
-    wxXmlNode *modelNode;
-    wxXmlNode *groupNode;
-
-private:
-
+    virtual UICallbacks* GetUICallbacks() const { return nullptr; }
+    virtual OutputModelManager* GetOutputModelManager() const { return nullptr; }
 };
-

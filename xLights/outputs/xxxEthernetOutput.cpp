@@ -10,35 +10,37 @@
  **************************************************************/
 
 #include "xxxEthernetOutput.h"
+#include <cstring>
 
-#include <wx/xml/xml.h>
-#include <wx/process.h>
+#include <cassert>
 
 #include "OutputManager.h"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 #include "../utils/ip_utils.h"
 
-#include <log4cpp/Category.hh>
+#include <format>
+
+#include <log.h>
 
 static const int32_t xxxCHANNELSPERPACKET = 1200;
 
 #pragma region Private Functions
 void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    static wxLongLong __lastTime = 0;
-    static wxIPV4address __remoteAddr;
+    static int64_t __lastTime = 0;
+    static std::string __remoteIp;
     static uint8_t __pkt[] = { 0x80, 0x01, 0x00, 0x81 };
-    static wxDatagramSocket* __datagram = nullptr;
+    static sockets::UDPSocket* __datagram = nullptr;
 
     if (mode == 1) {
         // output
         if (__datagram == nullptr) return;
 
-        wxLongLong now = wxGetUTCTimeMillis();
+        int64_t now = GetCurrentTimeMillis();
         if (__lastTime + xxx_HEARTBEATINTERVAL < now) {
-            __datagram->SendTo(__remoteAddr, __pkt, sizeof(__pkt));
+            __datagram->SendTo(__remoteIp, xxx_PORT, __pkt, sizeof(__pkt));
             __lastTime = now;
         }
     }
@@ -46,31 +48,20 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
         // initialise
         if (__datagram != nullptr) return;
 
-        wxIPV4address localaddr;
-        if (localIP == "") {
-            localaddr.AnyAddress();
-        }
-        else {
-            localaddr.Hostname(localIP);
-        }
-        __remoteAddr.Hostname("224.0.0.0");
-        __remoteAddr.Service(xxx_PORT);
+        __remoteIp = "224.0.0.0";
 
-        __datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+        __datagram = new sockets::UDPSocket();
 
         if (__datagram != nullptr) {
-            if (!__datagram->IsOk() || __datagram->Error()) {
-                logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram => %d : %s.",
-                    (const char*)localaddr.IPAddress().c_str(),
-                    __datagram->LastError(),
-                    (const char*)DecodeIPError(__datagram->LastError()).c_str());
+            if (!__datagram->Bind(localIP, 0, false)) {
+                spdlog::error("xxxEthernetOutput: Error creating xxxEthernet heartbeat datagram. {}",
+                    __datagram->LastError());
                 delete __datagram;
                 __datagram = nullptr;
             }
         }
         else {
-            logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram.",
-                (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("xxxEthernetOutput: Error creating xxxEthernet heartbeat datagram.");
         }
     }
     else if (mode == 9) {
@@ -84,29 +75,16 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
 void xxxEthernetOutput::OpenDatagram() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_datagram != nullptr) return;
 
-    wxIPV4address localaddr;
-    if (GetForceLocalIPToUse() == "") {
-        localaddr.AnyAddress();
-    }
-    else {
-        localaddr.Hostname(GetForceLocalIPToUse());
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+    _datagram = new sockets::UDPSocket();
     if (_datagram == nullptr) {
-        logger_base.error("xxxEthernetOutput: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("xxxEthernetOutput: Error opening datagram.");
     }
-    else if (!_datagram->IsOk()) {
-        logger_base.error("xxxEthernetOutput: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-    }
-    else if (_datagram->Error()) {
-        logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+    else if (!_datagram->Bind(GetForceLocalIPToUse(), 0, false)) {
+        spdlog::error("xxxEthernetOutput: Error opening datagram. {}", _datagram->LastError());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -114,12 +92,12 @@ void xxxEthernetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-xxxEthernetOutput::xxxEthernetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+xxxEthernetOutput::xxxEthernetOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
-    SetId(wxAtoi(node->GetAttribute("Id", "0")));
-    if (wxAtoi(node->GetAttribute("Port", "-1")) != -1)
+    SetId(node.attribute("Id").as_int(0));
+    if (node.attribute("Port").as_int(-1) != -1)
     {
-        _universe = wxAtoi(node->GetAttribute("Port"));
+        _universe = node.attribute("Port").as_int(0);
     }
     _data = (uint8_t*)malloc(_channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
@@ -147,13 +125,13 @@ xxxEthernetOutput::~xxxEthernetOutput() {
     }
 }
 
-wxXmlNode* xxxEthernetOutput::Save() {
+pugi::xml_node xxxEthernetOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    pugi::xml_node node = parent.append_child("network");
 
-    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
+    node.append_attribute("Id") = GetId();
 
-    IPOutput::Save(node);
+    IPOutput::SaveAttr(node);
 
     return node;
 }
@@ -165,16 +143,16 @@ std::string xxxEthernetOutput::GetLongDescription() const {
     std::string res = "";
 
     if (!_enabled) res += "INACTIVE ";
-    res += "xxxEthernet {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
+    res += "xxxEthernet {" + std::to_string(_universe) + "} ";
+    res += "[1-" + std::to_string(_channels) + "] ";
+    res += "(" + std::to_string(GetStartChannel()) + "-" + std::to_string(GetEndChannel()) + ") ";
 
     return res;
 }
 
 std::string xxxEthernetOutput::GetExport() const {
 
-    return wxString::Format(",%ld,%ld,,%s,%s,,,,%d,%i",
+    return std::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),
@@ -195,8 +173,7 @@ bool xxxEthernetOutput::Open() {
     memset(_packet, 0, sizeof(_packet));
 
     OpenDatagram();
-    _remoteAddr.Hostname(_ip.c_str());
-    _remoteAddr.Service(xxx_PORT);
+    _remoteIp = GetResolvedIP();
 
     Heartbeat(0, GetForceLocalIPToUse());
 
@@ -217,14 +194,14 @@ void xxxEthernetOutput::Close() {
 #pragma region Frame Handling
 void xxxEthernetOutput::StartFrame(long msec) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return;
 
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("xxxEthernetOutput: Open retry successful");
+            spdlog::debug("xxxEthernetOutput: Open retry successful");
         }
     }
 
@@ -250,7 +227,7 @@ void xxxEthernetOutput::EndFrame(int suppressFrames) {
                 _packet[6] = (uint8_t)(ch & 0xFF); // low pixels per packet
                 memcpy(&_packet[xxxETHERNET_PACKET_HEADERLEN], &_data[current], ch);
                 _packet[xxxETHERNET_PACKET_HEADERLEN + ch] = 0x81;
-                _datagram->SendTo(_remoteAddr, _packet, xxxETHERNET_PACKET_HEADERLEN + ch + xxxETHERNET_PACKET_FOOTERLEN);
+                _datagram->SendTo(_remoteIp, xxx_PORT, _packet, xxxETHERNET_PACKET_HEADERLEN + ch + xxxETHERNET_PACKET_FOOTERLEN);
                 current += xxxCHANNELSPERPACKET;
             }
             FrameOutput();
@@ -289,143 +266,3 @@ void xxxEthernetOutput::AllOff() {
 }
 #pragma endregion 
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-#include "../models/ModelManager.h"
-#include "ControllerEthernet.h"
-
-void xxxEthernetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
-    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
-
-    auto p = propertyGrid->GetProperty("Universes");
-    if (p) {
-        p->SetValue((int)c->GetOutputs().size());
-        if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Port Count cannot be changed when an output is set to Auto Size.");
-        } else {
-            p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPGFlags::ReadOnly , false);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            p->SetHelpString("");
-        }
-    }
-    p = propertyGrid->GetProperty("UniversesDisplay");
-    if (p) {
-        if (ce->GetOutputs().size() > 1) {
-            p->SetValue(ce->GetOutputs().front()->GetUniverseString() + " - " + ce->GetOutputs().back()->GetUniverseString());
-            p->Hide(false);
-        } else {
-            p->Hide(true);
-        }
-    }
-    p = propertyGrid->GetProperty("IndivSizes");
-    if (p) {
-        if (ce->IsAutoSize()) {
-            p->ChangeFlag(wxPGFlags::ReadOnly , true);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
-        } else {
-            bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
-            p->SetValue(v);
-            p->ChangeFlag(wxPGFlags::ReadOnly , false);
-            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            p->SetHelpString("");
-        }
-    }
-    if (!ce->AllSameSize() || ce->IsForcingSizes()) {
-        p = propertyGrid->GetProperty("Channels");
-        if (p) {
-            p->Hide(true);
-        }
-        auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
-                }
-            }
-        }
-    } else {
-        p = propertyGrid->GetProperty("Channels");
-        if (p) {
-            p->Hide(false);
-            p->SetValue(GetChannels());
-            if (ce->IsAutoSize()) {
-                p->ChangeFlag(wxPGFlags::ReadOnly , true);
-                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
-            } else {
-                p->SetEditor("SpinCtrl");
-                p->ChangeFlag(wxPGFlags::ReadOnly , false);
-                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-                p->SetHelpString("");
-            }
-        }
-        auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(true);
-        }
-    }
-}
-
-void xxxEthernetOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before , Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
-{
-    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
-    
-    auto p = propertyGrid->Insert(before, new wxUIntProperty("Start Port", "Universe", GetUniverse()));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 64000);
-    p->SetEditor("SpinCtrl");
-    
-    p = propertyGrid->Insert(before, new wxUIntProperty("Port Count", "Universes", c->GetOutputs().size()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 1000);
-
-    p = propertyGrid->Insert(before, new wxStringProperty("Ports", "UniversesDisplay", ""));
-    p->ChangeFlag(wxPGFlags::ReadOnly , true);
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-
-
-    p = propertyGrid->Insert(before, new wxBoolProperty("Individual Sizes", "IndivSizes", false));
-    p->SetEditor("CheckBox");
-    
-    p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Port", "Channels", GetChannels()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", GetMaxChannels());
-    
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
-}
-
-void xxxEthernetOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
-    IPOutput::RemoveProperties(propertyGrid);
-    propertyGrid->DeleteProperty("ForceSourcePort");
-    propertyGrid->DeleteProperty("Universe");
-    propertyGrid->DeleteProperty("Universes");
-    propertyGrid->DeleteProperty("UniversesDisplay");
-    propertyGrid->DeleteProperty("IndivSizes");
-    propertyGrid->DeleteProperty("Channels");
-    propertyGrid->DeleteProperty("Sizes");
-}
-
-#endif
-#pragma endregion

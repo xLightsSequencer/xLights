@@ -10,11 +10,12 @@
 
 #include "PythonRunner.h"
 #include "xLightsMain.h"
-#include "BatchRenderDialog.h"
+#include "ui/sequencer/BatchRenderDialog.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
+#include "ui/wxUtilities.h"
+#include "utils/ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include <wx/stdpaths.h>
 
@@ -82,7 +83,7 @@ std::string PythonRunner::PromptSelection(std::list<std::string> const& items, s
 std::list<std::string> PythonRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     BatchRenderDialog dlg(_frame, _frame->GetOutputManager());
     dlg.SetTitle("Select Sequences");
@@ -94,7 +95,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                logger_base.info("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                spdlog::info("PromptSequences: Sequence File not Found: {}.", (const char*)fname.GetFullPath().c_str());
             }
         }
     }
@@ -104,7 +105,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
 bool PythonRunner::Run_Script(std::string const& filepath, std::function<void (std::string const& msg)> SendResponse)
 {
     #if defined(PYTHON_RUNNER)
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const user_scripts_folder = GetUserScriptFolder();
     std::string const system_scripts_folder = GetUserScriptFolder();
@@ -125,8 +126,8 @@ bool PythonRunner::Run_Script(std::string const& filepath, std::function<void (s
         py::eval_file(filepath.ToStdString(), py::globals(), locals);
 
     } catch (std::exception& e) {
-        logger_base.info("PythonRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
-        logger_base.info("PythonRunner: Error: %s.", e.what());
+        spdlog::info("PythonRunner: Throw Running Script: {}.", (const char*)filepath.c_str());
+        spdlog::info("PythonRunner: Error: {}.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;

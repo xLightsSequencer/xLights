@@ -8,13 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
-#include <wx/msgdlg.h>
-
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,11 +23,13 @@
 #include "DmxShutterAbility.h"
 #include "DmxDimmerAbility.h"
 #include "../ModelScreenLocation.h"
-#include "../../ModelPreview.h"
-#include "../../RenderBuffer.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
+#include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
-#include "../../xLightsMain.h"
-#include "../../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 DmxModel::DmxModel(const ModelManager &manager)
     : ModelWithScreenLocation(manager)
@@ -67,82 +62,22 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
     }
 }
 
-void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    if (nullptr != preset_ability ) {
-        preset_ability->AddProperties(grid, parm1);
-    }
-}
-
-void DmxModel::DisableUnusedProperties(wxPropertyGridInterface* grid)
-{
-    // disable string type properties.  Only Single Color White allowed.
-    wxPGProperty* p = grid->GetPropertyByName("ModelStringType");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelStringColor");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelFaces");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelDimmingCurves");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
-}
-
 void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 {
-    parm1 = num_channels;
+    _dmxChannelCount = num_channels;
     if (do_work) {
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "DmxModel::UpdateChannelCount::DMXChannelCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "DmxModel::UpdateChannelCount::DMXChannelCount");
     }
-}
-
-int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    IncrementChangeCount();
-    if ("DmxChannelCount" == event.GetPropertyName()) {
-        IncrementChangeCount();
-        UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
-        return 0;
-    }
-
-    if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, parm1, this) == 0) {
-        IncrementChangeCount();
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
 }
 
 void DmxModel::InitModel()
 {
     StringType = "Single Color White";
-    parm2 = 1;
-    parm3 = 1;
 
-    int numChannels = parm1;
+    int numChannels = _dmxChannelCount;
     SetNodeCount(numChannels, 1, rgbOrder);
 
     int curNode = 0;
@@ -166,7 +101,7 @@ void DmxModel::InitModel()
         Nodes[curNode]->Coords[0].bufY = 0;
         curNode++;
     }
-    SetBufferSize(1, parm1);
+    SetBufferSize(1, _dmxChannelCount);
 }
 
 int DmxModel::GetChannelValue(int channel, bool bits16)
@@ -177,7 +112,7 @@ int DmxModel::GetChannelValue(int channel, bool bits16)
     int ret_val = 0;
 
     if (bits16) {
-        if (Nodes.size() > channel + 1) {
+        if ((int)Nodes.size() > channel + 1) {
             Nodes[channel]->GetColor(color_angle);
             msb = color_angle.red;
             Nodes[channel + 1]->GetColor(color_angle);
@@ -186,7 +121,7 @@ int DmxModel::GetChannelValue(int channel, bool bits16)
         }
     }
     else {
-        if (Nodes.size() > channel) {
+        if ((int)Nodes.size() > channel) {
             Nodes[channel]->GetColor(color_angle);
             ret_val = color_angle.red;
         }
@@ -202,12 +137,12 @@ int DmxModel::GetChannelValue(int channel_coarse, int channel_fine)
     int msb = 0;
     int ret_val = 0;
 
-    if (Nodes.size() > channel_coarse + 1) {
+    if ((int)Nodes.size() > channel_coarse + 1) {
         Nodes[channel_coarse]->GetColor(color_angle);
         msb = color_angle.red;
     }
     if( channel_fine >= 0 )
-    if (Nodes.size() > channel_fine + 1) {
+    if ((int)Nodes.size() > channel_fine + 1) {
         Nodes[channel_fine]->GetColor(color_angle);
         lsb = color_angle.red;
     }
@@ -219,20 +154,18 @@ int DmxModel::GetChannelValue(int channel_coarse, int channel_fine)
 void DmxModel::SetNodeNames(const std::string& default_names, bool force)
 {
     if (nodeNames.size() == 0 || force) {
-        wxString nn = default_names;
-        wxString tempstr = nn;
         nodeNames.clear();
-        while (tempstr.size() > 0) {
-            std::string t2 = tempstr.ToStdString();
+        std::string tempstr = default_names;
+        while (!tempstr.empty()) {
+            std::string t2;
             if (tempstr[0] == ',') {
                 t2 = "";
-                tempstr = tempstr(1, tempstr.length());
-            }
-            else if (tempstr.Contains(",")) {
-                t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-                tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-            }
-            else {
+                tempstr = tempstr.substr(1);
+            } else if (auto pos = tempstr.find(','); pos != std::string::npos) {
+                t2 = tempstr.substr(0, pos);
+                tempstr = tempstr.substr(pos + 1);
+            } else {
+                t2 = tempstr;
                 tempstr = "";
             }
             nodeNames.push_back(t2);
@@ -272,18 +205,18 @@ void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool
     auto vac = pg->getAccumulator();
     int start = vac->getCount();
     vac->PreAlloc(12);
-    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-    vac->AddVertex(0.5, 0.5, 0, *wxRED);
-    vac->AddVertex(0.5, 0.5, 0, *wxRED);
-    vac->AddVertex(0.5, -0.5, 0, *wxRED);
-    vac->AddVertex(0.5, -0.5, 0, *wxRED);
-    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-    vac->AddVertex(-0.5, -0.5, 0, *wxRED);
-    vac->AddVertex(0.5, 0.5, 0, *wxRED);
-    vac->AddVertex(-0.5, 0.5, 0, *wxRED);
-    vac->AddVertex(0.5, -0.5, 0, *wxRED);
+    vac->AddVertex(-0.5, -0.5, 0, xlRED);
+    vac->AddVertex(-0.5, 0.5, 0, xlRED);
+    vac->AddVertex(-0.5, 0.5, 0, xlRED);
+    vac->AddVertex(0.5, 0.5, 0, xlRED);
+    vac->AddVertex(0.5, 0.5, 0, xlRED);
+    vac->AddVertex(0.5, -0.5, 0, xlRED);
+    vac->AddVertex(0.5, -0.5, 0, xlRED);
+    vac->AddVertex(-0.5, -0.5, 0, xlRED);
+    vac->AddVertex(-0.5, -0.5, 0, xlRED);
+    vac->AddVertex(0.5, 0.5, 0, xlRED);
+    vac->AddVertex(-0.5, 0.5, 0, xlRED);
+    vac->AddVertex(0.5, -0.5, 0, xlRED);
     int end = vac->getCount();
     pg->addStep([=](xlGraphicsContext* ctx) {
         ctx->drawLines(vac, start, end - start);
@@ -298,7 +231,7 @@ void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool
 std::vector<std::string> DmxModel::GenerateNodeNames() const
 {
     std::vector<std::string> names;
-    for (int i=0; i< parm1; ++i) {// parm1 is channel count
+    for (int i=0; i< _dmxChannelCount; ++i) {
         names.push_back("");
     }
     if (nullptr != color_ability) {

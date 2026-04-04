@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <string>
 #include <list>
 #include <map>
@@ -18,7 +18,7 @@
 class MusicXmlNote
 {
 public:
-    MusicXmlNote(wxXmlNode* node, int s);
+    MusicXmlNote(pugi::xml_node node, int s);
     int midi;
     int start;
     int startMS;
@@ -35,7 +35,8 @@ public:
 
 class MusicXML
 {
-    wxXmlDocument _doc;
+    pugi::xml_document _doc;
+    bool _loaded = false;
     std::map<std::string, std::string> _parts;
 
 public:

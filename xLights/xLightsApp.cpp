@@ -14,6 +14,7 @@
 
 //(*AppHeaders
 #include "xLightsMain.h"
+#include <wx/time.h>
 #include <wx/image.h>
 //*)
 
@@ -29,24 +30,28 @@
 #include <time.h>       /* time */
 #include <thread>
 #include <iomanip>
+#include "utils/ThreadUtils.h"
 #include <curl/curl.h>
 
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "TraceLog.h"
-#include "ExternalHooks.h"
-#include "BitmapCache.h"
+#include "ui/wxUtilities.h"
+#include "utils/TraceLog.h"
+#include "utils/ExternalHooks.h"
+#include "ui/shared/utils/BitmapCache.h"
 #include "utils/CurlManager.h"
-#include "SequencePackage.h"
+#include "render/SequencePackage.h"
+#include <SpecialOptions.h>
 
 #ifndef __WXMSW__
 #include "automation/automation.h"
 #endif
 
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
+#include <log.h>
+#include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/common.h"
 
 #ifdef LINUX
 #include <GL/glut.h>
@@ -70,7 +75,6 @@
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_html.lib")
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_propgrid.lib")
     #pragma comment(lib, "wxexpatd.lib")
-    #pragma comment(lib, "log4cppLIBd.lib")
     #pragma comment(lib, "msvcprtd.lib")
     #pragma comment(lib, "liquidfund.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
@@ -93,7 +97,6 @@
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_html.lib")
     #pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_propgrid.lib")
     #pragma comment(lib, "wxexpat.lib")
-    #pragma comment(lib, "log4cppLIB.lib")
     #pragma comment(lib, "msvcprt.lib")
     #pragma comment(lib, "liquidfun.lib")
     #pragma comment(lib, "libzstd_static_VS.lib")
@@ -143,95 +146,95 @@ void InitialiseLogging(bool fromMain)
     static bool loggingInitialised = false;
 
     if (!loggingInitialised) {
+        std::string const logFileName = "xLights_spdlog.log";
 #ifdef __WXMSW__
-        std::string initFileName = "xlights.windows.properties";
+        wxString dir;
+        wxGetEnv("APPDATA", &dir);
+        std::string const logFilePath = std::string(dir.c_str()) + "\\" + logFileName;
 #endif
 #ifdef __WXOSX__
-        std::string initFileName = "xlights.mac.properties";
-        if (!FileExists(initFileName)) {
-            if (fromMain) {
-                return;
-            } else if (FileExists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
-                initFileName = wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties";
-            }
-        }
-        loggingInitialised = true;
-        //make sure the default logging location is actually created
-        std::string ld = std::getenv("HOME");
-        ld += "/Library/Logs/";
-        wxDir logDir(ld);
-        if (!wxDir::Exists(ld)) {
-            wxDir::Make(ld);
-        }
+        wxFileName home;
+        home.AssignHomeDir();
+        wxString const dir = home.GetFullPath();
+        std::string const logFilePath = std::string(dir.c_str()) + "/Library/Logs/" + logFileName;
 #endif
 #ifdef __LINUX__
-        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xlights.linux.properties";
-        if (!FileExists(initFileName)) {
-            initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xlights.linux.properties";
-        }
+        std::string const logFilePath = "/tmp/" + logFileName;
 #endif
 
-#ifdef _MSC_VER
-        if (!FileExists(initFileName)) {
-            wxFileName f(wxStandardPaths::Get().GetExecutablePath());
-            wxString appPath(f.GetPath());
-            initFileName = appPath + "\\" + initFileName;
-        }
-#endif
+        // wxStandardPaths::Get().Get()
 
-        if (!FileExists(initFileName)) {
-#ifdef _MSC_VER
-            // the app is not initialized so GUI is not available and no event loop.
-            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
-#endif
-        } else {
-            try {
-                log4cpp::PropertyConfigurator::configure(initFileName);
-                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
 
-                wxDateTime now = wxDateTime::Now();
-                int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-                wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth() + 1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
-                logger_base.info("Start Time: %s.", (const char*)ts.c_str());
+        auto file_logger = std::make_shared<spdlog::logger>("xLights", rotating_file_sink);
 
-                logger_base.info("Log4CPP config read from %s.", (const char*)initFileName.c_str());
-                logger_base.info("Current working directory %s.", (const char*)wxGetCwd().c_str());
+        // Set up the default logger before calling SpecialOptions::GetOption,
+        // which may use spdlog internally
+        loggingInitialised = true;
+        spdlog::initialize_logger(file_logger);
+        spdlog::set_default_logger(file_logger);
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%n %l] %v");
+        spdlog::flush_on(spdlog::level::info);
 
-                auto categories = log4cpp::Category::getCurrentCategories();
+        auto render_logger = std::make_shared<spdlog::logger>("render", rotating_file_sink);
+        auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
+        auto opengl_logger = std::make_shared<spdlog::logger>("opengl", rotating_file_sink);
+        auto job_logger = std::make_shared<spdlog::logger>("job", rotating_file_sink);
+        auto work_logger = std::make_shared<spdlog::logger>("work", rotating_file_sink);
+        render_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("render_logger", "warn")));
+        curl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("curl_logger", "info")));
+        opengl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("opengl_logger", "info")));
+        job_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("job_logger", "info")));
+        work_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("work_logger", "info")));
+        spdlog::register_logger(render_logger);
+        spdlog::register_logger(curl_logger);
+        spdlog::register_logger(opengl_logger);
+        spdlog::register_logger(job_logger);
+        spdlog::register_logger(work_logger);
 
-                for (auto it = categories->begin(); it != categories->end(); ++it) {
-                    std::string levels = "";
+        // wxOperatingSystemId os = wxGetOsVersion();
+        // std::string osStr = DecodeOS(os);
+        // std::string initFileName;
 
-                    if ((*it)->isAlertEnabled())
-                        levels += "ALERT ";
-                    if ((*it)->isCritEnabled())
-                        levels += "CRIT ";
-                    if ((*it)->isDebugEnabled())
-                        levels += "DEBUG ";
-                    if ((*it)->isEmergEnabled())
-                        levels += "EMERG ";
-                    if ((*it)->isErrorEnabled())
-                        levels += "ERROR ";
-                    if ((*it)->isFatalEnabled())
-                        levels += "FATAL ";
-                    if ((*it)->isInfoEnabled())
-                        levels += "INFO ";
-                    if ((*it)->isNoticeEnabled())
-                        levels += "NOTICE ";
-                    if ((*it)->isWarnEnabled())
-                        levels += "WARN ";
+        wxDateTime now = wxDateTime::Now();
+        int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+        wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth() + 1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+        // spdlog::info("Start Time: {}.", ts);
 
-                    logger_base.info("    %s : %s", (const char*)(*it)->getName().c_str(), (const char*)levels.c_str());
-                }
-                delete categories;
-            } catch (log4cpp::ConfigureFailure& e) {
-                // ignore config failure ... but logging wont work
-                printf("Log issue:  %s\n", e.what());
-            } catch (const std::exception& ex) {
-                printf("Log issue: %s\n", ex.what());
-            }
-        }
+        spdlog::info("Start Time: {}.", ts.ToStdString());
+        spdlog::info("Current working directory {}.", wxGetCwd().ToStdString());
     }
+}
+
+void ApplyLoggingSpecialOptions()
+{
+    static bool levelsApplied = false;
+    if (!levelsApplied) {
+        levelsApplied = true;
+        auto applyLevel = [](const std::string& name, const std::string& option, const std::string& defaultLevel) {
+            std::string level = SpecialOptions::GetOption(option, defaultLevel);
+            spdlog::get(name)->set_level(spdlog::level::from_str(level));
+            spdlog::info("Logger '{}' level set to '{}'", name, level);
+        };
+        applyLevel("render", "render_logger", "warn");
+        applyLevel("curl",   "curl_logger",   "info");
+        applyLevel("opengl", "opengl_logger", "info");
+        applyLevel("job",    "job_logger",    "info");
+        applyLevel("work",   "work_logger",   "info");
+    }
+
+    if (SpecialOptions::GetOption("console_logger", "false") != "true") return;
+
+    static bool consoleApplied = false;
+    if (consoleApplied) return;
+    consoleApplied = true;
+
+    auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    // Called from SetDir on the main thread before rendering is active, so
+    // mutating sinks() here does not race with concurrent log calls.
+    spdlog::apply_all([&](std::shared_ptr<spdlog::logger> logger) {
+        logger->sinks().push_back(stdout_sink);
+    });
 }
 
 std::string DecodeOS(wxOperatingSystemId o)
@@ -275,18 +278,16 @@ std::string DecodeOS(wxOperatingSystemId o)
 
 void DumpConfig()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::string versionStr = "Version: " + xlights_version_string.ToStdString();
+    std::string versionStr = "Version: " + xlights_version_string;
     if (IsFromAppStore()) {
         versionStr += " - App Store";
     }
-    logger_base.info(versionStr);
-    logger_base.info("Bits: " + std::string(GetBitness().c_str()));
-    logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
-    logger_base.info("WX Version: " + std::string(wxString( wxVERSION_STRING).c_str()));
+    spdlog::info(versionStr);
+    spdlog::info("Build Date: " + xlights_build_date);
+    spdlog::info("WX Version: " + std::string(wxString( wxVERSION_STRING).c_str()));
 
-    logger_base.info("Machine configuration:");
-    logger_base.info("  Total memory: " + std::to_string(GetPhysicalMemorySizeMB()) + " MB");
+    spdlog::info("Machine configuration:");
+    spdlog::info("  Total memory: " + std::to_string(GetPhysicalMemorySizeMB()) + " MB");
     wxMemorySize s = wxGetFreeMemory();
     if (s != -1)
     {
@@ -295,36 +296,36 @@ void DumpConfig()
 #else
         wxString msg = wxString::Format(_T("  Free Memory: %ld."), s);
 #endif
-        logger_base.info("%s", (const char *)msg.c_str());
+        spdlog::info(msg.ToStdString());
     }
-    logger_base.info("  Current directory: " + std::string(wxGetCwd().c_str()));
-    logger_base.info("  Machine name: " + std::string(wxGetHostName().c_str()));
-    logger_base.info("  OS: " + std::string(wxGetOsDescription().c_str()));
+    spdlog::info("  Current directory: " + std::string(wxGetCwd().c_str()));
+    spdlog::info("  Machine name: " + std::string(wxGetHostName().c_str()));
+    spdlog::info("  OS: " + std::string(wxGetOsDescription().c_str()));
     int verMaj = -1;
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
-    logger_base.info("  OS: %s %d.%d", (const char *)DecodeOS(o).c_str(), verMaj, verMin);
+    spdlog::info("  OS: {} {}.{}", (const char*)DecodeOS(o).c_str(), verMaj, verMin);
     if (wxIsPlatform64Bit())
     {
-        logger_base.info("      64 bit");
+        spdlog::info("      64 bit");
     }
     else
     {
-        logger_base.info("      NOT 64 bit");
+        spdlog::info("      NOT 64 bit");
     }
     if (wxIsPlatformLittleEndian())
     {
-        logger_base.info("      Little Endian");
+        spdlog::info("      Little Endian");
     }
     else
     {
-        logger_base.info("      Big Endian");
+        spdlog::info("      Big Endian");
     }
-    logger_base.info("  CPU Arch: " + std::string(wxGetCpuArchitectureName().c_str()));
+    spdlog::info("  CPU Arch: {}", wxGetCpuArchitectureName().ToStdString());
 
 #ifdef LINUX
     wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
-    logger_base.info("  " + std::string(l.Id.c_str()) \
+    spdlog::info("  " + std::string(l.Id.c_str()) \
         + " " + std::string(l.Release.c_str()) \
         + " " + std::string(l.CodeName.c_str()) \
         + " " + std::string(l.Description.c_str()));
@@ -345,8 +346,7 @@ int main(int argc, char **argv)
     // it needs to be:
     //     a folder the user can write to
     //     predictable ... as we want the HandleCrash function to be able to locate the file to include it in the crash
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("******* XLights main function executing.");
+    spdlog::info("******* XLights main function executing.");
 
 #ifdef LINUX
     XInitThreads();
@@ -370,9 +370,9 @@ int main(int argc, char **argv)
     }
     #endif
 
-    logger_base.info("Main: Starting wxWidgets ...");
+    spdlog::info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
-    logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
+    spdlog::info("Main: wxWidgets exited with rc={}", rc);
 
     return rc;
 }
@@ -409,12 +409,11 @@ void xLightsFrame::ClearTraceMessages() {
 
 #ifdef __WXOSX__
 void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (fileNames.empty()) {
         return;
     }
     wxString fileName = fileNames[0];
-    logger_base.info("******* MacOpenFiles: %s", (const char*)fileName.c_str());
+    spdlog::info("******* MacOpenFiles: {}", fileName.ToStdString());
     ObtainAccessToURL(fileName);
 
     wxString showDir = wxPathOnly(fileName);
@@ -458,7 +457,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
                     const wxString file = xsqFile.GetFullPath();
                     frame->OpenSequence(file, nullptr);
                 } else {
-                    logger_base.debug("Zip file did not contain sequence.");
+                    spdlog::debug("Zip file did not contain sequence.");
                 }
             } else {
                 if (showDir != "" && showDir != frame->showDirectory) {
@@ -478,16 +477,16 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
             }
         });
     } else {
-        logger_base.info("       No xLightsFrame");
+        spdlog::info("       No xLightsFrame");
     }
 }
 #endif
 
 bool xLightsApp::OnInit()
 {
+    SetMainThreadId();
     InitialiseLogging(false);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("******* OnInit: XLights started.");
+    spdlog::info("******* OnInit: XLights started.");
 #ifdef __WXMSW__
     if (!IsSuppressDarkMode()) {
         MSWEnableDarkMode();
@@ -502,10 +501,12 @@ bool xLightsApp::OnInit()
 #endif
 
     wxTheApp->SetAppName("xLights");
+    SetIsxLights(true);
+    GetResourcesDirectory(); // bootstrap GetResourcesDir() with wx-dependent path lookup
     DumpConfig();
 
     int id = (int)wxThread::GetCurrentId();
-    logger_base.info("Main thread id: 0x%X or %i", id, id);
+    spdlog::info("Main thread id: 0x{:x} or {}", id, id);
 
 #ifdef _MSC_VER
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
@@ -612,25 +613,25 @@ bool xLightsApp::OnInit()
     case 0:
         if (parser.Found("w"))
         {
-            logger_base.info("-w: Wiping settings");
+            spdlog::info("-w: Wiping settings");
             info += _("Wiping settings\n");
             WipeSettings();
         }
         if (parser.Found("s", &showDir)) {
-            logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
+            spdlog::info("-s: Show directory set to {}.", (const char*)showDir.c_str());
             info += _("Setting show directory to ") + showDir + "\n";
         }
 
         if (parser.Found("a")) {
-            logger_base.info("-a: A port enabled.");
+            spdlog::info("-a: A port enabled.");
             ab = 1;
         } else if (parser.Found("b")) {
-            logger_base.info("-b: B port enabled.");
+            spdlog::info("-b: B port enabled.");
             ab = 2;
         }
 
         if (parser.Found("m", &mediaDir)) {
-            logger_base.info("-m: Media directory set to %s.", (const char *)mediaDir.c_str());
+            spdlog::info("-m: Media directory set to {}.", (const char*)mediaDir.c_str());
             info += _("Setting media directory to ") + mediaDir + "\n";
         } else if (!showDir.IsNull()) {
             mediaDir = showDir;
@@ -638,12 +639,12 @@ bool xLightsApp::OnInit()
         for (size_t x = 0; x < parser.GetParamCount(); x++) {
             wxString sequenceFile = parser.GetParam(x);
             if (sequenceFile.Lower().EndsWith(".zip") || sequenceFile.Lower().EndsWith(".xsqz")) {
-                logger_base.info("Sequence zip file passed on command line: %s.", (const char*)sequenceFile.c_str());
+                spdlog::info("Sequence zip file passed on command line: {}.", (const char*)sequenceFile.c_str());
                 info += _("Loading read only sequence ") + sequenceFile + "\n";
                 readOnlyZipFile = sequenceFile;
 			} else {
                 if (sequenceFiles.Count() == 0) {
-                    logger_base.info("Sequence file passed on command line: %s.", (const char*)sequenceFile.c_str());
+                    spdlog::info("Sequence file passed on command line: {}.", (const char*)sequenceFile.c_str());
                     info += _("Loading sequence ") + sequenceFile + "\n";
                 }
                 if (showDir.IsNull()) {
@@ -667,17 +668,17 @@ bool xLightsApp::OnInit()
 
         if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !info.empty() && readOnlyZipFile == "")
         {
-            DisplayInfo(info); //give positive feedback*/
+            wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK); // pre-frame: callback not yet registered
         }
         break;
     default:
-        DisplayError(_("Unrecognized command line parameters"));
+        wxMessageBox(_("Unrecognized command line parameters"), "Error", wxICON_ERROR | wxOK); // pre-frame: callback not yet registered
         return false;
     }
 
     bool renderOnlyMode = false;
     if (readOnlyZipFile == "" &&  parser.Found("r")) {
-        logger_base.info("-r: Render mode is ON");
+        spdlog::info("-r: Render mode is ON");
         renderOnlyMode = true;
     }
 
@@ -701,11 +702,23 @@ bool xLightsApp::OnInit()
             // temporarily set the show folder
             showDir = xsqPkg.GetTempShowFolder();
 
-            // save the folder and we will remove it when we shutdown
-            cleanupDir = showDir;
+            spdlog::info("xsqz IsPkg={} IsValid={} tempShowFolder='{}' tempDir='{}' xsqFile='{}'",
+                xsqPkg.IsPkg(), xsqPkg.IsValid(),
+                showDir.ToStdString(),
+                xsqPkg.GetTempDir(),
+                xsqFile.GetFullPath().ToStdString());
+
+            // if the package includes xlights_rgbeffects.xml, point the frame constructor
+            // at the extracted show folder so it loads it directly (avoids a second SetDir)
+            if (!showDir.IsEmpty()) {
+                xLightsApp::showDir = showDir;
+            }
+
+            // save the temp dir root so it gets cleaned up on shutdown
+            cleanupDir = xsqPkg.GetTempDir();
 
         } else {
-            logger_base.debug("Zip file did not contain sequence.");        
+            spdlog::debug("Zip file did not contain sequence.");
             readOnlyZipFile = "";
         }
     }
@@ -718,7 +731,7 @@ bool xLightsApp::OnInit()
     {
     	xLightsFrame* Frame = new xLightsFrame(nullptr, ab, -1, renderOnlyMode);
         if (Frame->CurrentDir == "") {
-            logger_base.info("Show directory not set");
+            spdlog::info("Show directory not set");
         }
     	Frame->Show();
     	SetTopWindow(Frame);
@@ -733,6 +746,8 @@ bool xLightsApp::OnInit()
     }
 
     if (readOnlyZipFile != "") {
+        spdlog::info("xsqz: CurrentDir='{}' after construction", topFrame->CurrentDir.ToStdString());
+
         // tell xlights not to allow saving ... at least as much as possible
         topFrame->SetReadOnlyMode(true);
 
@@ -742,13 +757,13 @@ bool xLightsApp::OnInit()
     }
 
     if (parser.Found("cs")) {
-        logger_base.info("-v: Check sequence mode is ON");
+        spdlog::info("-v: Check sequence mode is ON");
         topFrame->_checkSequenceMode = true;
         topFrame->CallAfter(&xLightsFrame::OpenAndCheckSequence, sequenceFiles, true);
     }
 
     if (parser.Found("o")) {
-        logger_base.info("-o: Turning on output to lights");
+        spdlog::info("-o: Turning on output to lights");
         // Turn on output to lights - ignore if another xLights/xSchedule is already outputting
         topFrame->EnableOutputs(true);
     }
@@ -757,15 +772,14 @@ bool xLightsApp::OnInit()
         glutInit(&(wxApp::argc), wxApp::argv);
     #endif
 
-    logger_base.info("XLightsApp OnInit Done.");
+    spdlog::info("XLightsApp OnInit Done.");
 
     return wxsOK;
 }
 
 void xLightsApp::WipeSettings()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Wiping settings.");
+    spdlog::info("Wiping settings.");
 
     wxConfigBase* config = wxConfigBase::Get();
     config->DeleteAll();

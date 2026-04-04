@@ -13,8 +13,9 @@
 #include "CADPoint.h"
 
 #include "../models/Model.h"
-#include "../Pixels.h"
-#include "../Color.h"
+#include "../ui/wxUtilities.h"
+#include "../models/Pixels.h"
+#include "Color.h"
 
 #include <algorithm>
 
@@ -66,7 +67,7 @@ void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addC
 		}
 	}
 
-	m_color = xlColor(model->GetTagColour()).GetRGB(false);
+	m_color = model->GetTagColour().GetRGB(false);
 }
 
 void CADModel::ShiftModel(float x, float y, float z)

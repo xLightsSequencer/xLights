@@ -11,9 +11,12 @@
  **************************************************************/
 
 #include "IPOutput.h"
+#include "SocketAbstraction.h"
 #include "ZCPP.h"
 
-#include <wx/socket.h>
+#include "../utils/string_utils.h"
+
+#include <vector>
 
 class ControllerEthernet;
 class Discovery;
@@ -26,8 +29,8 @@ class ZCPPOutput : public IPOutput
     uint8_t* _data = nullptr;
     ZCPP_packet_t _packet;
     uint8_t _sequenceNum = 0;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket*_datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
     long _lastSecond = -1;
     int _vendor = -1;
     int _model = -1;
@@ -52,11 +55,11 @@ class ZCPPOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir);
+    ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir);
     ZCPPOutput();
     ZCPPOutput(const ZCPPOutput& from);
     virtual ~ZCPPOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new ZCPPOutput(*this);
@@ -78,7 +81,7 @@ public:
     static void PrepareDiscovery(Discovery &discovery);
     #endif
 
-    static wxArrayString GetVendors();
+    static std::vector<std::string> GetVendors();
     static int EncodeVendor(const std::string& vendor);
     static std::string DecodeVendor(int vendor);
     #pragma endregion 
@@ -120,11 +123,11 @@ public:
 
     void AddProtocol(const std::string& protocol) {
         if (!SupportsProtocol(protocol)) {
-            _protocols.push_back(wxString(protocol).Lower().ToStdString());
+            _protocols.push_back(Lower(protocol));
         }
     }
     bool SupportsProtocol(const std::string& protocol) {
-        return std::find(_protocols.begin(), _protocols.end(), wxString(protocol).Lower().ToStdString()) != _protocols.end();
+        return std::find(_protocols.begin(), _protocols.end(), Lower(protocol)) != _protocols.end();
     }
 
     bool SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData, std::list<ZCPP_packet_t*> extraConfig, std::string showDir);
@@ -149,12 +152,4 @@ public:
     virtual void AllOff() override;
     #pragma endregion 
     
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c) override;
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
-    #endif
-    #pragma endregion 
 };

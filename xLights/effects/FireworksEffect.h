@@ -39,8 +39,6 @@ public:
     FireworksEffect(int id);
     virtual ~FireworksEffect();
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-    virtual void SetDefaultParameters() override;
-    virtual void SetPanelStatus(Model* cls) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override
@@ -87,9 +85,5 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-    void SetPanelTimingTracks() const;
     static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
-    virtual bool needToAdjustSettings(const std::string& version) override;
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 };

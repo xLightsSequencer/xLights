@@ -8,27 +8,28 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+#include <format>
 #include "BoxedScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include "RulerObject.h"
-#include "ColorManager.h"
+#include "../utils/DisplayMessages.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #include <cmath>
 
-extern wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation);
+extern CursorType GetResizeCursor(int cornerIndex, int PreviewRotation);
 extern glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R);
 
 inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
@@ -138,7 +139,7 @@ void BoxedScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) const {
 }
 
 
-bool BoxedScreenLocation::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const {
+bool BoxedScreenLocation::IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const {
     int xs = x1<x2?x1:x2;
     int xf = x1>x2?x1:x2;
     int ys = y1<y2?y1:y2;
@@ -181,16 +182,16 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
     return return_value;
 }
 
-wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
+CursorType BoxedScreenLocation::CheckIfOverHandles(IModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
-    wxASSERT(!preview->Is3D());
+    assert(!preview->Is3D());
 
     handle = NO_HANDLE;
 
     if (_locked)
     {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
     glm::vec3 ray_origin;
@@ -210,7 +211,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
     glm::vec3 aabb_min[5];
     glm::vec3 aabb_max[5];
 
-    for (size_t h = 0; h < num_handles; h++) {
+    for (int h = 0; h < num_handles; h++) {
         aabb_min[h].x = mHandlePosition[h+1].x - hw;
         aabb_min[h].y = mHandlePosition[h+1].y - hw;
         aabb_min[h].z = mHandlePosition[h+1].z - hw;
@@ -220,7 +221,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
     }
 
     // Test each each Oriented Bounding Box (OBB).
-    for (size_t i = 0; i < num_handles; i++)
+    for (int i = 0; i < num_handles; i++)
     {
         if (VectorMath::TestRayOBBIntersection2D(
             ray_origin,
@@ -234,17 +235,17 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
     }
 
     if (handle == NO_HANDLE) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
     else if (handle == ROTATE_HANDLE) {
-        return wxCURSOR_HAND;
+        return CursorType::Hand;
     }
     else {
         return GetResizeCursor(handle, rotatez);
     }
 }
 
-wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+CursorType BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if (preview->Is3D()) {
@@ -266,7 +267,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
     } else {
         DisplayError("InitializeLocation: called with no preview....investigate!");
     }
-    return wxCURSOR_SIZING;
+    return CursorType::Sizing;
 }
 
 void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
@@ -593,7 +594,7 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram* program, float zoom, in
                 vac->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
             default:
-                wxASSERT(false);
+                assert(false);
                 break;
             }
             lineCount = vac->getCount();
@@ -604,21 +605,6 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram* program, float zoom, in
         }
     }
     return true;
-}
-
-void BoxedScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Width (%s)", RulerObject::GetUnitDescription()), "RealWidth", GetRealWidth()));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Min", 0.01);
-    prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", GetRealHeight()));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Min", 0.01);
-    if (supportsZScaling) {
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Depth (%s)", RulerObject::GetUnitDescription()), "RealDepth", GetRealDepth()));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Min", 0.01);
-    }
 }
 
 float BoxedScreenLocation::GetRealWidth() const
@@ -643,214 +629,14 @@ std::string BoxedScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
     if (supportsZScaling) {
-        return wxString::Format("Width %s Height %s Depth %s",
+        return std::format("Width {} Height {} Depth {}",
             RulerObject::MeasureDescription(GetMWidth()),
             RulerObject::MeasureDescription(GetMHeight()),
-            RulerObject::MeasureDescription(GetMDepth())).ToStdString();
+            RulerObject::MeasureDescription(GetMDepth()));
     }
-    return wxString::Format("Width %s Height %s",
+    return std::format("Width {} Height {}",
         RulerObject::MeasureDescription(GetMWidth()),
-        RulerObject::MeasureDescription(GetMHeight())).ToStdString();
-}
-
-void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
-    prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("X", "ModelX", worldPos_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxRED);
-    prop = propertyEditor->Append(new wxFloatProperty("Y", "ModelY", worldPos_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Z", "ModelZ", worldPos_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(BlueOrLightBlue());
-    prop = propertyEditor->Append(new wxFloatProperty("ScaleX", "ScaleX", scalex));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("ScaleY", "ScaleY", scaley));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("ScaleZ", "ScaleZ", scalez));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("RotateX", "RotateX", rotatex));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("RotateY", "RotateY", rotatey));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("RotateZ", "RotateZ", rotatez));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-}
-
-int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    std::string name = event.GetPropertyName().ToStdString();
-    if (!_locked && "ScaleX" == name) {
-        scalex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ScaleX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ScaleY" == name) {
-        scaley = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ScaleY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ScaleZ" == name) {
-        scalez = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ScaleZ" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelX" == name) {
-        worldPos_x = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        return 0;
-    }
-    else if (_locked && "ModelX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelY" == name) {
-        worldPos_y = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        return 0;
-    }
-    else if (_locked && "ModelY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelZ" == name) {
-        worldPos_z = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        return 0;
-    }
-    else if (_locked && "ModelZ" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateX" == name) {
-        rotatex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        return 0;
-    }
-    else if (_locked && "RotateX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateY" == name) {
-        rotatey = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        return 0;
-    }
-    else if (_locked && "RotateY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateZ" == name) {
-        rotatez = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        return 0;
-    }
-    else if (_locked && "RotateZ" == name) {
-        event.Veto();
-        return 0;
-    } else if (!_locked && "RealWidth" == name) {
-        SetMWidth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    } else if (_locked && "RealWidth" == name) {
-        event.Veto();
-        return 0;
-    } else if (!_locked && "RealHeight" == name) {
-        SetMHeight(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    } else if (_locked && "RealHeight" == name) {
-        event.Veto();
-        return 0;
-    } else if (!_locked && "RealDepth" == name) {
-        SetMDepth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    } else if (_locked && "RealDepth" == name) {
-        event.Veto();
-        return 0;
-    } else if ("Locked" == name)
-    {
-        _locked = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::Locked");
-        return 0;
-    }
-
-    return 0;
+        RulerObject::MeasureDescription(GetMHeight()));
 }
 
 bool BoxedScreenLocation::Rotate(MSLAXIS axis, float factor)
@@ -891,7 +677,7 @@ bool BoxedScreenLocation::Scale(const glm::vec3& factor) {
     return true;
 }
 
-int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
+int BoxedScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
 
     if (latch) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -1051,7 +837,7 @@ int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, g
 }
         
 
-int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int BoxedScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -1152,7 +938,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     return MODEL_UNCHANGED;
 }
 
-glm::vec2 BoxedScreenLocation::GetScreenOffset(ModelPreview* preview) const
+glm::vec2 BoxedScreenLocation::GetScreenOffset(IModelPreview* preview) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
                                                     preview->getHeight(),

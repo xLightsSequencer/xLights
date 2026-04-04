@@ -9,11 +9,10 @@
  **************************************************************/
 
 #include "CurtainEffect.h"
-#include "CurtainPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/curtain-16.xpm"
 #include "../../include/curtain-24.xpm"
@@ -30,10 +29,6 @@ CurtainEffect::~CurtainEffect()
 {
     //dtor
 }
-xlEffectPanel *CurtainEffect::CreatePanel(wxWindow *parent) {
-    return new CurtainPanel(parent);
-}
-
 static inline int GetCurtainEdge(const std::string &edge) {
     if ("left" == edge) {
         return 0;
@@ -80,24 +75,6 @@ public:
     int LastCurtainDir;
     int LastCurtainLimit;
 };
-
-void CurtainEffect::SetDefaultParameters() {
-    CurtainPanel *cp = (CurtainPanel*)panel;
-    if (cp == nullptr) {
-        return;
-    }
-
-    cp->BitmapButton_Curtain_SpeedVC->SetActive(false);
-    cp->BitmapButton_Curtain_SwagVC->SetActive(false);
-
-    SetSliderValue(cp->Slider_Curtain_Swag, 3);
-    SetSliderValue(cp->Slider_Curtain_Speed, 10);
-
-    SetChoiceValue(cp->Choice_Curtain_Edge, "left");
-    SetChoiceValue(cp->Choice_Curtain_Effect, "open");
-
-    SetCheckBoxValue(cp->CheckBox_Curtain_Repeat, false);
-}
 
 void CurtainEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 

@@ -11,13 +11,10 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include <string>
 #include <list>
-#include <wx/gdicmn.h>
-#include <wx/colour.h>
-#include <wx/dcmemory.h>
-class wxString;
+#include "../utils/xlPoint.h"
 
 #define TENDRIL_MOVEMENT_MIN 0
 #define TENDRIL_MOVEMENT_MAX 20
@@ -46,7 +43,7 @@ class TendrilNode
     float vy;
 
     TendrilNode(float x_, float y_);
-    wxPoint* Point();
+    xlPoint Point();
 };
 
 class ATendril
@@ -65,10 +62,10 @@ class ATendril
 	public:
 
 	~ATendril();
-	ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start);
-    void Update(wxPoint* target, int tunemovement, int width, int height);
-	void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
-	wxPoint* LastLocation();
+	ATendril(float friction, int size, float dampening, float tension, float spring, const xlPoint& start);
+    void Update(const xlPoint& target, int tunemovement, int width, int height);
+	void Draw(RenderBuffer& buffer, xlColor colour, int thickness);
+	xlPoint LastLocation();
 };
 
 class Tendril
@@ -78,11 +75,11 @@ class Tendril
 	public:
 
 	~Tendril();
-	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start);
+	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const xlPoint& start);
 	void UpdateRandomMove(int tunemovement, int width, int height);
-    void Update(wxPoint* target, int tunemovement, size_t width, size_t height);
+    void Update(const xlPoint& target, int tunemovement, size_t width, size_t height);
     void Update(int x, int y, int tunemovement, size_t width, size_t height);
-    void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
+    void Draw(RenderBuffer& buffer, xlColor colour, int thickness);
 };
 
 class TendrilEffect : public RenderableEffect
@@ -90,14 +87,7 @@ class TendrilEffect : public RenderableEffect
 public:
     TendrilEffect(int id);
     virtual ~TendrilEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-#ifdef LINUX
-    virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override
-    {
-        return false;
-    }
-#endif
     virtual bool AppropriateOnNodes() const override
     {
         return false;
@@ -142,9 +132,6 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-    virtual bool needToAdjustSettings(const std::string& version) override;
-    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     int EncodeMovement(std::string movement);
     void Render(RenderBuffer& buffer,
                 const std::string& movement, int tunemovement, int movementSpeed, int thickness,

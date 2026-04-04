@@ -10,22 +10,20 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <chrono>
+#include <cstdint>
 #include <list>
 #include <mutex>
 #include <shared_mutex>
 
-#include <wx/window.h>
-#include <wx/time.h>
+#include <pugixml.hpp>
 
 class ModelManager;
 class OutputManager;
-class wxXmlNode;
 class OutputModelManager;
-class wxPGProperty;
-class wxPropertyGrid;
-class wxPropertyGridEvent;
 class ControllerEthernet;
 class Controller;
+
 
 #pragma region Output Constants
 // These are used to identify each output type
@@ -73,7 +71,7 @@ protected:
     bool _ok = false;
     bool _tempDisable = false;
     bool _suppressDuplicateFrames = false;
-    wxLongLong _lastOutputTime = 0;
+    int64_t _lastOutputTime = 0;
     int _skippedFrames = 9999;
     bool _changed = false; // set to true when something in the packed has changed
     std::string _fppProxy;
@@ -87,7 +85,7 @@ protected:
     #pragma endregion
 
 #pragma region Private Functions
-    virtual void Save(wxXmlNode* node);
+    virtual void SaveAttr(pugi::xml_node node);
 #pragma endregion
 
 public:
@@ -104,16 +102,16 @@ public:
     };
 
     #pragma region Constructors and Destructors
-    Output(wxXmlNode* node);
+    Output(pugi::xml_node node);
     Output(const Output& from);
     Output();
     virtual ~Output();
-    virtual wxXmlNode* Save();
+    virtual pugi::xml_node Save(pugi::xml_node parent);
     virtual Output* Copy() = 0;
     #pragma endregion 
 
     #pragma region Static Functions
-    static Output* Create(Controller* c, wxXmlNode* node, std::string showDir);
+    static Output* Create(Controller* c, pugi::xml_node node, std::string showDir);
     static std::list<ControllerEthernet*> Discover(OutputManager* outputManager) { return std::list<ControllerEthernet*>(); } // Discovers controllers supporting this protocol
     #pragma endregion Static Functions
 
@@ -147,7 +145,7 @@ public:
 
     int GetUniverse() const { return _universe; }
     void SetUniverse(int universe) { _universe = universe; _dirty = true; }
-    virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
+    virtual std::string GetUniverseString() const { return std::to_string(GetUniverse()); }
 
     int32_t GetChannels() const { return _channels; }
     virtual void SetChannels(int32_t channels) {
@@ -229,13 +227,4 @@ public:
 
     virtual void SendHeartbeat() const {}
 
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {}
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) { }
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) {}
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) { return false; }
-    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) {}
-    #endif
-    #pragma endregion UI
 };

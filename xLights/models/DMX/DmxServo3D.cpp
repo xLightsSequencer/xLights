@@ -8,10 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-
+#include <format>
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,12 +17,13 @@
 #include "DmxServo3D.h"
 #include "Mesh.h"
 #include "Servo.h"
-#include "ServoConfigDialog.h"
-#include "../../controllers/ControllerCaps.h"
-#include "../../ModelPreview.h"
+#include "../../graphics/IModelPreview.h"
+#include "../ModelManager.h"
+#include "../../graphics/xlGraphicsContext.h"
+#include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../xLightsVersion.h"
-#include "../../xLightsMain.h"
-#include "../../UtilFunctions.h"
+#include "../../render/UICallbacks.h"
+#include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 enum MOTION_LINK {
@@ -69,248 +67,10 @@ DmxServo3d::~DmxServo3d()
 {
 }
 
-static const std::string CLICK_TO_EDIT("--Click To Edit--");
-class ServoConfigDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    ServoConfigDialogAdapter(DmxServo3d* model) :
-        wxPGEditorDialogAdapter(), m_model(model)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        ServoConfigDialog dlg(propGrid);
-
-        dlg.CheckBox_16bits->SetValue(m_model->Is16Bit());
-        dlg.SpinCtrl_NumServos->SetValue(m_model->GetNumServos());
-        dlg.SpinCtrl_NumStatic->SetValue(m_model->GetNumStatic());
-        dlg.SpinCtrl_NumMotion->SetValue(m_model->GetNumMotion());
-        dlg.SpinCtrl_NumMotion->SetRange(1, m_model->GetNumServos());
-
-        if (dlg.ShowModal() == wxID_OK) {
-            bool changed = false;
-
-            int _num_servos = dlg.SpinCtrl_NumServos->GetValue();
-            if (_num_servos != m_model->GetNumServos()) {
-                m_model->SetNumServos(_num_servos);
-                changed = true;
-                m_model->UpdateNodeNames();
-            }
-            int _num_static = dlg.SpinCtrl_NumStatic->GetValue();
-            if (_num_static != m_model->GetNumStatic()) {
-                m_model->SetNumStatic(_num_static);
-                changed = true;
-            }
-            int _num_motion = dlg.SpinCtrl_NumMotion->GetValue();
-            if (_num_motion != m_model->GetNumMotion()) {
-                m_model->SetNumMotion(_num_motion);
-                changed = true;
-            }
-            bool _16bit = dlg.CheckBox_16bits->GetValue();
-            if (_16bit != m_model->Is16Bit()) {
-                changed = true;
-                m_model->UpdateBits();
-                m_model->UpdateNodeNames();
-            }
-            if (changed) {
-                m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ServoConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::ServoConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3d::ServoConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3d::ServoConfigDialogAdapter");
-            }
-
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    DmxServo3d* m_model;
-};
-
-class ServoPopupDialogProperty : public wxStringProperty
-{
-public:
-    ServoPopupDialogProperty(DmxServo3d* m,
-                             const wxString& label,
-                             const wxString& name,
-                             const wxString& value,
-                             int type) :
-        wxStringProperty(label, name, value), m_model(m), m_tp(type)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        switch (m_tp) {
-        case 1:
-            return new ServoConfigDialogAdapter(m_model);
-        default:
-            break;
-        }
-        return nullptr;
-    }
-
-protected:
-    DmxServo3d* m_model = nullptr;
-    int m_tp;
-};
-
-static wxPGChoices MOTION_LINKS;
-
-void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    wxPGProperty* p = grid->Append(new ServoPopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
-    grid->LimitPropertyEditing(p);
-
-    p = grid->Append(new wxBoolProperty("Show Pivot Axes", "PivotAxes", show_pivot));
-    p->SetAttribute("UseCheckbox", true);
-
-    for (const auto& it : servos) {
-        ControllerCaps *caps = GetControllerCaps();
-        it->AddTypeProperties(grid, IsPWMProtocol() && caps != nullptr && caps->SupportsPWM());
-    }
-
-    for (const auto& it : static_meshs) {
-        it->AddTypeProperties(grid);
-    }
-
-    for (const auto& it : motion_meshs) {
-        it->AddTypeProperties(grid);
-    }
-
-    if (MOTION_LINKS.GetCount() != (unsigned int)num_servos) {
-        MOTION_LINKS.Clear();
-    }
-    if (MOTION_LINKS.GetCount() == 0) {
-        for (int i = 0; i < num_servos; ++i) {
-            MOTION_LINKS.Add("Mesh " + std::to_string(i + 1));
-        }
-    }
-
-    grid->Append(new wxPropertyCategory("Servo Linkage", "ServoMotionProperties"));
-    for (int i = 0; i < num_servos; ++i) {
-        std::string linkage = "Servo " + std::to_string(i + 1) + " Linkage";
-        std::string linkage2 = "Servo" + std::to_string(i + 1) + "Linkage";
-        grid->Append(new wxEnumProperty(linkage, linkage2, MOTION_LINKS, servo_links[i] == -1 ? i : servo_links[i]));
-    }
-    grid->Collapse("ServoMotionProperties");
-
-    grid->Append(new wxPropertyCategory("Mesh Linkage", "MeshMotionProperties"));
-    for (int i = 0; i < num_servos; ++i) {
-        std::string linkage = "Mesh " + std::to_string(i + 1) + " Linkage";
-        std::string linkage2 = "Mesh" + std::to_string(i + 1) + "Linkage";
-        grid->Append(new wxEnumProperty(linkage, linkage2, MOTION_LINKS, mesh_links[i] == -1 ? i : mesh_links[i]));
-    }
-    grid->Collapse("MeshMotionProperties");
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    std::string name = event.GetPropertyName().ToStdString();
-
-    if ("DmxChannelCount" == event.GetPropertyName()) {
-        int channels = (int)event.GetPropertyValue().GetLong();
-        int min_channels = num_servos * (_16bit ? 2 : 1);
-        if (channels < min_channels) {
-            wxPGProperty* p = grid->GetPropertyByName("DmxChannelCount");
-            if (p != nullptr) {
-                p->SetValue(min_channels);
-            }
-            std::string msg = wxString::Format("You have %d servos at %d bits so you need %d channels minimum.", num_servos, _16bit ? 16 : 8, min_channels);
-            wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
-            return 0;
-        }
-    }
-
-    if ("PivotAxes" == name) {
-        show_pivot = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::PivotAxes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3d::OnPropertyGridChange::PivotAxes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3d::OnPropertyGridChange::PivotAxes");
-        return 0;
-    }
-
-    for (const auto& it : servos) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-    }
-
-    for (const auto& it : static_meshs) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-    }
-
-    for (const auto& it : motion_meshs) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-    }
-
-    for (int i = 0; i < num_servos; ++i) {
-        std::string linkage = "Servo" + std::to_string(i + 1) + "Linkage";
-        if (linkage == name) {
-            int link_num = event.GetPropertyValue().GetLong();
-            if (link_num >= num_servos) {
-                link_num = i;
-            }
-            if (link_num == i) {
-                servo_links[i] = -1;
-            } else {
-                servo_links[i] = link_num;
-            }
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
-            return 0;
-        }
-        linkage = "Mesh" + std::to_string(i + 1) + "Linkage";
-        if (linkage == name) {
-            int link_num = event.GetPropertyValue().GetLong();
-            if (link_num >= num_servos) {
-                link_num = i;
-            }
-            if (link_num == i) {
-                mesh_links[i] = -1;
-            } else {
-                mesh_links[i] = link_num;
-            }
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
-            return 0;
-        }
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
-}
-
 void DmxServo3d::SetNumServos(int val)
 {
     num_servos = val;
-    if (servos.size() < num_servos) {
+    if ((int)servos.size() < num_servos) {
         servos.resize(num_servos);
     }
 }
@@ -318,7 +78,7 @@ void DmxServo3d::SetNumServos(int val)
 void DmxServo3d::SetNumStatic(int val)
 {
     num_static = val;
-    if (static_meshs.size() < num_static) {
+    if ((int)static_meshs.size() < num_static) {
         static_meshs.resize(num_static);
     }
 }
@@ -326,7 +86,7 @@ void DmxServo3d::SetNumStatic(int val)
 void DmxServo3d::SetNumMotion(int val)
 {
     num_motion = val;
-    if (motion_meshs.size() < num_motion) {
+    if ((int)motion_meshs.size() < num_motion) {
         motion_meshs.resize(num_motion);
     }
 }
@@ -353,22 +113,24 @@ void DmxServo3d::InitModel()
 {
     int min_channels = num_servos * (_16bit ? 2 : 1);
 
-    if (parm1 < min_channels) {
+    if (_dmxChannelCount < min_channels) {
         UpdateChannelCount(min_channels, false);
-        std::string msg = wxString::Format("Channel count increased to %d to accommodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
-        wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
+        std::string msg = std::format("Channel count increased to {} to accommodate {} servos at {} bits.", min_channels, num_servos, _16bit ? 16 : 8);
+        if (auto* ui = GetModelManager().GetUICallbacks()) {
+            ui->ShowMessage(msg, "Minimum Channel Violation");
+        }
     }
 
     DmxModel::InitModel();
 
     // resize vector arrays
-    if (servos.size() != num_servos) {
+    if ((int)servos.size() != num_servos) {
         servos.resize(num_servos);
     }
-    if (static_meshs.size() != num_static) {
+    if ((int)static_meshs.size() != num_static) {
         static_meshs.resize(num_static);
     }
-    if (motion_meshs.size() != num_motion) {
+    if ((int)motion_meshs.size() != num_motion) {
         motion_meshs.resize(num_motion);
     }
 
@@ -442,7 +204,7 @@ void DmxServo3d::InitModel()
     update_node_names = false;
 }
 
-void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+void DmxServo3d::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                       xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                       const xlColor* c, bool allowSelected, bool wiring,
                                       bool highlightFirst, int highlightpixel,
@@ -493,7 +255,7 @@ void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
     }
 }
 
-void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
+void DmxServo3d::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
 {
     if (!IsActive() && preview->IsNoCurrentModel()) {
         return;
@@ -510,7 +272,7 @@ void DmxServo3d::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
     if (ctx) {
         int w, h;
-        preview->GetSize(&w, &h);
+        w = preview->getWidth(); h = preview->getHeight();
         float scaleX = float(w) * 0.95f / GetModelScreenLocation().RenderWi;
         float scaleY = float(h) * 0.95f / GetModelScreenLocation().RenderHt;
 
@@ -561,12 +323,12 @@ std::list<std::string> DmxServo3d::CheckModelSettings()
     int min_channels = num_servos * (_16bit ? 2 : 1);
 
     if (min_channels > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
+        res.push_back(std::format("    ERR: Model {} requires more channels {} than have been allocated to it {}.", GetName(), min_channels, nodeCount));
     }
     int i = 1;
     for (const auto& it : servos) {
         if (it->GetChannel() > nodeCount) {
-            res.push_back(wxString::Format("    ERR: Model %s servo %d is assigned to channel %d but the model only has %d channels.", GetName(), i, it->GetChannel(), nodeCount));
+            res.push_back(std::format("    ERR: Model {} servo {} is assigned to channel {} but the model only has {} channels.", GetName(), i, it->GetChannel(), nodeCount));
         }
         i++;
     }
@@ -575,16 +337,16 @@ std::list<std::string> DmxServo3d::CheckModelSettings()
     return res;
 }
 
-void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
+void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
 {
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
-    if (min_channels > Nodes.size()) {
+    if (min_channels > (int)Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
     for (const auto& it : servos) {
-        if (it->GetChannel() > Nodes.size()) {
+        if (it->GetChannel() > (int)Nodes.size()) {
             DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
             return;
         }
@@ -601,7 +363,7 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     }
 
     // Get servo positions and fill motion matrices
-    for (int i = 0; i < servos.size(); ++i) {
+    for (int i = 0; i < (int)servos.size(); ++i) {
         if (servos[i]->GetChannel() > 0 && active) {
             servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
             if (servos[i]->IsTranslate()) {
@@ -637,13 +399,13 @@ void DmxServo3d::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGrap
     }
 
     // add motion based on servo mapping
-    for (int i = 0; i < servos.size(); ++i) {
+    for (int i = 0; i < (int)servos.size(); ++i) {
         // see if servo links to his own mesh
         if (servo_links[i] == -1) {
             motion_matrix[i] = motion_matrix[i] * servo_matrix[i];
         }
         // check if any other servos map to this mesh
-        for (int j = 0; j < servos.size(); ++j) {
+        for (int j = 0; j < (int)servos.size(); ++j) {
             if (j != i) {
                 if (servo_links[j] == i) {
                     motion_matrix[i] = motion_matrix[i] * servo_matrix[j];

@@ -13,8 +13,7 @@
 // Protocol specification can be found here: http://openpixelcontrol.org/
 
 #include "IPOutput.h"
-
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 #pragma region E1.31 Constants
 #define OPC_PACKET_HEADERLEN 4
@@ -25,8 +24,8 @@ class OPCOutput : public IPOutput
 {
     #pragma region Member Variables
     uint8_t* _data = nullptr;
-    wxIPV4address _remoteAddr;
-    wxSocketClient*_socket = nullptr;
+    std::string _remoteIp;
+    sockets::TCPSocket* _socket = nullptr;
     #pragma endregion
 
     #pragma region Private Functiona
@@ -37,11 +36,11 @@ class OPCOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    OPCOutput(wxXmlNode* node, bool isActive);
+    OPCOutput(pugi::xml_node node, bool isActive);
     OPCOutput();
     OPCOutput(const OPCOutput& from);
     virtual ~OPCOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new OPCOutput(*this);
@@ -78,15 +77,5 @@ public:
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion
-    
-    
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
-#endif
-#pragma endregion
 
 };

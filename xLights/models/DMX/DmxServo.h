@@ -20,15 +20,13 @@ public:
     DmxServo(const ModelManager &manager);
     virtual ~DmxServo();
 
-    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+    virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
                                       bool highlightFirst = false, int highlightpixel = 0,
                                       float *boundingBox = nullptr) override;
-    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+    virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual std::list<std::string> CheckModelSettings() override;
 
     Servo* GetAxis(int num) { return num < num_servos ? servos[num].get() : servos[0].get(); }
@@ -45,6 +43,7 @@ public:
     void SetIs16Bit(bool val) { _16bit = val; }
     void SetBrightness(float val) {brightness = val; }
     void SetTransparency(int val) {transparency = val; }
+    void SetUpdateNodeNames(bool val) { update_node_names = val; }
 
     DmxImage* CreateStaticImage(const std::string& name, int idx);
     DmxImage* CreateMotionImage(const std::string& name, int idx);
@@ -58,7 +57,7 @@ protected:
     virtual void InitModel() override;
     void Clear();
 
-    void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active);
+    void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active);
 
     int transparency {0};
     float brightness {100};

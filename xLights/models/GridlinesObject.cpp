@@ -8,14 +8,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
 #include "GridlinesObject.h"
-#include "ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "Model.h"
-#include "RulerObject.h"
 
 GridlinesObject::GridlinesObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), gridColor(xlColor(0,128, 0))
@@ -30,93 +27,8 @@ GridlinesObject::~GridlinesObject()
 void GridlinesObject::InitModel() {
 }
 
-void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
 
-    wxPGProperty *p = grid->Append(new wxUIntProperty("Line Spacing", "GridLineSpacing", line_spacing));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 1024);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Grid Width", "GridWidth", width));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100000);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Grid Height", "GridHeight", height));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100000);
-    p->SetEditor("SpinCtrl");
-
-    grid->Append(new wxColourProperty("Grid Color", "GridColor", gridColor.asWxColor()));
-
-    p = grid->Append(new wxBoolProperty("Axis Lines", "GridAxis", hasAxis));
-    p->SetAttribute("UseCheckbox", true);
-
-    p = grid->Append(new wxBoolProperty("Point To Front", "PointToFront", hasAxis));
-    p->SetAttribute("UseCheckbox", true);
-
-    if (RulerObject::GetRuler() != nullptr) {
-        p = grid->Append(new wxStringProperty("Grid Spacing", "RealSpacing",
-            RulerObject::PrescaledMeasureDescription(RulerObject::Measure(line_spacing))
-        ));
-        p->ChangeFlag(wxPGFlags::ReadOnly, true);
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    }
-}
-
-int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("GridLineSpacing" == event.GetPropertyName()) {
-        line_spacing = (int)event.GetPropertyValue().GetLong();
-        if (grid->GetPropertyByName("RealSpacing") != nullptr && RulerObject::GetRuler() != nullptr) {
-            grid->GetPropertyByName("RealSpacing")->SetValueFromString(RulerObject::PrescaledMeasureDescription(RulerObject::Measure(line_spacing)));
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
-        return 0;
-    }
-    else if ("GridWidth" == event.GetPropertyName()) {
-        width = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridWidth");
-        return 0;
-    }
-    else if ("GridHeight" == event.GetPropertyName()) {
-        height = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridHeight");
-        return 0;
-    }
-    else if ("GridColor" == event.GetPropertyName()) {
-        wxPGProperty *p = grid->GetPropertyByName("GridColor");
-        wxColour c;
-        c << p->GetValue();
-        gridColor = c;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridColor");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridColor");
-        return 0;
-    } else if (event.GetPropertyName() == "GridAxis") {
-        hasAxis = event.GetValue().GetBool();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridAxis");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridAxis");
-        return 0;
-    } else if (event.GetPropertyName() == "PointToFront") {
-        pointToFront = event.GetValue().GetBool();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::PointToFront");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::PointToFront");
-        return 0;
-    }
-
-    return ViewObject::OnPropertyGridChange(grid, event);
-}
-
-bool GridlinesObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
+bool GridlinesObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if (!IsActive()) { return true; }
     
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);

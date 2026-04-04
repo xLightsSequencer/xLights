@@ -9,7 +9,12 @@
  **************************************************************/
 
 #include "WebSocketClient.h"
-#include <log4cpp/Category.hh>
+#include <chrono>
+#include <cstdlib>
+#include <format>
+#include <thread>
+
+#include <log.h>
 
 WebSocketClient::WebSocketClient()
 {
@@ -18,39 +23,36 @@ WebSocketClient::WebSocketClient()
 
 bool WebSocketClient::Connect(std::string ip, std::string url)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Connecting to websocket %s %s.", (const char *)ip.c_str(), (const char *)url.c_str());
+    spdlog::debug("Connecting to websocket {} {}.", ip, url);
 
-    wxIPV4address addr;
-    addr.Hostname(ip);
-    addr.Service(80);
-    _socket.Connect(addr, false);
-    _socket.WaitOnConnect(10);
-
-    if (!_socket.IsConnected()) {
-        logger_base.error("    Failed to connect.");
+    if (!_socket.Connect(ip, 80, "", false)) {
+        spdlog::error("    Failed to connect.");
         return false;
     }
 
     _connected = true;
 
-    logger_base.debug("    Connected.");
+    spdlog::debug("    Connected.");
 
     if (url == "") url = "/";
-    wxString line = wxString::Format("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Version: 13\r\nOrigin:http://%s/\r\n\r\n", url, ip, ip);
-    _socket.Write(line.c_str(), line.Length());
-    wxMilliSleep(500);
-    wxString answer = ReadSocket();
+    const std::string line = std::format("GET {} HTTP/1.1\r\nHost: {}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Version: 13\r\nOrigin:http://{}/\r\n\r\n", url, ip, ip);
+    _socket.Write(reinterpret_cast<const uint8_t*>(line.c_str()), line.size());
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    const std::string answer = ReadSocket();
+    int status = 0;
+    if (answer.rfind("HTTP/1.1 ", 0) == 0 && answer.size() >= 12) {
+        status = static_cast<int>(std::strtol(answer.substr(9, 3).c_str(), nullptr, 10));
+    }
 
-    if (answer.StartsWith("HTTP/1.1 ") && wxAtoi(answer.substr(9)) == 101) {
-        logger_base.debug("    Converted to websocket.");
+    if (status == 101) {
+        spdlog::debug("    Converted to websocket.");
 
         ClearIncomingData();
 
         return true;
     }
 
-    logger_base.error("     Failed to convert to web socket %d.", wxAtoi(answer.substr(9)));
+    spdlog::error("     Failed to convert to web socket {}.", status);
 
     _socket.Close();
     _connected = false;
@@ -60,8 +62,8 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
 
 bool WebSocketClient::Send(std::string message)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("WebSocket Sent: %s", (const char *)message.c_str());
+    
+    spdlog::debug("WebSocket Sent: {}", message);
     //printf("Send: %s\n", message.c_str());
 
     bool useMask = false;
@@ -114,10 +116,10 @@ bool WebSocketClient::Send(std::string message)
 
 std::string WebSocketClient::Receive()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     uint8_t buffer[8192];
     _socket.Peek(buffer, sizeof(buffer));
-    auto read = _socket.LastCount();
+    auto read = _socket.LastReadCount();
     if (read >= 2) {
         bool fin = false;
         std::string res = "";
@@ -128,7 +130,7 @@ std::string WebSocketClient::Receive()
             uint8_t N0 = (buffer[1] & 0x7f);
             int header_size = 2 + (N0 == 126 ? 2 : 0) + (N0 == 127 ? 8 : 0) + (mask ? 4 : 0);
 
-            if (read >= header_size) {
+            if (read >= (unsigned int)header_size) {
                 char masking_key[4];
                 int i = 0;
                 unsigned long N = 0;
@@ -178,17 +180,17 @@ std::string WebSocketClient::Receive()
 
                     res += std::string((char*)&buffer[header_size]);
                     if (fin) {
-                        logger_base.debug("WebSocket Received: %s", (const char *)res.c_str());
+                        spdlog::debug("WebSocket Received: {}", res);
                         //printf("Receive: %s\n", res.c_str());
                         return res;
                     }
                 }
                 _socket.Peek(buffer, sizeof(buffer));
-                read = _socket.LastCount();
+                read = _socket.LastReadCount();
                 while (read < 2) {
-                    wxMilliSleep(1);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     _socket.Peek(buffer, sizeof(buffer));
-                    read = _socket.LastCount();
+                    read = _socket.LastReadCount();
                 }
             }
         }
@@ -211,15 +213,15 @@ std::string WebSocketClient::ReadSocket()
 
 void WebSocketClient::ClearIncomingData()
 {
-    int to = _socket.GetTimeout();
-    _socket.SetTimeout(1);
+    int to = _socket.GetReadTimeoutMs();
+    _socket.SetReadTimeoutMs(1000);
     unsigned char buffer[4096];
     int read = 999;
     while (read != 0) {
         _socket.Read(buffer, sizeof(buffer));
         read = _socket.LastReadCount();
     }
-    _socket.SetTimeout(to);
+    _socket.SetReadTimeoutMs(to);
 }
 
 WebSocketClient::~WebSocketClient()

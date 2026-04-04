@@ -14,19 +14,16 @@
 
 #include <vector>
 
-class wxString;
 class TextDrawingContext;
 class FontManager;
-class wxImage;
+struct CachedRGBAImage;
 
 class TextEffect : public RenderableEffect
 {
 public:
     TextEffect(int id);
     virtual ~TextEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    virtual void SetPanelStatus(Model* cls) override;
 #ifdef LINUX
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override { return false; };
 #endif
@@ -38,21 +35,19 @@ public:
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override { return false; }
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
-    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
+    virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 private:
-    void SelectTextColor(std::string& palette, int index) const;
-    void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer& buffer, wxString& msg, wxString Line_orig) const;
+    void FormatCountdown(int Countdown, int state, std::string& Line, RenderBuffer& buffer, std::string& msg, std::string Line_orig) const;
     std::vector<std::string> WordSplit(const std::string& text) const;
     std::string FlipWord(const SettingsMap& settings, const std::string& text, RenderBuffer& buffer) const;
 
-    void ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const;
+    void ReplaceVaribles(std::string& msg, RenderBuffer& buffer) const;
 
-    wxImage* RenderTextLine(RenderBuffer& buffer,
+    const CachedRGBAImage* RenderTextLine(RenderBuffer& buffer,
         TextDrawingContext* dc,
-        const wxString& Line_orig,
+        const std::string& Line_orig,
         const std::string& fontString,
         int dir,
         bool center, bool norepeat, int Effect, int Countdown, int tspeed,

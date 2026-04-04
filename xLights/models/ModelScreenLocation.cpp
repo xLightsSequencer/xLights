@@ -8,28 +8,25 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include "ModelScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Model.h"
-#include "../ModelPreview.h"
+#include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
+#include "../ui/layout/ViewpointMgr.h"
 #include "Shapes.h"
-#include "../ViewpointMgr.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #define BOUNDING_RECT_OFFSET        8
 
@@ -37,8 +34,10 @@ constexpr float dead_zone = 10.0f;  // how many degrees close to a plane should 
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
+#endif
 void rotate_point(float cx, float cy, float angle, float &x, float &y)
 {
     float s = sin(angle);
@@ -57,21 +56,21 @@ void rotate_point(float cx, float cy, float angle, float &x, float &y)
     y = ynew + cy;
 }
 
+#ifndef NDEBUG
 // used to print matrix when debugging
-static void PrintMatrix(std::string name, glm::mat4& matrix)
+[[maybe_unused]] static void PrintMatrix(std::string name, glm::mat4& matrix)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Matrix Info: %s", name.c_str());
-    logger_base.debug("Row 0: %6.8f  %6.8f  %6.8f  %6.2f", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
-    logger_base.debug("Row 1: %6.8f  %6.8f  %6.8f  %6.2f", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
-    logger_base.debug("Row 2: %6.8f  %6.8f  %6.8f  %6.2f", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
-    logger_base.debug("Row 3: %6.2f  %6.2f  %6.2f  %6.2f", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
+    spdlog::debug("Matrix Info: {}", name.c_str());
+    spdlog::debug("Row 0: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
+    spdlog::debug("Row 1: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
+    spdlog::debug("Row 2: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
+    spdlog::debug("Row 3: {:6.2f}  {:6.2f}  {:6.2f}  {:6.2f}", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
 }
+#endif
 
 glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
 {
     double x, y, z;
-    int path = 0;
 
     double m13 = R[0][2];
     
@@ -92,17 +91,20 @@ glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
     return glm::vec3(x, y, z);
 }
 
-static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
+#ifndef NDEBUG
+[[maybe_unused]] static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Ray Info: %s", name.c_str());
-    logger_base.debug("Ray Origin: %6.2f  %6.2f  %6.2f", origin.x, origin.y, origin.z);
-    logger_base.debug("Ray Direct: %6.2f  %6.2f  %6.2f", direction.x, direction.y, direction.z);
+    spdlog::debug("Ray Info: {}", name.c_str());
+    spdlog::debug("Ray Origin: {:6.2f}  {:6.2f}  {:6.2f}", origin.x, origin.y, origin.z);
+    spdlog::debug("Ray Direct: {:6.2f}  {:6.2f}  {:6.2f}", direction.x, direction.y, direction.z);
 }
+#endif
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 
-wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
+CursorType GetResizeCursor(int cornerIndex, int PreviewRotation) {
     int angleState;
     //LeftTop and RightBottom
     switch(cornerIndex) {
@@ -125,44 +127,44 @@ wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
     }
     switch(angleState) {
         case 0:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
         case 1:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 2:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 3:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 4:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 5:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         case 6:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         case 7:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
         case 8:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
         case 9:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 10:
-            return wxCURSOR_SIZEWE;
+            return CursorType::SizeWE;
         case 11:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 12:
-            return wxCURSOR_SIZENESW;
+            return CursorType::SizeNESW;
         case 13:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         case 14:
-            return wxCURSOR_SIZENS;
+            return CursorType::SizeNS;
         default:
-            return wxCURSOR_SIZENWSE;
+            return CursorType::SizeNWSE;
     }
 
 }
 
 glm::vec3 ModelScreenLocation::GetHandlePosition(int handle) const
 {
-    if (handle < 0 || handle >= mHandlePosition.size()) return glm::vec3(0, 0, 0);
+    if (handle < 0 || handle >= (int)mHandlePosition.size()) return glm::vec3(0, 0, 0);
     return glm::vec3(mHandlePosition[handle].x, mHandlePosition[handle].y, mHandlePosition[handle].z);
 }
 
@@ -234,9 +236,9 @@ void ModelScreenLocation::MouseOverHandle(int handle)
 
 float ModelScreenLocation::GetAxisArrowLength(float zoom, int scale) const
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
     static float AXIS_ARROW_LENGTH = 60.0f;
-    //logger_base.debug("zoom %f scale %d", zoom, scale);
+    //spdlog::debug("zoom {} scale {}", zoom, scale);
     float rs = scale;
     rs /= 2.0;
     rs += 1.0;
@@ -275,7 +277,7 @@ float ModelScreenLocation::GetRectHandleWidth(float zoom, int scale) const
     return std::max(RECT_HANDLE_WIDTH, RECT_HANDLE_WIDTH * zoom * rs);
 }
 
-ModelScreenLocation::MSLPLANE ModelScreenLocation::GetBestIntersection( ModelScreenLocation::MSLPLANE prefer, bool& rotate, ModelPreview* preview )
+ModelScreenLocation::MSLPLANE ModelScreenLocation::GetBestIntersection( ModelScreenLocation::MSLPLANE prefer, bool& rotate, IModelPreview* preview )
 {
     MSLPLANE best_plane {MSLPLANE::XZ_PLANE};
 
@@ -319,7 +321,7 @@ ModelScreenLocation::MSLPLANE ModelScreenLocation::GetBestIntersection( ModelScr
     return best_plane;
 }
 
-void ModelScreenLocation::FindPlaneIntersection( int x, int y, ModelPreview* preview )
+void ModelScreenLocation::FindPlaneIntersection( int x, int y, IModelPreview* preview )
 {
     bool rotate {false};
     active_plane = MSLPLANE::XY_PLANE;  // 2D will always use the X/Y plane
@@ -413,7 +415,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS + 1) ? xlYELLOW : xlGREEN;
         xlColor ax3c = (highlighted_handle == HANDLE_AXIS + 2) ? xlYELLOW : xlBLUE;
         float tip = pos.x + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(tip, pos.y, pos.z, ax1c);
@@ -421,7 +423,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI * u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI * u2), ax1c);
         }
         tip = pos.y + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, ax2c);
@@ -429,7 +431,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI * u2), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI * u2), ax2c);
         }
         tip = pos.z + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, pos.y, tip, ax3c);
@@ -502,7 +504,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         int triangeVertex = vac->getCount();
         
         float tip = pos.x + arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(tip, pos.y, pos.z, a1c);
@@ -510,7 +512,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(tip - GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a1c);
         }
         tip = pos.x - arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(tip, pos.y, pos.z, a1c);
@@ -518,7 +520,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(tip + GetAxisHeadLength(zoom, scale), pos.y + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a1c);
         }
         tip = pos.y + arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, a2c);
@@ -526,7 +528,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             vac->AddVertex(pos.x + GetAxisRadius(zoom, scale) * cos(2.0 * M_PI*u2), tip - GetAxisHeadLength(zoom, scale), pos.z + GetAxisRadius(zoom, scale) * sin(2.0 * M_PI*u2), a2c);
         }
         tip = pos.y - arrow_length;
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, a2c);
@@ -542,7 +544,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
     } else if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
         xlColor ax2c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
         float tip = pos.y + GetAxisArrowLength(zoom, scale);
-        for (size_t i = 0; i < num_points; i++) {
+        for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             vac->AddVertex(pos.x, tip, pos.z, ax2c);
@@ -613,7 +615,7 @@ void ModelScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) 
     }
 }
 
-glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz) const
+glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, IModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
         screenheight,
@@ -637,7 +639,9 @@ void ModelScreenLocation::TranslateVector(glm::vec3& point) const
 
 void ModelScreenLocation::AddASAPWork(uint32_t work, const std::string& from)
 {
-    xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from);
+    if (_outputModelManager != nullptr) {
+        _outputModelManager->AddASAPWork(work, from);
+    }
 }
 
 void ModelScreenLocation::SetDefaultMatrices() const
@@ -646,9 +650,9 @@ void ModelScreenLocation::SetDefaultMatrices() const
     ModelMatrix = TranslateMatrix;
 }
 
-bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
+bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mouseY, bool latch) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     float zoom = preview->GetCameraZoomForHandles();
     int scale = preview->GetHandleScale();
 
@@ -689,7 +693,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
             break;
         default:
-            wxASSERT(false);
+            assert(false);
             break;
         }
     } else {
@@ -722,7 +726,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
                     }
                 break;
         default:
-            wxASSERT(false);
+            assert(false);
             break;
         }
     }
@@ -743,27 +747,27 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             drag_delta = intersect - saved_intersect;
         }
     } else {
-        logger_base.warn("ModelScreenLocation::DragHandle: Intersect not found!");
+        spdlog::warn("ModelScreenLocation::DragHandle: Intersect not found!");
     }
     return found;
 }
 
-wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
+CursorType ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
 {
     handle = NO_HANDLE;
 
     if (_locked) {
-        return wxCURSOR_DEFAULT;
+        return CursorType::Default;
     }
 
-    wxCursor return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
+    CursorType return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
 
     if (handle == NO_HANDLE) {
         float distance = 1000000000.0f;
 
         // Test each each Oriented Bounding Box (OBB).
         int handles_found = 0;
-        for (size_t i = 0; i < mSelectableHandles; i++) {
+        for (int i = 0; i < mSelectableHandles; i++) {
             float intersection_distance; // Output of TestRayOBBIntersection()
 
             if (VectorMath::TestRayOBBIntersection(
@@ -787,7 +791,7 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
                         handle = i;
                     }
                     distance = intersection_distance;
-                    return_value = wxCURSOR_HAND;
+                    return_value = CursorType::Hand;
                 }
             }
         }
@@ -795,9 +799,9 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
     return return_value;
 }
 
-wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
+CursorType ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
 {
-    wxCursor return_value = wxCURSOR_DEFAULT;
+    CursorType return_value = CursorType::Default;
 
     float distance = 1000000000.0f;
     handle = NO_HANDLE;
@@ -849,7 +853,7 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
     }
 
     // see if an axis handle is selected
-    for (size_t i = 0; i < num_axis_handles; i++) {
+    for (int i = 0; i < num_axis_handles; i++) {
         float intersection_distance; // Output of TestRayOBBIntersection()
 
         if (VectorMath::TestRayOBBIntersection(
@@ -862,7 +866,7 @@ wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, gl
             if (intersection_distance < distance) {
                 distance = intersection_distance;
                 handle = i | HANDLE_AXIS;
-                return_value = wxCURSOR_HAND;
+                return_value = CursorType::Hand;
             }
         }
     }

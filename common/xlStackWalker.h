@@ -20,7 +20,7 @@
 
 #include <libloaderapi.h>
 
-#include <log4cpp/Category.hh>
+#include <log.h>
 
 #define USE_MAP_TO_STACKWALK
 #define FORCE_MAP_TO_STACKWALK
@@ -33,31 +33,31 @@ class xlStackWalker : public wxStackWalker
         if (_mapFileOk)
             return true;
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         wxFileName name = wxStandardPaths::Get().GetExecutablePath();
         name.SetExt("map");
 
-        logger_base.debug("Loading map file " + name.GetFullPath());
+        spdlog::debug("Loading map file " + name.GetFullPath().ToStdString());
 
         HMODULE hModule = ::GetModuleHandle(nullptr);
-        logger_base.debug("Base module handle: 0x%016llx", (long long)hModule);
+        spdlog::debug("Base module handle: 0x{:016x}", (long long)hModule);
 
         std::ifstream infile;
         infile.open(name.GetFullPath().ToStdString());
         long long preferedLoadAddress = 0;
         if (infile.is_open()) {
-            logger_base.debug("    File open.");
+            spdlog::debug("    File open.");
 
             while (!infile.eof()) {
                 std::string inl;
                 std::getline(infile, inl);
                 _mapLines.push_back(inl);
             }
-            logger_base.debug("    Map file loaded.");
+            spdlog::debug("    Map file loaded.");
             return true;
         } else {
-            logger_base.debug("    File not found.");
+            spdlog::debug("    File not found.");
             return false;
         }
     }

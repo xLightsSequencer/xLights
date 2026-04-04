@@ -10,27 +10,23 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include <list>
 #include <string>
 
 #include "Controller.h"
 
-class wxXmlNode;
 class Output;
 class SerialOutput;
+
+#ifdef SetPort
+#undef SetPort  // Windows winspool.h defines SetPort as SetPortW
+#endif
 
 // An serial controller sends data to a unique com port
 class ControllerSerial : public Controller
 {
 protected:
-
-#pragma region Property Choices
-    static wxPGChoices __types;
-    static wxPGChoices __ports;
-    static wxPGChoices __speeds;
-    static void InitialiseTypes(bool forceXXX);
-    wxPGChoices GetProtocols() const;
-#pragma endregion
 
 #pragma region Member Variables
     std::string _port;
@@ -51,12 +47,12 @@ public:
 #pragma endregion
 
 #pragma region Constructors and Destructors
-    ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir);
+    ControllerSerial(OutputManager* om, pugi::xml_node node, const std::string& showDir);
     ControllerSerial(OutputManager* om);
     ControllerSerial(OutputManager* om, const ControllerSerial& from);
     virtual ~ControllerSerial()
     {}
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual bool UpdateFrom(Controller* from) override;
     virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion
@@ -80,13 +76,16 @@ public:
     void SetProtocol(const std::string& type);
 
     void SetFPPProxy(const std::string& proxy);
+    std::string GetControllerFPPProxy() const { return _fppProxy; }
+
+    SerialOutput* GetSerialOutput() const { return _serialOutput; }
 
 #pragma endregion
 
 #pragma region Virtual Functions
     virtual void SetId(int id) override;
 
-    virtual void VMVChanged(wxPropertyGrid *grid = nullptr) override;
+    virtual void VMVChanged() override;
 
     virtual bool IsManaged() const override { return false; }
 
@@ -96,7 +95,7 @@ public:
 
     virtual std::string GetType() const override { return CONTROLLER_SERIAL; }
 
-    void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
+    void Convert(pugi::xml_node node, std::string showDir) override; // loads a legacy networks node
 
     virtual bool NeedsControllerConfig() const override { return false; }
 
@@ -107,7 +106,7 @@ public:
     }
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
-    virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }
+    virtual std::string GetUniverseString() const override { return std::to_string(_id); }
 
     virtual std::string GetColumn1Label() const override {
         if (_model == "FPP") return _type;
@@ -118,14 +117,14 @@ public:
         return "";
     }
     virtual std::string GetIP() const override {
-        if (_model == "FPP" && _port.find(":") != -1) {
+        if (_model == "FPP" && _port.find(":") != std::string::npos) {
             return _port.substr(0, _port.find(":"));
         }
         return "";
     }
     virtual std::string GetFPPProxy() const override;
 
-    virtual std::string GetColumn2Label() const override { return wxString::Format("%s:%d", _port, _speed); }
+    virtual std::string GetColumn2Label() const override { return std::format("{}:{}", _port, _speed); }
     virtual std::string GetProtocol() const override { return _type; }
 
     virtual Output::PINGSTATE Ping() override;
@@ -134,11 +133,5 @@ public:
     virtual std::string GetExport() const override;
 #pragma endregion 
 
-#pragma region UI
-    #ifndef EXCLUDENETWORKUI
-        virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-        virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
-        virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;
-    #endif
-#pragma endregion
+    // UI property grid methods moved to ui/controllerproperties/ControllerSerialPropertyAdapter
 };

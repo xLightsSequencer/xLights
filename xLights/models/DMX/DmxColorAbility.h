@@ -10,20 +10,17 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <list>
 #include <map>
+#include <string>
 
 #include "../Node.h"
 #include "../PWMOutput.h"
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
 class Model;
 class xlColor;
-class wxFile;
 
-static const char* DMX_COLOR_TYPES_VALUES[] = {
+inline const char* DMX_COLOR_TYPES_VALUES[] = {
     "RGBW",
     "ColorWheel",
     "CMYW",
@@ -50,8 +47,6 @@ class DmxColorAbility
         virtual bool IsColorChannel(uint32_t channel) const = 0;
         virtual void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const = 0;
 
-        virtual void AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm) const = 0;
-        virtual int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) = 0;
         virtual void GetColor(xlColor& color, int transparency, int blackTransparency,
                               bool allowSelected, const xlColor* c, const std::vector<NodeBaseClassPtr>& Nodes) const = 0;
         [[nodiscard]] virtual xlColor GetColorPixels(xlColorVector const& pixelVector ) const = 0;

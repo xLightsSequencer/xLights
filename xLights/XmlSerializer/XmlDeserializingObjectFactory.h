@@ -10,22 +10,23 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <pugixml.hpp>
+
 class ViewObject;
-class wxXmlNode;
 class xLightsFrame;
 
 struct XmlDeserializingObjectFactory {
-    ViewObject* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    ViewObject* Deserialize(pugi::xml_node node, xLightsFrame* xlights, bool importing);
 
 private:
-    void CommonDeserializeSteps(ViewObject* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    void CommonDeserializeSteps(ViewObject* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
 
-    void DeserializeBaseObjectAttributes(ViewObject* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    void DeserializeTerrainScreenLocationAttributes(ViewObject* object, wxXmlNode* node);
+    void DeserializeBaseObjectAttributes(ViewObject* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    void DeserializeTerrainScreenLocationAttributes(ViewObject* object, pugi::xml_node node);
 
-    ViewObject* DeserializeGridlines(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeMesh(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeRuler(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    ViewObject* DeserializeTerrain(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeGridlines(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeImage(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeMesh(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeRuler(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeTerrain(pugi::xml_node node, xLightsFrame* xlights, bool importing);
 };

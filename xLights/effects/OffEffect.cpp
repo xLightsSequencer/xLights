@@ -8,11 +8,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <sstream>
+#include <format>
 
 #include "OffEffect.h"
-#include "OffPanel.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"
 
@@ -36,23 +36,14 @@ std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& setting
     if (settings.Get("B_CHECKBOX_OverlayBkg", "0") == "0") {
         if (settings.Get("T_CHECKBOX_Canvas", "0") == "1" &&
             settings.Get("E_CHOICE_Off_Style", "Black") == "Black") {
-            res.push_back(wxString::Format("    WARN: Canvas mode enabled on a off effect but effect is not transparent. This does nothing and slows down rendering. Effect: Off, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    WARN: Canvas mode enabled on a off effect but effect is not transparent. This does nothing and slows down rendering. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (settings.Get("T_CHECKBOX_Canvas", "0") == "0" &&
             settings.Get("E_CHOICE_Off_Style", "Black") != "Black") {
-            res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a off effect and effect is transparent. This does not do anything useful. Effect: Off, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    WARN: Canvas mode not enabled on a off effect and effect is transparent. This does not do anything useful. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
     return res;
-}
-
-xlEffectPanel *OffEffect::CreatePanel(wxWindow *parent) {
-    return new OffPanel(parent);
-}
-
-void OffEffect::SetDefaultParameters() {
-    OffPanel *p = (OffPanel*)panel;
-    p->OffStyleChoice->SetSelection(0);
 }
 
 bool OffEffect::needToAdjustSettings(const std::string& version) {
@@ -105,12 +96,3 @@ void OffEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer
 
 }
 
-wxString OffEffect::GetEffectString()
-{
-    OffPanel* p = (OffPanel*)panel;
-    std::string style = p->OffStyleChoice->GetStringSelection().ToStdString();
-    if (style != "Black") {
-        return "E_CHOICE_Off_Style=" + style + ",";
-    }
-    return "";
-}

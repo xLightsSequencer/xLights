@@ -15,8 +15,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cstring>
 
-#include "../Color.h"
+#include "Color.h"
 #include "../utils/string_utils.h"
 
 #define NODE_RGB_CHAN_CNT 3
@@ -185,7 +186,7 @@ public:
         offsets[2] = 2;
     }
     NodeBaseClass(const NodeBaseClass& c) :
-        ActChan(c.ActChan), StringNum(c.StringNum), Coords(c.Coords), name(nullptr), chanCnt(c.chanCnt), model(c.model) {
+        chanCnt(c.chanCnt), ActChan(c.ActChan), StringNum(c.StringNum), Coords(c.Coords), name(nullptr), model(c.model) {
         if (c.name != nullptr) {
             name = new std::string(*(c.name));
         }

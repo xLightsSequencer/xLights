@@ -8,18 +8,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <sstream>
-
 #include "../../include/On.xpm"
 
 #include "OnEffect.h"
-#include "OnPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../UtilFunctions.h"
-#include "../Parallel.h"
-#include <log4cpp/Category.hh>
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "UtilFunctions.h"
+#include "Parallel.h"
+#include <log.h>
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
 static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
@@ -34,53 +31,6 @@ OnEffect::OnEffect(int i) : RenderableEffect(i, "On", On, On, On, On, On)
 OnEffect::~OnEffect()
 {
     //dtor
-}
-
-xlEffectPanel *OnEffect::CreatePanel(wxWindow *parent) {
-    return new OnPanel(parent);
-}
-
-void OnEffect::SetDefaultParameters() {
-    OnPanel *p = (OnPanel*)panel;
-    p->CheckBoxShimmer->SetValue(false);
-    p->TextCtrlStart->SetValue("100");
-    p->TextCtrlEnd->SetValue("100");
-    p->TextCtrlCycles->SetValue("1.0");
-    p->BitmapButton_On_Transparency->SetActive(false);
-    SetSliderValue(p->Slider_On_Transparency, 0);
-}
-
-wxString OnEffect::GetEffectString() {
-    OnPanel *p = (OnPanel*)panel;
-    std::stringstream ret;
-    if (100 != p->SliderStart->GetValue()) {
-        ret << "E_TEXTCTRL_Eff_On_Start=";
-        ret << p->TextCtrlStart->GetValue().ToStdString();
-        ret << ",";
-    }
-    if (100 != p->SliderEnd->GetValue()) {
-        ret << "E_TEXTCTRL_Eff_On_End=";
-        ret << p->TextCtrlEnd->GetValue().ToStdString();
-        ret << ",";
-    }
-    if (10 != p->SliderCycles->GetValue()) {
-        ret << "E_TEXTCTRL_On_Cycles=";
-        ret << p->TextCtrlCycles->GetValue().ToStdString();
-        ret << ",";
-    }
-    if (p->CheckBoxShimmer->GetValue()) {
-        ret << "E_CHECKBOX_On_Shimmer=1,";
-    }
-    if (p->BitmapButton_On_Transparency->GetValue()->IsActive()) {
-        ret << "E_VALUECURVE_On_Transparency=";
-        ret << p->BitmapButton_On_Transparency->GetValue()->Serialise();
-        ret << ",";
-    } else if (p->Slider_On_Transparency->GetValue() > 0) {
-        ret << "E_TEXTCTRL_On_Transparency=";
-        ret << p->TextCtrlOnTransparency->GetValue();
-        ret << ",";
-    }
-    return ret.str();
 }
 
 void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
@@ -159,23 +109,6 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
         bg.AddVertex(x1, y1, start);
         return 2;
     }
-}
-
-void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
-    SettingsMap &settingsMap = effect->GetSettings();
-    if (settingsMap.Get("E_TEXTCTRL_Eff_On_Start", "") == "100") {
-        settingsMap.erase("E_TEXTCTRL_Eff_On_Start");
-    }
-    if (settingsMap.Get("E_TEXTCTRL_Eff_On_End", "") == "100") {
-        settingsMap.erase("E_TEXTCTRL_Eff_On_End");
-    }
-    if (settingsMap.Get("E_CHECKBOX_On_Shimmer", "") == "0") {
-        settingsMap.erase("E_CHECKBOX_On_Shimmer");
-    }
-    if (settingsMap.Get("E_TEXTCTRL_On_Cycles", "") == "1.0") {
-        settingsMap.erase("E_TEXTCTRL_On_Cycles");
-    }
-    RenderableEffect::RemoveDefaults(version, effect);
 }
 
 void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

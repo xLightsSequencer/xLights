@@ -9,15 +9,16 @@
  **************************************************************/
 
 #include "StrobeEffect.h"
-#include "StrobePanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../AudioManager.h"
+#include <format>
+
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
+#include "AudioManager.h"
 #include "../models/Model.h"
 #include "../../include/strobe.xpm"
-#include "../UtilFunctions.h"
+#include "UtilFunctions.h"
 
 StrobeEffect::StrobeEffect(int id) : RenderableEffect(id, "Strobe", strobe, strobe, strobe, strobe, strobe)
 {
@@ -33,15 +34,10 @@ std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& sett
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false)) {
-        res.push_back(wxString::Format("    WARN: Strobe effect cant follow music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Strobe effect cant follow music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }
-
-xlEffectPanel *StrobeEffect::CreatePanel(wxWindow *parent) {
-    return new StrobePanel(parent);
-}
-
 
 class StrobeClass
 {
@@ -73,19 +69,6 @@ public:
 
     std::list<StrobeClass> strobe;
 };
-
-void StrobeEffect::SetDefaultParameters()
-{
-    StrobePanel *sp = (StrobePanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(sp->Slider_Number_Strobes, 3);
-    SetSliderValue(sp->Slider_Strobe_Duration, 10);
-    SetSliderValue(sp->Slider_Strobe_Type, 1);
-    SetCheckBoxValue(sp->CheckBox_Strobe_Music, false);
-}
 
 void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", 3);
@@ -135,7 +118,7 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     }
 
     // create new strobe, randomly place a strobe
-    while (strobe.size() < Number_Strobes * StrobeDuration) {
+    while ((int)strobe.size() < Number_Strobes * StrobeDuration) {
         HSVValue hsv;
         xlColor color;
         ColorIdx = rand() % colorcnt;

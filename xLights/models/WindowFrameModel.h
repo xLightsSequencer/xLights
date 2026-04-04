@@ -21,6 +21,15 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual int NodesPerString() const override;
+        virtual int GetNumStrings() const override { return 1; }
+
+        [[nodiscard]] int GetTopNodes() const { return _topNodes; }
+        [[nodiscard]] int GetSideNodes() const { return _sideNodes; }
+        [[nodiscard]] int GetBottomNodes() const { return _bottomNodes; }
+        void SetTopNodes(int val) { _topNodes = val; }
+        void SetSideNodes(int val) { _sideNodes = val; }
+        void SetBottomNodes(int val) { _bottomNodes = val; }
+
         int GetRotation() const { return _rotation; }
         void SetRotation(int rot) { _rotation = rot; }
 
@@ -29,12 +38,13 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
     protected:
         virtual void InitModel() override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         void GetCoordinates(int side, bool clockwise, bool LtoR, bool TtoB, float& x, float& y, float& screenx, float& screeny);
 
     private:
         void InitFrame();
+        int _topNodes = 0;
+        int _sideNodes = 0;
+        int _bottomNodes = 0;
         int _rotation = 0;
 };
 

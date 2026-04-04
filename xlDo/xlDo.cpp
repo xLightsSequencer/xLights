@@ -21,18 +21,27 @@
 
 #include "../xLights/automation/automation.h"
 
+#include "spdlog/spdlog.h"
+#include "spdlog/common.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+
 #ifdef _MSC_VER
-    #ifdef _DEBUG
-        #pragma comment(lib, "log4cpplibd.lib")
-    #else
-        #pragma comment(lib, "log4cpplib.lib")
-    #endif
     #pragma comment(lib, "libcurl.dll.a")
 #endif
 
 int main(int argc, char **argv)
 {
     wxApp::CheckBuildOptions(WX_BUILD_OPTIONS_SIGNATURE, "program");
+
+    auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+
+    auto console_logger = std::make_shared<spdlog::logger>("xldo", stdout_sink);
+    auto curl_logger = std::make_shared<spdlog::logger>("curl", stdout_sink);
+
+    spdlog::register_logger(curl_logger);
+    spdlog::initialize_logger(console_logger);
+    spdlog::set_default_logger(console_logger);
+    spdlog::flush_on(spdlog::level::info);
 
     #ifdef __WXMSW__
     {
@@ -59,9 +68,12 @@ int main(int argc, char **argv)
     
     wxInitializer initializer;
     if (!initializer) {
-        fprintf(stderr, "\u001b[31;1mFailed to initialize the wxWidgets library, aborting.\u001b[0m\n");
+        spdlog::error("Failed to initialize the wxWidgets library, aborting.");
+        //fprintf(stderr, "\u001b[31;1mFailed to initialize the wxWidgets library, aborting.\u001b[0m\n");
         return 1;
     }
+
+    spdlog::info("Start");
 
     return DoXLDoCommands(argc, argv);
 }

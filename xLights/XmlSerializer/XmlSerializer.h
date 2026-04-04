@@ -16,10 +16,10 @@
 #include "XmlSerializeFunctions.h"
 #include "XmlSerializingVisitor.h"
 #include <vector>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
-#include "../LayoutGroup.h"
-#include "../ExternalHooks.h"
+#include "ui/layout/LayoutGroup.h"
+#include "utils/ExternalHooks.h"
 
 struct XmlSerializer {
     XmlSerializer() {}
@@ -29,7 +29,7 @@ struct XmlSerializer {
         BaseSerializingVisitor::AttrCollector attr;
         attr.Add(XmlNodeKeys::TypeAttribute, XmlNodeKeys::RGBEffectsAttribute);
         visitor.WriteOpenTag(XmlNodeKeys::ModelsNodeName, attr);
-        
+
         for (auto m = allModels.begin(); m != allModels.end(); ++m) {
             Model* model = m->second;
             if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
@@ -77,45 +77,41 @@ struct XmlSerializer {
         }
         visitor.WriteCloseTag();
     }
-    
-    // Walk a wxXmlNode DOM element tree and write it directly into a visitor using
-    // WriteOpenTag/WriteCloseTag. The node must be an element (wxXML_ELEMENT_NODE).
-    // Child element nodes are recursed; text content inside elements is written via
-    // AppendRaw so whitespace-only text nodes are skipped cleanly.
-    static void WriteXmlNode(const wxXmlNode* node, BaseSerializingVisitor& visitor) {
-        if (node == nullptr || node->GetType() != wxXML_ELEMENT_NODE) return;
 
-        // Collect attributes from the wxXmlNode
+    // Walk a pugi::xml_node DOM element tree and write it directly into a visitor using
+    // WriteOpenTag/WriteCloseTag. The node must be an element (node_element).
+    // Child element nodes are recursed; text content inside elements is written via
+    // WriteBodyText so whitespace-only text nodes are skipped cleanly.
+    static void WriteXmlNode(pugi::xml_node node, BaseSerializingVisitor& visitor) {
+        if (!node || node.type() != pugi::node_element) return;
+
+        // Collect attributes from the node
         BaseSerializingVisitor::AttrCollector attrs;
-        const wxXmlAttribute* attr = node->GetAttributes();
-        while (attr != nullptr) {
-            attrs.Add(attr->GetName().ToStdString(), attr->GetValue().ToStdString());
-            attr = attr->GetNext();
+        for (pugi::xml_attribute attr = node.first_attribute(); attr; attr = attr.next_attribute()) {
+            attrs.Add(attr.name(), attr.value());
         }
 
         // Determine whether this element has child element or text children
-        const wxXmlNode* child = node->GetChildren();
         bool hasChildren = false;
-        while (child != nullptr) {
-            if (child->GetType() == wxXML_ELEMENT_NODE) {
+        for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+            if (child.type() == pugi::node_element) {
                 hasChildren = true;
                 break;
             }
-            if (child->GetType() == wxXML_TEXT_NODE) {
-                const std::string text = child->GetContent().ToStdString();
+            if (child.type() == pugi::node_pcdata) {
+                const char* text = child.value();
                 // Only count non-whitespace text as real content
-                for (char c : text) {
-                    if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+                for (const char* c = text; *c; ++c) {
+                    if (*c != ' ' && *c != '\t' && *c != '\n' && *c != '\r') {
                         hasChildren = true;
                         break;
                     }
                 }
             }
             if (hasChildren) break;
-            child = child->GetNext();
         }
 
-        const std::string name = node->GetName().ToStdString();
+        std::string name = node.name();
 
         if (!hasChildren) {
             // No meaningful children — self-closing tag
@@ -126,16 +122,15 @@ struct XmlSerializer {
         visitor.WriteOpenTag(name, attrs, /*selfClose=*/false);
 
         // Recurse over children
-        child = node->GetChildren();
-        while (child != nullptr) {
-            if (child->GetType() == wxXML_ELEMENT_NODE) {
+        for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+            if (child.type() == pugi::node_element) {
                 WriteXmlNode(child, visitor);
-            } else if (child->GetType() == wxXML_TEXT_NODE) {
-                const std::string text = child->GetContent().ToStdString();
+            } else if (child.type() == pugi::node_pcdata) {
+                const char* text = child.value();
                 // Skip whitespace-only text nodes
                 bool allWhitespace = true;
-                for (char c : text) {
-                    if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+                for (const char* c = text; *c; ++c) {
+                    if (*c != ' ' && *c != '\t' && *c != '\n' && *c != '\r') {
                         allWhitespace = false;
                         break;
                     }
@@ -144,7 +139,6 @@ struct XmlSerializer {
                     visitor.WriteBodyText(text);
                 }
             }
-            child = child->GetNext();
         }
 
         visitor.WriteCloseTag();
@@ -157,7 +151,7 @@ struct XmlSerializer {
         visitor.WriteCloseTag();
     }
 
-    
+
     // Serializes and Saves a single model into an XML document (only used for Export)
     void SerializeAndSaveModel(const Model* model) {
         wxString name = model->GetName();
@@ -166,51 +160,54 @@ struct XmlSerializer {
         if (filename.IsEmpty())
             return;
         ObtainAccessToURL(filename);
-        wxXmlDocument doc = SerializeModel(model, true);
-        doc.Save(filename);
+        pugi::xml_document doc = SerializeModel(model, true);
+        doc.save_file(filename.ToStdString().c_str());
     }
 
     // Serialize a single model into an XML document
-    wxXmlDocument SerializeModel(const Model* model, bool includeGroups = false) {
-        wxXmlDocument doc;
+    pugi::xml_document SerializeModel(const Model* model, bool includeGroups = false) {
+        pugi::xml_document doc;
 
-        wxXmlNode* docNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
-        docNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute);
+        pugi::xml_node docNode = doc.append_child(XmlNodeKeys::ModelsNodeName);
+        docNode.append_attribute(XmlNodeKeys::TypeAttribute) = XmlNodeKeys::ExportedAttribute;
 
-        XmlSerializingVisitor visitor{ docNode , includeGroups};
+        XmlSerializingVisitor visitor{ docNode, includeGroups };
         model->Accept(visitor);
         if (includeGroups) {
             XmlSerialize::SerializeModelGroupsForModel(model, docNode);
             XmlSerialize::AddDimensions(docNode, model);
         }
 
-        doc.SetRoot(docNode);
         return doc;
     }
 
     // Deserialize a single model from an XML document
-    Model* DeserializeModel(const wxXmlDocument& doc, xLightsFrame* xlights, bool importing) {
-        wxXmlNode* root = doc.GetRoot();
-        wxXmlNode* model_node = root->GetChildren();
+    Model* DeserializeModel(const pugi::xml_document& doc, xLightsFrame* xlights, bool importing) {
+        pugi::xml_node root = doc.document_element();
+        if (!root) return nullptr;
+        pugi::xml_node model_node = root.first_child();
+        if (!model_node) return nullptr;
         return DeserializeModel(model_node, xlights, importing);
     }
 
     // Deserialize a single model XML node
-    Model* DeserializeModel(wxXmlNode* model_node, xLightsFrame* xlights, bool importing) {
+    Model* DeserializeModel(pugi::xml_node model_node, xLightsFrame* xlights, bool importing) {
         XmlDeserializingModelFactory factory{};
         Model* model = factory.Deserialize(model_node, xlights, importing);
         return model;
     }
 
     // Deserialize a single ViewObject from an XML document
-    ViewObject* DeserializeObject(const wxXmlDocument& doc, xLightsFrame* xlights, bool importing) {
-        wxXmlNode* root = doc.GetRoot();
-        wxXmlNode* object_node = root->GetChildren();
+    ViewObject* DeserializeObject(const pugi::xml_document& doc, xLightsFrame* xlights, bool importing) {
+        pugi::xml_node root = doc.document_element();
+        if (!root) return nullptr;
+        pugi::xml_node object_node = root.first_child();
+        if (!object_node) return nullptr;
         return DeserializeObject(object_node, xlights, importing);
     }
 
     // Deserialize a single ViewObject XML node
-    ViewObject* DeserializeObject(wxXmlNode* model_node, xLightsFrame* xlights, bool importing) {
+    ViewObject* DeserializeObject(pugi::xml_node model_node, xLightsFrame* xlights, bool importing) {
         XmlDeserializingObjectFactory factory{};
         ViewObject* object = factory.Deserialize(model_node, xlights, importing);
         return object;

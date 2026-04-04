@@ -8,7 +8,7 @@ add_compile_definitions(xlDO)
 find_package(wxWidgets REQUIRED net gl core base)
 include(${wxWidgets_USE_FILE})
 
-include_directories(../include/curl ../include)
+include_directories(../include/curl ../include ../dependencies/spdlog/include)
 link_directories(../lib/windows64)
 
 set(SRC_FILES
@@ -17,9 +17,8 @@ set(SRC_FILES
     ../xLights/automation/automation.h
     )
 
-file( GLOB WXJSON_FILES ../xSchedule/wxJSON/*cpp ../xSchedule/wxJSON/*h )
 
-add_executable(${PROJECT_NAME} ${SRC_FILES} ${WXJSON_FILES})
+add_executable(${PROJECT_NAME} ${SRC_FILES} )
 
 target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES})
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})

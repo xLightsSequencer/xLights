@@ -18,7 +18,6 @@ class DmxColorAbility;
 class DmxDimmerAbility;
 class DmxPresetAbility;
 class DmxShutterAbility;
-class wxFile;
 
 class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -33,10 +32,6 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
-        virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }
 
         [[nodiscard]] bool HasBeamAbility() const { return nullptr != beam_ability ; }
@@ -55,21 +50,27 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual int GetNumPhysicalStrings() const override { return 1; }
+        virtual int GetNumStrings() const override { return _dmxChannelCount; }
         virtual bool IsDMXModel() const override { return true; }
+
+        [[nodiscard]] int GetDmxChannelCount() const { return _dmxChannelCount; }
+        void SetDmxChannelCount(int val) { _dmxChannelCount = val; }
         virtual std::list<std::string> CheckModelSettings() override;
 
         [[nodiscard]] virtual std::vector<std::string> GenerateNodeNames() const;
 
         virtual std::vector<PWMOutput> GetPWMOutputs() const override;
         virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
+        void UpdateChannelCount(int num_channels, bool do_work);
+
     protected:
         virtual void InitModel() override;
-        void UpdateChannelCount(int num_channels, bool do_work);
 
         virtual int GetChannelValue( int channel, bool bits16);
         int GetChannelValue(int channel_coarse, int channel_fine);
         void SetNodeNames(const std::string& default_names, bool force = false);
 
+        int _dmxChannelCount = 1;
         std::unique_ptr<DmxBeamAbility> beam_ability{ nullptr };
         std::unique_ptr<DmxColorAbility> color_ability{ nullptr };
         std::unique_ptr<DmxPresetAbility> preset_ability{ nullptr };

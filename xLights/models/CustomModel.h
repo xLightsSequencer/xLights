@@ -30,17 +30,15 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual int GetStrandLength(int strand) const override;
         [[nodiscard]] virtual int MapToNodeIndex(int strand, int node) const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         [[nodiscard]] virtual std::list<std::string> GetFileReferences() override;
-        [[nodiscard]] virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+        [[nodiscard]] virtual bool CleanupFileLocations(RenderContext* ctx) override;
 
         [[nodiscard]] virtual std::string GetStartLocation() const override { return "n/a"; }
 
         [[nodiscard]] bool IsAllNodesUnique() const;
-        [[nodiscard]] long GetCustomWidth() const { return parm1;}
-        [[nodiscard]] long GetCustomHeight() const { return parm2;}
+        [[nodiscard]] long GetCustomWidth() const { return _customWidth;}
+        [[nodiscard]] long GetCustomHeight() const { return _customHeight;}
         [[nodiscard]] long GetCustomDepth() const { return _depth;}
         void SetCustomWidth(long w);
         void SetCustomHeight(long u);
@@ -66,7 +64,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
         [[nodiscard]] bool ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
 
-        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
+        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager* outputManager, bool darkMode = false) override;
         [[nodiscard]] virtual std::string GetNodeName(size_t x, bool def = false) const override;
         [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
         [[nodiscard]] virtual int NodesPerString(int string) const override;
@@ -78,7 +76,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
         [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
 
-        [[nodiscard]] const std::string StartNodeAttrName(int idx) const
+        [[nodiscard]] const std::string StartNodeAttrName(int idx) const override
         {
             return std::string("NodeStart") + std::to_string(idx + 1);
         }
@@ -91,6 +89,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] int GetCustomMaxChannel() const;
         void InitCustomMatrix();
 
+        long _customWidth = 1;
+        long _customHeight = 1;
         long _depth = 1;
         std::string _custom_background;
         int _strings = 1;

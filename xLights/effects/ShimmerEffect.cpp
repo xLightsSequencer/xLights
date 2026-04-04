@@ -9,11 +9,10 @@
  **************************************************************/
 
 #include "ShimmerEffect.h"
-#include "ShimmerPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
+#include "UtilClasses.h"
 
 #include "../../include/shimmer.xpm"
 
@@ -25,52 +24,6 @@ ShimmerEffect::ShimmerEffect(int id) : RenderableEffect(id, "Shimmer", shimmer, 
 ShimmerEffect::~ShimmerEffect()
 {
     //dtor
-}
-
-xlEffectPanel *ShimmerEffect::CreatePanel(wxWindow *parent) {
-    return new ShimmerPanel(parent);
-}
-
-void ShimmerEffect::SetDefaultParameters()
-{
-    ShimmerPanel *sp = (ShimmerPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Shimmer_CyclesVC->SetActive(false);
-    sp->BitmapButton_Shimmer_Duty_FactorVC->SetActive(false);
-
-    SetSliderValue(sp->Slider_Shimmer_Duty_Factor, 50);
-    SetSliderValue(sp->Slider_Shimmer_Cycles, 10);
-
-    SetCheckBoxValue(sp->CheckBox_Shimmer_Use_All_Colors, false);
-    SetCheckBoxValue(sp->CheckBox_PRE_2017_7, false);
-}
-
-bool ShimmerEffect::needToAdjustSettings(const std::string &version)
-{
-    return IsVersionOlder("2017.7", version);
-}
-
-void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
-{
-    if (IsVersionOlder("2017.7", version))
-    {
-        SettingsMap &settings = effect->GetSettings();
-
-        int old = settings.GetInt("E_CHECKBOX_PRE_2017_7", 2);
-        if (old == 2)
-        {
-            settings["E_CHECKBOX_PRE_2017_7"] = "1";
-        }
-    }
-
-    // also give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
 }
 
 void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)

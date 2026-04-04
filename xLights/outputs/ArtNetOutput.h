@@ -13,9 +13,7 @@
 // https://tsp.esta.org/tsp/documents/docs/E1-17_2015(R2020)_secure.zip
 
 #include "IPOutput.h"
-
-#include <wx/sckaddr.h>
-#include <wx/socket.h>
+#include "SocketAbstraction.h"
 
 // ******************************************************
 // * This class represents a single universe for ArtNET
@@ -37,8 +35,8 @@ class ArtNetOutput : public IPOutput
 #pragma region Member Variables
     uint8_t _data[ARTNET_PACKET_LEN] = { 0 };
     uint8_t _sequenceNum = 0;
-    wxIPV4address _remoteAddr;
-    wxDatagramSocket* _datagram = nullptr;
+    std::string _remoteIp;
+    sockets::UDPSocket* _datagram = nullptr;
     bool _forceSourcePort = false;
 
     // These are used for artnet sync
@@ -55,7 +53,7 @@ class ArtNetOutput : public IPOutput
 public:
 
 #pragma region Constructors and Destructors
-    ArtNetOutput(wxXmlNode* node, bool isActive);
+    ArtNetOutput(pugi::xml_node node, bool isActive);
     ArtNetOutput();
     ArtNetOutput(const ArtNetOutput& from);
     virtual ~ArtNetOutput() override;
@@ -94,6 +92,7 @@ public:
     virtual std::string GetExport() const override;
     
     bool isForceSourcePort() const { return _forceSourcePort; }
+    void SetForceSourcePort(bool force) { if (_forceSourcePort != force) { _forceSourcePort = force; _dirty = true; } }
 #pragma endregion
 
 #pragma region Start and Stop
@@ -112,14 +111,6 @@ public:
     virtual void AllOff() override;
 #pragma endregion
 
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
-    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
-#endif
-#pragma endregion
 
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
 };

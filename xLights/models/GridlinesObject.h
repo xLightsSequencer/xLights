@@ -13,7 +13,7 @@
 #include "ViewObject.h"
 #include "BoxedScreenLocation.h"
 
-class ModelPreview;
+class IModelPreview;
 class xlVertexColorAccumulator;
 
 class GridlinesObject : public ObjectWithScreenLocation<BoxedScreenLocation>
@@ -24,17 +24,14 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
     void SetGridLineSpacing(int val) { line_spacing = val; }
     void SetGridWidth(int val) { width = val; }
     void SetGridHeight(int val) { height = val; }
     void SetGridColor(const std::string& color) { gridColor.SetFromString(color); }
+    void SetGridColor(const xlColor& color) { gridColor = color; }
     void SetHasAxis(bool val) { hasAxis = val; }
     void SetPointToFront(bool val) { pointToFront = val; }
 
@@ -44,6 +41,7 @@ public:
     bool GetHasAxis() const { return hasAxis; }
     bool GetPointToFront() const { return pointToFront; }
     const std::string GetGridColor() const { return std::string(gridColor); }
+    const xlColor& GetGridColorObj() const { return gridColor; }
 
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 

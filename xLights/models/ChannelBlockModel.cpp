@@ -8,14 +8,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include "ChannelBlockModel.h"
 #include "ModelScreenLocation.h"
-#include "../OutputModelManager.h"
-#include "../UtilFunctions.h"
+#include "../models/OutputModelManager.h"
+#include "UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 #define MAX_CB_CHANNELS 128
@@ -45,90 +42,6 @@ const std::vector<std::string> &ChannelBlockModel::GetBufferStyles() const {
     return LINE_BUFFER_STYLES;
 }
 
-void ChannelBlockModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Channels", "ChannelBlockCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", MAX_CB_CHANNELS);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxBoolProperty("Indiv Colors", "ChannelProperties", true));
-    //p->SetAttribute("UseCheckbox", true);
-    p->Enable(false);
-
-    for (int x = 0; x < parm1; ++x) {
-        wxString nm = ChanColorAttrName(x);
-        grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(_channelColors[x])));
-    }
-}
-
-int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("ChannelBlockCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        _channelColors.resize(parm1);
-        for (int x = 0; x < parm1; ++x) {
-            if (_channelColors[x] == xlEMPTY_STRING) {
-                _channelColors[x] = "white";
-            }
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        return 0;
-    } else if (event.GetPropertyName().StartsWith("ChannelProperties.")) {
-        wxColor c;
-        c << event.GetProperty()->GetValue();
-        xlColor xc = c;
-        std::string text = event.GetPropertyName();
-        int val = ExtractTrailingInt(text);
-        if (val < 1) val = 1;
-        if (val > parm1) val = parm1;
-        _channelColors[val-1] = std::string(xc);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
-
-void ChannelBlockModel::AdjustChannelProperties(wxPropertyGridInterface *grid, int newNum) {
-    wxPropertyGrid *pg = (wxPropertyGrid*)grid;
-    wxPGProperty *p = grid->GetPropertyByName("ChannelProperties");
-    if (p != nullptr) {
-        pg->Freeze();
-        int count = p->GetChildCount();
-        while (count > newNum) {
-            count--;
-            wxString nm = ChanColorAttrName(count);
-            wxPGProperty *sp = grid->GetPropertyByName(wxS("ChannelProperties." + nm));
-            if (sp != nullptr) {
-                grid->DeleteProperty(sp);
-            }
-        }
-
-        while (count < newNum) {
-            for (int x = 0; x < count; ++x) {
-                if (_channelColors[count] == xlEMPTY_STRING) {
-                    _channelColors[count] = "white";
-                }
-            }
-            wxString nm = ChanColorAttrName(count);
-            grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(_channelColors[count])));
-            count++;
-        }
-
-        pg->Thaw();
-        pg->RefreshGrid();
-    }
-}
-
 void ChannelBlockModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
     BufferHi = 1;
     BufferWi = GetNodeCount();
@@ -139,7 +52,7 @@ void ChannelBlockModel::InitRenderBufferNodes(const std::string &type, const std
     BufferHi = 1;
     BufferWi = GetNodeCount();
         
-    int NumChannels=parm1;
+    int NumChannels=_numChannels;
     int cur = 0;
     for (int y=0; y < NumChannels; ++y) {
 		int idx = y;
@@ -150,24 +63,6 @@ void ChannelBlockModel::InitRenderBufferNodes(const std::string &type, const std
 		}
 		cur++;
     }
-}
-
-void ChannelBlockModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
-{
-    // disable string type properties.  Only Single Color White allowed.
-    wxPGProperty *p = grid->GetPropertyByName("ModelStringType");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelStringColor");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    // Dont remove faces as they could be used by someone who is mapping in dumb channels
-
-    // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
 }
 
 void ChannelBlockModel::InitModel() {
@@ -203,17 +98,17 @@ void ChannelBlockModel::InitModel() {
 
 void ChannelBlockModel::InitChannelBlock() {
     size_t NodeCount = GetNodeCount();
-    if (NodeCount != parm1) {
-        SetNodeCount(parm1, 1, rgbOrder);
-        NodeCount = parm1;
+    if ((int)NodeCount != _numChannels) {
+        SetNodeCount(_numChannels, 1, rgbOrder);
+        NodeCount = _numChannels;
     }
-    SetBufferSize(1, parm1);
+    SetBufferSize(1, _numChannels);
     int LastStringNum = -1;
     int chan = 0;
     int ChanIncr = 1;
-    _channelColors.resize(parm1);
+    _channelColors.resize(_numChannels);
 
-    for (int x = 0; x < parm1; ++x) {
+    for (int x = 0; x < _numChannels; ++x) {
         if (_channelColors[x] == xlEMPTY_STRING) {
             _channelColors[x] = "white";
         }
@@ -221,7 +116,7 @@ void ChannelBlockModel::InitChannelBlock() {
 
     int idx = 0;
     for (size_t n = 0; n<NodeCount; ++n) {
-        if (Nodes[n]->StringNum != LastStringNum) {
+        if ((int)Nodes[n]->StringNum != LastStringNum) {
             LastStringNum = Nodes[n]->StringNum;
             chan = stringStartChan[LastStringNum];
         }
@@ -245,7 +140,7 @@ int ChannelBlockModel::MapToNodeIndex(int strand, int node) const {
     return strand;
 }
 int ChannelBlockModel::GetNumStrands() const {
-     return parm1;
+     return _numChannels;
 }
 int ChannelBlockModel::CalcChannelsPerString() {
 	return GetNodeChannelCount(StringType);

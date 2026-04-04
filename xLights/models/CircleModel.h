@@ -23,8 +23,6 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual int GetNumStrands() const override;
         [[nodiscard]] virtual bool AllNodesAllocated() const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
 
@@ -32,6 +30,16 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void OnLayerSizesChange(bool countChanged) override;
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+        virtual int GetNumStrings() const override { return _numStrings; }
+        virtual int NodesPerString() const override;
+        [[nodiscard]] int GetNumCircleStrings() const { return _numStrings; }
+        [[nodiscard]] int GetNodesPerString() const { return _nodesPerString; }
+        void SetNumCircleStrings(int val) { _numStrings = val; }
+        void SetCircleNodesPerString(int val) { _nodesPerString = val; }
+
+        [[nodiscard]] int GetCenterPercent() const { return _centerPercent; }
+        void SetCenterPercent(int val) { _centerPercent = val; }
+
         [[nodiscard]] bool IsInsideOut() const { return _insideOut; }
         void SetInsideOut(bool val) { _insideOut = val; }
 
@@ -43,5 +51,8 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void InitCircle();
         int maxSize();
 
+        int _numStrings = 1;
+        int _nodesPerString = 1;
+        int _centerPercent = 0;
         bool _insideOut = false;
 };
