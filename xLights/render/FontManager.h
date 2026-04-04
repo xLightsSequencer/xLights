@@ -16,6 +16,11 @@
 
 #include "../utils/xlImage.h"
 
+// Windows headers #define GetCharWidth to GetCharWidthW/GetCharWidthA — undefine to avoid mangling our method names
+#ifdef GetCharWidth
+#undef GetCharWidth
+#endif
+
 #define XL_FONT_WIDTHS 128
 
 class xlFont {

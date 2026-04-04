@@ -16,6 +16,11 @@
 #include <string>
 #include <vector>
 
+// Windows headers #define DrawText to DrawTextW/DrawTextA — undefine to avoid mangling our method names
+#ifdef DrawText
+#undef DrawText
+#endif
+
 class xlColor;
 
 // Platform emoji font names
