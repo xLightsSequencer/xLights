@@ -6218,7 +6218,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         allfiles.splice(allfiles.end(), it.second->GetFileReferences());
 
         for (const auto& fit : facefiles) {
-            auto ff = wxSplit(fit, '|');
+            auto ff = wxSplit(fit, '|', wxUniChar(0));
+            if (ff.size() < 2) {
+                wxString msg = wxString::Format("    ERR: Model '%s' has a malformed face entry '%s'.", it.second->GetFullName(), fit);
+                LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "faces", errcount, warncount);
+                continue;
+            }
             if (!FileExists(ff[1])) {
                 wxString msg = wxString::Format("    ERR: Model '%s' face '%s' image missing %s.", it.second->GetFullName(), ff[0], ff[1]);
                 LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "faces", errcount, warncount);
