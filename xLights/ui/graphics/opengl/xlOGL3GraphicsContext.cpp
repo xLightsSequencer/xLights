@@ -28,6 +28,12 @@
 
 
 #ifndef __WXMAC__
+#ifdef _MSC_VER
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
 #include <GL/gl.h>
 #ifndef _MSC_VER
 #include <GL/glx.h>
@@ -1555,7 +1561,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
                               ((float)color.blue) / 255.0f,
                               ((float)color.alpha) / 255.0f));
 
-    if (enableCapabilities > 0) {
+    if (enableCapabilities >  0) {
         LOG_GL_ERRORV(glEnable(enableCapabilities));
     }
     LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, start, c));
@@ -1615,6 +1621,7 @@ public:
         if (nbuffer) {
             LOG_GL_ERRORV(glDeleteBuffers(1, &nbuffer));
         }
+
         if (wfIndexes) {
             LOG_GL_ERRORV(glDeleteBuffers(1, &wfIndexes));
         }
@@ -2172,7 +2179,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::SetCamera(const glm::mat4 &m) {
 }
 xlGraphicsContext* xlOGL3GraphicsContext::SetModelMatrix(const glm::mat4 &m) {
     frameData.MVP = frameData.MVP * m;
-    frameData.modelMatrix = m;
+    frameData.modelMatrix = frameData.modelMatrix * m;
     frameDataChanged = true;
     return this;
 }

@@ -13,7 +13,7 @@
 // Round a time value to the nearest multiple of the frame period.
 // period is the frame rate (e.g. 20.0 for 50ms frames).
 inline int RoundToMultipleOfPeriod(int number, double period) {
-    int ms = 1000 / period;
+    int ms = static_cast<int>(1000.0 / period);
     int periods = (number + ms / 2) / ms;
     return periods * ms;
 }

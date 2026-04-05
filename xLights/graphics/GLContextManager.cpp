@@ -251,12 +251,23 @@ void GLContextManager::Shutdown() {
 #elif defined(_WIN32)
 
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
 #endif
 #include <windows.h>
+
 #include <GL/gl.h>
 #include <GL/glext.h>
-#include <GL/wglext.h>
+//#include <GL/wglext.h>
+//#include <GL\glu.h>
+
+// Define WGL extension function pointer if not already defined
+#ifndef WGL_ARB_create_context
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
+#define WGL_CONTEXT_MAJOR_VERSION_ARB           0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB           0x2092
+#define WGL_CONTEXT_PROFILE_MASK_ARB            0x9126
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB        0x00000001
+#endif
 
 struct GLContextManager::PlatformState {
     HGLRC sharedContext = nullptr;
@@ -271,6 +282,8 @@ struct GLContextManager::PlatformState {
         HWND hwnd;
     };
 };
+
+using PlatformState = GLContextManager::PlatformState;
 
 static HWND createDummyWindow() {
     static bool registered = false;
@@ -305,7 +318,7 @@ void GLContextManager::Initialize(const InitParams& params) {
 
 // Bootstrap WGL: create a temp legacy context to load wglCreateContextAttribsARB,
 // then obtain the shared HGLRC from the UI layer.  Must run on the main thread.
-void bootstrapWGL(GLContextManager::PlatformState* ps,
+static void bootstrapWGL(PlatformState* ps,
                   const GLContextManager::InitParams& params) {
     HWND tmpHwnd = createDummyWindow();
     HDC tmpDC = GetDC(tmpHwnd);
