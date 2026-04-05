@@ -33,6 +33,7 @@
 #include <wx/uri.h>
 
 #include "LuaRunner.h"
+#include "ui/setup/DiscoveryAuthDialog.h"
 
 #include <log.h>
 
@@ -333,7 +334,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto map = params["displayMap"];
 
         // discover the FPP instances
-        auto instances = FPP::GetInstances(this, &_outputManager);
+        wxDiscoveryDelegate delegate(nullptr);
+        auto instances = DiscoverFPPInstances(&delegate);
 
         FPP* fpp = nullptr;
         for (const auto& it : instances) {
@@ -401,7 +403,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         // discover the FPP instances
-        auto instances = FPP::GetInstances(this, &_outputManager);
+        wxDiscoveryDelegate delegate(nullptr);
+        auto instances = DiscoverFPPInstances(&delegate);
 
         FPP* fpp = nullptr;
         for (const auto& it : instances) {

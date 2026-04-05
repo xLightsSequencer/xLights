@@ -25,10 +25,6 @@
 #include <filesystem>
 #include <fstream>
 
-#include <wx/config.h>
-#include <wx/secretstore.h>
-#include <wx/gauge.h>
-#include <wx/timer.h>
 #include "../../dependencies/libxlsxwriter/third_party/minizip/zip.h"
 #include <zstd.h>
 
@@ -47,7 +43,6 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/ControllerSerial.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
 #include "../utils/string_utils.h"
 #include "../xLightsVersion.h"
 #include "Parallel.h"
@@ -57,10 +52,8 @@
 
 #include <log.h>
 #include "ControllerUploadData.h"
-#include "ui/controllers/FPPUploadProgressDialog.h"
 #include "../render/FSEQFile.h"
 #include "discovery/Discovery.h"
-#include "ui/setup/DiscoveryAuthDialog.h"
 #include "../utils/CurlManager.h"
 #include "../utils/ip_utils.h"
 
@@ -106,20 +99,6 @@ struct FPPDInfo {
 };
 std::set<FPPDInfo> fppDiscInfo;
 
-static bool ReadConfigString(wxConfigBase* config, const char* key, std::string& out) {
-    wxString value;
-    if (!config->Read(key, &value)) {
-        return false;
-    }
-    out = ToUTF8(value);
-    return true;
-}
-
-static std::string ReadConfigString(wxConfigBase* config, const char* key, const std::string& defaultValue) {
-    wxString value;
-    config->Read(key, &value, ToWXString(defaultValue));
-    return ToUTF8(value);
-}
 
 FPP::FPP(const std::string& ad) : BaseController(ad, ""), ipAddress(ad), majorVersion(0), minorVersion(0), patchVersion(0), fppType(FPP_TYPE::FPP), _ui(nullptr), outputFile(nullptr) {
         
@@ -311,22 +290,21 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     logger->debug(val);
     logger->debug("RESPONSE END ---------");
     if (response_code == 401) {
-        if (password.empty() && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
-            if (!password.empty()) {
+        if (_authDelegate != nullptr) {
+            if (password.empty() && _authDelegate->GetStoredPassword(ipAddress, username, password)) {
+                if (!password.empty()) {
+                    return GetURLAsString(url, val);
+                }
+            }
+            bool savePassword = false;
+            if (_authDelegate->PromptForPassword(ipAddress, username, password, savePassword)) {
+                if (savePassword) {
+                    _authDelegate->StorePassword(ipAddress, username, password);
+                }
                 return GetURLAsString(url, val);
             }
         }
-        xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
-        int rc = dlg.ShowModal();
-        if (rc == wxID_CANCEL) {
-            return false;
-        }
-        username = "admin";
-        password = dlg.GetValue().ToStdString();
-        if (dlg.shouldSavePassword()) {
-            xlPasswordEntryDialog::StorePasswordForService(ipAddress, username, password);
-        }
-        return GetURLAsString(url, val);
+        return false;
     }
     if (response_code != 200) {
         if (recordError) {
@@ -723,15 +701,15 @@ int FPP::PutToURL(const std::string& url, const std::string& val, const std::str
     return PutToURL(url, memBuffPost, contentType);
 }
 
-bool FPP::updateProgress(int val, bool yield) {
-    if (progress != nullptr) {
-        progress->SetValue(val);
-        if (yield) {
-            wxYield();
+bool FPP::updateProgress(int val, bool doYield) {
+    if (_progress.SetValue) {
+        _progress.SetValue(val);
+        if (doYield && _progress.Yield) {
+            _progress.Yield();
         }
     }
-    if (progressDialog) {
-        return progressDialog->isCancelled();
+    if (_progress.IsCancelled) {
+        return _progress.IsCancelled();
     }
     return false;
 }
@@ -1004,7 +982,7 @@ bool FPP::uploadFileV7(const std::string &filename,
         ps->fileSizeHeader = "Upload-Length: " + std::to_string(ps->length);
         ps->fileNameHeader = "Upload-Name: " + filename;
         ps->instance = this;
-        if (progressDialog != nullptr) {
+        if (_progress.SetValue) {
             cancelled |= updateProgress(0, true);
         }
         prepareCurlForMulti(ps);
@@ -1959,46 +1937,9 @@ std::string FPP::GetModel(const std::string& type)
 
 #ifndef DISCOVERYONLY
 bool FPP::SetInputUniverses(Controller* controller, UICallbacks* uiWin) {
-
-    wxConfigBase* config = wxConfigBase::Get();
-    std::string fip = ReadConfigString(config, "xLightsPiIP", "");
-    std::string ausername = ReadConfigString(config, "xLightsPiUser", "fpp");
-    std::string apassword = ReadConfigString(config, "xLightsPiPassword", "true");
-    username = ausername;
-    password = apassword;
-
-    auto const ips = Split(fip, '|');
-    auto const users = Split(ausername, '|');
-    auto const passwords = Split(apassword, '|');
-
-    // they should all be the same size ... but if not base it off the smallest
-    int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
-
-    username = "fpp";
-    std::string thePassword = "true";
-    for (int i = 0; i < count; i++) {
-        if (ips[i] == controller->GetIP()) {
-            username = users[i];
-            thePassword = passwords[i];
-        }
-    }
-
-    if (thePassword == "true") {
-        if (username == "pi") {
-            password = "raspberry";
-        } else if (username == "fpp") {
-            password = "falcon";
-        } else if (uiWin) {
-            // Note: If uiWin is null (headless mode), no password prompt is shown. Password will default to empty.
-            password = uiWin->PromptForText(std::format("Enter password for {}", username), "Password", "");
-        }
-    } else if (uiWin) {
-        // Note: If uiWin is null (headless mode), no password prompt is shown. Password will default to empty.
-        password = uiWin->PromptForText(std::format("Enter password for {}", username), "Password", "");
-    }
-
     _ui = uiWin;
-
+    // Credentials are handled via the auth delegate (DiscoveryDelegate) on 401 responses.
+    // If the FPP instance was obtained via discovery, username/password are already set.
     return (AuthenticateAndUpdateVersions() && !SetInputUniversesBridge(controller));
 }
 
@@ -3917,32 +3858,6 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
         }
     }
 }
-void FPP::PrepareDiscovery(Discovery &discovery) {
-    std::list<std::string> startAddresses;
-    wxConfigBase* config = wxConfigBase::Get();
-    std::string force;
-    if (ReadConfigString(config, "FPPConnectForcedIPs", force)) {
-        auto const ips = Split(force, '|');
-        for (const auto& a : ips) {
-            if (!a.empty()) {
-                startAddresses.push_back(a);
-            }
-        }
-    }
-    for (auto &it : discovery.GetOutputManager()->GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr) {
-            if (eth->GetIP() != "") {
-                startAddresses.push_back(eth->GetIP());
-            }
-            if (eth->GetFPPProxy() != "") {
-                startAddresses.push_back(eth->GetFPPProxy());
-            }
-        }
-    }
-    PrepareDiscovery(discovery, startAddresses);
-}
-
 void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing) {
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
     buffer[5] = 207-7;
@@ -4280,113 +4195,6 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
     }
     return false;
 }
-
-class xlDiscoveryWaitTimer : public wxTimer {
-public:
-    std::list<Discovery *> discs;
-    
-    virtual void Notify() override {
-        if (!CurlManager::INSTANCE.processCurls()) {
-            for (auto d : discs) {
-                delete d;
-            }
-            discs.clear();
-            Stop();
-        }
-    }
-};
-static void waitForCurlsComplete(Discovery *discovery) {
-    // close the resources that we can, but don't block
-    // on it as we can delay till later
-    discovery->Close(false);
-    
-    // if there are still http requests outstanding, we'll
-    // need to delay the delete
-    if (CurlManager::INSTANCE.processCurls()) {
-        static xlDiscoveryWaitTimer discTimer;
-        discTimer.discs.push_back(discovery);
-        discTimer.Start(500);
-    } else {
-        delete discovery;
-    }
-}
-
-std::list<FPP*> FPP::GetInstances(UICallbacks* ui, OutputManager* outputManager)
-{
-    std::list<FPP*> instances;
-
-    std::list<std::string> startAddresses;
-    std::list<std::string> startAddressesForced;
-
-    wxConfigBase* config = wxConfigBase::Get();
-    std::string force;
-    if (ReadConfigString(config, "FPPConnectForcedIPs", force)) {
-        auto const ips = Split(force, '|');
-        for (const auto& a : ips) {
-            if (!a.empty()) {
-                startAddresses.push_back(a);
-                startAddressesForced.push_back(a);
-            }
-        }
-    }
-    // add existing controller IP's to the discovery, helps speed up
-    // discovery as well as makes it more reliable to discover those,
-    // particularly if on a different subnet.   This also helps
-    // make sure actually configured controllers are found
-    // so the FPP Connect dialog is more likely to
-    // have the entire list allowing the uploads to then entire
-    // show network to be easier to do
-    for (auto& it : outputManager->GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && !eth->GetIP().empty() && eth->GetIP() != "MULTICAST") {
-            std::string resolvedIP = eth->GetResolvedIP(true);
-            if (resolvedIP.empty()) {
-                startAddresses.push_back(::Lower(eth->GetIP()));
-            } else {
-                // only add the instances where we were actually able to resolve an IP address
-                if (eth->IsActive() && (ip_utils::IsIPValid(resolvedIP) || resolvedIP != eth->GetIP())) {
-                    startAddresses.push_back(::Lower(resolvedIP));
-                }
-            }
-            if (!eth->GetFPPProxy().empty()) {
-                startAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
-            }
-        }
-    }
-
-    startAddresses.sort();
-    startAddresses.unique();
-
-    // TODO: wxDiscoveryDelegate needs a wxWindow* for dialog parenting, but we only have UICallbacks* here.
-    // Passing nullptr means auth dialogs won't be parented to the main frame.
-    wxDiscoveryDelegate delegate(nullptr);
-    Discovery *discovery = new Discovery(outputManager, &delegate);
-    FPP::PrepareDiscovery(*discovery, startAddresses);
-    discovery->Discover();
-    FPP::MapToFPPInstances(*discovery, instances, outputManager);
-    instances.sort(sortByIP);
-
-    std::string newForce;
-    for (const auto& a : startAddressesForced) {
-        for (const auto& fpp : instances) {
-            if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
-                if (!newForce.empty()) {
-                    newForce.append(",");
-                }
-                newForce.append(a);
-            }
-        }
-    }
-    if (newForce != ToUTF8(force)) {
-        config->Write("FPPConnectForcedIPs", ToWXString(newForce));
-        config->Flush();
-    }
-    waitForCurlsComplete(discovery);
-    
-    spdlog::info("FPP Discovery Complete.  Found " + std::to_string(instances.size()) + " instances.");
-    return instances;
-}
-
 
 ReceiverType FPP::DecodeReceiverType(const std::string& type, bool supportsV5) {
     if (type.find("v1") != std::string::npos) {

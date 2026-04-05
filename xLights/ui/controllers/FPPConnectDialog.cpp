@@ -210,7 +210,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Pulse("Discovering FPP Instances");
     prgs.Show();
 
-    instances = FPP::GetInstances(static_cast<xLightsFrame*>(GetParent()), outputManager);
+    wxDiscoveryDelegate delegate(this);
+    instances = static_cast<xLightsFrame*>(GetParent())->DiscoverFPPInstances(&delegate);
 
     wxPanel *p1 = AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     p1->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::UploadPopupMenu, nullptr, this);
@@ -1129,9 +1130,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         std::string rowStr = std::to_string(row);
         if (doUpload[row]) {
             std::string l = inst->hostName + " - " + inst->ipAddress;
-            inst->setProgress(&prgs, prgs.addGauge(l));
+            wxGauge* gauge = prgs.addGauge(l);
+            inst->setProgress({
+                [gauge](int val) { gauge->SetValue(val); },
+                [&prgs]() -> bool { return prgs.isCancelled(); },
+                []() { wxYield(); }
+            });
         } else {
-            inst->setProgress(nullptr, nullptr);
+            inst->setProgress({});
         }
         ++row;
     }
@@ -1705,7 +1711,8 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 
     std::string fppConnectIP = "";
     prgs.Show();
-    std::list<FPP*> newInstances = FPP::GetInstances(static_cast<xLightsFrame*>(GetParent()), _outputManager);
+    wxDiscoveryDelegate delegate(this);
+    std::list<FPP*> newInstances = static_cast<xLightsFrame*>(GetParent())->DiscoverFPPInstances(&delegate);
     
     for (FPP* fpp : newInstances) {
         bool found = false;

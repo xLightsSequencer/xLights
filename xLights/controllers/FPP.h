@@ -14,11 +14,10 @@
 #include "ControllerUploadData.h"
 #include "BaseController.h"
 
+class DiscoveryDelegate;
 class FSEQFile;
 typedef void CURL;
 class UICallbacks;
-class wxGauge;
-class FPPUploadProgressDialog;
 class Discovery;
 
 enum class FPP_TYPE { FPP,
@@ -76,7 +75,17 @@ class FPP : public BaseController
     bool canZipUpload = false;
 
     UICallbacks *_ui = nullptr;
-    void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
+    DiscoveryDelegate *_authDelegate = nullptr;
+
+    // Progress reporting callback. SetValue updates the gauge (0-100).
+    // IsCancelled returns true if the user cancelled the operation.
+    // Yield gives the UI a chance to process events.
+    struct ProgressCallback {
+        std::function<void(int)> SetValue;
+        std::function<bool()> IsCancelled;
+        std::function<void()> Yield;
+    };
+    void setProgress(const ProgressCallback& cb) { _progress = cb; }
     bool updateProgress(int val, bool yield);
 
     
@@ -144,13 +153,11 @@ class FPP : public BaseController
 
     [[nodiscard]] std::vector<std::string> GetPlaylistItems(const std::string& name);
 
-    static void PrepareDiscovery(Discovery &discovery);
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
     static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);
     static bool ValidateProxy(const std::string& to, const std::string& via);
 
     static void TypeIDtoControllerType(int typeId, FPP* inst);
-    static std::list<FPP*> GetInstances(UICallbacks* ui, OutputManager* outputManager);
 
     static ReceiverType DecodeReceiverType(const std::string& type, bool supportsV5);
     static ReceiverType DecodeReceiverType(int type, bool supportsV5);
@@ -177,8 +184,7 @@ class FPP : public BaseController
 #pragma endregion
 
 private:
-    FPPUploadProgressDialog *progressDialog = nullptr;
-    wxGauge *progress = nullptr;
+    ProgressCallback _progress;
     
     void DumpJSON(const nlohmann::json& json) const;
 

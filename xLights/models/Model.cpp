@@ -27,6 +27,8 @@
 #include "../render/DimmingCurve.h"
 #include "utils/ExternalHooks.h"
 #include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../graphics/xlGraphicsAccumulators.h"
 #include "Pixels.h"
 #include "UtilFunctions.h"
 #include "../controllers/ControllerCaps.h"
@@ -36,8 +38,7 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 #include "../utils/ip_utils.h"
-#include "../xLightsApp.h" // for xLightsApp::GetFrame() in ExportForClipboard — TODO: remove when that code is decoupled
-#include "../xLightsMain.h" // for xLightsFrame methods called via GetFrame() — TODO: remove when ExportForClipboard is decoupled
+#include "../render/RenderContext.h"
 #include "../utils/TraceLog.h"
 #include "../xLightsVersion.h"
 #include "../render/SequenceFile.h"
@@ -1912,9 +1913,9 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
 
         IModelPreview* modelPreview = nullptr;
         PreviewCamera* pcamera = nullptr;
-        if (xLightsApp::GetFrame() != nullptr) {
-            modelPreview = xLightsApp::GetFrame()->GetHousePreview();
-            pcamera = xLightsApp::GetFrame()->viewpoint_mgr.GetNamedCamera3D(camera);
+        if (auto* rc = modelManager.GetRenderContext()) {
+            modelPreview = rc->GetHousePreview();
+            pcamera = rc->GetNamedCamera3D(camera);
         }
 
         if (pcamera != nullptr && camera != "2D") {

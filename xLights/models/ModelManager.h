@@ -84,6 +84,7 @@ class ModelManager : public ObjectManager
         //Make sure the Model is deleted when done with
         Model *CreateModel(pugi::xml_node node, int previewW = 0, int previewH = 0) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
+        RenderContext* GetRenderContext() const { return _renderContext; }
         UICallbacks* GetUICallbacks() const override;
         OutputModelManager* GetOutputModelManager() const override;
         bool IsLowDefinitionRender() const;

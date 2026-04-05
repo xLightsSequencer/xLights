@@ -109,7 +109,10 @@ class aiBase;
 class BaseSerializingVisitor;
 class CopyFormat1;
 class ControllerCaps;
+class Discovery;
+class DiscoveryDelegate;
 class EffectTreeDialog;
+class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
 class RenderTreeData;
@@ -1815,7 +1818,17 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
-    IModelPreview* GetHousePreview() const;
+    IModelPreview* GetHousePreview() const override;
+    PreviewCamera* GetNamedCamera3D(const std::string& name) override;
+
+    // Discovery helpers — consolidate controller discovery logic
+    // Gather start addresses from OutputManager controllers + forced IPs from config
+    std::list<std::string> GetDiscoveryAddresses(std::list<std::string>* forcedOut = nullptr) const;
+    // FPP-only discovery: discover FPP instances using addresses from GetDiscoveryAddresses
+    std::list<FPP*> DiscoverFPPInstances(DiscoveryDelegate* delegate);
+    // Full multi-protocol discovery: prepare all protocol handlers on the given Discovery object
+    void PrepareAllControllerDiscovery(Discovery& discovery);
+
     void RenderLayout();
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }
     EffectsPanel* GetEffectsPanel() const { return EffectsPanel1; }

@@ -1,15 +1,6 @@
 # Include policy allowlist
 # Format: path/to/file.cpp|relative/include/path.h  (for "..." includes)
 #         path/to/file.cpp|wx/header.h               (for <wx/...> includes)
-# Regenerated 2026-04-05 from current tree (11 entries).
-xLights/controllers/FPP.cpp|../ui/wxUtilities.h
-xLights/controllers/FPP.cpp|ui/controllers/FPPUploadProgressDialog.h
-xLights/controllers/FPP.cpp|ui/setup/DiscoveryAuthDialog.h
-xLights/controllers/FPP.cpp|wx/config.h
-xLights/controllers/FPP.cpp|wx/gauge.h
-xLights/controllers/FPP.cpp|wx/timer.h
-xLights/controllers/FPP.cpp|wx/secretstore.h
-xLights/models/Model.cpp|../xLightsApp.h
-xLights/models/Model.cpp|../xLightsMain.h
+# Regenerated 2026-04-05 from current tree (2 entries).
 xLights/models/ModelManager.cpp|../ui/layout/LayoutGroup.h
 xLights/models/ModelManager.cpp|../xLightsMain.h

@@ -31,6 +31,7 @@
 #include "ui/wxUtilities.h"
 #include "globals.h"
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 
 
 #include "discovery/Discovery.h"
@@ -504,14 +505,7 @@ void BatchRenderDialog::DisplayDateRendered(std::string const& fileName, wxTreeL
 void BatchRenderDialog::SelectFromFPPPlayList()
 {
     wxDiscoveryDelegate delegate(this);
-    Discovery discovery(m_outputManager, &delegate); // unsure why outputManager is needed here
-    FPP::PrepareDiscovery(discovery);
-    std::list<FPP*> instances;
-
-    discovery.Discover();
-
-    FPP::MapToFPPInstances(discovery, instances, m_outputManager);
-    instances.sort(sortByIP);
+    auto instances = xLightsApp::GetFrame()->DiscoverFPPInstances(&delegate);
 
     wxArrayString itemList;
     std::transform(instances.begin(), instances.end(), std::back_inserter(itemList),

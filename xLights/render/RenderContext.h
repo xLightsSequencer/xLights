@@ -17,8 +17,10 @@
 class AudioManager;
 class Effect;
 class EffectManager;
+class IModelPreview;
 class Model;
 class OutputModelManager;
+class PreviewCamera;
 class SequenceElements;
 class TimingElement;
 class UICallbacks;
@@ -65,6 +67,10 @@ public:
                                       bool clear = false) = 0;
     virtual TimingElement* AddTimingElement(const std::string& name,
                                             const std::string& subType = "") = 0;
+
+    // ---- preview / camera access (for 3D render buffer calculation) ----
+    virtual IModelPreview* GetHousePreview() const { return nullptr; }
+    virtual PreviewCamera* GetNamedCamera3D(const std::string& /*name*/) { return nullptr; }
 
     // ---- status / timer (empty defaults for headless) ----
     virtual void SetLoadingStatusText(const std::string& /*text*/) {}

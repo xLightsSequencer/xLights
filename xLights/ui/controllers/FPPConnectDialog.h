@@ -20,6 +20,7 @@
 #include <wx/dataview.h>
 #include "controllers/FPP.h"
 
+class FPPUploadProgressDialog;
 class OutputManager;
 class wxProgressDialog;
 

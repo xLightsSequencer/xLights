@@ -1451,11 +1451,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     wxDiscoveryDelegate delegate(this);
     Discovery discovery(&_outputManager, &delegate);
-    FPP::PrepareDiscovery(discovery);
-    ArtNetOutput::PrepareDiscovery(discovery);
-    TwinklyOutput::PrepareDiscovery(discovery);
-    Pixlite16::PrepareDiscovery(discovery);
-    DDPOutput::PrepareDiscovery(discovery);
+    PrepareAllControllerDiscovery(discovery);
     discovery.Discover();
 
     SetStatusText("Processing discovered controllers...");

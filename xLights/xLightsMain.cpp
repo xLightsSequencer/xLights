@@ -8860,6 +8860,11 @@ IModelPreview* xLightsFrame::GetHousePreview() const
     return _housePreviewPanel->GetModelPreview();
 }
 
+PreviewCamera* xLightsFrame::GetNamedCamera3D(const std::string& name)
+{
+    return viewpoint_mgr.GetNamedCamera3D(name);
+}
+
 void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
 {
     GenerateLyricsDialog dlg(this, _seqData.NumChannels());
