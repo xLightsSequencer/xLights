@@ -38,9 +38,9 @@
 // SDLAudioOutput is compiled but not used (AVAudioEngine is used instead);
 // we still need a definition for fill_audio's global volume reference.
 #if defined(__APPLE__)
-static SDLManager __sdlManager;
+static SDLManager __audioManager;
 #else
-extern SDLManager __sdlManager;
+extern SDLManager __audioManager;
 #endif
 
 // Due to Ubuntu still using FFMpeg 4.x, we have to use some deprecated API's
@@ -71,8 +71,8 @@ void fill_audio(void* udata, Uint8* stream, int len) {
         } else {
             len = (len > it->_audio_len ? it->_audio_len : len); /*  Mix  as  much  data  as  possible  */
             int volume = it->_volume;
-            if (__sdlManager.GetGlobalVolume() != 100) {
-                volume = (volume * __sdlManager.GetGlobalVolume()) / 100;
+            if (__audioManager.GetGlobalVolume() != 100) {
+                volume = (volume * __audioManager.GetGlobalVolume()) / 100;
             }
             SDL_MixAudioFormat(stream, it->_audio_pos, AUDIO_S16SYS, len, volume);
             it->_audio_pos += len;

@@ -17,8 +17,10 @@
     <ClCompile Include="ui/layout/HousePreviewPanel.cpp" />
     <ClCompile Include="ui/setup/IPEntryDialog.cpp" />
     <ClCompile Include="ui\model\MatrixFaceDownloadDialog.cpp" />
-    <ClCompile Include="utils\AudioManager.cpp" />
-    <ClCompile Include="utils\SDLAudioOutput.cpp" />
+    <ClCompile Include="media\AudioManager.cpp" />
+    <ClCompile Include="media\AudioLoader.cpp" />
+    <ClCompile Include="media\FFmpegAudioDecoder.cpp" />
+    <ClCompile Include="media\SDLAudioOutput.cpp" />
     <ClCompile Include="ui/shared/utils/BitmapCache.cpp" />
     <ClCompile Include="ui/sequencer/BufferPanel.cpp" />
     <ClCompile Include="ui\sequencer\BufferSizeDialog.cpp" />
@@ -1319,47 +1321,47 @@
     <ClCompile Include="ai\AIColorPaletteDialog.h">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\PluginBufferingAdapter.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginBufferingAdapter.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\PluginChannelAdapter.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginChannelAdapter.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\PluginHostAdapter.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginHostAdapter.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\PluginInputDomainAdapter.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginInputDomainAdapter.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\PluginLoader.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginLoader.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\PluginSummarisingAdapter.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\PluginWrapper.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginWrapper.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
     <ClCompile Include="ai\AIImageDialog.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\acsymbols.c">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\acsymbols.c">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="MIDI\MidiEvent.cpp">
-      <Filter>MIDI</Filter>
+    <ClCompile Include="..\dependencies\midifile\src-library\MidiEvent.cpp">
+      <Filter>..\dependencies\midifile\src-library</Filter>
     </ClCompile>
-    <ClCompile Include="MIDI\MidiEventList.cpp">
-      <Filter>MIDI</Filter>
+    <ClCompile Include="..\dependencies\midifile\src-library\MidiEventList.cpp">
+      <Filter>..\dependencies\midifile\src-library</Filter>
     </ClCompile>
-    <ClCompile Include="MIDI\MidiFile.cpp">
-      <Filter>MIDI</Filter>
+    <ClCompile Include="..\dependencies\midifile\src-library\MidiFile.cpp">
+      <Filter>..\dependencies\midifile\src-library</Filter>
     </ClCompile>
-    <ClCompile Include="MIDI\MidiMessage.cpp">
-      <Filter>MIDI</Filter>
+    <ClCompile Include="..\dependencies\midifile\src-library\MidiMessage.cpp">
+      <Filter>..\dependencies\midifile\src-library</Filter>
     </ClCompile>
-    <ClCompile Include="MIDI\Binasc.cpp">
-      <Filter>MIDI</Filter>
+    <ClCompile Include="..\dependencies\midifile\src-library\Binasc.cpp">
+      <Filter>..\dependencies\midifile\src-library</Filter>
     </ClCompile>
     <ClCompile Include="models\Node.cpp">
       <Filter>Models</Filter>
@@ -1376,32 +1378,32 @@
     <ClCompile Include="effects\EffectManager.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\host-c.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\host-c.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="support\EzGrid.cpp">
-      <Filter>support</Filter>
+    <ClCompile Include="ui\support\EzGrid.cpp">
+      <Filter>ui\support</Filter>
     </ClCompile>
-    <ClCompile Include="support\FastComboEditor.cpp">
-      <Filter>support</Filter>
+    <ClCompile Include="ui\support\FastComboEditor.cpp">
+      <Filter>ui\support</Filter>
     </ClCompile>
-    <ClCompile Include="support\GridCellChoiceRenderer.cpp">
-      <Filter>support</Filter>
+    <ClCompile Include="ui\support\GridCellChoiceRenderer.cpp">
+      <Filter>ui\support</Filter>
     </ClCompile>
-    <ClCompile Include="support\VectorMath.cpp">
-      <Filter>support</Filter>
+    <ClCompile Include="utils\VectorMath.cpp">
+      <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\Files.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\Files.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\FFT.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\FFT.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
     <ClCompile Include="..\dependencies\wxHTTPServer\context.cpp">
       <Filter>wxHTTPServer</Filter>
     </ClCompile>
-    <ClCompile Include="vamp-hostsdk\RealTime.cpp">
-      <Filter>vamp-hostsdk</Filter>
+    <ClCompile Include="..\dependencies\vamp-hostsdk\RealTime.cpp">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
     <ClCompile Include="..\dependencies\wxHTTPServer\status.cpp">
       <Filter>wxHTTPServer</Filter>
@@ -1460,10 +1462,13 @@
     <ClInclude Include="ui/sequencer/CustomTimingDialog.h" />
     <ClInclude Include="utils\AnimatedImage.h" />
     <ClInclude Include="ui/setup/IPEntryDialog.h" />
-    <ClInclude Include="utils\AudioManager.h" />
-    <ClInclude Include="utils\IAudioOutput.h" />
-    <ClInclude Include="utils\SDLAudioOutput.h" />
-    <ClInclude Include="utils\xLightsVamp.h" />
+    <ClInclude Include="media\AudioManager.h" />
+    <ClInclude Include="media\AudioLoader.h" />
+    <ClInclude Include="media\FFmpegAudioDecoder.h" />
+    <ClInclude Include="media\IAudioDecoder.h" />
+    <ClInclude Include="media\IAudioOutput.h" />
+    <ClInclude Include="media\SDLAudioOutput.h" />
+    <ClInclude Include="media\xLightsVamp.h" />
     <ClInclude Include="ui/shared/utils/BitmapCache.h" />
     <ClInclude Include="ui/sequencer/BufferPanel.h" />
     <ClInclude Include="ui\sequencer\BufferSizeDialog.h" />
@@ -2776,38 +2781,38 @@
     <ClInclude Include="ui\effectpanels\assist\xlGridCanvasEmpty.h">
       <Filter>ui\effectpanels\assist</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginWrapper.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginWrapper.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\Plugin.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Plugin.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\Plugin2.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Plugin2.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginBase.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBase.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginBase2.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBase2.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginBufferingAdapter.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBufferingAdapter.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginChannelAdapter.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginChannelAdapter.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginHostAdapter.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginHostAdapter.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginInputDomainAdapter.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginInputDomainAdapter.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginLoader.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginLoader.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\PluginSummarisingAdapter.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
     <ClInclude Include="ai\AIImageDialog.h">
       <Filter>ai</Filter>
@@ -2866,8 +2871,8 @@
     <ClInclude Include="models\DMX\MovingHeads\MhChannel.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="MIDI\Binasc.h">
-      <Filter>MIDI</Filter>
+    <ClInclude Include="..\dependencies\midifile\src-library\Binasc.h">
+      <Filter>..\dependencies\midifile\src-library</Filter>
     </ClInclude>
     <ClInclude Include="models\Node.h">
       <Filter>Models</Filter>
@@ -2887,44 +2892,44 @@
     <ClInclude Include="effects\EffectManager.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\hostguard.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\hostguard.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\host-c.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\host-c.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="support\FastComboEditor.h">
-      <Filter>support</Filter>
+    <ClInclude Include="ui\support\FastComboEditor.h">
+      <Filter>ui\support</Filter>
     </ClInclude>
-    <ClInclude Include="support\EzGrid.h">
-      <Filter>support</Filter>
+    <ClInclude Include="ui\support\EzGrid.h">
+      <Filter>ui\support</Filter>
     </ClInclude>
-    <ClInclude Include="support\GridCellChoiceRenderer.h">
-      <Filter>support</Filter>
+    <ClInclude Include="ui\support\GridCellChoiceRenderer.h">
+      <Filter>ui\support</Filter>
     </ClInclude>
-    <ClInclude Include="support\VectorMath.h">
-      <Filter>support</Filter>
+    <ClInclude Include="utils\VectorMath.h">
+      <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\vamp-hostsdk.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\vamp-hostsdk.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\vamp.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\vamp.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\Files.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Files.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\RealTime2.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\RealTime2.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\RealTime.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\RealTime.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\plugguard.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\plugguard.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
-    <ClInclude Include="vamp-hostsdk\Window.h">
-      <Filter>vamp-hostsdk</Filter>
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Window.h">
+      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
     <ClInclude Include="..\dependencies\wxHTTPServer\sha1.h">
       <Filter>wxHTTPServer</Filter>
