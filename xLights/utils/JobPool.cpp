@@ -19,7 +19,7 @@
 
 #include <map>
 
-#include "../common/xlBaseApp.h"
+#include "AppCallbacks.h"
 #include "JobPool.h"
 
 #ifdef LINUX
@@ -80,7 +80,7 @@ public:
 static void startFunc(JobPoolWorker *jpw) {
     try
     {
-        xlCrashHandler::SetupCrashHandlerForNonWxThread();
+        AppCallbacks::SetupThreadCrashHandler();
         
 #ifdef LINUX
         XInitThreads();
@@ -90,7 +90,7 @@ static void startFunc(JobPoolWorker *jpw) {
     }
     catch (...)
     {
-        wxTheApp->OnUnhandledException();
+        AppCallbacks::HandleUnhandledException();
     }
 }
 
@@ -264,7 +264,7 @@ void JobPoolWorker::Entry()
         --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
-        wxTheApp->OnUnhandledException();
+        AppCallbacks::HandleUnhandledException();
         m_logger->debug("JobPoolWorker done {}", oss.str());
         return;
     }

@@ -42,6 +42,7 @@
 #include "ui/shared/utils/BitmapCache.h"
 #include "utils/CurlManager.h"
 #include "render/SequencePackage.h"
+#include "utils/AppCallbacks.h"
 #include <SpecialOptions.h>
 
 #ifndef __WXMSW__
@@ -485,6 +486,17 @@ bool xLightsApp::OnInit()
 {
     SetMainThreadId();
     InitialiseLogging(false);
+
+    AppCallbacks::SetPostToMainThread([](std::function<void()> fn) {
+        wxTheApp->CallAfter(std::move(fn));
+    });
+    AppCallbacks::SetHandleUnhandledException([] {
+        wxTheApp->OnUnhandledException();
+    });
+    AppCallbacks::SetSetupThreadCrashHandler([] {
+        xlCrashHandler::SetupCrashHandlerForNonWxThread();
+    });
+
     spdlog::info("******* OnInit: XLights started.");
 #ifdef __WXMSW__
     if (!IsSuppressDarkMode()) {

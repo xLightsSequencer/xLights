@@ -793,6 +793,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="import_export\FileConverter.cpp" />
     <ClCompile Include="ui/shared/utils/FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="ui/model/GenerateCustomModelDialog.cpp" />
+    <ClCompile Include="utils\AppCallbacks.cpp" />
     <ClCompile Include="utils\JobPool.cpp" />
     <ClCompile Include="ui/app-shell/KeyBindings.cpp" />
     <ClCompile Include="kiss_fft\kiss_fft.c" />
@@ -1367,6 +1368,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui/shared/utils/FlickerFreeBitmapButton.h" />
     <ClInclude Include="ui/model/GenerateCustomModelDialog.h" />
     <ClInclude Include="Images_png.h" />
+    <ClInclude Include="utils\AppCallbacks.h" />
     <ClInclude Include="utils\JobPool.h" />
     <ClInclude Include="ui/app-shell/KeyBindings.h" />
     <ClInclude Include="ui/layout/LayoutGroup.h" />

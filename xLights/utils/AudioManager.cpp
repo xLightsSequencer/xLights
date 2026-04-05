@@ -12,7 +12,7 @@
 #include <chrono>
 #include <thread>
 
-#include <wx/app.h> // wxTheApp->CallAfter in AudioDeviceChanged
+#include "AppCallbacks.h"
 
 #include <algorithm>
 #include <fstream>
@@ -1050,7 +1050,7 @@ void AudioManager::AudioDeviceChanged() {
     AbsoluteStop();
 
     if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
-        wxTheApp->CallAfter([this, ts, oldMediaState]() {
+        AppCallbacks::PostToMainThread([this, ts, oldMediaState]() {
             auto sdl = __sdlManager.GetOutputSDL(_device);
             if (!sdl->HasAudio(_sdlid)) {
                 _sdlid = sdl->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);

@@ -294,6 +294,8 @@
 		<Unit filename="Images_png.h" />
 		<Unit filename="ui/model/ImportPreviewsModelsDialog.cpp" />
 		<Unit filename="ui/model/ImportPreviewsModelsDialog.h" />
+		<Unit filename="utils/AppCallbacks.cpp" />
+		<Unit filename="utils/AppCallbacks.h" />
 		<Unit filename="utils/JobPool.cpp" />
 		<Unit filename="utils/JobPool.h" />
 		<Unit filename="ui/media/JukeboxPanel.cpp" />
