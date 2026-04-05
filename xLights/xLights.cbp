@@ -48,6 +48,7 @@
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 					<Add directory="../dependencies/midifile/include" />
+					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -108,6 +109,7 @@
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 					<Add directory="../dependencies/midifile/include" />
+					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
