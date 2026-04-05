@@ -23,7 +23,7 @@
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../support/VectorMath.h"
 #include "UtilFunctions.h"
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 #include "RulerObject.h"
 
 #include <log.h>

@@ -25,7 +25,7 @@
 #include "GenericSerialOutput.h"
 #include "OutputManager.h"
 #include "UtilFunctions.h"
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 
 #include "serial.h"
 

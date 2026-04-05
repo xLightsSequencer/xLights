@@ -22,6 +22,7 @@
 #include "../models/Model.h"
 #include "UtilFunctions.h"
 #include "../render/RenderContext.h"
+#include "../render/UICallbacks.h"
 #include "utils/ExternalHooks.h"
 
 #include "../../include/sketch-16.xpm"
@@ -160,7 +161,8 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     RenderContext* ctx = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetRenderContext();
-    if (ctx == nullptr || !ctx->IsCheckSequenceOptionDisabled("SketchImage")) {
+    auto* uiCb = ctx ? ctx->GetUICallbacks() : nullptr;
+    if (!uiCb || !uiCb->IsCheckSequenceOptionDisabled("SketchImage")) {
         std::string filename = settings.Get("E_FILEPICKER_SketchBackground", "");
         if (filename.empty()) {
             // this is only a warning as it does not affect rendering

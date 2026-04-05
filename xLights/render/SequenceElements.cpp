@@ -22,7 +22,7 @@
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
 #include "UtilFunctions.h"
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
 #include "render/SequenceViewManager.h"
 #include "JukeboxButtonData.h"

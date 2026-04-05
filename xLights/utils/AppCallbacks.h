@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <functional>
+#include <string>
 
 // Platform-neutral callbacks for core code that needs to interact with
 // the application layer without depending on wx.  The wx app registers
@@ -34,4 +35,30 @@ void SetHandleUnhandledException(std::function<void()> handler);
 void SetupThreadCrashHandler();
 void SetSetupThreadCrashHandler(std::function<void()> handler);
 
+// ---- display messages ----
+// Core-safe message display.  Always logs via spdlog.  If a UI callback
+// has been registered, also shows a dialog; otherwise the log is the
+// only output.
+
+enum class DisplayMessageLevel {
+    Error,
+    Warning,
+    Info
+};
+
+using DisplayMessageCallback = std::function<void(DisplayMessageLevel, const std::string&)>;
+
+// Register the UI-layer callback.  Pass nullptr to unregister.
+void SetDisplayMessageCallback(DisplayMessageCallback cb);
+
+void DisplayError(const std::string& err);
+void DisplayWarning(const std::string& warn);
+void DisplayInfo(const std::string& info);
+
 } // namespace AppCallbacks
+
+// Convenience: allow unqualified DisplayError / DisplayWarning / DisplayInfo
+// so existing callers don't need an AppCallbacks:: prefix.
+using AppCallbacks::DisplayError;
+using AppCallbacks::DisplayWarning;
+using AppCallbacks::DisplayInfo;

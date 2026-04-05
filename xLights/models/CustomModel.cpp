@@ -23,7 +23,7 @@
 #include "../xLightsVersion.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
 #include "outputs/OutputManager.h"
 #include "../graphics/IModelPreview.h"

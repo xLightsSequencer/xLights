@@ -16,7 +16,7 @@
 #include "utils/Base64.h"
 #include "render/SequenceData.h"
 #include "UtilFunctions.h"
-#include "utils/DisplayMessages.h"
+#include "utils/AppCallbacks.h"
 
 const unsigned char SequenceData::FrameData::_constzero = 0;
 

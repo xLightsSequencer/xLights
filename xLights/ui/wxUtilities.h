@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 
 #include <wx/string.h>
 #include <wx/event.h>    // wxDECLARE_EVENT, wxCommandEvent
@@ -81,7 +81,7 @@ extern const wxString xlEMPTY_WXSTRING;
 // Consolidated set of wx-dependent utility functions
 void CleanupIpAddress(wxString& IpAddr);
 // UI-layer overloads that accept a parent window.
-// The core versions (no wxWindow* param) live in utils/DisplayMessages.h.
+// The core versions (no wxWindow* param) live in utils/AppCallbacks.h.
 // When calling without a window, use the core versions directly.
 void DisplayError(const std::string& err, wxWindow* win);
 void DisplayWarning(const std::string& warn, wxWindow* win);

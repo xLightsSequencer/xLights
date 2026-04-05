@@ -51,7 +51,7 @@
 #include <sstream>
 #include <fstream>
 #include "../render/UICallbacks.h"
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
 
 #define MOST_STRINGS_WE_EXPECT 480

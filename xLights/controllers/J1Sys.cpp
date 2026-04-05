@@ -11,7 +11,7 @@
 
 #include "J1Sys.h"
 #include "UtilFunctions.h"
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
 #include "ControllerUploadData.h"
 #include "../outputs/ControllerEthernet.h"

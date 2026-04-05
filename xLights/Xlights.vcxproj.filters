@@ -831,9 +831,6 @@
     <ClCompile Include="utils\ip_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="utils\DisplayMessages.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="ui\MediaPickerCtrl.cpp">
       <Filter>ui</Filter>
     </ClCompile>
@@ -2290,9 +2287,6 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="utils\ip_utils.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\DisplayMessages.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="ui/sequencer/DuplicateDialog.h" />

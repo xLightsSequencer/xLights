@@ -937,7 +937,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui/app-shell/SplashDialog.cpp" />
     <ClCompile Include="ui/model/StartChannelDialog.cpp" />
     <ClCompile Include="ui/model/StrandNodeNamesDialog.cpp" />
-    <ClCompile Include="utils\DisplayMessages.cpp" />
     <ClCompile Include="utils\string_utils.cpp" />
     <ClCompile Include="ui/sequencer/SubBufferPanel.cpp" />
     <ClCompile Include="ui/model/SubModelGenerateDialog.cpp" />
@@ -1508,7 +1507,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui/app-shell/SplashDialog.h" />
     <ClInclude Include="ui/model/StartChannelDialog.h" />
     <ClInclude Include="ui/model/StrandNodeNamesDialog.h" />
-    <ClInclude Include="utils\DisplayMessages.h" />
     <ClInclude Include="utils\string_utils.h" />
     <ClInclude Include="utils\ThreadUtils.h" />
     <ClInclude Include="utils\xlPoint.h" />

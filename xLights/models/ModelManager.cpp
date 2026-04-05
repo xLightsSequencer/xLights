@@ -41,7 +41,7 @@
 #include "SubModel.h"
 #include "TreeModel.h"
 #include "UtilFunctions.h"
-#include "../utils/DisplayMessages.h"
+#include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"

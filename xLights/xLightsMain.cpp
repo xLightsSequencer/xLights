@@ -70,7 +70,7 @@
 #include "render/SequenceMedia.h"
 #include "ui/wxUtilities.h"
 #include "ui/wxTextDrawingContext.h"
-#include "utils/DisplayMessages.h"
+#include "utils/AppCallbacks.h"
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include <wx/gifdecod.h>
@@ -641,15 +641,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         return wxMessageBox(message, title, wxICON_QUESTION | wxYES_NO) == wxYES;
     });
 
-    RegisterDisplayCallback([](DisplayMessageLevel level, const std::string& msg) {
+    AppCallbacks::SetDisplayMessageCallback([](AppCallbacks::DisplayMessageLevel level, const std::string& msg) {
         switch (level) {
-        case DisplayMessageLevel::Error:
+        case AppCallbacks::DisplayMessageLevel::Error:
             wxMessageBox(msg, "Error", wxICON_ERROR | wxOK);
             break;
-        case DisplayMessageLevel::Warning:
+        case AppCallbacks::DisplayMessageLevel::Warning:
             wxMessageBox(msg, "Warning", wxICON_WARNING | wxOK);
             break;
-        case DisplayMessageLevel::Info:
+        case AppCallbacks::DisplayMessageLevel::Info:
             wxMessageBox(msg, "Information", wxICON_INFORMATION | wxOK);
             break;
         }
