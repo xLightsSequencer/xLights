@@ -69,7 +69,7 @@ struct ColorWashData {
     int32_t vertFade;
     int32_t reverseFades;
     int32_t allowAlpha;
-    uint8_t4 color;
+    struct uint8_t4  color;
     float colorH;
     float colorS;
     float colorV;
@@ -83,7 +83,7 @@ struct ColorWashData {
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 extern "C" {
 #endif // __cplusplus
-    extern void ColorWashEffectISPC(const struct ColorWashData * data, int32_t startIdx, int32_t endIdx, uint8_t4 * result);
+    extern void ColorWashEffectISPC(const struct ColorWashData * data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus

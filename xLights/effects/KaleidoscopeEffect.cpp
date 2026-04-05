@@ -29,6 +29,12 @@
 #include <log.h>
 #include <cstring>
 
+#define KALE_ISPC_STYLE_SQUARE2  0
+#define KALE_ISPC_STYLE_6FOLD    1
+#define KALE_ISPC_STYLE_8FOLD    2
+#define KALE_ISPC_STYLE_12FOLD   3
+#define KALE_ISPC_STYLE_RADIAL   4
+
 KaleidoscopeEffect::KaleidoscopeEffect(int i) : RenderableEffect(i, "Kaleidoscope", kaleidoscope_16, kaleidoscope_24, kaleidoscope_32, kaleidoscope_48, kaleidoscope_64)
 {
 }

@@ -81,7 +81,7 @@ struct FanData {
     int32_t blend_edges;
     int32_t allowAlpha;
     int32_t num_colors;
-    uint8_t4 colorsAsRGBA[8];
+    uint8_t4  colorsAsRGBA[8];
     float colorsH[8];
     float colorsS[8];
     float colorsV[8];
@@ -95,7 +95,7 @@ struct FanData {
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 extern "C" {
 #endif // __cplusplus
-    extern void FanEffectISPC(const struct FanData * data, int32_t startIdx, int32_t endIdx, uint8_t4 * result);
+    extern void FanEffectISPC(const struct FanData * data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus

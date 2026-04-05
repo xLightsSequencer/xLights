@@ -59,13 +59,6 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 #endif // defined(__clang__) || !defined(_MSC_VER) || _MSC_VER > 1943
 #endif // __ISPC_ALIGNED_STRUCT__
 
-// Style constants (match KALE_STYLE_* in KaleidoscopeFunctions.ispc)
-#define KALE_ISPC_STYLE_SQUARE2  0
-#define KALE_ISPC_STYLE_6FOLD    1
-#define KALE_ISPC_STYLE_8FOLD    2
-#define KALE_ISPC_STYLE_12FOLD   3
-#define KALE_ISPC_STYLE_RADIAL   4
-
 #ifndef __ISPC_STRUCT_KaleidoscopeData__
 #define __ISPC_STRUCT_KaleidoscopeData__
 struct KaleidoscopeData {
@@ -77,9 +70,12 @@ struct KaleidoscopeData {
     float rotRad;
     int32_t style;
     int32_t maxIter;
-    float v0x, v0y;
-    float v1x, v1y;
-    float v2x, v2y;
+    float v0x;
+    float v0y;
+    float v1x;
+    float v1y;
+    float v2x;
+    float v2y;
 };
 #endif
 
@@ -90,11 +86,7 @@ struct KaleidoscopeData {
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 extern "C" {
 #endif // __cplusplus
-    extern void KaleidoscopeEffectISPC(const struct KaleidoscopeData * data,
-                                       const uint8_t4 * src,
-                                       uint8_t4 * result,
-                                       int32_t startIdx,
-                                       int32_t endIdx);
+    extern void KaleidoscopeEffectISPC(const struct KaleidoscopeData * data, const uint8_t4   * src, uint8_t4   * result, int32_t startIdx, int32_t endIdx);
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus
