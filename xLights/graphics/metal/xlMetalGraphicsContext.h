@@ -3,14 +3,14 @@
 #include <stack>
 
 
-#include "../../../graphics/xlGraphicsContext.h"
-#include "xlMetalCanvas.h"
+#include "../xlGraphicsContext.h"
+#include "IMetalCanvas.h"
 
 #include "Shaders/MetalShaderTypes.h"
 
 class xlMetalGraphicsContext : public xlGraphicsContext {
 public:
-    xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> target, bool enqueImmediate);
+    xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> target, bool enqueImmediate);
     virtual ~xlMetalGraphicsContext();
     void Commit(bool displayOnScreen, id<MTLBuffer> capture);
 
@@ -90,7 +90,7 @@ public:
     id<MTLCommandBuffer> getCommandBuffer() { return buffer; }
     id<MTLCommandBuffer> getImageCommandBuffer();
 protected:
-    xlMetalCanvas *canvas;
+    IMetalCanvas *canvas;
     id<MTLCommandBuffer> buffer;
     id<MTLRenderCommandEncoder> encoder;
     id<CAMetalDrawable> drawable;

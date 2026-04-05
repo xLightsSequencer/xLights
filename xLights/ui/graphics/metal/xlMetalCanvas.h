@@ -3,6 +3,7 @@
 
 #include "osxUtils/wxMetalCanvas.hpp"
 #include "../../../graphics/xlGraphicsContext.h"
+#include "../../../graphics/metal/IMetalCanvas.h"
 
 class MSAATextureInfo;
 class DepthTextureInfo;
@@ -10,7 +11,7 @@ class CaptureBufferInfo;
 extern "C" {
    struct AVFrame;
 }
-class xlMetalCanvas : public wxMetalCanvas {
+class xlMetalCanvas : public wxMetalCanvas, public IMetalCanvas {
 public:
     xlMetalCanvas(wxWindow *parent,
                   wxWindowID id = wxID_ANY,
@@ -30,19 +31,41 @@ public:
     void Resized(wxSizeEvent& evt);
     void OnEraseBackGround(wxEraseEvent& event) {};
 
-    virtual xlColor ClearBackgroundColor() const;
+    xlColor ClearBackgroundColor() const override;
 
-    double translateToBacking(double x) const;
+    double translateToBacking(double x) const override;
     double mapLogicalToAbsolute(double x) const;
 
-    virtual bool drawingUsingLogicalSize() const;
+    bool drawingUsingLogicalSize() const override;
 
     bool Is3D() { return is3d; }
-    
+
+    // IMetalCanvas interface — non-ObjC methods
+    std::string getName() const override { return wxMetalCanvas::getName(); }
+    bool usesMSAA() override { return wxMetalCanvas::usesMSAA(); }
+    bool RequiresDepthBuffer() const override { return wxMetalCanvas::RequiresDepthBuffer(); }
+
 #ifdef __OBJC__
-    //methods only available from objective-c.  Cannot be virtual as they cannot be in the virtual function table
-    id<MTLTexture> getMSAATexture(int w, int h);
-    id<MTLTexture> getDepthTexture(int w, int h);
+    // IMetalCanvas interface — ObjC methods (delegate to MetalDeviceManager via wxMetalCanvas)
+    id<MTLDevice> getMTLDevice() override { return wxMetalCanvas::getMTLDevice(); }
+    id<MTLCommandQueue> getMTLCommandQueue() override { return wxMetalCanvas::getMTLCommandQueue(); }
+    id<MTLCommandQueue> getBltCommandQueue() override { return wxMetalCanvas::getBltCommandQueue(); }
+    id<MTLLibrary> getMTLLibrary() override { return wxMetalCanvas::getMTLLibrary(); }
+    int getMSAASampleCount() override { return wxMetalCanvas::getMSAASampleCount(); }
+    id<MTLDepthStencilState> getDepthStencilStateLE() override { return wxMetalCanvas::getDepthStencilStateLE(); }
+    id<MTLDepthStencilState> getDepthStencilStateL() override { return wxMetalCanvas::getDepthStencilStateL(); }
+    id<MTLRenderPipelineState> getPipelineState(const std::string& name,
+                                                const char* vShader,
+                                                const char* fShader,
+                                                bool blending) override {
+        return wxMetalCanvas::getPipelineState(name, vShader, fShader, blending);
+    }
+    void addToSyncPoint(id<MTLCommandBuffer>& buffer, id<CAMetalDrawable>& drawable) override {
+        wxMetalCanvas::addToSyncPoint(buffer, drawable);
+    }
+    id<CAMetalDrawable> getNextDrawable() override;
+    id<MTLTexture> getMSAATexture(int w, int h) override;
+    id<MTLTexture> getDepthTexture(int w, int h) override;
 #endif
     
     void captureNextFrame(int w, int h);

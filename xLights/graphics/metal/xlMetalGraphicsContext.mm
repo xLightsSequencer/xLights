@@ -6,17 +6,18 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <wx/image.h>
+
 #include "xlMetalGraphicsContext.h"
+#include "osxUtils/MetalDeviceManager.h"
 
 #include "Shaders/SIMDMathUtilities.h"
-#include "../../../graphics/xlMesh.h"
+#include "../xlMesh.h"
 
-xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : canvas(c), target(t) {
+xlMetalGraphicsContext::xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : canvas(c), target(t) {
     id<MTLTexture> localTarget = t;
     if (target == nil) {
-        id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
-        CAMetalLayer *layer = [d2 layer];
-        drawable = [layer nextDrawable];
+        drawable = c->getNextDrawable();
         if (drawable != nil) {
             localTarget = [drawable texture];
         }
@@ -860,13 +861,13 @@ public:
                                                                                                   height:h
                                                                                                mipmapped:false];
             description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
-            texture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+            texture = [MetalDeviceManager::instance().getMTLDevice() newTextureWithDescriptor:description];
 
             textureSize = MTLSizeMake(w, h, 1);
         }
     }
-    
-    
+
+
     virtual ~xlMetalTexture() {
         if (texture) {
             [texture release];
@@ -883,7 +884,7 @@ public:
                                                                                                   height:h
                                                                                                mipmapped:false];
             description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
-            id <MTLTexture> srcTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+            id <MTLTexture> srcTexture = [MetalDeviceManager::instance().getMTLDevice() newTextureWithDescriptor:description];
             uint8_t *bytes = (uint8_t *)malloc(w * h * 4);
             getImageBytes(image, bytes);
             int rlen = w * 4;
@@ -909,7 +910,7 @@ public:
                                                                                                   height:h
                                                                                                mipmapped:false];
             description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
-            id <MTLTexture> srcTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+            id <MTLTexture> srcTexture = [MetalDeviceManager::instance().getMTLDevice() newTextureWithDescriptor:description];
             // xlImage data is already RGBA interleaved - no conversion needed
             int rlen = w * 4;
             MTLRegion region = {0, 0, 0, w, h , 1};
@@ -965,7 +966,7 @@ public:
                 CIImage *image = [CIImage imageWithCVImageBuffer:pixbuf];
                 image = [image imageByApplyingCGOrientation: kCGImagePropertyOrientationDownMirrored];
                 
-                id<MTLCommandBuffer> buffer = [wxMetalCanvas::getMTLCommandQueue() commandBuffer];
+                id<MTLCommandBuffer> buffer = [MetalDeviceManager::instance().getMTLCommandQueue() commandBuffer];
                 VideoToolboxCopyToTexture(image, texture, buffer);
                 [buffer commit];
             }
@@ -984,7 +985,7 @@ public:
             // Encode a blit pass to copy data from the source texture to the private texture.
             std::string n2 = name + " Texture";
             NSString *n = [NSString stringWithUTF8String:n2.c_str()];
-            id<MTLCommandBuffer> bltBuffer = [wxMetalCanvas::getBltCommandQueue() commandBuffer];
+            id<MTLCommandBuffer> bltBuffer = [MetalDeviceManager::instance().getBltCommandQueue() commandBuffer];
             [bltBuffer pushDebugGroup:n];
 
             MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
@@ -992,7 +993,7 @@ public:
                                                                                                   height:textureSize.height
                                                                                                mipmapped:(levels > 1 ? true : false)];
             description.storageMode = MTLStorageModePrivate;
-            id <MTLTexture> privateTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+            id <MTLTexture> privateTexture = [MetalDeviceManager::instance().getMTLDevice() newTextureWithDescriptor:description];
             [privateTexture setLabel:n];
 
             id <MTLBlitCommandEncoder> blitCommandEncoder = [bltBuffer blitCommandEncoder];
@@ -1280,7 +1281,7 @@ public:
             }
         }
         int sz = input.size() * sizeof(MeshVertexInput);
-        vbuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&input[0] length:sz options:MTLResourceStorageModeManaged];
+        vbuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithBytes:&input[0] length:sz options:MTLResourceStorageModeManaged];
         
         if (!lines.empty()) {
             linesStart = indexes.size();
@@ -1298,9 +1299,9 @@ public:
         [vbuffer setLabel:n];
         sz = indexes.size() * sizeof(uint32_t);
         if (sz == 0) {
-            ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithLength:12 options:MTLResourceStorageModeManaged];
+            ibuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithLength:12 options:MTLResourceStorageModeManaged];
         } else {
-            ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
+            ibuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
         }
         n2 = name + " Indexes";
         n = [NSString stringWithUTF8String:n2.c_str()];

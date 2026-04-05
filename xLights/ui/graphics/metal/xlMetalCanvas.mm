@@ -6,7 +6,7 @@
 #include <MetalKit/MetalKit.h>
 
 #include "xlMetalCanvas.h"
-#include "xlMetalGraphicsContext.h"
+#include "../../../graphics/metal/xlMetalGraphicsContext.h"
 
 #include "utils/ExternalHooks.h"
 
@@ -142,14 +142,15 @@ public:
     CaptureBufferInfo(int w, int h) : width(w), height(h) {
         int bytesPerRow = w * 4;
         int bufferSize = bytesPerRow * h;
-        buffer = [[wxMetalCanvas::getMTLDevice() newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
-        
+        auto dev = MetalDeviceManager::instance().getMTLDevice();
+        buffer = [[dev newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
+
         MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
                                                                                                width:w
                                                                                               height:h
                                                                                            mipmapped:false];
         description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
-        target = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
+        target = [dev newTextureWithDescriptor:description];
     }
     ~CaptureBufferInfo() {
         if (buffer != nil) {
@@ -250,6 +251,12 @@ void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx, bool display) {
         }
         delete mgx;
     }
+}
+
+id<CAMetalDrawable> xlMetalCanvas::getNextDrawable() {
+    id<CAMetalDrawable> d2 = [getMTKView() currentDrawable];
+    CAMetalLayer *layer = [d2 layer];
+    return [layer nextDrawable];
 }
 
 id<MTLTexture> xlMetalCanvas::getMSAATexture(int w, int h) {
