@@ -28,13 +28,9 @@
 #endif
 #endif
 
-#ifndef __XL_EXTERNAL_HOOKS_UI__
-#define __XL_EXTERNAL_HOOKS_UI__
-
-// Fallback no-ops for platforms without a UI hooks header.
-
+// Fallback no-ops for platforms without platform-specific hooks.
+#ifndef __XL_EXTERNAL_HOOKS__
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool IsMouseEventFromTouchpad() { return false; }
 #define WXGLUnsetCurrentContext()
-
 #endif

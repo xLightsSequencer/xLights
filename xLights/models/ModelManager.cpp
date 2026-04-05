@@ -51,7 +51,9 @@
 #include "Pixels.h"
 #include "../controllers/ControllerCaps.h"
 #include "../render/Element.h"
-#include "../xLightsMain.h"
+#include "../render/RenderContext.h"
+#include "../render/SequenceElements.h"
+#include "../outputs/OutputManager.h"
 #include "DMX/DmxFloodArea.h"
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxGeneral.h"
@@ -1042,7 +1044,7 @@ bool ModelManager::ReworkStartChannel() const
                 if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
                     _outputManager->SomethingChanged();
 
-                    if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && dynamic_cast<xLightsFrame*>(_renderContext)->IsSequencerInitialize())) { 
+                    if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && _renderContext->IsSequencerInitialized())) {
                         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
                     }
                     GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
@@ -2033,8 +2035,8 @@ bool ModelManager::Delete(const std::string& name)
     // some layouts end up with illegal names
     std::string mn = Model::SafeModelName(name);
 
-    if (dynamic_cast<xLightsFrame*>(_renderContext)->CurrentSeqXmlFile != nullptr) {
-        Element* elem_to_delete = dynamic_cast<xLightsFrame*>(_renderContext)->GetSequenceElements().GetElement(mn);
+    if (_renderContext != nullptr && _renderContext->IsSequenceLoaded()) {
+        Element* elem_to_delete = _renderContext->GetSequenceElements().GetElement(mn);
         if (elem_to_delete != nullptr) {
             // does model have any effects on it
             bool effects_exist = false;
@@ -2053,7 +2055,7 @@ bool ModelManager::Delete(const std::string& name)
             }
 
             // Delete the model from the sequencer grid and views
-            dynamic_cast<xLightsFrame*>(_renderContext)->GetSequenceElements().DeleteElement(mn);
+            _renderContext->GetSequenceElements().DeleteElement(mn);
         }
     }
 
@@ -2081,7 +2083,7 @@ bool ModelManager::Delete(const std::string& name)
                 }
 
                 delete model;
-                dynamic_cast<xLightsFrame*>(_renderContext)->UnsavedRgbEffectsChanges = true;
+                if (_renderContext) _renderContext->MarkRgbEffectsChanged();
                 return true;
             }
         }

@@ -1817,6 +1817,9 @@ public:
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
     std::vector<std::string> GetLayoutGroupNames() const override;
+    bool IsSequenceLoaded() const override { return CurrentSeqXmlFile != nullptr; }
+    bool IsSequencerInitialized() const override { return mSequencerInitialize; }
+    void MarkRgbEffectsChanged() override { UnsavedRgbEffectsChanges = true; }
     IModelPreview* GetHousePreview() const override;
     PreviewCamera* GetNamedCamera3D(const std::string& name) override;
 

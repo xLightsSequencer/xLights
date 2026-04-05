@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <list>
 #include <string>
+#include <vector>
 
 class AudioManager;
 class Effect;
@@ -48,6 +49,9 @@ public:
 
     // ---- sequence state ----
     virtual SequenceElements& GetSequenceElements() = 0;
+    virtual bool IsSequenceLoaded() const { return false; }
+    virtual bool IsSequencerInitialized() const { return false; }
+    virtual void MarkRgbEffectsChanged() {}
     virtual AudioManager* GetCurrentMediaManager() const = 0;
     virtual const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const = 0;
 

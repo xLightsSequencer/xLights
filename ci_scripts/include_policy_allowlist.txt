@@ -1,5 +1,5 @@
 # Include policy allowlist
 # Format: path/to/file.cpp|relative/include/path.h  (for "..." includes)
 #         path/to/file.cpp|wx/header.h               (for <wx/...> includes)
-# Regenerated 2026-04-05 from current tree (1 entry).
-xLights/models/ModelManager.cpp|../xLightsMain.h
+# Regenerated 2026-04-05 from current tree (0 entries).
+# All core packages are wx-free!
