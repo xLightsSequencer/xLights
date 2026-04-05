@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-MODE="${INCLUDE_POLICY_MODE:-warn}"
+MODE="${INCLUDE_POLICY_MODE:-strict}"
 ALLOWLIST_FILE="ci_scripts/include_policy_allowlist.txt"
 
 while [[ $# -gt 0 ]]; do
@@ -137,7 +137,7 @@ if [[ ${#BLOCKING[@]} -gt 0 ]]; then
     if [[ "$MODE" == "strict" ]]; then
         exit 1
     fi
-    echo "WARN mode: not failing build."
+    echo "WARN mode: not failing build (pass --mode strict or set INCLUDE_POLICY_MODE=strict to enforce)."
     exit 0
 fi
 
