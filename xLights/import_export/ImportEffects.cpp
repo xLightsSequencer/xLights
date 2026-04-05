@@ -1015,13 +1015,6 @@ void MapVixChannelInformation(xLightsFrame* xlights, EffectLayer* layer,
     xlights->DoConvertDataRowToEffects(layer, colors, frameTime, eraseExisting);
 }
 
-// xml
-#include "../include/spxml-0.5/spxmlevent.hpp"
-#include "../include/spxml-0.5/spxmlparser.hpp"
-#ifndef MAX_READ_BLOCK_SIZE
-#define MAX_READ_BLOCK_SIZE 4096 * 1024
-#endif
-
 static void CheckForVixenRGB(const std::string& name, xlColor& c, xLightsImportChannelMapDialog& dlg)
 {
     auto const channelNames{ dlg.GetChannelNames() };
@@ -1065,23 +1058,11 @@ static void CheckForVixenRGB(const std::string& name, xlColor& c, xLightsImportC
     }
 }
 
-std::string SafeGetAttrValue(SP_XmlStartTagEvent* event, const char* name)
-{
-    const char* p = event->getAttrValue(name);
-
-    if (p == nullptr) {
-        return "";
-    } else {
-        return std::string(p);
-    }
-}
-
 void xLightsFrame::ImportVix(const wxFileName& filename)
 {
     spdlog::debug("Importing vixen file {}.", filename.GetFullName().ToStdString());
 
     std::vector<unsigned char> VixSeqData;
-    std::vector<std::string> context;
 
     int time = 0;
     int frameTime = 50;
@@ -1090,127 +1071,90 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
 
-    SP_XmlPullParser* parser = new SP_XmlPullParser();
-    parser->setMaxTextSize(MAX_READ_BLOCK_SIZE / 2);
-    wxFile file(filename.GetFullPath());
-    char* bytes = new char[MAX_READ_BLOCK_SIZE];
-    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-    parser->append(bytes, read);
-    wxString carryOver;
-
     std::vector<std::string> unsortedChannels;
-
-    int chanColor = -1;
 
     // pass 1, read the length, determine number of networks, units/network, channels per unit
     spdlog::debug("Reading vixen file.");
-    SP_XmlPullEvent* event = parser->getNext();
-    int done = 0;
-    long cnt = 0;
-    while (!done) {
-        if (!event) {
-            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-            if (read == 0) {
-                done = true;
-            } else {
-                parser->append(bytes, read);
-            }
-        } else {
-            switch (event->getEventType()) {
-            case SP_XmlPullEvent::eEndDocument:
-                done = true;
-                break;
-            case SP_XmlPullEvent::eStartTag: {
-                SP_XmlStartTagEvent* stagEvent = (SP_XmlStartTagEvent*)event;
-                std::string NodeName = stagEvent->getName();
-                context.push_back(NodeName);
-                cnt++;
-                if (cnt > 1 && context[1] == "Channels" && NodeName == "Channel") {
-                    chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
-                    NodeName = SafeGetAttrValue(stagEvent, "name");
-                    if (NodeName != "") {
-                        dlg.AddChannel(NodeName);
-                        unsortedChannels.push_back(NodeName);
 
-                        xlColor c(chanColor, false);
-                        CheckForVixenRGB(NodeName, c, dlg);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.GetFullPath().mb_str());
+    if (!result) {
+        spdlog::error("Failed to parse Vixen file: {}", result.description());
+        return;
+    }
 
-                        context.pop_back();
-                        context.push_back("IgnoreChannelElement");
-                    }
-                }
-            } break;
-            case SP_XmlPullEvent::eCData: {
-                SP_XmlCDataEvent* stagEvent = (SP_XmlCDataEvent*)event;
-                if (cnt >= 2) {
-                    std::string NodeValue = stagEvent->getText();
-                    if (context[1] == "MaximumLevel") {
-                        // MaxIntensity = wxAtoi(NodeValue);
-                    } else if (context[1] == "EventPeriodInMilliseconds") {
-                        frameTime = wxAtoi(NodeValue);
-                    } else if (context[1] == "Time") {
-                        time = wxAtoi(NodeValue);
-                    } else if (context[1] == "Profile") {
-                        wxArrayInt VixChannels;
-                        wxArrayString VixChannelNames;
-                        SequenceData seqData;
-                        ConvertParameters params(filename.GetFullPath(),
-                                                 seqData,
-                                                 nullptr,
-                                                 ConvertParameters::ReadMode::READ_MODE_NORMAL,
-                                                 this,
-                                                 nullptr,
-                                                 nullptr);
+    pugi::xml_node root = doc.document_element();
 
-                        std::vector<xlColor> colors;
-                        FileConverter::LoadVixenProfile(params, NodeValue, VixChannels, VixChannelNames, colors);
-                        for (int x = 0; x < (int)VixChannelNames.size(); x++) {
-                            std::string name = VixChannelNames[x].ToStdString();
-                            xlColor c = colors[x];
-                            dlg.AddChannel(name);
-                            unsortedChannels.push_back(name);
+    // Read EventPeriodInMilliseconds
+    pugi::xml_node periodNode = root.child("EventPeriodInMilliseconds");
+    if (periodNode) {
+        frameTime = wxAtoi(periodNode.child_value());
+    }
 
-                            CheckForVixenRGB(name, c, dlg);
-                        }
+    // Read Time
+    pugi::xml_node timeNode = root.child("Time");
+    if (timeNode) {
+        time = wxAtoi(timeNode.child_value());
+    }
 
-                    } else if (context[1] == "EventValues") {
-                        // AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
-                        if (carryOver.size() > 0) {
-                            NodeValue.insert(0, carryOver);
-                        }
-                        int i = base64_decode(NodeValue, VixSeqData);
-                        if (i != 0) {
-                            int start = NodeValue.size() - i - 1;
-                            carryOver = NodeValue.substr(start, start + i);
-                        } else {
-                            carryOver.clear();
-                        }
-                    } else if (context[1] == "Channels" && context[2] == "Channel") {
-                        dlg.AddChannel(NodeValue);
-                        unsortedChannels.push_back(NodeValue);
+    // Read Profile
+    pugi::xml_node profileNode = root.child("Profile");
+    if (profileNode) {
+        std::string NodeValue = profileNode.child_value();
+        wxArrayInt VixChannels;
+        wxArrayString VixChannelNames;
+        SequenceData seqData;
+        ConvertParameters params(filename.GetFullPath(),
+                                 seqData,
+                                 nullptr,
+                                 ConvertParameters::ReadMode::READ_MODE_NORMAL,
+                                 this,
+                                 nullptr,
+                                 nullptr);
 
-                        xlColor c(chanColor, false);
-                        CheckForVixenRGB(NodeValue, c, dlg);
-                    }
-                }
-                break;
-            }
-            case SP_XmlPullEvent::eEndTag:
-                if (cnt > 0) {
-                    context.pop_back();
-                }
-                cnt = context.size();
-                break;
-            }
-            delete event;
-        }
-        if (!done) {
-            event = parser->getNext();
+        std::vector<xlColor> colors;
+        FileConverter::LoadVixenProfile(params, NodeValue, VixChannels, VixChannelNames, colors);
+        for (int x = 0; x < (int)VixChannelNames.size(); x++) {
+            std::string name = VixChannelNames[x].ToStdString();
+            xlColor c = colors[x];
+            dlg.AddChannel(name);
+            unsortedChannels.push_back(name);
+
+            CheckForVixenRGB(name, c, dlg);
         }
     }
-    delete[] bytes;
-    delete parser;
-    file.Close();
+
+    // Read Channels
+    pugi::xml_node channelsNode = root.child("Channels");
+    if (channelsNode) {
+        for (pugi::xml_node channel : channelsNode.children("Channel")) {
+            int chanColor = wxAtoi(channel.attribute("color").value()) & 0xFFFFFF;
+            std::string nameAttr = channel.attribute("name").value();
+            if (!nameAttr.empty()) {
+                dlg.AddChannel(nameAttr);
+                unsortedChannels.push_back(nameAttr);
+
+                xlColor c(chanColor, false);
+                CheckForVixenRGB(nameAttr, c, dlg);
+            } else {
+                std::string NodeValue = channel.child_value();
+                if (!NodeValue.empty()) {
+                    dlg.AddChannel(NodeValue);
+                    unsortedChannels.push_back(NodeValue);
+
+                    xlColor c(chanColor, false);
+                    CheckForVixenRGB(NodeValue, c, dlg);
+                }
+            }
+        }
+    }
+
+    // Read EventValues (base64 encoded)
+    pugi::xml_node eventValuesNode = root.child("EventValues");
+    if (eventValuesNode) {
+        std::string NodeValue = eventValuesNode.child_value();
+        base64_decode(NodeValue, VixSeqData);
+    }
 
     // I added the ceiling command because i had an example file that ended up one calculating number of frames one less than
     // the previous calculation because it had a partial last frame

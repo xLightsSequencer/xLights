@@ -1585,6 +1585,8 @@
 		<Unit filename="utils/xlImage.cpp" />
 		<Unit filename="utils/xlImage.h" />
 		<Unit filename="utils/Base64.h" />
+		<Unit filename="utils/XsqFileScanner.cpp" />
+		<Unit filename="utils/XsqFileScanner.h" />
 		<Unit filename="ui/shared/utils/xlGridCanvas.cpp" />
 		<Unit filename="ui/shared/utils/xlGridCanvas.h" />
 		<Unit filename="ui/shared/utils/xlLockButton.cpp" />

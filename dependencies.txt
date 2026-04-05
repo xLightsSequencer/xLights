@@ -110,15 +110,6 @@ Version:     ? [As at Jan 2021 this seems to have been last updated Jun 2020 ...
 License:     freeBSD
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
-Library:     SPXML
-Usage:       XML parsing without loading really large XML files in their entirety
-Link:        
-Source:      https://github.com/spsoft/spxml
-Last Pulled: ?
-Version:     ? [As at Jan 2021 this was last updated Mar 2015]
-License:     LGPL
-Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
-
 Library:     GLM
 Usage:       ?
 Link:        https://glm.g-truc.net/0.9.8/index.html

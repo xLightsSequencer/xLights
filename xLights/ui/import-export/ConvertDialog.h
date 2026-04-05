@@ -11,7 +11,8 @@
  **************************************************************/
 
 class xLightsFrame;
-class SP_XmlStartTagEvent;
+
+namespace pugi { class xml_node; }
 
 //(*Headers(ConvertDialog)
 #include <wx/button.h>
@@ -64,7 +65,7 @@ class ConvertDialog: public wxDialog
     void ReadLorFile(const wxString& filename, int LORImportInterval);
     void DoConversion(const wxString& Filename, const wxString& OutputFormat);
     wxString FromAscii(const char *val);
-    wxString getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char * name);
+    wxString getAttributeValueSafe(pugi::xml_node node, const char * name);
 
 	public:
 

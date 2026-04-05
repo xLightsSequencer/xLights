@@ -11,8 +11,7 @@
 #include "../utils/Base64.h"
 #include <zstd.h>
 
-#include "../include/spxml-0.5/spxmlparser.hpp"
-#include "../include/spxml-0.5/spxmlevent.hpp"
+#include "../utils/XsqFileScanner.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -1741,63 +1740,8 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
     if (!::FileExists(xsq))
         return "";
 
-    static const int BUFFER_SIZE = 1024 * 12;
-    std::vector<char> buf(BUFFER_SIZE); //12K buffer
-
-    std::ifstream doc(xsq, std::ios::binary);
-    if (!doc) return "";
-    SP_XmlPullParser* parser = new SP_XmlPullParser();
-    doc.read(&buf[0], BUFFER_SIZE);
-    size_t read = doc.gcount();
-    parser->append(&buf[0], read);
-    SP_XmlPullEvent* event = parser->getNext();
-    int done = 0;
-    int count = 0;
-    bool isMedia = false;
-    std::string mediaName;
-
-    while (!done) {
-        if (!event) {
-            doc.read(&buf[0], BUFFER_SIZE);
-            size_t read2 = doc.gcount();
-            if (read2 == 0) {
-                done = true;
-            } else {
-                parser->append(&buf[0], read2);
-            }
-        } else {
-            switch (event->getEventType()) {
-            case SP_XmlPullEvent::eEndDocument:
-                done = true;
-                break;
-            case SP_XmlPullEvent::eStartTag: {
-                SP_XmlStartTagEvent* stagEvent = (SP_XmlStartTagEvent*)event;
-                std::string NodeName = stagEvent->getName();
-                count++;
-                if (NodeName == "mediaFile") {
-                    isMedia = true;
-                } else {
-                    isMedia = false;
-                }
-                if (count == 100) {
-                    //media file will be very early in the file, dont waste time;
-                    done = true;
-                }
-            } break;
-            case SP_XmlPullEvent::eCData:
-                if (isMedia) {
-                    SP_XmlCDataEvent* stagEvent = (SP_XmlCDataEvent*)event;
-                    mediaName = stagEvent->getText();
-                    done = true;
-                }
-                break;
-            }
-        }
-        if (!done) {
-            event = parser->getNext();
-        }
-    }
-    delete parser;
+    XsqFileInfo info = ScanXsqFile(xsq);
+    std::string mediaName = info.mediaFile;
 
     if (!mediaName.empty()) {
         if (!::FileExists(mediaName)) {

@@ -4,9 +4,6 @@
 [submodule "dependencies/midifile"]
 	path = dependencies/midifile
 	url = https://github.com/craigsapp/midifile.git
-[submodule "dependencies/spxml"]
-	path = dependencies/spxml
-	url = https://github.com/spsoft/spxml.git
 [submodule "dependencies/libltc"]
 	path = dependencies/libltc
 	url = https://github.com/x42/libltc.git

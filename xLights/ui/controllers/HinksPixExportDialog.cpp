@@ -30,8 +30,7 @@
 
 #include <log.h>
 
-#include "../include/spxml-0.5/spxmlevent.hpp"
-#include "../include/spxml-0.5/spxmlparser.hpp"
+#include "utils/XsqFileScanner.h"
 
 #include <memory>
 #include <wx/zipstrm.h>
@@ -895,69 +894,15 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
 
     wxArrayString files;
     GetAllFilesInDir(dir, files, "*.x*");
-    static const int BUFFER_SIZE = 1024 * 12;
-    std::vector<char> buf(BUFFER_SIZE); //12K buffer
     for (auto &filename : files) {
         wxFileName fn(filename);
-        wxString file =fn.GetFullName();
+        wxString file = fn.GetFullName();
         if (file != XLIGHTS_RGBEFFECTS_FILE && file != OutputManager::GetNetworksFileName() && file != XLIGHTS_KEYBINDING_FILE && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
             && FileExists(filename)) {
-            // this could be a sequence file ... lets open it and check
-            //just check if <xsequence" is in the first 512 bytes, parsing every XML is way too expensive
-            wxFile doc(filename);
-            SP_XmlPullParser* parser = new SP_XmlPullParser();
-            size_t read = doc.Read(&buf[0], BUFFER_SIZE);
-            parser->append(&buf[0], read);
-            SP_XmlPullEvent* event = parser->getNext();
-            bool done = false;
-            int count = 0;
-            bool isSequence = false;
-            bool isMedia = false;
-            std::string mediaName;
-
-            while (!done) {
-                if (!event) {
-                    size_t read2 = doc.Read(&buf[0], BUFFER_SIZE);
-                    if (read2 == 0) {
-                        done = true;
-                    } else {
-                        parser->append(&buf[0], read2);
-                    }
-                } else {
-                    switch (event->getEventType()) {
-                    case SP_XmlPullEvent::eEndDocument:
-                        done = true;
-                        break;
-                    case SP_XmlPullEvent::eStartTag: {
-                        SP_XmlStartTagEvent* stagEvent = (SP_XmlStartTagEvent*)event;
-                        wxString NodeName = wxString::FromAscii(stagEvent->getName());
-                        count++;
-                        if (NodeName == "xsequence") {
-                            isSequence = true;
-                        } else if (NodeName == "mediaFile") {
-                            isMedia = true;
-                        } else {
-                            isMedia = false;
-                        }
-                        if (count == 100) {
-                            //media file will be very early in the file, dont waste time;
-                            done = true;
-                        }
-                    } break;
-                    case SP_XmlPullEvent::eCData:
-                        if (isMedia) {
-                            SP_XmlCDataEvent* stagEvent = (SP_XmlCDataEvent*)event;
-                            mediaName = wxString::FromAscii(stagEvent->getText()).ToStdString();
-                            done = true;
-                        }
-                        break;
-                    }
-                }
-                if (!done) {
-                    event = parser->getNext();
-                }
-            }
-            delete parser;
+            // Quick scan of first few KB to detect xLights sequence and media file
+            XsqFileInfo info = ScanXsqFile(filename.ToStdString());
+            bool isSequence = info.isSequence;
+            std::string mediaName = info.mediaFile;
 
             xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 

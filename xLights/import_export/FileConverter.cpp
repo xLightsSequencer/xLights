@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <algorithm>
+#include <functional>
 #include <map>
 #include <fstream>
 
@@ -28,9 +29,6 @@
 #endif
 
 
-#include "../include/spxml-0.5/spxmlparser.hpp"
-#include "../include/spxml-0.5/spxmlevent.hpp"
-
 #include "render/FSEQFile.h"
 #include "FileConverter.h"
 #include <pugixml.hpp>
@@ -49,8 +47,6 @@
 #include "xLightsVersion.h"
 #include "utils/ExternalHooks.h"
 #include <log.h>
-
-static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 
 void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffer)
 {
@@ -141,36 +137,12 @@ static wxString FromAscii(const char *val) {
     return wxString::FromAscii(val);
 }
 
-static void RemoveAt(wxArrayString &v, int i) {
-    v.RemoveAt(i);
-}
-
 static wxString Left(const wxString &in, int len) {
     return in.substr(0, len);
 }
 
 static wxString Right(const wxString &in, int len) {
     return in.substr(in.size() - len, len);
-}
-
-static int getAttributeValueAsInt(SP_XmlStartTagEvent * stagEvent, const char * name)
-{
-    const char *val = stagEvent -> getAttrValue(name);
-    if (!val)
-    {
-        return 0;
-    }
-    return atoi(val);
-}
-
-static wxString getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char * name)
-{
-    const char *val = stagEvent -> getAttrValue(name);
-    if (!val)
-    {
-        return "";
-    }
-    return FromAscii(val);
 }
 
 static void ClearLastPeriod( SequenceData& seq_data)
@@ -251,8 +223,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     spdlog::debug("     Map Empty Channels? {}.", toStr(params.map_empty_channels));
     spdlog::debug("     Map No Network Channels? {}.", toStr(params.map_no_network_channels));
 
-    wxString NodeName, deviceType, networkAsString;
-    wxArrayString context;
+    wxString deviceType, networkAsString;
     int unit, circuit, rampdiff;
     int i, twinklestate;
     int twinkleperiod = 400;
@@ -284,103 +255,68 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     int nodecnt = 0;
     int channelCount = 0;
 
-    SP_XmlPullParser *parser = new SP_XmlPullParser();
-    wxFile file(params.inp_filename);
-    char *bytes = new char[MAX_READ_BLOCK_SIZE];
-    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-    parser->append(bytes, read);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(params.inp_filename.mb_str());
+    if (!result) {
+        params.ConversionError(wxString("Unable to load LOR file: ") + params.inp_filename);
+        return;
+    }
 
-    //pass 1, read the length, determine number of networks, units/network, channels per unit
-    SP_XmlPullEvent * event = parser->getNext();
-    int done = 0;
+    // Helper lambda to recursively walk the DOM and process elements for pass 1
     int savedIndex = 0;
-    while (!done)
-    {
-        if (!event)
-        {
-            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-            if (read == 0)
-            {
-                done = true;
-            }
-            else
-            {
-                parser->append(bytes, read);
-            }
-        }
-        else
-        {
-            switch (event->getEventType())
-            {
-            case SP_XmlPullEvent::eEndDocument:
-                done = true;
-                break;
-            case SP_XmlPullEvent::eStartTag:
-            {
-                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii(stagEvent->getName());
-                context.push_back(NodeName);
-                cnt++;
+    std::function<void(pugi::xml_node, const wxArrayString&)> pass1Walk;
+    pass1Walk = [&](pugi::xml_node parent, const wxArrayString& parentContext) {
+        for (pugi::xml_node node = parent.first_child(); node; node = node.next_sibling()) {
+            if (node.type() != pugi::node_element)
+                continue;
 
-                nodecnt++;
-                if (nodecnt > 1000)
-                {
-                    nodecnt = 0;
-                    wxYield();
-                }
-                if (NodeName == wxString("track"))
-                {
-                    centisec = getAttributeValueAsInt(stagEvent, "totalCentiseconds");
-                }
-                else if (cnt == 3 && context[1] == wxString("channels") && NodeName == wxString("channel"))
-                {
-                    channelCount++;
-                    if ((channelCount % 1000) == 0)
-                    {
-                        params.AppendConvertStatus(string_format(wxString("Channels found so far: %d"), channelCount));
-                        params.SetStatusText(string_format(wxString("Channels found so far: %d"), channelCount));
-                    }
+            wxString NodeName = FromAscii(node.name());
+            wxArrayString context = parentContext;
+            context.push_back(NodeName);
+            cnt = context.size();
 
-                    deviceType = FromAscii(stagEvent->getAttrValue("deviceType"));
-                    network = getAttributeValueAsInt(stagEvent, "network");
-                    networkAsString = FromAscii(stagEvent->getAttrValue("network"));
-                    unit = getAttributeValueAsInt(stagEvent, "unit");
-                    circuit = getAttributeValueAsInt(stagEvent, "circuit");
-                    savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
-                    wxString channelName = FromAscii(stagEvent->getAttrValue("name"));
-                    rgbChannels[savedIndex] = LORInfo(channelName, deviceType, network, unit, circuit, savedIndex);
-                    rgbChannels[savedIndex].empty = !params.map_empty_channels;
-                }
-                else if (cnt > 1 && context[1] == wxString("channels") && NodeName == wxString("effect"))
-                {
-                    rgbChannels[savedIndex].empty = false;
-                }
-                else if (cnt > 3 && context[1] == wxString("channels") && context[2] == wxString("rgbChannel")
-                    && context[3] == wxString("channels") && NodeName == wxString("channel"))
-                {
-                    savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
-                    if (rgbChannels[savedIndex].empty == true)
-                    {
-                        std::vector< std::vector<int> > *unitSizes;
-                        if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX")
-                        {
-                            unitSizes = &dmxUnitSizes;
-                        }
-                        else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
-                            unitSizes = &noNetworkUnitSizes;
-                        }
-                        else
-                        {
-                            unitSizes = &lorUnitSizes;
-                        }
-                        mapLORInfo(rgbChannels[savedIndex], unitSizes);
-                    }
-                    rgbChannels[savedIndex].empty = false;
-                }
+            nodecnt++;
+            if (nodecnt > 1000)
+            {
+                nodecnt = 0;
+                wxYield();
             }
-            break;
-            case SP_XmlPullEvent::eEndTag:
-                if (cnt == 3 && context[1] == wxString("channels") && context[2] == wxString("channel") && !rgbChannels[savedIndex].empty)
+            if (NodeName == wxString("track"))
+            {
+                centisec = node.attribute("totalCentiseconds").as_int(0);
+            }
+            else if (cnt == 3 && context[1] == wxString("channels") && NodeName == wxString("channel"))
+            {
+                channelCount++;
+                if ((channelCount % 1000) == 0)
+                {
+                    params.AppendConvertStatus(string_format(wxString("Channels found so far: %d"), channelCount));
+                    params.SetStatusText(string_format(wxString("Channels found so far: %d"), channelCount));
+                }
+
+                deviceType = FromAscii(node.attribute("deviceType").as_string(""));
+                network = node.attribute("network").as_int(0);
+                networkAsString = FromAscii(node.attribute("network").as_string(""));
+                unit = node.attribute("unit").as_int(0);
+                circuit = node.attribute("circuit").as_int(0);
+                savedIndex = node.attribute("savedIndex").as_int(0);
+                wxString channelName = FromAscii(node.attribute("name").as_string(""));
+                rgbChannels[savedIndex] = LORInfo(channelName, deviceType, network, unit, circuit, savedIndex);
+                rgbChannels[savedIndex].empty = !params.map_empty_channels;
+
+                // Check children for effects
+                for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+                    if (child.type() == pugi::node_element && std::string_view(child.name()) == "effect") {
+                        rgbChannels[savedIndex].empty = false;
+                        break;
+                    }
+                }
+
+                // Recurse into children (for rgbChannel sub-channels)
+                pass1Walk(node, context);
+
+                // End-tag logic: map channel if not empty
+                if (!rgbChannels[savedIndex].empty)
                 {
                     std::vector< std::vector<int> > *unitSizes;
                     if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX") {
@@ -394,22 +330,40 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     }
                     mapLORInfo(rgbChannels[savedIndex], unitSizes);
                 }
-
-                if (cnt > 0)
-                {
-                    RemoveAt(context, cnt - 1);
-                }
-                cnt = context.size();
-                break;
+                continue; // already recursed
             }
-            delete event;
+            else if (cnt > 3 && context[1] == wxString("channels") && context[2] == wxString("rgbChannel")
+                && context[3] == wxString("channels") && NodeName == wxString("channel"))
+            {
+                savedIndex = node.attribute("savedIndex").as_int(0);
+                if (rgbChannels[savedIndex].empty == true)
+                {
+                    std::vector< std::vector<int> > *unitSizes;
+                    if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX")
+                    {
+                        unitSizes = &dmxUnitSizes;
+                    }
+                    else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
+                        unitSizes = &noNetworkUnitSizes;
+                    }
+                    else
+                    {
+                        unitSizes = &lorUnitSizes;
+                    }
+                    mapLORInfo(rgbChannels[savedIndex], unitSizes);
+                }
+                rgbChannels[savedIndex].empty = false;
+            }
+
+            // Recurse into children
+            pass1Walk(node, context);
         }
-        if (!done)
-        {
-            event = parser->getNext();
-        }
-    }
-    delete parser;
+    };
+
+    wxArrayString rootContext;
+    rootContext.push_back(FromAscii(doc.document_element().name()));
+    pass1Walk(doc.document_element(), rootContext);
+
     params.AppendConvertStatus(string_format(wxString("Track 1 length = %d centiseconds"), centisec), false);
 
     if (centisec > 0)
@@ -455,284 +409,265 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     }
 
     cnt = 0;
-    context.clear();
     channelCount = 0;
-
-    parser = new SP_XmlPullParser();
-    file.Seek(0);
-    read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-    parser->append(bytes, read);
+    nodecnt = 0;
 
     //pass 2, convert the data
-    event = parser->getNext();
-    done = 0;
-    bool empty = false;
-    while (!done)
-    {
-        if (!event)
-        {
-            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-            if (read == 0)
-            {
-                done = true;
-            }
-            else
-            {
-                parser->append(bytes, read);
-            }
-        }
-        else
-        {
-            switch (event->getEventType())
-            {
-            case SP_XmlPullEvent::eEndDocument:
-                done = true;
-                break;
-            case SP_XmlPullEvent::eEndTag:
-                if (cnt > 0)
-                {
-                    RemoveAt(context, cnt - 1);
-                }
-                cnt = context.size();
-                if (cnt == 2)
-                {
-                    if (empty && curchannel >= 0)
-                    {
-                        chindex--;
-                        params.AppendConvertStatus(wxString("WARNING: ") + ChannelNames[curchannel] + " is empty");
-                        ChannelNames[curchannel].clear();
-                        MappedChannelCnt--;
-                    }
-                    curchannel = -1;
-                }
-                break;
-            case SP_XmlPullEvent::eStartTag:
-            {
-                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii(stagEvent->getName());
-                context.push_back(NodeName);
-                cnt++;
+    // Helper lambda to process effects on a channel node
+    auto processEffects = [&](pugi::xml_node channelNode) {
+        for (pugi::xml_node effectNode = channelNode.first_child(); effectNode; effectNode = effectNode.next_sibling()) {
+            if (effectNode.type() != pugi::node_element)
+                continue;
+            if (std::string_view(effectNode.name()) != "effect" || curchannel < 0)
+                continue;
 
-                nodecnt++;
-                if (nodecnt > 1000)
+            EffectCnt++;
+            int startcsec = effectNode.attribute("startCentisecond").as_int(0);
+            int endcsec = effectNode.attribute("endCentisecond").as_int(0);
+            int intensity = effectNode.attribute("intensity").as_int(0);
+            int startIntensity = effectNode.attribute("startIntensity").as_int(0);
+            int endIntensity = effectNode.attribute("endIntensity").as_int(0);
+            int startper = startcsec * 10 / params.sequence_interval;
+            int endper = endcsec * 10 / params.sequence_interval;
+            int perdiff = endper - startper;  // # of ticks
+
+            if (perdiff > 0)
+            {
+                wxString EffectType = FromAscii(effectNode.attribute("type").as_string(""));
+                if (EffectType != "DMX intensity")
                 {
-                    nodecnt = 0;
-                    wxYield();
+                    intensity = intensity * 255 / MaxIntensity;
+                    startIntensity = startIntensity * 255 / MaxIntensity;
+                    endIntensity = endIntensity * 255 / MaxIntensity;
                 }
-                //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)\n"),cnt);
-                //AppendConvertStatus (msg);
-                if (NodeName == wxString("sequence"))
+                if (EffectType == "intensity" || EffectType == "DMX intensity")
                 {
-                    if (params.media_filename)
-                        *params.media_filename = getAttributeValueSafe(stagEvent, "musicFilename");
-                }
-                if (cnt == 3 && context[1] == wxString("channels") && NodeName == wxString("channel"))
-                {
-                    channelCount++;
-                    if ((channelCount % 1000) == 0)
+                    if (intensity > 0)
                     {
-                        params.AppendConvertStatus(string_format(wxString("Channels converted so far: %d"), channelCount));
-                        params.SetStatusText(string_format(wxString("Channels converted so far: %d"), channelCount));
-                    }
-
-                    deviceType = getAttributeValueSafe(stagEvent, "deviceType");
-                    networkAsString = getAttributeValueSafe(stagEvent, "network");
-                    network = getAttributeValueAsInt(stagEvent, "network");
-
-                    unit = getAttributeValueAsInt(stagEvent, "unit");
-                    if (unit < 0)
-                    {
-                        unit += 256;
-                    }
-                    if (unit == 0)
-                    {
-                        unit = 1;
-                    }
-                    circuit = getAttributeValueAsInt(stagEvent, "circuit");
-                    wxString ChannelName = getAttributeValueSafe(stagEvent, "name");
-                    savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
-
-                    empty = rgbChannels[savedIndex].empty;
-                    if (Left(deviceType, 3) == "DMX")
-                    {
-                        chindex = circuit - 1;
-                        network--;
-                        network += lorUnitSizes.size();
-                        curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;
-                        if (curchannel < 0) curchannel = -1;
-                    }
-                    else if (Left(deviceType, 3) == "LOR")
-                    {
-                        chindex = 0;
-                        for (int z = 0; z < (unit - 1); z++)
+                        for (i = 0; i < perdiff; i++)
                         {
-                            if ((int)lorUnitSizes.size() > network && (int)lorUnitSizes[network].size() > z)
+                            params.seq_data[startper + i][curchannel] = intensity;
+                        }
+                    }
+                    else if (startIntensity > 0 || endIntensity > 0)
+                    {
+                        // ramp
+                        rampdiff = endIntensity - startIntensity;
+                        for (i = 0; i < perdiff; i++)
+                        {
+                            intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
+                            params.seq_data[startper + i][curchannel] = intensity;
+                        }
+                    }
+                }
+                else if (EffectType == "twinkle")
+                {
+                    if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
+                    {
+                        intensity = MaxIntensity;
+                    }
+                    twinklestate = static_cast<int>(rand01()*2.0) & 0x01;
+                    int nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
+                    if (intensity > 0)
+                    {
+                        for (i = 0; i < perdiff; i++)
+                        {
+                            params.seq_data[startper + i][curchannel] = intensity * twinklestate;
+                            nexttwinkle--;
+                            if (nexttwinkle <= 0)
                             {
-                                chindex += lorUnitSizes[network][z];
-                            }
-                            else
-                            {
-                                params.AppendConvertStatus("Problem resolving channel. Have you got your setup tab right?");
+                                twinklestate = 1 - twinklestate;
+                                nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
                             }
                         }
-                        chindex += circuit - 1;
-                        curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;
-                        if (curchannel < 0) curchannel = -1;
                     }
-                    else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
-                        curchannel = -1;
-                    }
-                    else {
-                        chindex++;
-                        if (chindex < params._outputManager->GetTotalChannels())
+                    else if (startIntensity > 0 || endIntensity > 0)
+                    {
+                        // ramp
+                        rampdiff = endIntensity - startIntensity;
+                        for (i = 0; i < perdiff; i++)
                         {
-                            curchannel = chindex;
+                            intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
+                            params.seq_data[startper + i][curchannel] = intensity * twinklestate;
+                            nexttwinkle--;
+                            if (nexttwinkle <= 0)
+                            {
+                                twinklestate = 1 - twinklestate;
+                                nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
+                            }
+                        }
+                    }
+                }
+                else if (EffectType == "shimmer")
+                {
+                    if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
+                    {
+                        intensity = MaxIntensity;
+                    }
+                    if (intensity > 0)
+                    {
+                        for (i = 0; i < perdiff; i++)
+                        {
+                            twinklestate = (startper + i) & 0x01;
+                            params.seq_data[startper + i][curchannel] = intensity * twinklestate;
+                        }
+                    }
+                    else if (startIntensity > 0 || endIntensity > 0)
+                    {
+                        // ramp
+                        rampdiff = endIntensity - startIntensity;
+                        for (i = 0; i < perdiff; i++)
+                        {
+                            twinklestate = (startper + i) & 0x01;
+                            intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
+                            params.seq_data[startper + i][curchannel] = intensity * twinklestate;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Pass 2: walk the DOM again to convert effects data
+    std::function<void(pugi::xml_node, const wxArrayString&)> pass2Walk;
+    pass2Walk = [&](pugi::xml_node parent, const wxArrayString& parentContext) {
+        for (pugi::xml_node node = parent.first_child(); node; node = node.next_sibling()) {
+            if (node.type() != pugi::node_element)
+                continue;
+
+            wxString NodeName = FromAscii(node.name());
+            wxArrayString context = parentContext;
+            context.push_back(NodeName);
+            cnt = context.size();
+
+            nodecnt++;
+            if (nodecnt > 1000)
+            {
+                nodecnt = 0;
+                wxYield();
+            }
+
+            if (NodeName == wxString("sequence"))
+            {
+                if (params.media_filename)
+                    *params.media_filename = FromAscii(node.attribute("musicFilename").as_string(""));
+            }
+            if (cnt == 3 && context[1] == wxString("channels") && NodeName == wxString("channel"))
+            {
+                channelCount++;
+                if ((channelCount % 1000) == 0)
+                {
+                    params.AppendConvertStatus(string_format(wxString("Channels converted so far: %d"), channelCount));
+                    params.SetStatusText(string_format(wxString("Channels converted so far: %d"), channelCount));
+                }
+
+                deviceType = FromAscii(node.attribute("deviceType").as_string(""));
+                networkAsString = FromAscii(node.attribute("network").as_string(""));
+                network = node.attribute("network").as_int(0);
+
+                unit = node.attribute("unit").as_int(0);
+                if (unit < 0)
+                {
+                    unit += 256;
+                }
+                if (unit == 0)
+                {
+                    unit = 1;
+                }
+                circuit = node.attribute("circuit").as_int(0);
+                wxString ChannelName = FromAscii(node.attribute("name").as_string(""));
+                savedIndex = node.attribute("savedIndex").as_int(0);
+
+                bool channelEmpty = rgbChannels[savedIndex].empty;
+                if (Left(deviceType, 3) == "DMX")
+                {
+                    chindex = circuit - 1;
+                    network--;
+                    network += lorUnitSizes.size();
+                    curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;
+                    if (curchannel < 0) curchannel = -1;
+                }
+                else if (Left(deviceType, 3) == "LOR")
+                {
+                    chindex = 0;
+                    for (int z = 0; z < (unit - 1); z++)
+                    {
+                        if ((int)lorUnitSizes.size() > network && (int)lorUnitSizes[network].size() > z)
+                        {
+                            chindex += lorUnitSizes[network][z];
                         }
                         else
                         {
-                            curchannel = -1;
+                            params.AppendConvertStatus("Problem resolving channel. Have you got your setup tab right?");
                         }
                     }
-                    if (curchannel >= 0)
+                    chindex += circuit - 1;
+                    curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;
+                    if (curchannel < 0) curchannel = -1;
+                }
+                else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
+                    curchannel = -1;
+                }
+                else {
+                    chindex++;
+                    if (chindex < params._outputManager->GetTotalChannels())
                     {
-                        //params.AppendConvertStatus (string_format(wxString("curchannel %d"),curchannel));
-                        if (ChannelNames[curchannel].size() != 0)
-                        {
-                            params.AppendConvertStatus(string_format(wxString("WARNING: ") + ChannelNames[curchannel] + wxString(" and ")
-                                + ChannelName + wxString(" map to the same channel %d"), curchannel));
-                        }
-                        MappedChannelCnt++;
-                        ChannelNames[curchannel] = ChannelName;
-                        int ChannelColor = getAttributeValueAsInt(stagEvent, "color");
-                        ChannelColors[curchannel] = ChannelColor;
+                        curchannel = chindex;
                     }
                     else
                     {
-                        params.AppendConvertStatus(wxString("WARNING: channel '") + ChannelName + wxString("' is unmapped"));
+                        curchannel = -1;
                     }
                 }
-                if (cnt > 1 && context[1] == wxString("channels") && NodeName == wxString("effect") && curchannel >= 0)
+                if (curchannel >= 0)
                 {
-                    empty = false;
-                    EffectCnt++;
-                    int startcsec = getAttributeValueAsInt(stagEvent, "startCentisecond");
-                    int endcsec = getAttributeValueAsInt(stagEvent, "endCentisecond");
-                    int intensity = getAttributeValueAsInt(stagEvent, "intensity");
-                    int startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
-                    int endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
-                    int startper = startcsec * 10 / params.sequence_interval;
-                    int endper = endcsec * 10 / params.sequence_interval;
-                    int perdiff = endper - startper;  // # of ticks
-
-                    if (perdiff > 0)
+                    if (ChannelNames[curchannel].size() != 0)
                     {
-                        wxString EffectType = getAttributeValueSafe(stagEvent, "type");
-                        if (EffectType != "DMX intensity")
-                        {
-                            intensity = intensity * 255 / MaxIntensity;
-                            startIntensity = startIntensity * 255 / MaxIntensity;
-                            endIntensity = endIntensity * 255 / MaxIntensity;
-                        }
-                        if (EffectType == "intensity" || EffectType == "DMX intensity")
-                        {
-                            if (intensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    params.seq_data[startper + i][curchannel] = intensity;
-                                }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    params.seq_data[startper + i][curchannel] = intensity;
-                                }
-                            }
-                        }
-                        else if (EffectType == "twinkle")
-                        {
-                            if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
-                            {
-                                intensity = MaxIntensity;
-                            }
-                            twinklestate = static_cast<int>(rand01()*2.0) & 0x01;
-                            int nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
-                            if (intensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    params.seq_data[startper + i][curchannel] = intensity * twinklestate;
-                                    nexttwinkle--;
-                                    if (nexttwinkle <= 0)
-                                    {
-                                        twinklestate = 1 - twinklestate;
-                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
-                                    }
-                                }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    params.seq_data[startper + i][curchannel] = intensity * twinklestate;
-                                    nexttwinkle--;
-                                    if (nexttwinkle <= 0)
-                                    {
-                                        twinklestate = 1 - twinklestate;
-                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
-                                    }
-                                }
-                            }
-                        }
-                        else if (EffectType == "shimmer")
-                        {
-                            if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
-                            {
-                                intensity = MaxIntensity;
-                            }
-                            if (intensity > 0)
-                            {
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    twinklestate = (startper + i) & 0x01;
-                                    params.seq_data[startper + i][curchannel] = intensity * twinklestate;
-                                }
-                            }
-                            else if (startIntensity > 0 || endIntensity > 0)
-                            {
-                                // ramp
-                                rampdiff = endIntensity - startIntensity;
-                                for (i = 0; i < perdiff; i++)
-                                {
-                                    twinklestate = (startper + i) & 0x01;
-                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    params.seq_data[startper + i][curchannel] = intensity * twinklestate;
-                                }
-                            }
-                        }
+                        params.AppendConvertStatus(string_format(wxString("WARNING: ") + ChannelNames[curchannel] + wxString(" and ")
+                            + ChannelName + wxString(" map to the same channel %d"), curchannel));
+                    }
+                    MappedChannelCnt++;
+                    ChannelNames[curchannel] = ChannelName;
+                    int ChannelColor = node.attribute("color").as_int(0);
+                    ChannelColors[curchannel] = ChannelColor;
+                }
+                else
+                {
+                    params.AppendConvertStatus(wxString("WARNING: channel '") + ChannelName + wxString("' is unmapped"));
+                }
+
+                // Process effect children — if any effects found, channel is not empty
+                for (pugi::xml_node effectNode = node.first_child(); effectNode; effectNode = effectNode.next_sibling()) {
+                    if (effectNode.type() == pugi::node_element && std::string_view(effectNode.name()) == "effect") {
+                        channelEmpty = false;
+                        break;
                     }
                 }
+                processEffects(node);
+
+                // Recurse into children for sub-channels (rgbChannel, etc.)
+                pass2Walk(node, context);
+
+                // End-tag logic for channel
+                if (channelEmpty && curchannel >= 0)
+                {
+                    chindex--;
+                    params.AppendConvertStatus(wxString("WARNING: ") + ChannelNames[curchannel] + " is empty");
+                    ChannelNames[curchannel].clear();
+                    MappedChannelCnt--;
+                }
+                curchannel = -1;
+                continue; // already recursed
             }
-            default:
-                break;
-            }
-            delete event;
+
+            // Recurse into children
+            pass2Walk(node, context);
         }
-        if (!done)
-        {
-            event = parser->getNext();
-        }
-    }
-    delete[] bytes;
-    delete parser;
-    file.Close();
+    };
+
+    wxArrayString rootContext2;
+    rootContext2.push_back(FromAscii(doc.document_element().name()));
+    pass2Walk(doc.document_element(), rootContext2);
 
     if (params.data_layer != nullptr)
     {
@@ -760,132 +695,89 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
     long timeCells = 0;
     long msPerCell = 50;
     long channels = 0;
-    long cnt = 0;
     long tmp;
     long universe = 0;
     long channelsInUniverse = 0;
     wxString NodeName, NodeValue, Data, ChannelName;
-    wxArrayString context;
     wxArrayInt map;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    SP_XmlPullParser *parser = new SP_XmlPullParser();
-    wxFile file(params.inp_filename);
-    char *bytes = new char[MAX_READ_BLOCK_SIZE];
-    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-    parser->append(bytes, read);
-
-    // pass one, get the metadata
-    SP_XmlPullEvent * event = parser->getNext();
-    int done = 0;
-    while (!done)
-    {
-        if (!event)
-        {
-            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-            if (read == 0)
-            {
-                done = true;
-            }
-            else
-            {
-                parser->append(bytes, read);
-            }
-        }
-        else
-        {
-            switch (event->getEventType())
-            {
-            case SP_XmlPullEvent::eEndDocument:
-                done = true;
-                break;
-            case SP_XmlPullEvent::eStartTag:
-            {
-                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii(stagEvent->getName());
-                context.push_back(NodeName);
-                cnt++;
-                break;
-            }
-            case SP_XmlPullEvent::eCData:
-            {
-                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
-                if (cnt > 0)
-                {
-                    NodeName = context[cnt - 1];
-                    NodeValue = FromAscii(stagEvent->getText());
-
-                    if (NodeName == wxString("MilliSecPerTimeUnit"))
-                    {
-                        msPerCell = atol(NodeValue.c_str());
-                    }
-                    if (NodeName == wxString("NumberOfTimeCells"))
-                    {
-                        timeCells = atol(NodeValue.c_str());
-                    }
-                    if (NodeName == wxString("AudioSourcePcmFile"))
-                    {
-                        *params.media_filename = NodeValue;
-                        if (Right(*params.media_filename, 4) == ".PCM")
-                        {
-                            //nothing can deal with PCM files, we'll assume this came from an mp3
-                            *params.media_filename = Left(*params.media_filename, (*params.media_filename).size() - 4);
-                            *params.media_filename += ".mp3";
-                        }
-                    }
-                    if (NodeName == wxString("ChannelsInUniverse"))
-                    {
-                        channelsInUniverse = atol(NodeValue.c_str());
-                        channels += channelsInUniverse;
-                    }
-                    if (NodeName == wxString("UniverseNumber"))
-                    {
-                        tmp = atol(NodeValue.c_str());
-                        universe = tmp;
-                    }
-                }
-                break;
-            }
-            case SP_XmlPullEvent::eEndTag:
-            {
-                if (cnt > 0)
-                {
-                    NodeName = context[cnt - 1];
-                    if (NodeName == wxString("Universe"))
-                    {
-                        map.push_back(universe);
-                        map.push_back(channelsInUniverse);
-                        for (tmp = map.size() - 2; tmp > 0; tmp -= 2)
-                        {
-                            if (map[tmp] < map[tmp - 2])
-                            {
-                                long t1 = map[tmp];
-                                long t2 = map[tmp + 1];
-                                map[tmp] = map[tmp - 2];
-                                map[tmp + 1] = map[tmp - 1];
-                                map[tmp - 2] = t1;
-                                map[tmp - 1] = t2;
-                            }
-                        }
-                    }
-
-                    RemoveAt(context, cnt - 1);
-                }
-                cnt = context.size();
-                break;
-            }
-            }
-            delete event;
-        }
-        if (!done)
-        {
-            event = parser->getNext();
-        }
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(params.inp_filename.mb_str());
+    if (!result) {
+        params.ConversionError(wxString("Unable to load HLS file: ") + params.inp_filename);
+        return;
     }
-    delete parser;
 
-    file.Seek(0);
+    // pass one, get the metadata by walking the DOM
+    std::function<void(pugi::xml_node)> pass1Walk;
+    pass1Walk = [&](pugi::xml_node parent) {
+        for (pugi::xml_node node = parent.first_child(); node; node = node.next_sibling()) {
+            if (node.type() != pugi::node_element)
+                continue;
+
+            NodeName = FromAscii(node.name());
+
+            // Process text content of leaf elements
+            const char* textVal = node.child_value();
+            if (textVal && textVal[0] != '\0') {
+                NodeValue = FromAscii(textVal);
+
+                if (NodeName == wxString("MilliSecPerTimeUnit"))
+                {
+                    msPerCell = atol(NodeValue.c_str());
+                }
+                if (NodeName == wxString("NumberOfTimeCells"))
+                {
+                    timeCells = atol(NodeValue.c_str());
+                }
+                if (NodeName == wxString("AudioSourcePcmFile"))
+                {
+                    *params.media_filename = NodeValue;
+                    if (Right(*params.media_filename, 4) == ".PCM")
+                    {
+                        //nothing can deal with PCM files, we'll assume this came from an mp3
+                        *params.media_filename = Left(*params.media_filename, (*params.media_filename).size() - 4);
+                        *params.media_filename += ".mp3";
+                    }
+                }
+                if (NodeName == wxString("ChannelsInUniverse"))
+                {
+                    channelsInUniverse = atol(NodeValue.c_str());
+                    channels += channelsInUniverse;
+                }
+                if (NodeName == wxString("UniverseNumber"))
+                {
+                    tmp = atol(NodeValue.c_str());
+                    universe = tmp;
+                }
+            }
+
+            // Recurse into children first
+            pass1Walk(node);
+
+            // End-tag logic: after processing a Universe element, add to map
+            if (NodeName == wxString("Universe"))
+            {
+                map.push_back(universe);
+                map.push_back(channelsInUniverse);
+                for (tmp = map.size() - 2; tmp > 0; tmp -= 2)
+                {
+                    if (map[tmp] < map[tmp - 2])
+                    {
+                        long t1 = map[tmp];
+                        long t2 = map[tmp + 1];
+                        map[tmp] = map[tmp - 2];
+                        map[tmp + 1] = map[tmp - 1];
+                        map[tmp - 2] = t1;
+                        map[tmp - 1] = t2;
+                    }
+                }
+            }
+        }
+    };
+    pass1Walk(doc.document_element());
 
     channels = 0;
 
@@ -931,145 +823,98 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
 
     wxYield();
 
-    parser = new SP_XmlPullParser();
-    read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-    parser->append(bytes, read);
-
-
-    event = parser->getNext();
-    done = 0;
+    // pass two, convert the channel data
     int nodecnt = 0;
-    while (!done)
-    {
-        if (!event)
-        {
-            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-            if (read == 0)
-            {
-                done = true;
-            }
-            else
-            {
-                parser->append(bytes, read);
-            }
-        }
-        else
-        {
-            switch (event->getEventType())
-            {
-            case SP_XmlPullEvent::eEndDocument:
-                done = true;
-                break;
-            case SP_XmlPullEvent::eStartTag:
-            {
-                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii(stagEvent->getName());
-                context.push_back(NodeName);
-                cnt++;
-                break;
-            }
-            case SP_XmlPullEvent::eCData:
-            {
-                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
-                if (cnt > 0)
-                {
-                    NodeName = context[cnt - 1];
-                    NodeValue = FromAscii(stagEvent->getText());
+    std::function<void(pugi::xml_node)> pass2Walk;
+    pass2Walk = [&](pugi::xml_node parent) {
+        for (pugi::xml_node node = parent.first_child(); node; node = node.next_sibling()) {
+            if (node.type() != pugi::node_element)
+                continue;
 
-                    if (NodeName == wxString("ChanInfo"))
+            NodeName = FromAscii(node.name());
+
+            // Process text content
+            const char* textVal = node.child_value();
+            if (textVal && textVal[0] != '\0') {
+                NodeValue = FromAscii(textVal);
+
+                if (NodeName == wxString("ChanInfo"))
+                {
+                    //channel name and type
+                    ChannelName = NodeValue;
+                }
+                if (NodeName == wxString("Block"))
+                {
+                    int idx = NodeValue.find("-");
+                    Data.append(NodeValue.substr(idx + 1));
+                }
+                if (NodeName == wxString("UniverseNumber"))
+                {
+                    tmp = atol(NodeValue.c_str());
+                    universe = tmp;
+                    for (tmp = 0; tmp < (long)map.size(); tmp += 2)
                     {
-                        //channel name and type
-                        ChannelName = NodeValue;
-                    }
-                    if (NodeName == wxString("Block"))
-                    {
-                        int idx = NodeValue.find("-");
-                        Data.append(NodeValue.substr(idx + 1));
-                    }
-                    if (NodeName == wxString("UniverseNumber"))
-                    {
-                        tmp = atol(NodeValue.c_str());
-                        universe = tmp;
-                        for (tmp = 0; tmp < (long)map.size(); tmp += 2)
+                        if (universe == map[tmp])
                         {
-                            if (universe == map[tmp])
-                            {
-                                channels = map[tmp + 1];
-                            }
+                            channels = map[tmp + 1];
                         }
                     }
                 }
-                break;
             }
-            case SP_XmlPullEvent::eEndTag:
+
+            // Recurse into children
+            pass2Walk(node);
+
+            // End-tag logic
+            if (nodecnt > 1000)
             {
-                if (nodecnt > 1000)
-                {
-                    nodecnt = 0;
-                    wxYield();
-                }
-                nodecnt++;
-                if (cnt > 0)
-                {
-                    NodeName = context[cnt - 1];
-                    if (NodeName == wxString("ChannelData"))
-                    {
-
-                        //finished reading this channel, map the data
-                        int idx = ChannelName.find(", ");
-                        wxString type = ChannelName.substr(idx + 2);
-                        wxString origName = ChannelNames[channels];
-                        if (type == wxString("RGB-R"))
-                        {
-                            ChannelNames[channels] = Left(ChannelName, idx) + wxString("-R");
-                            ChannelColors[channels] = 0x000000FF;
-                        }
-                        else if (type == wxString("RGB-G"))
-                        {
-                            ChannelNames[channels] = Left(ChannelName, idx) + wxString("-G");
-                            ChannelColors[channels] = 0x0000FF00;
-                        }
-                        else if (type == wxString("RGB-B"))
-                        {
-                            ChannelNames[channels] = Left(ChannelName, idx) + wxString("-B");
-                            ChannelColors[channels] = 0x00FF0000;
-                        }
-                        else
-                        {
-                            ChannelNames[channels] = Left(ChannelName, idx);
-                            ChannelColors[channels] = 0x00FFFFFF;
-                        }
-                        wxString o2 = params._outputManager->GetChannelName(channels);
-                        params.AppendConvertStatus(string_format("Map %s -> %s (%s)",
-                            ChannelNames[channels].c_str(),
-                            origName.c_str(),
-                            o2.c_str()), false);
-                        for (unsigned long newper = 0; newper < params.seq_data.NumFrames(); newper++)
-                        {
-                            long intensity;
-                            intensity = strtoul(Data.substr(newper * 3, 2).c_str(), NULL, 16);
-                            params.seq_data[newper][channels] = intensity;
-                        }
-                        Data.clear();
-                        channels++;
-                    }
-
-                    RemoveAt(context, cnt - 1);
-                }
-                cnt = context.size();
-                break;
+                nodecnt = 0;
+                wxYield();
             }
+            nodecnt++;
+            if (NodeName == wxString("ChannelData"))
+            {
+                //finished reading this channel, map the data
+                int idx = ChannelName.find(", ");
+                wxString type = ChannelName.substr(idx + 2);
+                wxString origName = ChannelNames[channels];
+                if (type == wxString("RGB-R"))
+                {
+                    ChannelNames[channels] = Left(ChannelName, idx) + wxString("-R");
+                    ChannelColors[channels] = 0x000000FF;
+                }
+                else if (type == wxString("RGB-G"))
+                {
+                    ChannelNames[channels] = Left(ChannelName, idx) + wxString("-G");
+                    ChannelColors[channels] = 0x0000FF00;
+                }
+                else if (type == wxString("RGB-B"))
+                {
+                    ChannelNames[channels] = Left(ChannelName, idx) + wxString("-B");
+                    ChannelColors[channels] = 0x00FF0000;
+                }
+                else
+                {
+                    ChannelNames[channels] = Left(ChannelName, idx);
+                    ChannelColors[channels] = 0x00FFFFFF;
+                }
+                wxString o2 = params._outputManager->GetChannelName(channels);
+                params.AppendConvertStatus(string_format("Map %s -> %s (%s)",
+                    ChannelNames[channels].c_str(),
+                    origName.c_str(),
+                    o2.c_str()), false);
+                for (unsigned long newper = 0; newper < params.seq_data.NumFrames(); newper++)
+                {
+                    long intensity;
+                    intensity = strtoul(Data.substr(newper * 3, 2).c_str(), NULL, 16);
+                    params.seq_data[newper][channels] = intensity;
+                }
+                Data.clear();
+                channels++;
             }
-            delete event;
         }
-        if (!done)
-        {
-            event = parser->getNext();
-        }
-    }
-    delete[] bytes;
-    delete parser;
-    file.Close();
+    };
+    pass2Walk(doc.document_element());
 
     if (params.data_layer != nullptr)
     {
@@ -1157,8 +1002,6 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     std::vector<unsigned char> VixSeqData;
     wxArrayInt VixChannels;
     wxArrayString VixChannelNames;
-    long cnt = 0;
-    wxArrayString context;
     long VixEventPeriod=-1;
     long MaxIntensity = 255;
     wxArrayString ChannelNames;
@@ -1173,130 +1016,76 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
 
     params.AppendConvertStatus (wxString("Reading Vixen sequence"));
 
-    SP_XmlPullParser *parser = new SP_XmlPullParser();
-    parser->setMaxTextSize(MAX_READ_BLOCK_SIZE / 2);
-    wxFile file(params.inp_filename);
-    char *bytes = new char[MAX_READ_BLOCK_SIZE];
-    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-    parser->append(bytes, read);
-    wxString carryOver;
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(params.inp_filename.mb_str());
+    if (!result) {
+        params.ConversionError(wxString("Unable to load Vixen file: ") + params.inp_filename);
+        return;
+    }
 
-    //pass 1, read the length, determine number of networks, units/network, channels per unit
-    SP_XmlPullEvent * event = parser->getNext();
-    int done = 0;
-    while (!done)
-    {
-        if (!event)
+    pugi::xml_node root = doc.document_element();
+
+    // Walk the top-level children of the root
+    for (pugi::xml_node node = root.first_child(); node; node = node.next_sibling()) {
+        if (node.type() != pugi::node_element)
+            continue;
+
+        wxString NodeName = FromAscii(node.name());
+
+        if (NodeName == wxString("Audio") || NodeName == wxString("Song"))
         {
-            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
-            if (read == 0)
-            {
-                done = true;
-            }
-            else
-            {
-                parser->append(bytes, read);
-            }
+            *params.media_filename = FromAscii(node.attribute("filename").as_string(""));
         }
-        else
+        else if (NodeName == wxString("Channels"))
         {
-            switch(event -> getEventType())
-            {
-            case SP_XmlPullEvent::eEndDocument:
-                done = true;
-                break;
-            case SP_XmlPullEvent::eStartTag:
-            {
-                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                wxString NodeName = FromAscii( stagEvent->getName() );
-                context.push_back(NodeName);
-                cnt++;
-                //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)"),cnt);
-                //AppendConvertStatus (msg);
-                if (cnt == 2 && (NodeName == wxString("Audio") || NodeName == wxString("Song")))
+            for (pugi::xml_node chNode = node.first_child(); chNode; chNode = chNode.next_sibling()) {
+                if (chNode.type() != pugi::node_element)
+                    continue;
+                if (std::string_view(chNode.name()) == "Channel")
                 {
-                    *params.media_filename = (getAttributeValueSafe(stagEvent, "filename") );
-                }
-                if (cnt > 1 && context[1] == wxString("Channels") && NodeName == wxString("Channel"))
-                {
-                    const char *val = stagEvent -> getAttrValue("output");
-                    if (!val)
+                    pugi::xml_attribute outputAttr = chNode.attribute("output");
+                    if (!outputAttr)
                     {
                         VixChannels.push_back(VixChannels.size());
                     }
                     else
                     {
-                        VixChannels.push_back(atoi(val));
+                        VixChannels.push_back(outputAttr.as_int(0));
                     }
-                }
-            }
-            break;
-            case SP_XmlPullEvent::eCData:
-            {
-                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
-                if (cnt == 2)
-                {
-                    wxString NodeValue = FromAscii( stagEvent->getText() );
-                    if (context[1] == wxString("MaximumLevel"))
-                    {
-                        MaxIntensity = atol(NodeValue.c_str());
-                    }
-                    else if (context[1] == wxString("EventPeriodInMilliseconds"))
-                    {
-                        VixEventPeriod = atol(NodeValue.c_str());
-                    }
-                    else if (context[1] == wxString("EventValues"))
-                    {
-                        //AppendConvertStatus(string_format(wxString("Chunk Size=%d"), NodeValue.size()));
-                        if (carryOver.size() > 0) {
-                            NodeValue.insert(0, carryOver);
-                        }
-                        int i = base64_decode(NodeValue, VixSeqData);
-                        if (i != 0) {
-                            int start = NodeValue.size() - i - 1;
-                            carryOver = NodeValue.substr(start, start + i);
-                        } else {
-                            carryOver.clear();
-                        }
-                    }
-                    else if (context[1] == wxString("Profile"))
-                    {
-#ifndef FPP
-                        std::vector<xlColor> colors;
-                        LoadVixenProfile(params, NodeValue,VixChannels,VixChannelNames, colors);
-#endif
-                    }
-                    else if (context[1] == wxString("Channels") && context[2] == wxString("Channel"))
-                    {
+                    // Channel text content is the channel name
+                    const char* chText = chNode.child_value();
+                    if (chText && chText[0] != '\0') {
                         while (VixChannelNames.size() < VixChannels.size())
                         {
                             VixChannelNames.push_back("");
                         }
-                        VixChannelNames[VixChannels.size() - 1] = NodeValue;
+                        VixChannelNames[VixChannels.size() - 1] = FromAscii(chText);
                     }
                 }
-                break;
             }
-            case SP_XmlPullEvent::eEndTag:
-            {
-                if (cnt > 0)
-                {
-                    RemoveAt(context, cnt-1);
-                }
-                cnt = context.size();
-                break;
-            }
-            }
-            delete event;
         }
-        if (!done)
+        else if (NodeName == wxString("MaximumLevel"))
         {
-            event = parser->getNext();
+            MaxIntensity = atol(node.child_value());
+        }
+        else if (NodeName == wxString("EventPeriodInMilliseconds"))
+        {
+            VixEventPeriod = atol(node.child_value());
+        }
+        else if (NodeName == wxString("EventValues"))
+        {
+            wxString NodeValue = FromAscii(node.child_value());
+            base64_decode(NodeValue, VixSeqData);
+        }
+        else if (NodeName == wxString("Profile"))
+        {
+#ifndef FPP
+            wxString NodeValue = FromAscii(node.child_value());
+            std::vector<xlColor> colors;
+            LoadVixenProfile(params, NodeValue,VixChannels,VixChannelNames, colors);
+#endif
         }
     }
-    delete [] bytes;
-    delete parser;
-    file.Close();
 
     int min = 999999;
     int max = 0;

@@ -12,6 +12,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -change (dkulp)             Remove SPXML dependency, replace with pugixml for format imports and
+                                lightweight XsqFileScanner for sequence file header peeking
     -change (dkulp)             Migrate output runtime sockets from wxDatagramSocket/wxIPV4address to SocketAbstraction UDPSocket
     -change (dkulp)             Refactor Render.cpp: split UI-coupled code into RenderUI.cpp behind abstract
                                     interfaces (IRenderJobCallbacks, IRenderJobStatus, IRenderProgressSink)

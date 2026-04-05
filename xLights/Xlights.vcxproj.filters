@@ -1018,6 +1018,7 @@
     <ClCompile Include="utils\TempFileManager.cpp" />
     <ClCompile Include="ui/color/xlColourData.cpp" />
     <ClCompile Include="utils\xlImage.cpp" />
+    <ClCompile Include="utils\XsqFileScanner.cpp" />
     <ClCompile Include="effects\MovingHeadEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -2483,6 +2484,7 @@
     <ClInclude Include="ui/color/xlColourData.h" />
     <ClInclude Include="utils\xlImage.h" />
     <ClInclude Include="utils\Base64.h" />
+    <ClInclude Include="utils\XsqFileScanner.h" />
     <ClInclude Include="ui/model/EditSubmodelAliasesDialog.h" />
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>

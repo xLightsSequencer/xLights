@@ -1001,6 +1001,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui/color/xlColorPickerFields.cpp" />
     <ClCompile Include="ui/color/xlColourData.cpp" />
     <ClCompile Include="utils\xlImage.cpp" />
+    <ClCompile Include="utils\XsqFileScanner.cpp" />
     <ClCompile Include="ui/shared/utils/xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
     <ClCompile Include="ui\import-export\xLightsImportChannelMapDialog.cpp" />
@@ -1587,6 +1588,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui/color/xlColourData.h" />
     <ClInclude Include="utils\xlImage.h" />
     <ClInclude Include="utils\Base64.h" />
+    <ClInclude Include="utils\XsqFileScanner.h" />
     <ClInclude Include="ui\shared\utils\xlCustomControl.h" />
     <ClInclude Include="ui/shared/utils/xlGridCanvas.h" />
     <ClInclude Include="xLightsApp.h" />
