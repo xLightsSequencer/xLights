@@ -908,6 +908,18 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="effects/ispc/BarsFunctions.ispc.h" />
+		<Unit filename="effects/ispc/ColorWashFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="effects/ispc/ColorWashFunctions.ispc.h" />
+		<Unit filename="effects/ispc/FanFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="effects/ispc/FanFunctions.ispc.h" />
+		<Unit filename="effects/ispc/KaleidoscopeFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="effects/ispc/KaleidoscopeFunctions.ispc.h" />
 		<Unit filename="effects/ispc/ButterflyFunctions.ispc">
 			<Option link="1" />
 		</Unit>

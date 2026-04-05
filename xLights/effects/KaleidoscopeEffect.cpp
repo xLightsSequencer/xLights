@@ -25,7 +25,9 @@
 #include "UtilFunctions.h"
 
 #include "Parallel.h"
+#include "ispc/KaleidoscopeFunctions.ispc.h"
 #include <log.h>
+#include <cstring>
 
 KaleidoscopeEffect::KaleidoscopeEffect(int i) : RenderableEffect(i, "Kaleidoscope", kaleidoscope_16, kaleidoscope_24, kaleidoscope_32, kaleidoscope_48, kaleidoscope_64)
 {
@@ -497,79 +499,55 @@ void KaleidoscopeEffect::RenderNew(const std::string& type, int xCentre, int yCe
     double cy = (double)yCentre;
     double rotRad = toRadians((double)rotation);
 
-    if (type == "Radial") {
-        int segments = std::max(2, size);
-        double wedgeAngle = 2.0 * M_PI / (double)segments;
-
-        parallel_for(0, height, [&](int y) {
-            for (int x = 0; x < width; x++) {
-                double dx = (double)x - cx;
-                double dy = (double)y - cy;
-                double radius = std::sqrt(dx * dx + dy * dy);
-
-                if (radius < 0.5)
-                    continue;
-
-                double angle = std::atan2(dy, dx);
-
-                angle -= rotRad;
-
-                angle = std::fmod(angle, 2.0 * M_PI);
-                if (angle < 0.0)
-                    angle += 2.0 * M_PI;
-
-                double folded = std::fmod(angle, 2.0 * wedgeAngle);
-                if (folded > wedgeAngle)
-                    folded = 2.0 * wedgeAngle - folded;
-
-                folded += rotRad;
-
-                int sx = (int)std::round(cx + radius * std::cos(folded));
-                int sy = (int)std::round(cy + radius * std::sin(folded));
-
-                if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
-                    if (sx != x || sy != y) {
-                        buffer.SetPixel(x, y, buffer.GetPixel(sx, sy));
-                    }
-                }
-            }
-        });
-        return;
-    }
+    ispc::KaleidoscopeData kdata;
+    kdata.width  = width;
+    kdata.height = height;
+    kdata.cx     = (float)cx;
+    kdata.cy     = (float)cy;
+    kdata.rotRad = (float)rotRad;
+    kdata.v0x = kdata.v0y = kdata.v1x = kdata.v1y = kdata.v2x = kdata.v2y = 0.0f;
+    kdata.maxIter = 0;
 
     if (type == "Square 2") {
-        double halfSize = size / 2.0;
-
-        parallel_for(0, height, [&](int y) {
-            for (int x = 0; x < width; x++) {
-                auto src = MapToSourceNewSquare((double)x, (double)y, cx, cy, halfSize, rotRad);
-                if (src.first >= 0 && src.first < width && src.second >= 0 && src.second < height) {
-                    if (src.first != x || src.second != y) {
-                        buffer.SetPixel(x, y, buffer.GetPixel(src.first, src.second));
-                    }
-                }
-            }
-        });
+        kdata.style = KALE_ISPC_STYLE_SQUARE2;
+        kdata.size  = (float)(size / 2.0);
+    } else if (type == "Radial") {
+        kdata.style = KALE_ISPC_STYLE_RADIAL;
+        kdata.size  = (float)std::max(2, size);
     } else {
-        KaleidoscopeTriangle tri = ComputeTriangle(type, cx, cy, (double)size, rotRad);
+        // 6-Fold, 8-Fold, 12-Fold
+        if      (type == "6-Fold")  kdata.style = KALE_ISPC_STYLE_6FOLD;
+        else if (type == "8-Fold")  kdata.style = KALE_ISPC_STYLE_8FOLD;
+        else                        kdata.style = KALE_ISPC_STYLE_12FOLD;
+        kdata.size = (float)size;
 
-        // Scale max iterations to buffer/size ratio with a reasonable cap
+        KaleidoscopeTriangle tri = ComputeTriangle(type, cx, cy, (double)size, rotRad);
+        kdata.v0x = (float)tri.v[0].x;  kdata.v0y = (float)tri.v[0].y;
+        kdata.v1x = (float)tri.v[1].x;  kdata.v1y = (float)tri.v[1].y;
+        kdata.v2x = (float)tri.v[2].x;  kdata.v2y = (float)tri.v[2].y;
+
         int maxDim = std::max(width, height);
         int maxIter = std::max(50, (maxDim * 3) / std::max(size, 1));
-        if (maxIter > 500)
-            maxIter = 500;
-
-        parallel_for(0, height, [&](int y) {
-            for (int x = 0; x < width; x++) {
-                auto src = MapToSourceTriangle((double)x, (double)y, tri, maxIter);
-                if (src.first >= 0 && src.first < width && src.second >= 0 && src.second < height) {
-                    if (src.first != x || src.second != y) {
-                        buffer.SetPixel(x, y, buffer.GetPixel(src.first, src.second));
-                    }
-                }
-            }
-        });
+        if (maxIter > 500) maxIter = 500;
+        kdata.maxIter = maxIter;
     }
+
+    // Snapshot source pixels so reads are not affected by in-progress writes
+    int pixelCount = width * height;
+    std::vector<uint8_t> srcSnap(pixelCount * 4);
+    memcpy(srcSnap.data(), buffer.GetPixels(), pixelCount * 4);
+
+    constexpr int bfBlockSize = 4096;
+    int blocks = pixelCount / bfBlockSize + 1;
+    parallel_for(0, blocks, [&kdata, &srcSnap, &buffer, pixelCount](int blk) {
+        int start = blk * bfBlockSize;
+        int end = start + bfBlockSize;
+        if (end > pixelCount) end = pixelCount;
+        ispc::KaleidoscopeEffectISPC(&kdata,
+                                     (const ispc::uint8_t4*)srcSnap.data(),
+                                     (ispc::uint8_t4*)buffer.GetPixels(),
+                                     start, end);
+    });
 }
 
 

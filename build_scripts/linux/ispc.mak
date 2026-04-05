@@ -30,3 +30,12 @@ OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/VideoFunctions.o
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/BarsFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/BarsFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/ColorWashFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/ColorWashFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/FanFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/FanFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/KaleidoscopeFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/KaleidoscopeFunctions.o

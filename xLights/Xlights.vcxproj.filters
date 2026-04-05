@@ -2826,6 +2826,18 @@
     <ClInclude Include="effects\ispc\ButterflyFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="effects\ispc\ColorWashFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\FanFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\KaleidoscopeFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <CustomBuild Include="effects\ispc\KaleidoscopeFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
     <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -3055,6 +3067,15 @@
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="effects\ispc\ColorWashFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="effects\ispc\FanFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="effects\ispc\KaleidoscopeFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc">

@@ -1114,6 +1114,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui\effectpanels\GuitarPanel.h" />
     <ClInclude Include="effects\ispc\BarsFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\ButterflyFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\ColorWashFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\FanFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\KaleidoscopeFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\ISPCComputeUtilities.h" />
     <ClInclude Include="effects\ispc\LayerBlendingFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
@@ -1672,6 +1675,39 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="effects\ispc\BarsFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="effects\ispc\ColorWashFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="effects\ispc\FanFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="effects\ispc\KaleidoscopeFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
