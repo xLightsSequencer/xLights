@@ -94,10 +94,31 @@ while IFS= read -r entry; do
     fi
 done < <(rg -n --no-heading --color never '^\s*#include\s*(<wx/[^>]+>|"[^"]+")' "${CORE_DIRS[@]}" -g '*.{h,cpp}')
 
+# Detect stale allowlist entries (entries that no longer match any source violation)
+STALE=()
+while IFS= read -r line; do
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    al_file="${line%%|*}"
+    al_include="${line#*|}"
+    if [[ ! -f "$al_file" ]]; then
+        STALE+=("$line  (file does not exist)")
+    elif ! rg -q "^\\s*#include\\s*[<\"]${al_include}[>\"]" "$al_file" 2>/dev/null; then
+        STALE+=("$line  (include not found in file)")
+    fi
+done < "$ALLOWLIST_FILE"
+
 echo "Core include boundary check"
 echo "Mode: ${MODE}"
 echo "Allowlist: ${ALLOWLIST_FILE}"
 echo ""
+
+if [[ ${#STALE[@]} -gt 0 ]]; then
+    echo "Stale allowlist entries (${#STALE[@]}):"
+    printf '  %s\n' "${STALE[@]}"
+    echo ""
+    echo "These entries can be removed from ${ALLOWLIST_FILE}."
+    echo ""
+fi
 
 if [[ ${#VIOLATIONS[@]} -gt 0 ]]; then
     echo "Allowlisted violations (${ALLOWED_COUNT}):"
