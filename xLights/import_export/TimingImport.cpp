@@ -245,7 +245,7 @@ void SequenceFile::ProcessXLightsTiming(const std::vector<std::string>& filename
     }
 }
 
-void SequenceFile::AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS) {
+void AddVixenMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS) {
     int32_t last = 0;
     for (const auto& it : marks)
     {
@@ -303,11 +303,11 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
                         effectLayer = element->AddEffectLayer();
                     }
 
-                    AddMarksToLayer(vixenFile.GetTimings(sel), effectLayer, GetFrameMS());
+                    AddVixenMarksToLayer(vixenFile.GetTimings(sel), effectLayer, GetFrameMS());
                     effectLayer = element->AddEffectLayer();
-                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel, "Word"), effectLayer, GetFrameMS());
+                    AddVixenMarksToLayer(vixenFile.GetRelatedTiming(sel, "Word"), effectLayer, GetFrameMS());
                     effectLayer = element->AddEffectLayer();
-                    AddMarksToLayer(vixenFile.GetRelatedTiming(sel, "Phoneme"), effectLayer, GetFrameMS());
+                    AddVixenMarksToLayer(vixenFile.GetRelatedTiming(sel, "Phoneme"), effectLayer, GetFrameMS());
                 }
                 else
                 {
@@ -317,7 +317,7 @@ void SequenceFile::ProcessVixen3Timing(const std::vector<std::string>& filenames
                         effectLayer = element->AddEffectLayer();
                     }
 
-                    AddMarksToLayer(vixenFile.GetTimings(sel), effectLayer, GetFrameMS());
+                    AddVixenMarksToLayer(vixenFile.GetTimings(sel), effectLayer, GetFrameMS());
                 }
             }
         }

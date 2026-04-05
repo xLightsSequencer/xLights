@@ -14,6 +14,7 @@
 #include <wx/gdicmn.h>
 #include <pugixml.hpp>
 
+#include <list>
 #include <map>
 #include <cmath>
 #include <cstdint>
@@ -234,6 +235,9 @@ public:
         0xFF316AC5, /* 174 - MenuHighlight */
     };
 };
+
+class EffectLayer;
+void AddVixenMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS);
 
 class Vixen3 {
 

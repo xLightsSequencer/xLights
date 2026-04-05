@@ -3847,11 +3847,11 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                     effectLayer = element->AddEffectLayer();
                 }
 
-                SequenceFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                AddVixenMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
                 effectLayer = element->AddEffectLayer();
-                SequenceFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Word"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                AddVixenMarksToLayer(vixen.GetRelatedTiming(name, "Word"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
                 effectLayer = element->AddEffectLayer();
-                SequenceFile::AddMarksToLayer(vixen.GetRelatedTiming(name, "Phoneme"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                AddVixenMarksToLayer(vixen.GetRelatedTiming(name, "Phoneme"), effectLayer, CurrentSeqXmlFile->GetFrameMS());
             } else {
                 TimingElement* element = AddTimingElement(name);
                 EffectLayer* effectLayer = element->GetEffectLayer(0);
@@ -3859,7 +3859,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                     effectLayer = element->AddEffectLayer();
                 }
 
-                SequenceFile::AddMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
+                AddVixenMarksToLayer(vixen.GetTimings(name), effectLayer, CurrentSeqXmlFile->GetFrameMS());
             }
         }
     }

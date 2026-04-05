@@ -12,7 +12,6 @@
 
 #include "DataLayer.h"
 #include "JukeboxButtonData.h"
-#include "../import_export/Vixen3.h"
 #include "pugixml.hpp"
 
 #include <array>
@@ -138,7 +137,6 @@ public:
     void ProcessXLightsTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
     void ProcessVixen3Timing(const std::vector<std::string>& filenames, RenderContext* renderContext);
     void ProcessElevenLabsTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent);
-    static void AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS);
     std::string UniqueTimingName(RenderContext* renderContext, std::string name) const;
     void UpdateVersion();
     void UpdateVersion(const std::string& version);
