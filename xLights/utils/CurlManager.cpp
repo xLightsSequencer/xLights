@@ -165,7 +165,7 @@ CurlManager::~CurlManager() {
 }
 
 void CurlManager::addCURL(const std::string& furl, CURL* curl, std::function<void(CURL*)>&& callback, bool autoCleanCurl) {
-    std::unique_lock<std::mutex> l(lock);
+    std::unique_lock<std::recursive_mutex> l(lock);
     if (curlMulti == nullptr) {
         curlMulti = curl_multi_init();
         curl_multi_setopt(curlMulti, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
@@ -956,7 +956,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
 
 bool CurlManager::doProcessCurls() {
     int stillRunning = 0;
-    std::unique_lock<std::mutex> l(lock);
+    std::unique_lock<std::recursive_mutex> l(lock);
     curl_multi_perform(curlMulti, &stillRunning);
     if (doCurlCallbacks && stillRunning != numCurls) {
         CURLMsg* m = nullptr;
@@ -996,6 +996,7 @@ bool CurlManager::doProcessCurls() {
 }
 
 CurlManager::HostData* CurlManager::getHostData(const std::string& host) {
+    std::unique_lock<std::recursive_mutex> l(lock);
     HostData* h = hostData[host];
     if (h == nullptr) {
         h = new HostData();
@@ -1005,13 +1006,13 @@ CurlManager::HostData* CurlManager::getHostData(const std::string& host) {
 }
 
 void CurlManager::setHostUsernamePassword(const std::string& host, const std::string& username, const std::string password) {
-    std::unique_lock<std::mutex> l(lock);
+    std::unique_lock<std::recursive_mutex> l(lock);
     HostData* h = getHostData(host);
     h->username = username;
     h->password = password;
 }
 void CurlManager::setHostAllowHTTP_0_9(const std::string &host, bool v) {
-    std::unique_lock<std::mutex> l(lock);
+    std::unique_lock<std::recursive_mutex> l(lock);
     HostData* h = getHostData(host);
     h->allowHTTP0_9 = v;
 }

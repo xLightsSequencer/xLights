@@ -1023,7 +1023,6 @@ void MovingHeadPanel::ValidateWindow()
     }*/
 
     // Set current timing track in Dimmer window
-    const ModelManager& mgr = model->GetModelManager();
     xLightsFrame* xlights = xLightsApp::GetFrame();
     if (xlights == nullptr) return;
     Element* active_timing = xlights->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();

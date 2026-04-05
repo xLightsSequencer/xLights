@@ -2514,14 +2514,17 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
     if (layers[layer]->buffer.Nodes.size() < 1000) {
         xlColor color;
         for (const auto& n : layers[layer]->buffer.Nodes) {
+            if (n == nullptr) continue;
             size_t start = n->ActChan;
 
             n->SetFromChannels(&fdata[start]);
             n->GetColor(color);
 
-            DimmingCurve* curve = n->model->GetDimmingCurve();
-            if (curve != nullptr) {
-                curve->reverse(color);
+            if (n->model != nullptr) {
+                DimmingCurve* curve = n->model->GetDimmingCurve();
+                if (curve != nullptr) {
+                    curve->reverse(color);
+                }
             }
             for (const auto& a : n->Coords) {
                 layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
@@ -2531,14 +2534,17 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
         parallel_for(
             0, layers[layer]->buffer.Nodes.size(), [&](int i) {
                 auto& n = layers[layer]->buffer.Nodes[i];
+                if (n == nullptr) return;
                 xlColor color;
                 size_t start = n->ActChan;
                 n->SetFromChannels(&fdata[start]);
                 n->GetColor(color);
 
-                DimmingCurve* curve = n->model->GetDimmingCurve();
-                if (curve != nullptr) {
-                    curve->reverse(color);
+                if (n->model != nullptr) {
+                    DimmingCurve* curve = n->model->GetDimmingCurve();
+                    if (curve != nullptr) {
+                        curve->reverse(color);
+                    }
                 }
                 for (const auto& a : n->Coords) {
                     layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);

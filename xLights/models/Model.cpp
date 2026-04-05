@@ -1808,7 +1808,15 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     if (!((camera != "2D") && GetDisplayAs() == DisplayAsType::ModelGroup && (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET))) {
         newNodes.reserve(firstNode + Nodes.size());
         for (auto& it : Nodes) {
+            if (it == nullptr) {
+                spdlog::critical("Model::InitRenderBufferNodes node is null in model '{}'. Skipping.", (const char*)GetFullName().c_str());
+                continue;
+            }
             newNodes.push_back(NodeBaseClassPtr(it.get()->clone()));
+            if (newNodes.back()->model == nullptr) {
+                spdlog::critical("Model::InitRenderBufferNodes cloned node has null model in '{}', ActChan={}.", (const char*)GetFullName().c_str(), newNodes.back()->ActChan);
+                newNodes.back()->model = this;
+            }
         }
     }
 

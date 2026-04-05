@@ -135,7 +135,7 @@ private:
         std::function<void(CURL*)> callback;
     };
     std::vector<CurlInfo*> curls;
-    std::mutex lock;
+    std::recursive_mutex lock;
 
     class HostData {
     public:
