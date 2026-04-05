@@ -9,6 +9,10 @@
  **************************************************************/
 
 #include "XmlDeserializingModelFactory.h"
+
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 #include "XmlNodeKeys.h"
 #include "XmlSerializeFunctions.h"
 #include "DimmingCurve.h"
