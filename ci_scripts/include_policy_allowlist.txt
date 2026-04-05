@@ -1,7 +1,7 @@
 # Include policy allowlist
 # Format: path/to/file.cpp|relative/include/path.h  (for "..." includes)
 #         path/to/file.cpp|wx/header.h               (for <wx/...> includes)
-# Regenerated 2026-04-04 from current tree (17 entries, down from 21).
+# Regenerated 2026-04-05 from current tree (16 entries, down from 17).
 xLights/controllers/FPP.cpp|../ui/wxUtilities.h
 xLights/controllers/FPP.cpp|ui/controllers/FPPUploadProgressDialog.h
 xLights/controllers/FPP.cpp|ui/setup/DiscoveryAuthDialog.h
@@ -17,7 +17,6 @@ xLights/models/ViewObjectManager.cpp|xLightsMain.h
 xLights/render/Render.cpp|xLightsMain.h
 xLights/render/SequenceMedia.cpp|../xLightsMain.h
 xLights/render/SequencePackage.cpp|xLightsMain.h
-xLights/render/WindowsHardwareVideoReader.cpp|wx/msw/ole/oleutils.h
 xLights/utils/AudioManager.cpp|wx/app.h
 # TODO: Remove common/ dependency from JobPool — xlBaseApp should not be needed in core utils
 xLights/utils/JobPool.cpp|../common/xlBaseApp.h

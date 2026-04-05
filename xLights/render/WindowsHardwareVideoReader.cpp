@@ -19,7 +19,8 @@
 #include <propvarutil.h>
 #include <wincodec.h>
 #include <Wmcodecdsp.h>
-#include <wx/msw/ole/oleutils.h>
+#include <objbase.h>
+#include <cassert>
 #include "Parallel.h"
 #include <winerror.h>
 #include <d3d11_4.h>
@@ -234,18 +235,18 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
         _frame->data[0] = (uint8_t*)av_malloc((size_t)_height * _frame->linesize[0]);
         memset(_frame->data[0], 0x00, (size_t)_height * _frame->linesize[0]);
         _frame->format = _pixelFormat;
-        wxASSERT(_reader != nullptr);
-        wxASSERT(_deviceManager != nullptr);
+        assert(_reader != nullptr);
+        assert(_deviceManager != nullptr);
 
         spdlog::debug("WHVD: Hardware Video Decoder Initialised OK for video: {}", (const char*)filename.c_str());
     } else {
         SafeRelease(&_reader);
         SafeRelease(&_deviceManager);
-        wxASSERT(_reader == nullptr);
-        wxASSERT(_deviceManager == nullptr);
+        assert(_reader == nullptr);
+        assert(_deviceManager == nullptr);
     }
 
-    wxASSERT(attributes == nullptr);
+    assert(attributes == nullptr);
 
 #ifdef DETAILED_LOGGING
     spdlog::debug("WHVD: Constructor Done: {}", (const char*)filename.c_str());
@@ -397,7 +398,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     SAFEEXEC(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType), "WHVD: Failed to get media type");
     if (SUCCEEDED(hr) && pType != nullptr) {
         _stride = (LONG)MFGetAttributeUINT32(pType, MF_MT_DEFAULT_STRIDE, 1);
-        wxASSERT(_stride = _width * GetPixelBytes());
+        assert(_stride = _width * GetPixelBytes());
 
         GUID subtype = { 0 };
         SAFEEXEC(pType->GetGUID(MF_MT_SUBTYPE, &subtype), "WHVD: Failed to get media subtype");
@@ -558,8 +559,8 @@ bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* fr
     }
 
     if (SUCCEEDED(hr)) {
-        wxASSERT(pBitmapData != nullptr);
-        wxASSERT(cbBitmapData > 0);
+        assert(pBitmapData != nullptr);
+        assert(cbBitmapData > 0);
         if (_pixelFormat == AVPixelFormat::AV_PIX_FMT_BGRA || _pixelFormat == AVPixelFormat::AV_PIX_FMT_BGR24) {
             // I am not sure this is correct
             memcpy(_frame->data[0], pBitmapData, std::min((uint32_t)cbBitmapData, (uint32_t)_frame->linesize[0] * _height));
@@ -650,7 +651,7 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 
     IMFSample* sample = nullptr;
     do {
-        wxASSERT(sample == nullptr);
+        assert(sample == nullptr);
 
 #ifdef DETAILED_LOGGING
         spdlog::debug("WHVD: Reading sample");
