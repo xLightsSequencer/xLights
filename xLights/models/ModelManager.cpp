@@ -52,7 +52,6 @@
 #include "../controllers/ControllerCaps.h"
 #include "../render/Element.h"
 #include "../xLightsMain.h"
-#include "../ui/layout/LayoutGroup.h"
 #include "DMX/DmxFloodArea.h"
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxGeneral.h"
@@ -71,7 +70,6 @@
 #endif
 
 ModelManager::ModelManager(OutputManager* outputManager, RenderContext* rc) :
-    layoutGroups(nullptr),
     _outputManager(outputManager),
     _renderContext(rc),
     previewWidth(0),
@@ -94,15 +92,10 @@ bool ModelManager::IsLowDefinitionRender() const {
 }
 
 std::vector<std::string> ModelManager::GetLayoutGroupNames() const {
-    std::vector<std::string> names;
-    if (layoutGroups != nullptr) {
-        for (const auto* grp : *layoutGroups) {
-            if (!grp->GetName().empty()) {
-                names.push_back(grp->GetName());
-            }
-        }
+    if (_renderContext != nullptr) {
+        return _renderContext->GetLayoutGroupNames();
     }
-    return names;
+    return {};
 }
 
 ModelManager::~ModelManager()

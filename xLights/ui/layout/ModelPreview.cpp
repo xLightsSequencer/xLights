@@ -387,8 +387,8 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             }
         } else {
             bool foundGrp = false;
-            for (auto grp : xlights->LayoutGroups) {
-                if (currentLayoutGroup == grp->GetName()) {
+            for (auto& [gname, grp] : xlights->LayoutGroups) {
+                if (currentLayoutGroup == gname) {
                     foundGrp = true;
                     if (additionalModel == nullptr) {
                         //wxASSERT(ValidateModels(grp->GetModels(), xlights->AllModels));
@@ -823,8 +823,10 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                 mnu.AppendSeparator();
                 mnu.Append(1, "House Preview");
                 int index = 2;
-                for (auto a : xlights->LayoutGroups) {
-                    mnu.Append(index++, a->GetName());
+                _popupGroupNames.clear();
+                for (auto& [gname, a] : xlights->LayoutGroups) {
+                    mnu.Append(index++, gname);
+                    _popupGroupNames.push_back(gname);
                 }
                 // ViewPoint menus
                 mnu.AppendSeparator();
@@ -861,16 +863,21 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
 
 void ModelPreview::OnPopup(wxCommandEvent& event)
 {
-    int id = event.GetId() - 1;
+    // Menu IDs: 1 = "House Preview", 2..N+1 = layout groups (matching _popupGroupNames[0..N-1])
+    int id = event.GetId() - 1; // id=0 → House Preview, id=1..N → layout groups
     if (xlights) {
         if (id == 0) {
             currentLayoutGroup = "Default";
             SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness(), xlights->GetDefaultPreviewBackgroundAlpha());
             SetbackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
-        } else if (id > 0 && id <= (int)xlights->LayoutGroups.size()) {
-            currentLayoutGroup = xlights->LayoutGroups[id - 1]->GetName();
-            SetBackgroundBrightness(xlights->LayoutGroups[id - 1]->GetBackgroundBrightness(), xlights->LayoutGroups[id - 1]->GetBackgroundAlpha());
-            SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
+        } else if (id > 0 && id <= (int)_popupGroupNames.size()) {
+            std::string groupName = _popupGroupNames[id - 1];
+            auto it = xlights->LayoutGroups.find(groupName);
+            if (it != xlights->LayoutGroups.end()) {
+                currentLayoutGroup = groupName;
+                SetBackgroundBrightness(it->second->GetBackgroundBrightness(), it->second->GetBackgroundAlpha());
+                SetbackgroundImage(it->second->GetBackgroundImage());
+            }
         }
     } else {
         //if xlights isn't set, just return as there is nothing we can do (shouldn't ever happen)

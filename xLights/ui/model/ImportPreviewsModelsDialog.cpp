@@ -46,7 +46,7 @@ BEGIN_EVENT_TABLE(ImportPreviewsModelsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, std::vector<LayoutGroup*>& layoutGroups, wxWindowID id,const wxPoint& pos,const wxSize& size) :
+ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, const std::map<std::string, std::unique_ptr<LayoutGroup>>& layoutGroups, wxWindowID id,const wxPoint& pos,const wxSize& size) :
     _allModels(allModels), _layoutGroups(layoutGroups)
 {
 	//(*Initialize(ImportPreviewsModelsDialog)
@@ -347,11 +347,7 @@ bool ImportPreviewsModelsDialog::ModelExists(const std::string& modelName) const
 
 bool ImportPreviewsModelsDialog::LayoutExists(const std::string& layoutName) const
 {
-    for (const auto& it : _layoutGroups)
-    {
-        if (it->GetName() == layoutName) return true;
-    }
-    return false;
+    return _layoutGroups.count(layoutName) > 0;
 }
 
 void ImportPreviewsModelsDialog::SelectRecursiveModel(wxString m, bool checked)

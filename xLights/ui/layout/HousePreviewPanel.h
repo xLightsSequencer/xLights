@@ -27,11 +27,10 @@ class HousePreviewPanel: public wxPanel
 {
 	public:
 
-		HousePreviewPanel(wxWindow* parent, 
+		HousePreviewPanel(wxWindow* parent,
                             xLightsFrame* frame,
                             bool showToolbars,
                             std::vector<Model*> &models,
-                            std::vector<LayoutGroup *> &groups,
                             bool allowSelected,
                             int style = 0,
                             bool allowPreviewChange = false,

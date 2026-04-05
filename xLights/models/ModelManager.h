@@ -23,7 +23,6 @@ class Model;
 class OutputManager;
 class RenderContext;
 class UICallbacks;
-class LayoutGroup;
 
 #ifdef GetObject
 #undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
@@ -71,8 +70,6 @@ class ModelManager : public ObjectManager
 
         bool RenameController(const std::string& oldName, const std::string& newName);
 
-        void SetLayoutGroups(std::vector<LayoutGroup*>* groups) { layoutGroups = groups; }
-        const std::vector<LayoutGroup*>* GetLayoutGroups() const { return layoutGroups; }
         std::vector<std::string> GetLayoutGroupNames() const;
 
         void clear();
@@ -111,7 +108,6 @@ class ModelManager : public ObjectManager
 
     private:
 
-    std::vector<LayoutGroup*>* layoutGroups = nullptr;
     OutputManager* _outputManager = nullptr;
     RenderContext* _renderContext = nullptr;
     bool _usedRuler = false;

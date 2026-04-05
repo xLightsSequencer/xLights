@@ -2945,12 +2945,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     // show/hide Layout Previews
     spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
-    for (const auto& it : LayoutGroups) {
-        if (it->GetMenuItem() == nullptr) {
+    for (const auto& [name, grp] : LayoutGroups) {
+        if (grp->GetMenuItem() == nullptr) {
             spdlog::critical("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
         }
-        if (it->GetMenuItem() && it->GetMenuItem()->IsChecked()) {
-            it->SetPreviewActive(show);
+        if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
+            grp->SetPreviewActive(show);
         }
     }
 
@@ -4670,11 +4670,9 @@ void xLightsFrame::RemovePreviewOption(LayoutGroup* grp)
 void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 {
     wxMenuItem* item = MenuItemPreviews->FindItem(event.GetId());
-    for (const auto& it : LayoutGroups) {
-        if (it != nullptr) {
-            if (it->GetMenuItem() == item) {
-                it->ShowPreview(item->IsChecked());
-            }
+    for (const auto& [name, grp] : LayoutGroups) {
+        if (grp->GetMenuItem() == item) {
+            grp->ShowPreview(item->IsChecked());
         }
     }
 }
@@ -4682,9 +4680,8 @@ void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
 {
     wxMenuItem* first_item = MenuItemPreviews->GetMenuItems().GetFirst()->GetData();
-    for (const auto& it : LayoutGroups) {
-        if (it != nullptr)
-            it->ShowPreview(first_item->IsChecked());
+    for (const auto& [name, grp] : LayoutGroups) {
+        grp->ShowPreview(first_item->IsChecked());
     }
 }
 
@@ -8853,6 +8850,15 @@ bool xLightsFrame::IsPaneDocked(wxWindow* window) const
         return true;
 
     return m_mgr->GetPane(window).IsDocked();
+}
+
+std::vector<std::string> xLightsFrame::GetLayoutGroupNames() const {
+    std::vector<std::string> names;
+    names.reserve(LayoutGroups.size());
+    for (const auto& [name, grp] : LayoutGroups) {
+        names.push_back(name);
+    }
+    return names;
 }
 
 IModelPreview* xLightsFrame::GetHousePreview() const

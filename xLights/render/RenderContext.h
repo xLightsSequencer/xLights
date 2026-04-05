@@ -54,6 +54,9 @@ public:
     // ---- model access ----
     virtual Model* GetModel(const std::string& name) const = 0;
 
+    // ---- layout group names (for model layout group assignment) ----
+    virtual std::vector<std::string> GetLayoutGroupNames() const { return {}; }
+
     // ---- managers ----
     virtual EffectManager& GetEffectManager() = 0;
     virtual OutputModelManager* GetOutputModelManager() = 0;

@@ -42,7 +42,6 @@ END_EVENT_TABLE()
 HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
     bool showToolbars,
     std::vector<Model*> &models,
-    std::vector<LayoutGroup *> &groups,
     bool allowSelected,
     int style,
     bool allowPreviewChange,

@@ -222,11 +222,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     layoutPanel->ClearSelectedModelGroup();
 
     // delete any views that were added to the menu
-    for (const auto& it : LayoutGroups) {
-        LayoutGroup* const grp = dynamic_cast<LayoutGroup* const>(it);
-        if (grp != nullptr) {
-            RemovePreviewOption(grp);
-        }
+    for (const auto& [name, grp] : LayoutGroups) {
+        RemovePreviewOption(grp.get());
     }
     PreviewWindows.clear();
 

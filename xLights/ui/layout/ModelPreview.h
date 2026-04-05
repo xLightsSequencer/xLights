@@ -205,6 +205,7 @@ private:
     xLightsFrame* xlights = nullptr;
     std::string currentModel;
     std::string currentLayoutGroup;
+    std::vector<std::string> _popupGroupNames; // layout group names in popup menu order
     std::vector<Model*> tmpModelList;
     Model *additionalModel = nullptr;
     uint32_t currentFrameTime = 0;

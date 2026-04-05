@@ -69,7 +69,7 @@ std::string xLightsFrame::BuildEffectsXml()
     serializer.SerializeAllObjects(AllObjects, visitor);
     std::vector<LayoutGroupData> lgData;
     lgData.reserve(LayoutGroups.size());
-    for (const auto* lg : LayoutGroups) {
+    for (const auto& [name, lg] : LayoutGroups) {
         lgData.push_back({lg->GetName(), lg->GetBackgroundImage(),
                           lg->GetBackgroundBrightness(), lg->GetBackgroundAlpha(),
                           lg->GetBackgroundScaled(),
@@ -581,10 +581,10 @@ void xLightsFrame::LoadEffectsFile()
                     if (grp_name == mStoredLayoutGroup) {
                         found_saved_preview = true;
                     }
-                    LayoutGroup* grp = new LayoutGroup(grp_name, this);
+                    auto grp = std::make_unique<LayoutGroup>(grp_name, this);
                     grp->SetFromXml(e);
-                    LayoutGroups.push_back(grp);
-                    AddPreviewOption(grp);
+                    AddPreviewOption(grp.get());
+                    LayoutGroups.emplace(grp_name, std::move(grp));
                     layoutPanel->AddPreviewChoice(grp_name);
                 }
             }
@@ -593,7 +593,6 @@ void xLightsFrame::LoadEffectsFile()
     if (!found_saved_preview) {
         mStoredLayoutGroup = "Default";
     }
-    AllModels.SetLayoutGroups(&LayoutGroups);  // provides easy access to layout names for the model class
 
     mBackgroundBrightness = (int)std::strtol(GetXmlSetting("backgroundBrightness", "100").c_str(), nullptr, 10);
     mBackgroundAlpha = (int)std::strtol(GetXmlSetting("backgroundAlpha", "100").c_str(), nullptr, 10);

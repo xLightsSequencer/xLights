@@ -1816,6 +1816,7 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
+    std::vector<std::string> GetLayoutGroupNames() const override;
     IModelPreview* GetHousePreview() const override;
     PreviewCamera* GetNamedCamera3D(const std::string& name) override;
 
@@ -2016,7 +2017,7 @@ private:
 public:
     FILE* _logfile = nullptr;
     std::vector<Model *> PreviewModels;
-    std::vector<LayoutGroup *> LayoutGroups;
+    std::map<std::string, std::unique_ptr<LayoutGroup>> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
     ModelManager AllModels;
     ViewObjectManager AllObjects;

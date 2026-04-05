@@ -741,9 +741,8 @@ void LayoutPanel::Reset()
     ChoiceLayoutGroups->Append("All Models");
     ChoiceLayoutGroups->Append("Unassigned");
     ChoiceLayoutGroups->SetToolTip("Select a preview or model group to display in the Layout Preview window. Choose 'Default' for models assigned to the default preview, 'All Models' to show all models, or a specific group to filter displayed models.");
-    for (const auto& it : xlights->LayoutGroups) {
-        LayoutGroup* grp = (LayoutGroup*)(it);
-        ChoiceLayoutGroups->Append(grp->GetName());
+    for (const auto& [name, grp] : xlights->LayoutGroups) {
+        ChoiceLayoutGroups->Append(name);
     }
     ChoiceLayoutGroups->Append("<Create New Preview>");
     ChoiceLayoutGroups->SetSelection(0);
@@ -1476,13 +1475,12 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     std::vector<Model *> dummy_models;
 
     // Update all the custom previews
-    for (const auto& it : xlights->LayoutGroups) {
-        LayoutGroup* grp = (LayoutGroup*)(it);
+    for (const auto& [gname, grp] : xlights->LayoutGroups) {
         dummy_models.clear();
-        if (grp->GetName() == currentLayoutGroup) {
-            UpdateModelsForPreview(currentLayoutGroup, grp, models, true);
+        if (gname == currentLayoutGroup) {
+            UpdateModelsForPreview(currentLayoutGroup, grp.get(), models, true);
         } else {
-            UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
+            UpdateModelsForPreview(gname, grp.get(), dummy_models, false);
         }
     }
 
@@ -8242,11 +8240,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
 
 LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
 {
-    for (const auto& it : xlights->LayoutGroups) {
-        LayoutGroup* grp = (LayoutGroup*)(it);
-        if( grp->GetName() == name ) {
-            return grp;
-        }
+    auto it = xlights->LayoutGroups.find(name);
+    if (it != xlights->LayoutGroups.end()) {
+        return it->second.get();
     }
     return nullptr;
 }
@@ -8279,10 +8275,10 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
                 }
             }
             //mSelectedGroup = nullptr;
-            LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights);
+            auto grp = std::make_unique<LayoutGroup>(name.ToStdString(), xlights);
             grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
-            xlights->LayoutGroups.push_back(grp);
-            xlights->AddPreviewOption(grp);
+            xlights->AddPreviewOption(grp.get());
+            xlights->LayoutGroups.emplace(name.ToStdString(), std::move(grp));
             SetCurrentLayoutGroup(name.ToStdString());
             AddPreviewChoice(name.ToStdString());
             ChoiceLayoutGroups->SetSelection(ChoiceLayoutGroups->GetCount() - 2);
@@ -8435,10 +8431,10 @@ void LayoutPanel::ImportModelsFromRGBEffects()
             }
             if (!found)
             {
-                LayoutGroup* grp = new LayoutGroup(it.ToStdString(), xlights);
+                auto grp = std::make_unique<LayoutGroup>(it.ToStdString(), xlights);
                 grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
-                xlights->LayoutGroups.push_back(grp);
-                xlights->AddPreviewOption(grp);
+                xlights->AddPreviewOption(grp.get());
+                xlights->LayoutGroups.emplace(it.ToStdString(), std::move(grp));
                 AddPreviewChoice(it.ToStdString());
             }
             ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups());
@@ -8619,16 +8615,10 @@ void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
 
 void LayoutPanel::DeleteCurrentPreview() {
     if (wxMessageBox("Are you sure you want to delete the " + currentLayoutGroup + " preview?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
-            LayoutGroup* grp = (LayoutGroup*)(*it);
-            if (grp != nullptr) {
-                if (currentLayoutGroup == grp->GetName()) {
-                    xlights->RemovePreviewOption(grp);
-                    xlights->LayoutGroups.erase(it);
-                    delete grp;
-                    break;
-                }
-            }
+        auto it = xlights->LayoutGroups.find(currentLayoutGroup);
+        if (it != xlights->LayoutGroups.end()) {
+            xlights->RemovePreviewOption(it->second.get());
+            xlights->LayoutGroups.erase(it);
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DeleteCurrentPreview");
 
@@ -8676,10 +8666,12 @@ void LayoutPanel::RenameCurrentPreview()
         }
     }
 
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
-        if ((*it)->GetName() == currentLayoutGroup) {
-            (*it)->SetName(dlg.GetValue());
-            break;
+    {
+        auto node = xlights->LayoutGroups.extract(currentLayoutGroup);
+        if (!node.empty()) {
+            node.mapped()->SetName(dlg.GetValue());
+            node.key() = dlg.GetValue();
+            xlights->LayoutGroups.insert(std::move(node));
         }
     }
 
@@ -8726,15 +8718,11 @@ void LayoutPanel::ShowPropGrid(bool show) {
 void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 {
     currentLayoutGroup = group;
-    for (const auto& it : xlights->LayoutGroups) {
-        LayoutGroup* grp = (LayoutGroup*)(it);
-        if (grp != nullptr) {
-            if( currentLayoutGroup == grp->GetName() ) {
-                pGrp = grp;
-                modelPreview->SetActiveLayoutGroup(grp->GetName());
-                return;
-            }
-        }
+    auto it = xlights->LayoutGroups.find(group);
+    if (it != xlights->LayoutGroups.end()) {
+        pGrp = it->second.get();
+        modelPreview->SetActiveLayoutGroup(group);
+        return;
     }
     modelPreview->SetActiveLayoutGroup(group);
 }

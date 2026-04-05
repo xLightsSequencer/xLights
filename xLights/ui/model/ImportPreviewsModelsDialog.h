@@ -43,7 +43,7 @@ class ImportPreviewsModelsDialog: public wxDialog
     pugi::xml_document _doc;
     wxTreeListItem _item;
     ModelManager& _allModels;
-    std::vector<LayoutGroup*>& _layoutGroups;
+    const std::map<std::string, std::unique_ptr<LayoutGroup>>& _layoutGroups;
 
     void ValidateWindow();
     void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview);
@@ -60,7 +60,7 @@ class ImportPreviewsModelsDialog: public wxDialog
 
 	public:
 
-		ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, std::vector<LayoutGroup*>& layoutGroups, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ImportPreviewsModelsDialog(wxWindow* parent, const wxString& filename, ModelManager& allModels, const std::map<std::string, std::unique_ptr<LayoutGroup>>& layoutGroups, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ImportPreviewsModelsDialog();
         bool GetIncludeEmptyGroups() const;
         wxArrayString GetPreviews() const;

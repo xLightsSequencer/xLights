@@ -102,7 +102,7 @@ void xLightsFrame::CreateSequencer()
                    Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true).Dockable(IsDockable("MP")));
 
     spdlog::debug("        House preview.");
-    _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
+    _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, false, 0, true);
     m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
         Left().Layer(1).BestSize(250, 250).MaximizeButton(true).Dockable(IsDockable("HP")));
 
@@ -229,11 +229,8 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     m_mgr->Update();
 
     // reset preview pane positions
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
-        if (grp != nullptr) {
-            grp->ResetPositions();
-        }
+    for (auto& [name, grp] : LayoutGroups) {
+        grp->ResetPositions();
     }
 
     wxConfigBase* config = wxConfigBase::Get();
