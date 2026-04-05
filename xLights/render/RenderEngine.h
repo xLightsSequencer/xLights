@@ -10,8 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "IRenderJobCallbacks.h"
-
 #include <functional>
 #include <list>
 #include <memory>
@@ -21,6 +19,7 @@
 
 class Effect;
 class IRenderProgressSink;
+class PixelBufferClass;
 class JobPool;
 class Model;
 class RenderCache;
@@ -30,11 +29,12 @@ class RenderProgressInfo;
 class RenderTreeData;
 class SequenceData;
 class SequenceElements;
+class SettingsMap;
 
 // Platform-neutral render orchestration engine.
 // Owns the render tree, job tracking, and main-thread effect queue.
 // xLightsFrame creates one of these and delegates all render work to it.
-class RenderEngine : public IRenderJobCallbacks {
+class RenderEngine {
 public:
     RenderEngine(RenderContext& ctx, JobPool& pool, RenderCache& cache);
     ~RenderEngine();
@@ -58,17 +58,25 @@ public:
                               bool suspendRender, unsigned int modelsChangeCount,
                               bool clear = false);
 
+    // Extract a single model's channel data from rendered sequence data into a
+    // new SequenceData buffer.  Returns {exportData, chansPerNode} or {nullptr,0} on failure.
+    struct ExportedModelData {
+        std::unique_ptr<SequenceData> data;
+        int chansPerNode = 0;
+    };
+    ExportedModelData ExportModelData(const std::string& modelName, SequenceData& sourceData);
+
     void SignalAbort();
     bool IsRenderDone() const { return _renderProgressInfo.empty(); }
 
     void RenderMainThreadEffects();
 
-    // ---- IRenderJobCallbacks ----
+    // ---- render job support ----
     bool RenderEffectFromMap(bool suppress, Effect* effect, int layer,
                              int period, SettingsMap& settings, PixelBufferClass& buffer,
-                             bool& resetEffectState, bool bgThread, RenderEvent* event) override;
-    void OnRenderJobComplete(const std::string& modelName) override;
-    void OnAllRenderJobsComplete() override;
+                             bool& resetEffectState, bool bgThread, RenderEvent* event);
+    void OnRenderJobComplete(const std::string& modelName);
+    void OnAllRenderJobsComplete();
 
     // ---- state access (for UI layer) ----
     std::list<RenderProgressInfo*>& GetRenderProgressInfo() { return _renderProgressInfo; }

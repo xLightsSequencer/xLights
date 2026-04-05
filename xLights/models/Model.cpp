@@ -612,7 +612,7 @@ void Model::AddModelGroups(pugi::xml_node n, const std::string& name, bool& merg
     if (grpModels.empty())
         return;
 
-    modelManager.GetXLightsFrame()->AllModels.AddModelGroups(n, name, merge, ask);
+    const_cast<ModelManager&>(modelManager).AddModelGroups(n, name, merge, ask);
 }
 
 void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, const std::string& layoutGroup) {

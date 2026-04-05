@@ -92,7 +92,6 @@
 #include "models/OutputModelManager.h"
 #include "render/RenderContext.h"
 #include "render/RenderEngine.h"
-#include "render/IRenderJobCallbacks.h"
 #include "render/IRenderProgressSink.h"
 #include "render/UICallbacks.h"
 #include "models/Model.h"
@@ -307,7 +306,7 @@ private:
     int id;
 };
 
-class xLightsFrame: public xlFrame, public RenderContext, public UICallbacks, public IRenderJobCallbacks
+class xLightsFrame: public xlFrame, public RenderContext, public UICallbacks
 {
 public:
 
@@ -1611,7 +1610,6 @@ public:
     std::string BuildEffectsXml();
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
-    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount) override;
     Model *GetModel(const std::string& name) const override;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
@@ -1619,26 +1617,9 @@ public:
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();
-    bool RenderEffectFromMap(bool suppress, Effect *effect, int layer, int period, SettingsMap& SettingsMap,
-                             PixelBufferClass &buffer, bool &ResetEffectState,
-                             bool bgThread = false, RenderEvent *event = nullptr) override;
-
-    // IRenderJobCallbacks implementation
-    void OnRenderJobComplete(const std::string& modelName) override;
-    void OnAllRenderJobsComplete() override;
     void RenderMainThreadEffects() override;
-    void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
-    void RenderDirtyModels();
     void RenderTimeSlice(int startms, int endms, bool clear);
-    void Render(SequenceElements& seqElements,
-                SequenceData& seqData,
-                const std::list<Model*> models,
-                const std::list<Model *> &restrictToModels,
-                int startFrame, int endFrame,
-                std::unique_ptr<IRenderProgressSink> sink, bool clear,
-                std::function<void(bool)>&& callback);
-    void BuildRenderTree();
 
     void RenderRange(RenderCommandEvent &cmd);
     void RenderDone();
@@ -1960,7 +1941,6 @@ private:
     void LoadDockable();
     void SaveDockable();
 
-    Effect* GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const override;
     void EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable);
     void CheckForAndCreateDefaultPerpective();
     void ResizeAndMakeEffectsScroll();

@@ -879,12 +879,12 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     // Use the callback to wait only for this render, not all of renderProgressInfo
     // (which may contain an unrelated main-sequence render that won't finish here).
     std::atomic<bool> renderComplete{false};
-    Render(seqElements, seqData, { matrixModel }, { matrixModel },
+    _renderEngine->Render(seqElements, seqData, { matrixModel }, { matrixModel },
            0, numFrames - 1, nullptr, true, [&renderComplete](bool) { renderComplete = true; });
 
     while (!renderComplete) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        RenderMainThreadEffects();
+        _renderEngine->RenderMainThreadEffects();
         UpdateRenderStatus();
     }
 
@@ -1316,12 +1316,12 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 //Need to make sure all the ASAP work is done first or it
                 //may abort the render
                 DoASAPWork();
-                Render(_presetSequenceElements, _presetSequenceData,
+                _renderEngine->Render(_presetSequenceElements, _presetSequenceData,
                        { _presetModel }, { _presetModel },
                        0, frames - 1, nullptr, true, [](bool) {});
                 while (!_renderEngine->IsRenderDone()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                    RenderMainThreadEffects();
+                    _renderEngine->RenderMainThreadEffects();
                     UpdateRenderStatus();
                 }
             }

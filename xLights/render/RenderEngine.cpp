@@ -29,7 +29,6 @@
 #include "SequenceFile.h"
 #include "effects/RenderableEffect.h"
 #include "effects/EffectManager.h"
-#include "IRenderJobCallbacks.h"
 #include "IRenderJobStatus.h"
 #include "IRenderProgressSink.h"
 #include "RenderProgressInfo.h"
@@ -202,7 +201,18 @@ private:
     const int finalFrame;
 };
 
-// RenderProgressInfo::CleanupJobs() defined in Render.cpp
+void RenderProgressInfo::CleanupJobs() {
+    for (int i = 0; i < numRows; ++i) {
+        delete jobs[i];
+        delete aggregators[i];
+    }
+    delete[] jobs;
+    jobs = nullptr;
+    delete[] aggregators;
+    aggregators = nullptr;
+    delete progressSink;
+    progressSink = nullptr;
+}
 
 class SNPair {
 public:
@@ -231,8 +241,8 @@ public:
 
 class RenderJob: public Job, public NextRenderer, public IRenderJobStatus {
 public:
-    RenderJob(ModelElement *row, SequenceData &data, RenderContext *ctx, IRenderJobCallbacks *callbacks)
-        : Job(), NextRenderer(), rowToRender(row), _ctx(ctx), _callbacks(callbacks), seqData(&data),
+    RenderJob(ModelElement *row, SequenceData &data, RenderContext *ctx, RenderEngine *engine)
+        : Job(), NextRenderer(), rowToRender(row), _ctx(ctx), _engine(engine), seqData(&data),
             supportsModelBlending(false), statusMap(nullptr), m_logger(spdlog::get("render")),
             currentFrame(0), abort(false)
     {
@@ -242,7 +252,9 @@ public:
             mainBuffer = new PixelBufferClass(_ctx);
             numLayers = rowToRender->GetEffectLayerCount();
 
-            if (_ctx->InitPixelBuffer(name, *mainBuffer, numLayers)) {
+            Model* mdl = _ctx->GetModel(name);
+            if (mdl != nullptr) {
+                mainBuffer->InitBuffer(*mdl, numLayers, seqData->FrameTime());
                 const Model *model = mainBuffer->GetModel();
                 if (DisplayAsType::ModelGroup == model->GetDisplayAs()) {
                     //for (int l = 0; l < numLayers; ++l) {
@@ -714,7 +726,7 @@ public:
                     buffer->UnMergeBuffersForLayer(layer);
                 }
 
-                info.validLayers[layer] = _callbacks->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
+                info.validLayers[layer] = _engine->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
                 effectsToUpdate |= info.validLayers[layer];
                 info.effectStates[layer] = b;
 
@@ -898,7 +910,7 @@ public:
                         }
 
                         SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
-                        if (_callbacks->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
+                        if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                             SetCalOutputStatus(frame, -1, strand, inode);
                             buffer->HandleLayerBlurZoom(frame, 0);
                             buffer->HandleLayerTransitions(frame, 0);
@@ -937,10 +949,10 @@ public:
             //let the next know we're done
             SetGenericStatus("{}: Notifying next renderer of final frame", 0, true);
             FrameDone(END_OF_RENDER_FRAME);
-            _callbacks->OnRenderJobComplete(rowToRender->GetModelName());
+            _engine->OnRenderJobComplete(rowToRender->GetModelName());
             SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
         } else {
-            _callbacks->OnAllRenderJobsComplete();
+            _engine->OnAllRenderJobsComplete();
         }
         rowToRender->CleanupAfterRender();
         currentFrame = END_OF_RENDER_FRAME;
@@ -1038,7 +1050,7 @@ private:
     std::atomic_int startFrame;
     std::atomic_int endFrame;
     RenderContext *_ctx;
-    IRenderJobCallbacks *_callbacks;
+    RenderEngine *_engine;
     SequenceData *seqData;
     std::vector<bool> rangeRestriction;
     bool supportsModelBlending;
@@ -1557,6 +1569,20 @@ void RenderEngine::SignalAbort() {
 
 // RenderGridToSeqData — moved to RenderUI.cpp (creates WxRenderProgressSink)
 
+static Effect* GetPersistentEffectOnModelStartingAtTime(SequenceElements& seqElements, const std::string& model, uint32_t startms) {
+    Element* e = seqElements.GetElement(model);
+    if (e == nullptr)
+        return nullptr;
+    for (size_t i = 0; i < e->GetEffectLayerCount(); ++i) {
+        Effect* ef = e->GetEffectLayer(i)->GetEffectStartingAtTime(startms);
+        if (ef != nullptr && ef->IsPersistent()) {
+            return ef;
+        }
+    }
+    return nullptr;
+}
+
+
 void RenderEngine::RenderEffectForModel(const std::string &model, int startms, int endms,
                                         SequenceElements& _sequenceElements, SequenceData& _seqData,
                                         bool suspendRender, unsigned int modelsChangeCount, bool clear) {
@@ -1574,7 +1600,7 @@ void RenderEngine::RenderEffectForModel(const std::string &model, int startms, i
     int startframe = startms / _seqData.FrameTime();
 
     // If there is an effect at the start time that has the persistent flag set then include the prior frame
-    Effect* persistentEffectBefore = _ctx.GetPersistentEffectOnModelStartingAtTime(model, startms);
+    Effect* persistentEffectBefore = GetPersistentEffectOnModelStartingAtTime(_sequenceElements, model, startms);
     if (persistentEffectBefore != nullptr) {
         startframe -= 1;
     }
@@ -1585,7 +1611,7 @@ void RenderEngine::RenderEffectForModel(const std::string &model, int startms, i
     int endframe = endms / _seqData.FrameTime();
 
     // If there is an effect at the end time that has the persistent flag set then include the next frame
-    Effect* persistentEffectAfter = _ctx.GetPersistentEffectOnModelStartingAtTime(model, endms);
+    Effect* persistentEffectAfter = GetPersistentEffectOnModelStartingAtTime(_sequenceElements, model, endms);
     if (persistentEffectAfter != nullptr) {
         endframe = persistentEffectAfter->GetEndTimeMS() / _seqData.FrameTime();
     }
@@ -1622,7 +1648,33 @@ void RenderEngine::RenderEffectForModel(const std::string &model, int startms, i
     }
 }
 
-// DoExportModel stays on xLightsFrame in Render.cpp (uses wx heavily)
+RenderEngine::ExportedModelData RenderEngine::ExportModelData(const std::string& modelName, SequenceData& sourceData) {
+    ExportedModelData result;
+
+    Model* model = _ctx.GetModel(modelName);
+    if (model == nullptr)
+        return result;
+
+    PixelBufferClass buffer(&_ctx);
+    buffer.InitBuffer(*model, 1, sourceData.FrameTime());
+
+    auto exportData = std::make_unique<SequenceData>();
+    exportData->init(model->GetActChanCount(), sourceData.NumFrames(), sourceData.FrameTime(), false);
+
+    int firstChan = model->NodeStartChannel(0);
+    for (size_t frame = 0; frame < sourceData.NumFrames(); ++frame) {
+        for (size_t x = 0; x < buffer.GetNodeCount(); ++x) {
+            int ostart = model->NodeStartChannel(x);
+            int nstart = ostart - firstChan;
+            buffer.SetNodeChannelValues(x, &sourceData[frame][ostart]);
+            buffer.GetNodeChannelValues(x, &((*exportData)[frame][nstart]));
+        }
+    }
+
+    result.data = std::move(exportData);
+    result.chansPerNode = buffer.GetChanCountPerNode();
+    return result;
+}
 
 bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int layer, int period, SettingsMap& SettingsMap,
     PixelBufferClass& buffer, bool& resetEffectState,

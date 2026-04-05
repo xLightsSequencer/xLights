@@ -65,9 +65,6 @@
     </ClCompile>
     <ClCompile Include="ui/layout/PreviewPane.cpp" />
     <ClCompile Include="ui/sequencer/RenameTextDialog.cpp" />
-    <ClCompile Include="render\Render.cpp">
-      <Filter>render</Filter>
-    </ClCompile>
     <ClCompile Include="render\RenderEngine.cpp">
       <Filter>render</Filter>
     </ClCompile>

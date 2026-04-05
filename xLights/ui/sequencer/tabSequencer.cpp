@@ -312,22 +312,10 @@ void xLightsFrame::InitSequencer()
 
 Model *xLightsFrame::GetModel(const std::string& name) const
 {
+    if (_presetModel != nullptr && name == _presetModel->GetName()) {
+        return _presetModel;
+    }
     return AllModels[name];
-}
-
-bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount) {
-
-    if (modelName == PRESET_MODEL_NAME && _presetModel != nullptr) {
-        buffer.InitBuffer(*_presetModel, layerCount, 50);
-    }
-    else {
-        Model* model = GetModel(modelName);
-        if (model == nullptr) {
-            return false;
-        }
-        buffer.InitBuffer(*model, layerCount, _seqData.FrameTime());
-    }
-    return true;
 }
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()

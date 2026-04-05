@@ -398,7 +398,6 @@
 		<Unit filename="ui/setup/RemapDMXChannelsDialog.h" />
 		<Unit filename="ui/sequencer/RenameTextDialog.cpp" />
 		<Unit filename="ui/sequencer/RenameTextDialog.h" />
-		<Unit filename="render/Render.cpp" />
 		<Unit filename="render/RenderEngine.cpp" />
 		<Unit filename="render/RenderEngine.h" />
 		<Unit filename="render/ViewpointMgr.cpp" />

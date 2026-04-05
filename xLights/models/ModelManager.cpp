@@ -565,6 +565,8 @@ void ModelManager::AddModelGroups(pugi::xml_node n, const std::string& mname, bo
     XmlDeserializingModelFactory factory;
     Model* model = factory.Deserialize(tempNode, const_cast<ModelManager&>(*this), false);
     if (model != nullptr) {
+        model->GetModelScreenLocation().previewW = previewWidth;
+        model->GetModelScreenLocation().previewH = previewHeight;
         ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
         if (mg != nullptr) {
             mg->RebuildBuffers();

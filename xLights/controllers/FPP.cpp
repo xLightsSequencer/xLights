@@ -765,15 +765,18 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
                                         Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK) {
                     std::ifstream ifs(fullFileName, std::ios::binary);
                     char buf[32768];
-                    while (ifs.read(buf, sizeof(buf)) || ifs.gcount() > 0) {
-                        zipWriteInFileInZip(zf, buf, static_cast<unsigned>(ifs.gcount()));
-                        if (ifs.gcount() == 0) break;
+                    while (ifs) {
+                        ifs.read(buf, sizeof(buf));
+                        if (ifs.gcount() > 0) {
+                            zipWriteInFileInZip(zf, buf, static_cast<unsigned>(ifs.gcount()));
+                        }
                     }
                     zipCloseFileInZip(zf);
                 }
                 zipClose(zf, nullptr);
+                std::error_code ec;
+                std::filesystem::rename(zipPath, fullFileName, ec);
             }
-            std::filesystem::rename(zipPath, fullFileName);
             std::filesystem::path toPath(filename);
             toPath.replace_extension(".xlz");
             fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(toPath.string());
