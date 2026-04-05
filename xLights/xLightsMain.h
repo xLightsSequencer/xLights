@@ -1280,7 +1280,7 @@ public:
     const wxString& GetLinkedControllerUpload() const { return _linkedControllerUpload; }
     void SetLinkedControllerUpload(const wxString& e);
     
-    const wxString& GetRenameModelAliasPromptBehavior() const { return _aliasRenameBehavior; }
+    std::string GetRenameModelAliasPromptBehavior() const override { return _aliasRenameBehavior.ToStdString(); }
     void SetRenameModelAliasPromptBehavior(const wxString& e);
 
     int SaveFSEQVersion() const { return _fseqVersion; }

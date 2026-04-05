@@ -21,6 +21,7 @@
 #include "MainSequencer.h"
 #include "../render/SequenceElements.h"
 #include "../xLightsMain.h"
+#include "../xLightsApp.h"
 #include "ui/media/JukeboxPanel.h"
 #include "TimeLine.h"
 #include "UtilFunctions.h"
@@ -610,8 +611,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             else if (type == "EFFECT") {
                 if (PanelEffectGrid->GetSelectedEffect() == nullptr) {
                     // reset default settings if appropriate
-                    if (binding->GetEffectName() != mSequenceElements->GetXLightsFrame()->GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection()) {
-                        mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
+                    if (binding->GetEffectName() != xLightsApp::GetFrame()->GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection()) {
+                        xLightsApp::GetFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
                     }
 
                     // If the binding has no effect string, get the default settings from the panel
@@ -619,7 +620,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                     std::string effectSettings = binding->GetEffectString();
                     if (effectSettings.empty()) {
                         std::string palette;
-                        effectSettings = mSequenceElements->GetXLightsFrame()->GetEffectTextFromWindows(palette);
+                        effectSettings = xLightsApp::GetFrame()->GetEffectTextFromWindows(palette);
                     }
 
                     Effect* ef = PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + effectSettings + _("\t\n"), binding->GetEffectDataVersion());
@@ -633,7 +634,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 newSetting.Parse(nullptr, binding->GetEffectString(), "");
 
                 // Apply setting on the UI
-                mSequenceElements->GetXLightsFrame()->SetEffectControls(newSetting);
+                xLightsApp::GetFrame()->SetEffectControls(newSetting);
 
                 // Now apply it to all selected effects
                 for (const auto& s : newSetting) {
@@ -641,34 +642,34 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 }
             }
             else if (type == "PRESET") {
-                Effect* ef = mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
+                Effect* ef = xLightsApp::GetFrame()->ApplyEffectsPreset(binding->GetEffectName());
                 PanelEffectGrid->SelectEffect(ef);
             }
             else if (type == "EFFECT_SETTINGS_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHideEffectSettingsWindow(e);
+                xLightsApp::GetFrame()->ShowHideEffectSettingsWindow(e);
             }
             else if (type == "SAVE_SEQUENCE") {
-                mSequenceElements->GetXLightsFrame()->SaveSequence();
+                xLightsApp::GetFrame()->SaveSequence();
             }
             else if (type == "SAVEAS_SEQUENCE") {
-                mSequenceElements->GetXLightsFrame()->SaveAsSequence();
+                xLightsApp::GetFrame()->SaveAsSequence();
             }
             else if (type == "EFFECT_ASSIST_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHideEffectAssistWindow(e);
+                xLightsApp::GetFrame()->ShowHideEffectAssistWindow(e);
             }
             else if (type == "COLOR_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHideColorWindow(e);
+                xLightsApp::GetFrame()->ShowHideColorWindow(e);
             }
             else if (type == "LAYER_SETTING_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHideBufferSettingsWindow(e);
+                xLightsApp::GetFrame()->ShowHideBufferSettingsWindow(e);
             }
             else if (type == "LAYER_BLENDING_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHideLayerTimingWindow(e);
+                xLightsApp::GetFrame()->ShowHideLayerTimingWindow(e);
             }
             else if (type == "MODEL_PREVIEW_TOGGLE") {
                 ToggleModelPreview();
@@ -678,15 +679,15 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "EFFECTS_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHideEffectDropper(e);
+                xLightsApp::GetFrame()->ShowHideEffectDropper(e);
             }
             else if (type == "DISPLAY_ELEMENTS_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHideDisplayElementsWindow(e);
+                xLightsApp::GetFrame()->ShowHideDisplayElementsWindow(e);
             }
             else if (type == "JUKEBOX_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->OnMenuItem_JukeboxSelected(e);
+                xLightsApp::GetFrame()->OnMenuItem_JukeboxSelected(e);
             }
             else if (type == "LOCK_EFFECT") {
                 PanelEffectGrid->LockEffects(true);
@@ -710,27 +711,27 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             else if (type == "PRIOR_TAG") {
                 PanelTimeLine->GoToPriorTag();
             } else if (type == "JUKEBOX_BTN_1") {
-                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                JukeboxPanel* jukeboxPanel = xLightsApp::GetFrame()->GetJukeboxPanel();
                 if (jukeboxPanel != nullptr) {
                     jukeboxPanel->PlayItem(1);
                 }
             } else if (type == "JUKEBOX_BTN_2") {
-                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                JukeboxPanel* jukeboxPanel = xLightsApp::GetFrame()->GetJukeboxPanel();
                 if (jukeboxPanel != nullptr) {
                     jukeboxPanel->PlayItem(2);
                 }
             } else if (type == "JUKEBOX_BTN_3") {
-                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                JukeboxPanel* jukeboxPanel = xLightsApp::GetFrame()->GetJukeboxPanel();
                 if (jukeboxPanel != nullptr) {
                     jukeboxPanel->PlayItem(3);
                 }
             } else if (type == "JUKEBOX_BTN_4") {
-                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                JukeboxPanel* jukeboxPanel = xLightsApp::GetFrame()->GetJukeboxPanel();
                 if (jukeboxPanel != nullptr) {
                     jukeboxPanel->PlayItem(4);
                 }
             } else if (type == "JUKEBOX_BTN_5") {
-                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                JukeboxPanel* jukeboxPanel = xLightsApp::GetFrame()->GetJukeboxPanel();
                 if (jukeboxPanel != nullptr) {
                     jukeboxPanel->PlayItem(5);
                 }
@@ -753,47 +754,47 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             else if (type == "INSERT_LAYER_ABOVE") {
                 PanelEffectGrid->InsertEffectLayerAbove();
             } else if (type == "INCREASE_SPEED") {
-                float t = mSequenceElements->GetXLightsFrame()->GetPlaySpeed();
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(t + 0.25);
-                mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t + 0.25));
+                float t = xLightsApp::GetFrame()->GetPlaySpeed();
+                xLightsApp::GetFrame()->SetPlaySpeedTo(t + 0.25);
+                xLightsApp::GetFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t + 0.25));
             } else if (type == "DECREASE_SPEED") {
-                float t = mSequenceElements->GetXLightsFrame()->GetPlaySpeed();
+                float t = xLightsApp::GetFrame()->GetPlaySpeed();
                 if (t > 0.50) {
-                    mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(t - 0.25);
-                    mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t - 0.25));
+                    xLightsApp::GetFrame()->SetPlaySpeedTo(t - 0.25);
+                    xLightsApp::GetFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t - 0.25));
                 }
             } else if (type == "PLAY_PRIOR_TAG") {
                 spdlog::debug("play prior tag");
                 wxCommandEvent playEvent(EVT_SEQUENCE_PRIOR_TAG);
-                wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+                wxPostEvent(xLightsApp::GetFrame(), playEvent);
             } else if (type == "PLAY_NEXT_TAG") {
                 spdlog::debug("play next tag");
                 wxCommandEvent playEvent(EVT_SEQUENCE_NEXT_TAG);
-                wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+                wxPostEvent(xLightsApp::GetFrame(), playEvent);
             }
             else if (type == "AUDIO_FULL_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(1.0);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(1.0);
             }
             else if (type == "AUDIO_F_1_5_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(1.5);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(1.5);
             }
             else if (type == "AUDIO_F_2_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(2.0);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(2.0);
             }
             else if (type == "AUDIO_F_3_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(3.0);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(3.0);
             }
             else if (type == "AUDIO_F_4_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(4.0);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(4.0);
             }
             else if (type == "AUDIO_S_3_4_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(0.75);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(0.75);
             }
             else if (type == "AUDIO_S_1_2_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(0.5);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(0.5);
             }
             else if (type == "AUDIO_S_1_4_SPEED") {
-                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(0.25);
+                xLightsApp::GetFrame()->SetPlaySpeedTo(0.25);
             }
             else if (type == "SELECT_ALL") {
                 mSequenceElements->SelectAllEffects();
@@ -810,26 +811,26 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 PanelEffectGrid->ToggleExpandElement(PanelRowHeadings);
             }
             else if (type == "SHOW_PRESETS") {
-                mSequenceElements->GetXLightsFrame()->ShowPresetsPanel();
+                xLightsApp::GetFrame()->ShowPresetsPanel();
             }
             else if (type == "PRESETS_TOGGLE") {
-                mSequenceElements->GetXLightsFrame()->TogglePresetsPanel();
+                xLightsApp::GetFrame()->TogglePresetsPanel();
             }
             else if (type == "VALUECURVES_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->OnMenuItem_ValueCurvesSelected(e);
+                xLightsApp::GetFrame()->OnMenuItem_ValueCurvesSelected(e);
             }
             else if (type == "COLOR_DROPPER_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->OnMenuItem_ColourDropperSelected(e);
+                xLightsApp::GetFrame()->OnMenuItem_ColourDropperSelected(e);
             }
             else if (type == "SEARCH_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->OnMenuItemSelectEffectSelected(e);
+                xLightsApp::GetFrame()->OnMenuItemSelectEffectSelected(e);
             }
             else if (type == "PERSPECTIVES_TOGGLE") {
                 wxCommandEvent e;
-                mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
+                xLightsApp::GetFrame()->ShowHidePerspectivesWindow(e);
             }
             else if (type == "EFFECT_UPDATE") {
                 wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
@@ -883,14 +884,14 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         }
     }
 
-    return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
+    return xLightsApp::GetFrame()->HandleAllKeyBinding(event);
 }
 
 void MainSequencer::OnCharHook(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
 
-    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr && mSequenceElements->GetXLightsFrame()->IsACActive())
+    if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr && xLightsApp::GetFrame()->IsACActive())
     {
         if (PanelEffectGrid->HandleACKey(uc, event.ShiftDown()))
         {
@@ -1029,8 +1030,8 @@ void MainSequencer::CancelRender()
 
     if (!escapeReenter) {
         escapeReenter = true;
-        if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
-            mSequenceElements->GetXLightsFrame()->AbortRender();
+        if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr) {
+            xLightsApp::GetFrame()->AbortRender();
         }
         escapeReenter = false;
     }
@@ -1040,7 +1041,7 @@ void MainSequencer::ToggleRender(bool off)
 {
     if (mSequenceElements == nullptr) return;
     if (off) CancelRender();
-    mSequenceElements->GetXLightsFrame()->SuspendRender(off);
+    xLightsApp::GetFrame()->SuspendRender(off);
 }
 
 void MainSequencer::OnKeyDown(wxKeyEvent& event)
@@ -1054,7 +1055,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetUnicodeKey();
 
-    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr && mSequenceElements->GetXLightsFrame()->IsACActive())
+    if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr && xLightsApp::GetFrame()->IsACActive())
     {
         if (PanelEffectGrid->HandleACKey(uc))
         {
@@ -1145,8 +1146,8 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 
             if (!escapeReenter) {
                 escapeReenter = true;
-                if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
-                    mSequenceElements->GetXLightsFrame()->AbortRender();
+                if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr) {
+                    xLightsApp::GetFrame()->AbortRender();
                 }
                 escapeReenter = false;
             }
@@ -1156,31 +1157,31 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 }
 
 void MainSequencer::ToggleHousePreview() {
-    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
+    if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr) {
         wxCommandEvent event;
-        mSequenceElements->GetXLightsFrame()->ShowHideHousePreview(event);
+        xLightsApp::GetFrame()->ShowHideHousePreview(event);
     }
 }
 
 void MainSequencer::ToggleModelPreview() {
-    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
+    if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr) {
         wxCommandEvent event;
-        mSequenceElements->GetXLightsFrame()->ShowHideModelPreview(event);
+        xLightsApp::GetFrame()->ShowHideModelPreview(event);
     }
 }
 
 void MainSequencer::TouchPlayControl(const std::string &evt) {
     wxCommandEvent e;
     if (evt == "Play") {
-        mSequenceElements->GetXLightsFrame()->OnAuiToolBarItemPlayButtonClick(e);
+        xLightsApp::GetFrame()->OnAuiToolBarItemPlayButtonClick(e);
     } else if (evt == "Pause") {
-        mSequenceElements->GetXLightsFrame()->OnAuiToolBarItemPauseButtonClick(e);
+        xLightsApp::GetFrame()->OnAuiToolBarItemPauseButtonClick(e);
     } else if (evt == "Stop") {
-        mSequenceElements->GetXLightsFrame()->OnAuiToolBarItemStopClick(e);
+        xLightsApp::GetFrame()->OnAuiToolBarItemStopClick(e);
     } else if (evt == "Back") {
-        mSequenceElements->GetXLightsFrame()->OnAuiToolBarFirstFrameClick(e);
+        xLightsApp::GetFrame()->OnAuiToolBarFirstFrameClick(e);
     } else if (evt == "Forward") {
-        mSequenceElements->GetXLightsFrame()->OnAuiToolBarLastFrameClick(e);
+        xLightsApp::GetFrame()->OnAuiToolBarLastFrameClick(e);
     }
 }
 
@@ -1664,7 +1665,7 @@ void MainSequencer::UnselectAllEffects()
 
 void MainSequencer::SelectEffect(Effect* ef)
 {
-    if (!mSequenceElements->GetXLightsFrame()->IsACActive())
+    if (!xLightsApp::GetFrame()->IsACActive())
     {
         PanelEffectGrid->SelectEffect(ef);
     }
@@ -1731,7 +1732,7 @@ void MainSequencer::InsertTimingMarkFromRange()
     bool is_range = true;
     int x1;
     int x2;
-    if (mSequenceElements->GetXLightsFrame()->GetPlayStatus() == PLAY_TYPE_MODEL) {
+    if (xLightsApp::GetFrame()->GetPlayStatus() == PLAY_TYPE_MODEL) {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;
     }
@@ -1835,7 +1836,7 @@ void MainSequencer::SplitTimingMark()
 
     int x1;
     int x2;
-    if (mSequenceElements->GetXLightsFrame()->GetPlayStatus() == PLAY_TYPE_MODEL)
+    if (xLightsApp::GetFrame()->GetPlayStatus() == PLAY_TYPE_MODEL)
     {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;

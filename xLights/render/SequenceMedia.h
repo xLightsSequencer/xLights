@@ -75,6 +75,7 @@ public:
     std::shared_ptr<xlImage> GetPreviewFrame(size_t index) const;
     long GetPreviewFrameTime(size_t index) const;
     void ClearPreview();
+    void SetPreviewFrames(std::vector<std::shared_ptr<xlImage>>&& frames, int frameTimeMs);
 
 protected:
     // Read a file from disk into _embeddedData as base64
@@ -242,7 +243,6 @@ private:
 
 class ShaderConfig;
 class SequenceElements;
-class xLightsFrame;
 
 /**
  * ShaderMediaCacheEntry - Cached shader source (.fs files)
@@ -260,10 +260,6 @@ public:
     // Get or create the parsed ShaderConfig. Caches the result.
     // sequenceElements is needed for timing track enumeration.
     ShaderConfig* GetShaderConfig(SequenceElements* sequenceElements);
-
-    // Generate preview by rendering the shader effect with default parameters.
-    // Requires xLightsFrame for access to the render engine.
-    void GenerateShaderPreview(xLightsFrame* frame);
 
     void Load() override;
     bool LoadFromXml(const pugi::xml_node& node) override;

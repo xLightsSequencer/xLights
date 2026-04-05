@@ -19,6 +19,7 @@
 #include "../../../ui/model/CustomModelDialog.h"
 #include "utils/ExternalHooks.h"
 #include "../../../xLightsMain.h"
+#include "../../../xLightsApp.h"
 
 #include <log.h>
 
@@ -35,8 +36,8 @@ public:
         wxPGProperty* WXUNUSED(property)) override
     {
         m_model->SaveDisplayDimensions();
-        auto oldAutoSave = m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
-        m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true;
+        auto oldAutoSave = xLightsApp::GetFrame()->_suspendAutoSave;
+        xLightsApp::GetFrame()->_suspendAutoSave = true;
         CustomModelDialog dlg(propGrid, _outputManager);
         dlg.Setup(m_model);
         bool res = false;
@@ -50,9 +51,9 @@ public:
             m_model->RestoreDisplayDimensions();
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
-            m_model->GetModelManager().GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
+            xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
         }
-        m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = oldAutoSave;
+        xLightsApp::GetFrame()->_suspendAutoSave = oldAutoSave;
         return res;
     }
 protected:

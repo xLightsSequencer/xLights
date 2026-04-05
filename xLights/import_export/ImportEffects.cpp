@@ -363,7 +363,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src, std::vector<Effect
             // if we are mapping the effect onto a group and it is a per preview render buffer then use the group's default camera
             //   unless there is a non-default 3D camera assigned to the effect, and it exists in the target layout
             if (!target->IsTimingLayer()) {
-                Model* m = target->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(target->GetParentElement()->GetModelName());
+                Model* m = target->GetParentElement()->GetSequenceElements()->GetRenderContext()->GetModel(target->GetParentElement()->GetModelName());
                 if (m != nullptr) {
                     auto mg = dynamic_cast<const ModelGroup*>(m);
                     if (mg != nullptr) {
@@ -499,7 +499,8 @@ void MapXLightsEffects(Element* target,
 
 void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile)
 {
-    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()), this);
+    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()),
+                           GetShowDirectory(), GetSeqXmlFileName().ToStdString(), &AllModels);
 
     if (xsqPkg.IsPkg()) {
         xsqPkg.Extract();
@@ -555,7 +556,8 @@ ModelElement* AddModel(Model* m, SequenceElements& se)
 void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, const wxFileName& filename,
                                  bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc)
 {
-    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()), this);
+    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()),
+                           GetShowDirectory(), GetSeqXmlFileName().ToStdString(), &AllModels);
     ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
 }
 
@@ -3287,7 +3289,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
     if (eraseExisting)
         layer->DeleteAllEffects();
 
-    Model* m = layer->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->AllModels[layer->GetParentElement()->GetModelName()];
+    Model* m = layer->GetParentElement()->GetSequenceElements()->GetRenderContext()->GetModel(layer->GetParentElement()->GetModelName());
     bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
 
     static wxRegEx regex("\\[(\\d+),(\\d+),(\\d+)\\]\\[(.*)\\]", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -3327,7 +3329,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
     if (eraseExisting)
         nl->DeleteAllEffects();
 
-    Model* m = nl->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->AllModels[nl->GetParentElement()->GetModelName()];
+    Model* m = nl->GetParentElement()->GetSequenceElements()->GetRenderContext()->GetModel(nl->GetParentElement()->GetModelName());
     bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
 
     auto st = lorEdit.GetSequencingType(mapping);
@@ -3370,7 +3372,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
     // static 
 
     auto st = lorEdit.GetSequencingType(mapping);
-    Model* m = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
+    Model* m = model->GetSequenceElements()->GetRenderContext()->GetModel(model->GetModelName());
 
     if (st == loreditType::CHANNELS) {
         if (m->GetNodeCount() == 1) {
@@ -3405,7 +3407,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
     // static 
 
     auto st = lorEdit.GetSequencingType(mapping);
-    Model* m = se->GetSequenceElements()->GetXLightsFrame()->AllModels[se->GetModelName()];
+    Model* m = se->GetSequenceElements()->GetRenderContext()->GetModel(se->GetModelName());
 
     if (st == loreditType::CHANNELS) {
         if (se->GetNodeLayerCount() == 1) {
@@ -3445,7 +3447,7 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
     // static 
 
     auto st = lorEdit.GetSequencingType(mapping);
-    Model* m = se->GetSequenceElements()->GetXLightsFrame()->AllModels[se->GetModelName()];
+    Model* m = se->GetSequenceElements()->GetRenderContext()->GetModel(se->GetModelName());
 
     if (st == loreditType::CHANNELS) {
         if (m->GetNodeCount() == 1) {
@@ -3543,7 +3545,7 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
             }
         }
         if (model != nullptr) {
-            Model* mdl = model->GetSequenceElements()->GetXLightsFrame()->AllModels[model->GetModelName()];
+            Model* mdl = model->GetSequenceElements()->GetRenderContext()->GetModel(model->GetModelName());
 
             if (m->_mapping != "") {
                     if (model == nullptr) {

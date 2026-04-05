@@ -21,8 +21,8 @@
 
 class Model;
 class OutputManager;
+class RenderContext;
 class UICallbacks;
-class xLightsFrame;
 class LayoutGroup;
 
 #ifdef GetObject
@@ -32,7 +32,7 @@ class LayoutGroup;
 class ModelManager : public ObjectManager
 {
     public:
-        ModelManager(OutputManager* outputManager, xLightsFrame* xl);
+        ModelManager(OutputManager* outputManager, RenderContext* rc = nullptr);
         ModelManager(const ModelManager& mm) = delete;
         ModelManager& operator=(const ModelManager& mm) = delete;
         ModelManager() = delete;
@@ -84,7 +84,6 @@ class ModelManager : public ObjectManager
         //Make sure the Model is deleted when done with
         Model *CreateModel(pugi::xml_node node, int previewW = 0, int previewH = 0) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
-        xLightsFrame* GetXLightsFrame() const { return xlights; }
         UICallbacks* GetUICallbacks() const override;
         OutputModelManager* GetOutputModelManager() const override;
         bool IsLowDefinitionRender() const;
@@ -113,7 +112,7 @@ class ModelManager : public ObjectManager
 
     std::vector<LayoutGroup*>* layoutGroups = nullptr;
     OutputManager* _outputManager = nullptr;
-    xLightsFrame* xlights = nullptr;
+    RenderContext* _renderContext = nullptr;
     bool _usedRuler = false;
     int previewWidth = 0;
     int previewHeight = 0;

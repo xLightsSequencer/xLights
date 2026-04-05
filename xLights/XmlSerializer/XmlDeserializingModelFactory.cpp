@@ -315,8 +315,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
         } else if ("modelGroup" == fname && importing) {
             model->AddModelGroups(f, model->GetName(), merge, showPopup);
         } else if (strcasecmp(f.name(), "shadowmodels") == 0 && importing) {
-            // TODO: Remove GetXLightsFrame() once ImportExtraModels takes ModelManager& (P1)
-            model->ImportExtraModels(f, modelManager.GetXLightsFrame(), "Unassigned");
+            model->ImportExtraModels(f, modelManager, "Unassigned");
         } else if ("dimensions" == fname && importing) {
             if (RulerObject::GetRuler() != nullptr) {
                 std::string units = f.attribute("units").as_string("mm");
@@ -327,8 +326,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
                 modelManager.SetUsedRuler();
             }
         } else if (strcasecmp(f.name(), "associatedmodels") == 0 && importing) {
-            // TODO: Remove GetXLightsFrame() once ImportExtraModels takes ModelManager& (P1)
-            model->ImportExtraModels(f, modelManager.GetXLightsFrame(), model->GetLayoutGroup());
+            model->ImportExtraModels(f, modelManager, model->GetLayoutGroup());
         } else if ("ControllerConnection" == fname) {
             if (!importing) {
                 DeserializeControllerConnection(model, f);

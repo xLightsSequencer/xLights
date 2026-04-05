@@ -73,6 +73,7 @@ public:
 
     // ---- configuration queries ----
     virtual bool IsCheckSequenceOptionDisabled(const std::string& option) const { return false; }
+    virtual std::string GetRenameModelAliasPromptBehavior() const { return "Always Prompt"; }
 
     // ---- progress reporting ----
     // Begin a progress operation.  Returns a token that the caller passes

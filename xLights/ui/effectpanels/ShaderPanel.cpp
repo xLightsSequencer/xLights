@@ -18,6 +18,7 @@
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
 #include "ui/media/ManageMediaPanel.h"
+#include "ui/media/ShaderPreviewGenerator.h"
 #include "../../utils/xlImage.h"
 
 #include "../../xLightsMain.h"
@@ -705,7 +706,7 @@ void ShaderPanel::UpdatePreview()
     }
 
     // Generate and cache shader preview frames (rendered with default parameters)
-    entry->GenerateShaderPreview(xl);
+    GenerateShaderPreview(entry.get(), xl);
 
     for (size_t i = 0; i < entry->GetPreviewFrameCount(); i++) {
         _previewFrames.push_back(entry->GetPreviewFrame(i));

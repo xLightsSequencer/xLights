@@ -70,10 +70,10 @@
 #undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
 #endif
 
-ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
+ModelManager::ModelManager(OutputManager* outputManager, RenderContext* rc) :
     layoutGroups(nullptr),
     _outputManager(outputManager),
-    xlights(xl),
+    _renderContext(rc),
     previewWidth(0),
     previewHeight(0),
     _modelsLoading(false)
@@ -82,15 +82,15 @@ ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
 }
 
 UICallbacks* ModelManager::GetUICallbacks() const {
-    return xlights ? xlights->GetUICallbacks() : nullptr;
+    return _renderContext ? _renderContext->GetUICallbacks() : nullptr;
 }
 
 OutputModelManager* ModelManager::GetOutputModelManager() const {
-    return xlights ? xlights->GetOutputModelManager() : nullptr;
+    return _renderContext ? _renderContext->GetOutputModelManager() : nullptr;
 }
 
 bool ModelManager::IsLowDefinitionRender() const {
-    return xlights ? xlights->IsLowDefinitionRender() : false;
+    return _renderContext ? _renderContext->IsLowDefinitionRender() : false;
 }
 
 std::vector<std::string> ModelManager::GetLayoutGroupNames() const {
@@ -1049,7 +1049,7 @@ bool ModelManager::ReworkStartChannel() const
                 if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
                     _outputManager->SomethingChanged();
 
-                    if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && xlights->IsSequencerInitialize())) { 
+                    if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && dynamic_cast<xLightsFrame*>(_renderContext)->IsSequencerInitialize())) { 
                         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
                     }
                     GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
@@ -2040,8 +2040,8 @@ bool ModelManager::Delete(const std::string& name)
     // some layouts end up with illegal names
     std::string mn = Model::SafeModelName(name);
 
-    if (xlights->CurrentSeqXmlFile != nullptr) {
-        Element* elem_to_delete = xlights->GetSequenceElements().GetElement(mn);
+    if (dynamic_cast<xLightsFrame*>(_renderContext)->CurrentSeqXmlFile != nullptr) {
+        Element* elem_to_delete = dynamic_cast<xLightsFrame*>(_renderContext)->GetSequenceElements().GetElement(mn);
         if (elem_to_delete != nullptr) {
             // does model have any effects on it
             bool effects_exist = false;
@@ -2060,7 +2060,7 @@ bool ModelManager::Delete(const std::string& name)
             }
 
             // Delete the model from the sequencer grid and views
-            xlights->GetSequenceElements().DeleteElement(mn);
+            dynamic_cast<xLightsFrame*>(_renderContext)->GetSequenceElements().DeleteElement(mn);
         }
     }
 
@@ -2088,7 +2088,7 @@ bool ModelManager::Delete(const std::string& name)
                 }
 
                 delete model;
-                xlights->UnsavedRgbEffectsChanges = true;
+                dynamic_cast<xLightsFrame*>(_renderContext)->UnsavedRgbEffectsChanges = true;
                 return true;
             }
         }

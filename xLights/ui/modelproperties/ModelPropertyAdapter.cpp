@@ -23,6 +23,7 @@
 #include "../../models/RulerObject.h"
 #include "../../models/OutputModelManager.h"
 #include "../../xLightsMain.h"
+#include "../../xLightsApp.h"
 #include "../../outputs/OutputManager.h"
 #include "../../outputs/Controller.h"
 #include "../../outputs/ControllerSerial.h"
@@ -169,7 +170,7 @@ public:
         }
         if (dlg.ReloadLayout) {
             wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-            wxPostEvent(m_model->GetModelManager().GetXLightsFrame(), eventForceRefresh);
+            wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
             m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                  OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
@@ -317,7 +318,7 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
 
     if (_model.HasOneString(_model.GetDisplayAs())) {
         p = grid->Append(new StartChannelProperty(&_model, 0, "Start Channel", "ModelStartChannel",
-            _model.GetModelStartChannel(), _model.GetModelManager().GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+            _model.GetModelStartChannel(), xLightsApp::GetFrame()->GetSelectedLayoutPanelPreview()));
         p->Enable(_model.GetControllerName() == "" || _model._controller == 0);
     } else {
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", _model.HasIndividualStartChannels()));
@@ -329,7 +330,7 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
             p->SetHelpString("");
         }
         sp = grid->AppendIn(p, new StartChannelProperty(&_model, 0, "Start Channel", "ModelStartChannel",
-            _model.GetModelStartChannel(), _model.GetModelManager().GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+            _model.GetModelStartChannel(), xLightsApp::GetFrame()->GetSelectedLayoutPanelPreview()));
         sp->Enable(_model.GetControllerName() == "" || _model._controller == 0);
         if (_model.HasIndividualStartChannels()) {
             int c = _model.GetNumStrings();
@@ -347,7 +348,7 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
                     sp->SetValue(val);
                 } else {
                     sp = grid->AppendIn(p, new StartChannelProperty(&_model, x, nm, nm, val,
-                        _model.GetModelManager().GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+                        xLightsApp::GetFrame()->GetSelectedLayoutPanelPreview()));
                 }
             }
         } else {
@@ -983,7 +984,7 @@ void ModelPropertyAdapter::AdjustStringProperties(wxPropertyGridInterface* grid,
                 wxString nm = _model.StartChanAttrName(count);
                 std::string val = _model.ComputeStringStartChannel(count);
                 _model.SetIndividualStartChannel(count, val);
-                grid->AppendIn(p, new StartChannelProperty(&_model, count, nm, nm, val, _model.GetModelManager().GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
+                grid->AppendIn(p, new StartChannelProperty(&_model, count, nm, nm, val, xLightsApp::GetFrame()->GetSelectedLayoutPanelPreview()));
                 p->Enable(_model.GetControllerName() == "" || _model._controller == 0);
                 count++;
             }
@@ -1062,7 +1063,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
 
     auto caps = _model.GetControllerCaps();
 
-    _model.GetModelManager().GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? std::to_string(event.GetValue().GetLong()) : "N/A"));
+    xLightsApp::GetFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? std::to_string(event.GetValue().GetLong()) : "N/A"));
 
     if (HandleLayerSizePropertyChange(grid, event)) {
         return 0;
@@ -1471,7 +1472,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         }
         _model.IncrementChangeCount();
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-        wxPostEvent(_model.GetModelManager().GetXLightsFrame(), eventForceRefresh);
+        wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                     OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                     OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::SubModels");

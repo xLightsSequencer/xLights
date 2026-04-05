@@ -45,6 +45,7 @@
 #include "ui/layout/LayoutPanel.h"
 #include "ui/layout/ModelPreview.h"
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "ui/model/ChannelLayoutDialog.h"
 #include "ui/setup/ControllerConnectionDialog.h"
 #include "ui/layout/ModelGroupPanel.h"
@@ -3863,7 +3864,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
         pugi::xml_node root = doc.document_element();
 
         model->SetStartChannel("1");
-        model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights, cancelled);
+        model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights->AllModels, cancelled);
 
         if (!cancelled)
             return model;
@@ -5468,7 +5469,7 @@ void LayoutPanel::EditSubmodels()
     }
     if (dlg.ReloadLayout) { //force grid to reload
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-        wxPostEvent(md->GetModelManager().GetXLightsFrame(), eventForceRefresh);
+        wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
         md->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                         OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::EditSubmodels");
     }
@@ -5511,8 +5512,8 @@ void LayoutPanel::EditModelData()
         return;
 
     md->SaveDisplayDimensions();
-    auto oldAutoSave = md->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
-    md->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
+    auto oldAutoSave = xLightsApp::GetFrame()->_suspendAutoSave;
+    xLightsApp::GetFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
     CustomModelDialog dlg(this, &xlights->_outputManager);
     dlg.Setup(md);
     if (dlg.ShowModal() == wxID_OK) {
@@ -5522,9 +5523,9 @@ void LayoutPanel::EditModelData()
         md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditModelData");
     } else {
         md->RestoreDisplayDimensions();
-        md->GetModelManager().GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
+        xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
     }
-    md->GetModelManager().GetXLightsFrame()->_suspendAutoSave = oldAutoSave;
+    xLightsApp::GetFrame()->_suspendAutoSave = oldAutoSave;
 }
 
 void LayoutPanel::ShowNodeLayout()

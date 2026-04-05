@@ -24,6 +24,7 @@
 #include "ui/color/ColorManager.h"
 #include "../render/SequenceElements.h"
 #include "../xLightsMain.h"
+#include "../xLightsApp.h"
 #include "ui/sequencer/NewTimingDialog.h"
 #include "ui/sequencer/VAMPPluginDialog.h"
 #include "UtilFunctions.h"
@@ -445,7 +446,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
     wxMenu mnuLayer;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) {
-        if (mSequenceElements->GetXLightsFrame()->GetMainSequencer() != nullptr &&
+        if (xLightsApp::GetFrame()->GetMainSequencer() != nullptr &&
             xLightsFrame::CurrentSeqXmlFile != nullptr) {
             wxMenu mnuEmpty;
             mnuEmpty.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
@@ -506,7 +507,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 }
                 else {
                     if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                        Model* m = xLightsApp::GetFrame()->AllModels[ri->element->GetModelName()];
                         if (m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup) {
                             mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
                         }
@@ -521,7 +522,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 }
                 mnuLayer.AppendSeparator();
 
-                Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                Model* m = xLightsApp::GetFrame()->AllModels[ri->element->GetModelName()];
                 wxMenu* rowMenu = new wxMenu();
                 wxMenu* modelMenu = new wxMenu();
                 if (element->IsRenderDisabled()) {
@@ -688,7 +689,7 @@ static void ImportLyrics(SequenceElements* seqElements, TimingElement* element, 
             end_time = sequenceEndMS;
         }
 
-        xLightsFrame* xframe = seqElements->GetXLightsFrame();
+        xLightsFrame* xframe = xLightsApp::GetFrame();
         int interval_ms = (end_time - start_time) / num_phrases;
         for( int i = 0; i < total_num_phrases; i++ )
         {
@@ -783,7 +784,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
 
             if (answer == wxYES) {
-                mSequenceElements->GetXLightsFrame()->AbortRender();
+                xLightsApp::GetFrame()->AbortRender();
                 element->RemoveEffectLayer(layerIndex);
                 wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
                 wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -820,7 +821,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     }
                 }
                 if (deleteLayers == true) {
-                    mSequenceElements->GetXLightsFrame()->AbortRender();
+                    xLightsApp::GetFrame()->AbortRender();
                     for (int deleteLayer = startDeleteLayer; deleteLayer >= layerIndex; deleteLayer--) {
                         element->RemoveEffectLayer(deleteLayer);
                     }
@@ -844,7 +845,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 if (element->GetEffectLayerCount() == 1) {
                     // last layer ... dont delete it
                 } else {
-                    mSequenceElements->GetXLightsFrame()->AbortRender();
+                    xLightsApp::GetFrame()->AbortRender();
                     element->RemoveEffectLayer(i);
                     --i;
                     deleted = true;
@@ -868,7 +869,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_ADD_TIMING_TRACK) {
         bool timing_added = false;
-        SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
         NewTimingDialog dialog(this);
         OptimiseDialogPosition(&dialog);
         dialog.Fit();
@@ -903,7 +904,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 DownloadVamp();
             } else {
                 if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end()) {
-                    name = vamp.ProcessPlugin(xml_file, mSequenceElements->GetXLightsFrame(), selected_timing, xml_file->GetMedia());
+                    name = vamp.ProcessPlugin(xml_file, xLightsApp::GetFrame(), selected_timing, xml_file->GetMedia());
                     if (name != "") {
                         timing_added = true;
                     }
@@ -912,13 +913,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     wxString subType = selected_timing;
                     wxTextEntryDialog te(this, "Enter a name for the " + selected_timing + " track", wxGetTextFromUserPromptStr, selected_timing);
                     OptimiseDialogPosition(&te);
-                    while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
+                    while (first || xml_file->TimingAlreadyExists(selected_timing, xLightsApp::GetFrame()) || selected_timing == "") {
                         first = false;
                         
                         auto base = selected_timing;
                         
                         int suffix = 2;
-                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
+                        while (xml_file->TimingAlreadyExists(selected_timing, xLightsApp::GetFrame())) {
                             selected_timing = wxString::Format("%s_%d", base, suffix++);
                         }
                         
@@ -933,7 +934,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     }
                     
                     if (selected_timing != "") {
-                        xml_file->AddNewTimingSection(selected_timing, mSequenceElements->GetXLightsFrame(), subType);
+                        xml_file->AddNewTimingSection(selected_timing, xLightsApp::GetFrame(), subType);
                         timing_added = true;
                     }
                     
@@ -943,16 +944,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     selected_timing = RemoveUnsafeXmlChars(selected_timing);
                     OptimiseDialogPosition(&te);
                     while (first || 
-                           xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || 
-                           xml_file->TimingMatchesModelName(selected_timing, mSequenceElements->GetXLightsFrame()) ||
+                           xml_file->TimingAlreadyExists(selected_timing, xLightsApp::GetFrame()) || 
+                           xml_file->TimingMatchesModelName(selected_timing, xLightsApp::GetFrame()) ||
                            selected_timing == "") {
                         first = false;
                         
                         auto base = selected_timing;
                         
                         int suffix = 2;
-                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) ||
-                               xml_file->TimingMatchesModelName(selected_timing, mSequenceElements->GetXLightsFrame())) {
+                        while (xml_file->TimingAlreadyExists(selected_timing, xLightsApp::GetFrame()) ||
+                               xml_file->TimingMatchesModelName(selected_timing, xLightsApp::GetFrame())) {
                             selected_timing = wxString::Format("%s_%d", base, suffix++);
                         }
                         
@@ -967,10 +968,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     }
                     
                     if (selected_timing != "") {
-                        xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                        xml_file->AddFixedTimingSection(selected_timing, xLightsApp::GetFrame());
                         timing_added = true;
                     }
-                } else if (!xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
+                } else if (!xml_file->TimingAlreadyExists(selected_timing, xLightsApp::GetFrame())) {
                     name = selected_timing;
                     if (selected_timing == "Metronome") {
                         int base_timing = xml_file->GetFrameMS();
@@ -984,10 +985,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             }
                             wxString ttn = wxString::Format("%dms Metronome", ms);
                             // Suggest a unique name then let user edit it
-                            while (xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                            while (xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsApp::GetFrame())) {
                                 ttn = wxString::Format("%dms Metronome_%d", ms, 2);
                                 int suffix = 3;
-                                while (xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                                while (xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsApp::GetFrame())) {
                                     ttn = wxString::Format("%dms Metronome_%d", ms, suffix++);
                                 }
                             }
@@ -995,8 +996,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             OptimiseDialogPosition(&te);
                             if (te.ShowModal() == wxID_OK) {
                                 ttn = RemoveUnsafeXmlChars(te.GetValue().ToStdString());
-                                if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
-                                    xml_file->AddFixedTimingSection(ttn.ToStdString(), ms, mSequenceElements->GetXLightsFrame());
+                                if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsApp::GetFrame())) {
+                                    xml_file->AddFixedTimingSection(ttn.ToStdString(), ms, xLightsApp::GetFrame());
                                     timing_added = true;
                                 }
                             }
@@ -1013,12 +1014,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
 
                             // Ensure suggested name is unique before presenting to user
-                            if (xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                            if (xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsApp::GetFrame())) {
                                 int copyNum = 1;
                                 wxString new_ttn = ttn;
                                 do {
                                     new_ttn = ttn + wxString::Format("_%d", copyNum++);
-                                } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), mSequenceElements->GetXLightsFrame()));
+                                } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), xLightsApp::GetFrame()));
                                 ttn = new_ttn;
                             }
 
@@ -1026,7 +1027,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             OptimiseDialogPosition(&te);
                             if (te.ShowModal() == wxID_OK) {
                                 ttn = RemoveUnsafeXmlChars(te.GetValue().ToStdString());
-                                if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                                if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsApp::GetFrame())) {
                                     // Get and parse custom tags
                                     std::vector<std::string> customTags = ParseTags(dlg.GetTextLabels());
                                     // If no valid custom tags, use default numbered tags (1, 2, 3, ...)
@@ -1038,7 +1039,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
                                     // Add the timing track with custom or default tags
                                     xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, customTags,
-                                        mSequenceElements->GetXLightsFrame(),
+                                        xLightsApp::GetFrame(),
                                         dlg.GetMinRandomTiming(),
                                         dlg.IsRandomTags());
                                     timing_added = true;
@@ -1046,7 +1047,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             }
                         }
                     } else {
-                        xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                        xml_file->AddFixedTimingSection(selected_timing, xLightsApp::GetFrame());
                         timing_added = true;
                     }
                 } else {
@@ -1066,13 +1067,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (mSequenceElements->ElementExists(name)) {
             DisplayError("Timing name already exists in sequence as a model or another timing.");
         } else if (name.size() > 0) {
-            mSequenceElements->GetXLightsFrame()->AbortRender(); // stop rendering in case there is an effect referring to the timing track we are about to rename
+            xLightsApp::GetFrame()->AbortRender(); // stop rendering in case there is an effect referring to the timing track we are about to rename
             std::string oldname = element->GetName();
-            mSequenceElements->GetXLightsFrame()->RenameTimingElement(oldname, name);
+            xLightsApp::GetFrame()->RenameTimingElement(oldname, name);
         }
     } else if (id == ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS) {
         // Generate subdivided timing tracks from the current timing track
-        SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
         std::string originalName = element->GetName();
         EffectLayer* sourceLayer = element->GetEffectLayer(0);
 
@@ -1137,13 +1138,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             std::string newTrackName = originalName + suffixes[i];
 
             // Check if track already exists
-            if (xml_file->TimingAlreadyExists(newTrackName, mSequenceElements->GetXLightsFrame())) {
+            if (xml_file->TimingAlreadyExists(newTrackName, xLightsApp::GetFrame())) {
                 wxMessageBox("Timing track '" + newTrackName + "' already exists. Skipping.", "Track Exists", wxOK | wxICON_WARNING);
                 continue;
             }
 
             // Create new timing track
-            xml_file->AddNewTimingSection(newTrackName, mSequenceElements->GetXLightsFrame());
+            xml_file->AddNewTimingSection(newTrackName, xLightsApp::GetFrame());
             Element* newElement = mSequenceElements->GetElement(newTrackName);
 
             if (newElement == nullptr) {
@@ -1202,7 +1203,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
         int answer = wxMessageBox(prompt, caption, wxYES_NO);
         if (answer == wxYES) {
-            mSequenceElements->GetXLightsFrame()->AbortRender(); // stop rendering in case there is an effect referring to the timing track we are about to delete
+            xLightsApp::GetFrame()->AbortRender(); // stop rendering in case there is an effect referring to the timing track we are about to delete
             mSequenceElements->DeleteElement(element->GetModelName());
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -1358,7 +1359,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int startFrame = element->GetFirstSelectedEffectStartMS();
         int endFrame = element->GetLastSelectedEffectEndMS();
         if (startFrame != -1 && endFrame != -1) {
-            SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
             startFrame /= xml_file->GetFrameMS();
             endFrame /= xml_file->GetFrameMS();
             wxCommandEvent playEvent(EVT_EXPORT_MODEL);
@@ -1370,7 +1371,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int startFrame = element->GetFirstSelectedEffectStartMS();
         int endFrame = element->GetLastSelectedEffectEndMS();
         if (startFrame != -1 && endFrame != -1) {
-            SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+            SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
             startFrame /= xml_file->GetFrameMS();
             endFrame /= xml_file->GetFrameMS();
             wxCommandEvent playEvent(EVT_EXPORT_MODEL);
@@ -1413,7 +1414,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
-        mSequenceElements->GetXLightsFrame()->AbortRender();
+        xLightsApp::GetFrame()->AbortRender();
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         if (layer_index < (int)element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
@@ -1440,7 +1441,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_ROW_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
-        mSequenceElements->GetXLightsFrame()->AbortRender();
+        xLightsApp::GetFrame()->AbortRender();
         if (layer_index < (int)element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
                 element->GetEffectLayer(layer_index)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
@@ -1454,17 +1455,17 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
-        mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
+        xLightsApp::GetFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_MODEL_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
-        mSequenceElements->GetXLightsFrame()->AbortRender();
+        xLightsApp::GetFrame()->AbortRender();
         for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
         }
 
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
-        mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
+        xLightsApp::GetFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
@@ -1475,7 +1476,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
-        mSequenceElements->GetXLightsFrame()->AbortRender();
+        xLightsApp::GetFrame()->AbortRender();
         for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
             Element* e = mSequenceElements->GetElement(i);
             if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
@@ -1488,7 +1489,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
-        mSequenceElements->GetXLightsFrame()->AbortRender();
+        xLightsApp::GetFrame()->AbortRender();
         for (int i = 0; i < (int)element->GetEffectLayerCount(); ++i) {
             if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
                 element->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
@@ -1498,7 +1499,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
-        mSequenceElements->GetXLightsFrame()->AbortRender();
+        xLightsApp::GetFrame()->AbortRender();
         ModelElement* me = dynamic_cast<ModelElement*>(element);
         if (me == nullptr) {
             SubModelElement* se = dynamic_cast<SubModelElement*>(element);
@@ -1520,7 +1521,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
-        mSequenceElements->GetXLightsFrame()->AbortRender();
+        xLightsApp::GetFrame()->AbortRender();
         auto me = dynamic_cast<ModelElement*>(element);
         if (me != nullptr) {
             for (int s = 0; s < (int)me->GetStrandCount(); ++s) {
@@ -1629,16 +1630,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         evt.SetInt(i);
         wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS) {
-        SequenceFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
 
         wxString selectedTiming = "FromEffects";
         auto base = selectedTiming;
 
         int suffix = 2;
-        while (xml_file->TimingAlreadyExists(selectedTiming, mSequenceElements->GetXLightsFrame())) {
+        while (xml_file->TimingAlreadyExists(selectedTiming, xLightsApp::GetFrame())) {
             selectedTiming = wxString::Format("%s_%d", base, suffix++);
         }
-        xml_file->AddFixedTimingSection(selectedTiming, mSequenceElements->GetXLightsFrame());
+        xml_file->AddFixedTimingSection(selectedTiming, xLightsApp::GetFrame());
         auto te = mSequenceElements->GetTimingElement(selectedTiming);
         if (te != nullptr) {
             auto tl = te->GetEffectLayer(0);
@@ -1703,7 +1704,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
 
     if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement* me = dynamic_cast<ModelElement*>(e);
-        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[me->GetModelName()];
+        Model* m = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
 
         if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
             int view = mSequenceElements->GetCurrentView();
@@ -1824,7 +1825,7 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
     for (int i = 0; i < word_layer->GetEffectCount(); i++) {
         Effect* effect = word_layer->GetEffect(i);
         std::string word = effect->GetEffectName();
-        BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word, mSequenceElements->GetFrequency(), mSequenceElements->GetXLightsFrame(), mSequenceElements->get_undo_mgr());
+        BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word, mSequenceElements->GetFrequency(), xLightsApp::GetFrame(), mSequenceElements->get_undo_mgr());
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -1899,7 +1900,7 @@ void RowHeading::render( wxPaintEvent& event )
 #ifdef __LINUX__
     if(!IsShownOnScreen()) return;
 #endif
-    if (mSequenceElements->GetXLightsFrame()->GetMainSequencer() == nullptr) return;
+    if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) return;
 
     wxPaintDC dc(this);
 
@@ -1930,7 +1931,7 @@ void RowHeading::render( wxPaintEvent& event )
     int row = 0;
     int endY = 0;
 
-    int dragRow = mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelEffectGrid->GetDropRow();
+    int dragRow = xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->GetDropRow();
 
     xlColor labelColor = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
     wxColor labelWxColor = xlColorToWxColour(labelColor);
@@ -1962,7 +1963,7 @@ void RowHeading::render( wxPaintEvent& event )
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0, startY, w, DEFAULT_ROW_HEADING_HEIGHT + (i == 0 ? 0 : 1));
 
-        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+        Model* m = xLightsApp::GetFrame()->AllModels[rowInfo->element->GetModelName()];
         if (m != nullptr && m->GetTagColour() != xlBLACK) {
             wxBrush tagBrush(xlColorToWxColour(m->GetTagColour()), wxBRUSHSTYLE_SOLID);
             wxPen tagPen(xlColorToWxColour(m->GetTagColour()));
@@ -2053,7 +2054,7 @@ void RowHeading::render( wxPaintEvent& event )
                 }
 
                 if (done) {
-                    Model* pm = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
+                    Model* pm = xLightsApp::GetFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
                     if (pm != nullptr && pm->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         name = rowInfo->element->GetFullName();
                         if (prefix.size() >= 3) {
@@ -2086,7 +2087,7 @@ void RowHeading::render( wxPaintEvent& event )
                 dc.SetBrush(brush2);
             }
             // draw Model Group icon if necessary
-            Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+            Model* m = xLightsApp::GetFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr) {
                 if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     dc.DrawBitmap(model_group_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);

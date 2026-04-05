@@ -20,7 +20,8 @@
 #include "ImageObject.h"
 #include "MeshObject.h"
 #include "TerrainObject.h"
-#include "xLightsMain.h"
+#include "../render/RenderContext.h"
+#include "../render/SequenceElements.h"
 #include "ModelGroup.h"
 #include "XmlSerializer/XmlSerializer.h"
 
@@ -30,17 +31,17 @@
 #undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
 #endif
 
-ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
+ViewObjectManager::ViewObjectManager(RenderContext* rc) : _renderContext(rc)
 {
     //ctor
 }
 
 UICallbacks* ViewObjectManager::GetUICallbacks() const {
-    return xlights ? xlights->GetUICallbacks() : nullptr;
+    return _renderContext ? _renderContext->GetUICallbacks() : nullptr;
 }
 
 OutputModelManager* ViewObjectManager::GetOutputModelManager() const {
-    return xlights ? xlights->GetOutputModelManager() : nullptr;
+    return _renderContext ? _renderContext->GetOutputModelManager() : nullptr;
 }
 
 ViewObjectManager::~ViewObjectManager()
@@ -137,11 +138,11 @@ ViewObject *ViewObjectManager::createAndAddObject(pugi::xml_node node) {
 
 void ViewObjectManager::Delete(const std::string &name) {
 
-    if (xlights->CurrentSeqXmlFile != nullptr) {
-        Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
+    if (_renderContext != nullptr) {
+        Element* elem_to_delete = _renderContext->GetSequenceElements().GetElement(name);
         if (elem_to_delete != nullptr) {
             // Delete the object from the sequencer grid and views
-            xlights->GetSequenceElements().DeleteElement(name);
+            _renderContext->GetSequenceElements().DeleteElement(name);
         }
     }
 

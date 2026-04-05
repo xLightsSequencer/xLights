@@ -12,7 +12,9 @@
 #include <fstream>
 
 #include "render/SequencePackage.h"
-#include "xLightsMain.h"
+#include "render/SequenceElements.h"
+#include "models/ModelManager.h"
+#include "models/Model.h"
 #include "utils/ExternalHooks.h"
 
 extern "C" {
@@ -65,9 +67,11 @@ void SeqPkgImportOptions::RestoreDefaults()
     }
 }
 
-SequencePackage::SequencePackage(const std::filesystem::path& fileName, xLightsFrame* xlights)
+SequencePackage::SequencePackage(const std::filesystem::path& fileName, const std::string& showDir, const std::string& seqXmlFileName, ModelManager* models)
 {
-    _xlights = xlights;
+    _showDirectory = showDir;
+    _seqXmlFileName = seqXmlFileName;
+    _modelManager = models;
 
     std::string ext = fileName.extension().string();
     // normalize to lowercase for comparison
@@ -97,18 +101,18 @@ SequencePackage::~SequencePackage()
 
 void SequencePackage::InitDefaultImportOptions()
 {
-    if (_xlights == nullptr)
+    if (_showDirectory.empty())
         return;
 
     // Set default target media directories based on a few assumptions. User
     // can still change these in the Mapping Dialog to whatever they would like.
 
-    std::string showFolder = _xlights->GetShowDirectory();
+    std::string showFolder = _showDirectory;
 
     // always default faces/shaders to default download folder as they tend to be reused
     _importOptions.SetDir(MediaTargetDir::FACES_DIR, (std::filesystem::path(showFolder) / SUBFLD_FACES).string(), true);
 
-    std::filesystem::path targetXsq(_xlights->GetSeqXmlFileName().ToStdString());
+    std::filesystem::path targetXsq(_seqXmlFileName);
     std::string targetDir = targetXsq.parent_path().string();
 
     std::string mediaBaseFolder;
@@ -473,12 +477,12 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
 
 void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, const std::string& faceName)
 {
-    if (_xlights == nullptr)
+    if (_modelManager == nullptr)
         return;
 
     auto targetModelName = target->GetParentElement()->GetModelName();
     auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
-    Model* targetModel = _xlights->AllModels[targetModelName];
+    Model* targetModel = (*_modelManager)[targetModelName];
 
     const auto& faceInfo = targetModel->GetFaceInfo().find(faceName);
     if (faceInfo != targetModel->GetFaceInfo().end()) {

@@ -19,7 +19,7 @@
 #include "render/Element.h"
 #include "render/Effect.h"
 
-class xLightsFrame;
+class ModelManager;
 
 enum class MediaTargetDir
 {
@@ -49,7 +49,7 @@ class SeqPkgImportOptions {
 
 class SequencePackage {
     public:
-        SequencePackage(const std::filesystem::path& zipFile, xLightsFrame* xlights);
+        SequencePackage(const std::filesystem::path& zipFile, const std::string& showDir, const std::string& seqXmlFileName, ModelManager* models);
         virtual ~SequencePackage();
         void Extract();
         void FindRGBEffectsFile();
@@ -76,7 +76,9 @@ class SequencePackage {
         void SetSequenceElements(SequenceElements *se) { sequenceElements = se; };
         void SetProgressCallback(ProgressCallback cb) { _progressCb = std::move(cb); }
     private:
-        xLightsFrame*   _xlights;
+        std::string     _showDirectory;
+        std::string     _seqXmlFileName;
+        ModelManager*   _modelManager;
         bool            _xsqOnly = true;
         bool            _hasRGBEffects{false};
         std::filesystem::path _xsqFile;

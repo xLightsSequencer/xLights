@@ -97,7 +97,7 @@ void ButtonControl::SelectEffect(MainSequencer* sequencer)
             sequencer->PanelEffectGrid->PlayLoopedEffect(e, _loop);
         } else {
             wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-            wxPostEvent(sequencer->PanelEffectGrid->GetSequenceElements()->GetXLightsFrame(), playEvent);
+            wxPostEvent(xLightsApp::GetFrame(), playEvent);
         }
     }
 }

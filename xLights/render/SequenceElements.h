@@ -23,7 +23,6 @@ namespace pugi { class xml_node; class xml_document; }
 
 class SequenceFile;
 class SequenceViewManager;
-class xLightsFrame;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -203,9 +202,6 @@ public:
     EffectManager &GetEffectManager();
     RenderContext *GetRenderContext() const { return renderContext; };
 
-    // UI-layer convenience — implemented in ui/render/RenderUI.cpp (requires xLightsMain.h)
-    xLightsFrame *GetXLightsFrame() const;
-    
     // Color palettes from the loaded sequence
     const std::vector<std::string>& GetColorPalettes() const { return mColorPalettes; }
 

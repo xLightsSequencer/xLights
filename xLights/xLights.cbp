@@ -336,6 +336,8 @@
 		<Unit filename="MIDI/MidiMessage.cpp" />
 		<Unit filename="ui/media/ManageMediaPanel.cpp" />
 		<Unit filename="ui/media/ManageMediaPanel.h" />
+		<Unit filename="ui/media/ShaderPreviewGenerator.cpp" />
+		<Unit filename="ui/media/ShaderPreviewGenerator.h" />
 		<Unit filename="ui/model/MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="ui/model/MatrixFaceDownloadDialog.h" />
 		<Unit filename="ui/media/MediaImportOptionsDialog.cpp" />

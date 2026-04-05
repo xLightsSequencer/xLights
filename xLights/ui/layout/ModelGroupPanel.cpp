@@ -25,6 +25,7 @@
 #include "ui/layout/LayoutPanel.h"
 #include "models/OutputModelManager.h"
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "UtilFunctions.h"
 #include "ui/model/EditAliasesDialog.h"
 
@@ -308,8 +309,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
     ChoicePreviews->Append("Unassigned");
 
     Choice_DefaultCamera->Append("2D");
-    for (int i = 0; i < (int)Models.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
-        Choice_DefaultCamera->Append(Models.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
+    for (int i = 0; i < (int)xLightsApp::GetFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+        Choice_DefaultCamera->Append(xLightsApp::GetFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
     }
 
     MGTextDropTarget *mdt = new MGTextDropTarget(this, ListBoxModelsInGroup, "ModelGroup");
@@ -419,8 +420,8 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
     Choice_DefaultCamera->Clear();
     Choice_DefaultCamera->Append("2D");
-    for (int i = 0; i < (int)mModels.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
-        Choice_DefaultCamera->Append(mModels.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
+    for (int i = 0; i < (int)xLightsApp::GetFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+        Choice_DefaultCamera->Append(xLightsApp::GetFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
     }
 
     int spam = ListBoxAddToModelGroup->GetTopItem();
@@ -769,7 +770,7 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
 
     if (g == nullptr) return;
 
-    mModels.GetXLightsFrame()->AbortRender();
+    xLightsApp::GetFrame()->AbortRender();
 
     if (centreUpdate) {
         g->SetCentreDefined(false);

@@ -36,8 +36,9 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 #include "../utils/ip_utils.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h" //for Preview and Other model collections
+#include "../xLightsApp.h" // for xLightsApp::GetFrame() in ExportForClipboard — TODO: remove when that code is decoupled
+#include "../xLightsMain.h" // for xLightsFrame methods called via GetFrame() — TODO: remove when ExportForClipboard is decoupled
+#include "../utils/TraceLog.h"
 #include "../xLightsVersion.h"
 #include "../render/SequenceFile.h"
 #include "../XmlSerializer/FileSerializingVisitor.h"
@@ -185,9 +186,13 @@ void Model::Rename(std::string const& newName)
 {
     auto oldname = GetName();
     name = Trim(newName);
-    bool shouldPrompt = modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Prompt" &&
+    std::string aliasBehavior;
+    if (auto* ui = GetModelManager().GetUICallbacks()) {
+        aliasBehavior = ui->GetRenameModelAliasPromptBehavior();
+    }
+    bool shouldPrompt = aliasBehavior == "Always Prompt" &&
         oldname != modelManager.GetLastGeneratedModelName() ;
-    
+
     if (oldname != "" && newName != "Iamgoingtodeletethismodel" && shouldPrompt ) {
         if (auto* ui = GetModelManager().GetUICallbacks()) {
             if (ui->PromptYesNo("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias")) {
@@ -195,8 +200,8 @@ void Model::Rename(std::string const& newName)
             }
         }
     }
-    
-    if( modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Yes" ) {
+
+    if( aliasBehavior == "Always Yes" ) {
         AddAlias("oldname:" + oldname);
     }
 }
@@ -367,7 +372,7 @@ Controller* Model::GetController() const
     }
     if (controller == "") {
         int32_t start;
-        Controller* cp = modelManager.GetXLightsFrame()->GetOutputManager()->GetController(GetFirstChannel() + 1, start);
+        Controller* cp = modelManager.GetOutputManager()->GetController(GetFirstChannel() + 1, start);
         if (cp != nullptr) {
             return cp;
         }
@@ -375,7 +380,7 @@ Controller* Model::GetController() const
     if (controller == "")
         return nullptr;
 
-    return modelManager.GetXLightsFrame()->GetOutputManager()->GetController(controller);
+    return modelManager.GetOutputManager()->GetController(controller);
 }
 
 bool Model::IsAlias(const std::string& alias, bool oldnameOnly) const
@@ -615,8 +620,7 @@ void Model::AddModelGroups(pugi::xml_node n, const std::string& name, bool& merg
     const_cast<ModelManager&>(modelManager).AddModelGroups(n, name, merge, ask);
 }
 
-void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, const std::string& layoutGroup) {
-
+void Model::ImportExtraModels(pugi::xml_node n, ModelManager& modelMgr, const std::string& layoutGroup) {
 
     int x = GetHcenterPos();
     int y = GetVcenterPos();
@@ -624,10 +628,10 @@ void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, const std
     // import the shadow models as well
     for (auto m = n.first_child(); m; m = m.next_sibling()) {
         bool cancelled = false;
-        Model* model = xlights->AllModels.CreateDefaultModel("Custom", "1"); // start with a custom model
-        model = model->CreateDefaultModelFromSavedModelNode(model, m, xlights, cancelled);
+        Model* model = modelMgr.CreateDefaultModel("Custom", "1"); // start with a custom model
+        model = model->CreateDefaultModelFromSavedModelNode(model, m, modelMgr, cancelled);
         XmlSerializer serializer;
-        model = serializer.DeserializeModel(m, xlights->AllModels, true);
+        model = serializer.DeserializeModel(m, modelMgr, true);
 
         if (!cancelled && model != nullptr) {
             x += 20;
@@ -642,7 +646,7 @@ void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, const std
                 sl->SetScale(1, 1);
             }
             model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
-            xlights->AllModels.AddModel(model);
+            modelMgr.AddModel(model);
             AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
                         OutputModelManager::WORK_CALCULATE_START_CHANNELS |
                         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -1020,8 +1024,8 @@ void Model::UpdateChannels()
 
 void Model::Setup()
 {
-    if (modelManager.GetXLightsFrame() != nullptr) {
-        GetBaseObjectScreenLocation().SetOutputModelManager(modelManager.GetXLightsFrame()->GetOutputModelManager());
+    if (modelManager.GetOutputModelManager() != nullptr) {
+        GetBaseObjectScreenLocation().SetOutputModelManager(modelManager.GetOutputModelManager());
     }
 
     auto swStart = std::chrono::steady_clock::now();
@@ -3637,9 +3641,7 @@ std::string Model::GetDimension() const
     return GetModelScreenLocation().GetDimension();
 }
 
-Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const {
-
-    
+Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node node, ModelManager& modelMgr, bool& cancelled) const {
 
     // This code should work to import model with old formats as well as new Serializer formats
     auto n = node;
@@ -3654,23 +3656,23 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
     auto lg = model->GetLayoutGroup();
 
     XmlSerializer serializer;
-    xlights->AllModels.ClearUsedRuler();
+    modelMgr.ClearUsedRuler();
 
     if (std::string_view(node.name()) == "custommodel") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         return model;
     } else if (std::string_view(node.name()) == "polylinemodel") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         return model;
     } else if (std::string_view(node.name()) == "multipointmodel") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         return model;
     } else if (std::string_view(node.name()) == "matrixmodel") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model != nullptr) {
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         }
@@ -3681,8 +3683,8 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
         int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
         int b = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetBottom();
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
-        if (model != nullptr && !xlights->AllModels.UsedRuler()) {
+        model = serializer.DeserializeModel(n, modelMgr, true);
+        if (model != nullptr && !modelMgr.UsedRuler()) {
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
@@ -3691,12 +3693,12 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
         }
     } else if (std::string_view(node.name()) == "starmodel") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         return model;
     } else if (std::string_view(node.name()) == "treemodel") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         return model;
     } else if (std::string_view(node.name()) == "dmxmodel") {
@@ -3704,7 +3706,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if( model != nullptr ) {
             // Multiply by 5 because default custom model has width and height set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
@@ -3716,7 +3718,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model != nullptr) {
             // Multiply by 5 because default custom model has width and height set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
@@ -3728,7 +3730,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model != nullptr) {
             // Multiply by 5 because default custom model has width and height set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
@@ -3737,19 +3739,19 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
     } else if (std::string_view(node.name()) == "dmxservo3axis" ||
                std::string_view(node.name()) == "dmxservo3d") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model != nullptr) {
             model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
         }
         return model;
     } else if (std::string_view(node.name()) == "circlemodel") {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         return model;
     } else if (std::string_view(node.name()) == "spheremodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model != nullptr) {
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
         }
@@ -3757,7 +3759,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
     } else if (std::string_view(node.name()) == "iciclemodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model != nullptr) {
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
         }
@@ -3765,16 +3767,16 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
     } else if (std::string_view(node.name()) == "Cubemodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model != nullptr) {
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
         }
     } else {
         if (model != nullptr) { delete model; }
-        model = serializer.DeserializeModel(n, xlights->AllModels, true);
+        model = serializer.DeserializeModel(n, modelMgr, true);
         if (model == nullptr) {
             spdlog::error("GetXlightsModel no code to convert to " + std::string(node.name()));
-            xlights->AddTraceMessage("GetXlightsModel no code to convert to " + std::string(node.name()));
+            TraceLog::AddTraceMessage("GetXlightsModel no code to convert to " + std::string(node.name()));
             cancelled = true;
         }
     }

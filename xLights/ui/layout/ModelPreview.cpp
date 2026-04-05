@@ -26,6 +26,7 @@
 #include "ui/color/ColorManager.h"
 #include "ui/layout/LayoutGroup.h"
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "models/ModelGroup.h"
 #include "utils/ExternalHooks.h"
 #include "ui/wxUtilities.h"
@@ -448,7 +449,7 @@ void ModelPreview::SetModel(const Model* model, bool wiring, bool highlightFirst
     if (model != nullptr) {
         _wiring = wiring;
         _highlightFirst = highlightFirst;
-        this->xlights = model->GetModelManager().GetXLightsFrame();
+        this->xlights = xLightsApp::GetFrame();
         currentModel = model->GetName();
     } else {
         _wiring = false;

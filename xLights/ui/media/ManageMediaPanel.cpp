@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ui/media/ManageMediaPanel.h"
+#include "ui/media/ShaderPreviewGenerator.h"
 #include "render/SequenceMedia.h"
 #include "render/VideoReader.h"
 #include "render/SequenceElements.h"
@@ -827,7 +828,7 @@ void ManageMediaPanel::UpdatePreview(const std::string& filepath, MediaType type
         if (t == MediaType::Shader && _xlFrame) {
             auto shaderEntry = _sequenceMedia->GetShader(p);
             if (shaderEntry) {
-                shaderEntry->GenerateShaderPreview(_xlFrame);
+                GenerateShaderPreview(shaderEntry.get(), _xlFrame);
             }
         } else if (holder) {
             holder->GeneratePreview(maxPx, maxPx);

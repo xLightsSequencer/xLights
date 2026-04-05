@@ -25,14 +25,6 @@
 #include <log.h>
 
 // ---------------------------------------------------------------------------
-// SequenceElements::GetXLightsFrame — UI convenience, lives here so
-// SequenceElements.cpp stays wx-free.
-// ---------------------------------------------------------------------------
-xLightsFrame* SequenceElements::GetXLightsFrame() const {
-    return dynamic_cast<xLightsFrame*>(renderContext);
-}
-
-// ---------------------------------------------------------------------------
 // WxRenderProgressSink — desktop implementation of IRenderProgressSink.
 // Creates a RenderProgressDialog with per-job wxGauge widgets.
 // ---------------------------------------------------------------------------

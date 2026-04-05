@@ -23,7 +23,6 @@
 #include "../utils/nanosvg_xl.h"
 #include "../effects/ShaderEffect.h"
 #include "VideoReader.h"
-#include "../xLightsMain.h"
 #include "Element.h"
 #include "EffectLayer.h"
 #include "SequenceElements.h"
@@ -79,6 +78,20 @@ void MediaCacheEntry::ClearPreview() {
     _previewFrameTimes.clear();
     _previewWidth = 0;
     _previewHeight = 0;
+}
+
+void MediaCacheEntry::SetPreviewFrames(std::vector<std::shared_ptr<xlImage>>&& frames, int frameTimeMs) {
+    std::scoped_lock lock(_cacheMutex);
+    if (_previewFrames.empty()) {
+        _previewFrames = std::move(frames);
+        for (size_t i = 0; i < _previewFrames.size(); i++) {
+            _previewFrameTimes.push_back(frameTimeMs);
+        }
+        if (!_previewFrames.empty() && _previewFrames[0]) {
+            _previewWidth = _previewFrames[0]->GetWidth();
+            _previewHeight = _previewFrames[0]->GetHeight();
+        }
+    }
 }
 
 bool MediaCacheEntry::SaveToFile(const std::string& path) const {
@@ -1001,117 +1014,6 @@ ShaderConfig* ShaderMediaCacheEntry::GetShaderConfig(SequenceElements* sequenceE
         _shaderConfig = ShaderEffect::ParseShaderFromSource(_filePath, _shaderSource, sequenceElements);
     }
     return _shaderConfig;
-}
-
-void ShaderMediaCacheEntry::GenerateShaderPreview(xLightsFrame* xl) {
-    {
-        std::scoped_lock lock(_cacheMutex);
-        if (!_previewFrames.empty()) return; // already cached  
-    }
-
-    if (!xl || _shaderSource.empty()) return;
-
-    ShaderConfig* config = GetShaderConfig(&xl->GetSequenceElements());
-    if (!config) return;
-
-    // Prevent re-entrancy: a second click while rendering would add jobs to
-    // renderProgressInfo and the poll loop would never drain -- stuck.
-    static std::atomic<bool> s_generating{false};
-    {
-        bool expected = false;
-        if (!s_generating.compare_exchange_strong(expected, true)) {
-            xl->AbortRender(); // unblock the in-flight loop so it can exit
-            return;
-        }
-    }
-    struct GenerateGuard { ~GenerateGuard() { s_generating = false; } } _guard;
-
-    // Build settings string with default values for all shader parameters
-    std::string settings = "E_0FILEPICKERCTRL_IFS=" + _filePath;
-    settings += ",E_SLIDER_Shader_Speed=100";
-    settings += ",E_TEXTCTRL_Shader_Offset_X=0,E_TEXTCTRL_Shader_Offset_Y=0";
-    settings += ",E_TEXTCTRL_Shader_Zoom=0,E_TEXTCTRL_Shader_LeadIn=0";
-
-    for (const auto& parm : config->GetParms()) {
-        if (!parm.ShowParm()) continue;
-        switch (parm._type) {
-            case ShaderParmType::SHADER_PARM_FLOAT: {
-                std::string key = "E_TEXTCTRL_" + parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL);
-                char buf[64];
-                snprintf(buf, sizeof(buf), "%.4f", parm._default);
-                settings += "," + key + "=" + buf;
-                break;
-            }
-            case ShaderParmType::SHADER_PARM_BOOL: {
-                std::string key = "E_CHECKBOX_" + parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHECKBOX);
-                settings += "," + key + "=" + (parm._default != 0.0 ? "1" : "0");
-                break;
-            }
-            case ShaderParmType::SHADER_PARM_LONGCHOICE: {
-                std::string key = "E_CHOICE_" + parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_CHOICE);
-                auto choices = parm.GetChoices();
-                if (!choices.empty()) {
-                    int idx = (int)parm._default;
-                    std::string choiceStr = choices[0];
-                    for (const auto& [val, str] : parm._valueOptions) {
-                        if (val == idx) { choiceStr = str; break; }
-                    }
-                    settings += "," + key + "=" + choiceStr;
-                }
-                break;
-            }
-            case ShaderParmType::SHADER_PARM_POINT2D: {
-                std::string keyBase = parm.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL);
-                char bufX[64], bufY[64];
-                snprintf(bufX, sizeof(bufX), "%.4f", parm._defaultPt.x);
-                snprintf(bufY, sizeof(bufY), "%.4f", parm._defaultPt.y);
-                settings += ",E_TEXTCTRL_" + keyBase + "X=" + bufX;
-                settings += ",E_TEXTCTRL_" + keyBase + "Y=" + bufY;
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_BUTTON_Palette2=#FF0000,"
-                          "C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1";
-
-    Model* presetModel = xl->GetPresetModel();
-    SequenceElements& presetElements = xl->GetPresetSequenceElements();
-
-    Element* elem = presetElements.GetElement(presetModel->GetName());
-    if (!elem) return;
-
-    for (const auto& it : elem->GetEffectLayers()) {
-        it->DeleteAllEffects();
-    }
-    if (elem->GetEffectLayerCount() == 0) {
-        elem->AddEffectLayer();
-    }
-
-    EffectLayer* el = elem->GetEffectLayer(0);
-    el->AddEffect(0, "Shader", settings, palette, 0, 1000, false, false, true);
-
-    // Render without holding _cacheMutex (Render uses wxYield which can re-enter)
-    int frameTimeMs = 50;
-    size_t numFrames = 20; // 1 second at 50ms
-    auto frames = xl->RenderEffectToFrames(
-        presetModel, xl->GetPresetSequenceData(),
-        presetElements, numFrames, frameTimeMs);
-
-    // Store results under lock
-    std::scoped_lock lock(_cacheMutex);
-    if (_previewFrames.empty()) { // double-check after render
-        _previewFrames = std::move(frames);
-        for (size_t i = 0; i < _previewFrames.size(); i++) {
-            _previewFrameTimes.push_back(frameTimeMs);
-        }
-        if (!_previewFrames.empty() && _previewFrames[0]) {
-            _previewWidth = _previewFrames[0]->GetWidth();
-            _previewHeight = _previewFrames[0]->GetHeight();
-        }
-    }
 }
 
 void ShaderMediaCacheEntry::Load() {

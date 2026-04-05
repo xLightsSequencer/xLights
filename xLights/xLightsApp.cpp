@@ -430,7 +430,8 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
             
             if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
 
-                SequencePackage xsqPkg(std::filesystem::path(fileName.ToStdString()), __frame);
+                SequencePackage xsqPkg(std::filesystem::path(fileName.ToStdString()),
+                                       __frame->GetShowDirectory(), __frame->GetSeqXmlFileName().ToStdString(), &__frame->AllModels);
 
                 if (xsqPkg.IsPkg()) {
                     xsqPkg.Extract();
@@ -700,7 +701,7 @@ bool xLightsApp::OnInit()
         // this is not allowed
         renderOnlyMode = false;
 
-        SequencePackage xsqPkg(std::filesystem::path(readOnlyZipFile), nullptr);
+        SequencePackage xsqPkg(std::filesystem::path(readOnlyZipFile), "", "", nullptr);
 
         if (xsqPkg.IsPkg()) {
             xsqPkg.Extract();

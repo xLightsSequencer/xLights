@@ -1110,6 +1110,7 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="ui/media/ManageMediaPanel.cpp" />
+    <ClCompile Include="ui/media/ShaderPreviewGenerator.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
     <ClCompile Include="XmlSerializer\GdtfParser.cpp" />
     <ClCompile Include="ai\Gemini.cpp">
@@ -2573,6 +2574,7 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="ui/media/ManageMediaPanel.h" />
+    <ClInclude Include="ui/media/ShaderPreviewGenerator.h" />
     <ClInclude Include="XmlSerializer\GdtfParser.h" />
     <ClInclude Include="ai\gemini.h">
       <Filter>ai</Filter>

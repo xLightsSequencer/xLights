@@ -14,6 +14,7 @@
 #include "UtilFunctions.h"
 #include "render/SequenceElements.h"
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "ui/sequencer/MainSequencer.h"
 
 //(*InternalHeaders(FindDataPanel)
@@ -130,7 +131,7 @@ void FindDataPanel::OnListView_FoundEffectsItemActivated(wxListEvent& event)
 {
     if (_effectsGrid != nullptr && ListView_FoundEffects->GetItemText(event.GetIndex(), COL_TIME) != "") {
         auto se = _effectsGrid->GetSequenceElements();
-        TimeLine* tl = se->GetXLightsFrame()->GetMainSequencer()->PanelTimeLine;
+        TimeLine* tl = xLightsApp::GetFrame()->GetMainSequencer()->PanelTimeLine;
 
         // scroll time
         tl->SetTimelinePosition(wxAtof(ListView_FoundEffects->GetItemText(event.GetIndex(), COL_TIME)) * 1000);
@@ -142,7 +143,7 @@ void FindDataPanel::OnListView_FoundEffectsItemActivated(wxListEvent& event)
             for (int row = 0; row < se->GetRowInformationSize(); row++) {
                 EffectLayer* el = se->GetEffectLayer(row);
                 if (el->GetParentElement()->GetModelName() == elem->GetName()) {
-                    se->GetXLightsFrame()->GetMainSequencer()->ScrollToRow(row - se->GetNumberOfTimingRows());
+                    xLightsApp::GetFrame()->GetMainSequencer()->ScrollToRow(row - se->GetNumberOfTimingRows());
                     break;
                 }
             }

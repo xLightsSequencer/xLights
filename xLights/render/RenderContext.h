@@ -73,6 +73,7 @@ public:
     // ---- misc ----
     virtual void SuspendAutoSave(bool suspend) = 0;
     virtual bool IsCheckSequenceOptionDisabled(const std::string& option) const { return false; }
+    virtual bool IsLowDefinitionRender() const { return false; }
 
     // ---- UI callbacks (nullptr when running headless) ----
     virtual UICallbacks* GetUICallbacks() { return nullptr; }

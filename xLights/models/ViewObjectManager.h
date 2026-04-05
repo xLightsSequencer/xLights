@@ -18,7 +18,7 @@
 class OutputModelManager;
 class UICallbacks;
 class ViewObject;
-class xLightsFrame;
+class RenderContext;
 
 #ifdef GetObject
 #undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
@@ -27,13 +27,12 @@ class xLightsFrame;
 class ViewObjectManager : public ObjectManager
 {
 public:
-    ViewObjectManager(xLightsFrame* xl);
+    ViewObjectManager(RenderContext* rc);
     virtual ~ViewObjectManager();
 
     virtual BaseObject *GetObject(const std::string &name) const override;
     ViewObject *GetViewObject(const std::string &name) const;
 
-    xLightsFrame* GetXLightsFrame() const { return xlights; }
     UICallbacks* GetUICallbacks() const override;
     OutputModelManager* GetOutputModelManager() const override;
     ViewObject* CreateAndAddObject(const std::string &type);
@@ -57,6 +56,6 @@ protected:
 
 private:
     std::map<std::string, ViewObject *> view_objects;
-    xLightsFrame* xlights;
+    RenderContext* _renderContext;
 
 };

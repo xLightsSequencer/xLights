@@ -626,8 +626,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _renderMode(renderOnlyMode),
     jobPool("RenderPool"),
     _sequenceElements(this),
-    AllModels(&_outputManager, this),
-    AllObjects(this),
+    AllModels(&_outputManager, static_cast<RenderContext*>(this)),
+    AllObjects(static_cast<RenderContext*>(this)),
     color_mgr(this)
 {
     

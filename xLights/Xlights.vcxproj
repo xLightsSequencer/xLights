@@ -808,6 +808,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\import-export\LorConvertDialog.cpp" />
     <ClCompile Include="ui\sequencer\LyricsDialog.cpp" />
     <ClCompile Include="ui/media/ManageMediaPanel.cpp" />
+    <ClCompile Include="ui/media/ShaderPreviewGenerator.cpp" />
     <ClCompile Include="MIDI\Binasc.cpp" />
     <ClCompile Include="MIDI\MidiEvent.cpp" />
     <ClCompile Include="MIDI\MidiEventList.cpp" />
@@ -1380,6 +1381,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui\import-export\LorConvertDialog.h" />
     <ClInclude Include="ui\sequencer\LyricsDialog.h" />
     <ClInclude Include="ui/media/ManageMediaPanel.h" />
+    <ClInclude Include="ui/media/ShaderPreviewGenerator.h" />
     <ClInclude Include="ui/model/ModelDimmingCurveDialog.h" />
     <ClInclude Include="ui/model/ModelFaceDialog.h" />
     <ClInclude Include="ui/layout/ModelGroupPanel.h" />

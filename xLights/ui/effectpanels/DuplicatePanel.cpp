@@ -13,6 +13,7 @@
 #include "../../models/Model.h"
 #include "../../models/ModelManager.h"
 #include "../../xLightsMain.h"
+#include "../../xLightsApp.h"
 #include "../../render/SequenceElements.h"
 
 //(*InternalHeaders(DuplicatePanel)
@@ -126,12 +127,11 @@ void DuplicatePanel::SetPanelStatus(Model* cls)
     if (cls == nullptr)
         return;
 
-    const ModelManager& mgr = cls->GetModelManager();
-    xLightsFrame* xlights = mgr.GetXLightsFrame();
+    xLightsFrame* xlights = xLightsApp::GetFrame();
     if (xlights == nullptr) return;
 
     // get the sequence elements
-    auto& se = cls->GetModelManager().GetXLightsFrame()->GetSequenceElements();
+    auto& se = xlights->GetSequenceElements();
 
     for (const auto& it : se.GetAllElementNamesWithEffectsExtended())
     {

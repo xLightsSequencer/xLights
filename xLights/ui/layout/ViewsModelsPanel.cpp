@@ -28,6 +28,7 @@
 #include "ui/layout/ViewsModelsPanel.h"
 #include "render/SequenceElements.h"
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "render/SequenceViewManager.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
@@ -733,7 +734,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
     SaveUndo();
 
     // #4134: Abort any render in progress to avoid hanging
-    _sequenceElements->GetXLightsFrame()->AbortRender();
+    xLightsApp::GetFrame()->AbortRender();
 
     if (_sequenceElements->GetCurrentView() == MASTER_VIEW) {
         bool hasEffects = false;
@@ -2681,7 +2682,7 @@ void ViewsModelsPanel::DoMakeMaster()
     if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
 
     //swapping out the master will completely change the rendering, abort it
-    _sequenceElements->GetXLightsFrame()->AbortRender();
+    xLightsApp::GetFrame()->AbortRender();
 
     // get the selected view
     SequenceView* view = _sequenceViewManager->GetView(ListCtrlViews->GetItemText(_sequenceElements->GetCurrentView(), 1).ToStdString());

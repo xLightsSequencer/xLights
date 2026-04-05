@@ -42,6 +42,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../ui/effectpanels/EffectIconCache.h"
 #include "../xLightsMain.h"
+#include "../xLightsApp.h"
 #include "../render/SequenceFile.h"
 #include "effects/GlediatorEffect.h"
 #include "effects/PicturesEffect.h"
@@ -1279,7 +1280,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             phoneme_layer->UnSelectAllEffects();
             phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
             phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-            BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), mSequenceElements->GetXLightsFrame(), mSequenceElements->get_undo_mgr());
+            BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), xLightsApp::GetFrame(), mSequenceElements->get_undo_mgr());
             element->SetCollapsed(false);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);
@@ -1324,7 +1325,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             for (int x = 0; x < layer->GetEffectCount(); x++) {
                 word_effect = layer->GetEffect(x);
                 if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
-                    BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), mSequenceElements->GetXLightsFrame(), mSequenceElements->get_undo_mgr());
+                    BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), xLightsApp::GetFrame(), mSequenceElements->get_undo_mgr());
                 }
             }
             element->SetCollapsed(false);
@@ -1698,7 +1699,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
             if (xlights->CurrentSeqXmlFile == nullptr)
                 return;
 
-            MainSequencer* ms = mSequenceElements->GetXLightsFrame()->GetMainSequencer();
+            MainSequencer* ms = xLightsApp::GetFrame()->GetMainSequencer();
             int pos = ms->ScrollBarEffectsHorizontal->GetThumbPosition();
             double delta_x = ((double)event.GetX() - m_previous_mouse_x);
             double ts = ms->ScrollBarEffectsHorizontal->GetThumbSize() / 5000.0;
@@ -4645,7 +4646,7 @@ void EffectsGrid::ResetEffect() {
 
     mSequenceElements->get_undo_mgr().CaptureModifiedEffect(mSelectedEffect->GetParentEffectLayer()->GetParentElement()->GetName(), mSelectedEffect->GetParentEffectLayer()->GetIndex(), mSelectedEffect);
 
-    mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(mSelectedEffect->GetEffectName(), nullptr, false);
+    xLightsApp::GetFrame()->ResetPanelDefaultSettings(mSelectedEffect->GetEffectName(), nullptr, false);
 }
 
 void EffectsGrid::SetEffectsDescription() {
@@ -6831,7 +6832,7 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                 }
                 highlight_color.alpha = TIMING_ALPHA;
                 selectedBoxes->AddRectAsTriangles(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
-                mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelRowHeadings->Refresh(false);
+                xLightsApp::GetFrame()->GetMainSequencer()->PanelRowHeadings->Refresh(false);
             }
         }
     }
