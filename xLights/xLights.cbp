@@ -47,6 +47,7 @@
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
+					<Add directory="../dependencies/midifile/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -106,6 +107,7 @@
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
+					<Add directory="../dependencies/midifile/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -338,11 +340,11 @@
 		<Unit filename="ui/sequencer/LyricUserDictDialog.h" />
 		<Unit filename="ui/sequencer/LyricsDialog.cpp" />
 		<Unit filename="ui/sequencer/LyricsDialog.h" />
-		<Unit filename="../dependencies/midifile/src-library/Binasc.cpp" />
-		<Unit filename="../dependencies/midifile/src-library/MidiEvent.cpp" />
-		<Unit filename="../dependencies/midifile/src-library/MidiEventList.cpp" />
-		<Unit filename="../dependencies/midifile/src-library/MidiFile.cpp" />
-		<Unit filename="../dependencies/midifile/src-library/MidiMessage.cpp" />
+		<Unit filename="../dependencies/midifile/src/Binasc.cpp" />
+		<Unit filename="../dependencies/midifile/src/MidiEvent.cpp" />
+		<Unit filename="../dependencies/midifile/src/MidiEventList.cpp" />
+		<Unit filename="../dependencies/midifile/src/MidiFile.cpp" />
+		<Unit filename="../dependencies/midifile/src/MidiMessage.cpp" />
 		<Unit filename="ui/media/ManageMediaPanel.cpp" />
 		<Unit filename="ui/media/ManageMediaPanel.h" />
 		<Unit filename="ui/media/ShaderPreviewGenerator.cpp" />

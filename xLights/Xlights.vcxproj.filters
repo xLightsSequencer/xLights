@@ -1348,20 +1348,20 @@
     <ClCompile Include="..\dependencies\vamp-hostsdk\acsymbols.c">
       <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\midifile\src-library\MidiEvent.cpp">
-      <Filter>..\dependencies\midifile\src-library</Filter>
+    <ClCompile Include="..\dependencies\midifile\src\MidiEvent.cpp">
+      <Filter>MIDI</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\midifile\src-library\MidiEventList.cpp">
-      <Filter>..\dependencies\midifile\src-library</Filter>
+    <ClCompile Include="..\dependencies\midifile\src\MidiEventList.cpp">
+      <Filter>MIDI</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\midifile\src-library\MidiFile.cpp">
-      <Filter>..\dependencies\midifile\src-library</Filter>
+    <ClCompile Include="..\dependencies\midifile\src\MidiFile.cpp">
+      <Filter>MIDI</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\midifile\src-library\MidiMessage.cpp">
-      <Filter>..\dependencies\midifile\src-library</Filter>
+    <ClCompile Include="..\dependencies\midifile\src\MidiMessage.cpp">
+      <Filter>MIDI</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\midifile\src-library\Binasc.cpp">
-      <Filter>..\dependencies\midifile\src-library</Filter>
+    <ClCompile Include="..\dependencies\midifile\src\Binasc.cpp">
+      <Filter>MIDI</Filter>
     </ClCompile>
     <ClCompile Include="models\Node.cpp">
       <Filter>Models</Filter>
@@ -2871,8 +2871,8 @@
     <ClInclude Include="models\DMX\MovingHeads\MhChannel.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\dependencies\midifile\src-library\Binasc.h">
-      <Filter>..\dependencies\midifile\src-library</Filter>
+    <ClInclude Include="..\dependencies\midifile\include\Binasc.h">
+      <Filter>MIDI</Filter>
     </ClInclude>
     <ClInclude Include="models\Node.h">
       <Filter>Models</Filter>
