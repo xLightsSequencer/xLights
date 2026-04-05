@@ -704,8 +704,8 @@ int FPP::PutToURL(const std::string& url, const std::string& val, const std::str
 bool FPP::updateProgress(int val, bool doYield) {
     if (_progress.SetValue) {
         _progress.SetValue(val);
-        if (doYield && _progress.Yield) {
-            _progress.Yield();
+        if (doYield && _progress.DoYield) {
+            _progress.DoYield();
         }
     }
     if (_progress.IsCancelled) {

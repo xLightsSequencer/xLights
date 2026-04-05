@@ -83,7 +83,7 @@ class FPP : public BaseController
     struct ProgressCallback {
         std::function<void(int)> SetValue;
         std::function<bool()> IsCancelled;
-        std::function<void()> Yield;
+        std::function<void()> DoYield;
     };
     void setProgress(const ProgressCallback& cb) { _progress = cb; }
     bool updateProgress(int val, bool yield);
