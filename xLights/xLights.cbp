@@ -471,6 +471,7 @@
 		<Unit filename="ui/app-shell/TabConvert.cpp" />
 		<Unit filename="ui/app-shell/TabPreview.cpp" />
 		<Unit filename="ui/app-shell/TabSequence.cpp" />
+		<Unit filename="ui/app-shell/DiscoveryHelpers.cpp" />
 		<Unit filename="ui/app-shell/TabSetup.cpp" />
 		<Unit filename="utils/TempFileManager.cpp" />
 		<Unit filename="utils/TempFileManager.h" />

@@ -95,6 +95,7 @@
     <ClCompile Include="ui/app-shell/TabConvert.cpp" />
     <ClCompile Include="ui/app-shell/TabPreview.cpp" />
     <ClCompile Include="ui/app-shell/TabSequence.cpp" />
+    <ClCompile Include="ui/app-shell/DiscoveryHelpers.cpp" />
     <ClCompile Include="ui/app-shell/TabSetup.cpp" />
     <ClCompile Include="ui/sequencer/TimingPanel.cpp" />
     <ClCompile Include="ui\shared\utils\tmGridCell.cpp" />
