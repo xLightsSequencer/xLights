@@ -12,7 +12,8 @@
 #include <wx/artprov.h>
 #include <wx/numdlg.h>
 
-#include "AudioManager.h"
+#include "media/AudioManager.h"
+#include "media/AudioLoader.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
 #include "utils/ExternalHooks.h"

@@ -22,7 +22,7 @@
 #include "xLightsApp.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
-#include "support/VectorMath.h"
+#include "utils/VectorMath.h"
 #include "models/CustomModel.h"
 #include "utils/string_utils.h"
 #include "ui/color/xlColourData.h"

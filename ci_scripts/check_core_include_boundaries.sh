@@ -42,6 +42,7 @@ CORE_DIRS=(
     "xLights/outputs"
     "xLights/controllers"
     "xLights/utils"
+    "xLights/media"
     "xLights/XmlSerializer"
 )
 

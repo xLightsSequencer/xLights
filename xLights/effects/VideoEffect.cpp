@@ -19,7 +19,7 @@
 
 #include "VideoEffect.h"
 #include "UtilFunctions.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "../render/VideoReader.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"

@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "MusicEffect.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "../render/SequenceElements.h"
 
 #include "../render/Effect.h"

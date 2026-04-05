@@ -24,7 +24,7 @@
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
 #include "UtilFunctions.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 

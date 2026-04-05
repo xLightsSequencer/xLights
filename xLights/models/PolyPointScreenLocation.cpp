@@ -18,7 +18,7 @@
 #include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Shapes.h"
-#include "../support/VectorMath.h"
+#include "../utils/VectorMath.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"

@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "NoteRangeDialog.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 
 //(*InternalHeaders(NoteRangeDialog)
 #include <wx/intl.h>

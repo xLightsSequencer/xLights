@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "LinesEffect.h"
-#include "AudioManager.h"
 #include "../render/SequenceElements.h"
 
 #include "../render/Effect.h"

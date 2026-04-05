@@ -16,7 +16,7 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "UtilFunctions.h"
 #include "../models/Model.h"
 #include "Parallel.h"

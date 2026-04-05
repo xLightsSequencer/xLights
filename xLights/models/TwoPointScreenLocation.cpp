@@ -21,7 +21,7 @@
 #include "../graphics/IModelPreview.h"
 #include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
-#include "../support/VectorMath.h"
+#include "../utils/VectorMath.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "RulerObject.h"

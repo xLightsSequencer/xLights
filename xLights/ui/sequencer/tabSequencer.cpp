@@ -37,7 +37,7 @@
 #include "../ui/effectpanels/EffectIconCache.h"
 #include "../ui/shared/utils/xlCustomControl.h"
 #include "ui/sequencer/NoteImportDialog.h"
-#include "../MIDI/MidiFile.h"
+#include "MidiFile.h"
 #include "../MusicXML.h"
 #include "../ui/diagnostics/SeqElementMismatchDialog.h"
 #include "ui/media/SequenceVideoPanel.h"
@@ -3712,7 +3712,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
     spdlog::debug("SpeedAdjust {}.", speedAdjust);
     spdlog::debug("StartAdjustMS {}.", startAdjustMS);
 
-    MidiFile midifile;
+    smf::MidiFile midifile;
     float lasttime = -1;
     if (midifile.read(file) != 0) {
         int ntrack = 0;
@@ -3731,7 +3731,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
 
         // process each event
         for (int i = 0; i < midifile.getNumEvents(ntrack); ++i) {
-            MidiEvent e = midifile.getEvent(ntrack, i);
+            smf::MidiEvent e = midifile.getEvent(ntrack, i);
 
             if (e.isNote()) {
                 float time = (float)startAdjustMS / 100.0 + midifile.getTimeInSeconds(ntrack, i) * speedadjust;

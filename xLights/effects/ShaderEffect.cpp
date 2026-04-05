@@ -79,7 +79,7 @@
 #endif
 
 #include "ShaderEffect.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "../graphics/GLContextManager.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"

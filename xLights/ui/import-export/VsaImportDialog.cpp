@@ -23,9 +23,9 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "import_export/VSAFile.h"
-#include "support/FastComboEditor.h"
-#include "support/GridCellChoiceRenderer.h"
-#include "support/EzGrid.h"
+#include "../support/FastComboEditor.h"
+#include "../support/GridCellChoiceRenderer.h"
+#include "../support/EzGrid.h"
 #include "UtilFunctions.h"
 #include "ui/wxUtilities.h"
 

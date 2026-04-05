@@ -20,7 +20,7 @@
 #include <wx/file.h>
 #include <wx/textfile.h>
 
-#include "MIDI/MidiFile.h"
+#include "MidiFile.h"
 #include "render/SequenceElements.h"
 #include "MusicXML.h"
 #include "UtilFunctions.h"
@@ -244,11 +244,11 @@ bool NoteImportDialog::IsTimingUnique(wxString name) const
     return true;
 }
 
-bool NoteImportDialog::MIDITrackContainsNotes(int track, MidiFile* midifile) const
+bool NoteImportDialog::MIDITrackContainsNotes(int track, smf::MidiFile* midifile) const
 {
     for (int i = 0; i < midifile->getNumEvents(track); i++)
     {
-        MidiEvent e = midifile->getEvent(track, i);
+        smf::MidiEvent e = midifile->getEvent(track, i);
         if (e.isNote())
         {
             return true;
@@ -264,7 +264,7 @@ void NoteImportDialog::MIDIExtraValidateWindow()
     if (notes == "MIDI File")
     {
         wxString file = TextCtrl_Piano_File->GetValue();
-        MidiFile midifile;
+        smf::MidiFile midifile;
         if (file == "" || !FileExists(file) || midifile.read(file) == 0)
         {
             // invalid midi file

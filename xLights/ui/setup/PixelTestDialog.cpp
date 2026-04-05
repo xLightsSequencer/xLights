@@ -37,7 +37,7 @@
 #include "controllers/ControllerUploadData.h"
 #include "controllers/ControllerCaps.h"
 #include "ui/layout/ModelPreview.h"
-#include "support/VectorMath.h"
+#include "utils/VectorMath.h"
 
 #pragma region ChannelTracker
 bool CompareRange(const wxLongLong& a, const wxLongLong& b)

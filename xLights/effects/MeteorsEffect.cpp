@@ -13,7 +13,7 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "../models/Model.h"
 #include "UtilFunctions.h"
 

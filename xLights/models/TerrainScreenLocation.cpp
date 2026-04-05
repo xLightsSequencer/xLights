@@ -10,10 +10,10 @@
 #include <cassert>
 #include <format>
 #include "../utils/string_utils.h"
-#include "../support/VectorMath.h"
+#include "../utils/VectorMath.h"
 
 #include "TerrainScreenLocation.h"
-#include "../support/VectorMath.h"
+#include "../utils/VectorMath.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../graphics/xlGraphicsContext.h"
 

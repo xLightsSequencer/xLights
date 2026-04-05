@@ -67,7 +67,7 @@
 #include "UtilFunctions.h"
 #include "ui/shared/utils/ExternalHooksUI.h"
 #include "ui/color/ColorManager.h"
-#include "support/VectorMath.h"
+#include "utils/VectorMath.h"
 #include "../app-shell/KeyBindings.h"
 #include "ui/sequencer/MainSequencer.h"
 #include "ui/model/ImportPreviewsModelsDialog.h"

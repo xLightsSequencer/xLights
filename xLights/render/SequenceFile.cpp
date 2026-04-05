@@ -28,7 +28,7 @@
 #include "SequenceElements.h"
 #include "RenderContext.h"
 #include "UICallbacks.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "../effects/EffectManager.h"
 #include "ValueCurve.h"
 #include "../effects/RenderableEffect.h"

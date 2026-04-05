@@ -668,6 +668,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects/OpenGLShaders.cpp" />
     <ClCompile Include="models/OutputModelManager.cpp" />
     <ClCompile Include="utils\AudioManager.cpp" />
+    <ClCompile Include="utils\SDLAudioOutput.cpp" />
     <ClCompile Include="ui/shared/utils/BitmapCache.cpp" />
     <ClCompile Include="ui/sequencer/BufferPanel.cpp" />
     <ClCompile Include="ui\sequencer\BufferSizeDialog.cpp" />
@@ -1251,6 +1252,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects/OpenGLShaders.h" />
     <ClInclude Include="models/OutputModelManager.h" />
     <ClInclude Include="utils\AudioManager.h" />
+    <ClInclude Include="utils\IAudioOutput.h" />
+    <ClInclude Include="utils\SDLAudioOutput.h" />
+    <ClInclude Include="utils\xLightsVamp.h" />
     <ClInclude Include="ui/shared/utils/BitmapCache.h" />
     <ClInclude Include="ui/sequencer/BufferPanel.h" />
     <ClInclude Include="ui\sequencer\BufferSizeDialog.h" />

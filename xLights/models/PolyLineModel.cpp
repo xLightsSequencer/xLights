@@ -16,7 +16,7 @@
 #include "PolyLineModel.h"
 #include "ModelScreenLocation.h"
 #include "Shapes.h"
-#include "../support/VectorMath.h"
+#include "../utils/VectorMath.h"
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../graphics/IModelPreview.h"

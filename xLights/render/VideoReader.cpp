@@ -149,10 +149,6 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     }
 #endif
 
-    #if LIBAVFORMAT_VERSION_MAJOR < 58
-    av_register_all();
-    #endif
-
 	int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
 	if (res != 0) {
         spdlog::error("Error opening the file " + filename);
@@ -165,13 +161,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	}
 
 	// Find the video stream
-#if LIBAVFORMAT_VERSION_MAJOR >= 59
     _streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &_decoder, 0);
-#else
-    AVCodec* decoder = nullptr;
-	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &decoder, 0);
-    _decoder = decoder;
-#endif
 	if (_streamIndex < 0) {
         spdlog::error("VideoReader: Could not find any video stream in " + filename);
 		return;
@@ -349,7 +339,6 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
     }
-#if LIBAVFORMAT_VERSION_MAJOR > 57
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(_WIN32)
@@ -402,7 +391,6 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             }
         }
     }
-#endif
 
     _codecContext = avcodec_alloc_context3(_decoder);
     if (!_codecContext) {
@@ -423,7 +411,6 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
         return;
     }
 
-    #if LIBAVFORMAT_VERSION_MAJOR > 57
     _codecContext->hwaccel_context = nullptr;
     {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE)
@@ -450,7 +437,6 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             spdlog::debug("Software decoding enabled for codec '{}'", _codecContext->codec->long_name);
         }
     }
-    #endif
     _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
     //  Init the decoders, with or without reference counting
@@ -511,10 +497,6 @@ bool VideoReader::IsVideoFile(const std::string& filename)
 
 long VideoReader::GetVideoLength(const std::string& filename)
 {
-    #if LIBAVFORMAT_VERSION_MAJOR < 58
-    av_register_all();
-    #endif
-
     AVFormatContext* formatContext = nullptr;
     int res = avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr);
     if (res != 0)
@@ -745,7 +727,6 @@ bool VideoReader::readFrame(int timestampMS) {
             if (!hardwareScaled) {
 
                 AVFrame* f = nullptr;
-#if LIBAVFORMAT_VERSION_MAJOR > 57
                 if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                     bool hwscale = false;
                     if (!hwscale)
@@ -766,7 +747,6 @@ bool VideoReader::readFrame(int timestampMS) {
                     }
                 }
                 else
-#endif
                 {
                     f = _srcFrame;
                 }
@@ -782,7 +762,6 @@ bool VideoReader::readFrame(int timestampMS) {
                     if (_abandonHardwareDecode) {
                         spdlog::warn("VideoReader: Hardware decoding abandoned due to directx error.");
                     }
-                    #if LIBAVFORMAT_VERSION_MAJOR > 57
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                         spdlog::debug("Hardware format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
@@ -796,7 +775,6 @@ bool VideoReader::readFrame(int timestampMS) {
                         }
                     }
                     else
-                    #endif
                     {
                         // software decoding
                         spdlog::debug("Software format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));

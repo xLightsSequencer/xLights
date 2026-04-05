@@ -49,10 +49,6 @@ extern "C"
 
 #include <log.h>
 
-#ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
-#define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
-#endif
-
 void xLightsFrame::ConversionError(const wxString& msg)
 {
     DisplayError(msg.ToStdString());
@@ -947,10 +943,6 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     av_log_set_callback(my_av_log_callback);
 #endif
 
-#if LIBAVFORMAT_VERSION_MAJOR < 58
-    av_register_all();
-#endif
-
     // AVCodecID vc = !EndsWith(filename, ".avi") ? (compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_HEVC) : AVCodecID::AV_CODEC_ID_RAWVIDEO;
     AVCodecID vc = !EndsWith(filename, ".avi") ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_RAWVIDEO;
     const AVCodec* codec = ::avcodec_find_encoder(vc);
@@ -1042,7 +1034,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     }
 
     if (oc->oformat->flags & AVFMT_GLOBALHEADER) {
-        codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
+        codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
 
     ret = avcodec_open2(codecContext, nullptr, nullptr);

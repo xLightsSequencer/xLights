@@ -16,7 +16,7 @@
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "../utils/xlPoint.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
 #include "../render/RenderContext.h"

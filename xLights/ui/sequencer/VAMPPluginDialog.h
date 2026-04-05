@@ -21,7 +21,7 @@ class SequenceFile;
 #include <vector>
 #include <map>
 
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 
 class xLightsFrame;
 

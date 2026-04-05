@@ -21,7 +21,7 @@
 #include <wx/textctrl.h>
 //*)
 
-class MidiFile;
+namespace smf { class MidiFile; }
 class SequenceElements;
 
 class NoteImportDialog: public wxDialog
@@ -33,7 +33,7 @@ class NoteImportDialog: public wxDialog
     void MIDIExtraValidateWindow();
     void MusicXMLExtraValidateWindow();
     void AudacityExtraValidateWindow();
-    bool MIDITrackContainsNotes(int track, MidiFile* midifile) const;
+    bool MIDITrackContainsNotes(int track, smf::MidiFile* midifile) const;
 
 	public:
 

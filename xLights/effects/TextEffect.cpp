@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "TextEffect.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 
 #include <cassert>
 #include <chrono>

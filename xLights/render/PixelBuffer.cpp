@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "DimmingCurve.h"
 #include "PixelBuffer.h"
 #include "ValueCurveConsts.h"

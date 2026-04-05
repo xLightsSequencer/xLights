@@ -51,7 +51,7 @@
 #include "models/Model.h"
 #include "models/SubModel.h"
 #include "xLightsApp.h"
-#include "support/VectorMath.h"
+#include "utils/VectorMath.h"
 #include "models/CustomModel.h"
 #include "outputs/OutputManager.h"
 #include "ui/color/xlColourData.h"

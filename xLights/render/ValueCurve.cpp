@@ -14,7 +14,7 @@
 #include "RenderContext.h"
 #include "UtilFunctions.h"
 #include "utils/AppCallbacks.h"
-#include "AudioManager.h"
+#include "media/AudioManager.h"
 #include "utils/ExternalHooks.h"
 #include "SequenceElements.h"
 

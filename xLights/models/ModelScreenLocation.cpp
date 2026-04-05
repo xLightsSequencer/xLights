@@ -22,7 +22,7 @@
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../render/ViewpointMgr.h"
 #include "Shapes.h"
-#include "../support/VectorMath.h"
+#include "../utils/VectorMath.h"
 #include "UtilFunctions.h"
 #include "RulerObject.h"
 
