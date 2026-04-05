@@ -65,7 +65,7 @@
 #include "ui/model/WiringDialog.h"
 #include "ui/model/ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
-#include "utils/ExternalHooks.h"
+#include "ui/shared/utils/ExternalHooksUI.h"
 #include "ui/color/ColorManager.h"
 #include "support/VectorMath.h"
 #include "../app-shell/KeyBindings.h"

@@ -35,13 +35,10 @@
 #define DisableSleepModes()
 #define AddAudioDeviceChangeListener(a)
 #define RemoveAudioDeviceChangeListener()
-#define WXGLUnsetCurrentContext()
 #define SetThreadQOS(a)
 
-inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool ObtainAccessToURL(const std::string &path, bool enforceWritable = false) { return true; }
 inline bool IsFromAppStore() { return false; }
-inline bool IsMouseEventFromTouchpad() { return false; }
 inline void RunInAutoReleasePool(std::function<void()> &&f) { f(); }
 
 inline bool FileExists(const std::string &s, bool waitForDownload = true) {

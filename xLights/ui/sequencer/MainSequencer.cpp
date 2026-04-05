@@ -28,7 +28,7 @@
 #include "../ui/wxUtilities.h"
 #include "../xLightsVersion.h"
 #include "ui/sequencer/EffectsPanel.h"
-#include "utils/ExternalHooks.h"
+#include "ui/shared/utils/ExternalHooksUI.h"
 #include "../effects/RenderableEffect.h"
 #include "../ui/effectpanels/EffectIconCache.h"
 #include "../graphics/xlGraphicsBase.h"

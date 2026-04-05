@@ -1320,12 +1320,10 @@ public:
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
-    void SetLowDefinitionRender(bool b)
-    {
+    void SetLowDefinitionRender(bool b) {
         _lowDefinitionRender = b;
     }
-    bool IsLowDefinitionRender() const
-    {
+    bool IsLowDefinitionRender() const override {
         return _lowDefinitionRender;
     }
     const wxString &EnableRenderCache() const { return _enableRenderCache; }

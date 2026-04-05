@@ -41,7 +41,7 @@
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
 #include "outputs/Output.h"
-#include "utils/ExternalHooks.h"
+#include "ui/shared/utils/ExternalHooksUI.h"
 
 #include <log.h>
 #include <cmath>

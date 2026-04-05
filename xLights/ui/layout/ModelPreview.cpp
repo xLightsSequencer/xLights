@@ -28,7 +28,7 @@
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "models/ModelGroup.h"
-#include "utils/ExternalHooks.h"
+#include "ui/shared/utils/ExternalHooksUI.h"
 #include "ui/wxUtilities.h"
 
 #include <log.h>

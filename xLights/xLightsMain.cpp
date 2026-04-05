@@ -64,7 +64,7 @@
 #include "ui/sequencer/EffectsPanel.h"
 #include "ui/app-shell/EmailDialog.h"
 #include "ui/import-export/ExportSettings.h"
-#include "utils/ExternalHooks.h"
+#include "ui/shared/utils/ExternalHooksUI.h"
 #include "ui/diagnostics/FindDataPanel.h"
 #include "render/GPURenderUtils.h"
 #include "render/SequenceMedia.h"
