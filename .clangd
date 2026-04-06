@@ -1,0 +1,29 @@
+CompileFlags:
+  Add:
+    - -std=gnu++20
+    - -DDEBUG=1
+    - -D_FILE_OFFSET_BITS=64
+    - -D__WXOSX__
+    - -D__WXMAC__
+    - -D__WXOSX_COCOA__
+    - -DwxDEBUG_LEVEL=1
+    - -D_LIBCPP_DISABLE_AVAILABILITY
+    - -ImacOS/dependencies/libdbg/wx/include/osx_cocoa-unicode-3.3
+    - -ImacOS/dependencies/include/wx-3.3
+    - -ImacOS/dependencies/include
+    - -ImacOS/dependencies/submodules/ffmpeg
+    - -ImacOS/dependencies/submodules/SDL/include
+    - -ImacOS/dependencies/submodules/hidapi/hidapi
+    - -IxLights
+    - -IxLights/render
+    - -IxLights/utils
+    - -Idependencies
+    - -Idependencies/pugixml/src
+    - -Idependencies/liquidfun/liquidfun/Box2D
+    - -Idependencies/midifile/include
+    - -Idependencies/spdlog/include
+    - -Iinclude
+    - -Iinclude/ffmpeg-6/include
+    - -Iinclude/sol2-3.5.0
+    - -ferror-limit=0
+  Compiler: clang++

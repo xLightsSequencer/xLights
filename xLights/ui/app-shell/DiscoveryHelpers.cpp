@@ -76,18 +76,21 @@ void xLightsFrame::PrepareAllControllerDiscovery(Discovery& discovery) {
 
 // Timer for cleaning up Discovery objects after outstanding curl requests complete
 namespace {
-class DiscoveryCleanupTimer : public wxTimer {
-public:
-    std::list<Discovery*> discs;
-    void Notify() override {
-        if (!CurlManager::INSTANCE.processCurls()) {
-            for (auto d : discs) delete d;
-            discs.clear();
-            Stop();
+    class DiscoveryCleanupTimer;
+    static DiscoveryCleanupTimer* s_cleanupTimer = nullptr;
+    class DiscoveryCleanupTimer : public wxTimer {
+    public:
+        std::list<Discovery*> discs;
+        void Notify() override {
+            if (!CurlManager::INSTANCE.processCurls()) {
+                for (auto d : discs) delete d;
+                discs.clear();
+                Stop();
+                s_cleanupTimer = nullptr;
+                delete this;
+            }
         }
-    }
-};
-static DiscoveryCleanupTimer* s_cleanupTimer = nullptr;
+    };
 }
 
 std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate) {
