@@ -2507,7 +2507,7 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
     }
 }
 
-void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
+void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned int numChannels) {
     if ((size_t)layer >= layers.size())
         return;
 
@@ -2516,6 +2516,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
         for (const auto& n : layers[layer]->buffer.Nodes) {
             if (n == nullptr) continue;
             size_t start = n->ActChan;
+            if (start >= numChannels) continue;
 
             n->SetFromChannels(&fdata[start]);
             n->GetColor(color);
@@ -2537,6 +2538,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
                 if (n == nullptr) return;
                 xlColor color;
                 size_t start = n->ActChan;
+                if (start >= numChannels) return;
                 n->SetFromChannels(&fdata[start]);
                 n->GetColor(color);
 

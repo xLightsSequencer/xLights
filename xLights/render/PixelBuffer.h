@@ -315,7 +315,7 @@ public:
     void HandleLayerBlurZoom(int EffectPeriod, int layer);
     void HandleLayerTransitions(int EffectPeriod, int layer);
     void CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer = 0, bool saveToPixels = false);
-    void SetColors(int layer, const unsigned char* fdata);
+    void SetColors(int layer, const unsigned char* fdata, unsigned int numChannels);
     void GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange);
 
     // place for GPU Renderers to attach extra data/objects it needs
