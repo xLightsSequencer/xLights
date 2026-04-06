@@ -44,14 +44,12 @@ static bool DecodeWithAVAssetReader(const std::string& path,
         NSURL* nsURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path.c_str()]];
         AVAsset* asset = [AVAsset assetWithURL:nsURL];
 
-        // Wait for the asset to load
-        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-        [asset loadValuesAsynchronouslyForKeys:@[@"tracks", @"duration", @"commonMetadata"] completionHandler:^{
-            dispatch_semaphore_signal(sem);
-        }];
-        dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC));
-
+        // Access tracks synchronously — avoid async load + semaphore pattern
+        // which causes priority inversion warnings when called from the main thread
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         NSArray<AVAssetTrack*>* audioTracks = [asset tracksWithMediaType:AVMediaTypeAudio];
+#pragma clang diagnostic pop
         if (audioTracks.count == 0) {
             spdlog::error("AudioToolboxDecoder: No audio track in {}", path);
             return false;
@@ -412,15 +410,12 @@ bool AudioToolboxDecoder::DecodeFile(const std::string& path,
         NSURL* nsURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path.c_str()]];
         AVAsset* asset = [AVAsset assetWithURL:nsURL];
 
-        // Use synchronous loading for metadata
-        NSArray<NSString*>* keys = @[@"commonMetadata"];
-        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-        [asset loadValuesAsynchronouslyForKeys:keys completionHandler:^{
-            dispatch_semaphore_signal(sem);
-        }];
-        dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC));
-
+        // Access commonMetadata synchronously — avoid async load + semaphore pattern
+        // which causes priority inversion warnings when called from the main thread
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         for (AVMetadataItem* item in asset.commonMetadata) {
+#pragma clang diagnostic pop
             if ([item.commonKey isEqualToString:AVMetadataCommonKeyTitle]) {
                 NSString* val = (NSString*)item.value;
                 if ([val isKindOfClass:[NSString class]]) info.title = val.UTF8String;
