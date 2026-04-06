@@ -227,10 +227,12 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
                 }
                 if (!baseEntry) continue;
                 resolvedPath = baseEntry->GetFilePath();
-                node->canLoad = true;
+                node->canLoad = baseEntry->IsOk();
                 node->sizeStr = "-";
                 node->framesStr = "-";
                 node->statusStr = baseEntry->IsEmbedded() ? "Embedded" : "External";
+                if (!node->canLoad)
+                    node->statusStr += " (not found)";
             }
 
             wxFileName fn(displayPath(path, resolvedPath));

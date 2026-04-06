@@ -64,6 +64,7 @@ public:
 
     virtual void Load() = 0;
     bool isLoaded() const { return _loadingDone; }
+    virtual bool IsOk() const { return _loadingDone; }
 
     virtual bool LoadFromXml(const pugi::xml_node& node) = 0;
     virtual void SaveToXml(pugi::xml_node& parent) const = 0;
