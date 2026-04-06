@@ -1359,6 +1359,10 @@
 		<Unit filename="../src-core/utils/nanosvg_xl.h" />
 		<Unit filename="../src-core/utils/string_utils.cpp" />
 		<Unit filename="../src-core/utils/string_utils.h" />
+		<Unit filename="../src-core/utils/FileUtils.cpp" />
+		<Unit filename="../src-core/utils/FileUtils.h" />
+		<Unit filename="../src-core/utils/NodeUtils.cpp" />
+		<Unit filename="../src-core/utils/NodeUtils.h" />
 		<Unit filename="../src-core/utils/ThreadUtils.h" />
 		<Unit filename="../src-core/utils/xlPoint.h" />
 		<Unit filename="../src-core/utils/xlRect.h" />
