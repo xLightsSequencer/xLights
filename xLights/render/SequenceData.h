@@ -50,9 +50,9 @@ public:
 
         void Zero(unsigned int start, unsigned int count) {
             if (_data == nullptr) return;
-            if (start < 0) return;
             if (count < 1) return;
-            if (start + count > _numChannels) return;
+            if (start >= _numChannels) return;
+            if (count > _numChannels - start) return;
             memset(&_data[start], 0x00, count);
         }
         

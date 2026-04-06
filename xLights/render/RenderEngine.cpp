@@ -688,7 +688,7 @@ public:
                             }
                         }
                         if (doBlendLayer) {
-                            buffer->SetColors(numLayers, &((*seqData)[frame][0]));
+                            buffer->SetColors(numLayers, &((*seqData)[frame][0]), seqData->NumChannels());
                             vl[numLayers] = true;
                             blend = false;
                         }
@@ -758,7 +758,7 @@ public:
                 }
             }
             if (blend) {
-                buffer->SetColors(numLayers, &((*seqData)[frame][0]));
+                buffer->SetColors(numLayers, &((*seqData)[frame][0]), seqData->NumChannels());
                 info.validLayers[numLayers] = true;
             }
             buffer->CalcOutput(frame, info.validLayers);
@@ -920,7 +920,7 @@ public:
                             buffer->HandleLayerTransitions(frame, 0);
                             //copy to output
                             std::vector<bool> valid(2, true);
-                            buffer->SetColors(1, &((*seqData)[frame][0]));
+                            buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels());
                             buffer->CalcOutput(frame, valid);
                             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
                         }
@@ -1167,9 +1167,10 @@ public:
         }
 
         for (size_t node = 0; node < e->GetNodeCount(); ++node) {
-            unsigned int start = e->NodeStartChannel(node);
-            unsigned int end = e->NodeEndChannel(node);
-            AddRange(start, end);
+            int32_t startCh = e->NodeStartChannel(node);
+            int32_t endCh = e->NodeEndChannel(node);
+            if (startCh < 0 || endCh < 0) continue;
+            AddRange((unsigned int)startCh, (unsigned int)endCh);
         }
         sortRanges(ranges);
     }
