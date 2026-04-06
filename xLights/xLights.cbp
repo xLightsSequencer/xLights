@@ -175,6 +175,8 @@
 		<Unit filename="ui/model/AlignmentDialog.h" />
 		<Unit filename="media/AudioManager.cpp" />
 		<Unit filename="media/AudioManager.h" />
+		<Unit filename="media/MediaCompatibility.cpp" />
+		<Unit filename="media/MediaCompatibility.h" />
 		<Unit filename="media/AudioLoader.cpp" />
 		<Unit filename="media/AudioLoader.h" />
 		<Unit filename="media/FFmpegAudioDecoder.cpp" />
@@ -526,8 +528,12 @@
 		<Unit filename="ui/import-export/VendorMusicHelpers.h" />
 		<Unit filename="ui/media/VideoExporter.cpp" />
 		<Unit filename="ui/media/VideoExporter.h" />
-		<Unit filename="render/VideoReader.cpp" />
-		<Unit filename="render/VideoReader.h" />
+		<Unit filename="media/FFmpegVideoReader.cpp" />
+		<Unit filename="media/FFmpegVideoReader.h" />
+		<Unit filename="media/VideoFrame.h" />
+		<Unit filename="media/VideoReader.cpp" />
+		<Unit filename="media/VideoReader.h" />
+		<Unit filename="media/VideoReaderImpl.h" />
 		<Unit filename="ui/layout/ViewObjectPanel.cpp" />
 		<Unit filename="ui/layout/ViewObjectPanel.h" />
 		<Unit filename="ui/model/ViewpointDialog.cpp" />

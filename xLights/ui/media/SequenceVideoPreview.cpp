@@ -13,8 +13,6 @@
 #include <wx/dcclient.h>
 #include <wx/panel.h>
 
-#include <libavutil/frame.h>
-
 BEGIN_EVENT_TABLE( SequenceVideoPreview, GRAPHICS_BASE_CLASS )
 EVT_PAINT( SequenceVideoPreview::paint )
 END_EVENT_TABLE()
@@ -47,7 +45,7 @@ void SequenceVideoPreview::paint( wxPaintEvent& evt )
     FinishDrawing(ctx);
 }
 
-void SequenceVideoPreview::Render( AVFrame *frame )
+void SequenceVideoPreview::Render( VideoFrame *frame )
 {
     if(!IsShownOnScreen()) return;
     if(!mIsInitialized) {
@@ -65,16 +63,22 @@ void SequenceVideoPreview::Render( AVFrame *frame )
     }
 
     // Upload video frame to texture
-    if (frame->format == AV_PIX_FMT_BGRA) {
-        _texture->UpdateData(frame->data[0] , true, true);
-    } else if (frame->format == AV_PIX_FMT_RGBA) {
-        _texture->UpdateData(frame->data[0] , false, true);
-    } else if (frame->format == AV_PIX_FMT_RGB24) {
-        _texture->UpdateData(frame->data[0] , false, false);
-    } else if (frame->format == AV_PIX_FMT_VIDEOTOOLBOX) {
-        _texture->UpdateData(ctx, frame->data[3], "vt");
-    } else if (frame->format == AV_PIX_FMT_BGR24) {
-        _texture->UpdateData(frame->data[0] , true, false);
+    switch (frame->format) {
+        case VideoPixelFormat::BGRA:
+            _texture->UpdateData(frame->data, true, true);
+            break;
+        case VideoPixelFormat::RGBA:
+            _texture->UpdateData(frame->data, false, true);
+            break;
+        case VideoPixelFormat::RGB24:
+            _texture->UpdateData(frame->data, false, false);
+            break;
+        case VideoPixelFormat::BGR24:
+            _texture->UpdateData(frame->data, true, false);
+            break;
+        case VideoPixelFormat::PlatformNative:
+            _texture->UpdateData(ctx, frame->nativeHandle, "vt");
+            break;
     }
     ctx->drawTexture(_texture, 0, 0, mWindowWidth, mWindowHeight );
     FinishDrawing(ctx);

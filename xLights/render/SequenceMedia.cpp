@@ -22,7 +22,7 @@
 #include "utils/ExternalHooks.h"
 #include "../utils/nanosvg_xl.h"
 #include "../effects/ShaderEffect.h"
-#include "VideoReader.h"
+#include "../media/VideoReader.h"
 #include "Element.h"
 #include "EffectLayer.h"
 #include "SequenceElements.h"
@@ -1140,19 +1140,19 @@ std::shared_ptr<xlImage> VideoMediaCacheEntry::GetThumbnail(int maxWidth, int ma
     VideoReader reader(_resolvedPath, maxWidth, maxHeight, true, false, true);
     if (!reader.IsValid()) return nullptr;
 
-    AVFrame* frame = reader.GetNextFrame(0);
-    if (!frame || !frame->data[0]) return nullptr;
+    VideoFrame* frame = reader.GetNextFrame(0);
+    if (!frame || !frame->data) return nullptr;
 
     int w = reader.GetWidth();
     int h = reader.GetHeight();
     if (w <= 0 || h <= 0) return nullptr;
 
-    // AVFrame with wantAlpha=true is RGBA, matching xlImage layout
+    // VideoFrame with wantAlpha=true is RGBA, matching xlImage layout
     _thumbnail = std::make_shared<xlImage>(w, h);
-    int srcStride = frame->linesize[0];
+    int srcStride = frame->linesize;
     uint8_t* dst = _thumbnail->GetData();
     for (int y = 0; y < h; y++) {
-        memcpy(dst + y * w * 4, frame->data[0] + y * srcStride, w * 4);
+        memcpy(dst + y * w * 4, frame->data + y * srcStride, w * 4);
     }
     _thumbW = maxWidth;
     _thumbH = maxHeight;
@@ -1189,14 +1189,14 @@ void VideoMediaCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
     int frameTimeMS = 50;
 
     for (int ts = 0; ts < maxMS; ts += frameTimeMS) {
-        AVFrame* frame = reader.GetNextFrame(ts);
-        if (!frame || !frame->data[0]) break;
+        VideoFrame* frame = reader.GetNextFrame(ts);
+        if (!frame || !frame->data) break;
 
         auto img = std::make_shared<xlImage>(w, h);
-        int srcStride = frame->linesize[0];
+        int srcStride = frame->linesize;
         uint8_t* dst = img->GetData();
         for (int y = 0; y < h; y++) {
-            memcpy(dst + y * w * 4, frame->data[0] + y * srcStride, w * 4);
+            memcpy(dst + y * w * 4, frame->data + y * srcStride, w * 4);
         }
         frames.push_back(img);
         frameTimes.push_back(frameTimeMS);
@@ -1424,6 +1424,18 @@ std::vector<std::pair<std::string, MediaType>> SequenceMedia::GetAllMediaPaths()
     for (const auto& p : _textCache) paths.emplace_back(p.first, MediaType::TextFile);
     for (const auto& p : _binaryCache) paths.emplace_back(p.first, MediaType::BinaryFile);
     for (const auto& p : _videoCache) paths.emplace_back(p.first, MediaType::Video);
+    return paths;
+}
+
+std::vector<std::string> SequenceMedia::GetVideoFilePaths() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::string> paths;
+    paths.reserve(_videoCache.size());
+    for (const auto& p : _videoCache) {
+        auto& entry = p.second;
+        const std::string& resolved = entry->GetResolvedPath();
+        paths.push_back(resolved.empty() ? p.first : resolved);
+    }
     return paths;
 }
 

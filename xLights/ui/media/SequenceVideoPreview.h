@@ -12,8 +12,8 @@
 
 #include "ui/graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsAccumulators.h"
+#include "media/VideoFrame.h"
 
-struct AVFrame;
 class wxPanel;
 class xlGraphicsContext;
 
@@ -24,7 +24,7 @@ public:
 
    virtual ~SequenceVideoPreview();
 
-   void Render( AVFrame * frame );
+   void Render( VideoFrame * frame );
    void Clear();
 
 protected:

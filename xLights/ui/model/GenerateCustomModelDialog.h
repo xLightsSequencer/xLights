@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "render/VideoReader.h"
+#include "media/VideoReader.h"
 
 class OutputManager;
 

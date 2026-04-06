@@ -18,6 +18,7 @@
     <ClCompile Include="ui/setup/IPEntryDialog.cpp" />
     <ClCompile Include="ui\model\MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="media\AudioManager.cpp" />
+    <ClCompile Include="media\MediaCompatibility.cpp" />
     <ClCompile Include="media\AudioLoader.cpp" />
     <ClCompile Include="media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="media\SDLAudioOutput.cpp" />
@@ -111,7 +112,8 @@
     <ClCompile Include="ui\sequencer\VAMPPluginDialog.cpp" />
     <ClCompile Include="ui/media/VideoExporter.cpp" />
     <ClCompile Include="ui\import-export\VendorModelDialog.cpp" />
-    <ClCompile Include="render/VideoReader.cpp" />
+    <ClCompile Include="media/FFmpegVideoReader.cpp" />
+    <ClCompile Include="media/VideoReader.cpp" />
     <ClCompile Include="ui/layout/ViewsModelsPanel.cpp" />
     <ClCompile Include="import_export\VSAFile.cpp" />
     <ClCompile Include="ui\import-export\VsaImportDialog.cpp" />
@@ -771,7 +773,7 @@
     <ClCompile Include="effects\FX.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="render/WindowsHardwareVideoReader.cpp" />
+    <ClCompile Include="media/WindowsHardwareVideoReader.cpp" />
     <ClCompile Include="ui/color/ColourReplaceDialog.cpp" />
     <ClCompile Include="models\BoxedScreenLocation.cpp">
       <Filter>Models</Filter>
@@ -1464,6 +1466,7 @@
     <ClInclude Include="utils\AnimatedImage.h" />
     <ClInclude Include="ui/setup/IPEntryDialog.h" />
     <ClInclude Include="media\AudioManager.h" />
+    <ClInclude Include="media\MediaCompatibility.h" />
     <ClInclude Include="media\AudioLoader.h" />
     <ClInclude Include="media\FFmpegAudioDecoder.h" />
     <ClInclude Include="media\IAudioDecoder.h" />
@@ -1552,7 +1555,10 @@
     <ClInclude Include="ui\sequencer\VAMPPluginDialog.h" />
     <ClInclude Include="ui/media/VideoExporter.h" />
     <ClInclude Include="ui\import-export\VendorModelDialog.h" />
-    <ClInclude Include="render/VideoReader.h" />
+    <ClInclude Include="media/FFmpegVideoReader.h" />
+    <ClInclude Include="media/VideoFrame.h" />
+    <ClInclude Include="media/VideoReader.h" />
+    <ClInclude Include="media/VideoReaderImpl.h" />
     <ClInclude Include="ui/layout/ViewsModelsPanel.h" />
     <ClInclude Include="import_export\VSAFile.h" />
     <ClInclude Include="ui\import-export\VsaImportDialog.h" />
@@ -2231,7 +2237,7 @@
     <ClInclude Include="effects\FX.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="render/WindowsHardwareVideoReader.h" />
+    <ClInclude Include="media/WindowsHardwareVideoReader.h" />
     <ClInclude Include="ui/color/ColourReplaceDialog.h" />
     <ClInclude Include="models\BoxedScreenLocation.h">
       <Filter>Models</Filter>

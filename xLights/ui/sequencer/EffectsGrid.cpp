@@ -38,7 +38,7 @@
 #include "ui/sequencer/RenderCommandEvent.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
-#include "../render/VideoReader.h"
+#include "../media/VideoReader.h"
 #include "../effects/RenderableEffect.h"
 #include "../ui/effectpanels/EffectIconCache.h"
 #include "../xLightsMain.h"

@@ -11,7 +11,7 @@
 #include "ui/media/ManageMediaPanel.h"
 #include "ui/media/ShaderPreviewGenerator.h"
 #include "render/SequenceMedia.h"
-#include "render/VideoReader.h"
+#include "media/VideoReader.h"
 #include "render/SequenceElements.h"
 #include "render/Element.h"
 #include "render/EffectLayer.h"  // also defines NodeLayer

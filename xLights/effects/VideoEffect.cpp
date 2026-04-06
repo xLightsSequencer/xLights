@@ -20,7 +20,7 @@
 #include "VideoEffect.h"
 #include "UtilFunctions.h"
 #include "media/AudioManager.h"
-#include "../render/VideoReader.h"
+#include "../media/VideoReader.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
@@ -440,7 +440,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
 
         // get the image for the current frame
-        AVFrame* image = _videoreader->GetNextFrame(frame);
+        VideoFrame* image = _videoreader->GetNextFrame(frame);
 
         // if we have reached the end and we are to loop
         if (_videoreader->AtEnd() && durationTreatment == "Loop")
@@ -484,7 +484,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     rdata.ch = _videoreader->GetPixelChannels();
                     rdata.image_width = _videoreader->GetWidth();
                     rdata.image_height = _videoreader->GetHeight();
-                    rdata.image = image->data[0];
+                    rdata.image = image->data;
                     rdata.startx = startx;
                     rdata.starty = starty;
                     rdata.bufferData = (void*)&buffer;
@@ -528,7 +528,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     rdata.ch = _videoreader->GetPixelChannels();
                     rdata.image_width = _videoreader->GetWidth();
                     rdata.image_height = _videoreader->GetHeight();
-                    rdata.image = image->data[0];
+                    rdata.image = image->data;
                     rdata.startx = startx;
                     rdata.starty = starty;
                     rdata.bufferData = (void*)&buffer;

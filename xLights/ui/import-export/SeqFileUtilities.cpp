@@ -43,6 +43,7 @@
 #include "ui/import-export/xLightsImportChannelMapDialog.h"
 #include "xLightsMain.h"
 #include "render/SequenceMedia.h"
+#include "media/MediaCompatibility.h"
 #include <wx/textdlg.h>
 #include "utils/xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
@@ -604,6 +605,23 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         float elapsedTime = sw.Time() / 1000.0; // msec => sec
         SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
         SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
+
+        // Check media compatibility with AVFoundation/AudioToolbox
+        if (loaded_xml && !_renderMode && !_checkSequenceMode) {
+            std::string audioFile = CurrentSeqXmlFile->GetMediaFile();
+            std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
+            auto issues = MediaCompatibility::CheckSequenceMedia(audioFile, videoFiles);
+            if (!issues.empty()) {
+                wxString msg = "The following media files may not be compatible with AVFoundation:\n\n";
+                for (const auto& issue : issues) {
+                    wxString type = issue.isVideo ? "Video" : "Audio";
+                    std::string basename = std::filesystem::path(issue.filePath).filename().string();
+                    msg += wxString::Format("  %s: %s\n    Reason: %s\n\n", type, basename, issue.reason);
+                }
+                msg += "Consider re-encoding with Handbrake using H.264/H.265 (video) or AAC/MP3 (audio) for maximum compatibility and performance.";
+                DisplayWarning(msg, this);
+            }
+        }
 
         bool isEffect = CurrentSeqXmlFile->GetSequenceType() == "Effect";
         mainSequencer->ViewChoice->Show(!isEffect);

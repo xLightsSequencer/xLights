@@ -377,6 +377,9 @@ public:
     void ExtractMedia(const std::string& filepath);
     void ExtractAllMedia();
 
+    // === Query helpers ===
+    std::vector<std::string> GetVideoFilePaths() const;
+
     // === Lifecycle ===
     void Clear();
     void MarkAllUnused();

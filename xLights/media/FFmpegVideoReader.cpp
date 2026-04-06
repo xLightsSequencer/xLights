@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "VideoReader.h"
+#include "FFmpegVideoReader.h"
 
 //#define VIDEO_EXTRALOGGING
 
@@ -58,7 +58,7 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
             return *p;
         }
     }
-    
+
     spdlog::error("Failed to get HW surface format. This is bad - we will have to abandon video read. Suggest you turn off hardware video decoding or force change the device.");
     spdlog::error("   Looking for {} but only found:", av_get_pix_fmt_name(__hw_pix_fmt));
     for (p = pix_fmts; *p != -1; p++) {
@@ -68,10 +68,10 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
     return AV_PIX_FMT_NONE;
 }
 
-bool VideoReader::HW_ACCELERATION_ENABLED = false;
-WINHARDWARERENDERTYPE VideoReader::HW_ACCELERATION_TYPE = WINHARDWARERENDERTYPE::FFMPEG_AUTO;
+bool FFmpegVideoReader::HW_ACCELERATION_ENABLED = false;
+WINHARDWARERENDERTYPE FFmpegVideoReader::HW_ACCELERATION_TYPE = WINHARDWARERENDERTYPE::FFMPEG_AUTO;
 
-void VideoReader::SetHardwareAcceleratedVideo(bool accel)
+void FFmpegVideoReader::SetHardwareAcceleratedVideo(bool accel)
 {
 #ifdef __LINUX__
     HW_ACCELERATION_ENABLED = false;
@@ -80,29 +80,51 @@ void VideoReader::SetHardwareAcceleratedVideo(bool accel)
 #endif
 }
 
-void VideoReader::SetHardwareRenderType(int type) 
+void FFmpegVideoReader::SetHardwareRenderType(int type)
 {
     HW_ACCELERATION_TYPE = static_cast<WINHARDWARERENDERTYPE>( type );
 }
 
-void VideoReader::InitHWAcceleration() {
+void FFmpegVideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
 }
 
-VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/,
+// Helper to populate the VideoFrame from an AVFrame
+static void PopulateVideoFrame(VideoFrame& vf, AVFrame* avf, VideoPixelFormat fmt) {
+    if (avf && avf->data[0]) {
+        vf.data = avf->data[0];
+        vf.linesize = avf->linesize[0];
+        vf.width = avf->width;
+        vf.height = avf->height;
+        vf.format = fmt;
+        vf.nativeHandle = nullptr;
+    }
+}
+
+static VideoPixelFormat AVPixelFormatToVideoPixelFormat(AVPixelFormat fmt) {
+    switch (fmt) {
+        case AV_PIX_FMT_RGB24: return VideoPixelFormat::RGB24;
+        case AV_PIX_FMT_BGR24: return VideoPixelFormat::BGR24;
+        case AV_PIX_FMT_RGBA: return VideoPixelFormat::RGBA;
+        case AV_PIX_FMT_BGRA: return VideoPixelFormat::BGRA;
+        case AV_PIX_FMT_VIDEOTOOLBOX: return VideoPixelFormat::PlatformNative;
+        default: return VideoPixelFormat::RGB24;
+    }
+}
+
+FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution,
                          bool wantAlpha, bool bgr, bool wantsHWType)
 {
-    
     _wantsHWType = wantsHWType;
     _maxwidth = maxwidth;
     _maxheight = maxheight;
     _filename = filename;
     _valid = false;
-	_lengthMS = 0.0;
-	_formatContext = nullptr;
-	_codecContext = nullptr;
-	_videoStream = nullptr;
-	_dstFrame = nullptr;
+    _lengthMS = 0.0;
+    _formatContext = nullptr;
+    _codecContext = nullptr;
+    _videoStream = nullptr;
+    _dstFrame = nullptr;
     _dstFrame2 = nullptr;
     _srcFrame = nullptr;
     _curPos = -1000;
@@ -113,15 +135,14 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     } else {
         _pixelFmt = bgr ? AVPixelFormat::AV_PIX_FMT_BGR24 : AVPixelFormat::AV_PIX_FMT_RGB24;
     }
-	_atEnd = false;
-	_swsCtx = nullptr;
+    _atEnd = false;
+    _swsCtx = nullptr;
     _dtspersec = 1.0;
     _frames = 0;
     _width = _maxwidth;
     _height = _maxheight;
 
 #ifdef _WIN32
-
     if (HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() && HW_ACCELERATION_TYPE == WINHARDWARERENDERTYPE::DIRECX11_API) {
         _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
         if (_windowsHardwareVideoReader->IsOk()) {
@@ -149,91 +170,71 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     }
 #endif
 
-	int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
-	if (res != 0) {
+    int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
+    if (res != 0) {
         spdlog::error("Error opening the file " + filename);
-		return;
-	}
+        return;
+    }
 
-	if (avformat_find_stream_info(_formatContext, nullptr) < 0) {
+    if (avformat_find_stream_info(_formatContext, nullptr) < 0) {
         spdlog::error("VideoReader: Error finding the stream info in " + filename);
-		return;
-	}
+        return;
+    }
 
-	// Find the video stream
+    // Find the video stream
     _streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &_decoder, 0);
-	if (_streamIndex < 0) {
+    if (_streamIndex < 0) {
         spdlog::error("VideoReader: Could not find any video stream in " + filename);
-		return;
-	}
+        return;
+    }
 
-	_videoStream = _formatContext->streams[_streamIndex];
+    _videoStream = _formatContext->streams[_streamIndex];
     _videoStream->discard = ::AVDiscard::AVDISCARD_NONE;
 
     reopenContext();
 
-    if (_codecContext == nullptr)
-    {
+    if (_codecContext == nullptr) {
         return;
     }
 
-	// at this point it is open and ready
-   if ( usenativeresolution )
-   {
-      _height = _codecContext->height;
-      _width = _codecContext->width;
-   }
-   else
-   {
-      if ( keepaspectratio )
-      {
-         if ( _codecContext->width == 0 || _codecContext->height == 0 )
-         {
-            spdlog::error( "VideoReader: Invalid input reader dimensions ({},{}) {}", _codecContext->width, _codecContext->height, filename );
-            return;
-         }
+    // at this point it is open and ready
+    if (usenativeresolution) {
+        _height = _codecContext->height;
+        _width = _codecContext->width;
+    } else {
+        if (keepaspectratio) {
+            if (_codecContext->width == 0 || _codecContext->height == 0) {
+                spdlog::error("VideoReader: Invalid input reader dimensions ({},{}) {}", _codecContext->width, _codecContext->height, filename);
+                return;
+            }
 
-         // if > 0 then video will be shrunk
-         // if < 0 then video will be stretched
-         float shrink = std::min( (float)maxwidth / (float)_codecContext->width, (float)maxheight / (float)_codecContext->height );
-         _height = (int)( (float)_codecContext->height * shrink );
-         _width = (int)( (float)_codecContext->width * shrink );
-      }
-      else
-      {
-         _height = maxheight;
-         _width = maxwidth;
-      }
-   }
-
-	// get the video length in MS
-	// Use the number of frames as the best possible way to calculate length
-	_frames = (long)_videoStream->nb_frames;
-    if (_videoStream->time_base.num != 0)
-    {
-        _dtspersec = (double)_videoStream->time_base.den / (double)_videoStream->time_base.num;
+            float shrink = std::min((float)maxwidth / (float)_codecContext->width, (float)maxheight / (float)_codecContext->height);
+            _height = (int)((float)_codecContext->height * shrink);
+            _width = (int)((float)_codecContext->width * shrink);
+        } else {
+            _height = maxheight;
+            _width = maxwidth;
+        }
     }
-    else
-    {
-        if (_frames == 0 || _videoStream->avg_frame_rate.den == 0)
-        {
+
+    // get the video length in MS
+    _frames = (long)_videoStream->nb_frames;
+    if (_videoStream->time_base.num != 0) {
+        _dtspersec = (double)_videoStream->time_base.den / (double)_videoStream->time_base.num;
+    } else {
+        if (_frames == 0 || _videoStream->avg_frame_rate.den == 0) {
             spdlog::warn("VideoReader: dtspersec calc error _videoStream->nb_frames {} and _videoStream->avg_frame_rate.den {} cannot be zero. {}", (int)_videoStream->nb_frames, (int)_videoStream->avg_frame_rate.den, (const char *)filename.c_str());
             spdlog::warn("VideoReader: Video seeking will only work back to the start of the video.");
             _dtspersec = 1.0;
-        }
-        else
-        {
+        } else {
             _dtspersec = (((double)_videoStream->duration * (double)_videoStream->avg_frame_rate.num) / ((double)_frames * (double)_videoStream->avg_frame_rate.den));
         }
     }
 
     if (_videoStream->time_base.num != 0 && _videoStream->duration != 0) {
         _lengthMS = ((double)_videoStream->duration * (double)_videoStream->time_base.num) / (double)_videoStream->time_base.den * 1000.0;
-    }
-    else if (_frames > 0)
-	{
+    } else if (_frames > 0) {
         if (_videoStream->r_frame_rate.num != 0) {
-            // r_frame_rate seems more accurate when it is there ... avg_frame_rate for some formats has an off by 1 problem
             _lengthMS = ((double)_frames * (double)_videoStream->r_frame_rate.den * 1000.0) / (double)_videoStream->r_frame_rate.num;
         } else {
             if (_videoStream->avg_frame_rate.num != 0) {
@@ -244,45 +245,33 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         }
     }
 
-	// If it does not look right try to base if off the duration
-	if (_lengthMS <= 0 || _frames <= 0)
-	{
-        if (_videoStream->avg_frame_rate.den != 0)
-        {
+    if (_lengthMS <= 0 || _frames <= 0) {
+        if (_videoStream->avg_frame_rate.den != 0) {
             _lengthMS = (double)_formatContext->duration / 1000.0;
             _frames = (long)(_lengthMS  * (double)_videoStream->avg_frame_rate.num / (double)(_videoStream->avg_frame_rate.den) / 1000.0);
-        }
-        else
-        {
+        } else {
             spdlog::info("VideoReader: _videoStream->avg_frame_rate.den = 0");
         }
     }
 
-	// If it still doesnt look right
-	if (_lengthMS <= 0 || _frames <= 0)
-	{
-        if (_videoStream->avg_frame_rate.den != 0)
-        {
-            // This seems to work for .asf, .mkv, .flv
+    if (_lengthMS <= 0 || _frames <= 0) {
+        if (_videoStream->avg_frame_rate.den != 0) {
             _lengthMS = (double)_formatContext->duration / 1000.0;
             _frames = (long)(_lengthMS  * (double)_videoStream->avg_frame_rate.num / (double)(_videoStream->avg_frame_rate.den) / 1000.0);
         }
     }
 
-	if (_lengthMS <= 0 || _frames <= 0)
-	{
-		// This is bad ... it still does not look right
+    if (_lengthMS <= 0 || _frames <= 0) {
         spdlog::warn("Attempts to determine length of video have not been successful. Problems ahead.");
-	}
+    }
 
-    // Guess the keyframe frequency
     _keyFrameCount = _codecContext->keyint_min;
 
-	_dstFrame = av_frame_alloc();
-	_dstFrame->width = _width;
-	_dstFrame->height = _height;
-	_dstFrame->linesize[0] = _width * GetPixelChannels();
-	_dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
+    _dstFrame = av_frame_alloc();
+    _dstFrame->width = _width;
+    _dstFrame->height = _height;
+    _dstFrame->linesize[0] = _width * GetPixelChannels();
+    _dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
     _dstFrame->format = _pixelFmt;
     _dstFrame2 = av_frame_alloc();
     _dstFrame2->width = _width;
@@ -295,8 +284,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _srcFrame2 = av_frame_alloc();
 
     _packet = av_packet_alloc();
-    //av_init_packet(&_packet);
-	_valid = true;
+    _valid = true;
 
     spdlog::info("Video loaded: " + filename);
     spdlog::info("      Length MS: {}", _lengthMS);
@@ -316,23 +304,20 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     spdlog::info("      Guessed key frame frequency: {}", _keyFrameCount);
     if (_wantAlpha)
         spdlog::info("      Alpha: TRUE");
-    if (_frames != 0)
-    {
+    if (_frames != 0) {
         spdlog::info("      Frame ms {}", _lengthMS / (double)_frames);
         _frameMS = _lengthMS / _frames;
         spdlog::info("      Used frame ms {}", _frameMS);
-    }
-    else
-    {
+    } else {
         spdlog::warn("      Frame ms <unknown as _frames is 0>");
         _frameMS = 0;
     }
-    
+
     _firstFramePos = -1;
 }
 
-void VideoReader::reopenContext(bool allowHWDecoder) {
-    
+void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
+
     if (_codecContext != nullptr) {
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
@@ -398,14 +383,12 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
         return;
     }
 
-    //_codecContext->thread_safe_callbacks = 1;
     _codecContext->thread_type = 0;
     _codecContext->thread_count = 1;
     _codecContext->skip_frame = AVDISCARD_NONE;
     _codecContext->skip_loop_filter = AVDISCARD_NONE;
     _codecContext->skip_idct = AVDISCARD_NONE;
 
-    // Copy codec parameters from input stream to output codec context
     if (avcodec_parameters_to_context(_codecContext, _videoStream->codecpar) < 0) {
         spdlog::error("VideoReader: Failed to copy {} codec parameters to decoder context", _filename.c_str());
         return;
@@ -413,16 +396,12 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
 
     _codecContext->hwaccel_context = nullptr;
     {
-        if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE)
-        {
+        if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE) {
             const char* opt = nullptr;
-            if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0)
-            {
+            if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0) {
                 spdlog::debug("Failed to create specified HW device.");
                 type = AV_HWDEVICE_TYPE_NONE;
-            }
-            else
-            {
+            } else {
                 _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
                 _codecContext->get_format = get_hw_format;
                 const char *devName = "";
@@ -431,17 +410,13 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
 #endif
                 spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", devName, _codecContext->codec->long_name);
             }
-        }
-        else
-        {
+        } else {
             spdlog::debug("Software decoding enabled for codec '{}'", _codecContext->codec->long_name);
         }
     }
     _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
-    //  Init the decoders, with or without reference counting
     AVDictionary *opts = nullptr;
-    //av_dict_set(&opts, "refcounted_frames", "0", 0);
     if (avcodec_open2(_codecContext, _decoder, &opts) < 0) {
         spdlog::error("VideoReader: Couldn't open the context with the decoder in {}", _filename.c_str());
         return;
@@ -464,53 +439,19 @@ static int DTStoMS(int64_t dts , double dtspersec)
     return (int)((1000.0 * (double)dts) / dtspersec);
 }
 
-int VideoReader::GetPos()
-{
-    return _curPos;
-}
-
-bool VideoReader::IsVideoFile(const std::string& filename)
-{
-    auto ext = std::filesystem::path(filename).extension().string();
-    // extension() returns ".mp4", strip the leading dot and lowercase it
-    if (!ext.empty() && ext[0] == '.') ext.erase(0, 1);
-    std::transform(ext.begin(), ext.end(), ext.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
-
-    if (ext == "avi" ||
-        ext == "mp4" ||
-        ext == "mkv" ||
-        ext == "mov" ||
-        ext == "asf" ||
-        ext == "flv" ||
-        ext == "mpg" ||
-        ext == "wmv" ||
-        ext == "mpeg" ||
-        ext == "m4v"
-        )
-    {
-        return true;
-    }
-
-    return false;
-}
-
-long VideoReader::GetVideoLength(const std::string& filename)
+long FFmpegVideoReader::GetVideoLengthStatic(const std::string& filename)
 {
     AVFormatContext* formatContext = nullptr;
     int res = avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr);
-    if (res != 0)
-    {
+    if (res != 0) {
         return 0;
     }
 
-    if (avformat_find_stream_info(formatContext, nullptr) < 0)
-    {
+    if (avformat_find_stream_info(formatContext, nullptr) < 0) {
         avformat_close_input(&formatContext);
         return 0;
     }
 
-    // Find the video stream
     int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
     if (streamIndex < 0) {
         avformat_close_input(&formatContext);
@@ -520,32 +461,22 @@ long VideoReader::GetVideoLength(const std::string& filename)
     AVStream* videoStream = formatContext->streams[streamIndex];
     videoStream->discard = AVDISCARD_NONE;
 
-    // get the video length in MS
-    // Use the number of frames as the best possible way to calculate length
     long frames = (long)videoStream->nb_frames;
     long lengthMS = 0;
 
-    if (frames > 0)
-    {
-        if (videoStream->avg_frame_rate.num != 0)
-        {
+    if (frames > 0) {
+        if (videoStream->avg_frame_rate.num != 0) {
             lengthMS = ((double)frames * (double)videoStream->avg_frame_rate.den * 1000.0) / (double)videoStream->avg_frame_rate.num;
         }
     }
 
-    // If it does not look right try to base if off the duration
-    if (lengthMS <= 0)
-    {
-        if (videoStream->avg_frame_rate.den != 0)
-        {
+    if (lengthMS <= 0) {
+        if (videoStream->avg_frame_rate.den != 0) {
             lengthMS = (double)formatContext->duration * (double)videoStream->avg_frame_rate.num / (double)videoStream->avg_frame_rate.den;
         }
     }
 
-    // If it still doesnt look right
-    if (lengthMS <= 0)
-    {
-        // This seems to work for .asf, .mkv, .flv
+    if (lengthMS <= 0) {
         lengthMS = (double)formatContext->duration / 1000.0;
     }
 
@@ -554,10 +485,8 @@ long VideoReader::GetVideoLength(const std::string& filename)
     return lengthMS;
 }
 
-VideoReader::~VideoReader()
+FFmpegVideoReader::~FFmpegVideoReader()
 {
-    
-
     #ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
         delete _windowsHardwareVideoReader;
@@ -570,22 +499,18 @@ VideoReader::~VideoReader()
         _packet = nullptr;
     }
     if (_swsCtx != nullptr) {
-        //spdlog::debug("Releasing sws Context.");
         sws_freeContext(_swsCtx);
         _swsCtx = nullptr;
     }
     if (_srcFrame != nullptr) {
-        //spdlog::debug("Releasing srcFrame.");
         av_free(_srcFrame);
         _srcFrame = nullptr;
     }
     if (_srcFrame2 != nullptr) {
-        //spdlog::debug("Releasing srcFrame2.");
         av_free(_srcFrame2);
         _srcFrame2 = nullptr;
     }
     if (_dstFrame != nullptr) {
-        //spdlog::debug("Releasing dstFrame.");
         if (_dstFrame->data[0] != nullptr) {
             av_free(_dstFrame->data[0]);
         }
@@ -593,7 +518,6 @@ VideoReader::~VideoReader()
         _dstFrame = nullptr;
     }
     if (_dstFrame2 != nullptr) {
-        //spdlog::debug("Releasing dstFrame2.");
         if (_dstFrame2->data[0] != nullptr) {
             av_free(_dstFrame2->data[0]);
         }
@@ -601,39 +525,31 @@ VideoReader::~VideoReader()
         _dstFrame2 = nullptr;
     }
     if (_codecContext != nullptr) {
-
-        if (_keyFrameCount != _codecContext->keyint_min)
-        {
+        if (_keyFrameCount != _codecContext->keyint_min) {
             spdlog::debug("Key frame count was adjusted from {} to {}.", _codecContext->keyint_min, _keyFrameCount);
         }
-
-        //spdlog::debug("Releasing codecContext.");
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
-		_codecContext = nullptr;
-	}
-	if (_formatContext != nullptr) {
-        //spdlog::debug("Releasing formatContext.");
+        _codecContext = nullptr;
+    }
+    if (_formatContext != nullptr) {
         avformat_close_input(&_formatContext);
-		_formatContext = nullptr;
-	}
+        _formatContext = nullptr;
+    }
     if (_hw_device_ctx != nullptr) {
-        //spdlog::debug("Releasing hardware device context.");
         av_buffer_unref(&_hw_device_ctx);
         _hw_device_ctx = nullptr;
     }
 }
 
-void VideoReader::Seek(int timestampMS, bool readFrame)
+void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
 {
-    
-
     #ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
         _windowsHardwareVideoReader->Seek(timestampMS);
         _curPos = _windowsHardwareVideoReader->GetPos();
-        if (_curPos >= _windowsHardwareVideoReader->GetDuration()) {
+        if (_curPos >= (int)_windowsHardwareVideoReader->GetDuration()) {
             _atEnd = true;
         } else {
             _atEnd = false;
@@ -642,26 +558,22 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
     }
     #endif
 
-    // we have to be valid
-	if (_valid) {
+    if (_valid) {
 #ifdef VIDEO_EXTRALOGGING
         spdlog::info("VideoReader: Seeking to {} ms.", timestampMS);
 #endif
         if (_atEnd && (_videoToolboxAccelerated || _hw_device_ctx)) {
-            // once the end is reached, the hardware decoder is done
-            // so we need to reopen it to be able continue decoding
             reopenContext();
         }
 
         if (timestampMS < _lengthMS) {
-			_atEnd = false;
-		} else {
-			// dont seek past the end of the file
-			_atEnd = true;
+            _atEnd = false;
+        } else {
+            _atEnd = true;
             avcodec_flush_buffers(_codecContext);
             av_seek_frame(_formatContext, _streamIndex, MStoDTS(_lengthMS, _dtspersec), AVSEEK_FLAG_FRAME);
             return;
-		}
+        }
 
         avcodec_flush_buffers(_codecContext);
 
@@ -678,36 +590,26 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
         }
 
         _curPos = -1000;
-        if (readFrame)
-        {
+        if (readFrame) {
             GetNextFrame(timestampMS, 0);
         }
-	}
+    }
 }
 
-bool VideoReader::readFrame(int timestampMS) {
-    
+bool FFmpegVideoReader::readFrame(int timestampMS) {
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
-        if (_srcFrame->pts == (int64_t)0x8000000000000000LL)
-        {
+        if (_srcFrame->pts == (int64_t)0x8000000000000000LL) {
             _curPos = (_srcFrame->pkt_dts * _lengthMS) / _frames;
-        }
-        else
-        {
+        } else {
             _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
         }
-        // This code is problematic if you dont read the first frame in the video ... it assumes the first frame read is the first frame which is may not be.
         if (_firstFramePos == -1) {
             _firstFramePos = _curPos;
         }
         if (_firstFramePos > timestampMS) {
-            // some videos don't have any frames in the first part of a second so we'll use the first frame we DO
-            // have for up to that.
             timestampMS = _firstFramePos;
         }
-        //int curPosDTS = DTStoMS(_srcFrame->pkt_dts, _dtspersec);
-        //printf("    Pos: %d    DTS: %d    Repeat: %d      PTS: %lld\n", _curPos, curPosDTS, _srcFrame->repeat_pict, _srcFrame->pts);
         bool unrefSrcFrame2 = false;
         if ((double)_curPos / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0) {
             #ifdef VIDEO_EXTRALOGGING
@@ -725,39 +627,30 @@ bool VideoReader::readFrame(int timestampMS) {
             }
 
             if (!hardwareScaled) {
-
                 AVFrame* f = nullptr;
                 if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                     bool hwscale = false;
-                    if (!hwscale)
-                    {
-                        /* retrieve data from GPU to CPU */
+                    if (!hwscale) {
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
                             f = _srcFrame;
-                        }
-                        else {
+                        } else {
                             unrefSrcFrame2 = true;
                             f = _srcFrame2;
                         }
                     }
 
-                    if (_abandonHardwareDecode && _swsCtx != nullptr)
-                    {
+                    if (_abandonHardwareDecode && _swsCtx != nullptr) {
                         spdlog::warn("VideoReader: This could get ugly ... we have abandoned hardware decode but we already had a sws Context.");
                     }
-                }
-                else
-                {
+                } else {
                     f = _srcFrame;
                 }
 
-                // make sure f is valid
                 if (f == nullptr) {
                     spdlog::warn("VideoReader: Strange f was not valid so setting it to the source frame.");
                     f = _srcFrame;
                 }
 
-                // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
                         spdlog::warn("VideoReader: Hardware decoding abandoned due to directx error.");
@@ -768,22 +661,17 @@ bool VideoReader::readFrame(int timestampMS) {
                             _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
-                        }
-                        else {
+                        } else {
                             spdlog::debug("Hardware Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }
-                    }
-                    else
-                    {
-                        // software decoding
+                    } else {
                         spdlog::debug("Software format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
-                        }
-                        else {
+                        } else {
                             spdlog::debug("Software Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }
@@ -810,31 +698,30 @@ bool VideoReader::readFrame(int timestampMS) {
     return false;
 }
 
-
-AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
+VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
 {
-    
-
-    if (!_valid || _frames == 0)
-    {
+    if (!_valid || _frames == 0) {
         return nullptr;
     }
 
-    if (timestampMS > _lengthMS)
-    {
+    if (timestampMS > _lengthMS) {
         _atEnd = true;
         return nullptr;
     }
 
 #ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
-        AVFrame * frame = _windowsHardwareVideoReader->GetNextFrame(timestampMS, gracetime);
+        AVFrame* frame = _windowsHardwareVideoReader->GetNextFrame(timestampMS, gracetime);
         _curPos = _windowsHardwareVideoReader->GetPos();
-        if (_curPos >= _windowsHardwareVideoReader->GetDuration()) {
+        if (_curPos >= (int)_windowsHardwareVideoReader->GetDuration()) {
             _atEnd = true;
             return nullptr;
         } else {
-            return frame;
+            if (frame) {
+                PopulateVideoFrame(_videoFrame, frame, AVPixelFormatToVideoPixelFormat(_pixelFmt));
+                return &_videoFrame;
+            }
+            return nullptr;
         }
     }
 #endif
@@ -844,31 +731,23 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 #endif
 
     int currenttime = GetPos();
-    // NOTE:  As _frameMS is rounded down to an integer, these times are approximate.
-    //  timeOfNextFrame is as much as 1ms later
-    //  timeOfPrevFrame is as much as 1ms earlier.
     int timeOfNextFrame = currenttime + _frameMS;
     int timeOfPrevFrame = currenttime - _frameMS;
-    
+
     if (_firstFramePos >= timestampMS) {
-        //use the first frame in the file
         timestampMS = _firstFramePos;
     }
-    
+
     if (timestampMS >= currenttime && timestampMS < timeOfNextFrame) {
-        //same frame, just return
-        return _dstFrame;
+        PopulateVideoFrame(_videoFrame, _dstFrame, AVPixelFormatToVideoPixelFormat((AVPixelFormat)_dstFrame->format));
+        return &_videoFrame;
     }
-    // timeOfPrevFrame is rounded up, subtracting 1 ensures that we don't seek
-    //  for no good reason.
     if (timestampMS >= timeOfPrevFrame - 1 && timestampMS < currenttime) {
-        //prev frame, just return, avoids a seek
-        return _dstFrame2;
+        PopulateVideoFrame(_videoFrame, _dstFrame2, AVPixelFormatToVideoPixelFormat((AVPixelFormat)_dstFrame2->format));
+        return &_videoFrame;
     }
 
-    // If the caller is after an old frame we have to seek first. We also seek if the frame we want is more than a second away from where we are
-    if (currenttime > timestampMS + gracetime || timestampMS - currenttime > 1000)
-    {
+    if (currenttime > timestampMS + gracetime || timestampMS - currenttime > 1000) {
 #ifdef VIDEO_EXTRALOGGING
         spdlog::debug("    Video {} seeking from {} to {}.", _filename, currenttime, timestampMS);
 #endif
@@ -876,21 +755,18 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         currenttime = GetPos();
     }
 
-	if (timestampMS <= _lengthMS) {
+    if (timestampMS <= _lengthMS) {
         bool firstframe = false;
         if (currenttime <= 0 && timestampMS == 0) {
             firstframe = true;
         }
 
         bool seekedForward = false;
-		while (!_abort && (firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
+        while (!_abort && (firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
                currenttime <= _lengthMS &&
                (av_read_frame(_formatContext, _packet)) == 0)
         {
-            // Is this a packet from the video stream?
-			if (_packet->stream_index == _streamIndex) {
-
-                // Decode video frame
+            if (_packet->stream_index == _streamIndex) {
                 int decodeCount = 0;
                 int ret = avcodec_send_packet(_codecContext, _packet);
                 while (!_abort && ret != 0) {
@@ -914,18 +790,10 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                     }
                 }
 
-                // I am taking _codecContext->keyint_min as likely keyframe frequency - if we are a long way short of the target time try seeking forward ... once
-                // the 2 fudge factor is under the assumption that the cost of a seek forward 2 frames is more expensive than just reading the 2 frames
-                // 2 may or may not be the best fudge factor
-                if (currenttime != -1000 && currenttime < timestampMS - _frameMS * (_keyFrameCount + 2))
-                {
-                    if (seekedForward)
-                    {
-                        // we should not have gotten here so keyframecount must be too small
+                if (currenttime != -1000 && currenttime < timestampMS - _frameMS * (_keyFrameCount + 2)) {
+                    if (seekedForward) {
                         _keyFrameCount++;
-                    }
-                    else
-                    {
+                    } else {
                         seekedForward = true;
 #ifdef VIDEO_EXTRALOGGING
                         spdlog::debug("    Video {} seeking forward from {} to {}.", (const char*)_filename.c_str(), currenttime, timestampMS);
@@ -934,26 +802,26 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                         currenttime = GetPos();
                     }
                 }
-			}
-			// Free the packet that was allocated by av_read_frame
-			av_packet_unref(_packet);
-		}
-    } else {
-		_atEnd = true;
-		return nullptr;
-	}
-
-	if (_dstFrame->data[0] == nullptr || currenttime > _lengthMS) {
-		_atEnd = true;
-		return nullptr;
-	} else {
-        int currenttime = GetPos();
-        if (timestampMS >= currenttime) {
-            //same frame, just return
-            return _dstFrame;
-        } else {
-            //prev frame, occurs if we seeked just a bit too far because not all frames are the same integer number of ms
-            return _dstFrame2;
+            }
+            av_packet_unref(_packet);
         }
-	}
+    } else {
+        _atEnd = true;
+        return nullptr;
+    }
+
+    if (_dstFrame->data[0] == nullptr || currenttime > _lengthMS) {
+        _atEnd = true;
+        return nullptr;
+    } else {
+        int currenttime = GetPos();
+        AVFrame* resultFrame;
+        if (timestampMS >= currenttime) {
+            resultFrame = _dstFrame;
+        } else {
+            resultFrame = _dstFrame2;
+        }
+        PopulateVideoFrame(_videoFrame, resultFrame, AVPixelFormatToVideoPixelFormat((AVPixelFormat)resultFrame->format));
+        return &_videoFrame;
+    }
 }

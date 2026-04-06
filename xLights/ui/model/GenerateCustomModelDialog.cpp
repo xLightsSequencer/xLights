@@ -1221,7 +1221,7 @@ END_EVENT_TABLE()
 
 #pragma endregion Flicker Free Static Bitmap
 
-class VideoFrame
+class GCMVideoFrame
 {
 public:
     enum class VIDEO_FRAME_TYPE {
@@ -1263,18 +1263,18 @@ public:
         }
     }
 
-    VideoFrame(ProcessedImage* image, uint32_t timestamp, bool isRGB, VIDEO_FRAME_TYPE frameType = VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP) :
+    GCMVideoFrame(ProcessedImage* image, uint32_t timestamp, bool isRGB, VIDEO_FRAME_TYPE frameType = VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP) :
         _frameType(frameType), _isRGB(isRGB), _timestamp(timestamp)
     {
         _rawFrame = new ProcessedImage(image);
     }
 
-    VideoFrame(uint32_t width, uint32_t height)
+    GCMVideoFrame(uint32_t width, uint32_t height)
     {
         _rawFrame = new ProcessedImage(800, 600);
     }
 
-    virtual ~VideoFrame()
+    virtual ~GCMVideoFrame()
     {
         if (_rawFrame != nullptr)
             delete _rawFrame;
@@ -1317,7 +1317,7 @@ public:
         return _blueFrame;
     }
 
-    void RemoveBackground(VideoFrame* offFrame, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
+    void RemoveBackground(GCMVideoFrame* offFrame, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         //#ifdef SHOW_PROCESSED_IMAGE
         //        if (displayCallback != nullptr)
@@ -1359,7 +1359,7 @@ public:
         return _timestamp;
     }
 
-    uint32_t SetFrameDelta(VideoFrame* other)
+    uint32_t SetFrameDelta(GCMVideoFrame* other)
     {
         _frameDelta = _greyscaleFrame->DifferenceQuantum(other->GetGreyscaleImage());
         return _frameDelta;
@@ -1387,9 +1387,9 @@ public:
     }
 
     // returns a new frame with the processing done
-    [[nodiscard]] VideoFrame* Process(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
+    [[nodiscard]] GCMVideoFrame* Process(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
-        auto frame = new VideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
+        auto frame = new GCMVideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
         frame->PrepareImages(_isRGB, gamma, saturate, displayCallback);
 
         if (_isRGB) {
@@ -1402,9 +1402,9 @@ public:
         return frame;
     }
 
-    [[nodiscard]] VideoFrame* ProcessA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
+    [[nodiscard]] GCMVideoFrame* ProcessA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
-        auto frame = new VideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
+        auto frame = new GCMVideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
         frame->PrepareImages(_isRGB, gamma, saturate, displayCallback);
         if (_isRGB) {
             ProcessImageA(frame->_redFrame, contrast, blur, displayCallback);
@@ -1439,12 +1439,12 @@ protected:
     int32_t _frameDelta = 0;
 };
 
-[[nodiscard]] bool VideoFrameDeltaCompare(const VideoFrame* v1, const VideoFrame* v2)
+[[nodiscard]] bool VideoFrameDeltaCompare(const GCMVideoFrame* v1, const GCMVideoFrame* v2)
 {
     return std::abs(v1->GetFrameDelta()) > std::abs(v2->GetFrameDelta());
 }
 
-[[nodiscard]] bool VideoFrameTimestampCompare(const VideoFrame* v1, const VideoFrame* v2)
+[[nodiscard]] bool VideoFrameTimestampCompare(const GCMVideoFrame* v1, const GCMVideoFrame* v2)
 {
     return v1->GetTimestamp() < v2->GetTimestamp();
 }
@@ -1460,15 +1460,15 @@ protected:
     std::string _filename;
     VideoReader* _vr = nullptr;
     uint32_t _startMS = 0;              // this is the timestamp of the _start1 image
-    VideoFrame* _offFrame = nullptr;    // used to hold an image of all lights off ... this can be subtracted by future images
-    VideoFrame* _startFrame1 = nullptr; // these are the two start images
-    VideoFrame* _startFrame2 = nullptr;
-    VideoFrame* _firstFrame = nullptr;
-    std::list<VideoFrame*> _frames; // this is a collection of raw video stills containing the snapshots of the pixels
+    GCMVideoFrame* _offFrame = nullptr;    // used to hold an image of all lights off ... this can be subtracted by future images
+    GCMVideoFrame* _startFrame1 = nullptr; // these are the two start images
+    GCMVideoFrame* _startFrame2 = nullptr;
+    GCMVideoFrame* _firstFrame = nullptr;
+    std::list<GCMVideoFrame*> _frames; // this is a collection of raw video stills containing the snapshots of the pixels
                                     // while this uses some memory to hold it is faster than continually re-reading the
                                     // video as the video is often processed many times. The uint32_t is the video
                                     // timestamp of the frame
-    std::vector<VideoFrame*> _processedFrames;
+    std::vector<GCMVideoFrame*> _processedFrames;
 
     // used during video creation
     wxDateTime _startOutputTime;
@@ -1529,7 +1529,7 @@ public:
             _vr = new VideoReader(_filename, 800, 600, true, false, false);
             _firstFrame = ReadFrame(_vr->GetNextFrame(0), 0, false);
         } else {
-            _firstFrame = new VideoFrame(800, 600);
+            _firstFrame = new GCMVideoFrame(800, 600);
         }
     }
 
@@ -1538,9 +1538,9 @@ public:
         Reset();
         _filename = filename;
         if (_filename != "") {
-            _firstFrame = new VideoFrame(new ProcessedImage(wxImage(_filename), ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), 0, false);
+            _firstFrame = new GCMVideoFrame(new ProcessedImage(wxImage(_filename), ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), 0, false);
         } else {
-            _firstFrame = new VideoFrame(800, 600);
+            _firstFrame = new GCMVideoFrame(800, 600);
         }
     }
 
@@ -1549,17 +1549,17 @@ public:
         Reset();
     }
 
-    [[nodiscard]] VideoFrame* GetFirstFrame() const
+    [[nodiscard]] GCMVideoFrame* GetFirstFrame() const
     {
         return _firstFrame;
     }
 
-    [[nodiscard]] VideoFrame* GetActualStartFrame() const
+    [[nodiscard]] GCMVideoFrame* GetActualStartFrame() const
     {
         return _startFrame1;
     }
 
-    [[nodiscard]] VideoFrame* GetStartFrame() const
+    [[nodiscard]] GCMVideoFrame* GetStartFrame() const
     {
         if (_startFrame1 != nullptr)
             return _startFrame1;
@@ -1824,24 +1824,24 @@ public:
     }
 #pragma endregion
 
-    void AddFrame(const wxImage& img, uint32_t timestamp, VideoFrame::VIDEO_FRAME_TYPE type = VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL)
+    void AddFrame(const wxImage& img, uint32_t timestamp, GCMVideoFrame::VIDEO_FRAME_TYPE type = GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL)
     {
         switch (type) {
-        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF:
-            _offFrame = new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
+        case GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF:
+            _offFrame = new GCMVideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
             break;
-        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1:
-            _startFrame1 = new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
+        case GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1:
+            _startFrame1 = new GCMVideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
             _startMS = timestamp;
             break;
-        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2:
-            _startFrame2 = new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
+        case GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2:
+            _startFrame2 = new GCMVideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
             break;
-        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL:
-            _frames.push_back(new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type));
+        case GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL:
+            _frames.push_back(new GCMVideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type));
             break;
-        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI:
-        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP:
+        case GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI:
+        case GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP:
             break;
         }
     }
@@ -1853,11 +1853,11 @@ public:
         }
     }
 
-    [[nodiscard]] VideoFrame* ReadFrame(AVFrame* frame, uint32_t timestamp, bool processRGB)
+    [[nodiscard]] GCMVideoFrame* ReadFrame(VideoFrame* frame, uint32_t timestamp, bool processRGB)
     {
         ProcessedImage* img = nullptr;
         if (frame != nullptr) {
-            img = new ProcessedImage(frame->width, frame->height, (unsigned char*)frame->data[0]);
+            img = new ProcessedImage(frame->width, frame->height, (unsigned char*)frame->data);
         } else {
             spdlog::info("Video returned no frame.");
             if (_startFrame1 != nullptr && _startFrame1->IsOk()) {
@@ -1867,7 +1867,7 @@ public:
             }
         }
 
-        VideoFrame* videoFrame = new VideoFrame(img, timestamp, processRGB, VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP);
+        GCMVideoFrame* videoFrame = new GCMVideoFrame(img, timestamp, processRGB, GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP);
 
         delete img;
 
@@ -1882,7 +1882,7 @@ public:
         bool abort = false;
 
         // read the first STARTSCANSECS seconds of video looking for 2 frames a frame apart with large changes
-        std::list<VideoFrame*> startScan;
+        std::list<GCMVideoFrame*> startScan;
         for (uint32_t ms = 0; ms < STARTSCANSECS * 1000 && !abort && ms < (uint32_t)_vr->GetLengthMS(); ms += FRAMEMS) {
             auto img = ReadFrame(_vr->GetNextFrame(ms), ms, false);
             img->PrepareImages(false, 1.0, 0); // prepare as greyscale
@@ -1918,7 +1918,7 @@ public:
             // only look through first 20 items as the frames should be there
 
             spdlog::debug("Looking through the largest deltas");
-            std::vector<VideoFrame*> candidates;
+            std::vector<GCMVideoFrame*> candidates;
             it1 = startScan.begin();
             for (uint32_t j = 0; j < 20 && !abort && (*it1)->GetFrameDelta() != 0; ++j) {
                 // spdlog::debug("Frame {} delta {}", (*it1)->GetTimestamp(), (*it1)->GetFrameDelta());
@@ -1982,12 +1982,12 @@ public:
                             }
                         }
 
-                        AddFrame(*candidates[0]->GetColourImage(), candidates[0]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1);
-                        AddFrame(*candidates[1]->GetColourImage(), candidates[1]->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2);
+                        AddFrame(*candidates[0]->GetColourImage(), candidates[0]->GetTimestamp(), GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START1);
+                        AddFrame(*candidates[1]->GetColourImage(), candidates[1]->GetTimestamp(), GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2);
 
                         for (const auto& it : startScan) {
                             if (it->GetTimestamp() >= blankFrameTime) {
-                                AddFrame(*it->GetColourImage(), it->GetTimestamp(), VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF);
+                                AddFrame(*it->GetColourImage(), it->GetTimestamp(), GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF);
 
                                 //#ifdef SHOW_PROCESSED_IMAGE
                                 //                        if (displayCallback != nullptr)
@@ -2011,7 +2011,7 @@ public:
         return res;
     }
 
-    [[nodiscard]] VideoFrame* GetBlankFrame() const
+    [[nodiscard]] GCMVideoFrame* GetBlankFrame() const
     {
         return _offFrame;
     }
@@ -2021,7 +2021,7 @@ public:
         auto frame = _vr->GetNextFrame(timeMS);
         ProcessedImage* img = nullptr;
         if (frame != nullptr) {
-            img = new ProcessedImage(frame->width, frame->height, (unsigned char*)frame->data[0]);
+            img = new ProcessedImage(frame->width, frame->height, (unsigned char*)frame->data);
         } else {
             if (_startFrame1 != nullptr && _startFrame1->IsOk()) {
                 img = new ProcessedImage(_startFrame1->GetWidth(), _startFrame1->GetHeight());
@@ -3510,7 +3510,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         spdlog::info("   Clip Rectangle: ({},{})-({},{}).", _clip.GetLeft(), _clip.GetTop(), _clip.GetRight(), _clip.GetBottom());
 
         if (SLRadioButton->GetValue()) {
-            VideoFrame* vf = new VideoFrame(_generator->GetFirstFrame()->GetColourImage(), 0, false, VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI);
+            GCMVideoFrame* vf = new GCMVideoFrame(_generator->GetFirstFrame()->GetColourImage(), 0, false, GCMVideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI);
             auto nvf = vf->Process(_clip.GetLeft(), _clip.GetRight(), vf->GetHeight() - _clip.GetTop(), vf->GetHeight() - _clip.GetBottom(), Slider_BI_Contrast->GetValue(), Slider_AdjustBlur->GetValue(), Slider_Despeckle->GetValue(), Slider_BI_Sensitivity->GetValue(), SliderToGamma(Slider_Gamma->GetValue()), Slider_Saturation->GetValue());
             delete vf;
 

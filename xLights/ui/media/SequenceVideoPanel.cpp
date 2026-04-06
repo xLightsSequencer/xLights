@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "ui/media/SequenceVideoPanel.h"
-#include "render/VideoReader.h"
+#include "media/VideoReader.h"
 
 #include <algorithm>
 
@@ -84,7 +84,7 @@ void SequenceVideoPanel::UpdateVideo( int ms )
 
     int clampedTime = std::min( ms, _videoLength );
 
-    AVFrame *frame = _videoReader->GetNextFrame( clampedTime );
+    VideoFrame *frame = _videoReader->GetNextFrame( clampedTime );
     if ( frame != nullptr ) {
         _videoPreview->Render( frame );
     }
