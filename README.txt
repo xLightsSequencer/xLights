@@ -12,6 +12,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -bug (derwin12)             Fix PolyLine with drop patterns
+    -bug (derwin12)             Fix crash selecting multi-string PolyLine
     -change (dkulp)             Remove SPXML dependency, replace with pugixml for format imports and
                                 lightweight XsqFileScanner for sequence file header peeking
     -change (dkulp)             Migrate output runtime sockets from wxDatagramSocket/wxIPV4address to SocketAbstraction UDPSocket

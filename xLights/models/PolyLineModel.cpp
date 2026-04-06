@@ -504,9 +504,6 @@ void PolyLineModel::InitModel()
     if (_autoDistributeLights) {
         // distribute the lights evenly across the line segments
         DistributeLightsEvenly( pPos, _dropSizes, mheight, _maxH, numLights );
-        if (!_creatingNewPolyLine) {
-            _autoDistributeLights = false;
-        }
     } else {
         // distribute the lights as defined by the polysizes
         DistributeLightsAcrossIndivSegments( pPos, _dropSizes, mheight, _maxH );
@@ -535,6 +532,8 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
     unsigned int drop_index = 0;
     size_t idx = 0;
     size_t seg_count = 0;
+    int drop_pos_count = 0;
+    int last_drop_pos_count = 0;
     int coords_per_node = Nodes[0].get()->Coords.size();
     float coord_offset = using_icicles ? 1.0f / (float)coords_per_node : 0.0f;
     int lights_to_distribute = SingleNode ? numLights : numLights * coords_per_node;
@@ -572,8 +571,8 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
                 }
                 else {
                     sub_segment = 0;
-                    _polyLineSizes[segment] = seg_count - last_seg_count;
-                    last_seg_count = seg_count;
+                    _polyLineSizes[segment] = drop_pos_count - last_drop_pos_count;
+                    last_drop_pos_count = drop_pos_count;
                     segment++;
                     seg_start = seg_end;
                     segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
@@ -647,8 +646,9 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
         if( c == 0 ) {
             xpos++;
         }
+        drop_pos_count++;
     }
-    _polyLineSizes[segment] = seg_count - last_seg_count;
+    _polyLineSizes[segment] = drop_pos_count - last_drop_pos_count;
 }
 
 void PolyLineModel::DistributeLightsAcrossIndivSegments(       std::vector<xlPolyPoint>& pPos,

@@ -62,7 +62,8 @@ void PolyLinePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, O
         p = grid->Append(new wxStringProperty("Start Nodes", "ModelIndividualStartNodes", ""));
 
         std::string nm = Model::StartChanAttrName(0);
-        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, _polyLine.GetIndivStartNode(0)));
+        int firstNode = (_polyLine.GetIndivStartNodesCount() > 0) ? _polyLine.GetIndivStartNode(0) : 1;
+        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, firstNode));
         psn->SetAttribute("Min", 1);
         psn->SetAttribute("Max", (int)_polyLine.GetNodeCount());
         psn->SetEditor("SpinCtrl");
@@ -153,6 +154,7 @@ int PolyLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid,
         std::string segment = event.GetPropertyName().ToStdString();
         int idx = ExtractTrailingInt(segment) - 1;
         _polyLine.SetRawSegmentSize(idx, event.GetPropertyValue().GetLong());
+        _polyLine.SetAutoDistribute(false);
         _polyLine.IncrementChangeCount();
         _polyLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |
