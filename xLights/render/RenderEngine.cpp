@@ -527,8 +527,12 @@ public:
 
     void SetRangeRestriction(const std::list<NodeRange> &rng) {
         if (!rng.empty()) {
-            rangeRestriction.resize(rng.back().end + 1);
-            for (auto i : rng) {
+            unsigned int maxEnd = 0;
+            for (const auto& i : rng) {
+                if (i.end > maxEnd) maxEnd = i.end;
+            }
+            rangeRestriction.resize(maxEnd + 1);
+            for (const auto& i : rng) {
                 for (unsigned int s = i.start; s <= i.end; s++) {
                     rangeRestriction[s] = true;
                 }
