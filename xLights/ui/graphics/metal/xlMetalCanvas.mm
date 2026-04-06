@@ -115,6 +115,52 @@ public:
     xlMetalCanvas *canvas;
 };
 
+// Concrete IMetalCanvasDelegate that forwards to xlMetalCanvas/wxMetalCanvas.
+// Only compiled in ObjC++ (.mm), so ObjC types are fine here.
+class xlMetalCanvasDelegate : public IMetalCanvasDelegate {
+public:
+    explicit xlMetalCanvasDelegate(xlMetalCanvas *c) : canvas(c) {}
+
+    id<MTLDevice> getMTLDevice() override { return canvas->wxMetalCanvas::getMTLDevice(); }
+    id<MTLCommandQueue> getMTLCommandQueue() override { return canvas->wxMetalCanvas::getMTLCommandQueue(); }
+    id<MTLCommandQueue> getBltCommandQueue() override { return canvas->wxMetalCanvas::getBltCommandQueue(); }
+    id<MTLLibrary> getMTLLibrary() override { return canvas->wxMetalCanvas::getMTLLibrary(); }
+    int getMSAASampleCount() override { return canvas->wxMetalCanvas::getMSAASampleCount(); }
+    id<MTLDepthStencilState> getDepthStencilStateLE() override { return canvas->wxMetalCanvas::getDepthStencilStateLE(); }
+    id<MTLDepthStencilState> getDepthStencilStateL() override { return canvas->wxMetalCanvas::getDepthStencilStateL(); }
+    id<MTLRenderPipelineState> getPipelineState(const std::string& name,
+                                                const char* vShader,
+                                                const char* fShader,
+                                                bool blending) override {
+        return canvas->wxMetalCanvas::getPipelineState(name, vShader, fShader, blending);
+    }
+    void addToSyncPoint(id<MTLCommandBuffer>& buffer, id<CAMetalDrawable>& drawable) override {
+        canvas->wxMetalCanvas::addToSyncPoint(buffer, drawable);
+    }
+    id<CAMetalDrawable> getNextDrawable() override {
+        MTKView *view = canvas->getMTKView();
+        if (view == nil || [view window] == nil) {
+            return nil;
+        }
+        CAMetalLayer *layer = (CAMetalLayer *)[view layer];
+        if (layer == nil || layer.drawableSize.width == 0 || layer.drawableSize.height == 0) {
+            return nil;
+        }
+        return [layer nextDrawable];
+    }
+    id<MTLTexture> getMSAATexture(int w, int h) override { return canvas->getMSAATexture(w, h); }
+    id<MTLTexture> getDepthTexture(int w, int h) override { return canvas->getDepthTexture(w, h); }
+private:
+    xlMetalCanvas *canvas;
+};
+
+void* xlMetalCanvas::getMetalDelegate() {
+    if (metalDelegate_ == nullptr) {
+        metalDelegate_ = new xlMetalCanvasDelegate(this);
+    }
+    return metalDelegate_;
+}
+
 xlMetalCanvas::xlMetalCanvas(wxWindow *parent,
                              wxWindowID id,
                              const wxPoint& pos,
@@ -167,6 +213,7 @@ public:
 };
 
 xlMetalCanvas::~xlMetalCanvas() {
+    delete static_cast<xlMetalCanvasDelegate*>(metalDelegate_);
     if (captureBuffer) {
         delete captureBuffer;
     }
@@ -257,18 +304,6 @@ void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx, bool display) {
         }
         delete mgx;
     }
-}
-
-id<CAMetalDrawable> xlMetalCanvas::getNextDrawable() {
-    MTKView *view = getMTKView();
-    if (view == nil || [view window] == nil) {
-        return nil;
-    }
-    CAMetalLayer *layer = (CAMetalLayer *)[view layer];
-    if (layer == nil || layer.drawableSize.width == 0 || layer.drawableSize.height == 0) {
-        return nil;
-    }
-    return [layer nextDrawable];
 }
 
 id<MTLTexture> xlMetalCanvas::getMSAATexture(int w, int h) {

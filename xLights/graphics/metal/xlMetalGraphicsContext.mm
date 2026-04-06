@@ -14,10 +14,10 @@
 #include "Shaders/SIMDMathUtilities.h"
 #include "../xlMesh.h"
 
-xlMetalGraphicsContext::xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : canvas(c), target(t) {
+xlMetalGraphicsContext::xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : canvas(c), delegate(static_cast<IMetalCanvasDelegate*>(c->getMetalDelegate())), target(t) {
     id<MTLTexture> localTarget = t;
     if (target == nil) {
-        drawable = c->getNextDrawable();
+        drawable = delegate->getNextDrawable();
         if (drawable != nil) {
             localTarget = [drawable texture];
         }
@@ -26,8 +26,8 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> t
     }
 
     if (localTarget != nil) {
-        buffer = [c->getMTLCommandQueue() commandBuffer];
-        
+        buffer = [delegate->getMTLCommandQueue() commandBuffer];
+
         std::string n2 = c->getName() + " CommandBuffer";
         NSString *n = [NSString stringWithUTF8String:n2.c_str()];
         [buffer setLabel:n];
@@ -57,22 +57,22 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> t
         if (c->usesMSAA()) {
             renderPass.colorAttachments[0].resolveTexture = renderPass.colorAttachments[0].texture;
             renderPass.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
-            renderPass.colorAttachments[0].texture = c->getMSAATexture(width, height);
+            renderPass.colorAttachments[0].texture = delegate->getMSAATexture(width, height);
         }
         if (c->RequiresDepthBuffer()) {
-            renderPass.depthAttachment.texture = c->getDepthTexture(width, height);
+            renderPass.depthAttachment.texture = delegate->getDepthTexture(width, height);
             renderPass.depthAttachment.clearDepth = 1.0;
             renderPass.depthAttachment.loadAction = MTLLoadActionClear;
             renderPass.depthAttachment.storeAction = MTLStoreActionDontCare;
         }
-        
+
         encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
         n2 = c->getName() + " Encoder";
         n = [NSString stringWithUTF8String:n2.c_str()];
         [encoder setLabel:n];
-        
+
         if (c->RequiresDepthBuffer()) {
-            [encoder setDepthStencilState:c->getDepthStencilStateLE()];
+            [encoder setDepthStencilState:delegate->getDepthStencilStateLE()];
         }
         
         [renderPass release];
@@ -130,7 +130,7 @@ void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureB
                 [buffer commit];
                 [buffer waitUntilCompleted];
             } else {
-                canvas->addToSyncPoint(buffer, drawable);
+                delegate->addToSyncPoint(buffer, drawable);
                 drawable = nil;
                 buffer = nil;
             }
@@ -1077,7 +1077,7 @@ xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<xlImag
                                                                                         width:images[0].GetWidth()
                                                                                         height:images[0].GetHeight()
                                                                                         mipmapped:true];
-        txt->texture = [canvas->getMTLDevice() newTextureWithDescriptor:desc];
+        txt->texture = [delegate->getMTLDevice() newTextureWithDescriptor:desc];
         txt->textureSize = MTLSizeMake(images[0].GetWidth(), images[0].GetHeight(), 1);
 
         int levels = [txt->texture mipmapLevelCount];
@@ -1330,8 +1330,8 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
         xlm->LoadBuffers();
     }
     setPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader");
-    id<MTLRenderPipelineState> texturePS = canvas->getPipelineState("meshTextureProgram", "meshVertexShader", "meshTextureFragmentShader", blending);
-    id<MTLRenderPipelineState> solidPS = canvas->getPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader", blending);
+    id<MTLRenderPipelineState> texturePS = delegate->getPipelineState("meshTextureProgram", "meshVertexShader", "meshTextureFragmentShader", blending);
+    id<MTLRenderPipelineState> solidPS = delegate->getPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader", blending);
 
 
     std::string n2 = xlm->GetName() + " Solids";
@@ -1347,7 +1347,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
     frameDataChanged = false;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
     
-    [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
+    [encoder setDepthStencilState:delegate->getDepthStencilStateL()];
 
     
     xlTexture *lastTexture = nullptr;
@@ -1405,7 +1405,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
                            indexBuffer:xlm->ibuffer
                      indexBufferOffset:(xlm->linesStart*4)];
     }
-    [encoder setDepthStencilState:canvas->getDepthStencilStateLE()];
+    [encoder setDepthStencilState:delegate->getDepthStencilStateLE()];
 
     [encoder popDebugGroup];
     return this;
@@ -1417,8 +1417,8 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     }
 
     setPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader");
-    id<MTLRenderPipelineState> texturePS = canvas->getPipelineState("meshTextureProgram", "meshVertexShader", "meshTextureFragmentShader", blending);
-    id<MTLRenderPipelineState> solidPS = canvas->getPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader", blending);
+    id<MTLRenderPipelineState> texturePS = delegate->getPipelineState("meshTextureProgram", "meshVertexShader", "meshTextureFragmentShader", blending);
+    id<MTLRenderPipelineState> solidPS = delegate->getPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader", blending);
 
     std::string n2 = xlm->GetName() + " Transparents";
     NSString *n = [NSString stringWithUTF8String:n2.c_str()];
@@ -1429,7 +1429,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     frameData.brightness /= 100.0;
     frameDataChanged = false;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
-    [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
+    [encoder setDepthStencilState:delegate->getDepthStencilStateL()];
 
     xlTexture *lastTexture = nullptr;
     bool lastIsSolid = true;
@@ -1471,7 +1471,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     if (!lastIsSolid) {
         [encoder setRenderPipelineState:solidPS];
     }
-    [encoder setDepthStencilState:canvas->getDepthStencilStateLE()];
+    [encoder setDepthStencilState:delegate->getDepthStencilStateLE()];
     [encoder popDebugGroup];
     return this;
 }
@@ -1549,7 +1549,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
     xlMetalVertexAccumulator *mva = (xlMetalVertexAccumulator*)vac;
     if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
+        mva->SetBufferBytes(delegate->getMTLDevice(), encoder, BufferIndexMeshPositions);
     }
 
     frameData.fragmentColor.r = c.red;
@@ -1616,7 +1616,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
     xlMetalVertexColorAccumulator *mva = (xlMetalVertexColorAccumulator*)vac;
     if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
+        mva->SetBufferBytes(delegate->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
     }
 
     if (frameDataChanged) {
@@ -1681,7 +1681,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
     xlMetalVertexIndexedColorAccumulator *mva = (xlMetalVertexIndexedColorAccumulator*)vac;
     if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
+        mva->SetBufferBytes(delegate->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
     }
 
     if (frameDataChanged) {
@@ -1715,7 +1715,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlTexture *texture,
 
     std::string name = linearScale ? "textureProgramNearest" : "textureProgram";
     setPipelineState(name, "textureVertexShader", linearScale ? "textureFragmentShader" : "textureNearestFragmentShader");
-    va.SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
+    va.SetBufferBytes(delegate->getMTLDevice(), encoder, BufferIndexMeshPositions);
     lastAccumulator = nullptr;
 
     float texturePoints[] {
@@ -1761,7 +1761,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
     if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+        mva->SetBufferBytes(delegate->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
     }
 
     float b = brightness;
@@ -1794,7 +1794,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     setPipelineState("textureColorProgram", "textureVertexShader", "textureColorFragmentShader");
     if (vac != lastAccumulator || !mva->finalized) {
         lastAccumulator = vac;
-        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+        mva->SetBufferBytes(delegate->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
     }
 
     frameData.fragmentColor.r = c.red;
@@ -1967,7 +1967,7 @@ void xlMetalGraphicsContext::setPointSize(float ps, bool smoothPoints) {
 
 bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const char *vShader, const char *fShader) {
     if (lastPipeline != name || blending != lastPipelineBlend) {
-        [encoder setRenderPipelineState:canvas->getPipelineState(name, vShader, fShader, blending)];
+        [encoder setRenderPipelineState:delegate->getPipelineState(name, vShader, fShader, blending)];
         lastPipeline = name;
         lastPipelineBlend = blending;
         lastAccumulator = nullptr;

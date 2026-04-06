@@ -91,6 +91,7 @@ public:
     id<MTLCommandBuffer> getImageCommandBuffer();
 protected:
     IMetalCanvas *canvas;
+    IMetalCanvasDelegate *delegate;
     id<MTLCommandBuffer> buffer;
     id<MTLRenderCommandEncoder> encoder;
     id<CAMetalDrawable> drawable;

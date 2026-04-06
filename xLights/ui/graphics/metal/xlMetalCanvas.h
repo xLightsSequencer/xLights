@@ -40,34 +40,18 @@ public:
 
     bool Is3D() { return is3d; }
 
-    // IMetalCanvas interface — non-ObjC methods
+    // IMetalCanvas interface
     std::string getName() const override { return wxMetalCanvas::getName(); }
     bool usesMSAA() override { return wxMetalCanvas::usesMSAA(); }
     bool RequiresDepthBuffer() const override { return wxMetalCanvas::RequiresDepthBuffer(); }
+    void* getMetalDelegate() override;
 
 #ifdef __OBJC__
-    // IMetalCanvas interface — ObjC methods (delegate to MetalDeviceManager via wxMetalCanvas)
-    id<MTLDevice> getMTLDevice() override { return wxMetalCanvas::getMTLDevice(); }
-    id<MTLCommandQueue> getMTLCommandQueue() override { return wxMetalCanvas::getMTLCommandQueue(); }
-    id<MTLCommandQueue> getBltCommandQueue() override { return wxMetalCanvas::getBltCommandQueue(); }
-    id<MTLLibrary> getMTLLibrary() override { return wxMetalCanvas::getMTLLibrary(); }
-    int getMSAASampleCount() override { return wxMetalCanvas::getMSAASampleCount(); }
-    id<MTLDepthStencilState> getDepthStencilStateLE() override { return wxMetalCanvas::getDepthStencilStateLE(); }
-    id<MTLDepthStencilState> getDepthStencilStateL() override { return wxMetalCanvas::getDepthStencilStateL(); }
-    id<MTLRenderPipelineState> getPipelineState(const std::string& name,
-                                                const char* vShader,
-                                                const char* fShader,
-                                                bool blending) override {
-        return wxMetalCanvas::getPipelineState(name, vShader, fShader, blending);
-    }
-    void addToSyncPoint(id<MTLCommandBuffer>& buffer, id<CAMetalDrawable>& drawable) override {
-        wxMetalCanvas::addToSyncPoint(buffer, drawable);
-    }
-    id<CAMetalDrawable> getNextDrawable() override;
-    id<MTLTexture> getMSAATexture(int w, int h) override;
-    id<MTLTexture> getDepthTexture(int w, int h) override;
+    // Non-virtual ObjC accessors used by the delegate implementation
+    id<MTLTexture> getMSAATexture(int w, int h);
+    id<MTLTexture> getDepthTexture(int w, int h);
 #endif
-    
+
     void captureNextFrame(int w, int h);
     bool getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize);
     wxImage *GrabImage(wxSize size = wxSize(0,0));
@@ -89,12 +73,12 @@ protected:
     bool mIsInitialized = false;
     bool firstDraw = true;
     wxString mName;
-    
+
     MSAATextureInfo *msaaTextures[3] = {nullptr, nullptr, nullptr};
     int curMSAATexture = 0;
     DepthTextureInfo *depthTextures[3] = {nullptr, nullptr, nullptr};
     int curDepthTexture = 0;
-    
-    CaptureBufferInfo *captureBuffer = nullptr;
-};
 
+    CaptureBufferInfo *captureBuffer = nullptr;
+    void *metalDelegate_ = nullptr;
+};

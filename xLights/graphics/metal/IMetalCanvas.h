@@ -13,15 +13,15 @@
 // IMetalCanvas — wx-free abstract interface for a Metal rendering canvas.
 // Implemented by xlMetalCanvas (desktop wx) and future iPad canvas.
 // Used by xlMetalGraphicsContext so it has no dependency on wx types.
+//
+// ObjC Metal methods live in IMetalCanvasDelegate (below), accessed via
+// getMetalDelegate(). This keeps IMetalCanvas's vtable layout identical
+// in C++ and ObjC++ translation units — avoiding the vtable mismatch that
+// occurs when virtual methods are hidden behind #ifdef __OBJC__.
 
 #include <string>
 
 #include "../../utils/Color.h"
-
-#ifdef __OBJC__
-#import <Metal/Metal.h>
-#import <QuartzCore/CAMetalLayer.h>
-#endif
 
 class IMetalCanvas {
 public:
@@ -37,7 +37,21 @@ public:
     virtual bool drawingUsingLogicalSize() const = 0;
     virtual double translateToBacking(double x) const = 0;
 
+    // Returns the ObjC delegate (IMetalCanvasDelegate*).
+    // Only call from ObjC++ (.mm) files.
+    virtual void* getMetalDelegate() = 0;
+};
+
 #ifdef __OBJC__
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
+
+// ObjC-only interface for Metal resource access.
+// Retrieved via IMetalCanvas::getMetalDelegate().
+class IMetalCanvasDelegate {
+public:
+    virtual ~IMetalCanvasDelegate() = default;
+
     // Shared Metal resources (delegates to MetalDeviceManager)
     virtual id<MTLDevice>            getMTLDevice() = 0;
     virtual id<MTLCommandQueue>      getMTLCommandQueue() = 0;
@@ -65,5 +79,5 @@ public:
 
     // Drawable access — desktop gets this from MTKView, iPad from CAMetalLayer
     virtual id<CAMetalDrawable> getNextDrawable() = 0;
-#endif
 };
+#endif
