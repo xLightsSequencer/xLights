@@ -53,7 +53,7 @@
 #include "render/DimmingCurve.h"
 #include "ui/model/AlignmentDialog.h"
 #include "utils/VectorMath.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "models/SubModel.h"
 #include "ui/shared/dialogs/CheckboxSelectDialog.h"
 #include "ui/import-export/VendorModelDialog.h"

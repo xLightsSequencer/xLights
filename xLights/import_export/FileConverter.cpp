@@ -44,7 +44,7 @@
     #include "outputs/Output.h"
     #define string_format wxString::Format
 #endif
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "utils/ExternalHooks.h"
 #include <log.h>
 

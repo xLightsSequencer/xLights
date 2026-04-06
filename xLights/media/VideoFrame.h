@@ -12,6 +12,14 @@
 
 #include <cstdint>
 
+enum class VideoScaleAlgorithm {
+    Default,   // Platform-optimal (VTPixelTransferSession on Apple, SWS_BICUBIC on FFmpeg)
+    Bicubic,   // High quality, good balance of sharpness and smoothness
+    Lanczos,   // Highest quality, sharpest
+    Area,      // Good for downscaling, averages source pixels
+    Point      // Nearest-neighbor, fastest, pixelated
+};
+
 enum class VideoPixelFormat {
     RGB24,
     BGR24,

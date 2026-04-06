@@ -21,7 +21,7 @@
 
 #include "ColorCurveDialog.h"
 #include "xLightsMain.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "ui/color/wxColorCurveRenderer.h"
 #include "ui/shared/utils/wxUtilities.h"

@@ -26,6 +26,6 @@ static const std::string xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
 #endif
 static const std::string xlights_build_date      = __DATE__;
 
-std::string GetDisplayVersionString();
+inline std::string GetDisplayVersionString() { return xlights_version_string; }
 
 #define WXWIDGETS_VERSION "33"

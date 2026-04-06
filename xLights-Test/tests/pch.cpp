@@ -11,7 +11,7 @@
 #include "pch.h"
 
 #include <wx/string.h>
-#include "../xLights/utils/xLightsVersion.h"
+#include "../xLights/xLightsVersion.h"
 
 #ifdef _MSC_VER
 #ifdef _DEBUG

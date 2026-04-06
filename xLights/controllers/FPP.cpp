@@ -44,7 +44,7 @@
 #include "../outputs/ControllerSerial.h"
 #include "UtilFunctions.h"
 #include "../utils/string_utils.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "Parallel.h"
 #include "ControllerCaps.h"
 #include "utils/ExternalHooks.h"

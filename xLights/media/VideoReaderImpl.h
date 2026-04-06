@@ -19,6 +19,7 @@
 class VideoReaderImpl {
 public:
     virtual ~VideoReaderImpl() = default;
+    virtual void SetScaleAlgorithm(VideoScaleAlgorithm) {}
     virtual int GetLengthMS() const = 0;
     virtual void Seek(int timestampMS, bool readFrame) = 0;
     virtual VideoFrame* GetNextFrame(int timestampMS, int gracetime) = 0;

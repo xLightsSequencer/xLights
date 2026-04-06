@@ -26,7 +26,7 @@
 #include "TimeLine.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "ui/sequencer/EffectsPanel.h"
 #include "ui/shared/utils/ExternalHooksUI.h"
 #include "../effects/RenderableEffect.h"

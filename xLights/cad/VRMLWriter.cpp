@@ -13,7 +13,7 @@
 #include "CADPoint.h"
 
 #include <wx/string.h>
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 
 void VRMLWriter::WriteHeader()
 {

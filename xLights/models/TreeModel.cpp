@@ -14,7 +14,7 @@
 
 #include "TreeModel.h"
 #include "ModelScreenLocation.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../graphics/IModelPreview.h"
 #include "CustomModel.h"

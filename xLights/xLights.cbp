@@ -1576,8 +1576,7 @@
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="ui/shared/utils/xLightsTimer.cpp" />
-		<Unit filename="utils/xLightsVersion.cpp" />
-		<Unit filename="utils/xLightsVersion.h" />
+		<Unit filename="xLightsVersion.h" />
 		<Unit filename="render/SequenceFile.cpp" />
 		<Unit filename="render/SequenceFile.h" />
 		<Unit filename="ui/color/xlColorCanvas.cpp" />

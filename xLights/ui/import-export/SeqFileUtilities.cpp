@@ -45,7 +45,7 @@
 #include "render/SequenceMedia.h"
 #include "media/MediaCompatibility.h"
 #include <wx/textdlg.h>
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "ui/sequencer/MainSequencer.h"

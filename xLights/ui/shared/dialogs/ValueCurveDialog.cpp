@@ -30,7 +30,7 @@
 #include "ui/shared/utils/ValueCurveRendering.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "ui/sequencer/MainSequencer.h"
 #include "render/SequenceElements.h"
 

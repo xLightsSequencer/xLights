@@ -40,7 +40,7 @@
 #include "../utils/ip_utils.h"
 #include "../render/RenderContext.h"
 #include "../utils/TraceLog.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "../render/SequenceFile.h"
 #include "../XmlSerializer/FileSerializingVisitor.h"
 #include "../XmlSerializer/XmlSerializer.h"

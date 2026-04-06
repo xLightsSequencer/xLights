@@ -127,7 +127,6 @@
     <ClCompile Include="ui\import-export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="ui/shared/utils/xLightsTimer.cpp" />
-    <ClCompile Include="utils\xLightsVersion.cpp" />
     <ClCompile Include="render\SequenceFile.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -1573,7 +1572,7 @@
     <ClInclude Include="ui\import-export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />
-    <ClInclude Include="utils\xLightsVersion.h" />
+    <ClInclude Include="xLightsVersion.h" />
     <ClInclude Include="render\SequenceFile.h">
       <Filter>render</Filter>
     </ClInclude>

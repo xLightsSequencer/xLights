@@ -20,7 +20,7 @@
 #include "CustomModel.h"
 #include "../render/RenderContext.h"
 #include "../render/UICallbacks.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"

@@ -17,6 +17,7 @@
 #import <CoreMedia/CoreMedia.h>
 #import <VideoToolbox/VideoToolbox.h>
 #import <CoreImage/CoreImage.h>
+#import <Accelerate/Accelerate.h>
 
 #include <algorithm>
 
@@ -28,6 +29,7 @@ struct AVFoundationVideoReaderImpl {
     __strong AVAssetReader* reader = nil;
     __strong AVAssetReaderTrackOutput* trackOutput = nil;
     VTPixelTransferSessionRef transferSession = nullptr;
+    __strong CIContext* ciContext = nil;
 
     std::string filename;
     bool valid = false;
@@ -36,6 +38,7 @@ struct AVFoundationVideoReaderImpl {
     bool wantAlpha = false;
     bool bgr = false;
     bool wantsHWType = false;
+    VideoScaleAlgorithm scaleAlgorithm = VideoScaleAlgorithm::Default;
 
     int width = 0;          // output width
     int height = 0;         // output height
@@ -173,7 +176,7 @@ struct AVFoundationVideoReaderImpl {
     }
 
     // Copy pixel data from a CVPixelBuffer into the current frame buffer,
-    // performing BGRA→target format conversion
+    // performing BGRA→target format conversion using Accelerate.framework
     void copyPixelBufferToFrame(CVPixelBufferRef pixelBuffer) {
         CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
@@ -189,6 +192,9 @@ struct AVFoundationVideoReaderImpl {
         int copyWidth = std::min((int)srcWidth, width);
         int copyHeight = std::min((int)srcHeight, height);
 
+        vImage_Buffer srcBuf = { src, (vImagePixelCount)copyHeight, (vImagePixelCount)copyWidth, srcStride };
+        vImage_Buffer dstBuf = { dst, (vImagePixelCount)copyHeight, (vImagePixelCount)copyWidth, (size_t)dstStride };
+
         if (wantAlpha) {
             if (bgr) {
                 // BGRA → BGRA: direct copy
@@ -196,47 +202,35 @@ struct AVFoundationVideoReaderImpl {
                     memcpy(dst + y * dstStride, src + y * srcStride, copyWidth * 4);
                 }
             } else {
-                // BGRA → RGBA: swap R and B
-                for (int y = 0; y < copyHeight; y++) {
-                    uint8_t* s = src + y * srcStride;
-                    uint8_t* d = dst + y * dstStride;
-                    for (int x = 0; x < copyWidth; x++) {
-                        d[0] = s[2]; // R
-                        d[1] = s[1]; // G
-                        d[2] = s[0]; // B
-                        d[3] = s[3]; // A
-                        s += 4;
-                        d += 4;
-                    }
-                }
+                // BGRA → RGBA: permute channels using NEON-accelerated vImage
+                const uint8_t permuteMap[4] = { 2, 1, 0, 3 }; // B,G,R,A → R,G,B,A
+                vImagePermuteChannels_ARGB8888(&srcBuf, &dstBuf, permuteMap, kvImageNoFlags);
             }
         } else {
             if (bgr) {
-                // BGRA → BGR24: drop alpha
-                for (int y = 0; y < copyHeight; y++) {
-                    uint8_t* s = src + y * srcStride;
-                    uint8_t* d = dst + y * dstStride;
-                    for (int x = 0; x < copyWidth; x++) {
-                        d[0] = s[0]; // B
-                        d[1] = s[1]; // G
-                        d[2] = s[2]; // R
-                        s += 4;
-                        d += 3;
-                    }
-                }
+                // BGRA → BGR24: drop alpha, keep channel order
+                // Permute BGRA → XBGR {3,0,1,2}, then vImageConvert_ARGB8888toRGB888 drops X
+                size_t tmpStride = copyWidth * 4;
+                size_t tmpSize = tmpStride * copyHeight;
+                uint8_t stackBuf[64 * 1024];
+                uint8_t* tmpData = (tmpSize <= sizeof(stackBuf)) ? stackBuf : (uint8_t*)malloc(tmpSize);
+                vImage_Buffer tmpBuf = { tmpData, (vImagePixelCount)copyHeight, (vImagePixelCount)copyWidth, tmpStride };
+                const uint8_t permuteMap[4] = { 3, 0, 1, 2 }; // BGRA → XBGR
+                vImagePermuteChannels_ARGB8888(&srcBuf, &tmpBuf, permuteMap, kvImageNoFlags);
+                vImageConvert_ARGB8888toRGB888(&tmpBuf, &dstBuf, kvImageNoFlags);
+                if (tmpData != stackBuf) free(tmpData);
             } else {
-                // BGRA → RGB24: swap R/B and drop alpha
-                for (int y = 0; y < copyHeight; y++) {
-                    uint8_t* s = src + y * srcStride;
-                    uint8_t* d = dst + y * dstStride;
-                    for (int x = 0; x < copyWidth; x++) {
-                        d[0] = s[2]; // R
-                        d[1] = s[1]; // G
-                        d[2] = s[0]; // B
-                        s += 4;
-                        d += 3;
-                    }
-                }
+                // BGRA → RGB24: permute + drop alpha
+                // Permute BGRA → XRGB {3,2,1,0}, then vImageConvert_ARGB8888toRGB888 drops X
+                size_t tmpStride = copyWidth * 4;
+                size_t tmpSize = tmpStride * copyHeight;
+                uint8_t stackBuf[64 * 1024];
+                uint8_t* tmpData = (tmpSize <= sizeof(stackBuf)) ? stackBuf : (uint8_t*)malloc(tmpSize);
+                vImage_Buffer tmpBuf = { tmpData, (vImagePixelCount)copyHeight, (vImagePixelCount)copyWidth, tmpStride };
+                const uint8_t permuteMap[4] = { 3, 2, 1, 0 }; // BGRA → XRGB
+                vImagePermuteChannels_ARGB8888(&srcBuf, &tmpBuf, permuteMap, kvImageNoFlags);
+                vImageConvert_ARGB8888toRGB888(&tmpBuf, &dstBuf, kvImageNoFlags);
+                if (tmpData != stackBuf) free(tmpData);
             }
         }
 
@@ -250,6 +244,69 @@ struct AVFoundationVideoReaderImpl {
         vf.height = height;
         vf.format = outputFormat;
         vf.nativeHandle = nullptr;
+    }
+
+    // CIFilter-based scaling for specific algorithms (bicubic, lanczos, area, point).
+    // Returns true if scaling succeeded and frame was populated.
+    bool ciFilterScale(CVImageBufferRef imageBuffer) {
+        if (!ciContext) {
+            ciContext = [[CIContext alloc] initWithOptions:@{
+                (id)kCIContextUseSoftwareRenderer: @NO,
+                (id)kCIContextOutputPremultiplied: @NO,
+                (id)kCIContextHighQualityDownsample: @YES,
+                (id)kCIContextCacheIntermediates: @NO,
+                (id)kCIContextAllowLowPower: @YES,
+            }];
+            if (!ciContext) return false;
+        }
+        if (!ensureScaledPixelBuffer()) return false;
+
+        @autoreleasepool {
+            CIImage* image = [CIImage imageWithCVImageBuffer:imageBuffer];
+            if (!image) return false;
+
+            float w = (float)width / (float)CVPixelBufferGetWidth(imageBuffer);
+            float h = (float)height / (float)CVPixelBufferGetHeight(imageBuffer);
+
+            CIImage* scaled = nil;
+            switch (scaleAlgorithm) {
+            case VideoScaleAlgorithm::Bicubic: {
+                CIFilter* f = [CIFilter filterWithName:@"CIBicubicScaleTransform"];
+                [f setValue:@(h) forKey:@"inputScale"];
+                [f setValue:@(w / h) forKey:@"inputAspectRatio"];
+                [f setValue:@(0.0f) forKey:@"inputB"];
+                [f setValue:@(0.75f) forKey:@"inputC"];
+                [f setValue:image forKey:@"inputImage"];
+                scaled = [f valueForKey:@"outputImage"];
+                break;
+            }
+            case VideoScaleAlgorithm::Lanczos: {
+                CIFilter* f = [CIFilter filterWithName:@"CILanczosScaleTransform"];
+                [f setValue:@(h) forKey:@"inputScale"];
+                [f setValue:@(w / h) forKey:@"inputAspectRatio"];
+                [f setValue:image forKey:@"inputImage"];
+                scaled = [f valueForKey:@"outputImage"];
+                break;
+            }
+            case VideoScaleAlgorithm::Area:
+                scaled = [image imageByApplyingTransform:CGAffineTransformMakeScale(w, h)
+                                   highQualityDownsample:YES];
+                break;
+            case VideoScaleAlgorithm::Point:
+                scaled = [image imageByApplyingTransform:CGAffineTransformMakeScale(w, h)
+                                   highQualityDownsample:NO];
+                break;
+            default:
+                break;
+            }
+            if (!scaled) return false;
+
+            [ciContext render:scaled toCVPixelBuffer:scaledPixelBuffer];
+        }
+
+        swapFrames();
+        copyPixelBufferToFrame(scaledPixelBuffer);
+        return true;
     }
 
     // Decode the next sample, scale it, and populate the current frame buffer.
@@ -313,18 +370,26 @@ struct AVFoundationVideoReaderImpl {
                                (int)CVPixelBufferGetHeight(imageBuffer) != height);
 
             if (needsScale) {
-                // Hardware-accelerated scaling via VTPixelTransferSession
-                if (ensureTransferSession() && ensureScaledPixelBuffer()) {
-                    OSStatus xferStatus = VTPixelTransferSessionTransferImage(transferSession,
-                                                                              imageBuffer,
-                                                                              scaledPixelBuffer);
-                    if (xferStatus == noErr) {
-                        swapFrames();
-                        copyPixelBufferToFrame(scaledPixelBuffer);
+                if (scaleAlgorithm != VideoScaleAlgorithm::Default) {
+                    // Specific algorithm requested — use CIFilter pipeline
+                    if (ciFilterScale(imageBuffer)) {
                         CFRelease(sampleBuffer);
                         return true;
-                    } else {
-                        spdlog::warn("AVFoundationVideoReader: VTPixelTransferSession failed ({}), falling back to unscaled", (int)xferStatus);
+                    }
+                } else {
+                    // Default — hardware-accelerated scaling via VTPixelTransferSession
+                    if (ensureTransferSession() && ensureScaledPixelBuffer()) {
+                        OSStatus xferStatus = VTPixelTransferSessionTransferImage(transferSession,
+                                                                                  imageBuffer,
+                                                                                  scaledPixelBuffer);
+                        if (xferStatus == noErr) {
+                            swapFrames();
+                            copyPixelBufferToFrame(scaledPixelBuffer);
+                            CFRelease(sampleBuffer);
+                            return true;
+                        } else {
+                            spdlog::warn("AVFoundationVideoReader: VTPixelTransferSession failed ({}), falling back to unscaled", (int)xferStatus);
+                        }
                     }
                 }
             }
@@ -460,6 +525,10 @@ AVFoundationVideoReader::AVFoundationVideoReader(const std::string& filename, in
         // Read the first frame
         _impl->decodeNextFrame();
     }
+}
+
+void AVFoundationVideoReader::SetScaleAlgorithm(VideoScaleAlgorithm algorithm) {
+    _impl->scaleAlgorithm = algorithm;
 }
 
 AVFoundationVideoReader::~AVFoundationVideoReader()

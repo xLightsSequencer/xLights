@@ -49,7 +49,7 @@
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/StringSerializingVisitor.h"
 
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "ui/sequencer/TopEffectsPanel.h"
 
 #include <log.h>

@@ -110,7 +110,7 @@
 #include "ui/layout/ViewsModelsPanel.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "ui/controllerproperties/ControllerPropertyAdapter.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"

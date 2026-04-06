@@ -21,7 +21,7 @@
 #include <format>
 #include <functional>
 #include <thread>
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "utils/TraceLog.h"
 #include "utils/ExternalHooks.h"

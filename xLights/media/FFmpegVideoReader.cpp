@@ -89,6 +89,21 @@ void FFmpegVideoReader::InitHWAcceleration() {
     InitVideoToolboxAcceleration();
 }
 
+void FFmpegVideoReader::SetScaleAlgorithm(VideoScaleAlgorithm algorithm) {
+    _scaleAlgorithm = algorithm;
+}
+
+static int VideoScaleAlgorithmToSWS(VideoScaleAlgorithm alg) {
+    switch (alg) {
+    case VideoScaleAlgorithm::Lanczos: return SWS_LANCZOS;
+    case VideoScaleAlgorithm::Area:    return SWS_AREA;
+    case VideoScaleAlgorithm::Point:   return SWS_POINT;
+    case VideoScaleAlgorithm::Bicubic:
+    case VideoScaleAlgorithm::Default:
+    default:                           return SWS_BICUBIC;
+    }
+}
+
 // Helper to populate the VideoFrame from an AVFrame
 static void PopulateVideoFrame(VideoFrame& vf, AVFrame* avf, VideoPixelFormat fmt) {
     if (avf && avf->data[0]) {
@@ -616,7 +631,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
             spdlog::debug("    Decoding video frame {}.", _curPos);
             #endif
             bool hardwareScaled = false;
-            int scaleAlgorithm = SWS_BICUBIC;
+            int scaleAlgorithm = VideoScaleAlgorithmToSWS(_scaleAlgorithm);
             if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 if (_wantsHWType) {
                     hardwareScaled = true;

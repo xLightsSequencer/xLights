@@ -40,6 +40,7 @@ public:
                       bool usenativeresolution, bool wantAlpha, bool bgr, bool wantsHWType);
     ~FFmpegVideoReader() override;
 
+    void SetScaleAlgorithm(VideoScaleAlgorithm algorithm) override;
     int GetLengthMS() const override { return (int)_lengthMS; }
     void Seek(int timestampMS, bool readFrame) override;
     VideoFrame* GetNextFrame(int timestampMS, int gracetime) override;
@@ -98,6 +99,7 @@ private:
     std::string _filename;
     bool _abort = false;
     bool _videoToolboxAccelerated;
+    VideoScaleAlgorithm _scaleAlgorithm = VideoScaleAlgorithm::Default;
     bool _abandonHardwareDecode = false;
     #ifdef _WIN32
     WindowsHardwareVideoReader* _windowsHardwareVideoReader = nullptr;

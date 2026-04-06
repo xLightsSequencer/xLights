@@ -14,7 +14,7 @@
 #include <wx/confbase.h>
 
 #include "RowHeading.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "../ui/shared/utils/BitmapCache.h"
 #include "models/ModelGroup.h"
 #include "ui/sequencer/SelectTimingsDialog.h"

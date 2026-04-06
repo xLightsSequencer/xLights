@@ -34,7 +34,7 @@
 #include <curl/curl.h>
 
 #include "xLightsApp.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
 #include "utils/TraceLog.h"

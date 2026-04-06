@@ -33,7 +33,7 @@
 #include "../ui/import-export/xLightsImportChannelMapDialog.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "../render/SequenceMedia.h"
 #include "utils/ExternalHooks.h"
 #include "../render/SequencePackage.h"

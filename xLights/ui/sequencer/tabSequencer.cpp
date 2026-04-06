@@ -42,7 +42,7 @@
 #include "../ui/diagnostics/SeqElementMismatchDialog.h"
 #include "ui/media/SequenceVideoPanel.h"
 #include "ui/sequencer/RenderCommandEvent.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "ui/layout/HousePreviewPanel.h"
 #include "UtilFunctions.h"
 #include "ui/media/JukeboxPanel.h"

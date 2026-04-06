@@ -39,6 +39,8 @@ public:
     std::string GetFilename() const override;
     int GetPixelChannels() const override;
 
+    void SetScaleAlgorithm(VideoScaleAlgorithm algorithm) override;
+
     static long GetVideoLengthStatic(const std::string& filename);
 
 private:

@@ -19,11 +19,8 @@
 #include <vector>
 
 #ifdef __APPLE__
-#include <sys/mman.h>
-#include <mach/vm_statistics.h>
 #define USE_MMAP_BLOCKS
 #elif defined(LINUX)
-#include <sys/mman.h>
 #define USE_MMAP_BLOCKS
 #else
 //Windows
@@ -74,7 +71,8 @@ public:
 
     enum class BlockType {
         NORMAL,
-        HUGE_PAGE
+        HUGE_PAGE,
+        FILE_BACKED
     };
     class DataBlock {
         DataBlock(const DataBlock&d) = delete;
@@ -105,7 +103,8 @@ public:
 
     void Cleanup();
     unsigned char *checkBlockPtr(unsigned char *block, size_t sizeRemaining);
-    static unsigned char *AllocBlock(size_t requested, size_t &szAllocated, BlockType &bt);
+    static unsigned char *AllocBlock(size_t requested, size_t &szAllocated, BlockType &bt, bool fileBacked = false);
+    static bool ShouldUseFileBacked(size_t totalSize);
 public:
     SequenceData();
     virtual ~SequenceData();

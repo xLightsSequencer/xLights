@@ -1009,7 +1009,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ui\import-export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="ui/shared/utils/xLightsTimer.cpp" />
-    <ClCompile Include="utils\xLightsVersion.cpp" />
     <ClCompile Include="render\SequenceFile.cpp" />
     <ClCompile Include="ui\shared\utils\xlLockButton.cpp" />
     <ClCompile Include="ui\shared\utils\xlSlider.cpp" />
@@ -1601,7 +1600,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ui\import-export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="ui/shared/utils/xLightsTimer.h" />
-    <ClInclude Include="utils\xLightsVersion.h" />
+    <ClInclude Include="xLightsVersion.h" />
     <ClInclude Include="render\SequenceFile.h" />
     <ClInclude Include="ui\shared\utils\xlLockButton.h" />
     <ClInclude Include="ui\shared\utils\xlSlider.h" />

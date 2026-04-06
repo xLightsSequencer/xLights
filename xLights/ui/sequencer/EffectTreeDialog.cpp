@@ -23,10 +23,10 @@
 #include "render/SequenceMedia.h"
 #include <fstream>
 #include "xLightsMain.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "utils/ExternalHooks.h"
 #include "XmlSerializer/FileSerializingVisitor.h"
 

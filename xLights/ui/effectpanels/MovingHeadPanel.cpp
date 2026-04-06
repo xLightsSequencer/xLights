@@ -20,7 +20,7 @@
 
 #include <format>
 #include "../../xLightsMain.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "../../ui/sequencer/MainSequencer.h"
 #include "../../render/Effect.h"
 #include "../../render/Element.h"

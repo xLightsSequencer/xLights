@@ -31,7 +31,7 @@
 #include "../ModelManager.h"
 #include "../../graphics/xlGraphicsContext.h"
 #include "../../graphics/xlGraphicsAccumulators.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "../../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"

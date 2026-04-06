@@ -18,6 +18,17 @@
 #include "UtilFunctions.h"
 #include "utils/AppCallbacks.h"
 
+#ifdef USE_MMAP_BLOCKS
+#include <unistd.h>
+#include <sys/mman.h>
+#endif
+#ifdef __APPLE__
+#include <mach/vm_statistics.h>
+#include <sys/sysctl.h>
+#include <TargetConditionals.h>
+#endif
+
+
 const unsigned char SequenceData::FrameData::_constzero = 0;
 
 
@@ -102,6 +113,21 @@ SequenceData::SequenceData() : _invalidFrame()
     _frameTime = 50;
 }
 
+bool SequenceData::ShouldUseFileBacked(size_t totalSize) {
+#if TARGET_OS_IOS
+    return true; // always on iPad — jetsam is the constraint
+#elif defined(__APPLE__)
+    // Use file-backed if sequence would consume >50% of physical memory
+    int mib[2] = { CTL_HW, HW_MEMSIZE };
+    uint64_t physMem = 0;
+    size_t len = sizeof(physMem);
+    sysctl(mib, 2, &physMem, &len, nullptr, 0);
+    return physMem > 0 && totalSize > (physMem / 2);
+#else
+    return false; // Linux/Windows: keep current behavior
+#endif
+}
+
 SequenceData::~SequenceData()
 {
     Cleanup();
@@ -111,7 +137,7 @@ SequenceData::DataBlock::~DataBlock()
 {
     if (data) {
 #ifdef USE_MMAP_BLOCKS
-        munmap(data, size);
+        munmap(data, size); // works for both anonymous, huge page, and file-backed mappings
 #else
         free(data);
 #endif
@@ -129,6 +155,8 @@ void SequenceData::Cleanup()
             std::unique_lock<std::mutex> lock(HUGE_BLOCK_LOCK);
             HUGE_BLOCK_CACHE.emplace_back(std::move(p));
         }
+        // FILE_BACKED blocks are just munmap'd normally (via ~DataBlock) —
+        // the unlinked temp file disappears automatically
     }
 #endif
 
@@ -138,12 +166,41 @@ void SequenceData::Cleanup()
     _invalidFrame._data = nullptr;
 }
 
-unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, BlockType &blockType)
+unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, BlockType &blockType, bool fileBacked)
 {
     unsigned char* data = nullptr;
     size_t sz = requested;
     blockType = BlockType::NORMAL;
 #ifdef USE_MMAP_BLOCKS
+    if (fileBacked) {
+        if (sz > MAX_BLOCK_SIZE) {
+            sz = MAX_BLOCK_SIZE;
+        }
+        // Create a temporary file, mmap it, then unlink so it auto-cleans on munmap
+        std::string tmpPath = std::string(std::getenv("TMPDIR") ? std::getenv("TMPDIR") : "/tmp") + "/xlseqXXXXXX";
+        int fd = mkstemp(tmpPath.data());
+        if (fd >= 0) {
+            unlink(tmpPath.c_str()); // unlink immediately — file disappears when mapping is destroyed
+            if (ftruncate(fd, sz) == 0) {
+                data = (unsigned char*)mmap(nullptr, sz,
+                    PROT_READ | PROT_WRITE,
+                    MAP_SHARED, fd, 0);
+                if (data == MAP_FAILED) {
+                    data = nullptr;
+                } else {
+                    blockType = BlockType::FILE_BACKED;
+                    madvise(data, sz, MADV_SEQUENTIAL);
+                }
+            }
+            close(fd);
+        }
+        if (data) {
+            szAllocated = sz;
+            return data;
+        }
+        // file-backed failed — fall through to anonymous mmap
+        spdlog::warn("File-backed mmap failed for {} bytes, falling back to anonymous mmap", sz);
+    }
     if (sz > MAX_BLOCK_SIZE) {
         sz = MAX_BLOCK_SIZE;
     } else {
@@ -294,14 +351,19 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         _frames.reserve(numFrames);
         size_t sizeRemaining = (size_t)_bytesPerFrame * (size_t)_numFrames;
         size_t blockSize = 0;
-        
+        bool fileBacked = ShouldUseFileBacked(sizeRemaining);
+        if (fileBacked) {
+            spdlog::debug("SequenceData using file-backed mmap for {} bytes ({} frames, {} channels)",
+                         sizeRemaining, _numFrames, _numChannels);
+        }
+
         BlockType type = BlockType::NORMAL;
-        unsigned char* block = checkBlockPtr(AllocBlock(sizeRemaining, blockSize, type), sizeRemaining);
+        unsigned char* block = checkBlockPtr(AllocBlock(sizeRemaining, blockSize, type, fileBacked), sizeRemaining);
         _dataBlocks.push_back(std::make_unique<DataBlock>(blockSize, block, type));
-        
+
         for (unsigned int frame = 0; frame < numFrames; ++frame) {
             if (blockSize < _bytesPerFrame) {
-                block = checkBlockPtr(AllocBlock(sizeRemaining, blockSize, type), sizeRemaining);
+                block = checkBlockPtr(AllocBlock(sizeRemaining, blockSize, type, fileBacked), sizeRemaining);
                 _dataBlocks.push_back(std::make_unique<DataBlock>(blockSize, block, type));
             }
             _frames.push_back(FrameData(_numChannels, block));

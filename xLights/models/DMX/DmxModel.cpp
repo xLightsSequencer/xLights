@@ -28,7 +28,7 @@
 #include "../../graphics/xlGraphicsContext.h"
 #include "../../graphics/xlGraphicsAccumulators.h"
 #include "../../render/RenderBuffer.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "UtilFunctions.h"
 
 DmxModel::DmxModel(const ModelManager &manager)

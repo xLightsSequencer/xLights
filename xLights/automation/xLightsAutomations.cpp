@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "../xLightsMain.h"
-#include "utils/xLightsVersion.h"
+#include "xLightsVersion.h"
 
 #include "nlohmann/json.hpp"
 
