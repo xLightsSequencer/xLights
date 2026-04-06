@@ -45,7 +45,6 @@ struct AVAudioEngineOutputImpl {
     AVAudioEngine* engine = nil;
     AVAudioUnitTimePitch* timePitch = nil;
     AVAudioMixerNode* mixer = nil;
-    AVAudioFormat* processingFormat = nil;
     float playbackRate = 1.0f;
     bool usingTimePitch = false;  // only insert timePitch when rate != 1.0
     std::string device;
@@ -81,15 +80,13 @@ struct AVAudioEngineOutputImpl {
         timePitch.rate = playbackRate;
         mixer = engine.mainMixerNode;
 
-        // Use the output node's format for all connections
-        processingFormat = [engine.outputNode inputFormatForBus:0];
-
         // Only insert timePitch into the chain when rate != 1.0
         // At rate 1.0, playerNode -> mixer directly (lowest latency)
         // At other rates, playerNode -> timePitch -> mixer
         if (playbackRate != 1.0f) {
+            AVAudioFormat* fmt = [engine.outputNode inputFormatForBus:0];
             [engine attachNode:timePitch];
-            [engine connect:timePitch to:mixer format:processingFormat];
+            [engine connect:timePitch to:mixer format:fmt];
             usingTimePitch = true;
         }
 
@@ -101,8 +98,9 @@ struct AVAudioEngineOutputImpl {
         }
 
         initialized = true;
+        AVAudioFormat* fmt = [engine.outputNode inputFormatForBus:0];
         spdlog::debug("AVAudioEngine initialized for device '{}', format: {}Hz {}ch, timePitch: {}",
-                       device, processingFormat.sampleRate, (int)processingFormat.channelCount,
+                       device, fmt.sampleRate, (int)fmt.channelCount,
                        usingTimePitch ? "active" : "bypassed");
         return true;
     }
@@ -123,8 +121,9 @@ struct AVAudioEngineOutputImpl {
 
         if (need && !usingTimePitch) {
             // Insert timePitch: disconnect mixer input, add timePitch in between
+            AVAudioFormat* fmt = [engine.outputNode inputFormatForBus:0];
             [engine attachNode:timePitch];
-            [engine connect:timePitch to:mixer format:processingFormat];
+            [engine connect:timePitch to:mixer format:fmt];
             usingTimePitch = true;
         } else if (!need && usingTimePitch) {
             // Remove timePitch
