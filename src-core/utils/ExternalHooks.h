@@ -11,8 +11,8 @@
 
 
 #if defined(__APPLE__)
-#if __has_include("ExternalHooksMacOS.h")
-#include "osxUtils/ExternalHooksMacOS.h"
+#if __has_include("ExternalHooksApple.h")
+#include "osxUtils/ExternalHooksApple.h"
 #endif
 #elif defined(_WIN32)
 #if __has_include("ExternalHooksMSW.h")
