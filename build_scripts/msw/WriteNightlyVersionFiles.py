@@ -14,7 +14,7 @@ version = "nightly-" + get_commit_hash();
 mod = "static const std::string xlights_qualifier       = \" " + version + "\";\n";
 other = "#define Other \"_" + version + "\"\n";
 
-with in_place.InPlace("../../xLights/xLightsVersion.h") as file:
+with in_place.InPlace("../../src-core/xLightsVersion.h") as file:
     for line in file:
         if "xlights_qualifier" in line:
             line =  mod

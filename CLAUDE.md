@@ -34,15 +34,15 @@ Build uses Code::Blocks .cbp project files converted to makefiles via cbp2make. 
 Open in Visual Studio (vcxproj files) or Code::Blocks.
 
 ### wxSmith Generated Code
-Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is delimited by `//(* ... //*)` guards in `.cpp`/`.h` files. **Any changes within these guards MUST also be reflected in the corresponding `.wxs` file** in `xLights/wxsmith/`. Otherwise the changes will be overwritten the next time the `.wxs` file is opened in wxSmith. If adding new controls, event handlers, or modifying existing ones inside the guards, update the `.wxs` XML to match.
+Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is delimited by `//(* ... //*)` guards in `.cpp`/`.h` files. **Any changes within these guards MUST also be reflected in the corresponding `.wxs` file** in `src-ui-wx/wxsmith/`. Otherwise the changes will be overwritten the next time the `.wxs` file is opened in wxSmith. If adding new controls, event handlers, or modifying existing ones inside the guards, update the `.wxs` XML to match.
 
 ### Adding New Source Files
-When adding new `.cpp`/`.h` files, the following project files must be updated manually:
-- **`xLights/xLights.cbp`** — add `<Unit filename="...">` entries (used by Linux build via cbp2make)
-- **`xLights/Xlights.vcxproj`** — add `<ClCompile>` for `.cpp` and `<ClInclude>` for `.h`
+When adding new `.cpp`/`.h` files, place them in `src-core/` (wx-free core) or `src-ui-wx/` (wxWidgets UI) as appropriate. The following project files must be updated manually:
+- **`xLights/xLights.cbp`** — add `<Unit filename="...">` entries with paths relative to `xLights/` (e.g., `../src-core/render/Foo.cpp`)
+- **`xLights/Xlights.vcxproj`** — add `<ClCompile>` for `.cpp` and `<ClInclude>` for `.h` with paths relative to `xLights/` (e.g., `..\src-core\render\Foo.cpp`)
 - **`xLights/Xlights.vcxproj.filters`** — add corresponding filter entries to place files in the correct VS folder
 
-The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`) may also need updating — some directories use `PBXFileSystemSynchronizedRootGroup` (auto-discovered), others require manual `PBXFileReference`/`PBXBuildFile` entries. Check on a case-by-case basis.
+The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`) uses `PBXFileSystemSynchronizedRootGroup` for both `src-core/` and `src-ui-wx/` — files in those directories are auto-discovered. No manual pbxproj editing needed for new files in existing directories.
 
 ### Release Notes
 `README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a line to the current release section:
@@ -63,25 +63,25 @@ Adding `-configuration Debug` builds only for the native architecture in Debug m
 
 ## Architecture
 
-### Core Application (`xLights/`)
-- **Entry point**: `xLightsApp.cpp` (wxApp subclass) → `xLightsMain.cpp` (`xLightsFrame`, the main window)
-- **Sequencer**: `xLights/sequencer/` — timeline UI, effect grid, effect layers, undo manager. `MainSequencer` is the primary sequencer widget; `tabSequencer.cpp` handles sequencer-related event handlers on xLightsFrame.
-- **Effects**: `xLights/effects/` — 55 effects, each as a pair: `FooEffect.cpp` (rendering logic, `adjustSettings` for migration) + `FooPanel.cpp` (UI controls). All inherit from `RenderableEffect`. See [Effects Reference](#effects-reference) below.
-- **Models**: `xLights/models/` — 20+ model types plus 9 DMX models. All inherit from `Model`. See [Models Reference](#models-reference) below.
-- **Outputs**: `xLights/outputs/` — protocol handlers and controller connection config. See [Outputs & Controllers Reference](#outputs--controllers-reference) below.
-- **Controllers**: `xLights/controllers/` — vendor-specific hardware upload handlers (Falcon, FPP, WLED, etc.). See [Outputs & Controllers Reference](#outputs--controllers-reference) below.
-- **Media**: `xLights/media/` — audio decoding, encoding, and playback. Platform-neutral `AudioManager` with abstract interfaces (`IAudioDecoder`, `IAudioOutput`). On Apple platforms uses AudioToolbox (decoding) and AVAudioEngine (playback); on Linux/Windows uses FFmpeg and SDL2. Also contains `xLightsVamp` (VAMP audio analysis plugins) and `AudioLoader` (specialized FFmpeg-based loader).
-- **Discovery core**: `xLights/discovery/` — shared controller/output discovery data structures and discovery API used by core layers.
-- **XmlSerializer**: `xLights/XmlSerializer/` — XML serialization/deserialization for models, objects, and rgb effects. Includes GDTF parser. Core layer — should not depend on wx or UI.
-- **SequenceMedia** (`sequencer/SequenceMedia.cpp`): Manages image caching and embedding for sequences. Images can be embedded in .xsq files or referenced externally. Uses `FixFile()` to resolve relative paths.
+### Core Application (`src-core/`) and UI (`src-ui-wx/`)
+- **Entry point**: `src-ui-wx/xLightsApp.cpp` (wxApp subclass) → `src-ui-wx/xLightsMain.cpp` (`xLightsFrame`, the main window)
+- **Sequencer**: `src-ui-wx/ui/sequencer/` — timeline UI, effect grid, effect layers, undo manager. `MainSequencer` is the primary sequencer widget; `tabSequencer.cpp` handles sequencer-related event handlers on xLightsFrame.
+- **Effects**: `src-core/effects/` — 55 effects, each as a pair: `FooEffect.cpp` (rendering logic, `adjustSettings` for migration) + `FooPanel.cpp` (UI controls). All inherit from `RenderableEffect`. See [Effects Reference](#effects-reference) below.
+- **Models**: `src-core/models/` — 20+ model types plus 9 DMX models. All inherit from `Model`. See [Models Reference](#models-reference) below.
+- **Outputs**: `src-core/outputs/` — protocol handlers and controller connection config. See [Outputs & Controllers Reference](#outputs--controllers-reference) below.
+- **Controllers**: `src-core/controllers/` — vendor-specific hardware upload handlers (Falcon, FPP, WLED, etc.). See [Outputs & Controllers Reference](#outputs--controllers-reference) below.
+- **Media**: `src-core/media/` — audio decoding, encoding, and playback. Platform-neutral `AudioManager` with abstract interfaces (`IAudioDecoder`, `IAudioOutput`). On Apple platforms uses AudioToolbox (decoding) and AVAudioEngine (playback); on Linux/Windows uses FFmpeg and SDL2. Also contains `xLightsVamp` (VAMP audio analysis plugins) and `AudioLoader` (specialized FFmpeg-based loader).
+- **Discovery core**: `src-core/discovery/` — shared controller/output discovery data structures and discovery API used by core layers.
+- **XmlSerializer**: `src-core/XmlSerializer/` — XML serialization/deserialization for models, objects, and rgb effects. Includes GDTF parser. Core layer — should not depend on wx or UI.
+- **SequenceMedia** (`src-core/render/SequenceMedia.cpp`): Manages image caching and embedding for sequences. Images can be embedded in .xsq files or referenced externally. Uses `FixFile()` to resolve relative paths.
 
 ### Core vs UI Layer Architecture
 
-The codebase is being refactored to separate wx-free core logic from wxWidgets UI code. The goal is a platform-neutral core usable without wx (e.g., for an iPad app).
+The codebase physically separates wx-free core logic from wxWidgets UI code. Core code lives in `src-core/`, UI code in `src-ui-wx/`. The goal is a platform-neutral core usable without wx (e.g., for an iPad app). Build system files remain in `xLights/`.
 
 **Core packages** (enforced by `ci_scripts/check_core_include_boundaries.sh`): `discovery/`, `graphics/`, `media/`, `render/`, `effects/`, `models/`, `outputs/`, `controllers/`, `utils/`, `XmlSerializer/`. These directories **must not** include `ui/` headers, `xLightsMain.h`, or `xLightsApp.h` in their public headers or implementation files. New violations are blocked in strict mode; approved exceptions live in `ci_scripts/include_policy_allowlist.txt`.
 
-**`xLights/graphics/`** — wx-free core graphics abstraction layer:
+**`src-core/graphics/`** — wx-free core graphics abstraction layer:
 - `xlGraphicsContext.h` — abstract GPU context interface (no wx types; no window pointer; use `setContextualValue`/`getContextualValue` for passing context like `IModelPreview*`)
 - `xlGraphicsAccumulators.h` — geometry/vertex accumulator interfaces
 - `IModelPreview.h` — wx-free pure-virtual interface for model preview (used by models/ and effects/)
@@ -89,7 +89,7 @@ The codebase is being refactored to separate wx-free core logic from wxWidgets U
 - `xlImage.h` — wx-free RGBA pixel class (see also `utils/xlImage.h`)
 - `xlMesh.h/.cpp` — 3D mesh loading (std::filesystem, no wx)
 
-**`xLights/ui/graphics/`** — wx-dependent canvas implementations (NOT core):
+**`src-ui-wx/ui/graphics/`** — wx-dependent canvas implementations (NOT core):
 - `xlGraphicsBase.h` — selects Metal vs OpenGL canvas at compile time; defines `GRAPHICS_BASE_CLASS`
 - `opengl/xlGLCanvas.h/.cpp` — OpenGL canvas (wxGLCanvas subclass)
 - `opengl/xlOGL3GraphicsContext.h/.cpp` — OpenGL graphics context implementation
@@ -132,8 +132,8 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 
 - **Strings**: Use `std::string` instead of `wxString`. Convert at wx API boundaries with `.ToStdString()` / `wxString(str)`.
 - **Collections**: Use `std::vector`, `std::map`, `std::unordered_map`, etc. instead of `wxArrayString`, `wxList`, etc.
-- **Colors**: Use `xlColor` (defined in `xLights/Color.h`) instead of `wxColour`. `xlColor` is now wx-free.
-- **wx↔std conversions**: Place any `wxColour`/`wxString`/wx-collection ↔ std conversion helpers in `xLights/ui/wxUtilities.h` (and `.cpp` for non-inline implementations). Currently provides:
+- **Colors**: Use `xlColor` (defined in `src-core/utils/Color.h`) instead of `wxColour`. `xlColor` is now wx-free.
+- **wx↔std conversions**: Place any `wxColour`/`wxString`/wx-collection ↔ std conversion helpers in `src-ui-wx/ui/wxUtilities.h` (and `.cpp` for non-inline implementations). Currently provides:
   - `xlColorToWxColour(const xlColor&) → wxColour`
   - `wxColourToXlColor(const wxColour&) → xlColor`
 - **When wx constants suffice**: If a wx API accepts a wx constant directly (e.g. `*wxBLACK`, `*wxWHITE` for `SetTextForeground`), use the wx constant rather than converting an `xl*` constant through `xlColorToWxColour`.

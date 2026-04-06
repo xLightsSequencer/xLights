@@ -19,7 +19,7 @@
 
 #include <wx/app.h>
 
-#include "../xLights/automation/automation.h"
+#include "../src-ui-wx/automation/automation.h"
 
 #include "spdlog/spdlog.h"
 #include "spdlog/common.h"

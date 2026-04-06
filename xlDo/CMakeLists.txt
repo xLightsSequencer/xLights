@@ -13,8 +13,8 @@ link_directories(../lib/windows64)
 
 set(SRC_FILES
     xlDo.cpp
-    ../xLights/automation/automation.cpp
-    ../xLights/automation/automation.h
+    ../src-ui-wx/automation/automation.cpp
+    ../src-ui-wx/automation/automation.h
     )
 
 

@@ -33,17 +33,17 @@ if ! command -v rg >/dev/null 2>&1; then
 fi
 
 CORE_DIRS=(
-    "xLights/common"
-    "xLights/discovery"
-    "xLights/graphics"
-    "xLights/render"
-    "xLights/effects"
-    "xLights/models"
-    "xLights/outputs"
-    "xLights/controllers"
-    "xLights/utils"
-    "xLights/media"
-    "xLights/XmlSerializer"
+    "src-core/common"
+    "src-core/discovery"
+    "src-core/graphics"
+    "src-core/render"
+    "src-core/effects"
+    "src-core/models"
+    "src-core/outputs"
+    "src-core/controllers"
+    "src-core/utils"
+    "src-core/media"
+    "src-core/XmlSerializer"
 )
 
 if [[ ! -f "$ALLOWLIST_FILE" ]]; then
