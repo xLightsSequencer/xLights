@@ -1043,6 +1043,7 @@ void XmlDeserializingModelFactory::DeserializeColorWheelAttributes(DmxColorAbili
     ability->SetWheelChannel(node.attribute("DmxColorWheelChannel").as_int(0));
     ability->SetDimmerChannel(node.attribute("DmxDimmerChannel").as_int(0));
     ability->SetWheelDelay(node.attribute("DmxColorWheelDelay").as_int(0));
+    ability->ClearColors();
     for (int i = 0; i< DmxColorAbilityWheel::MAX_COLORS; ++i) {
         auto dmxkey = std::format("DmxColorWheelDMX{}", i);
         auto colorkey = std::format("DmxColorWheelColor{}", i);

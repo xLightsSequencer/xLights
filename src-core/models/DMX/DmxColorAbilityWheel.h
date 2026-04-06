@@ -57,6 +57,7 @@ class DmxColorAbilityWheel : public DmxColorAbility
         void SetWheelDelay(uint32_t delay) { wheel_delay = delay; }
         void AddColor(const std::string& dmxcolor, uint8_t dmxVal);
         void AddWheelColor(xlColor col, uint8_t dmxVal) { colors.emplace_back(std::move(col), dmxVal); }
+        void ClearColors() { colors.clear(); }
         void PopColor() { if (!colors.empty()) colors.pop_back(); }
         void SetWheelColorDMX(size_t idx, uint8_t val) { colors[idx].dmxValue = val; }
         void SetWheelColor(size_t idx, xlColor col) { colors[idx].color = std::move(col); }
