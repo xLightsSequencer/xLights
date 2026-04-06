@@ -19,7 +19,7 @@
 #include "../utils/CurlManager.h"
 #include <wx/sckaddr.h>
 #include "../utils/UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <log.h>
 

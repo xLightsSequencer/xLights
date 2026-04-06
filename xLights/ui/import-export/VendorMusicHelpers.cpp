@@ -11,7 +11,7 @@
 #include "VendorMusicHelpers.h"
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 bool MSLSequenceLyric::InCategory(std::string category)
 {

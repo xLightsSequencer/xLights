@@ -13,7 +13,7 @@
 #include "ui/sequencer/BatchRenderDialog.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <log.h>
 

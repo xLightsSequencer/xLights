@@ -23,7 +23,7 @@
 #include "ui/sequencer/BulkEditColourPickerDialog.h"
 #include "ui/sequencer/BulkEditComboDialog.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceElements.h"

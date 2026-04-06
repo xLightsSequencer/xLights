@@ -88,7 +88,7 @@
 #include "ui/modelproperties/ModelPropertyAdapter.h"
 
 #include "ui/layout/LayoutUtils.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "ui/import-export/VendorModelDialog.h"
 #include "CachedFileDownloader.h"
 #include "XmlSerializer/GdtfParser.h"

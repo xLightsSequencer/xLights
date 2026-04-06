@@ -23,10 +23,10 @@
 #include <wx/dc.h>
 
 #include "Color.h"
-#include "ui/wxColorCurveButton.h"
-#include "ui/wxColorCurveRenderer.h"
+#include "ui/color/wxColorCurveButton.h"
+#include "ui/color/wxColorCurveRenderer.h"
 #include "xLightsMain.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #define ZERO 0
 

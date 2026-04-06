@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "../xLightsMain.h"
-#include "../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 
 #include "nlohmann/json.hpp"
 
@@ -23,7 +23,7 @@
 #include "../controllers/Falcon.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../xLightsApp.h"
 #include "ui/media/JukeboxPanel.h"
 #include "../outputs/E131Output.h"

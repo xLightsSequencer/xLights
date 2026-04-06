@@ -16,7 +16,7 @@
 #include "../../render/SequenceElements.h"
 #include "../render/RenderUtils.h"
 #include "../xLightsMain.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include <log.h>
 
 const long TimeLine::ID_ZOOMSEL = wxNewId();

@@ -21,7 +21,7 @@
  //*)
 
 #include "ui/shared/controls/BulkEditControls.h"
-#include "ui/ValueCurveButton.h"
+#include "ui/shared/controls/ValueCurveButton.h"
 
 class BulkEditSliderDialog: public wxDialog
 {

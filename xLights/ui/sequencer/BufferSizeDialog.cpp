@@ -9,9 +9,9 @@
  **************************************************************/
 
 #include "BufferSizeDialog.h"
-#include "ui/ValueCurveDialog.h"
+#include "ui/shared/dialogs/ValueCurveDialog.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include <pugixml.hpp>
 #include <string_view>
 #include "xLightsMain.h"

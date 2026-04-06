@@ -42,7 +42,7 @@
 #include "../../ai/AIImageDialog.h"
 #include "../../ai/aiType.h"
 #include "ui/media/ManageMediaPanel.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include <wx/artprov.h>
 #include <wx/datetime.h>
 #include <wx/msgdlg.h>

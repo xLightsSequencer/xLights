@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 //(*InternalHeaders(ModelChainDialog)
 #include <wx/button.h>

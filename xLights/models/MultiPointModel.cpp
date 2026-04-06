@@ -11,7 +11,7 @@
 #include <format>
 
 #include "MultiPointModel.h"
-#include "../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager)

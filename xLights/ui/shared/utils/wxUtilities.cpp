@@ -31,9 +31,9 @@
 
 #include "wxUtilities.h"
 #include "utils/ExternalHooks.h"
-#include "../xLightsVersion.h"
-#include "../utils/CurlManager.h"
-#include "../utils/string_utils.h"
+#include "utils/xLightsVersion.h"
+#include "utils/CurlManager.h"
+#include "utils/string_utils.h"
 
 #include <log.h>
 

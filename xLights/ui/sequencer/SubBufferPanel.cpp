@@ -17,7 +17,7 @@
 #include "xLightsMain.h"
 #include "ui/sequencer/MainSequencer.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 wxDEFINE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
 

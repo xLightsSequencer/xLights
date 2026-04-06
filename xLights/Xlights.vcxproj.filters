@@ -55,14 +55,14 @@
     <ClCompile Include="ui\sequencer\LyricsDialog.cpp" />
     <ClCompile Include="ui/layout/ModelPreview.cpp" />
     <ClCompile Include="models\Shapes.cpp" />
-    <ClCompile Include="MusicXML.cpp" />
+    <ClCompile Include="ui\import-export\MusicXML.cpp" />
     <ClCompile Include="ui/sequencer/NewTimingDialog.cpp" />
     <ClCompile Include="ui/shared/utils/NodesGridCellEditor.cpp" />
     <ClCompile Include="ui\sequencer\NoteImportDialog.cpp" />
     <ClCompile Include="ui/shared/dialogs/OptionChooser.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="ui/sequencer/PerspectivesPanel.cpp" />
-    <ClCompile Include="PhonemeDictionary.cpp" />
+    <ClCompile Include="ui\sequencer\PhonemeDictionary.cpp" />
     <ClCompile Include="render\PixelBuffer.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -106,8 +106,8 @@
     <ClCompile Include="ui/app-shell/UpdaterDialog.cpp" />
     <ClCompile Include="render\ValueCurve.cpp" />
     <ClCompile Include="render\ValueCurveConsts.cpp" />
-    <ClCompile Include="ui\ValueCurveButton.cpp" />
-    <ClCompile Include="ui\ValueCurveDialog.cpp" />
+    <ClCompile Include="ui\shared\controls\ValueCurveButton.cpp" />
+    <ClCompile Include="ui\shared\dialogs\ValueCurveDialog.cpp" />
     <ClCompile Include="ui\sequencer\VAMPPluginDialog.cpp" />
     <ClCompile Include="ui/media/VideoExporter.cpp" />
     <ClCompile Include="ui\import-export\VendorModelDialog.cpp" />
@@ -125,7 +125,7 @@
     <ClCompile Include="ui\import-export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="ui/shared/utils/xLightsTimer.cpp" />
-    <ClCompile Include="xLightsVersion.cpp" />
+    <ClCompile Include="utils\xLightsVersion.cpp" />
     <ClCompile Include="render\SequenceFile.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -140,7 +140,7 @@
     <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\unzip.c" />
     <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\zip.c" />
     <ClCompile Include="ui\import-export\VendorMusicDialog.cpp" />
-    <ClCompile Include="VendorMusicHelpers.cpp" />
+    <ClCompile Include="ui\import-export\VendorMusicHelpers.cpp" />
     <ClCompile Include="ui/media/JukeboxPanel.cpp" />
     <ClCompile Include="ui/sequencer/LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="render\DissolveTransitionPattern.cpp" />
@@ -515,9 +515,9 @@
     </ClCompile>
     <ClCompile Include="ui/shared/dialogs/CheckboxSelectDialog.cpp" />
     <ClCompile Include="ui/app-shell/EmailDialog.cpp" />
-    <ClCompile Include="ui\DragValueCurveBitmapButton.cpp" />
-    <ClCompile Include="ui\ValueCurveRendering.cpp" />
-    <ClCompile Include="ui\ValueCurvesPanel.cpp" />
+    <ClCompile Include="ui\shared\controls\DragValueCurveBitmapButton.cpp" />
+    <ClCompile Include="ui\shared\utils\ValueCurveRendering.cpp" />
+    <ClCompile Include="ui\shared\controls\ValueCurvesPanel.cpp" />
     <ClCompile Include="ui/color/ColoursPanel.cpp" />
     <ClCompile Include="ui\shared\utils\DragColoursBitmapButton.cpp" />
     <ClCompile Include="utils/TraceLog.cpp" />
@@ -713,7 +713,7 @@
     <ClCompile Include="models\TerrainObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="CopyFormat1.cpp" />
+    <ClCompile Include="ui\sequencer\CopyFormat1.cpp" />
     <ClCompile Include="ui\media\MediaImportOptionsDialog.cpp" />
     <ClCompile Include="render/SequencePackage.cpp" />
     <ClCompile Include="cad\CADModel.cpp">
@@ -835,20 +835,20 @@
     <ClCompile Include="utils\ip_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="ui\MediaPickerCtrl.cpp">
+    <ClCompile Include="ui\shared\controls\MediaPickerCtrl.cpp">
+      <Filter>ui\shared\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\graphics\wxTextDrawingContext.cpp">
+      <Filter>ui\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\shared\utils\wxUtilities.cpp">
       <Filter>ui</Filter>
     </ClCompile>
-    <ClCompile Include="ui\wxTextDrawingContext.cpp">
-      <Filter>ui</Filter>
+    <ClCompile Include="ui\color\wxColorCurveButton.cpp">
+      <Filter>ui\color</Filter>
     </ClCompile>
-    <ClCompile Include="ui\wxUtilities.cpp">
-      <Filter>ui</Filter>
-    </ClCompile>
-    <ClCompile Include="ui\wxColorCurveButton.cpp">
-      <Filter>ui</Filter>
-    </ClCompile>
-    <ClCompile Include="ui\wxColorCurveRenderer.cpp">
-      <Filter>ui</Filter>
+    <ClCompile Include="ui\color\wxColorCurveRenderer.cpp">
+      <Filter>ui\color</Filter>
     </ClCompile>
     <ClCompile Include="ui\controllerproperties\ControllerEthernetPropertyAdapter.cpp">
       <Filter>ui\controllerproperties</Filter>
@@ -1494,7 +1494,7 @@
     <ClInclude Include="import_export\FileConverter.h" />
     <ClInclude Include="ui/shared/utils/FlickerFreeBitmapButton.h" />
     <ClInclude Include="ui/model/GenerateCustomModelDialog.h" />
-    <ClInclude Include="Images_png.h" />
+    <ClInclude Include="ui\shared\utils\Images_png.h" />
     <ClInclude Include="utils\AppCallbacks.h" />
     <ClInclude Include="utils\JobPool.h" />
     <ClInclude Include="ui/app-shell/KeyBindings.h" />
@@ -1506,7 +1506,7 @@
     <ClInclude Include="ui/layout/ModelPreview.h" />
     <ClInclude Include="graphics\IModelPreview.h" />
     <ClInclude Include="models\Shapes.h" />
-    <ClInclude Include="MusicXML.h" />
+    <ClInclude Include="ui\import-export\MusicXML.h" />
     <ClInclude Include="ui/sequencer/NewTimingDialog.h" />
     <ClInclude Include="ui/shared/utils/NodesGridCellEditor.h" />
     <ClInclude Include="ui\sequencer\NoteImportDialog.h" />
@@ -1514,7 +1514,7 @@
     <ClInclude Include="utils/ExternalHooks.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="ui/sequencer/PerspectivesPanel.h" />
-    <ClInclude Include="PhonemeDictionary.h" />
+    <ClInclude Include="ui\sequencer\PhonemeDictionary.h" />
     <ClInclude Include="render\PixelBuffer.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -1547,8 +1547,8 @@
     <ClInclude Include="utils\UtilClasses.h" />
     <ClInclude Include="render\ValueCurve.h" />
     <ClInclude Include="render\ValueCurveConsts.h" />
-    <ClInclude Include="ui\ValueCurveButton.h" />
-    <ClInclude Include="ui\ValueCurveDialog.h" />
+    <ClInclude Include="ui\shared\controls\ValueCurveButton.h" />
+    <ClInclude Include="ui\shared\dialogs\ValueCurveDialog.h" />
     <ClInclude Include="ui\sequencer\VAMPPluginDialog.h" />
     <ClInclude Include="ui/media/VideoExporter.h" />
     <ClInclude Include="ui\import-export\VendorModelDialog.h" />
@@ -1567,7 +1567,7 @@
     <ClInclude Include="ui\import-export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />
-    <ClInclude Include="xLightsVersion.h" />
+    <ClInclude Include="utils\xLightsVersion.h" />
     <ClInclude Include="render\SequenceFile.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -1579,7 +1579,7 @@
     <ClInclude Include="ui/sequencer/LayerSelectDialog.h" />
     <ClInclude Include="..\dependencies\md5\md5.h" />
     <ClInclude Include="ui\import-export\VendorMusicDialog.h" />
-    <ClInclude Include="VendorMusicHelpers.h" />
+    <ClInclude Include="ui\import-export\VendorMusicHelpers.h" />
     <ClInclude Include="ui/media/JukeboxPanel.h" />
     <ClInclude Include="ui/sequencer/LinkJukeboxButtonDialog.h" />
     <ClInclude Include="render\RenderUtils.h">
@@ -1970,9 +1970,9 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="ui/app-shell/EmailDialog.h" />
-    <ClInclude Include="ui\DragValueCurveBitmapButton.h" />
-    <ClInclude Include="ui\ValueCurveRendering.h" />
-    <ClInclude Include="ui\ValueCurvesPanel.h" />
+    <ClInclude Include="ui\shared\controls\DragValueCurveBitmapButton.h" />
+    <ClInclude Include="ui\shared\utils\ValueCurveRendering.h" />
+    <ClInclude Include="ui\shared\controls\ValueCurvesPanel.h" />
     <ClInclude Include="ui/color/ColoursPanel.h" />
     <ClInclude Include="ui\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="utils/SpecialOptions.h" />
@@ -2164,7 +2164,7 @@
     <ClInclude Include="models\TerrainScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="CopyFormat1.h" />
+    <ClInclude Include="ui\sequencer\CopyFormat1.h" />
     <ClInclude Include="ui\media\MediaImportOptionsDialog.h" />
     <ClInclude Include="render/SequencePackage.h" />
     <ClInclude Include="cad\CADModel.h">
@@ -2314,20 +2314,20 @@
     <ClInclude Include="utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="ui\MediaPickerCtrl.h">
+    <ClInclude Include="ui\shared\controls\MediaPickerCtrl.h">
+      <Filter>ui\shared\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\graphics\wxTextDrawingContext.h">
+      <Filter>ui\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\shared\utils\wxUtilities.h">
       <Filter>ui</Filter>
     </ClInclude>
-    <ClInclude Include="ui\wxTextDrawingContext.h">
-      <Filter>ui</Filter>
+    <ClInclude Include="ui\color\wxColorCurveButton.h">
+      <Filter>ui\color</Filter>
     </ClInclude>
-    <ClInclude Include="ui\wxUtilities.h">
-      <Filter>ui</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\wxColorCurveButton.h">
-      <Filter>ui</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\wxColorCurveRenderer.h">
-      <Filter>ui</Filter>
+    <ClInclude Include="ui\color\wxColorCurveRenderer.h">
+      <Filter>ui\color</Filter>
     </ClInclude>
     <ClInclude Include="ui\controllerproperties\ControllerEthernetPropertyAdapter.h">
       <Filter>ui\controllerproperties</Filter>

@@ -15,7 +15,7 @@
 #include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 //*)
 
 //(*IdInit(xlColorPickerFields)

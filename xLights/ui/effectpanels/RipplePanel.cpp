@@ -10,7 +10,7 @@
 
 #include "RipplePanel.h"
 #include "EffectPanelUtils.h"
-#include "../MediaPickerCtrl.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include "../../effects/RippleEffect.h"
 
 //(*InternalHeaders(RipplePanel)

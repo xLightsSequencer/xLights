@@ -17,7 +17,7 @@
 
 #include "MediaImportOptionsDialog.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 //(*IdInit(MediaImportOptionsDialog)
 const long MediaImportOptionsDialog::ID_STATICTEXT1 = wxNewId();

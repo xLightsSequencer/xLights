@@ -29,7 +29,7 @@
 #include "xLightsApp.h"
 #include "models/ModelGroup.h"
 #include "ui/shared/utils/ExternalHooksUI.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <log.h>
 
@@ -1308,16 +1308,32 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
+    if (currentContext == nullptr) {
+        mIsDrawing = false;
+        return;
+    }
     currentContext->popDebugContext();
     currentContext->pushDebugContext(getName() + " - Draw");
     if (is3d) {
-        solidViewObjectProgram->runSteps(currentContext);
-        solidProgram->runSteps(currentContext);
-        transparentViewObjectProgram->runSteps(currentContext);
-        transparentProgram->runSteps(currentContext);
+        if (solidViewObjectProgram) {
+            solidViewObjectProgram->runSteps(currentContext);
+        }
+        if (solidProgram) {
+            solidProgram->runSteps(currentContext);
+        }
+        if (transparentViewObjectProgram) {
+            transparentViewObjectProgram->runSteps(currentContext);
+        }
+        if (transparentProgram) {
+            transparentProgram->runSteps(currentContext);
+        }
     } else {
-        solidProgram->runSteps(currentContext);
-        transparentProgram->runSteps(currentContext);
+        if (solidProgram) {
+            solidProgram->runSteps(currentContext);
+        }
+        if (transparentProgram) {
+            transparentProgram->runSteps(currentContext);
+        }
     }
     currentContext->PopMatrix();
 
@@ -1325,16 +1341,12 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     delete transparentProgram;
     solidProgram = nullptr;
     transparentProgram = nullptr;
-    
-    if (solidViewObjectProgram) {
-        delete solidViewObjectProgram;
-        solidViewObjectProgram = nullptr;
-    }
-    if (transparentViewObjectProgram) {
-        delete transparentViewObjectProgram;
-        transparentViewObjectProgram = nullptr;
-    }
-    
+
+    delete solidViewObjectProgram;
+    solidViewObjectProgram = nullptr;
+    delete transparentViewObjectProgram;
+    transparentViewObjectProgram = nullptr;
+
     currentContext->popDebugContext();
     FinishDrawing(currentContext, swapBuffers);
     currentContext = nullptr;

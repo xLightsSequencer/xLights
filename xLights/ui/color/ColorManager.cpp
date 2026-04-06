@@ -13,7 +13,7 @@
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
 #include <log.h>
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)

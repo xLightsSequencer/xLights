@@ -21,7 +21,7 @@
 
 #include "ui/layout/LayoutGroup.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 //(*IdInit(ImportPreviewsModelsDialog)
 const long ImportPreviewsModelsDialog::ID_CHECKBOX1 = wxNewId();

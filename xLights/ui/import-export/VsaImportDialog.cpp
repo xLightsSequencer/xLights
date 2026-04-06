@@ -27,7 +27,7 @@
 #include "../support/GridCellChoiceRenderer.h"
 #include "../support/EzGrid.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 //(*IdInit(VsaImportDialog)
 const long VsaImportDialog::ID_STATICTEXT39 = wxNewId();

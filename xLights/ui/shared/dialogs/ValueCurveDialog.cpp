@@ -24,13 +24,13 @@
 
 #include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "render/ValueCurve.h"
 #include "ValueCurveDialog.h"
-#include "ValueCurveRendering.h"
+#include "ui/shared/utils/ValueCurveRendering.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "ui/sequencer/MainSequencer.h"
 #include "render/SequenceElements.h"
 

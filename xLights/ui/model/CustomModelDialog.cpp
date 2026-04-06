@@ -44,7 +44,7 @@
 #include "ui/model/WiringDialog.h"
 #include "ui/shared/utils/wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "ui/layout/ModelPreview.h"

@@ -33,7 +33,7 @@
 #include "ui/sequencer/MainSequencer.h"
 #include "ui/layout/ViewsModelsPanel.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "models/Model.h"
 #include "utils/SpecialOptions.h"
 #include "ui/layout/LayoutGroup.h"

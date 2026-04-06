@@ -16,7 +16,7 @@
 //*)
 
 #include <wx/dcclient.h>
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "UtilFunctions.h"
 #include <log.h>
 

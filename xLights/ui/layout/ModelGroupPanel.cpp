@@ -30,7 +30,7 @@
 #include "ui/model/EditAliasesDialog.h"
 
 #include <log.h>
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_MGDROP, wxCommandEvent);

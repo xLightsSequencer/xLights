@@ -4,7 +4,7 @@
 #include "../../effects/SketchEffectDrawing.h"
 #include "ui/shared/controls/BulkEditControls.h"
 #include "../../xLightsMain.h"
-#include "../MediaPickerCtrl.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 
 #include <wx/filepicker.h>
 #include <wx/hyperlink.h>

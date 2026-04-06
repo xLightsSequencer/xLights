@@ -14,7 +14,7 @@
 #include <pugixml.hpp>
 
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 //(*InternalHeaders(EffectListDialog)
 #include <wx/intl.h>

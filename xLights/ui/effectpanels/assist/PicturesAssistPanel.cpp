@@ -31,7 +31,7 @@
 #include "ui/color/ColorPanel.h"
 
 #include <log.h>
-#include "../../../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #define ZERO 0
 #define PALETTE_SIZE 8

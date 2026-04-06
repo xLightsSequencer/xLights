@@ -24,7 +24,7 @@
 #include "xLightsMain.h"
 #include "ui/sequencer/LinkJukeboxButtonDialog.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 ButtonControl::ButtonControl(int i)
 {

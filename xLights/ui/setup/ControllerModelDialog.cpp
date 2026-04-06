@@ -31,7 +31,7 @@
 #include "models/ControllerConnection.h"
 #include "models/Pixels.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "xLightsMain.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"

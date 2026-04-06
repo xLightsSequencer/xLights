@@ -12,8 +12,8 @@
 #include <wx/dnd.h>
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
-#include "ui/wxColorCurveRenderer.h"
-#include "ui/wxUtilities.h"
+#include "ui/color/wxColorCurveRenderer.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 DragColoursBitmapButton::DragColoursBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos,
     const wxSize& size, long style, const wxValidator& validator,

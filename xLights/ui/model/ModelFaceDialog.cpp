@@ -55,7 +55,7 @@
 #include "models/CustomModel.h"
 #include "outputs/OutputManager.h"
 #include "ui/color/xlColourData.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "XmlSerializer/XmlSerializer.h"
 
 #include <log.h>

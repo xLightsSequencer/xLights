@@ -21,17 +21,17 @@
 
 #include "ColorCurveDialog.h"
 #include "xLightsMain.h"
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "ui/wxColorCurveRenderer.h"
-#include "ui/wxUtilities.h"
+#include "ui/color/wxColorCurveRenderer.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "xLightsApp.h"
 #include "utils/ExternalHooks.h"
 #include "ui/sequencer/MainSequencer.h"
 #include "ui/color/xlColourData.h"
 
 #include <log.h>
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 

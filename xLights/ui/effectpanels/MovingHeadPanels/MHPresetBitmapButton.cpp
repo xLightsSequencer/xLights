@@ -11,7 +11,7 @@
 #include "MHPresetBitmapButton.h"
 
 #include "Color.h"
-#include "../../../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../../../utils/string_utils.h"
 #include "UtilFunctions.h"
 

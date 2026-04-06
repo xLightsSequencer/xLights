@@ -21,7 +21,7 @@
 #include "../ModelManager.h"
 #include "../../graphics/xlGraphicsContext.h"
 #include "../../graphics/xlGraphicsAccumulators.h"
-#include "../../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "../../render/UICallbacks.h"
 #include "UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"

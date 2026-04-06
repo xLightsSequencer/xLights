@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "ColorManagerSettingsPanel.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 
 //(*InternalHeaders(ColorManagerSettingsPanel)

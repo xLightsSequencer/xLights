@@ -12,8 +12,8 @@
 #include "../../../ui/shared/utils/BitmapCache.h"
 #include "../../../xLightsApp.h"
 #include "../../../xLightsMain.h"
-#include "ui/ValueCurveButton.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/controls/ValueCurveButton.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <log.h>
 

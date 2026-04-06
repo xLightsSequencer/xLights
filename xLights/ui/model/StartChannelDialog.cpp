@@ -43,7 +43,7 @@ END_EVENT_TABLE()
 
 #include "models/ModelManager.h"
 #include "models/Model.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {

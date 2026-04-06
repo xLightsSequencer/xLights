@@ -37,12 +37,12 @@
 #include <wx/clrpicker.h>
 
 #include "../../ui/shared/utils/BitmapCache.h"
-#include "ui/ValueCurveButton.h"
-#include "ui/ValueCurveDialog.h"
+#include "ui/shared/controls/ValueCurveButton.h"
+#include "ui/shared/dialogs/ValueCurveDialog.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 
 #include <wx/tglbtn.h>

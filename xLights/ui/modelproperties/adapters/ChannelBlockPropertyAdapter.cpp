@@ -14,7 +14,7 @@
 #include "ChannelBlockPropertyAdapter.h"
 #include "../../../models/ChannelBlockModel.h"
 #include "../../../models/OutputModelManager.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "UtilFunctions.h"
 
 #define MAX_CB_CHANNELS 128

@@ -18,7 +18,7 @@
 #endif
 #include "ui/shared/utils/BitmapCache.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include "../include/padlock_open_14.xpm"
 #include "../include/padlock_open_28.xpm"

@@ -15,7 +15,7 @@
 
 #include "CubeModel.h"
 #include "ModelScreenLocation.h"
-#include "../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Controller.h"

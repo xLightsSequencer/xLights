@@ -14,7 +14,7 @@
 #include "EffectPanelUtils.h"
 #include "../../ui/effects/ShaderDownloadDialog.h"
 #include "utils/ExternalHooks.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
 #include "ui/media/ManageMediaPanel.h"

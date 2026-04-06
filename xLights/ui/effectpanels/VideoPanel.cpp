@@ -15,7 +15,7 @@
 #include "utils/ExternalHooks.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../../render/SequenceMedia.h"
 #include "../../render/SequenceElements.h"
 #include "ui/media/ManageMediaPanel.h"

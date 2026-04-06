@@ -9,10 +9,10 @@
  **************************************************************/
 
 #include "MediaPickerCtrl.h"
-#include "../xLightsMain.h"
+#include "xLightsMain.h"
 #include "ui/media/ManageMediaPanel.h"
-#include "../render/SequenceElements.h"
-#include "wxUtilities.h"
+#include "render/SequenceElements.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <wx/sizer.h>
 #include <wx/filepicker.h>

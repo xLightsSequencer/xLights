@@ -14,7 +14,7 @@
 #include <wx/confbase.h>
 
 #include "RowHeading.h"
-#include "../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "../ui/shared/utils/BitmapCache.h"
 #include "models/ModelGroup.h"
 #include "ui/sequencer/SelectTimingsDialog.h"
@@ -32,7 +32,7 @@
 #include "ui/sequencer/MetronomeLabelDialog.h"
 
 #include <log.h>
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "ui/sequencer/LyricsDialog.h"
 #include "LyricBreakdown.h"
 #include "TimeLine.h"

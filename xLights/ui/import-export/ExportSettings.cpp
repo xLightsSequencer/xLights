@@ -11,7 +11,7 @@
 // free functions to create a CSV/Printing export configuration
 #include "ExportSettings.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <wx/window.h>
 #include <wx/choicdlg.h>

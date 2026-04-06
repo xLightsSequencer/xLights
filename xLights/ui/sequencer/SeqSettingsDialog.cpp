@@ -42,7 +42,7 @@
 #include "ui/import-export/ConvertDialog.h"
 #include "ui/media/ManageMediaPanel.h"
 #include "render/SequenceElements.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 
 //(*IdInit(SeqSettingsDialog)

@@ -19,7 +19,7 @@
 #include "utils/ExternalHooks.h"
 #include "HinksPixExportDialog.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "xLightsMain.h"
 #include "render/SequenceFile.h"
 #include "outputs/ControllerEthernet.h"

@@ -13,7 +13,7 @@
 #include "CADPoint.h"
 
 #include "../models/Model.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../models/Pixels.h"
 #include "Color.h"
 

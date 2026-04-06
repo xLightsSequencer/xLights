@@ -19,14 +19,14 @@
 #include <wx/artprov.h>
 
 #include "EffectTreeDialog.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "render/SequenceMedia.h"
 #include <fstream>
 #include "xLightsMain.h"
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
-#include "xLightsVersion.h"
+#include "ui/shared/utils/wxUtilities.h"
+#include "utils/xLightsVersion.h"
 #include "utils/ExternalHooks.h"
 #include "XmlSerializer/FileSerializingVisitor.h"
 

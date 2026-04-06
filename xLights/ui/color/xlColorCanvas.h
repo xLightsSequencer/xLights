@@ -13,7 +13,7 @@
 #include "wx/wx.h"
 #include "ui/graphics/xlGraphicsBase.h"
 #include "Color.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 wxDECLARE_EVENT(EVT_CP_SLIDER_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CP_PALETTE_CHANGED, wxCommandEvent);

@@ -26,11 +26,11 @@
 
 #include "GenerateCustomModelDialog.h"
 #include "ui/effectpanels/VideoPanel.h"
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "render/SequenceFile.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "xLightsMain.h"
 #include "utils/ExternalHooks.h"
 #include "Parallel.h"

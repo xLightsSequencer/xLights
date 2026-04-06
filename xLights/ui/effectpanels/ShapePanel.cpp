@@ -9,9 +9,9 @@
  **************************************************************/
 
 #include "ShapePanel.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "EffectPanelUtils.h"
-#include "../MediaPickerCtrl.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include "../../utils/string_utils.h"
 #include "../../effects/ShapeEffect.h"
 #include "../../render/RenderBuffer.h"

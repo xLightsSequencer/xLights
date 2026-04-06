@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "../render/TextDrawingContext.h"
+#include "render/TextDrawingContext.h"
 #include "Color.h"
 
 #include <memory>

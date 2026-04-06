@@ -36,7 +36,7 @@
 #include "ui/media/SequenceVideoPanel.h"
 #include "ui/import-export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "import_export/VSAFile.h"
 #include "ui/layout/ViewsModelsPanel.h"
 #include "ui/import-export/VsaImportDialog.h"
@@ -44,7 +44,7 @@
 #include "xLightsMain.h"
 #include "render/SequenceMedia.h"
 #include <wx/textdlg.h>
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "ui/sequencer/MainSequencer.h"
@@ -63,7 +63,7 @@
 
 #include "xLightsApp.h"
 #include "xLightsMain.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <log.h>
 void xLightsFrame::AddAllModelsToSequence()

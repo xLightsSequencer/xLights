@@ -8,7 +8,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <UtilFunctions.h>
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 const std::vector<CheckSequenceReport::ReportSection> CheckSequenceReport::REPORT_SECTIONS = {
     { "network", "&#127760;", "Network Configuration", "Network connectivity and configuration issues" },

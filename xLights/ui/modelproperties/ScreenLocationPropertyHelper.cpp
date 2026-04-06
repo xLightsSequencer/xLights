@@ -21,7 +21,7 @@
 #include "../../models/RulerObject.h"
 #include "../../models/Model.h"
 #include "UtilFunctions.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../../utils/string_utils.h"
 
 // ========== BoxedScreenLocation ==========

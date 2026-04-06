@@ -18,7 +18,7 @@
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "outputs/ControllerEthernet.h"
 #include "utils/CurlManager.h"

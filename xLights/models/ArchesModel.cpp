@@ -10,7 +10,7 @@
 
 #include "ArchesModel.h"
 #include "ModelScreenLocation.h"
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../graphics/IModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"

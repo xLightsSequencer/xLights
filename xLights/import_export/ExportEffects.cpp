@@ -16,7 +16,7 @@
 
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "../render/FSEQFile.h"
 #include "Parallel.h"

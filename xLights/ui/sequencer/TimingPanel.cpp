@@ -25,7 +25,7 @@
 #include "ui/sequencer/LayerSelectDialog.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <algorithm>
 #include <vector>

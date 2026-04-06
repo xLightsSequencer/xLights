@@ -19,7 +19,7 @@
 #include <optional>
 #include <string>
 
-#include "../render/SequenceMedia.h"
+#include "render/SequenceMedia.h"
 
 class wxFilePickerCtrl;
 

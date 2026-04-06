@@ -31,7 +31,7 @@
 #include "../effects/EffectManager.h"
 #include "ValueCurve.h"
 #include "../effects/RenderableEffect.h"
-#include "../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"

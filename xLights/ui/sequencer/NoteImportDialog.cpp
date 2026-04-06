@@ -22,9 +22,9 @@
 
 #include "MidiFile.h"
 #include "render/SequenceElements.h"
-#include "MusicXML.h"
+#include "ui/import-export/MusicXML.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 
 //(*IdInit(NoteImportDialog)

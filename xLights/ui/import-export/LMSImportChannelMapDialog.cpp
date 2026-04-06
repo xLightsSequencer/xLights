@@ -23,7 +23,7 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "ui/color/xlColourData.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 //(*IdInit(LMSImportChannelMapDialog)
 const long LMSImportChannelMapDialog::ID_CHOICE1 = wxNewId();

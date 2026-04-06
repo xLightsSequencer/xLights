@@ -27,7 +27,7 @@
 #include "ui/sequencer/EffectsPanel.h"
 #include "ui/sequencer/RenderCommandEvent.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
 #include "ui/effectpanels/EffectPanelManager.h"
 #include "xLightsApp.h"

@@ -34,7 +34,7 @@
 #include <pugixml.hpp>
 #include <sstream>
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Controller.h"
 #ifndef FPP
@@ -44,7 +44,7 @@
     #include "outputs/Output.h"
     #define string_format wxString::Format
 #endif
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "utils/ExternalHooks.h"
 #include <log.h>
 

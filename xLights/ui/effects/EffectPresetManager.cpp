@@ -10,7 +10,7 @@
 
 #include "ui/effects/EffectPresetManager.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "XmlSerializer/BaseSerializingVisitor.h"
 

@@ -26,7 +26,7 @@
 
 #include "VUMeterPanel.h"
 #include "EffectPanelUtils.h"
-#include "../MediaPickerCtrl.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include "../../effects/VUMeterEffect.h"
 #include "../../render/SequenceElements.h"
 

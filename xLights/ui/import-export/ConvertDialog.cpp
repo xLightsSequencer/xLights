@@ -26,7 +26,7 @@
 #include "xLightsMain.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Controller.h"
 #include "utils/ExternalHooks.h"

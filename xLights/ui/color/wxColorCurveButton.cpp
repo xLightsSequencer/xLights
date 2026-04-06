@@ -13,8 +13,8 @@
 #include <wx/dcmemory.h>
 
 #include "ui/color/ColorCurveDialog.h"
-#include "ui/wxColorCurveRenderer.h"
-#include "ui/wxUtilities.h"
+#include "ui/color/wxColorCurveRenderer.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "ui/color/xlColourData.h"
 
 wxDEFINE_EVENT(EVT_CC_CHANGED, wxCommandEvent);

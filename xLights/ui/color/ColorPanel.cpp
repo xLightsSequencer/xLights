@@ -13,11 +13,11 @@
 #include "xLightsMain.h"
 #include "ui/color/ColorPanel.h"
 #include "render/ColorCurve.h"
-#include "ui/wxColorCurveRenderer.h"
-#include "ui/wxUtilities.h"
+#include "ui/color/wxColorCurveRenderer.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
 #include "UtilFunctions.h"
-#include "ui/wxColorCurveButton.h"
+#include "ui/color/wxColorCurveButton.h"
 #include "xLightsApp.h"
 #include "utils/ExternalHooks.h"
 #include "ui/sequencer/MainSequencer.h"
@@ -43,7 +43,7 @@
 #include <wx/regex.h>
 
 #include <log.h>
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 
 #define PALETTE_SIZE 8

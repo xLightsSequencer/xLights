@@ -20,13 +20,13 @@
 
 #include <format>
 #include "../../xLightsMain.h"
-#include "../../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "../../ui/sequencer/MainSequencer.h"
 #include "../../render/Effect.h"
 #include "../../render/Element.h"
 #include "../../models/ModelGroup.h"
 #include "../../xLightsApp.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include <wx/settings.h>
 #include <wx/stdpaths.h>
 

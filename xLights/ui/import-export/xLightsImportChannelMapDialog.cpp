@@ -50,7 +50,7 @@
 #include <nlohmann/json.hpp>
 
 #include <log.h>
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 

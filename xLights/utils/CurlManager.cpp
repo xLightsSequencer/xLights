@@ -13,7 +13,7 @@
 #include "CurlManager.h"
 
 
-#include "../xLightsVersion.h"
+#include "xLightsVersion.h"
 #include "string_utils.h"
 
 static std::string resolveContentType(const std::string& type)

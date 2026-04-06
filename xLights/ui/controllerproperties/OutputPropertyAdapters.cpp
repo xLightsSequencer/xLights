@@ -35,7 +35,7 @@
 #include "models/OutputModelManager.h"
 #include "models/ModelManager.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 // =========================================================================
 // Factory

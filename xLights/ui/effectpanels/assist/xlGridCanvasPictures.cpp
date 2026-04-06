@@ -17,7 +17,7 @@
 
 #include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../../../render/SequenceMedia.h"
 #include "ui/media/ManageMediaPanel.h"
 #include "../../../xLightsMain.h"
@@ -25,7 +25,7 @@
 #include "../../../render/EffectLayer.h"
 #include "../../../render/Element.h"
 #include "../../../render/SequenceElements.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
                                                ";*.webp"

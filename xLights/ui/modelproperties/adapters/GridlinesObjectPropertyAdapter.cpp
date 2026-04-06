@@ -15,7 +15,7 @@
 #include "GridlinesObjectPropertyAdapter.h"
 #include "../../../models/GridlinesObject.h"
 #include "../../../models/RulerObject.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 GridlinesObjectPropertyAdapter::GridlinesObjectPropertyAdapter(GridlinesObject& obj)
     : ViewObjectPropertyAdapter(obj), _gridlines(obj) {}

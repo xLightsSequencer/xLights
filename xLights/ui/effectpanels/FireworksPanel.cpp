@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "FireworksPanel.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "EffectPanelUtils.h"
 #include "../../utils/string_utils.h"
 #include "../../render/Effect.h"
@@ -31,7 +31,7 @@
 #include <wx/textctrl.h>
 //*)
 
-#include "ui/ValueCurveButton.h"
+#include "ui/shared/controls/ValueCurveButton.h"
 
 //(*IdInit(FireworksPanel)
 const long FireworksPanel::ID_STATICTEXT_Fireworks_Explosions = wxNewId();

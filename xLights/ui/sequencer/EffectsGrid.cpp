@@ -37,7 +37,7 @@
 #include "ui/diagnostics/FindDataPanel.h"
 #include "ui/sequencer/RenderCommandEvent.h"
 #include "UtilFunctions.h"
-#include "../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../render/VideoReader.h"
 #include "../effects/RenderableEffect.h"
 #include "../ui/effectpanels/EffectIconCache.h"

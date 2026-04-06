@@ -20,7 +20,7 @@
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "xLightsMain.h"
 
 CachedFileDownloader& VendorMusicDialog::GetCache() {

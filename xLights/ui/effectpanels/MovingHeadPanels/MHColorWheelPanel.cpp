@@ -11,7 +11,7 @@
 #include "MHColorWheelPanel.h"
 
 #include <wx/dcbuffer.h>
-#include "../../../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include <wx/graphics.h>
 #include <wx/rawbmp.h>
 

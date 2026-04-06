@@ -30,7 +30,7 @@
 #include "../include/globals.h"
 
 #include "utils/ExternalHooks.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 struct BController {
     wxString Name;

@@ -17,7 +17,7 @@
 #include "render/Element.h"
 #include "UtilFunctions.h"
 #include "Color.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 //(*InternalHeaders(SelectPanel)
 #include <wx/intl.h>

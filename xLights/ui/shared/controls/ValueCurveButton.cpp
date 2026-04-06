@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "ValueCurveButton.h"
-#include "ValueCurveRendering.h"
+#include "ui/shared/utils/ValueCurveRendering.h"
 
 #include <wx/artprov.h>
 #include <wx/dcmemory.h>

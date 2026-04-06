@@ -14,7 +14,7 @@
 #include "../../graphics/xlGraphicsContext.h"
 #include "../../graphics/xlGraphicsAccumulators.h"
 #include "UtilFunctions.h"
-#include "../../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxFloodArea::DmxFloodArea(const ModelManager &manager)

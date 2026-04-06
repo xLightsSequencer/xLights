@@ -17,7 +17,7 @@
 #include "ModelScreenLocation.h"
 #include "Shapes.h"
 #include "../utils/VectorMath.h"
-#include "../xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../graphics/IModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"

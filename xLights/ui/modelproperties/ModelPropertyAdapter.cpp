@@ -34,7 +34,7 @@
 #include "../../models/ControllerConnection.h"
 #include "UtilFunctions.h"
 #include "../../models/Pixels.h"
-#include "../../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 // Dialog adapters - these need to stay accessible for PopupDialogProperty etc.
 #include "../../ui/model/StrandNodeNamesDialog.h"

@@ -216,10 +216,10 @@
 		<Unit filename="utils/Color.cpp" />
 		<Unit filename="render/ColorCurve.cpp" />
 		<Unit filename="render/ColorCurve.h" />
-		<Unit filename="ui/wxColorCurveButton.cpp" />
-		<Unit filename="ui/wxColorCurveButton.h" />
-		<Unit filename="ui/wxColorCurveRenderer.cpp" />
-		<Unit filename="ui/wxColorCurveRenderer.h" />
+		<Unit filename="ui/color/wxColorCurveButton.cpp" />
+		<Unit filename="ui/color/wxColorCurveButton.h" />
+		<Unit filename="ui/color/wxColorCurveRenderer.cpp" />
+		<Unit filename="ui/color/wxColorCurveRenderer.h" />
 		<Unit filename="ui/color/ColorCurveDialog.cpp" />
 		<Unit filename="ui/color/ColorCurveDialog.h" />
 		<Unit filename="ui/color/ColorManager.cpp" />
@@ -240,8 +240,8 @@
 		<Unit filename="ui/import-export/ConvertDialog.h" />
 		<Unit filename="ui/import-export/ConvertLogDialog.cpp" />
 		<Unit filename="ui/import-export/ConvertLogDialog.h" />
-		<Unit filename="CopyFormat1.cpp" />
-		<Unit filename="CopyFormat1.h" />
+		<Unit filename="ui/sequencer/CopyFormat1.cpp" />
+		<Unit filename="ui/sequencer/CopyFormat1.h" />
 		<Unit filename="ui/model/CustomModelDialog.cpp" />
 		<Unit filename="ui/model/CustomModelDialog.h" />
 		<Unit filename="ui/sequencer/CustomTimingDialog.cpp" />
@@ -259,8 +259,8 @@
 		<Unit filename="render/DissolveTransitionPattern.cpp" />
 		<Unit filename="ui/shared/utils/DragColoursBitmapButton.cpp" />
 		<Unit filename="ui/shared/utils/DragColoursBitmapButton.h" />
-		<Unit filename="ui/DragValueCurveBitmapButton.cpp" />
-		<Unit filename="ui/DragValueCurveBitmapButton.h" />
+		<Unit filename="ui/shared/controls/DragValueCurveBitmapButton.cpp" />
+		<Unit filename="ui/shared/controls/DragValueCurveBitmapButton.h" />
 		<Unit filename="ui/sequencer/DuplicateDialog.cpp" />
 		<Unit filename="ui/sequencer/DuplicateDialog.h" />
 		<Unit filename="ui/model/EditAliasesDialog.cpp" />
@@ -307,7 +307,7 @@
 		<Unit filename="ui/layout/HousePreviewPanel.h" />
 		<Unit filename="ui/setup/IPEntryDialog.cpp" />
 		<Unit filename="ui/setup/IPEntryDialog.h" />
-		<Unit filename="Images_png.h" />
+		<Unit filename="ui/shared/utils/Images_png.h" />
 		<Unit filename="ui/model/ImportPreviewsModelsDialog.cpp" />
 		<Unit filename="ui/model/ImportPreviewsModelsDialog.h" />
 		<Unit filename="utils/AppCallbacks.cpp" />
@@ -376,8 +376,8 @@
 		<Unit filename="ui/layout/Mouse3DManager.h" />
 		<Unit filename="ui/setup/MultiControllerUploadDialog.cpp" />
 		<Unit filename="ui/setup/MultiControllerUploadDialog.h" />
-		<Unit filename="MusicXML.cpp" />
-		<Unit filename="MusicXML.h" />
+		<Unit filename="ui/import-export/MusicXML.cpp" />
+		<Unit filename="ui/import-export/MusicXML.h" />
 		<Unit filename="ui/sequencer/NewTimingDialog.cpp" />
 		<Unit filename="ui/sequencer/NewTimingDialog.h" />
 		<Unit filename="ui/model/NodeSelectGrid.cpp" />
@@ -399,8 +399,8 @@
 		<Unit filename="ui/model/PathGenerationDialog.h" />
 		<Unit filename="ui/sequencer/PerspectivesPanel.cpp" />
 		<Unit filename="ui/sequencer/PerspectivesPanel.h" />
-		<Unit filename="PhonemeDictionary.cpp" />
-		<Unit filename="PhonemeDictionary.h" />
+		<Unit filename="ui/sequencer/PhonemeDictionary.cpp" />
+		<Unit filename="ui/sequencer/PhonemeDictionary.h" />
 		<Unit filename="render/PixelBuffer.cpp" />
 		<Unit filename="render/PixelBuffer.h" />
 		<Unit filename="ui/setup/PixelTestDialog.cpp" />
@@ -510,20 +510,20 @@
 		<Unit filename="render/ValueCurve.h" />
 		<Unit filename="render/ValueCurveConsts.cpp" />
 		<Unit filename="render/ValueCurveConsts.h" />
-		<Unit filename="ui/ValueCurveButton.cpp" />
-		<Unit filename="ui/ValueCurveButton.h" />
-		<Unit filename="ui/ValueCurveDialog.cpp" />
-		<Unit filename="ui/ValueCurveDialog.h" />
-		<Unit filename="ui/ValueCurveRendering.cpp" />
-		<Unit filename="ui/ValueCurveRendering.h" />
-		<Unit filename="ui/ValueCurvesPanel.cpp" />
-		<Unit filename="ui/ValueCurvesPanel.h" />
+		<Unit filename="ui/shared/controls/ValueCurveButton.cpp" />
+		<Unit filename="ui/shared/controls/ValueCurveButton.h" />
+		<Unit filename="ui/shared/dialogs/ValueCurveDialog.cpp" />
+		<Unit filename="ui/shared/dialogs/ValueCurveDialog.h" />
+		<Unit filename="ui/shared/utils/ValueCurveRendering.cpp" />
+		<Unit filename="ui/shared/utils/ValueCurveRendering.h" />
+		<Unit filename="ui/shared/controls/ValueCurvesPanel.cpp" />
+		<Unit filename="ui/shared/controls/ValueCurvesPanel.h" />
 		<Unit filename="ui/import-export/VendorModelDialog.cpp" />
 		<Unit filename="ui/import-export/VendorModelDialog.h" />
 		<Unit filename="ui/import-export/VendorMusicDialog.cpp" />
 		<Unit filename="ui/import-export/VendorMusicDialog.h" />
-		<Unit filename="VendorMusicHelpers.cpp" />
-		<Unit filename="VendorMusicHelpers.h" />
+		<Unit filename="ui/import-export/VendorMusicHelpers.cpp" />
+		<Unit filename="ui/import-export/VendorMusicHelpers.h" />
 		<Unit filename="ui/media/VideoExporter.cpp" />
 		<Unit filename="ui/media/VideoExporter.h" />
 		<Unit filename="render/VideoReader.cpp" />
@@ -1328,12 +1328,12 @@
 		<Unit filename="ui/modelproperties/ViewObjectPropertyAdapter.h" />
 		<Unit filename="ui/modelproperties/ViewObjectPropertyManager.cpp" />
 		<Unit filename="ui/modelproperties/ViewObjectPropertyManager.h" />
-		<Unit filename="ui/MediaPickerCtrl.cpp" />
-		<Unit filename="ui/MediaPickerCtrl.h" />
-		<Unit filename="ui/wxTextDrawingContext.cpp" />
-		<Unit filename="ui/wxTextDrawingContext.h" />
-		<Unit filename="ui/wxUtilities.cpp" />
-		<Unit filename="ui/wxUtilities.h" />
+		<Unit filename="ui/shared/controls/MediaPickerCtrl.cpp" />
+		<Unit filename="ui/shared/controls/MediaPickerCtrl.h" />
+		<Unit filename="ui/graphics/wxTextDrawingContext.cpp" />
+		<Unit filename="ui/graphics/wxTextDrawingContext.h" />
+		<Unit filename="ui/shared/utils/wxUtilities.cpp" />
+		<Unit filename="ui/shared/utils/wxUtilities.h" />
 		<Unit filename="utils/CurlManager.cpp" />
 		<Unit filename="utils/CurlManager.h" />
 		<Unit filename="utils/ip_utils.cpp" />
@@ -1570,8 +1570,8 @@
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="ui/shared/utils/xLightsTimer.cpp" />
-		<Unit filename="xLightsVersion.cpp" />
-		<Unit filename="xLightsVersion.h" />
+		<Unit filename="utils/xLightsVersion.cpp" />
+		<Unit filename="utils/xLightsVersion.h" />
 		<Unit filename="render/SequenceFile.cpp" />
 		<Unit filename="render/SequenceFile.h" />
 		<Unit filename="ui/color/xlColorCanvas.cpp" />
@@ -1677,7 +1677,7 @@
 					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="ui/model/SubModelsDialog.cpp" hdr="ui/model/SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 							<wxDialog wxs="wxsmith/SuperStarImportDialog.wxs" src="ui/import-export/SuperStarImportDialog.cpp" hdr="ui/import-export/SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="ui/app-shell/UpdaterDialog.cpp" hdr="ui/app-shell/UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ui/ValueCurveDialog.cpp" hdr="ui/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ui/shared/dialogs/ValueCurveDialog.cpp" hdr="ui/shared/dialogs/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
 							<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="ui/sequencer/VAMPPluginDialog.cpp" hdr="ui/sequencer/VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
 							<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="ui/import-export/VendorModelDialog.cpp" hdr="ui/import-export/VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
 							<wxDialog wxs="wxsmith/VendorMusicDialog.wxs" src="ui/import-export/VendorMusicDialog.cpp" hdr="ui/import-export/VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
@@ -1691,7 +1691,7 @@
 					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="ui/sequencer/TimingPanel.cpp" hdr="ui/sequencer/TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="ui/sequencer/TopEffectsPanel.cpp" hdr="ui/sequencer/TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="ui/sequencer/EffectIconPanel.cpp" hdr="ui/sequencer/EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ValueCurvesPanel.wxs" src="ui/ValueCurvesPanel.cpp" hdr="ui/ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ValueCurvesPanel.wxs" src="ui/shared/controls/ValueCurvesPanel.cpp" hdr="ui/shared/controls/ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColoursPanel.wxs" src="ui/color/ColoursPanel.cpp" hdr="ui/color/ColoursPanel.h" fwddecl="0" i18n="1" name="ColoursPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="ui/sequencer/PerspectivesPanel.cpp" hdr="ui/sequencer/PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="ui/color/xlColorPickerFields.cpp" hdr="ui/color/xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />

@@ -28,7 +28,7 @@
 #include "render/SequenceViewManager.h"
 #include "ui/layout/LayoutPanel.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "ui/sequencer/BufferPanel.h"
 #include "ui/sequencer/EffectIconPanel.h"
@@ -41,7 +41,7 @@
 #include "ui/layout/ModelPreview.h"
 #include "ui/layout/ViewsModelsPanel.h"
 #include "ui/sequencer/PerspectivesPanel.h"
-#include "ui/ValueCurvesPanel.h"
+#include "ui/shared/controls/ValueCurvesPanel.h"
 #include "ui/color/ColoursPanel.h"
 #include "ui/sequencer/MainSequencer.h"
 #include "ui/layout/HousePreviewPanel.h"
@@ -49,7 +49,7 @@
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/StringSerializingVisitor.h"
 
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "ui/sequencer/TopEffectsPanel.h"
 
 #include <log.h>

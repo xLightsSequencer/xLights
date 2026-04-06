@@ -6,7 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include "UtilFunctions.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include <xLightsMain.h>
 #include "utils/ExternalHooks.h"
 

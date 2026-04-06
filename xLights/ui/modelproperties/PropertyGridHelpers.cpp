@@ -14,7 +14,7 @@
 #include <wx/propgrid/advprops.h>
 
 #include "Color.h"
-#include "../../ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const {
     for (auto c : value.GetString()) {

@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "DragValueCurveBitmapButton.h"
-#include "ValueCurveRendering.h"
+#include "ui/shared/utils/ValueCurveRendering.h"
 #include "render/ValueCurve.h"
 #include <wx/dnd.h>
 #include "xLightsMain.h"

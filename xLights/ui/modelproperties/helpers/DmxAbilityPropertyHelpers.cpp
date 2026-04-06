@@ -21,7 +21,7 @@
 #include "../../../models/DMX/DmxColorAbilityCMY.h"
 #include "../../../models/DMX/DmxColorAbilityWheel.h"
 #include "../../../models/OutputModelManager.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 namespace DmxAbilityPropertyHelpers {
 

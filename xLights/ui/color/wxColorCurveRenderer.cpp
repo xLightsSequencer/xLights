@@ -13,7 +13,7 @@
 #include <wx/dcmemory.h>
 #include <wx/settings.h>
 
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 namespace wxColorCurveRenderer {
 

@@ -20,7 +20,7 @@
 #include "xLightsMain.h"
 #include "ai/AIImageDialog.h"
 #include "ai/aiType.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "utils/xlImage.h"
 
 #include <wx/filename.h>

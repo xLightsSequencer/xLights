@@ -10,7 +10,7 @@
 
 #include "GlediatorPanel.h"
 #include "EffectPanelUtils.h"
-#include "../MediaPickerCtrl.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include <wx/filedlg.h>
 
 //(*InternalHeaders(GlediatorPanel)

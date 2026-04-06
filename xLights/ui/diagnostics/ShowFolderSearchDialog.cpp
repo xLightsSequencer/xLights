@@ -19,7 +19,7 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include "utils/ExternalHooks.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "xLightsMain.h"
 
 #include <log.h>

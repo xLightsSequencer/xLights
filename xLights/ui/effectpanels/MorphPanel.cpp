@@ -15,7 +15,7 @@
 #include "../../effects/MorphEffect.h"
 #include "../../xLightsApp.h"
 #include "UtilFunctions.h"
-#include "../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "../../xLightsMain.h"
 #include "../../ui/sequencer/MainSequencer.h"
 

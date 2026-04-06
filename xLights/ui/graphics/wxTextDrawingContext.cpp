@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "wxTextDrawingContext.h"
-#include "wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <wx/wx.h>
 #include <wx/font.h>

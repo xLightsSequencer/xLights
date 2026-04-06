@@ -16,7 +16,7 @@
 #include "../../render/SequenceMedia.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsApp.h"
-#include "../MediaPickerCtrl.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include <wx/settings.h>
 
 //(*InternalHeaders(TextPanel)

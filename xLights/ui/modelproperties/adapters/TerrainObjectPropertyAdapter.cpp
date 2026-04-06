@@ -17,7 +17,7 @@
 #include "../../../models/RulerObject.h"
 #include "../../../models/ModelScreenLocation.h"
 #include "utils/ExternalHooks.h"
-#include "../../wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 TerrainObjectPropertyAdapter::TerrainObjectPropertyAdapter(TerrainObject& obj)
     : ViewObjectPropertyAdapter(obj), _terrain(obj) {}

@@ -30,7 +30,7 @@
 #include <wx/filepicker.h>
 #include "ui/shared/utils/wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 class Model;
 class DrawGrid;

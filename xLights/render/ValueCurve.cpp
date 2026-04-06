@@ -10,7 +10,7 @@
 
 #include <pugixml.hpp>
 #include "ValueCurve.h"
-#include "xLightsVersion.h"
+#include "utils/xLightsVersion.h"
 #include "RenderContext.h"
 #include "UtilFunctions.h"
 #include "utils/AppCallbacks.h"

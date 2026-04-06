@@ -22,7 +22,7 @@
 
 #include <wx/dir.h>
 
-#include "ui/ValueCurveButton.h"
+#include "ui/shared/controls/ValueCurveButton.h"
 #include "ui/shared/utils/xlLockButton.h"
 
 class BufferSizeDialog: public wxDialog

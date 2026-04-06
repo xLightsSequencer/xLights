@@ -221,7 +221,7 @@ END_EVENT_TABLE()
 #include "ServiceManager.h"
 #include "TempFileManager.h"
 #include "UtilFunctions.h"
-#include "ui/wxUtilities.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 #include <log.h>
 
