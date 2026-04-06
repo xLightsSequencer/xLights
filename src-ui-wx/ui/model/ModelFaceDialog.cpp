@@ -27,16 +27,16 @@
 #include <wx/dir.h>
 #include <wx/numdlg.h>
 
-#include "include/AI.xpm"
-#include "include/E.xpm"
-#include "include/ETC.xpm"
-#include "include/FV.xpm"
-#include "include/L.xpm"
-#include "include/MBP.xpm"
-#include "include/O.xpm"
-#include "include/REST.xpm"
-#include "include/U.xpm"
-#include "include/WQ.xpm"
+#include "AI.xpm"
+#include "E.xpm"
+#include "ETC.xpm"
+#include "FV.xpm"
+#include "L.xpm"
+#include "MBP.xpm"
+#include "O.xpm"
+#include "REST.xpm"
+#include "U.xpm"
+#include "WQ.xpm"
 
 #include "ModelFaceDialog.h"
 #include "render/SequenceFile.h"

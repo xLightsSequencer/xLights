@@ -70,7 +70,7 @@
 #include "ui/controllerproperties/ControllerPropertyManager.h"
 #include "ui/controllerproperties/ControllerPropertyAdapter.h"
 
-#include "wxLED.h"
+#include "wxLED/wxLED.h"
 
 #include <log.h>
 

@@ -13,7 +13,7 @@
 #include <wx/event.h>
 #include <wx/artprov.h>
 #include "ui/sequencer/EffectDropTarget.h"
-#include "include/Off.xpm"
+#include "Off.xpm"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "ui/sequencer/MainSequencer.h"

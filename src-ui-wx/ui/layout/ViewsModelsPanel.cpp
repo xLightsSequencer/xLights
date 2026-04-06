@@ -19,10 +19,10 @@
 #include <wx/artprov.h>
 #include <wx/dnd.h>
 
-#include "include/model-16.xpm"
-#include "include/timing-16.xpm"
-#include "include/eye-16.xpm"
-#include "include/eye-16_gray.xpm"
+#include "model-16.xpm"
+#include "timing-16.xpm"
+#include "eye-16.xpm"
+#include "eye-16_gray.xpm"
 
 #include "models/DisplayAsType.h"
 #include "ui/layout/ViewsModelsPanel.h"

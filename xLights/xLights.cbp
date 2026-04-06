@@ -1172,8 +1172,6 @@
 		<Unit filename="../src-core/outputs/TestPreset.h" />
 		<Unit filename="../src-core/outputs/TwinklyOutput.cpp" />
 		<Unit filename="../src-core/outputs/TwinklyOutput.h" />
-		<Unit filename="../src-core/outputs/uDMXOutput.cpp" />
-		<Unit filename="../src-core/outputs/uDMXOutput.h" />
 		<Unit filename="../src-core/outputs/ZCPP.h" />
 		<Unit filename="../src-core/outputs/ZCPPOutput.cpp" />
 		<Unit filename="../src-core/outputs/ZCPPOutput.h" />

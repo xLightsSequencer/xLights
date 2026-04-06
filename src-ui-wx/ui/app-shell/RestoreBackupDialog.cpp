@@ -27,7 +27,7 @@
 
 #include "utils/UtilFunctions.h"
 
-#include "include/globals.h"
+#include "globals.h"
 
 #include "utils/ExternalHooks.h"
 #include "ui/shared/utils/wxUtilities.h"

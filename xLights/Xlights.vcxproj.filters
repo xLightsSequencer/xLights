@@ -2835,7 +2835,7 @@
     <ClInclude Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
-    <CustomBuild Include="effects\ispc\KaleidoscopeFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <ClInclude Include="..\src-core\effects\ispc\PinwheelFunctions.ispc.h">
@@ -3131,31 +3131,31 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="effects\ispc\BarsFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\BarsFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\ButterflyFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\ColorWashFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\ColorWashFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\FanFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\FanFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\KaleidoscopeFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\PinwheelFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\PlasmaFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\VideoFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\VideoFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
   </ItemGroup>

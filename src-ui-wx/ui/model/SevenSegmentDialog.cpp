@@ -17,7 +17,7 @@
 //*)
 
 #include <wx/image.h>
-#include "include/sevensegment.xpm"
+#include "sevensegment.xpm"
 
 //(*IdInit(SevenSegmentDialog)
 const long SevenSegmentDialog::ID_CHECKBOX1 = wxNewId();
