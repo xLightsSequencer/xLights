@@ -65,8 +65,18 @@ public:
     // Path accessors
     std::string GetFullPath() const { return mFilePath; }
     std::string GetName() const { return std::filesystem::path(mFilePath).stem().string(); }
-    std::string GetFullName() const { return std::filesystem::path(mFilePath).filename().string(); }
-    std::string GetPath() const { return std::filesystem::path(mFilePath).parent_path().string(); }
+    std::string GetFullName() const {
+        std::filesystem::path p(mFilePath);
+        std::error_code ec;
+        if (std::filesystem::is_directory(p, ec)) return "";
+        return p.filename().string();
+    }
+    std::string GetPath() const {
+        std::filesystem::path p(mFilePath);
+        std::error_code ec;
+        if (std::filesystem::is_directory(p, ec)) return mFilePath;
+        return p.parent_path().string();
+    }
     std::string GetExt() const;
     void SetExt(const std::string& ext);
     void SetFullPath(const std::string& path) { mFilePath = path; }
