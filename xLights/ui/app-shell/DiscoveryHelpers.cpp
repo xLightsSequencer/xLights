@@ -87,7 +87,7 @@ public:
         }
     }
 };
-static DiscoveryCleanupTimer s_cleanupTimer;
+static DiscoveryCleanupTimer* s_cleanupTimer = nullptr;
 }
 
 std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate) {
@@ -127,8 +127,9 @@ std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate) 
     // Clean up discovery - use timer for outstanding curl requests
     discovery->Close(false);
     if (CurlManager::INSTANCE.processCurls()) {
-        s_cleanupTimer.discs.push_back(discovery);
-        s_cleanupTimer.Start(500);
+        if (!s_cleanupTimer) s_cleanupTimer = new DiscoveryCleanupTimer();
+        s_cleanupTimer->discs.push_back(discovery);
+        s_cleanupTimer->Start(500);
     } else {
         delete discovery;
     }
