@@ -1472,6 +1472,10 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     
     FreezeTreeListView();
 
+    if (full_refresh) {
+        UnSelectAllModels();
+    }
+
     std::vector<Model *> dummy_models;
 
     // Update all the custom previews
