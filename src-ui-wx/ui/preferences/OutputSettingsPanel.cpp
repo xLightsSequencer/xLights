@@ -21,7 +21,7 @@
 
 #include <wx/preferences.h>
 #include "xLightsMain.h"
-#include "UtilFunctions.h"
+#include "utils/ip_utils.h"
 
 //(*IdInit(OutputSettingsPanel)
 const long OutputSettingsPanel::ID_CHECKBOX1 = wxNewId();
@@ -79,7 +79,7 @@ OutputSettingsPanel::OutputSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWind
 	//*)
     
     std::string localIP = frame->_outputManager.GetGlobalForceLocalIP();
-    auto ips = GetLocalIPs();
+    auto ips = ip_utils::GetLocalIPs();
 
     if (ips.size() == 0) {
         if (localIP != "") {

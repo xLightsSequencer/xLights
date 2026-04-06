@@ -280,4 +280,8 @@ extern const std::string xlEMPTY_STRING;
     {
         return std::ranges::equal(lhs, rhs, char_equals_ignore_case);
     }
-//};
+
+    inline const char* const toStr(bool b) {
+        return b ? "true" : "false";
+    }
+    //};

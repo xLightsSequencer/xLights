@@ -15,7 +15,7 @@
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Model.h"
 #include "utils/ExternalHooks.h"
-#include "UtilFunctions.h"
+#include "utils/FileUtils.h"
 #include "../utils/xlImage.h"
 #include <log.h>
 
@@ -61,7 +61,7 @@ void TerrainObject::InitModel() {
 void TerrainObject::SetImageFile(const std::string & imageFile)
 {
     ObtainAccessToURL(imageFile);
-    _imageFile = FixFile("", imageFile);
+    _imageFile = FileUtils::FixFile("", imageFile);
 }
 
 void TerrainObject::ClearImages() {

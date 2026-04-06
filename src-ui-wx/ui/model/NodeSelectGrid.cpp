@@ -28,7 +28,7 @@
 #include "ui/model/NodeSelectGrid.h"
 #include "models/Model.h"
 #include "models/CustomModel.h"
-#include "UtilFunctions.h"
+#include "utils/NodeUtils.h"
 #include "ui/shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "outputs/OutputManager.h"
@@ -462,7 +462,7 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
     }
     GridNodes->Refresh();
     if (CheckBox_OrderedSelection->IsChecked() && rows.size() == 1) {
-        TextCtrl_Nodes->SetValue(ExpandNodes(rows.front()));
+        TextCtrl_Nodes->SetValue(NodeUtils::ExpandNodes(rows.front()));
         TextCtrl_Nodes->SetInsertionPointEnd();
     } else {
         UpdateTextFromGrid();
@@ -794,7 +794,7 @@ std::vector<wxString> NodeSelectGrid::GetRowData()
 wxString NodeSelectGrid::GetNodeList(const bool sort)
 {
     if (CheckBox_OrderedSelection->IsChecked())
-        return CompressNodes(TextCtrl_Nodes->GetValue());
+        return NodeUtils::CompressNodes(TextCtrl_Nodes->GetValue());
 
     // encode with dashes
     std::vector<wxString> nodeList;
@@ -1304,7 +1304,7 @@ void NodeSelectGrid::AddNode(int col, int row)
 
 void NodeSelectGrid::OnTextCtrl_NodesLoseFocus(wxFocusEvent& event)
 {
-    TextCtrl_Nodes->SetValue(ExpandNodes(TextCtrl_Nodes->GetValue()));
+    TextCtrl_Nodes->SetValue(NodeUtils::ExpandNodes(TextCtrl_Nodes->GetValue()));
     UpdateSelectedFromText();
 }
 

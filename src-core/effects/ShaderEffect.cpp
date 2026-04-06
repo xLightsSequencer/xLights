@@ -91,6 +91,7 @@
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
+#include "../utils/FileUtils.h"
 #include <nlohmann/json.hpp>
 
 #include <regex>
@@ -235,7 +236,7 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
         if (entry->GetShaderSource().empty()) {
             res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (!entry->IsEmbedded()) {
-            if (!IsFileInShowDir(std::string(), ifsFilename)) {
+            if (!FileUtils::IsFileInShowDir(std::string(), ifsFilename)) {
                 res.push_back(std::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
@@ -346,7 +347,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     // Resolve broken paths first, then convert to relative for portability
     std::string file = settings["E_0FILEPICKERCTRL_IFS"];
     if (!file.empty() && !FileExists(file)) {
-        std::string fixed = FixFile("", file);
+        std::string fixed = FileUtils::FixFile("", file);
         if (!fixed.empty() && fixed != file) {
             settings["E_0FILEPICKERCTRL_IFS"] = fixed;
             file = fixed;
@@ -355,11 +356,11 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_0FILEPICKERCTRL_IFS"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_0FILEPICKERCTRL_IFS"] = rel;
             }

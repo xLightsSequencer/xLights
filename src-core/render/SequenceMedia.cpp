@@ -18,7 +18,7 @@
 
 #include <log.h>
 
-#include "UtilFunctions.h"
+#include "../utils/FileUtils.h"
 #include "utils/ExternalHooks.h"
 #include "../utils/nanosvg_xl.h"
 #include "../effects/ShaderEffect.h"
@@ -507,17 +507,17 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
         return ret;
     }
 
-    // For relative paths, resolve to an absolute path using FixFile so the
+    // For relative paths, resolve to an absolute path using FileUtils::FixFile so the
     // entry can be loaded from disk.  The cache key stays as the relative path.
     std::string loadPath = filepath;
     if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FixFile("", filepath);
+        std::string resolved = FileUtils::FixFile("", filepath);
         if (!resolved.empty())
             loadPath = resolved;
     }
     // Check if the resolved path matches an existing entry
     for (auto& [key, entry] : _imageCache) {
-        if (entry->GetFilePath() == loadPath || (!std::filesystem::path(key).is_absolute() ? FixFile("", key) : key) == loadPath) {
+        if (entry->GetFilePath() == loadPath || (!std::filesystem::path(key).is_absolute() ? FileUtils::FixFile("", key) : key) == loadPath) {
             if (!entry->isLoaded()) {
                 lock.unlock();
                 entry->Load();
@@ -550,7 +550,7 @@ void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTim
     // LoadFile operate on a valid absolute path.
     std::string loadPath = filepath;
     if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FixFile("", filepath);
+        std::string resolved = FileUtils::FixFile("", filepath);
         if (!resolved.empty()) {
             loadPath = resolved;
         }
@@ -1120,7 +1120,7 @@ void VideoMediaCacheEntry::Load() {
         // Videos are path-only: resolve to absolute path for VideoReader
         _resolvedPath = _filePath;
         if (!std::filesystem::path(_filePath).is_absolute()) {
-            std::string resolved = FixFile("", _filePath);
+            std::string resolved = FileUtils::FixFile("", _filePath);
             if (!resolved.empty()) {
                 _resolvedPath = resolved;
             }
@@ -1230,7 +1230,7 @@ void VideoMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
 
 std::string SequenceMedia::ResolvePath(const std::string& filepath) {
     if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FixFile("", filepath);
+        std::string resolved = FileUtils::FixFile("", filepath);
         if (!resolved.empty()) return resolved;
     }
     return filepath;

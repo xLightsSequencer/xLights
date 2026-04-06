@@ -45,7 +45,7 @@
 #include "ui/shared/utils/wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
 #include "ui/shared/utils/wxUtilities.h"
-#include "UtilFunctions.h"
+#include "NodeUtils.h"
 #include "utils/ExternalHooks.h"
 #include "ui/layout/ModelPreview.h"
 #include "outputs/TwinklyOutput.h"
@@ -1712,7 +1712,7 @@ void CustomModelDialog::ReverseSubmodels() {
             // Process each range line
             for (int line = 0; line < sm->GetNumRanges(); line++) {
                 wxString oldnodes = sm->GetRange(line);
-                auto oldNodeArray = wxSplit(ExpandNodes(oldnodes), ',');
+                auto oldNodeArray = wxSplit(NodeUtils::ExpandNodes(oldnodes), ',');
                 wxArrayString newNodeArray;
                 
                 for (auto const& node : oldNodeArray) {
@@ -1726,7 +1726,7 @@ void CustomModelDialog::ReverseSubmodels() {
                     }
                 }
                 
-                wxString reversedNodes = CompressNodes(wxJoin(newNodeArray, ','));
+                wxString reversedNodes = NodeUtils::CompressNodes(wxJoin(newNodeArray, ','));
                 newSm->AddDefaultBuffer(reversedNodes);
             }
             

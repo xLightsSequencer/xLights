@@ -12,7 +12,7 @@
 #include <format>
 #include "ImageObject.h"
 #include "../utils/xlImage.h"
-#include "UtilFunctions.h"
+#include "utils/FileUtils.h"
 #include "../graphics/IModelPreview.h"
 #include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
@@ -37,7 +37,7 @@ ImageObject::~ImageObject()
 void ImageObject::SetImageFile(const std::string & imageFile)
 {
     ObtainAccessToURL(imageFile);
-    _imageFile = FixFile("", imageFile);
+    _imageFile = FileUtils::FixFile("", imageFile);
 }
 
 void ImageObject::InitModel()
@@ -158,7 +158,7 @@ std::list<std::string> ImageObject::CheckModelSettings()
     } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
         res.push_back(std::format("    ERR: Image object '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
-        if (!IsFileInShowDir(std::string(), _imageFile)) {
+        if (!FileUtils::IsFileInShowDir(std::string(), _imageFile)) {
             res.push_back(std::format("    WARN: Image object '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }

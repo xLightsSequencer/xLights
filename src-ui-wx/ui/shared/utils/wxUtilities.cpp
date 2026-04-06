@@ -28,12 +28,14 @@
 #include <wx/sstream.h>
 #include <wx/stdpaths.h>
 #include <wx/wfstream.h>
-
-#include "wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "xLightsVersion.h"
 #include "utils/CurlManager.h"
 #include "utils/string_utils.h"
+
+#include "utils/ip_utils.h"
+
+#include "utils/FileUtils.h"
 
 #include <log.h>
 
@@ -201,7 +203,7 @@ wxImage ApplyOrientation(const wxImage& img, int orient) {
 }
 
 std::string GetResourcesDirectory() {
-    std::string dir = GetResourcesDir();
+    std::string dir = FileUtils::GetResourcesDir();
     if (dir.empty()) {
 #ifndef __WXMSW__
         dir = wxStandardPaths::Get().GetResourcesDir().ToStdString();
@@ -209,7 +211,7 @@ std::string GetResourcesDirectory() {
         auto exec = wxStandardPaths::Get().GetExecutablePath().ToStdString();
         dir = exec.substr(0, exec.find_last_of("/\\"));
 #endif
-        SetResourcesDir(dir);
+        FileUtils::SetResourcesDir(dir);
     }
     return dir;
 }
@@ -417,7 +419,7 @@ void ViewTempFile(const wxString& content, const wxString& name, const wxString&
 }
 
 bool IsValidLocalIP(const wxIPV4address& ip) {
-    return IsValidLocalIP(ip.IPAddress().ToStdString());
+    return ip_utils::IsValidLocalIP(ip.IPAddress().ToStdString());
 }
 
 wxColor CyanOrBlue() {

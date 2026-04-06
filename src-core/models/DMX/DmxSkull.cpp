@@ -24,8 +24,8 @@
 #include "../ModelManager.h"
 #include "../../graphics/xlGraphicsContext.h"
 #include "../../graphics/xlGraphicsAccumulators.h"
-#include "xLightsVersion.h"
-#include "UtilFunctions.h"
+
+#include "utils/FileUtils.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxSkull::DmxSkull(const ModelManager& manager) :
@@ -34,7 +34,7 @@ DmxSkull::DmxSkull(const ModelManager& manager) :
     DisplayAs = DisplayAsType::DmxSkull;
     color_ability = std::make_unique<DmxColorAbilityRGB>();
 
-    obj_path = GetResourcesDir() + "/meshobjects/Skull/";
+    obj_path = FileUtils::GetResourcesDir() + "/meshobjects/Skull/";
 
     default_channels[JAW] = 1;
     default_channels[PAN] = 3;
@@ -182,7 +182,7 @@ Servo* DmxSkull::CreateServo(const std::string& name)
 std::unique_ptr<Mesh> DmxSkull::CreateMesh(const std::string& name, const std::string& objfile)
 {
     std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(name);
-    mesh->SetObjFile(FixFile("", objfile));
+    mesh->SetObjFile(FileUtils::FixFile("", objfile));
     mesh->Init(this, false);
     return mesh;
 }

@@ -43,7 +43,7 @@
 #include "ui/shared/utils/NodesGridCellEditor.h"
 #include "ui/layout/ModelPreview.h"
 #include "render/DimmingCurve.h"
-#include "UtilFunctions.h"
+#include "utils/NodeUtils.h"
 #include "utils/ExternalHooks.h"
 #include "ui/model/MatrixFaceDownloadDialog.h"
 #include "xLightsMain.h"
@@ -433,14 +433,14 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
             }
         }
 
-		// Only call FixFile for Matrix faces - NodeRange and SingleNode faces
+		// Only call FileUtils::FixFile for Matrix faces - NodeRange and SingleNode faces
 		// store node numbers, not file paths
 		if (info["Type"] == "Matrix") {
 			for (std::map<std::string, std::string>::iterator it2 = info.begin(); it2 != info.end(); ++it2)
 			{
 				if (it2->first.substr(0, 5) == "Mouth" || it2->first.substr(0, 4) == "Eyes")
 				{
-					it2->second = FixFile("", it2->second);
+					it2->second = FileUtils::FixFile("", it2->second);
 				}
 			}
 		}
@@ -1002,7 +1002,7 @@ void ModelFaceDialog::GetValue(wxGrid *grid, const int row, const int col, std::
                   [](const wxString& a, const wxString& b) {
                       return wxAtoi(a) < wxAtoi(b);
                   });
-            grid->SetCellValue(row, col, CompressNodes(wxJoin(nodeArray, ',')));
+            grid->SetCellValue(row, col, NodeUtils::CompressNodes(wxJoin(nodeArray, ',')));
         }
     }
     UpdatePreview(grid->GetCellValue(row, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(row, COLOR_COL));
@@ -1467,7 +1467,7 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
         }
         const auto newNodes = wxJoin(allNodes, ',', '\0');
 
-        auto newNodeArrray = wxSplit(ExpandNodes(newNodes), ',');
+        auto newNodeArrray = wxSplit(NodeUtils::ExpandNodes(newNodes), ',');
 
         //sort
         std::sort(newNodeArrray.begin(), newNodeArrray.end(),
@@ -1479,7 +1479,7 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
         //make unique
         newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
 
-        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray,',')));
+        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(newNodeArrray, ',')));
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, faceData[name]);
         dlg.Close();
@@ -1779,7 +1779,7 @@ void ModelFaceDialog::OnPreviewLeftDClick(wxMouseEvent& event)
         int row = NodeRangeGrid->GetGridCursorRow();
         if (row < 0)
             return;
-        wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+        wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
         auto oldNodeArrray = wxSplit(oldnodes, ',');
 
         //toggle nodes if double click
@@ -1800,7 +1800,7 @@ void ModelFaceDialog::OnPreviewLeftDClick(wxMouseEvent& event)
                 return wxAtoi(a) < wxAtoi(b);
             });
 
-        NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+        NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, row, CHANNEL_COL, faceData[name]);
     }
@@ -1866,7 +1866,7 @@ void ModelFaceDialog::SelectAllInBoundingRect(bool shiftDwn)
     if (nodes.size() == 0)
         return;
 
-    wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+    wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
 
     auto oldNodeArrray = wxSplit(oldnodes, ',');
     for (auto const& newNode : nodes) {
@@ -1889,7 +1889,7 @@ void ModelFaceDialog::SelectAllInBoundingRect(bool shiftDwn)
             return wxAtoi(a) < wxAtoi(b);
         });
 
-    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
     GetValue(NodeRangeGrid, row, CHANNEL_COL, faceData[name]);
 }
@@ -1912,7 +1912,7 @@ void ModelFaceDialog::RemoveNodes()
     std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
-    wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+    wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
     auto oldNodeArrray = wxSplit(oldnodes, ',');
 
     for (auto const& newNode : nodes) {
@@ -1931,7 +1931,7 @@ void ModelFaceDialog::RemoveNodes()
             return wxAtoi(a) < wxAtoi(b);
         });
 
-    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
     GetValue(NodeRangeGrid, row, CHANNEL_COL, faceData[name]);
 }
@@ -1953,7 +1953,7 @@ void ModelFaceDialog::ShiftFaceNodes()
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
         if (scaleFactor != 0) {
-            ShiftNodes(faceData[name], scaleFactor, min, max);
+            NodeUtils::ShiftNodes(faceData[name], scaleFactor, min, max);
             SelectFaceModel(name);
             UpdatePreview("", *wxWHITE);
         }
@@ -1973,7 +1973,7 @@ void ModelFaceDialog::ReverseFaceNodes()
 
     long max = model->GetNodeCount() + 1;
 
-    ReverseNodes(faceData[name], max);
+    NodeUtils::ReverseNodes(faceData[name], max);
     SelectFaceModel(name);
     UpdatePreview("", *wxWHITE);
 }

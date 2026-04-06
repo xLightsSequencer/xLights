@@ -26,6 +26,7 @@
 #include "../render/SequenceFile.h"
 #include "../models/Model.h"
 #include "UtilFunctions.h"
+#include "utils/FileUtils.h"
 #include "utils/ExternalHooks.h"
 #include "../render/RenderContext.h"
 #include "../render/SequenceElements.h"
@@ -63,7 +64,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
             res.push_back(std::format("    ERR: Picture effect cant load image '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!img->IsEmbedded()) {
-                if (!IsFileInShowDir(std::string(), pictureFilename)) {
+                if (!FileUtils::IsFileInShowDir(std::string(), pictureFilename)) {
                     res.push_back(std::format("    WARN: Picture effect image file '{}' not under show directory. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
@@ -117,19 +118,19 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
     std::string file = settings["E_TEXTCTRL_Pictures_Filename"];
     auto &media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
     if (!file.empty() && !media.HasImage(file)) {
-        // Only run FixFile for absolute paths — relative paths are intentionally
-        // stored as-is and will be resolved by SequenceMedia::GetImage() via FixFile.
+        // Only run FileUtils::FixFile for absolute paths — relative paths are intentionally
+        // stored as-is and will be resolved by SequenceMedia::GetImage() via FileUtils::FixFile.
         if (!std::filesystem::path(file).is_absolute()) {
             // relative path: just let GetImage() resolve it below
         } else if (!FileExists(file, false)) {
-            std::string fixed = FixFile("", file);
+            std::string fixed = FileUtils::FixFile("", file);
             // If the resolved path is inside a show/media directory, store as
             // relative so the sequence is portable across machines.
-            std::string rel = MakeRelativeFile(fixed);
+            std::string rel = FileUtils::MakeRelativeFile(fixed);
             settings["E_TEXTCTRL_Pictures_Filename"] = rel.empty() ? fixed : rel;
         } else {
             // File exists at its absolute path — still prefer relative storage
-            std::string rel = MakeRelativeFile(file);
+            std::string rel = FileUtils::MakeRelativeFile(file);
             if (!rel.empty())
                 settings["E_TEXTCTRL_Pictures_Filename"] = rel;
         }
@@ -291,7 +292,7 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
     if (!file.empty()) {
         // Relative paths must be resolved to absolute so callers can locate the file.
         if (!std::filesystem::path(file).is_absolute()) {
-            std::string resolved = FixFile("", file);
+            std::string resolved = FileUtils::FixFile("", file);
             if (!resolved.empty() && FileExists(resolved))
                 res.push_back(resolved);
         } else if (FileExists(file)) {

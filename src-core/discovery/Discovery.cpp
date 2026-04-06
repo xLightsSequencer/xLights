@@ -31,6 +31,8 @@
 
 #include "utils/CurlManager.h"
 
+#include "utils/ip_utils.h"
+
 #if __has_include(<dns_sd.h>)
 // if the dns_sd include header is available, we can do the bonjour discovery
 #include <dns_sd.h>
@@ -109,7 +111,7 @@ void Discovery::DatagramData::Init(const std::string &mc, int port) {
     }
 
     // Per-interface sockets for sending broadcasts out each NIC
-    auto localIPs = GetLocalIPs();
+    auto const localIPs = ip_utils::GetLocalIPs();
     for (const auto& ip : localIPs) {
         if (ip == "127.0.0.1") {
             continue;

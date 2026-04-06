@@ -34,6 +34,8 @@
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 
+#include "utils/FileUtils.h"
+
 #include "Parallel.h"
 #include "ispc/VideoFunctions.ispc.h"
 
@@ -51,7 +53,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    std::string filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
+    std::string filename = FileUtils::FixFile("", settings.Get("E_FILEPICKERCTRL_Video_Filename", ""));
 
     if (settings.GetBool("E_CHECKBOX_SynchroniseWithAudio", 0) == 1) {
         if (media != nullptr) {
@@ -70,7 +72,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
             res.push_back(std::format("    ERR: Video effect video file '{}' does not exist. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!videoEntry->IsEmbedded()) {
-                if (!IsFileInShowDir(std::string(), filename)) {
+                if (!FileUtils::IsFileInShowDir(std::string(), filename)) {
                     res.push_back(std::format("    WARN: Video effect video file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
@@ -152,7 +154,7 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
     // Resolve broken paths first, then convert to relative for portability
     std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
     if (!file.empty() && !FileExists(file)) {
-        std::string fixed = FixFile("", file);
+        std::string fixed = FileUtils::FixFile("", file);
         if (!fixed.empty() && fixed != file) {
             settings["E_FILEPICKERCTRL_Video_Filename"] = fixed;
             file = fixed;
@@ -161,11 +163,11 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Video_Filename"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_FILEPICKERCTRL_Video_Filename"] = rel;
             }

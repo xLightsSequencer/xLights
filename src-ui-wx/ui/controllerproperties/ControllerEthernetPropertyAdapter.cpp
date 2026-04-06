@@ -327,7 +327,7 @@ void ControllerEthernetPropertyAdapter::UpdateProperties(wxPropertyGrid* propert
         if (protocol != OUTPUT_PLAYER_ONLY) {
             p->Hide(false);
 
-            auto ips = GetLocalIPs();
+            auto const ips = ip_utils::GetLocalIPs();
             int val = 0;
             int idx = 1;
             auto forceLocalIP = _ethernet.GetControllerForceLocalIP();
@@ -378,7 +378,7 @@ void ControllerEthernetPropertyAdapter::AddProperties(wxPropertyGrid* propertyGr
     auto protocols = GetEthernetProtocols(_ethernet);
     p = propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, protocol)));
 
-    auto ips = GetLocalIPs();
+    auto const ips = ip_utils::GetLocalIPs();
     wxPGChoices choices;
     choices.Add("");
     for (const auto& it : ips) {
@@ -441,7 +441,7 @@ bool ControllerEthernetPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_SETTING_CHANGE, "ControllerEthernet::HandlePropertyEvent::FPPProxy");
         return true;
     } else if (name == "ForceLocalIP") {
-        auto ips = GetLocalIPs();
+        auto const ips = ip_utils::GetLocalIPs();
 
         if (event.GetValue().GetLong() == 0) {
             _ethernet.SetForceLocalIP("");

@@ -21,6 +21,7 @@
 
 #include "utils/Color.h"
 #include "utils/UtilFunctions.h"
+#include "utils/FileUtils.h"
 #include "utils/xlImage.h"
 
 #include <nlohmann/json.hpp>
@@ -92,7 +93,7 @@ wxArrayString Split(const wxString& s, const std::vector<char>& delimiters);
 inline bool IsFileInShowDir(const wxString& showDir, const std::string filename) { return IsFileInShowDir(showDir.ToStdString(), filename); }
 // wxString wrappers around std::string versions in UtilFunctions.h
 inline void SetFixFileShowDir(const wxString& ShowDir) { SetFixFileShowDir(ShowDir.ToStdString()); }
-inline wxString FixFile(const wxString& ShowDir, const wxString& file) { return wxString(FixFile(ShowDir.ToStdString(), file.ToStdString())); }
+inline wxString FixFile(const wxString& ShowDir, const wxString& file) { return wxString(FileUtils::FixFile(ShowDir.ToStdString(), file.ToStdString())); }
 inline wxString MakeRelativeFile(const wxString& file) { return wxString(MakeRelativeFile(file.ToStdString())); }
 inline wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir) {
     return wxString(FixEffectFileParameter(paramname.ToStdString(), parametervalue.ToStdString(), ShowDir.ToStdString()));

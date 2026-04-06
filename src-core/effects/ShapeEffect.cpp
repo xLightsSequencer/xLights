@@ -26,6 +26,7 @@
 #include "UtilFunctions.h"
 #include "media/AudioManager.h"
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
 #include "../render/RenderContext.h"
 
 #include "../utils/nanosvg_xl.h"
@@ -78,7 +79,7 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
                 res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
-                    if (!IsFileInShowDir(std::string(), svgFilename)) {
+                    if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
                         res.push_back(std::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
@@ -1174,11 +1175,11 @@ void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, boo
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_SVG"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_FILEPICKERCTRL_SVG"] = rel;
             }

@@ -10,15 +10,16 @@
  **************************************************************/
 
 #include "ControllerCaps.h"
-
-#include <cassert>
-#include <filesystem>
-
 #include "UtilFunctions.h"
+
+#include "utils/FileUtils.h"
 #include "utils/ExternalHooks.h"
 #include "../outputs/Controller.h"
 
 #include <log.h>
+
+#include <cassert>
+#include <filesystem>
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
@@ -55,21 +56,20 @@ static void merge(std::map<std::string, pugi::xml_node> &abstracts, const std::s
 
 void ControllerCaps::LoadControllers() {
 
-
     if (__controllers.size() != 0) return;
 
-    std::string d = GetResourcesDir() + "/controllers";
+    std::string d = FileUtils::GetResourcesDir() + "/controllers";
 
     // in debug look in the master folder
     std::error_code ec;
     if (!std::filesystem::exists(d, ec)) {
 #ifdef _DEBUG
 #ifdef _WIN32
-        d = GetResourcesDir() + "/../../../controllers";
+        d = FileUtils::GetResourcesDir() + "/../../../controllers";
 #endif
 #endif
 #ifdef LINUX
-        d = GetResourcesDir() + "/../controllers";
+        d = FileUtils::GetResourcesDir() + "/../controllers";
 #endif
     }
 

@@ -20,7 +20,7 @@
 #include "models/Model.h"
 #include "models/SubModel.h"
 #include "xLightsApp.h"
-#include "UtilFunctions.h"
+#include "utils/NodeUtils.h"
 #include "xLightsMain.h"
 #include "utils/VectorMath.h"
 #include "models/CustomModel.h"
@@ -1154,7 +1154,7 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
         }
         const auto newNodes = wxJoin(allNodes, ',', '\0');
 
-        auto newNodeArrray = wxSplit(ExpandNodes(newNodes), ',');
+        auto newNodeArrray = wxSplit(NodeUtils::ExpandNodes(newNodes), ',');
 
         //sort
         std::sort(newNodeArrray.begin(), newNodeArrray.end(),
@@ -1166,7 +1166,7 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
         //make unique
         newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
 
-        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray, ',')));
+        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(newNodeArrray, ',')));
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
         dlg.Close();
@@ -1328,7 +1328,7 @@ void ModelStateDialog::ImportStatesFromSubModels()
             for (Model* sm : model->GetSubModels()) {
                 auto subname = cleanSubName(sm->Name());
                 const auto nodes = getSubmodelNodes(sm);
-                auto newNodeArrray = wxSplit(ExpandNodes(nodes), ',');
+                auto newNodeArrray = wxSplit(NodeUtils::ExpandNodes(nodes), ',');
 
                 // sort
                 std::sort(newNodeArrray.begin(), newNodeArrray.end(),
@@ -1339,7 +1339,7 @@ void ModelStateDialog::ImportStatesFromSubModels()
                 // make unique
                 newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
                 NodeRangeGrid->SetCellValue(idx, NAME_COL, subname);
-                NodeRangeGrid->SetCellValue(idx, CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray, ',')));
+                NodeRangeGrid->SetCellValue(idx, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(newNodeArrray, ',')));
                 GetValue(NodeRangeGrid, idx, NAME_COL, stateData[name]);
                 GetValue(NodeRangeGrid, idx, CHANNEL_COL, stateData[name]);
                 ++idx;
@@ -1552,7 +1552,7 @@ void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
         int row = NodeRangeGrid->GetGridCursorRow();
         if (row < 0)
             return;
-        wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+        wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
         auto oldNodeArrray = wxSplit(oldnodes, ',');
 
         //toggle nodes if double click
@@ -1573,7 +1573,7 @@ void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
                 return wxAtoi(a) < wxAtoi(b);
             });
 
-        NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+        NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
     }
@@ -1648,7 +1648,7 @@ void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
     if (nodes.size() == 0)
         return;
 
-    wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+    wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
 
     auto oldNodeArrray = wxSplit(oldnodes, ',');
     for (auto const& newNode : nodes) {
@@ -1671,7 +1671,7 @@ void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
             return wxAtoi(a) < wxAtoi(b);
         });
 
-    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
     GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
 }
@@ -1694,7 +1694,7 @@ void ModelStateDialog::RemoveNodes()
     std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
-    wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
+    wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
     auto oldNodeArrray = wxSplit(oldnodes, ',');
 
     for (auto const& newNode : nodes) {
@@ -1713,7 +1713,7 @@ void ModelStateDialog::RemoveNodes()
             return wxAtoi(a) < wxAtoi(b);
         });
 
-    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, CompressNodes(wxJoin(oldNodeArrray, ',')));
+    NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
     GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
 }
@@ -1784,7 +1784,7 @@ void ModelStateDialog::ShiftStateNodes()
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
         if (scaleFactor != 0) {
-            ShiftNodes(stateData[name], scaleFactor, min, max);
+            NodeUtils::ShiftNodes(stateData[name], scaleFactor, min, max);
             SelectStateModel(name);
             ClearNodeColor(model);
         }
@@ -1804,7 +1804,7 @@ void ModelStateDialog::ReverseStateNodes()
 
     long max = model->GetNodeCount() + 1;
 
-    ReverseNodes(stateData[name], max);
+    NodeUtils::ReverseNodes(stateData[name], max);
     SelectStateModel(name);
     ClearNodeColor(model);
 }

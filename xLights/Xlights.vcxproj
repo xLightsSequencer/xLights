@@ -418,6 +418,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\dependencies\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\dependencies\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\dependencies\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="..\src-core\utils\FileUtils.cpp" />
+    <ClCompile Include="..\src-core\utils\NodeUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\AboutDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\aiBase.cpp" />
@@ -1034,6 +1036,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\dependencies\wxJSON\jsonval.h" />
     <ClInclude Include="..\dependencies\wxJSON\jsonwriter.h" />
     <ClInclude Include="..\dependencies\wxJSON\json_defs.h" />
+    <ClInclude Include="..\src-core\utils\FileUtils.h" />
+    <ClInclude Include="..\src-core\utils\NodeUtils.h" />
     <ClInclude Include="..\src-ui-wx\ui\app-shell\AboutDialog.h" />
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.h" />
     <ClInclude Include="..\src-ui-wx\ai\aiBase.h" />

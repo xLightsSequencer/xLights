@@ -330,7 +330,7 @@ private:
  *
  * Provides unified access to images, SVGs, shaders, text files, binary files,
  * and videos referenced by effects. Supports embedding media directly in the
- * xsq file for portability. All file resolution goes through FixFile() so
+ * xsq file for portability. All file resolution goes through FileUtils::FixFile() so
  * effects don't need access to xLightsFrame::CurrentDir.
  */
 class SequenceMedia
@@ -357,7 +357,7 @@ public:
     std::vector<std::string> GetImagePaths() const;
     void RemoveUnusedImages();
 
-    // === Type-specific retrieval (create-on-first-access, resolve via FixFile) ===
+    // === Type-specific retrieval (create-on-first-access, resolve via FileUtils::FixFile) ===
     std::shared_ptr<TextMediaCacheEntry> GetTextFile(const std::string& filepath);
     std::shared_ptr<SVGMediaCacheEntry> GetSVG(const std::string& filepath);
     std::shared_ptr<ShaderMediaCacheEntry> GetShader(const std::string& filepath);
@@ -391,7 +391,7 @@ public:
     void SaveToXml(pugi::xml_node& parent) const;
 
 private:
-    // Helper to resolve relative paths via FixFile
+    // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
 
     // Per-type caches

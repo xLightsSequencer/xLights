@@ -24,6 +24,7 @@
 #include "../outputs/SocketAbstraction.h"
 
 #include "../utils/string_utils.h"
+#include "../utils/ip_utils.h"
 
 #include <log.h>
 
@@ -1073,7 +1074,7 @@ bool Pixlite16::GetConfig()
     {
         spdlog::warn("Trying broadcast to each adapter to see if we can find");
 
-        for (const auto& lip : GetLocalIPs())
+        for (const auto& lip : ip_utils::GetLocalIPs())
         {
             if (!res) {
                 spdlog::warn("   Trying {}.", (const char*)lip.c_str());

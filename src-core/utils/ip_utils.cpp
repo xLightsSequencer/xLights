@@ -11,22 +11,27 @@
 #include "ip_utils.h"
 #include "string_utils.h"
 
+#include "JobPool.h"
+
+#include <log.h>
+
 #include <chrono>
 #include <cstring>
 #include <regex>
 #include <thread>
 
-#ifndef _WIN32
-#include <netdb.h>
-#include <arpa/inet.h>
-#else
+#ifdef _WIN32
+#include <iphlpapi.h>
+#include <psapi.h>
 #include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
 #endif
 
 #include <map>
 #include <mutex>
-
-#include "JobPool.h"
 
 namespace ip_utils
 {
@@ -269,5 +274,91 @@ namespace ip_utils
 
     void shutdownResolvePool() {
         RESOLVE_POOL.Stop();
+    }
+
+    std::list<std::string> GetLocalIPs() {
+        std::list<std::string> res;
+
+#ifdef _WIN32
+
+        ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+        PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
+        if (pAdapterInfo == nullptr) {
+            spdlog::error("Error getting adapter info.");
+            return res;
+        }
+
+        if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+            free(pAdapterInfo);
+            pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
+            if (pAdapterInfo == nullptr) {
+                spdlog::error("Error getting adapter info.");
+                return res;
+            }
+        }
+
+        PIP_ADAPTER_INFO pAdapter = nullptr;
+        DWORD dwRetVal = 0;
+
+        if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+            pAdapter = pAdapterInfo;
+            while (pAdapter) {
+                auto ip = &pAdapter->IpAddressList;
+                while (ip != nullptr) {
+                    if (strcmp(ip->IpAddress.String, "0.0.0.0") != 0) {
+                        res.push_back(std::string(ip->IpAddress.String));
+                    }
+                    ip = ip->Next;
+                }
+
+                pAdapter = pAdapter->Next;
+            }
+        }
+        free(pAdapterInfo);
+#else
+        struct ifaddrs *interfaces, *tmp;
+        getifaddrs(&interfaces);
+        tmp = interfaces;
+        // loop through all the interfaces
+        while (tmp) {
+            if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET) {
+                struct sockaddr_in* address = (struct sockaddr_in*)tmp->ifa_addr;
+                std::string ip = inet_ntoa(address->sin_addr);
+                if (ip != "0.0.0.0") {
+                    res.push_back(ip);
+                }
+            } else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
+                // LogDebug(VB_SYNC, "   Inet6 interface %s\n", tmp->ifa_name);
+            }
+            tmp = tmp->ifa_next;
+        }
+        freeifaddrs(interfaces);
+#endif
+
+        return res;
+    }
+
+    bool IsValidLocalIP(const std::string& ip) {
+        for (const auto& it : GetLocalIPs()) {
+            if (it == ip)
+                return true;
+        }
+
+        return false;
+    }
+
+    bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask) {
+        if (ip1 == "" || ip2 == "" || mask == "")
+            return false;
+
+        struct in_addr a1, a2, m;
+        if (inet_pton(AF_INET, ip1.c_str(), &a1) != 1)
+            return false;
+        if (inet_pton(AF_INET, ip2.c_str(), &a2) != 1)
+            return false;
+        if (inet_pton(AF_INET, mask.c_str(), &m) != 1)
+            return false;
+
+        return (a1.s_addr & m.s_addr) == (a2.s_addr & m.s_addr);
     }
 };

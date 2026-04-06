@@ -3723,7 +3723,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                         std::string mappingJson = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/model_vendor_mapping.json";
                         std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
                         if (json == "") {
-                            json = GetResourcesDir() + "/model_vendor_mapping.json";
+                            json = FileUtils::GetResourcesDir() + "/model_vendor_mapping.json";
                         }
                         if (json != "" && !FileExists(json)) {
                             json = "";

@@ -56,7 +56,7 @@ pugi::xml_node FindXmlNode(pugi::xml_node parent, const std::string& tag, const 
 // Consolidated set of wx-free utility functions
 std::string Ordinal(int i);
 std::string DecodeMidi(int midi);
-bool DeleteDirectory(std::string directory);
+
 bool IsEmailValid(const std::string& email);
 bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string JSONSafe(const std::string& s);
@@ -73,23 +73,6 @@ std::string GetXmlNodeAttribute(const pugi::xml_node &parent, const std::string&
 std::vector<std::string> GetXmlNodeListContent(const pugi::xml_node &parent, const std::string& path, const std::string& listNodeName);
 void SetXmlNodeAttribute(pugi::xml_node &node, const std::string& property, const std::string& value);
 int GetxFadePort(int xfp);
-
-std::string ExpandNodes(const std::string& nodes);
-std::string CompressNodes(const std::string& nodes);
-
-//shift nodes  numbering 1->21, 50->70
-void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max);
-//reverse nodes, numbering 1->100, 100->1
-void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
-
-// File path resolution — resolves missing/moved files by searching show dir, media dirs, etc.
-std::string FixFile(const std::string& showDir, const std::string& file);
-void SetFixFileShowDir(const std::string& showDir);
-void SetFixFileDirectories(const std::list<std::string>& dirs);
-std::string MakeRelativeFile(const std::string& file);
-void ClearNonExistentFiles();
-bool IsFileInShowDir(const std::string& showDir, const std::string& filename);
-std::string FixEffectFileParameter(const std::string& paramname, const std::string& paramvalue, const std::string& showDir);
 
 inline long roundTo4(long i) {
     long remainder = i % 4;
@@ -135,28 +118,18 @@ static inline double toDegrees(double radians) {
     return (radians / (2 * M_PI)) * 360.0;
 }
 
-inline const char* const toStr(bool b)
-{
-    return b ? "true" : "false";
-}
-
 inline const std::string& GetPathSeparator() {
     static const std::string sep(1, std::filesystem::path::preferred_separator);
     return sep;
 }
 
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
-std::list<std::string> GetLocalIPs();
-bool IsValidLocalIP(const std::string& ip);
-bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask = "255.255.255.0");
 
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);
 uint64_t GetPhysicalMemorySizeMB();
 
 bool IsxLights();
 void SetIsxLights(bool val);
-std::string GetResourcesDir();
-void SetResourcesDir(const std::string& dir);
 std::string ReverseCSV(const std::string& csv);
 void DumpBinary(uint8_t* buffer, size_t read);
 bool IsFloat(const std::string& number);

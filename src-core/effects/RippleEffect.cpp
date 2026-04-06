@@ -29,6 +29,7 @@
 #include "../render/RenderContext.h"
 
 #include "../utils/nanosvg_xl.h"
+#include "../utils/FileUtils.h"
 
 #include "../../include/ripple-16.xpm"
 #include "../../include/ripple-24.xpm"
@@ -1672,7 +1673,7 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
                 res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
-                    if (!IsFileInShowDir(std::string(), svgFilename)) {
+                    if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
                         res.push_back(std::format("    WARN: Ripple effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
@@ -1735,11 +1736,11 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel;
             }

@@ -37,6 +37,7 @@
 #include "../render/SequenceFile.h"
 #include "../render/SequenceMedia.h"
 #include "../utils/string_utils.h"
+#include "../utils/FileUtils.h"
 #include "../utils/xlRect.h"
 #include "../utils/xlSize.h"
 
@@ -89,7 +90,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
         entry->MarkIsUsed();
         if (entry->GetContent().empty() && !entry->IsEmbedded()) {
             res.push_back(std::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-        } else if (!entry->IsEmbedded() && !IsFileInShowDir(std::string(), textFilename)) {
+        } else if (!entry->IsEmbedded() && !FileUtils::IsFileInShowDir(std::string(), textFilename)) {
             res.push_back(std::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
@@ -149,7 +150,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
     // Resolve broken paths first, then convert to relative for portability
     std::string file = settings["E_FILEPICKERCTRL_Text_File"];
     if (!file.empty() && !FileExists(file)) {
-        std::string fixed = FixFile("", file);
+        std::string fixed = FileUtils::FixFile("", file);
         if (!fixed.empty() && fixed != file) {
             settings["E_FILEPICKERCTRL_Text_File"] = fixed;
             file = fixed;
@@ -158,11 +159,11 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Text_File"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_FILEPICKERCTRL_Text_File"] = rel;
             }

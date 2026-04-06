@@ -34,6 +34,7 @@
 #include "xLightsVersion.h"
 #include "../../render/RenderBuffer.h"
 #include "UtilFunctions.h"
+#include "utils/FileUtils.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
 
 enum MOTION_LINK {
@@ -71,7 +72,7 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
     DisplayAs = DisplayAsType::DmxMovingHeadAdv;
-    obj_path = GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
+    obj_path = FileUtils::GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
     color_ability = std::make_unique<DmxColorAbilityRGB>();
     dimmer_ability = std::make_unique<DmxDimmerAbility>();
     shutter_ability = std::make_unique<DmxShutterAbility>();

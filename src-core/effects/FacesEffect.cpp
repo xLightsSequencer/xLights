@@ -26,6 +26,7 @@
 #include "PicturesEffect.h"
 #include "utils/ExternalHooks.h"
 
+#include "../utils/FileUtils.h"
 #include "../utils/string_utils.h"
 
 #include "../../include/corofaces.xpm"
@@ -143,7 +144,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 if (picture != "") {
                     if (!FileExists(picture)) {
                         res.push_back(std::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
-                    } else if (!IsFileInShowDir(std::string(), picture)) {
+                    } else if (!FileUtils::IsFileInShowDir(std::string(), picture)) {
                         res.push_back(std::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     }
 

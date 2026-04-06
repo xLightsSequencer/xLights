@@ -2,9 +2,7 @@
 #define HINKSPIXEXPORTDIALOG_H
 
 #include <algorithm>
-#include <array>
-#include <list>
-#include <map>
+
 #include <optional>
 #include <vector>
 
@@ -21,7 +19,8 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 //*)
-#include <wx/filename.h>
+
+#include <fstream>
 
 #include <nlohmann/json.hpp>
 #include "render/FSEQFile.h"
@@ -65,10 +64,10 @@ struct PlayListItem {
         Audio = json.at("a").get<std::string>();
     }
 
-    [[nodiscard]] wxString asString() const
+    [[nodiscard]] std::string asString() const
     {
         // switch to std::format if gcc supports it
-        return wxString::Format("{\"H\":\"%s\",\"A\":\"%s\",\"D\":2}", HSEQ, AU);//D is a delay, maybe set to zero?
+        return std::format("{{\"H\":\"{}\",\"A\":\"{}\",\"D\":2}}", HSEQ, AU);//D is a delay, maybe set to zero?
     }
 };
 
@@ -110,22 +109,23 @@ struct PlayList
         return Name + ".ply";
     }
 
-    void saveAsFile(wxString const& filename) const {
-        wxArrayString main;
+    void saveAsFile(std::filesystem::path const& filename) const {
+        std::vector<std::string> main;
         for (auto const& it : Items) {
-            main.Add(it.asString());
+            main.push_back(it.asString());
         }
-        wxFile f;
-        f.Open(filename, wxFile::write);
-        if (f.IsOpened()) {
-            f.Write("[");
-            f.Write(wxJoin(main, ',', '\0'));
-            f.Write("]");
-            f.Close();
+
+        std::ofstream ofs(filename);
+        if (ofs.is_open()) {
+            ofs << "[";
+            ofs << Join(main, ",");
+            ofs << "]";
+            ofs.close();
         }
     }
-    void saveToDrive(wxString const& drive) const {
-        wxString const filename = drive + wxFileName::GetPathSeparator() + getFileName();
+
+    void saveToDrive(std::string const& drive) const {
+        auto const filename = std::filesystem::path(drive) / getFileName();
         saveAsFile(filename);
     }
 };
@@ -170,10 +170,10 @@ struct ScheduleItem {
             Repeat = json.at("rp").get<int>();
         }
     }
-    [[nodiscard]] wxString asString() const
+    [[nodiscard]] std::string asString() const
     {
         // Q is repeat count, 0 = infinite, 1 is "play once" in HSA
-        return wxString::Format("{\"S\":\"%d%02d\",\"E\":\"%d%02d\",\"P\":\"%s.ply\",\"Q\":%d}", StartHour, StartMin, EndHour, EndMin, Playlist, Repeat);
+        return std::format("{{\"S\":\"{:02d}{:02d}\",\"E\":\"{:02d}{:02d}\",\"P\":\"{}.ply\",\"Q\":{}}}", StartHour, StartMin, EndHour, EndMin, Playlist, Repeat);
     }
 
     [[nodiscard]] static bool isValidRange(int val, int start, int end)
@@ -189,7 +189,7 @@ struct ScheduleItem {
                isValidRange(EndMin, 0, 59);
     }
 
-    [[nodiscard]] bool isValid(wxString& reason) const
+    [[nodiscard]] bool isValid(std::string& reason) const
     {
         if (!isValidTimes()) {
             reason = Playlist + " Hour/Minutes not valid range 0-23, 0-59";
@@ -262,35 +262,35 @@ struct Schedule {
         return sorted;
     }
 
-    [[nodiscard]] wxString getFileName() const {
+    [[nodiscard]] std::string getFileName() const {
         return Day + ".sched";
     }
 
-    void saveAsFile(wxString const& filename) const
+    void saveAsFile(std::filesystem::path const& filename) const
     {
-        wxArrayString main;
+        std::vector<std::string> main;
         auto sItems = GetSortedSchedule();
         for (auto const& it : sItems) {
             if (it.Enabled) {
-                main.Add(it.asString());
+                main.push_back(it.asString());
             }
         }
-        wxFile f;
-        f.Open(filename, wxFile::write);
-        if (f.IsOpened()) {
-            f.Write("[");
-            f.Write(wxJoin(main, ',', '\0'));
-            f.Write("]");
-            f.Close();
+
+        std::ofstream ofs(filename);
+        if (ofs.is_open()) {
+            ofs << "[";
+            ofs << Join(main, ",");
+            ofs << "]";
+            ofs.close();
         }
     }
 
-    void saveToDrive(wxString const& drive) const {
-        wxString const filename = drive + wxFileName::GetPathSeparator() + getFileName();
+    void saveToDrive(std::string const& drive) const {
+        auto const filename = std::filesystem::path(drive) / getFileName();
         saveAsFile(filename);
     }
 
-    [[nodiscard]] bool isValid(wxString &reason) const
+    [[nodiscard]] bool isValid(std::string& reason) const
     {
         //bool anyEnabled { false };
         auto sItems = GetSortedSchedule();

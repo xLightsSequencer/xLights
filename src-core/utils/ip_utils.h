@@ -26,4 +26,9 @@ namespace ip_utils
     void ResolveIP(const std::string& ip, std::function<void(const std::string &)> &&func);
     void waitForAllToResolve();
     void shutdownResolvePool();
+
+	std::list<std::string> GetLocalIPs();
+    bool IsValidLocalIP(const std::string& ip);
+    bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask = "255.255.255.0");
+
 };

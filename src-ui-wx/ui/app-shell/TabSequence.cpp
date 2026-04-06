@@ -498,13 +498,13 @@ void xLightsFrame::LoadEffectsFile()
     }
     SetPreviewSize(previewWidth, previewHeight);
 
-    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
+    mBackgroundImage = FileUtils::FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
     ObtainAccessToURL(mBackgroundImage);
     if (!mBackgroundImage.empty() && (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
         //image doesn't exist there, lets look for it in media directories
         std::string bgImg = GetXmlSetting("backgroundImage", "");
         for (auto &dir : mediaDirectories) {
-            wxString fn = FixFile(dir, bgImg);
+            wxString fn = FileUtils::FixFile(dir, bgImg);
             ObtainAccessToURL(fn.ToStdString());
             if (FileExists(fn) && wxIsReadable(fn)) {
                 mBackgroundImage = fn.ToStdString();

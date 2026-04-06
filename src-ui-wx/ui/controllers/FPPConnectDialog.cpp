@@ -478,7 +478,7 @@ void FPPConnectDialog::SelectIPsWithSubnet() {
         if (inst->fppType == FPP_TYPE::FPP) {
             if (inst->supportedForFPPConnect()) {
                 std::string rowStr = std::to_string(row);
-                if (IsInSameSubnet(subnet, inst->ipAddress)) {
+                if (ip_utils::IsInSameSubnet(subnet, inst->ipAddress)) {
                     SetCheckValue(CHECK_COL + rowStr, true);
                 } else {
                     SetCheckValue(CHECK_COL + rowStr, false);
@@ -880,7 +880,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
                         }
                     }
                     if (!FileExists(mediaName)) {
-                        std::string fixedMN = FixFile(frame->CurrentDir.ToStdString(), mediaName);
+                        std::string fixedMN = FileUtils::FixFile(frame->CurrentDir.ToStdString(), mediaName);
                         if (!FileExists(fixedMN)) {
                             spdlog::info("Could not find media: {} ", mediaName.c_str());
                             mediaName = "";
@@ -994,7 +994,7 @@ void FPPConnectDialog::LoadSequences()
                 for (auto& header : file->getVariableHeaders()) {
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
                         std::string mediaName = (const char*)(&header.data[0]);
-                        mediaName = FixFile(std::string(""), mediaName);
+                        mediaName = FileUtils::FixFile(std::string(""), mediaName);
                         if (FileExists(mediaName)) {
                             CheckListBox_Sequences->SetItemText(item, 2, mediaName);
                         }

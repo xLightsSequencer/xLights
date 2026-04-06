@@ -24,6 +24,7 @@
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
+#include "../utils/FileUtils.h"
 #include "render/SequenceViewManager.h"
 #include "JukeboxButtonData.h"
 #include "../utils/TraceLog.h"
@@ -656,7 +657,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     }
 
                     if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos) {
-                        settings = FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
+                        settings = FileUtils::FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
                     }
 
                     std::string palStr = effect.attribute("palette").as_string("");
@@ -760,7 +761,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             for (auto elementNode : e.children("Effect")) {
                 std::string content = elementNode.text().as_string("");
                 if (content.find("E_TEXTCTRL_Glediator_Filename") != std::string::npos) {
-                    content = FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", content, showDir);
+                    content = FileUtils::FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", content, showDir);
                 }
                 effectStrings.push_back(content);
             }

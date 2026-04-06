@@ -1943,7 +1943,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
         p->SetAttribute("Max", 1000);
         p->SetEditor("SpinCtrl");
 
-        auto ips = GetLocalIPs();
+        auto const ips = ip_utils::GetLocalIPs();
         wxPGChoices choices;
         int val = 0;
         choices.Add("");
@@ -2157,7 +2157,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnControllerPropertyGridChange::GlobalFPPProxy", nullptr);
         }
         else if (name == "ForceLocalIP") {
-            auto ips = GetLocalIPs();
+            auto ips = ip_utils::GetLocalIPs();
 
             if (event.GetValue().GetLong() == 0) {
                 _outputManager.SetGlobalForceLocalIP("");

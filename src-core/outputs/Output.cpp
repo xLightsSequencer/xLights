@@ -205,7 +205,7 @@ std::string Output::GetForceLocalIPToUse() const
     auto lip = GetForceLocalIP();
     if (lip == "")
         lip = _globalForceLocalIP;
-    if (lip != "" && !IsValidLocalIP(lip))
+    if (lip != "" && !ip_utils::IsValidLocalIP(lip))
         lip = "";
     return lip;
 }

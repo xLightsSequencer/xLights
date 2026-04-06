@@ -13,7 +13,7 @@
 #include <filesystem>
 
 #include "MeshObject.h"
-#include "UtilFunctions.h"
+#include "utils/FileUtils.h"
 #include "../graphics/IModelPreview.h"
 #include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
@@ -51,7 +51,7 @@ void MeshObject::InitModel() {
 
 void MeshObject::SetObjectFile(const std::string & objFile)
 {
-    _objFile = FixFile("", objFile);
+    _objFile = FileUtils::FixFile("", objFile);
     checkAccessToFile(_objFile);
 }
 
@@ -96,7 +96,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
     if (_objFile == "" || !FileExists(_objFile)) {
         res.push_back(std::format("    ERR: Mesh object '{}' cant find obj file '{}'", GetName(), _objFile));
     } else {
-        if (!IsFileInShowDir(std::string(), _objFile)) {
+        if (!FileUtils::IsFileInShowDir(std::string(), _objFile)) {
             res.push_back(std::format("    WARN: Mesh object '{}' obj file '{}' not under show/media/resource directories.", GetName(), _objFile));
         }
 

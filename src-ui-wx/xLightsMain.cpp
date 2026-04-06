@@ -138,7 +138,7 @@
 #include "TempFileManager.h"
 #include "ui/color/xlColourData.h"
 #include "utils/CurlManager.h"
-#include "utils/CurlManager.h"
+#include "utils/FileUtils.h"
 #include "ai/chatGPT.h"
 #include "ai/AIImageDialog.h"
 #include "models/DMX/DmxMovingHeadComm.h"
@@ -1785,7 +1785,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             }
         }
     }
-    SetFixFileDirectories(mediaDirectories);
+    FileUtils::SetFixFileDirectories(mediaDirectories);
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
         const int size = AUIStatusBar->GetSize().GetHeight();
@@ -2206,7 +2206,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // this is no longer used ... as it is now stored in the networks file
     wxString tmpString;
     config->Read("xLightsLocalIP", &tmpString, "");
-    if (IsValidLocalIP(tmpString) && tmpString != "") {
+    if (ip_utils::IsValidLocalIP(tmpString) && tmpString != "") {
         _outputManager.SetGlobalForceLocalIP(tmpString);
         config->DeleteEntry("xLightsLocalIP");
     }
@@ -2903,7 +2903,6 @@ void xLightsFrame::ResetAllSequencerWindows()
 
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
-    
 
     // this logging is extra until we find out why this function crashes
     spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows");
@@ -3228,8 +3227,6 @@ SequenceFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
-    
-
     if (!QuitMenuItem->IsEnabled()) {
         return;
     }
@@ -3360,7 +3357,6 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
 void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors)
 {
-    
 
     if (wxDir::Exists(targetDirName))
         return;
@@ -4140,7 +4136,6 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
-    
 
     // save the media playing state and stop it if it is playing
     MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
@@ -4364,7 +4359,6 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 
 std::string xLightsFrame::PackageDebugFiles(bool showDialog)
 {
-    
 
     wxString zipFileName{ "xLightsProblem.zip" };
     wxString zipDir{ CurrentDir };
@@ -4752,7 +4746,7 @@ void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
         }
     }
     config->Write(_("MediaDir"), setting);
-    SetFixFileDirectories(mediaDirectories);
+    FileUtils::SetFixFileDirectories(mediaDirectories);
     mediaDirectories.push_back(showDirectory);
 }
 
@@ -4764,7 +4758,6 @@ void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder)
 
 void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
 {
-    
 
     wxConfigBase* config = wxConfigBase::Get();
 
@@ -4802,7 +4795,6 @@ void xLightsFrame::GetRenderCacheFolder(bool& useShow, std::string& folder)
 
 void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
 {
-    
 
     if (useShow) {
         if (renderCacheDirectory == showDirectory)
@@ -4836,7 +4828,6 @@ void xLightsFrame::GetBackupFolder(bool& useShow, std::string& folder)
 
 void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
 {
-    
 
     if (useShow) {
         if (_backupDirectory == showDirectory)
@@ -4869,7 +4860,6 @@ void xLightsFrame::GetAltBackupFolder(std::string& folder)
 
 void xLightsFrame::SetAltBackupFolder(const std::string& folder)
 {
-    
 
     if (folder == mAltBackupDir)
         return;
@@ -5059,7 +5049,6 @@ bool xLightsFrame::CheckStart(wxFile& f, CheckSequenceReport& report, bool write
 
 std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 {
-    
 
     // make sure everything is up to date
     if (Notebook1->GetSelection() != LAYOUTTAB)
@@ -5154,7 +5143,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     LogCheckSequenceMsg("");
     LogCheckSequenceMsg("IP Addresses on this machine:");
-    for (const auto& it : GetLocalIPs()) {
+    for (const auto& it : ip_utils::GetLocalIPs()) {
         LogAndTrackInfo(report, "network", wxString::Format("    %s", it), "network_ips");
     }
 
@@ -6680,7 +6669,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         showdir = sd3;
 
     for (const auto& it : allfiles) {
-        wxString ff = FixFile(showDirectory, it);
+        wxString ff = FileUtils::FixFile(showDirectory, it);
         if (ff.StartsWith(showDirectory)) // only check files in show folder
         {
             if (FileExists(ff)) {
@@ -6739,7 +6728,7 @@ void xLightsFrame::ValidateEffectAssets()
 {
     std::string missing;
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
-        auto f = FixFile("", it);
+        auto f = FileUtils::FixFile("", it);
         if (!FileExists(f, false)) {
             missing += it + "\n";
         }
@@ -7504,7 +7493,6 @@ void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds
 // returns the lost files path if required
 std::string AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip, std::list<std::string>& zippedFiles, const std::string& actualfile = "")
 {
-    
 
     bool dozip = std::find(begin(zippedFiles), end(zippedFiles), file) == end(zippedFiles);
 
@@ -7667,7 +7655,6 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
 std::string xLightsFrame::PackageSequence(bool showDialogs)
 {
-    
 
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
 
@@ -9042,7 +9029,6 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 
 bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes)
 {
-    
 
     bool found_update = false;
     // include 6 tags, first will LIKELY be the nightly, this then includes 5 to walk
@@ -9308,7 +9294,6 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
 void xLightsFrame::DoBackupPurge()
 {
-    
 
     if (BackupPurgeDays <= 0) {
         spdlog::debug("Backup purging skipped as it is disabled.");
@@ -9378,7 +9363,7 @@ void xLightsFrame::DoBackupPurge()
 
                 if (current == BackUpStatus::Old && next == BackUpStatus::Old) {
                     spdlog::debug("    Backup purge PURGING {}!", (const char*)filename.c_str());
-                    if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString())) {
+                    if (!FileUtils::DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString())) {
                         spdlog::debug("        FAILED!");
                     } else {
                         purged++;
@@ -9636,7 +9621,6 @@ void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 {
-    
 
     // This exists solely to provide an easy way to test AudioManager::CreateAudioFile()
 #if 0
@@ -10666,7 +10650,6 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         PromptForDirectorySelection("Reselect Base Show Directory", dstr);
         ObtainAccessToURL(_outputManager.GetBaseShowDir());
     }
-    
 
     // bring in any controllers overwriting some of their properties ... but not all of them
     if (_outputManager.MergeFromBase(prompt)) {

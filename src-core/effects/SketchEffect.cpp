@@ -25,6 +25,8 @@
 #include "../render/UICallbacks.h"
 #include "utils/ExternalHooks.h"
 
+#include "utils/FileUtils.h"
+
 #include "../../include/sketch-16.xpm"
 #include "../../include/sketch-24.xpm"
 #include "../../include/sketch-32.xpm"
@@ -141,11 +143,11 @@ void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bo
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKER_SketchBackground"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_FILEPICKER_SketchBackground"] = rel;
             }
@@ -177,7 +179,7 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
                 res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!imgEntry->IsEmbedded()) {
-                    if (!IsFileInShowDir(std::string(), filename)) {
+                    if (!FileUtils::IsFileInShowDir(std::string(), filename)) {
                         res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }

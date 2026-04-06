@@ -38,6 +38,7 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 #include "../utils/ip_utils.h"
+#include "../utils/NodeUtils.h"
 #include "../render/RenderContext.h"
 #include "../utils/TraceLog.h"
 #include "xLightsVersion.h"
@@ -2756,7 +2757,7 @@ void Model::ExportAsCustomXModel(BaseSerializingVisitor& visitor) const
         bufAttrs.Add("layout", "horizontal");
         bufAttrs.Add("type",   "ranges");
         for (int x = 0; x < (int)nodearray.size(); ++x) {
-            bufAttrs.Add("line" + std::to_string(x), CompressNodes(Join(nodearray[x], ",")));
+            bufAttrs.Add("line" + std::to_string(x), NodeUtils::CompressNodes(Join(nodearray[x], ",")));
         }
         visitor.WriteOpenTag("subModel", bufAttrs, true);
     }
@@ -3874,7 +3875,7 @@ std::string Model::CreateBufferAsSubmodel() const
     child.append_attribute("type") = "ranges";
 
     for (int x = 0; x < (int)nodearray.size(); ++x) {
-        child.append_attribute(std::format("line{}", x)) = CompressNodes(Join(nodearray[x], ","));
+        child.append_attribute(std::format("line{}", x)) = NodeUtils::CompressNodes(Join(nodearray[x], ","));
     }
 
     // Save just the node (not the xml declaration) to a string

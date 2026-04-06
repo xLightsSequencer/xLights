@@ -25,8 +25,7 @@
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
 #include "../models/Model.h"
-#include "UtilFunctions.h"
-#include "utils/ExternalHooks.h"
+#include "../utils/FileUtils.h"
 
 #include "../../include/vumeter-16.xpm"
 #include "../../include/vumeter-24.xpm"
@@ -187,7 +186,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
                 res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
-                    if (!IsFileInShowDir(std::string(), svgFilename)) {
+                    if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
                         res.push_back(std::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
@@ -243,11 +242,11 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_SVGFile"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_FILEPICKERCTRL_SVGFile"] = rel;
             }

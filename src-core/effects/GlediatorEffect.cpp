@@ -19,6 +19,7 @@
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
 #include "../utils/string_utils.h"
+#include "../utils/FileUtils.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -167,7 +168,7 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
         if (!entry->isLoaded()) {
             res.push_back(std::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (!entry->IsEmbedded()) {
-            if (!IsFileInShowDir(std::string(), GledFilename)) {
+            if (!FileUtils::IsFileInShowDir(std::string(), GledFilename)) {
                 res.push_back(std::format("    WARN: Glediator effect file '{}' not under show directory. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
@@ -232,7 +233,7 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
     // Resolve broken paths first, then convert to relative for portability
     file = settings["E_FILEPICKERCTRL_Glediator_Filename"];
     if (!file.empty() && !FileExists(file)) {
-        std::string fixed = FixFile("", file);
+        std::string fixed = FileUtils::FixFile("", file);
         if (!fixed.empty() && fixed != file) {
             settings["E_FILEPICKERCTRL_Glediator_Filename"] = fixed;
             file = fixed;
@@ -241,11 +242,11 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
             if (!FileExists(file, false)) {
-                std::string fixed = FixFile("", file);
-                std::string rel = MakeRelativeFile(fixed);
+                std::string fixed = FileUtils::FixFile("", file);
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Glediator_Filename"] = rel.empty() ? fixed : rel;
             } else {
-                std::string rel = MakeRelativeFile(file);
+                std::string rel = FileUtils::MakeRelativeFile(file);
                 if (!rel.empty())
                     settings["E_FILEPICKERCTRL_Glediator_Filename"] = rel;
             }

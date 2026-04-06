@@ -18,7 +18,7 @@
 #include "../graphics/IModelPreview.h"
 #include "../render/RenderBuffer.h"
 #include "../render/RenderContext.h"
-#include "UtilFunctions.h"
+#include "utils/FileUtils.h"
 #include "utils/ExternalHooks.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
@@ -93,7 +93,7 @@ void ImageModel::InitModel()
 void ImageModel::SetImageFile(const std::string & imageFile)
 {
     ObtainAccessToURL(imageFile);
-    _imageFile = FixFile("", imageFile);
+    _imageFile = FileUtils::FixFile("", imageFile);
 }
 void ImageModel::ClearImageCache() {
     for (auto it = _images.begin(); it != _images.end(); ++it) {
@@ -422,7 +422,7 @@ std::list<std::string> ImageModel::CheckModelSettings()
     } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
         res.push_back(std::format("    ERR: Image model '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
-        if (!IsFileInShowDir(std::string(), _imageFile)) {
+        if (!FileUtils::IsFileInShowDir(std::string(), _imageFile)) {
             res.push_back(std::format("    WARN: Image model '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }

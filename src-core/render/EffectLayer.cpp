@@ -1209,7 +1209,6 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
 
 void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    
 
     for (int i = 0; i < (int)mEffects.size(); i++) {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
