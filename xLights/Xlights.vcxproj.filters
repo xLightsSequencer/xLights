@@ -1447,9 +1447,6 @@
     <ClCompile Include="..\src-core\media\kiss_fft\tools\kiss_fftr.c">
       <Filter>kiss_fft</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-core\outputs\uDMXOutput.cpp">
-      <Filter>Outputs</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-core\utils\GitUtils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -2939,9 +2936,6 @@
     </ClInclude>
     <ClInclude Include="..\src-core\controllers\ILightThat.h">
       <Filter>Controllers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-core\outputs\uDMXOutput.h">
-      <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\utils\GitUtils.h">
       <Filter>utils</Filter>

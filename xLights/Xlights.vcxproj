@@ -1022,9 +1022,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\XmlSerializer\StringSerializingVisitor.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\StreamSerializingVisitor.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\FileSerializingVisitor.cpp" />
-    <ClCompile Include="..\src-core\outputs\serial_win32.cpp" />
+    <ClCompile Include="..\src-core\outputs\serial_win32.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\src-core\utils\GitUtils.cpp" />
-    <ClCompile Include="..\src-core\outputs\uDMXOutput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1681,7 +1682,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\render\IRenderJobStatus.h" />
     <ClInclude Include="..\src-core\models\PWMOutput.h" />
     <ClInclude Include="..\src-core\utils\GitUtils.h" />
-    <ClInclude Include="..\src-core\outputs\uDMXOutput.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
