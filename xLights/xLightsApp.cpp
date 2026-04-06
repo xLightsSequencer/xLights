@@ -217,6 +217,7 @@ void ApplyLoggingSpecialOptions()
             spdlog::get(name)->set_level(spdlog::level::from_str(level));
             spdlog::info("Logger '{}' level set to '{}'", name, level);
         };
+        applyLevel("xLights", "xLights_logger", "info");
         applyLevel("render", "render_logger", "warn");
         applyLevel("curl",   "curl_logger",   "info");
         applyLevel("opengl", "opengl_logger", "info");
