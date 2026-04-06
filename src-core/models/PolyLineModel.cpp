@@ -547,7 +547,6 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
     size_t c = 0;
     int segment = 0;
     int sub_segment = 0;
-    int last_seg_count = 0;
     float seg_start = current_pos;
     float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
     float seg_end = seg_start + segment_length;

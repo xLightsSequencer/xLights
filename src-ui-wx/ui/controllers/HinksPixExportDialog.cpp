@@ -407,7 +407,7 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager) 
         Choice2->Append(_(""));
         wxChoice* Choice3 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, SLAVE2_COL + rowStr);
         Choice3->Append(_(""));
-        for (wxString const& oth : otherControllers) {
+        for (wxString oth : otherControllers) {
             Choice2->Append(oth);
             Choice3->Append(oth);
         }

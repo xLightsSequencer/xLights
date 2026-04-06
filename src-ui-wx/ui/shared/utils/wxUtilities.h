@@ -90,13 +90,13 @@ void DisplayInfo(const std::string& info, wxWindow* win);
 void DisplayCrit(const std::string& crit, wxWindow* win = nullptr);
 std::string DecodeIPError(int err);
 wxArrayString Split(const wxString& s, const std::vector<char>& delimiters);
-inline bool IsFileInShowDir(const wxString& showDir, const std::string filename) { return IsFileInShowDir(showDir.ToStdString(), filename); }
+inline bool IsFileInShowDir(const wxString& showDir, const std::string filename) { return FileUtils::IsFileInShowDir(showDir.ToStdString(), filename); }
 // wxString wrappers around std::string versions in UtilFunctions.h
-inline void SetFixFileShowDir(const wxString& ShowDir) { SetFixFileShowDir(ShowDir.ToStdString()); }
+inline void SetFixFileShowDir(const wxString& ShowDir) { FileUtils::SetFixFileShowDir(ShowDir.ToStdString()); }
 inline wxString FixFile(const wxString& ShowDir, const wxString& file) { return wxString(FileUtils::FixFile(ShowDir.ToStdString(), file.ToStdString())); }
-inline wxString MakeRelativeFile(const wxString& file) { return wxString(MakeRelativeFile(file.ToStdString())); }
+inline wxString MakeRelativeFile(const wxString& file) { return wxString(FileUtils::MakeRelativeFile(file.ToStdString())); }
 inline wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir) {
-    return wxString(FixEffectFileParameter(paramname.ToStdString(), parametervalue.ToStdString(), ShowDir.ToStdString()));
+    return wxString(FileUtils::FixEffectFileParameter(paramname.ToStdString(), parametervalue.ToStdString(), ShowDir.ToStdString()));
 }
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 void OptimiseDialogPosition(wxDialog* dlg);

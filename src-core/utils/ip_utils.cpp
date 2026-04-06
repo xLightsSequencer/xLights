@@ -26,6 +26,7 @@
 #include <ws2tcpip.h>
 #else
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
 #endif

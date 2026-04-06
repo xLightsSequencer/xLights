@@ -96,7 +96,7 @@ static bool doesFileExistInDirs(const std::string& baseDir, const std::string& a
     return false;
 }
 
-std::string FileUtils::FixFile(const std::string& showDir, const std::string& file) {
+std::string FixFile(const std::string& showDir, const std::string& file) {
     if (showDir != _fixFileShowDir && !showDir.empty() && _fixFileShowDir.empty()) {
         _fixFileShowDir = showDir;
     }
