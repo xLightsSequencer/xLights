@@ -380,21 +380,29 @@ std::string CachedFileDownloader::GetFile(const std::string& url, CACHEFOR cache
     }
 
     FileCacheItem* fci = Find(url);
+    bool needsSave = false;
     if (fci == nullptr)
     {
         spdlog::debug("File Cache downloading file {}.", url);
         fci = new FileCacheItem(url, cacheFor, forceType, progressCallback, low, high, keepProgress);
         _cacheItems.push_back(fci);
+        needsSave = true;
     }
     else if (!fci->Exists())
     {
         spdlog::debug("File Cache re-downloading file {}.", url);
         fci->Download(forceType, progressCallback, low, high, keepProgress);
+        needsSave = true;
     }
 
     if (fci->GetFileName() == "")
     {
         spdlog::debug("File Cache file {} could not be retrieved.", url);
+    }
+
+    if (needsSave && fci->Exists())
+    {
+        SaveCache();
     }
 
     if (progressCallback != nullptr)

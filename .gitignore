@@ -1,4 +1,5 @@
 build
+.clangd
 bin/xCapture
 bin/xFade
 bin/xLights
