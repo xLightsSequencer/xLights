@@ -30,10 +30,10 @@ void PhonemeDictionary::LoadDictionaries(const wxString& showDir, wxWindow* pare
     LoadDictionary("extended_dictionary", showDir, parent, wxFONTENCODING_ISO8859_1);
     LoadDictionary("user_dictionary", showDir, parent); // load user last so it overrides the other dictionaries
 
-    wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
-    phonemeFile.SetFullName("phoneme_mapping");
+    wxFileName phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir() + "/dictionaries", "phoneme_mapping");
     if (!FileExists(phonemeFile.GetFullPath())) {
-        phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), "phoneme_mapping");
+        phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
+        phonemeFile.SetFullName("phoneme_mapping");
     }
     if (!FileExists(phonemeFile.GetFullPath())) {
         DisplayError("Failed to open Phoneme Mapping file!");
@@ -67,15 +67,15 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
     wxFileName phonemeFile = wxFileName::DirName(showDir);
     phonemeFile.SetFullName(filename);
 
-    // if not there then look were the exe is
+    // if not there look in the resources/dictionaries location
+    if (!FileExists(phonemeFile.GetFullPath())) {
+        phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir() + "/dictionaries", filename);
+    }
+
+    // if not there then look were the exe is (legacy fallback)
     if (!FileExists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
         phonemeFile.SetFullName(filename);
-    }
-
-    // if not there look in the resources location (OSX/Linux keeps it there)
-    if (!FileExists(phonemeFile.GetFullPath())) {
-        phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), filename);
     }
 
     if (!FileExists(phonemeFile.GetFullPath())) {

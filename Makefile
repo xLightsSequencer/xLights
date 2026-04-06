@@ -18,7 +18,7 @@ CHK_DIR_EXISTS  = test -d
 INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
-SHARE_FILES     = phoneme_mapping extended_dictionary standard_dictionary user_dictionary
+DICT_FILES      = phoneme_mapping extended_dictionary standard_dictionary user_dictionary
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 # run with `SUDO= make` when installing to a location that doesn't require root
 SUDO		= `which sudo`
@@ -121,18 +121,19 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
-	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/dictionaries
+	$(foreach dict, $(DICT_FILES), install -D -m 644 resources/dictionaries/$(dict) $(DESTDIR)/${PREFIX}/share/xLights/dictionaries/$(dict) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
-	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
+	cp -r resources/colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/controllers
-	cp -r controllers/* $(DESTDIR)/${PREFIX}/share/xLights/controllers
+	cp -r resources/controllers/* $(DESTDIR)/${PREFIX}/share/xLights/controllers
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
-	cp -r meshobjects/* $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
+	cp -r resources/meshobjects/* $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
-	cp -r valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
+	cp -r resources/valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/mhpresets
-	cp -r mhpresets/* $(DESTDIR)/${PREFIX}/share/xLights/mhpresets
-	$(foreach size, $(ICON_SIZES), install -D -m 644 images/xLightsIcons/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
+	cp -r resources/mhpresets/* $(DESTDIR)/${PREFIX}/share/xLights/mhpresets
+	$(foreach size, $(ICON_SIZES), install -D -m 644 resources/images/xLightsIcons/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
 	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
 	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so

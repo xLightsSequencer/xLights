@@ -178,15 +178,14 @@
       <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>xcopy /Y /I "$(ProjectDir)..\prompts\*.txt" "$(TargetDir)prompts\"
-xcopy /Y /I "$(ProjectDir)..\resources\*.*" "$(TargetDir)resources\"
+      <Command>xcopy /Y /I "$(ProjectDir)..\resources\prompts\*.txt" "$(TargetDir)prompts\"
+xcopy /Y /I "$(ProjectDir)..\resources\html\*.*" "$(TargetDir)html\"
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
@@ -194,7 +193,7 @@ xcopy /Y /I "$(ProjectDir)..\resources\*.*" "$(TargetDir)resources\"
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>false</TreatOutputAsContent>
-      <Inputs>$(ProjectDir)..\prompts\*.txt;$(ProjectDir)..\resources\*.*</Inputs>
+      <Inputs>$(ProjectDir)..\resources\prompts\*.txt;$(ProjectDir)..\resources\html\*.*</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
@@ -224,8 +223,7 @@ xcopy /Y /I "$(ProjectDir)..\resources\*.*" "$(TargetDir)resources\"
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
@@ -258,8 +256,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
@@ -302,8 +299,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
@@ -346,8 +342,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
@@ -390,8 +385,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
-copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
@@ -1688,10 +1682,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\documentation\xlDo Commands.txt" />
-    <Text Include="..\prompts\AI_Model_AutoMap.txt" />
-    <Text Include="..\prompts\AI_Node_AutoMap.txt" />
-    <Text Include="..\prompts\AI_Strand_AutoMap.txt" />
-    <Text Include="..\prompts\AI_SubModel_AutoMap.txt" />
+    <Text Include="..\resources\prompts\AI_Model_AutoMap.txt" />
+    <Text Include="..\resources\prompts\AI_Node_AutoMap.txt" />
+    <Text Include="..\resources\prompts\AI_Strand_AutoMap.txt" />
+    <Text Include="..\resources\prompts\AI_SubModel_AutoMap.txt" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc">

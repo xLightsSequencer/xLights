@@ -3111,16 +3111,16 @@
     <Text Include="..\documentation\xlDo Commands.txt">
       <Filter>automation</Filter>
     </Text>
-    <Text Include="..\prompts\AI_Model_AutoMap.txt">
+    <Text Include="..\resources\prompts\AI_Model_AutoMap.txt">
       <Filter>Prompts</Filter>
     </Text>
-    <Text Include="..\prompts\AI_Node_AutoMap.txt">
+    <Text Include="..\resources\prompts\AI_Node_AutoMap.txt">
       <Filter>Prompts</Filter>
     </Text>
-    <Text Include="..\prompts\AI_Strand_AutoMap.txt">
+    <Text Include="..\resources\prompts\AI_Strand_AutoMap.txt">
       <Filter>Prompts</Filter>
     </Text>
-    <Text Include="..\prompts\AI_SubModel_AutoMap.txt">
+    <Text Include="..\resources\prompts\AI_SubModel_AutoMap.txt">
       <Filter>Prompts</Filter>
     </Text>
   </ItemGroup>

@@ -488,7 +488,7 @@ std::string CheckSequenceReport::GenerateHTML() const {
 
 bool CheckSequenceReport::WriteToFile(wxFile& f) const {
     wxString resourcesPath = GetResourcesDirectory();
-    wxString srcCss = resourcesPath + wxFileName::GetPathSeparator() + "resources" + wxFileName::GetPathSeparator() + "tailwind.min.css";
+    wxString srcCss = resourcesPath + wxFileName::GetPathSeparator() + "html" + wxFileName::GetPathSeparator() + "tailwind.min.css";
     wxString destCss = mShowFolder + wxString(wxFileName::GetPathSeparator()) + "checksequence_tailwind.min.css";
     wxCopyFile(srcCss, destCss);
     TempFileManager::GetTempFileManager().AddTempFile(ToStdString(destCss));

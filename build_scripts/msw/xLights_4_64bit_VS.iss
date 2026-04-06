@@ -88,12 +88,9 @@ Source: "../../bin64/libcurl-x64.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; hidapi
 Source: "../../bin64/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
-; Added files for doing Papagayo effects
-Source: "../../bin/extended_dictionary"; DestDir: "{app}"
-Source: "../../bin/phoneme_mapping";     DestDir: "{app}"
-Source: "../../bin/standard_dictionary"; DestDir: "{app}"
-Source: "../../bin/german_dictionary";   DestDir: "{app}"
-Source: "../../bin/user_dictionary";     DestDir: "{app}"
+; Dictionaries (for Papagayo effects)
+Source: "../../resources/dictionaries/*"; DestDir: "{app}/dictionaries"; Flags: ignoreversion
+Source: "../../bin/german_dictionary";    DestDir: "{app}"
 
 ; Vamp dll's
 Source: "../../bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -103,28 +100,28 @@ Source: "../../License.txt"; DestDir: "{app}";
 Source: "../../README.txt";  DestDir: "{app}"; Flags: isreadme
 
 ; Color Curves
-Source: "../../colorcurves/*.*"; DestDir: "{app}/colorcurves"   ; Flags: ignoreversion recursesubdirs
+Source: "../../resources/colorcurves/*.*"; DestDir: "{app}/colorcurves"   ; Flags: ignoreversion recursesubdirs
 
 ; Value Curves
-Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: ignoreversion recursesubdirs
+Source: "../../resources/valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: ignoreversion recursesubdirs
 
 ; Mesh Objects
-Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: ignoreversion recursesubdirs
+Source: "../../resources/meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: ignoreversion recursesubdirs
 
 ; MHPreset Objects
-Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: ignoreversion recursesubdirs
+Source: "../../resources/mhpresets/*.*"; DestDir: "{app}/mhpresets"   ; Flags: ignoreversion recursesubdirs
 
 ; Controllers
-Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
+Source: "../../resources/controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
 
 ; Prompts
-Source: "../../prompts/*.*"; DestDir: "{app}/prompts"   ; Flags: ignoreversion recursesubdirs
+Source: "../../resources/prompts/*.*"; DestDir: "{app}/prompts"   ; Flags: ignoreversion recursesubdirs
 
 ; Palettes
-Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
+Source: "../../resources/palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
 
-; Resources
-Source: "../../resources/*.*"; DestDir: "{app}/resources"   ; Flags: ignoreversion recursesubdirs
+; HTML resources (tailwind etc.)
+Source: "../../resources/html/*.*"; DestDir: "{app}/html"   ; Flags: ignoreversion recursesubdirs
 
 ; Scripts
 ;Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs
