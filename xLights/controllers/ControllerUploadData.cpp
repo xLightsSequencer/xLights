@@ -845,7 +845,7 @@ int32_t UDControllerPort::Channels() const {
     if (_virtualStrings.size() == 0) {
         if (_models.size() == 0) return 0;
 
-        if (_separateUniverses || _packedStrings) {
+        if (_separateUniverses || _packedStrings || AtLeastOneModelIsUsingSmartRemote()) {
             int c = 0;
             for (const auto& it : _models) {
                 c += it->Channels();
