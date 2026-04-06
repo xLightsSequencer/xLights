@@ -118,7 +118,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
@@ -1694,7 +1694,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <Text Include="..\prompts\AI_SubModel_AutoMap.txt" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -1707,7 +1707,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="effects\ispc\BarsFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\BarsFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
@@ -1718,7 +1718,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\ColorWashFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\ColorWashFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
@@ -1729,7 +1729,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\FanFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\FanFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
@@ -1740,20 +1740,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
-    <CustomBuild Include="effects\ispc\KaleidoscopeFunctions.ispc">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
@@ -1766,7 +1753,20 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\ButterflyFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\src-core\effects\ispc\PinwheelFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
@@ -1779,7 +1779,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\PlasmaFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
@@ -1792,15 +1792,15 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="effects\ispc\VideoFunctions.ispc">
+    <CustomBuild Include="..\src-core\effects\ispc\VideoFunctions.ispc">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
-findstr /v ".ispc.h" "effects\\ispc\\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "effects\\ispc\\%(Filename).ispc.h"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" -h "..\\src-core\\effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+findstr /v ".ispc.h" "..\src-core\effects\\ispc\\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "..\\src-core\\effects\\ispc\\%(Filename).ispc.h"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
-findstr /v ".ispc.h" "effects\\ispc\\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "effects\\ispc\\%(Filename).ispc.h"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" -h "..\\src-core\\effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+findstr /v ".ispc.h" "..\\src-core\\effects\\ispc\\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "..\\src-core\\effects\\ispc\\%(Filename).ispc.h"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
     </CustomBuild>
