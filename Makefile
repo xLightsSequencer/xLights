@@ -47,10 +47,15 @@ all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc makefile subdirs
 
 #############################################################################
 
-subdirs: makefile $(SUBDIRS)
+subdirs: makefile $(SUBDIRS) share/xLights
 
 $(SUBDIRS): FORCE
 	@${MAKE} -C $@ -f `basename $@`.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
+
+share/xLights:
+	@mkdir -p share
+	@ln -s ../resources share/xLights
+	@printf "Created share/xLights -> ../resources symlink\n"
 
 
 #############################################################################
