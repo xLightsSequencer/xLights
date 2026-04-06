@@ -144,7 +144,7 @@ public:
     void EmbedImage() { Embed(); }
     void ExtractImage() { Extract(); }
 
-    bool IsOk() {
+    bool IsOk() const override {
         return !_frameImages.empty() && _frameImages[0]->IsOk();
     }
 
