@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -bug (derwin12)             Fix infinite loop saving Controllers tab when No Controller DMX models with submodels are present
     -bug (derwin12)             Fix PolyLine with drop patterns
     -bug (derwin12)             Fix crash selecting multi-string PolyLine
     -change (dkulp)             Remove SPXML dependency, replace with pugixml for format imports and
