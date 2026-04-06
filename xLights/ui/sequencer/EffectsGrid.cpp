@@ -7039,7 +7039,13 @@ void EffectsGrid::Draw() {
     xlGraphicsContext* ctx = nullptr;
     if (!mIsInitialized) {
         PrepareCanvas();
+        if (!mIsInitialized) {
+            return;
+        }
         ctx = PrepareContextForDrawing();
+        if (ctx == nullptr) {
+            return;
+        }
         CreateEffectIconTextures(ctx);
 
         // create all the accumulators

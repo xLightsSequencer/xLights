@@ -29,8 +29,7 @@ END_EVENT_TABLE()
 class MSAATextureInfo {
 public:
     MSAATextureInfo(xlMetalCanvas *c) : canvas(c) {
-        id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
-        CAMetalLayer *layer = [d2 layer];
+        CAMetalLayer *layer = (CAMetalLayer *)[c->getMTKView() layer];
         width = [layer drawableSize].width;
         height = [layer drawableSize].height;
     }
@@ -67,8 +66,7 @@ public:
 class DepthTextureInfo {
 public:
     DepthTextureInfo(xlMetalCanvas *c) : canvas(c) {
-        id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
-        CAMetalLayer *layer = [d2 layer];
+        CAMetalLayer *layer = (CAMetalLayer *)[c->getMTKView() layer];
         width = [layer drawableSize].width;
         height = [layer drawableSize].height;
     }
@@ -224,12 +222,20 @@ void xlMetalCanvas::Resized(wxSizeEvent& evt)
 
 void xlMetalCanvas::PrepareCanvas() {
     if (!mIsInitialized) {
+        MTKView *view = getMTKView();
+        if (view == nil || [view window] == nil) {
+            return;
+        }
         //just make sure this will load
         getPipelineState("singleColorProgram", "singleColorVertexShader", "colorFragmentShader", false);
         mIsInitialized = true;
     }
 }
 xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
+    MTKView *view = getMTKView();
+    if (view == nil || [view window] == nil) {
+        return nullptr;
+    }
     xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this, captureBuffer == nullptr || !captureBuffer->captureNext ? nil : captureBuffer->target, !firstDraw);
     if (!ret->isValid()) {
         delete ret;
@@ -254,8 +260,14 @@ void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx, bool display) {
 }
 
 id<CAMetalDrawable> xlMetalCanvas::getNextDrawable() {
-    id<CAMetalDrawable> d2 = [getMTKView() currentDrawable];
-    CAMetalLayer *layer = [d2 layer];
+    MTKView *view = getMTKView();
+    if (view == nil || [view window] == nil) {
+        return nil;
+    }
+    CAMetalLayer *layer = (CAMetalLayer *)[view layer];
+    if (layer == nil || layer.drawableSize.width == 0 || layer.drawableSize.height == 0) {
+        return nil;
+    }
     return [layer nextDrawable];
 }
 
