@@ -352,6 +352,39 @@ int main(int argc, char **argv)
 
 #ifdef LINUX
     XInitThreads();
+    // Detect virtio-gpu (virgl) DRM device. Virgl's GLX implementation has rendering bugs
+    // in VM environments (Parallels, QEMU/KVM) that cause multi-canvas GL apps to fail
+    // after the first rendered frame. Mesa's software renderer (llvmpipe, activated via
+    // LIBGL_ALWAYS_SOFTWARE=1) works correctly and is fast enough for xLights' 2D rendering.
+    // VirtIO GPU: vendor 0x1af4 (Virtio), device 0x1050 (virtio-gpu)
+    if (getenv("LIBGL_ALWAYS_SOFTWARE") == nullptr) {
+        bool isVirtiogpu = false;
+        for (int card = 0; card < 8 && !isVirtiogpu; card++) {
+            char vendorPath[64];
+            snprintf(vendorPath, sizeof(vendorPath), "/sys/class/drm/card%d/device/vendor", card);
+            FILE* f = fopen(vendorPath, "r");
+            if (f) {
+                char vendor[16] = {};
+                if (fgets(vendor, sizeof(vendor), f)) {
+                    // VirtIO vendor ID is 0x1af4
+                    isVirtiogpu = (strncmp(vendor, "0x1af4", 6) == 0);
+                }
+                fclose(f);
+            }
+        }
+        if (isVirtiogpu) {
+            setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
+            spdlog::info("Linux: detected virtio-gpu (virgl), enabling Mesa software rendering");
+        }
+    }
+    // GTK3 prefers the Wayland GDK backend when WAYLAND_DISPLAY is set, which causes
+    // wxWidgets to use EGL for GL canvases. EGL surface creation fails in some virtual GPU
+    // environments. Force the X11 GDK backend so wxWidgets uses GLX, unless the user has
+    // already set GDK_BACKEND. XWayland is always available when DISPLAY is set.
+    if (getenv("GDK_BACKEND") == nullptr && getenv("DISPLAY") != nullptr) {
+        setenv("GDK_BACKEND", "x11", 1);
+        spdlog::info("Linux: forcing GDK_BACKEND=x11 for GLX compatibility");
+    }
 #endif
     wxDISABLE_DEBUG_SUPPORT();
 
@@ -504,6 +537,14 @@ bool xLightsApp::OnInit()
     if (!IsSuppressDarkMode()) {
         MSWEnableDarkMode();
     }
+#endif
+#ifdef __WXGTK__
+    // On Linux (GTK), wxWidgets 3.3 defaults to EGL for GL canvases (even on X11).
+    // EGL surface creation fails in virtual GPU environments (virgl/Parallels, QEMU).
+    // Force GLX, which works reliably over XWayland and native X11. GTK is forced to
+    // the X11 backend via GDK_BACKEND=x11 in main() so wxWidgets won't override this
+    // back to EGL for Wayland sessions.
+    wxGLCanvasUnix::PreferGLX();
 #endif
 #if wxUSE_GLCANVAS_EGL
     // this is only needed if using the EGL canvas as it's necessary to initialize the

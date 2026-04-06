@@ -271,10 +271,9 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent,
 xlGLCanvas::~xlGLCanvas()
 {
     if (m_context && m_context != m_sharedContext) {
-        m_context->SetCurrent(*this);
-        for (auto &ver : vertexArrayIds) {
-            LOG_GL_ERRORV(glDeleteVertexArrays(1, &ver.second));
-        }
+        // VAOs owned by m_context are freed automatically when the context is destroyed.
+        // Do not call SetCurrent here: the window may already be hidden or destroyed
+        // (e.g. during app shutdown), which causes an assert in wxGLContextX11::SetCurrent.
         delete m_context;
     }
 }
@@ -600,7 +599,7 @@ void xlGLCanvas::CreateGLContext() {
             }
             m_logger->info(configs);
             printf("%s\n", configs.c_str());
-            
+
             if (m_logger->level() == spdlog::level::level_enum::debug) {
                 AddDebugLog(this);
             }
@@ -614,9 +613,7 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
     mWindowWidth = evt.GetSize().GetWidth();
     mWindowHeight = evt.GetSize().GetHeight();
     mWindowResized = true;
-#ifdef __WXOSX__
     Refresh();
-#endif
 }
 
 double xlGLCanvas::translateToBacking(double x) const {
