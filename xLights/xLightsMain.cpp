@@ -663,6 +663,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 #ifdef _WIN32
         // Windows: provide main-thread runner and lazy shared-context accessor
         glParams.mainThreadRunner = [this](std::function<void()> fn) {
+            if (wxThread::IsMain()) {
+                // Already on the main thread (e.g., called from RenderEffectOnMainThread);
+                // calling CallAfter + wait here would deadlock.
+                fn();
+                return;
+            }
             std::mutex mtx;
             std::condition_variable cv;
             bool done = false;
