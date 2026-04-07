@@ -852,17 +852,21 @@ TextMediaCacheEntry::TextMediaCacheEntry(const std::string& path, const std::str
 void TextMediaCacheEntry::Load() {
     std::scoped_lock lock(_cacheMutex);
     if (!_loadingDone) {
+        spdlog::debug("TextMediaCacheEntry::Load - path: '{}'", _filePath);
         if (_isEmbedded && !_embeddedData.empty()) {
             std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
             _content.assign(buf.begin(), buf.end());
             _loadingDone = true;
+            spdlog::debug("TextMediaCacheEntry::Load - loaded {} bytes from embedded data", _content.size());
         } else {
             LoadRawFromFile(_filePath);
             if (!_embeddedData.empty()) {
                 std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
                 _content.assign(buf.begin(), buf.end());
-                _loadingDone = true;
+            } else {
+                spdlog::debug("TextMediaCacheEntry::Load - failed to read file '{}' (file not found or unreadable)", _filePath);
             }
+            _loadingDone = true;
         }
     }
 }
