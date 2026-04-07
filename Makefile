@@ -95,7 +95,10 @@ wxwidgets33: FORCE
 
 ispc: FORCE
 	@printf "Checking ispc\n"
-	@if test "`./ispc --version`" != "$(ISPC_VERSION)"; \
+	@if test -f /etc/ispc_version && test "$$(cat /etc/ispc_version)" = "$(ISPC_VERSION)"; \
+		then echo "ISPC $(ISPC_VERSION) already installed in container"; \
+		ln -s -f $$(which ispc) ispc; \
+		elif test "`./ispc --version`" != "$(ISPC_VERSION)"; \
 		then if test ! -f ispc-$(ISPC_VERSION).tar.gz; \
 			then echo Downloading iscp $(ISPC_URL); curl -L -o ispc-$(ISPC_VERSION).tar.gz $(ISPC_URL) ; \
 		fi; \
