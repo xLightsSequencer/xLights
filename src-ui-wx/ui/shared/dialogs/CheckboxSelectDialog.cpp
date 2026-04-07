@@ -166,6 +166,7 @@ void CheckboxSelectDialog::SelectAllLayers(bool select)
     {
         CheckListBox_Items->Check(i, select);
     }
+    ValidateWindow();
 }
 
 void CheckboxSelectDialog::SelectHighLightedLayers(bool select)
@@ -177,4 +178,5 @@ void CheckboxSelectDialog::SelectHighLightedLayers(bool select)
             CheckListBox_Items->Check(i, select);
         }
 	}
+    ValidateWindow();
 }
