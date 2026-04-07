@@ -1530,7 +1530,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     }
 
     int InitialOffsetTop = OffsetTop;
-    int InitialOffsetLeft = OffsetLeft;
 
     if (!lines.empty()) {
         int curPos = 0;

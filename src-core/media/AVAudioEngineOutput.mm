@@ -49,6 +49,7 @@ struct AVAudioEngineOutputImpl {
     bool usingTimePitch = false;  // only insert timePitch when rate != 1.0
     std::string device;
     bool initialized = false;
+    int globalVolume = 100;  // 0-100, combined with per-track volume
 
     std::map<int, AudioTrack*> tracks;
     std::mutex trackLock;
@@ -153,6 +154,19 @@ struct AVAudioEngineOutputImpl {
         }
     }
 
+    float effectiveVolume(int trackVolume) {
+        int v = (std::max(0, std::min(100, trackVolume)) * std::max(0, std::min(100, globalVolume))) / 100;
+        return v / 100.0f;
+    }
+
+    void updateAllTrackVolumes() {
+        for (auto& [id, track] : tracks) {
+            if (track->playerNode) {
+                track->playerNode.volume = effectiveVolume(track->volume);
+            }
+        }
+    }
+
     AVAudioPCMBuffer* createFloat32Buffer(AudioTrack* track, long frameOffset, long frameCount) {
         // Source: 16-bit stereo interleaved PCM
         long totalFrames = track->rawBufferLen / (2 * sizeof(int16_t)); // stereo 16-bit
@@ -242,7 +256,7 @@ int AVAudioEngineOutput::AddAudio(long len, uint8_t* buffer, int volume, int rat
         interleaved:NO];
     [_impl->engine connect:track->playerNode to:_impl->playerTarget() format:nodeFormat];
 
-    track->playerNode.volume = std::max(0, std::min(100, volume)) / 100.0f;
+    track->playerNode.volume = _impl->effectiveVolume(volume);
 
     _impl->tracks[track->trackId] = track;
 
@@ -395,7 +409,7 @@ void AVAudioEngineOutput::SetVolume(int id, int volume) {
     if (it == _impl->tracks.end()) return;
     it->second->volume = volume;
     if (it->second->playerNode) {
-        it->second->playerNode.volume = std::max(0, std::min(100, volume)) / 100.0f;
+        it->second->playerNode.volume = _impl->effectiveVolume(volume);
     }
 }
 
@@ -404,6 +418,12 @@ int AVAudioEngineOutput::GetVolume(int id) {
     auto it = _impl->tracks.find(id);
     if (it == _impl->tracks.end()) return 0;
     return it->second->volume;
+}
+
+void AVAudioEngineOutput::SetGlobalVolume(int volume) {
+    std::lock_guard<std::mutex> lock(_impl->trackLock);
+    _impl->globalVolume = volume;
+    _impl->updateAllTrackVolumes();
 }
 
 void AVAudioEngineOutput::SetRate(float rate) {
@@ -455,6 +475,9 @@ IAudioInput* AVAudioEngineManager::GetInput(const std::string& /*device*/) {
 
 void AVAudioEngineManager::SetGlobalVolume(int volume) {
     _impl->globalVolume = volume;
+    for (auto& [name, output] : _impl->outputs) {
+        output->SetGlobalVolume(volume);
+    }
 }
 
 int AVAudioEngineManager::GetGlobalVolume() const {

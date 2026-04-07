@@ -45,6 +45,8 @@ public:
 
     void Reopen() override;
 
+    void SetGlobalVolume(int volume);
+
 private:
     AVAudioEngineOutputImpl* _impl;
 };
