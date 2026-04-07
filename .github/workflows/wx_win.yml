@@ -10,7 +10,6 @@ jobs:
       WX_VERSION: xlights_2026.04
 
     steps:
-    - uses: actions/checkout@v4
 
     # 1. Cache wxWidgets Build
     - name: Cache wxWidgets
@@ -20,14 +19,17 @@ jobs:
         path: ..\wxWidgets\
         key: ${{ runner.os }}-wx-${{ env.WX_VERSION }}
 
-    # 2. Download & Build wxWidgets (if cache miss)
+    # 2. Download wxWidgets (if cache miss)
     - name: Download and Build wxWidgets
       if: steps.cache-wx.outputs.cache-hit != 'true'
-      run: |
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b {{ env.WX_VERSION }} https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
-        cd ..\wxWidgets\
-        msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
-        
+      run:
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b master https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+    
+    - name: Build wxWidgets
+      if: steps.cache-wx.outputs.cache-hit != 'true'
+      working-directory: ..\wxWidgets\
+      run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
+      
     # Optional: Upload DLLs as artifacts
     - name: Upload wxWidgets DLLs
       uses: actions/upload-artifact@v4
