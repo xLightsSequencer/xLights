@@ -863,10 +863,10 @@ void TextMediaCacheEntry::Load() {
             if (!_embeddedData.empty()) {
                 std::vector<uint8_t> buf = Base64::Decode(_embeddedData);
                 _content.assign(buf.begin(), buf.end());
+                _loadingDone = true;
             } else {
                 spdlog::debug("TextMediaCacheEntry::Load - failed to read file '{}' (file not found or unreadable)", _filePath);
             }
-            _loadingDone = true;
         }
     }
 }

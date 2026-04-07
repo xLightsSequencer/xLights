@@ -119,7 +119,7 @@ void MediaPickerCtrl::OnSelectClick(wxCommandEvent& event) {
         _linkedPicker->SetPath(selected);
         wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _linkedPicker,
                                  _linkedPicker->GetId(), selected);
-        ProcessWindowEvent(evt);
+        _linkedPicker->ProcessWindowEvent(evt);
     }
 }
 
@@ -132,7 +132,7 @@ void MediaPickerCtrl::OnClearClick(wxCommandEvent& event) {
         _linkedPicker->SetPath(wxEmptyString);
         wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _linkedPicker,
                                  _linkedPicker->GetId(), wxString());
-        ProcessWindowEvent(evt);
+        _linkedPicker->ProcessWindowEvent(evt);
     }
 }
 
