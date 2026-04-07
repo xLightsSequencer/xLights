@@ -57,18 +57,25 @@ struct GLContextManager::PlatformState {
 
 using PlatformStateEGL = GLContextManager::PlatformState;
 
-static bool initEGLDisplay(PlatformStateEGL* ps) {
-    // Request ANGLE's Metal backend
-    const EGLAttrib displayAttribs[] = {
+static bool initEGLDisplay(PlatformStateEGL* ps, uint64_t metalDeviceRegistryID) {
+    // Request ANGLE's Metal backend, optionally targeting a specific GPU
+    std::vector<EGLAttrib> displayAttribs = {
         EGL_PLATFORM_ANGLE_TYPE_ANGLE,
         EGL_PLATFORM_ANGLE_TYPE_METAL_ANGLE,
-        EGL_NONE
     };
+    if (metalDeviceRegistryID != 0) {
+        // Force ANGLE onto the same Metal device as the compute effects
+        displayAttribs.push_back(EGL_PLATFORM_ANGLE_DEVICE_ID_HIGH_ANGLE);
+        displayAttribs.push_back(static_cast<EGLAttrib>(metalDeviceRegistryID >> 32));
+        displayAttribs.push_back(EGL_PLATFORM_ANGLE_DEVICE_ID_LOW_ANGLE);
+        displayAttribs.push_back(static_cast<EGLAttrib>(metalDeviceRegistryID & 0xFFFFFFFF));
+    }
+    displayAttribs.push_back(EGL_NONE);
 
     ps->display = eglGetPlatformDisplay(
         EGL_PLATFORM_ANGLE_ANGLE,
         nullptr,
-        displayAttribs);
+        displayAttribs.data());
 
     if (ps->display == EGL_NO_DISPLAY) {
         spdlog::error("GLContextManager: eglGetPlatformDisplay failed");
@@ -80,7 +87,11 @@ static bool initEGLDisplay(PlatformStateEGL* ps) {
         spdlog::error("GLContextManager: eglInitialize failed: 0x{:X}", eglGetError());
         return false;
     }
-    spdlog::info("GLContextManager: EGL {}.{} (ANGLE/Metal)", major, minor);
+    if (metalDeviceRegistryID != 0) {
+        spdlog::info("GLContextManager: EGL {}.{} (ANGLE/Metal, device 0x{:X})", major, minor, metalDeviceRegistryID);
+    } else {
+        spdlog::info("GLContextManager: EGL {}.{} (ANGLE/Metal, default device)", major, minor);
+    }
 
     // Choose an RGBA8 config that supports pbuffer surfaces
     const EGLint configAttribs[] = {
@@ -161,7 +172,7 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
     // Lazy-init the EGL display and shared context
     if (_platform->display == EGL_NO_DISPLAY) {
         lock.unlock();
-        if (!initEGLDisplay(_platform)) return nullptr;
+        if (!initEGLDisplay(_platform, _params.metalDeviceRegistryID)) return nullptr;
         auto shared = createEGLContext(_platform, EGL_NO_CONTEXT);
         lock.lock();
         if (shared.context == EGL_NO_CONTEXT) return nullptr;
@@ -246,6 +257,10 @@ void GLContextManager::Shutdown() {
     delete _platform;
     _platform = nullptr;
     _initialized = false;
+}
+
+void* GLContextManager::GetNativeDisplay() const {
+    return _platform ? (void*)_platform->display : nullptr;
 }
 
 #else // !USE_GLES — legacy CGL implementation
@@ -468,6 +483,10 @@ void GLContextManager::Shutdown() {
     delete _platform;
     _platform = nullptr;
     _initialized = false;
+}
+
+void* GLContextManager::GetNativeDisplay() const {
+    return nullptr; // CGL has no EGL display
 }
 
 #pragma clang diagnostic pop
@@ -707,6 +726,10 @@ void GLContextManager::Shutdown() {
     _initialized = false;
 }
 
+void* GLContextManager::GetNativeDisplay() const {
+    return nullptr; // WGL has no EGL display
+}
+
 // =========================================================================
 // Linux — Callback-based (main thread only)
 // =========================================================================
@@ -764,6 +787,10 @@ void GLContextManager::Shutdown() {
     delete _platform;
     _platform = nullptr;
     _initialized = false;
+}
+
+void* GLContextManager::GetNativeDisplay() const {
+    return nullptr; // Linux has no EGL display
 }
 
 #endif

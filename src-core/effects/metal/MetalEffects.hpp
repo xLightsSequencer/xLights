@@ -11,6 +11,7 @@
 #include "../ColorWashEffect.h"
 #include "../BarsEffect.h"
 #include "../CirclesEffect.h"
+#include "../ShaderEffect.h"
 
 class MetalButterflyEffectData;
 
@@ -169,4 +170,12 @@ private:
 };
 
 
+class MetalShaderEffect : public ShaderEffect {
+public:
+    MetalShaderEffect(int i);
+    virtual ~MetalShaderEffect();
 
+    virtual void preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) override;
+    virtual void copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) override;
+    virtual void copyPixelDataFromTexture(RenderBuffer& buffer) override;
+};

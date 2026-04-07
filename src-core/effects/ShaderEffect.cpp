@@ -686,6 +686,8 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     // We re-use the same framebuffer for rendering all the shader effects
     sizeForRenderBuffer(buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight);
 
+    preparePixelTextures(buffer, s_shadersInit, s_fbId);
+
     LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, s_fbId));
     LOG_GL_ERRORV(glViewport(0, 0, buffer.BufferWi, buffer.BufferHt));
 
@@ -709,14 +711,13 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
                 else
                     fft128.insert( fft128.begin(), 127, fftData->max );
                 fft128.push_back( 0.f );
-                
+
                 LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, fft128.size(),1, GL_RED, GL_FLOAT, fft128.data()));
             }
         }
     } else {
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
-        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_rbTex));
-        LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.GetPixels()));
+        copyPixelDataToTexture(buffer, s_rbTex);
     }
 
     LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
@@ -857,11 +858,26 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     LOG_GL_ERRORV(glBindVertexArray(0));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.GetPixels()));
+    copyPixelDataFromTexture(buffer);
+    
     LOG_GL_ERRORV(glUseProgram(0));
     cache->StoreProgramId();
     UnsetGLContext(cache);
 }
+
+void ShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) {
+}
+
+void ShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) {
+    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, rbTex));
+    LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.GetPixels()));
+}
+
+void ShaderEffect::copyPixelDataFromTexture(RenderBuffer& buffer) {
+    LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.GetPixels()));
+}
+
+
 
 void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     bool& s_shadersInit,

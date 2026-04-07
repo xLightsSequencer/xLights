@@ -260,6 +260,17 @@ public:
     }
     static unsigned programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCache *cache);
 
+    
+    // Override points for Metal interop subclass.
+    // preparePixelTextures: called after FBO is ready, before rendering.
+    //   shadersInit: true if GL resources (VAO/VBO/FBO) are set up.
+    //   fbId: the framebuffer object ID for attaching shared textures.
+    virtual void preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId);
+    // copyPixelDataToTexture: upload pixel data to the input GL texture.
+    //   rbTex: the default input texture ID (bind and upload if not overriding).
+    virtual void copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex);
+    // copyPixelDataFromTexture: download rendered pixels from the FBO.
+    virtual void copyPixelDataFromTexture(RenderBuffer& buffer);
 protected:
     bool SetGLContext(ShaderRenderCache*);
     void UnsetGLContext(ShaderRenderCache*);

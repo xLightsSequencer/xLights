@@ -687,7 +687,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             auto* ctx = xlGLCanvas::GetSharedContext();
             return ctx ? (void*)ctx->GetGLRC() : nullptr;
         };
-#elif !defined(__APPLE__)
+#elif defined(__APPLE__)
+        // macOS: tell ANGLE to use the same Metal GPU as the compute effects
+#ifdef USE_GLES
+        glParams.metalDeviceRegistryID = GetMetalComputeDeviceRegistryID();
+#endif
+#else
         // Linux: provide callbacks that activate/deactivate the shader panel's GL context
         glParams.activateMainContext = [this]() {
             auto* p = dynamic_cast<ShaderPanel*>(effectPanelManager.GetPanel(EffectManager::eff_SHADER, nullptr));

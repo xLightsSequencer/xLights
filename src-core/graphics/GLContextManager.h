@@ -19,6 +19,7 @@
 // Linux:   Callback-based — main thread context activation via UICallbacks.
 
 #include <condition_variable>
+#include <cstdint>
 #include <functional>
 #include <mutex>
 
@@ -42,11 +43,17 @@ public:
         // Linux: activate/deactivate the panel's GL context on the main thread.
         std::function<void()> activateMainContext;
         std::function<void()> deactivateMainContext;
+
+        // Apple/ANGLE: Metal device registry ID to force ANGLE onto the same
+        // GPU as the Metal compute effects.  Set to MTLDevice.registryID.
+        // When non-zero, passed to eglGetPlatformDisplay via
+        // EGL_PLATFORM_ANGLE_DEVICE_ID_HIGH/LOW_ANGLE.
+        uint64_t metalDeviceRegistryID = 0;
     };
 
     // Initialize the manager.  Must be called once before AcquireContext().
     // On macOS the default InitParams{} is sufficient (CGL is self-contained).
-    void Initialize(const InitParams& params = {});
+    void Initialize(const InitParams& params);
 
     // Windows: controls whether shader rendering is allowed on background threads.
     // Defaults to false because many drivers crash with background GL contexts.
@@ -74,6 +81,10 @@ public:
 
     // Destroy all pooled contexts and release resources.
     void Shutdown();
+
+    // Returns the native display handle (EGLDisplay for ANGLE, nullptr otherwise).
+    // Used by MetalShaderEffect for texture sharing.
+    void* GetNativeDisplay() const;
 
     // Platform-specific state lives in the .cpp behind #ifdef guards.
     // Forward-declared here as opaque pointers where needed.
