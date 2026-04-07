@@ -1159,6 +1159,7 @@ public:
     bool _suspendRender = false;
     wxArrayString _randomEffectsToUse;
     Model* _presetModel = nullptr;
+    ModelManager* _presetModelManager = nullptr;
     SequenceData _presetSequenceData; // we create our own sequence data to render into
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
