@@ -72,7 +72,7 @@ jobs:
         
     - name: Download wxWidgets
       run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b $WX_VERSION https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b $env:WX_VERSION https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
         
     - name: Cache wxWidgets
       id: cache-wx
