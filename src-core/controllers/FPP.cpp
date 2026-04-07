@@ -987,6 +987,9 @@ bool FPP::uploadFileV7(const std::string &filename,
         }
         prepareCurlForMulti(ps);
     } else {
+        spdlog::warn("ERROR:Uploading file: {}    Could not open source file: {}", filename, file);
+        messages.push_back("ERROR Uploading file: " + filename + "    Could not open source file: " + file);
+        faileduploads.push_back(filename);
         delete ps;
     }
     return cancelled;
@@ -1112,15 +1115,20 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
             }
         }
         if (doMediaUpload) {
-            std::string dir = "music";
-            std::string mfnExt = mfn.extension().string();
-            if (!mfnExt.empty() && mfnExt[0] == '.') mfnExt = mfnExt.substr(1);
-            for (auto &a : FPP_VIDEO_EXT) {
-                if (mfnExt == a) {
-                    dir = "videos";
+            if (!FileExists(mfn.string())) {
+                messages.push_back("ERROR:Uploading media: " + mediaBaseName + "     Source file not found: " + mediaFile);
+                faileduploads.push_back(mediaBaseName);
+            } else {
+                std::string dir = "music";
+                std::string mfnExt = mfn.extension().string();
+                if (!mfnExt.empty() && mfnExt[0] == '.') mfnExt = mfnExt.substr(1);
+                for (auto &a : FPP_VIDEO_EXT) {
+                    if (mfnExt == a) {
+                        dir = "videos";
+                    }
                 }
+                uploadOrCopyFile(mediaBaseName, mediaFile, dir);
             }
-            uploadOrCopyFile(mediaBaseName, mediaFile, dir);
         }
     });
         
