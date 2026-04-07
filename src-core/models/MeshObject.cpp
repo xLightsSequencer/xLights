@@ -141,9 +141,10 @@ std::list<std::string> MeshObject::CheckModelSettings()
             if (m.diffuse_texname.length() > 0) {
                 std::string texPath = (std::filesystem::path(objDir) / m.diffuse_texname).string();
                 if (!FileExists(texPath)) {
-                    std::string texPath2 = (std::filesystem::path(objDir) / m.diffuse_texname).string();
+                    std::string texName = std::filesystem::path(m.diffuse_texname).filename().string();
+                    std::string texPath2 = (std::filesystem::path(objDir) / texName).string();
                     if (!FileExists(texPath2)) {
-                        std::string texPath3 = (std::filesystem::path(objDir) / objStem / m.diffuse_texname).string();
+                        std::string texPath3 = (std::filesystem::path(objDir) / objStem / texName).string();
                         if (!FileExists(texPath3)) {
                             res.push_back(std::format("    ERR: Mesh object '{}' cant find texture file '{}'", GetName(), texPath));
                         }
