@@ -28,12 +28,6 @@ jobs:
         cd ..\wxWidgets\
         msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
         
-    # 3. Use wxWidgets (Add to PATH so DLLs are found)
-    - name: Build Project
-      run: |
-        echo "${{ env.WX_DIR }}\build\lib" >> $GITHUB_PATH
-        # Your build commands here
-
     # Optional: Upload DLLs as artifacts
     - name: Upload wxWidgets DLLs
       uses: actions/upload-artifact@v4
