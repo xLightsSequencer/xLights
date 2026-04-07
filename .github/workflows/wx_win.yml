@@ -27,7 +27,7 @@ jobs:
     - name: Download wxWidgets
       if: steps.cache-wx.outputs.cache-hit != 'true'
       run:
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b master https://github.com/xLightsSequencer/wxWidgets wxWidgets\
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b $WX_VERSION https://github.com/xLightsSequencer/wxWidgets wxWidgets\
     
     - name: Build wxWidgets
       if: steps.cache-wx.outputs.cache-hit != 'true'
