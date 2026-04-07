@@ -2379,6 +2379,11 @@ xLightsFrame::~xLightsFrame()
     // render thread is completely stuck
     AbortRender(2000);
 
+    delete _presetModel;
+    _presetModel = nullptr;
+    delete _presetModelManager;
+    _presetModelManager = nullptr;
+
     AutoSaveTimer.Stop();
     EffectSettingsTimer.Stop();
     OutputTimer.Stop();
