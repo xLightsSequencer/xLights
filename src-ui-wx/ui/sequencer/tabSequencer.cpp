@@ -2701,12 +2701,12 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             _modelPreviewPanel->setCurrentFrameTime(curt);
             playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
         }
-        if (NeedToRenderFrame(_housePreviewPanel->GetModelPreview(), OutputTimer, didRender)) {
+        if (!_presetRendering && NeedToRenderFrame(_housePreviewPanel->GetModelPreview(), OutputTimer, didRender)) {
             _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
         }
 
         for (const auto& it : PreviewWindows) {
-            if (it->GetActive() && NeedToRenderFrame(it, OutputTimer, didRender)) {
+            if (!_presetRendering && it->GetActive() && NeedToRenderFrame(it, OutputTimer, didRender)) {
                 it->Render(curt, &_seqData[frame][0]);
             }
         }

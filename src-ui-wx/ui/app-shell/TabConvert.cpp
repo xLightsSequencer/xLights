@@ -1219,8 +1219,8 @@ void xLightsFrame::EnsurePresetModel()
 {
     if (_presetModel != nullptr) return;
 
-    ModelManager mm(nullptr, this);
-    auto* matrixModel = new MatrixModel(mm);
+    _presetModelManager = new ModelManager(nullptr, this);
+    auto* matrixModel = new MatrixModel(*_presetModelManager);
     _presetModel = matrixModel;
 
     matrixModel->SetStringType("RGB Nodes");
@@ -1296,6 +1296,12 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
             if (frames == 0)
                 frames = 1;
 
+            const size_t MAX_PRESET_FRAMES = 250;
+            size_t gifFrames = std::min(frames, MAX_PRESET_FRAMES);
+            if (frames > MAX_PRESET_FRAMES) {
+                spdlog::warn("Preset {} has {} frames, GIF will be limited to {}.", preset, frames, MAX_PRESET_FRAMES);
+            }
+
             EnsurePresetModel();
             LoadPresetEffects(pd);
 
@@ -1308,6 +1314,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 //Need to make sure all the ASAP work is done first or it
                 //may abort the render
                 DoASAPWork();
+                _presetRendering = true;
                 _renderEngine->Render(_presetSequenceElements, _presetSequenceData,
                        { _presetModel }, { _presetModel },
                        0, frames - 1, nullptr, true, [](bool) {});
@@ -1316,9 +1323,10 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                     _renderEngine->RenderMainThreadEffects();
                     UpdateRenderStatus();
                 }
+                _presetRendering = false;
             }
 
-            WriteGIFModelFile(filename, channels, 0, frames, &_presetSequenceData, 1, 0, _presetModel, 50);
+            WriteGIFModelFile(filename, channels, 0, gifFrames, &_presetSequenceData, 1, 0, _presetModel, 50);
         }
     }
 }
