@@ -349,7 +349,7 @@ void wxTextDrawingContext::SetFont(const TextFontInfo& fi, const xlColor& color)
 }
 
 void wxTextDrawingContext::DrawText(const std::string& msg, int x, int y, double rotation) {
-    wxString wmsg(msg);
+    wxString wmsg = wxString::FromUTF8(msg);
     if (gc != nullptr) {
         gc->DrawText(wmsg, x, y, DegToRad(rotation));
     } else {
@@ -358,7 +358,7 @@ void wxTextDrawingContext::DrawText(const std::string& msg, int x, int y, double
 }
 
 void wxTextDrawingContext::DrawText(const std::string& msg, int x, int y) {
-    wxString wmsg(msg);
+    wxString wmsg = wxString::FromUTF8(msg);
     if (gc != nullptr) {
         gc->DrawText(wmsg, x, y);
     } else {
@@ -367,7 +367,7 @@ void wxTextDrawingContext::DrawText(const std::string& msg, int x, int y) {
 }
 
 void wxTextDrawingContext::GetTextExtent(const std::string& msg, double* width, double* height) {
-    wxString wmsg(msg);
+    wxString wmsg = wxString::FromUTF8(msg);
     if (gc != nullptr) {
         gc->GetTextExtent(wmsg, width, height);
     } else {
@@ -378,7 +378,7 @@ void wxTextDrawingContext::GetTextExtent(const std::string& msg, double* width, 
 }
 
 void wxTextDrawingContext::GetTextExtents(const std::string& msg, std::vector<double>& extents) {
-    wxString wmsg(msg);
+    wxString wmsg = wxString::FromUTF8(msg);
     if (gc != nullptr) {
         wxArrayDouble wxExtents;
         gc->GetPartialTextExtents(wmsg, wxExtents);
