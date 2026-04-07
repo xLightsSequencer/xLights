@@ -75,6 +75,11 @@ public:
     // Destroy all pooled contexts and release resources.
     void Shutdown();
 
+    // Platform-specific state lives in the .cpp behind #ifdef guards.
+    // Forward-declared here as opaque pointers where needed.
+    // Public so platform .cpp files can define and use the type.
+    struct PlatformState;
+
 private:
     GLContextManager() = default;
     ~GLContextManager();
@@ -84,9 +89,5 @@ private:
     bool _initialized = false;
     bool _backgroundRenderEnabled = false;
     InitParams _params;
-
-    // Platform-specific state lives in the .cpp behind #ifdef guards.
-    // Forward-declared here as opaque pointers where needed.
-    struct PlatformState;
     PlatformState* _platform = nullptr;
 };

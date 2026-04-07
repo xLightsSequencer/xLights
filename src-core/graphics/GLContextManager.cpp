@@ -19,9 +19,236 @@
 #include <log.h>
 
 // =========================================================================
-// macOS — Pure CGL implementation
+// Apple — EGL/ANGLE (USE_GLES) or CGL (legacy desktop GL)
 // =========================================================================
 #if defined(__APPLE__)
+
+#ifdef USE_GLES
+
+// ---- ANGLE/EGL implementation (OpenGL ES 3.0 on Metal) ----
+
+#define EGL_EGL_PROTOTYPES 1
+#define GL_GLES_PROTOTYPES 1
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <EGL/eglext_angle.h>
+#include <GLES3/gl3.h>
+
+// ANGLE's Metal backend is NOT thread-safe — only one context may be active
+// at a time.  Pool size 1 ensures callers serialize naturally: the second
+// thread blocks on the condition_variable until the first releases.
+static constexpr int kMaxPoolSize = 1;
+
+struct GLContextManager::PlatformState {
+    EGLDisplay display = EGL_NO_DISPLAY;
+    EGLConfig  config  = nullptr;
+    EGLContext sharedContext = EGL_NO_CONTEXT;
+
+    struct PoolEntry {
+        EGLContext context;
+        EGLSurface surface;  // 1x1 pbuffer; required for eglMakeCurrent
+    };
+
+    std::list<PoolEntry> pool;
+    int contextCount = 0;
+    std::mutex poolMutex;
+    std::condition_variable poolNotifier;
+};
+
+using PlatformStateEGL = GLContextManager::PlatformState;
+
+static bool initEGLDisplay(PlatformStateEGL* ps) {
+    // Request ANGLE's Metal backend
+    const EGLAttrib displayAttribs[] = {
+        EGL_PLATFORM_ANGLE_TYPE_ANGLE,
+        EGL_PLATFORM_ANGLE_TYPE_METAL_ANGLE,
+        EGL_NONE
+    };
+
+    ps->display = eglGetPlatformDisplay(
+        EGL_PLATFORM_ANGLE_ANGLE,
+        nullptr,
+        displayAttribs);
+
+    if (ps->display == EGL_NO_DISPLAY) {
+        spdlog::error("GLContextManager: eglGetPlatformDisplay failed");
+        return false;
+    }
+
+    EGLint major = 0, minor = 0;
+    if (!eglInitialize(ps->display, &major, &minor)) {
+        spdlog::error("GLContextManager: eglInitialize failed: 0x{:X}", eglGetError());
+        return false;
+    }
+    spdlog::info("GLContextManager: EGL {}.{} (ANGLE/Metal)", major, minor);
+
+    // Choose an RGBA8 config that supports pbuffer surfaces
+    const EGLint configAttribs[] = {
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+        EGL_SURFACE_TYPE,    EGL_PBUFFER_BIT,
+        EGL_RED_SIZE,        8,
+        EGL_GREEN_SIZE,      8,
+        EGL_BLUE_SIZE,       8,
+        EGL_ALPHA_SIZE,      8,
+        EGL_NONE
+    };
+    EGLint numConfigs = 0;
+    if (!eglChooseConfig(ps->display, configAttribs, &ps->config, 1, &numConfigs) || numConfigs == 0) {
+        spdlog::error("GLContextManager: eglChooseConfig failed: 0x{:X}", eglGetError());
+        return false;
+    }
+    return true;
+}
+
+static PlatformStateEGL::PoolEntry
+createEGLContext(PlatformStateEGL* ps, EGLContext shared) {
+    const EGLint contextAttribs[] = {
+        EGL_CONTEXT_CLIENT_VERSION, 3,
+        EGL_NONE
+    };
+    EGLContext ctx = eglCreateContext(ps->display, ps->config, shared, contextAttribs);
+    if (ctx == EGL_NO_CONTEXT) {
+        spdlog::error("GLContextManager: eglCreateContext failed: 0x{:X}", eglGetError());
+        return { EGL_NO_CONTEXT, EGL_NO_SURFACE };
+    }
+
+    // Create a 1x1 pbuffer surface — needed for eglMakeCurrent but we render to FBOs
+    const EGLint pbufferAttribs[] = {
+        EGL_WIDTH,  1,
+        EGL_HEIGHT, 1,
+        EGL_NONE
+    };
+    EGLSurface surface = eglCreatePbufferSurface(ps->display, ps->config, pbufferAttribs);
+    if (surface == EGL_NO_SURFACE) {
+        spdlog::error("GLContextManager: eglCreatePbufferSurface failed: 0x{:X}", eglGetError());
+        eglDestroyContext(ps->display, ctx);
+        return { EGL_NO_CONTEXT, EGL_NO_SURFACE };
+    }
+
+    // Log GL info on first successful context
+    eglMakeCurrent(ps->display, surface, surface, ctx);
+    const char* ver  = (const char*)glGetString(GL_VERSION);
+    const char* rend = (const char*)glGetString(GL_RENDERER);
+    const char* vend = (const char*)glGetString(GL_VENDOR);
+    spdlog::info("GLContextManager - glVer: {} ({}) ({})",
+                 ver ? ver : "?", rend ? rend : "?", vend ? vend : "?");
+    eglMakeCurrent(ps->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
+    return { ctx, surface };
+}
+
+GLContextManager& GLContextManager::Instance() {
+    static GLContextManager instance;
+    return instance;
+}
+
+GLContextManager::~GLContextManager() {
+    Shutdown();
+}
+
+void GLContextManager::Initialize(const InitParams& params) {
+    if (_initialized) return;
+    _params = params;
+    _platform = new PlatformState();
+    _initialized = true;
+}
+
+GLContextManager::ContextHandle GLContextManager::AcquireContext() {
+    if (!_platform) return nullptr;
+
+    std::unique_lock<std::mutex> lock(_platform->poolMutex);
+
+    // Lazy-init the EGL display and shared context
+    if (_platform->display == EGL_NO_DISPLAY) {
+        lock.unlock();
+        if (!initEGLDisplay(_platform)) return nullptr;
+        auto shared = createEGLContext(_platform, EGL_NO_CONTEXT);
+        lock.lock();
+        if (shared.context == EGL_NO_CONTEXT) return nullptr;
+        _platform->sharedContext = shared.context;
+        // The shared context's surface is not pooled; it stays with the shared ctx
+    }
+
+    // Grow pool if below max
+    if (_platform->pool.empty() && _platform->contextCount < kMaxPoolSize) {
+        lock.unlock();
+        auto entry = createEGLContext(_platform, _platform->sharedContext);
+        lock.lock();
+        if (entry.context != EGL_NO_CONTEXT) {
+            _platform->pool.push_front(entry);
+            ++_platform->contextCount;
+        }
+    }
+
+    // Wait for a context to become available
+    while (_platform->pool.empty()) {
+        _platform->poolNotifier.wait(lock);
+    }
+
+    auto entry = _platform->pool.front();
+    _platform->pool.pop_front();
+
+    // Pack both context and surface into a single opaque handle
+    auto* handle = new PlatformState::PoolEntry(entry);
+    return (ContextHandle)handle;
+}
+
+void GLContextManager::MakeCurrent(ContextHandle ctx) {
+    auto* entry = (PlatformState::PoolEntry*)ctx;
+    if (entry && _platform) {
+        eglMakeCurrent(_platform->display, entry->surface, entry->surface, entry->context);
+    }
+}
+
+void GLContextManager::DoneCurrent(ContextHandle /*ctx*/) {
+    if (_platform && _platform->display != EGL_NO_DISPLAY) {
+        eglMakeCurrent(_platform->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    }
+}
+
+void GLContextManager::ReleaseContext(ContextHandle ctx) {
+    if (!_platform || !ctx) return;
+
+    auto* entry = (PlatformState::PoolEntry*)ctx;
+    DoneCurrent(ctx);
+
+    std::unique_lock<std::mutex> lock(_platform->poolMutex);
+    _platform->pool.push_front(*entry);
+    delete entry;
+    lock.unlock();
+    _platform->poolNotifier.notify_all();
+}
+
+bool GLContextManager::CanRenderOnBackgroundThread() const {
+    return true; // EGL contexts are thread-safe with separate contexts
+}
+
+void GLContextManager::Shutdown() {
+    if (!_platform) return;
+
+    std::unique_lock<std::mutex> lock(_platform->poolMutex);
+    for (auto& e : _platform->pool) {
+        eglDestroySurface(_platform->display, e.surface);
+        eglDestroyContext(_platform->display, e.context);
+    }
+    _platform->pool.clear();
+    if (_platform->sharedContext != EGL_NO_CONTEXT) {
+        eglDestroyContext(_platform->display, _platform->sharedContext);
+        _platform->sharedContext = EGL_NO_CONTEXT;
+    }
+    if (_platform->display != EGL_NO_DISPLAY) {
+        eglTerminate(_platform->display);
+        _platform->display = EGL_NO_DISPLAY;
+    }
+    _platform->contextCount = 0;
+    lock.unlock();
+
+    delete _platform;
+    _platform = nullptr;
+    _initialized = false;
+}
+
+#else // !USE_GLES — legacy CGL implementation
 
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl3.h>
@@ -244,6 +471,8 @@ void GLContextManager::Shutdown() {
 }
 
 #pragma clang diagnostic pop
+
+#endif // USE_GLES
 
 // =========================================================================
 // Windows — Hidden HWND + WGL implementation

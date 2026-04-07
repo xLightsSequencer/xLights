@@ -69,12 +69,22 @@
     extern PFNGLUNIFORM2FPROC glUniform2f;
     extern PFNGLUNIFORM4FPROC glUniform4f;
 #else
-    #include "OpenGL/gl3.h"
-    #define __gl_h_
-    #include <OpenGL/OpenGL.h>
+    #ifdef USE_GLES
+        // ANGLE provides OpenGL ES 3.0 on top of Metal
+        #define GL_GLES_PROTOTYPES 1
+        #define EGL_EGL_PROTOTYPES 1
+        #include <EGL/egl.h>
+        #include <EGL/eglext.h>
+        #include <EGL/eglext_angle.h>
+        #include <GLES3/gl3.h>
+    #else
+        #include "OpenGL/gl3.h"
+        #define __gl_h_
+        #include <OpenGL/OpenGL.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    #endif
 
 #endif
 
@@ -138,7 +148,11 @@ namespace
         LOG_GL_ERRORV(glGenTextures(1, &texId));
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, texId));
 
+#ifdef USE_GLES
+        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 128, 1, 0, GL_RED, GL_FLOAT, nullptr));
+#else
         LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 128, 1, 0, GL_RED, GL_FLOAT, nullptr));
+#endif
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -154,7 +168,11 @@ namespace
     {
         LOG_GL_ERRORV(glGenRenderbuffers(1, rbID));
         LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, *rbID));
+#ifdef USE_GLES
+        LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height));
+#else
         LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height));
+#endif
 
         LOG_GL_ERRORV(glGenFramebuffers(1, fbID));
         LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, *fbID));
@@ -167,7 +185,12 @@ namespace
     }
 
     const char* vsSrc =
+#ifdef USE_GLES
+        "#version 300 es\n"
+        "precision highp float;\n"
+#else
         "#version 330 core\n"
+#endif
         "uniform vec2 RENDERSIZE;\n"
         "uniform vec2 XL_OFFSET;\n"
         "uniform float XL_ZOOM;\n"
@@ -1253,10 +1276,19 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
     prependText += "vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
+#ifdef USE_GLES
+    // OpenGL ES has no sampler2DRect; provide sampler2D equivalents so shaders
+    // written for desktop GL still compile (they sample via normalized coords).
+    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   return texture(sampler, normLoc);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL_RECT(sampler2D sampler, vec2 pct, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2D sampler, vec2 pct) {\n   return texture(sampler, xl_FragNormCoord);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2D sampler, vec2 pct) {\n   return texture(sampler, xl_FragNormCoord);\n}\n\n";
+#else
     prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
+#endif
     prependText += "ivec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n";
 
 #ifdef __DEBUG
@@ -1302,7 +1334,174 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     _hasTime = Contains(shaderCode, "TIME");
     _hasCoord = Contains(shaderCode, "xl_FragCoord");
 
+#ifdef USE_GLES
+    // GLSL ES 3.00 requires global variable initializers to be constant expressions.
+    // Desktop GLSL 330 allows non-constant initializers (e.g. "float T = TIME*rate;").
+    // Fix: split such declarations and defer their initialization into main().
+    {
+        std::set<std::string> uniformNames = {
+            "TIME", "TIMEDELTA", "RENDERSIZE", "PASSINDEX", "FRAMEINDEX",
+            "DATE", "NUMCOLORS", "clearBuffer", "resetNow", "texSampler",
+            "XL_OFFSET", "XL_ZOOM", "XL_DURATION",
+            "xl_FragNormCoord", "xl_FragCoord", "orig_FragNormCoord", "orig_FragCoord"
+        };
+        for (const auto& p : _parms) {
+            uniformNames.insert(p._name);
+        }
+
+        // Join split declarations where the type is alone on one line:
+        //   vec2\n    center = 0.5*RENDERSIZE.xy;  -->  vec2 center = 0.5*RENDERSIZE.xy;
+        static const std::regex splitDeclRe(
+            R"(\n(\s*)(float|int|bool|u?vec[234]|mat[234](?:x[234])?|ivec[234]|uvec[234])\s*\n(\s*\w+\s*=))",
+            std::regex_constants::ECMAScript);
+        shaderCode = std::regex_replace(shaderCode, splitDeclRe, "\n$1$2 $3");
+
+        // Match global-scope type declarations with initializers:
+        //   float foo = expr;  vec2 bar = expr;  etc.
+        // Also handles comma-separated multi-variable declarations:
+        //   float T = TIME * rate, moy = 0.0;
+        // but NOT: const float foo = 1.0;  uniform float foo;  void main()  #define  //comment
+        static const std::regex declRe(
+            R"(^(\s*)(float|int|bool|u?vec[234]|mat[234](?:x[234])?|ivec[234]|uvec[234])\s+(.+?)\s*;\s*(?://.*)?\s*$)",
+            std::regex_constants::ECMAScript);
+
+        std::istringstream stream(shaderCode);
+        std::string line;
+        std::string newCode;
+        std::string deferredInits;
+        int braceDepth = 0;
+
+        while (std::getline(stream, line)) {
+            // Count braces to track scope (outside of strings/comments — good enough for most shaders)
+            for (char c : line) {
+                if (c == '{') braceDepth++;
+                else if (c == '}') braceDepth--;
+            }
+
+            bool replaced = false;
+            if (braceDepth == 0) {
+                // At global scope — check for non-const variable decl with uniform-dependent initializer
+                std::string trimmed = line;
+                auto ws = trimmed.find_first_not_of(" \t");
+                if (ws != std::string::npos) trimmed = trimmed.substr(ws);
+
+                // Skip lines that can't be variable declarations
+                if (!trimmed.empty() && trimmed[0] != '#' && trimmed[0] != '/' &&
+                    trimmed.rfind("const ", 0) != 0 && trimmed.rfind("uniform ", 0) != 0 &&
+                    trimmed.rfind("in ", 0) != 0 && trimmed.rfind("out ", 0) != 0 &&
+                    trimmed.rfind("void ", 0) != 0 && trimmed.rfind("struct ", 0) != 0) {
+
+                    std::smatch m;
+                    if (std::regex_match(line, m, declRe)) {
+                        std::string varList = m[3].str();
+                        std::string indent = m[1].str();
+                        std::string typeName = m[2].str();
+
+                        // Split comma-separated variables at top-level commas only
+                        // (skip commas inside parentheses from function calls)
+                        std::vector<std::string> vars;
+                        int parenDepth = 0;
+                        size_t start = 0;
+                        for (size_t i = 0; i <= varList.size(); ++i) {
+                            if (i < varList.size()) {
+                                if (varList[i] == '(') parenDepth++;
+                                else if (varList[i] == ')') parenDepth--;
+                                else if (varList[i] == ',' && parenDepth == 0) {
+                                    vars.push_back(varList.substr(start, i - start));
+                                    start = i + 1;
+                                    continue;
+                                }
+                            } else {
+                                vars.push_back(varList.substr(start));
+                            }
+                        }
+
+                        // Check each variable — only defer those whose initializer references uniforms
+                        bool anyDeferred = false;
+                        std::string declLine;
+                        for (auto& var : vars) {
+                            // Trim whitespace
+                            auto s = var.find_first_not_of(" \t");
+                            if (s != std::string::npos) var = var.substr(s);
+                            auto e = var.find_last_not_of(" \t");
+                            if (e != std::string::npos) var = var.substr(0, e + 1);
+
+                            auto eqPos = var.find('=');
+                            if (eqPos == std::string::npos) {
+                                // No initializer — keep as-is
+                                if (!declLine.empty()) declLine += ", ";
+                                declLine += var;
+                                continue;
+                            }
+
+                            std::string varName = var.substr(0, eqPos);
+                            auto ne = varName.find_last_not_of(" \t");
+                            if (ne != std::string::npos) varName = varName.substr(0, ne + 1);
+
+                            std::string initExpr = var.substr(eqPos + 1);
+                            auto ns = initExpr.find_first_not_of(" \t");
+                            if (ns != std::string::npos) initExpr = initExpr.substr(ns);
+
+                            bool hasUniformRef = false;
+                            for (const auto& u : uniformNames) {
+                                size_t pos = 0;
+                                while ((pos = initExpr.find(u, pos)) != std::string::npos) {
+                                    bool leftOk = (pos == 0 || (!std::isalnum(initExpr[pos - 1]) && initExpr[pos - 1] != '_'));
+                                    size_t uend = pos + u.size();
+                                    bool rightOk = (uend >= initExpr.size() || (!std::isalnum(initExpr[uend]) && initExpr[uend] != '_'));
+                                    if (leftOk && rightOk) { hasUniformRef = true; break; }
+                                    pos = uend;
+                                }
+                                if (hasUniformRef) break;
+                            }
+
+                            if (hasUniformRef) {
+                                // Emit declaration without initializer
+                                if (!declLine.empty()) declLine += ", ";
+                                declLine += varName;
+                                deferredInits += "    " + varName + " = " + initExpr + ";\n";
+                                anyDeferred = true;
+                            } else {
+                                // Keep initializer (it's constant)
+                                if (!declLine.empty()) declLine += ", ";
+                                declLine += var;
+                            }
+                        }
+
+                        if (anyDeferred) {
+                            newCode += indent + typeName + " " + declLine + ";\n";
+                            replaced = true;
+                        }
+                    }
+                }
+            }
+
+            if (!replaced) {
+                newCode += line + "\n";
+            }
+        }
+
+        // Inject deferred initializations at the start of main()
+        if (!deferredInits.empty()) {
+            // Find "void main()" and inject after the opening brace
+            auto mainPos = newCode.find("void main()");
+            if (mainPos == std::string::npos) mainPos = newCode.find("void main(void)");
+            if (mainPos == std::string::npos) mainPos = newCode.find("void main ()");
+            if (mainPos != std::string::npos) {
+                auto bracePos = newCode.find('{', mainPos);
+                if (bracePos != std::string::npos) {
+                    newCode.insert(bracePos + 1, "\n    // [ES compat] deferred global initializers\n" + deferredInits);
+                }
+            }
+        }
+
+        shaderCode = newCode;
+    }
+
+    _code = "#version 300 es\nprecision highp float;\nprecision mediump sampler2D;\n\n";
+#else
     _code = "#version 330\n\n";
+#endif
     size_t idx = shaderCode.find("#extension");
     if (idx != std::string::npos) {
         size_t nidx = shaderCode.find("\n", idx);
@@ -1329,6 +1528,6 @@ bool ShaderConfig::UsesEvents() const
                        [](const ShaderParm& p) { return p._type == ShaderParmType::SHADER_PARM_EVENT; });
 }
 
-#ifdef __APPLE__
-#pragma clang diagnostic push
+#if defined(__APPLE__) && !defined(USE_GLES)
+#pragma clang diagnostic pop
 #endif

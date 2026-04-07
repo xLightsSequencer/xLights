@@ -73,12 +73,17 @@ static bool canUseFramebufferObjects()
 		&& glFramebufferRenderbuffer != nullptr;
 }
 #else
-// OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    #ifdef USE_GLES
+        // ANGLE provides OpenGL ES 3.0 on top of Metal
+        #define GL_GLES_PROTOTYPES 1
+        #include <GLES3/gl3.h>
+    #else
+        // OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-
-#include "OpenGL/gl.h"
+        #include "OpenGL/gl.h"
+    #endif
 
 static bool canUseShaders()
 {
@@ -296,7 +301,7 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
     return linkSuccess ? program : 0;
 }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(USE_GLES)
 // OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
 #pragma clang diagnostic pop
 #endif
