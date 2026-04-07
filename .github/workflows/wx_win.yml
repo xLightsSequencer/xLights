@@ -17,7 +17,7 @@ jobs:
       id: cache-wx
       uses: actions/cache@v4
       with:
-        path: ${{ env.WX_DIR }}
+        path: ..\wxWidgets\
         key: ${{ runner.os }}-wx-${{ env.WX_VERSION }}
 
     # 2. Download & Build wxWidgets (if cache miss)
