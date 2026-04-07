@@ -50,7 +50,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\include;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\include;..\dependencies\pugixml\src;..\dependencies\spdlog\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -88,13 +88,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\xLights\automation\automation.cpp" />
-    <ClCompile Include="..\xLights\utils\CurlManager.cpp" />
+    <ClCompile Include="..\src-ui-wx\automation\automation.cpp" />
+    <ClCompile Include="..\src-core\utils\CurlManager.cpp" />
     <ClCompile Include="xlDo.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\xLights\automation\automation.h" />
-    <ClInclude Include="..\xLights\utils\CurlManager.h" />
+    <ClInclude Include="..\src-ui-wx\automation\automation.h" />
+    <ClInclude Include="..\src-core\utils\CurlManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

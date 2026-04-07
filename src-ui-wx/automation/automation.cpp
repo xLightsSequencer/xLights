@@ -203,8 +203,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
 
                 return 0;
             }
-        }
-        catch (const std::exception& e) {
+        } catch (const std::exception& /*e*/) {
             // not json, ignore
         }
     }
@@ -230,7 +229,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
         return 1;
     } 
     if (isJsonResp) {
-        try {        
+        try {
             nlohmann::json val = nlohmann::json::parse(resp);
 
             if (!val.contains("res") && responseCode != 0) {
@@ -247,9 +246,16 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 //fprintf(stderr, "\u001b[31;1mxLights response has error code: %d.\u001b[0m %s\n", (int)res, (const char*)resp.c_str());
                 return 2;
             }
+        } catch (const nlohmann::json::parse_error& e) {
+            spdlog::error("Error parsing xLights response.");
+            spdlog::error("exception id: {}, byte position of error: {}.", e.id, e.byte);
+            spdlog::error( "{}", e.what());
+            // fprintf(stderr, "\u001b[31;1mError parsing xLights response.\u001b[0m\n");
+            return 1;
         }
         catch (const std::exception& e) {
             spdlog::error("Error parsing xLights response.");
+            spdlog::error("{}", e.what());
             //fprintf(stderr, "\u001b[31;1mError parsing xLights response.\u001b[0m\n");
             return 1;
         }
