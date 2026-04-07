@@ -1237,7 +1237,9 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Geometrically Sort Points All Strands...");
 
     mnu.AppendSeparator();
-    mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+    if (model->IsCustom()) {
+        mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+    }
     mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
 
     mnu.AppendSeparator();
