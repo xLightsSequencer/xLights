@@ -70,11 +70,15 @@ jobs:
       with:
         version: 1.30.0
         
+    - name: Download wxWidgets
+      run: 
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b $WX_VERSION https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+        
     - name: Cache wxWidgets
       id: cache-wx
       uses: actions/cache@v4
       with:
-        path: ..\wxWidgets\
+        path: ..\wxWidgets\lib\vc_x64_lib\
         key: ${{ runner.os }}-wx-${{ env.WX_VERSION }}
 
     - name: xLights
