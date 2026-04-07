@@ -2,7 +2,7 @@
 
 //#define FORCE_OPENGL_BASE
 
-#if !defined(FORCE_OPENGL_BASE) && __has_include("osxUtils/wxMetalCanvas.hpp")
+#if !defined(FORCE_OPENGL_BASE) && __has_include("osxUtilsUI/wxMetalCanvas.hpp")
     // Metal base classes are available, use the MetalCanvas
     #include "metal/xlMetalCanvas.h"
     #define XL_DRAWING_WITH_METAL
