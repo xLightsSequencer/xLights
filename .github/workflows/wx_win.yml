@@ -24,7 +24,7 @@ jobs:
       uses: microsoft/setup-msbuild@v3
 
     # 2. Download wxWidgets (if cache miss)
-    - name: Download and Build wxWidgets
+    - name: Download wxWidgets
       if: steps.cache-wx.outputs.cache-hit != 'true'
       run:
         git clone --depth=1 --shallow-submodules  --recurse-submodules -b master https://github.com/xLightsSequencer/wxWidgets wxWidgets\
@@ -36,6 +36,7 @@ jobs:
       
     # Optional: Upload DLLs as artifacts
     - name: Upload wxWidgets DLLs
+      if: steps.cache-wx.outputs.cache-hit != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: wx-libs
