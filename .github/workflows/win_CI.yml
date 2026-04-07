@@ -78,8 +78,15 @@ jobs:
       id: cache-wx
       uses: actions/cache@v4
       with:
-        path: ..\wxWidgets\lib\vc_x64_lib\
+        path: |
+          ..\wxWidgets\lib\vc_x64_lib
+          ..\wxWidgets\include
         key: ${{ runner.os }}-wx-${{ env.WX_VERSION }}
+        
+    - name: Build wxWidgets
+      if: steps.cache-wx.outputs.cache-hit != 'true'
+      working-directory: ..\wxWidgets\
+      run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 
     - name: xLights
       working-directory: xLights
