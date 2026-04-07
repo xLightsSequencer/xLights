@@ -10,6 +10,7 @@
 
 #include "MediaPickerCtrl.h"
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "ui/media/ManageMediaPanel.h"
 #include "render/SequenceElements.h"
 #include "ui/shared/utils/wxUtilities.h"
@@ -96,12 +97,7 @@ void MediaPickerCtrl::SetPath(const wxString& path) {
 }
 
 void MediaPickerCtrl::OnSelectClick(wxCommandEvent& event) {
-    // Walk up parent chain to find xLightsFrame
-    xLightsFrame* xl = nullptr;
-    for (wxWindow* w = GetParent(); w != nullptr; w = w->GetParent()) {
-        xl = dynamic_cast<xLightsFrame*>(w);
-        if (xl) break;
-    }
+    xLightsFrame* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
     if (!xl) return;
 
     SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
@@ -121,7 +117,6 @@ void MediaPickerCtrl::OnSelectClick(wxCommandEvent& event) {
     // Sync to linked file picker (for bulk edit framework compatibility)
     if (_linkedPicker) {
         _linkedPicker->SetPath(selected);
-        // Fire the file picker changed event so existing handlers run
         wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _linkedPicker,
                                  _linkedPicker->GetId(), selected);
         _linkedPicker->ProcessWindowEvent(evt);
@@ -149,12 +144,7 @@ void MediaPickerCtrl::UpdatePreview() {
         return;
     }
 
-    // Walk up to find xLightsFrame for SequenceMedia access
-    xLightsFrame* xl = nullptr;
-    for (wxWindow* w = GetParent(); w != nullptr; w = w->GetParent()) {
-        xl = dynamic_cast<xLightsFrame*>(w);
-        if (xl) break;
-    }
+    xLightsFrame* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
     if (!xl) return;
 
     SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();

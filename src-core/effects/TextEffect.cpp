@@ -287,7 +287,11 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     if (i > 0) {
                         text += "\n";
                     }
-                    text += lines[i];
+                    std::string line = lines[i];
+                    if (!line.empty() && line.back() == '\r') {
+                        line.pop_back();
+                    }
+                    text += line;
                 }
 
                 while (!text.empty() && text.back() == '\n') {
@@ -1409,7 +1413,11 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                     if (i > 0) {
                         text += "\n";
                     }
-                    text += lines[i];
+                    std::string line = lines[i];
+                    if (!line.empty() && line.back() == '\r') {
+                        line.pop_back();
+                    }
+                    text += line;
                 }
 
                 while (!text.empty() && text.back() == '\n') {
@@ -1521,6 +1529,9 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         OffsetTop += buffer.BufferHt / 2 - (font->GetCapsHeight() * lines.size()) / 2;
     }
 
+    int InitialOffsetTop = OffsetTop;
+    int InitialOffsetLeft = OffsetLeft;
+
     if (!lines.empty()) {
         int curPos = 0;
         for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
@@ -1528,6 +1539,10 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
             int line_offset_left = OffsetLeft - line_lengths[line_idx] / 2;
             if (rotate_90 || vertical) {
                 line_offset_left = OffsetLeft;
+            }
+
+            if (rotate_90 && !up) {
+                OffsetTop = InitialOffsetTop;
             }
 
             for (int i = 0; i < (int)line.length(); i++) {
@@ -1578,7 +1593,14 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                     line_offset_left += actual_width;
                 }
             }
-            OffsetTop += font->GetHeight() + 1;
+            if (rotate_90) {
+                OffsetLeft += char_height + 1;
+                if (up) { 
+                    OffsetTop = InitialOffsetTop;
+                }
+            } else {
+                OffsetTop += font->GetHeight() + 1;
+            }
         }
     }
 }

@@ -345,7 +345,7 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel()
 
     // Replace file picker with media-aware picker
     FilePickerCtrl1->Hide();
-    _mediaPicker = new MediaPickerCtrl(this, wxID_ANY, MediaType::TextFile);
+    _mediaPicker = new MediaPickerCtrl(Panel_Text1, wxID_ANY, MediaType::TextFile);
     _mediaPicker->SetLinkedPicker(FilePickerCtrl1);
     auto* fpSizer = FilePickerCtrl1->GetContainingSizer();
     if (fpSizer) {
