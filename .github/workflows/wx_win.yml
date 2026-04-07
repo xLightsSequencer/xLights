@@ -18,6 +18,10 @@ jobs:
       with:
         path: ..\wxWidgets\
         key: ${{ runner.os }}-wx-${{ env.WX_VERSION }}
+        
+    - name: Setup msbuild
+      if: steps.cache-wx.outputs.cache-hit != 'true'
+      uses: microsoft/setup-msbuild@v3
 
     # 2. Download wxWidgets (if cache miss)
     - name: Download and Build wxWidgets
