@@ -64,18 +64,18 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 struct ShockwaveData {
     uint32_t width;
     uint32_t height;
-    float    xc_adj;
-    float    yc_adj;
-    float    radius1;
-    float    radius2;
-    float    radius_center;
-    float    half_width;
-    int32_t  blend_edges;
-    int32_t  allowAlpha;
-    uint8_t4 color;
-    float    colorH;
-    float    colorS;
-    float    colorV;
+    float xc_adj;
+    float yc_adj;
+    float radius1;
+    float radius2;
+    float radius_center;
+    float half_width;
+    int32_t blend_edges;
+    int32_t allowAlpha;
+    struct uint8_t4  color;
+    float colorH;
+    float colorS;
+    float colorV;
 };
 #endif
 
@@ -86,7 +86,7 @@ struct ShockwaveData {
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 extern "C" {
 #endif // __cplusplus
-    extern void ShockwaveEffectISPC(const struct ShockwaveData * data, int32_t startIdx, int32_t endIdx, uint8_t4 * result);
+    extern void ShockwaveEffectISPC(const struct ShockwaveData * data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus

@@ -64,14 +64,14 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 struct WarpData {
     uint32_t width;
     uint32_t height;
-    int32_t  warpMode;
-    float    progress;
-    float    cx;
-    float    cy;
-    float    speed;
-    float    frequency;
-    int32_t  dissolveW;
-    int32_t  dissolveH;
+    int32_t warpMode;
+    float progress;
+    float cx;
+    float cy;
+    float speed;
+    float frequency;
+    int32_t dissolveW;
+    int32_t dissolveH;
 };
 #endif
 
@@ -82,11 +82,7 @@ struct WarpData {
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 extern "C" {
 #endif // __cplusplus
-    extern void WarpEffectISPC(const struct WarpData * data,
-                               int32_t startIdx, int32_t endIdx,
-                               const uint8_t4 * src,
-                               uint8_t4 * dst,
-                               const uint8_t * dissolve);
+    extern void WarpEffectISPC(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint8_t4   * src, uint8_t4   * dst, const uint8_t * dissolve);
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus

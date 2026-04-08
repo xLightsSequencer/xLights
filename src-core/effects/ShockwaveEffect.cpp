@@ -121,9 +121,7 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     radius2 = radius_center + half_width;
     radius1 = std::max(0.0, radius1);
 
-    do {
-        if (buffer.palette.IsSpatial(color_index)) break;
-
+    if (!buffer.palette.IsSpatial(color_index)) {
         HSVValue colorHsv = color.asHSV();
         ispc::ShockwaveData sdata;
         sdata.width         = buffer.BufferWi;
@@ -154,7 +152,7 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
             ispc::ShockwaveEffectISPC(&sdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
         });
         return;
-    } while (false);
+    }
 
     for (int x = 0; x < buffer.BufferWi; x++) {
         int x1 = x - xc_adj;

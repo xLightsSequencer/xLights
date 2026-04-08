@@ -20,7 +20,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     like MacBook Neo
     -enh (AGFazio)              Layout Model Icons resize on 4K/HiDPI monitors
     -enh (scott)                Add Eleven Labs lyric import
-    -enh (derwin12)             ISPC acceleration for Bars, Fan, ColorWash, and Kaleidoscope effects
+    -enh (derwin12)             ISPC acceleration for Bars, Circles, Fan, ColorWash, Shockwave, Spirals, Warp, and Kaleidoscope effects
     -bug (derwin12)             Fix Shape effect emoji/unicode characters rendering incorrectly on Windows
     -bug (derwin12)             Fix Text Media Manager and MultiLine Text File
     -bug (AGFazio)              Fix false positive missing texture error in Check Sequence for Mesh

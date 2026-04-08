@@ -29,7 +29,9 @@
 #define WARP_COPY               14
 #define WARP_FLIP               15
 
+#ifndef PI
 #define PI 3.14159265358979323846f
+#endif
 
 struct WarpData {
     unsigned int width;

@@ -22,6 +22,8 @@
 #include "ispc/SpiralsFunctions.ispc.h"
 #include "Parallel.h"
 
+#define MAX_ISPC_SPIRALS_COLORS 8
+
 SpiralsEffect::SpiralsEffect(int id) : RenderableEffect(id, "Spirals", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64)
 {
     //ctor
@@ -75,15 +77,13 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
 
     SpiralThickness += ThicknessState;
 
-    do {
-        if (Blend) break;
-        if (colorcnt > MAX_ISPC_SPIRALS_COLORS) break;
-        bool hasSpatial = false;
-        for (size_t i = 0; i < colorcnt; i++) {
-            if (buffer.palette.IsSpatial(i)) { hasSpatial = true; break; }
-        }
-        if (hasSpatial) break;
-
+    bool hasSpatial = false;
+    for (size_t i = 0; i < colorcnt; i++) {
+        if (buffer.palette.IsSpatial(i)) { hasSpatial = true; break; }
+    }
+    bool canUseISPC = !Blend && (colorcnt <= MAX_ISPC_SPIRALS_COLORS) && !hasSpatial;
+    
+    if (canUseISPC) {
         ispc::SpiralsData sdata;
         sdata.width          = buffer.BufferWi;
         sdata.height         = buffer.BufferHt;
@@ -119,7 +119,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             ispc::SpiralsEffectISPC(&sdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
         });
         return;
-    } while (false);
+    }
 
     for (int ns = 0; ns < SpiralCount; ns++) {
         int strand_base = ns * deltaStrands;

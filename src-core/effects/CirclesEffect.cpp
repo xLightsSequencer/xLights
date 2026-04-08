@@ -22,6 +22,16 @@
 #include "ispc/CirclesFunctions.ispc.h"
 #include "Parallel.h"
 
+
+#define MAX_ISPC_CIRCLES_BALLS  20
+#define MAX_ISPC_CIRCLES_COLORS  8
+
+#define CIRCLES_MODE_RADIAL     0
+#define CIRCLES_MODE_RADIAL_3D  1
+#define CIRCLES_MODE_METABALLS  2
+#define CIRCLES_MODE_REGULAR    3
+#define CIRCLES_MODE_FADING     4
+
 CirclesEffect::CirclesEffect(int i) : RenderableEffect(i, "Circles", circles_16, circles_24, circles_32, circles_48, circles_64)
 {
     //ctor
@@ -165,14 +175,14 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
         int start_y = buffer.BufferHt / 2;
         start_x = start_x + (GetValueCurveInt("Circles_XC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_x);
         start_y = start_y + (GetValueCurveInt("Circles_YC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_y);
-        do {
-            if ((int)colorCnt > MAX_ISPC_CIRCLES_COLORS) break;
-            bool hasSpatial = false;
-            for (size_t i = 0; i < colorCnt; i++) {
-                if (buffer.palette.IsSpatial(i)) { hasSpatial = true; break; }
-            }
-            if (hasSpatial) break;
 
+
+        bool hasSpatial = false;
+        for (size_t i = 0; i < colorCnt; i++) {
+            if (buffer.palette.IsSpatial(i)) { hasSpatial = true; break; }
+        }
+
+        if (!hasSpatial &&  ((int)colorCnt <= MAX_ISPC_CIRCLES_COLORS)) {
             int barht = buffer.BufferHt / (radius + 1);
             if (barht < 1) barht = 1;
             int blockHt = (int)colorCnt * barht;
@@ -215,7 +225,7 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
                 ispc::CirclesEffectISPC(&sdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
             });
             return;
-        } while (false);
+        }
 
         RenderRadial(buffer, start_x, start_y, radius, colorCnt, number, radial_3D, effectState);
         return;
