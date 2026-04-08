@@ -166,7 +166,7 @@ protected:
 
     // Draw pixels from the already-updated cache state.
     void RenderPixels(const SettingsMap& SettingsMap, RenderBuffer& buffer, CirclesRenderCache* cache,
-                      bool plasma, bool fade, bool bubbles, bool bounce, bool collide);
+                      bool plasma, bool fade, bool bubbles, bool bounce);
 
     void RenderMetaBalls(RenderBuffer& buffer, int numBalls, MetaBall* metaballs);
     void RenderRadial(RenderBuffer& buffer, int start_x, int start_y, int radius,

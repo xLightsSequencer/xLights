@@ -1,0 +1,142 @@
+{
+    "effectName": "Meteors",
+    "properties": [
+        {
+            "id": "Meteors_Type",
+            "label": "Colors",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Rainbow",
+                "Range",
+                "Palette"
+            ],
+            "default": "Rainbow",
+            "lockable": true
+        },
+        {
+            "id": "Meteors_Effect",
+            "label": "Effect",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Down",
+                "Up",
+                "Left",
+                "Right",
+                "Implode",
+                "Explode",
+                "Icicles",
+                "Icicles + bkg"
+            ],
+            "default": "Down",
+            "lockable": true
+        },
+        {
+            "id": "Meteors_Count",
+            "label": "Count",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Meteors_Length",
+            "label": "Trail Length",
+            "type": "int",
+            "controlType": "slider",
+            "default": 25,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Meteors_Swirl_Intensity",
+            "label": "Swirl Intensity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 20,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Meteors_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 50,
+            "valueCurve": true
+        },
+        {
+            "id": "Meteors_WamupFrames",
+            "label": "Warm up frames",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Meteors_XOffset",
+            "label": "Horizontal Offset",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "lockable": true,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Meteors_YOffset",
+            "label": "Vertical Offset",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "lockable": true,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Meteors_UseMusic",
+            "label": "Adjust count based on music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "FadeWithDistance",
+            "label": "Starfield simulation",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Meteors_Effect",
+                "oneOf": [
+                    "Implode",
+                    "Explode"
+                ]
+            },
+            "enable": [
+                "Meteors_XOffset",
+                "Meteors_YOffset",
+                "FadeWithDistance"
+            ]
+        }
+    ]
+}

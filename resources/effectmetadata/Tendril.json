@@ -1,0 +1,163 @@
+{
+    "effectName": "Tendril",
+    "properties": [
+        {
+            "id": "Tendril_Movement",
+            "label": "Movement",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Random",
+                "Square",
+                "Circle",
+                "Horizontal Zig Zag",
+                "Horiz. Zig Zag Return",
+                "Vertical Zig Zag",
+                "Vert. Zig Zag Return",
+                "Music Line",
+                "Music Circle",
+                "Manual"
+            ],
+            "default": "Circle",
+            "lockable": true
+        },
+        {
+            "id": "Tendril_TuneMovement",
+            "label": "Tune Movement",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 0,
+            "max": 20
+        },
+        {
+            "id": "Tendril_Thickness",
+            "label": "Thickness",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 1,
+            "max": 20
+        },
+        {
+            "id": "Tendril_Friction",
+            "label": "Friction",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "lockable": true,
+            "min": 0,
+            "max": 20
+        },
+        {
+            "id": "Tendril_Dampening",
+            "label": "Dampening",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "lockable": true,
+            "min": 0,
+            "max": 20
+        },
+        {
+            "id": "Tendril_Tension",
+            "label": "Tension",
+            "type": "int",
+            "controlType": "slider",
+            "default": 20,
+            "lockable": true,
+            "min": 0,
+            "max": 39
+        },
+        {
+            "id": "Tendril_Trails",
+            "label": "Trails",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "lockable": true,
+            "min": 1,
+            "max": 20
+        },
+        {
+            "id": "Tendril_Length",
+            "label": "Length",
+            "type": "int",
+            "controlType": "slider",
+            "default": 60,
+            "lockable": true,
+            "min": 5,
+            "max": 100
+        },
+        {
+            "id": "Tendril_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 1,
+            "max": 10
+        },
+        {
+            "id": "Tendril_XOffset",
+            "label": "Horizontal Offset",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "lockable": true,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Tendril_YOffset",
+            "label": "Vertical Offset",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "lockable": true,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Tendril_ManualX",
+            "label": "Manual X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Tendril_ManualY",
+            "label": "Manual Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Tendril_Movement",
+                "equals": "Manual"
+            },
+            "enable": [
+                "Tendril_ManualX",
+                "Tendril_ManualY"
+            ],
+            "disable": [
+                "Tendril_TuneMovement"
+            ]
+        }
+    ]
+}

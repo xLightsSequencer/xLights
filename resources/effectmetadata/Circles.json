@@ -1,0 +1,120 @@
+{
+    "effectName": "Circles",
+    "properties": [
+        {
+            "id": "Circles_Count",
+            "label": "Number of Circles",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 1,
+            "max": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Size",
+            "label": "Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 1,
+            "max": 20,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 1,
+            "max": 30,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Bounce",
+            "label": "Bounce",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Radial",
+            "label": "Radial",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Plasma",
+            "label": "Plasma",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Radial_3D",
+            "label": "Radial 3D",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Bubbles",
+            "label": "Bubbles",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Circles_Linear_Fade",
+            "label": "Linear Fade",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Circles_XC",
+            "label": "X Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -50,
+            "max": 50,
+            "valueCurve": true
+        },
+        {
+            "id": "Circles_YC",
+            "label": "Y Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -50,
+            "max": 50,
+            "valueCurve": true
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "any": [
+                    "Circles_Radial",
+                    "Circles_Radial_3D"
+                ]
+            },
+            "enable": [
+                "Circles_XC",
+                "Circles_YC"
+            ]
+        }
+    ]
+}

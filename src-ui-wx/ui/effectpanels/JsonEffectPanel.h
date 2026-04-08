@@ -55,8 +55,12 @@ private:
         bool conditionEquals = true; // check for equals (true) vs notEquals (false)
         // For bool conditions:
         bool conditionBoolValue = true;
-        // For enum conditions:
+        // For enum/choice conditions:
         std::vector<std::string> conditionOneOf;
+        std::string conditionStartsWith;
+        std::string conditionStringEquals;
+        // For "any" conditions (OR of multiple checkbox properties):
+        std::vector<std::string> conditionAnyIds;
 
         std::vector<std::string> enableIds;
         std::vector<std::string> disableIds;

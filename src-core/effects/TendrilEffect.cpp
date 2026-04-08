@@ -356,10 +356,10 @@ void TendrilEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-           SettingsMap.Get("CHOICE_Tendril_Movement", "Random"),
+           SettingsMap.Get("CHOICE_Tendril_Movement", "Circle"),
            GetValueCurveInt("Tendril_TuneMovement", 10, SettingsMap, oset, TENDRIL_MOVEMENT_MIN, TENDRIL_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
            SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", 10),
-           GetValueCurveInt("Tendril_Thickness", 1, SettingsMap, oset, TENDRIL_THICKNESS_MIN, TENDRIL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Tendril_Thickness", 3, SettingsMap, oset, TENDRIL_THICKNESS_MIN, TENDRIL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
            SettingsMap.GetFloat("TEXTCTRL_Tendril_Friction", 10) / 20 * 0.2 + 0.4,   // 0.4->0.6 but on screen 0-20: def 0.5
            SettingsMap.GetFloat("TEXTCTRL_Tendril_Dampening", 10) / 20 * 0.5,        // 0->0.5 but on screen 0-20: def 0.25
            SettingsMap.GetFloat("TEXTCTRL_Tendril_Tension", 20) / 39 * 0.039 + 0.96, // 0.960->0.999 but on screen 0->39: def 0.980

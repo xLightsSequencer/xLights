@@ -56,5 +56,17 @@
             ],
             "default": "Bottom"
         }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Fire_GrowWithMusic",
+                "equals": true
+            },
+            "disable": [
+                "Fire_Height",
+                "Fire_GrowthCycles"
+            ]
+        }
     ]
 }

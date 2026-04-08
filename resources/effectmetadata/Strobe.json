@@ -1,0 +1,43 @@
+{
+    "effectName": "Strobe",
+    "properties": [
+        {
+            "id": "Number_Strobes",
+            "label": "Number Strobes",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 1,
+            "max": 300,
+            "lockable": true
+        },
+        {
+            "id": "Strobe_Duration",
+            "label": "Strobe Duration",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 1,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "Strobe_Type",
+            "label": "Strobe Type",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 4,
+            "lockable": true
+        },
+        {
+            "id": "Strobe_Music",
+            "label": "Reacts to music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        }
+    ]
+}

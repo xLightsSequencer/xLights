@@ -153,6 +153,28 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     // Parse visibility rules
     ParseVisibilityRules(metadata);
 
+    // Connect change events on controls that are visibility rule conditions
+    // so that ValidateWindow is called when they change
+    std::set<std::string> conditionIds;
+    for (const auto& rule : visibilityRules_) {
+        if (!rule.conditionPropertyId.empty()) conditionIds.insert(rule.conditionPropertyId);
+        for (const auto& id : rule.conditionAnyIds) conditionIds.insert(id);
+    }
+    for (const auto& cid : conditionIds) {
+        auto it = properties_.find(cid);
+        if (it != properties_.end()) {
+            if (it->second.choice) {
+                it->second.choice->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.checkBox) {
+                it->second.checkBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.slider) {
+                it->second.slider->Bind(wxEVT_SLIDER, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+        }
+    }
+
     // Connect standard events
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&JsonEffectPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&JsonEffectPanel::OnValidateWindow, 0, this);
@@ -909,17 +931,29 @@ void JsonEffectPanel::ParseVisibilityRules(const nlohmann::json& metadata) {
                 vr.conditionEquals = true;
                 if (when["equals"].is_boolean()) {
                     vr.conditionBoolValue = when["equals"].get<bool>();
+                } else if (when["equals"].is_string()) {
+                    vr.conditionStringEquals = when["equals"].get<std::string>();
                 }
             }
             if (when.contains("notEquals")) {
                 vr.conditionEquals = false;
                 if (when["notEquals"].is_boolean()) {
                     vr.conditionBoolValue = when["notEquals"].get<bool>();
+                } else if (when["notEquals"].is_string()) {
+                    vr.conditionStringEquals = when["notEquals"].get<std::string>();
                 }
             }
             if (when.contains("oneOf")) {
                 for (const auto& v : when["oneOf"]) {
                     vr.conditionOneOf.push_back(v.get<std::string>());
+                }
+            }
+            if (when.contains("startsWith")) {
+                vr.conditionStartsWith = when["startsWith"].get<std::string>();
+            }
+            if (when.contains("any")) {
+                for (const auto& v : when["any"]) {
+                    vr.conditionAnyIds.push_back(v.get<std::string>());
                 }
             }
         }
@@ -961,18 +995,37 @@ void JsonEffectPanel::ApplyVisibilityRules() {
     for (const auto& rule : visibilityRules_) {
         bool conditionMet = false;
 
-        auto it = properties_.find(rule.conditionPropertyId);
-        if (it != properties_.end()) {
-            const auto& info = it->second;
-            if (info.checkBox) {
-                bool val = info.checkBox->GetValue();
-                conditionMet = rule.conditionEquals ? (val == rule.conditionBoolValue)
-                                                     : (val != rule.conditionBoolValue);
-            } else if (info.choice) {
-                std::string sel = info.choice->GetStringSelection().ToStdString();
-                if (!rule.conditionOneOf.empty()) {
-                    for (const auto& v : rule.conditionOneOf) {
-                        if (sel == v) { conditionMet = true; break; }
+        // "any" condition: OR of multiple checkbox properties
+        if (!rule.conditionAnyIds.empty()) {
+            for (const auto& anyId : rule.conditionAnyIds) {
+                auto it = properties_.find(anyId);
+                if (it != properties_.end() && it->second.checkBox) {
+                    if (it->second.checkBox->GetValue()) {
+                        conditionMet = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            // Single property condition
+            auto it = properties_.find(rule.conditionPropertyId);
+            if (it != properties_.end()) {
+                const auto& info = it->second;
+                if (info.checkBox) {
+                    bool val = info.checkBox->GetValue();
+                    conditionMet = rule.conditionEquals ? (val == rule.conditionBoolValue)
+                                                         : (val != rule.conditionBoolValue);
+                } else if (info.choice) {
+                    std::string sel = info.choice->GetStringSelection().ToStdString();
+                    if (!rule.conditionOneOf.empty()) {
+                        for (const auto& v : rule.conditionOneOf) {
+                            if (sel == v) { conditionMet = true; break; }
+                        }
+                    } else if (!rule.conditionStartsWith.empty()) {
+                        conditionMet = sel.find(rule.conditionStartsWith) == 0;
+                    } else if (!rule.conditionStringEquals.empty()) {
+                        conditionMet = rule.conditionEquals ? (sel == rule.conditionStringEquals)
+                                                             : (sel != rule.conditionStringEquals);
                     }
                 }
             }
@@ -984,11 +1037,12 @@ void JsonEffectPanel::ApplyVisibilityRules() {
                 if (it2 != properties_.end()) {
                     wxWindow* ctrl = FindControlForProperty(id);
                     if (ctrl) ctrl->Enable(enabled);
-                    // Also enable/disable buddy controls
+                    // Also enable/disable buddy controls and VC button
                     if (it2->second.buddySlider) it2->second.buddySlider->Enable(enabled);
                     if (it2->second.buddyText) it2->second.buddyText->Enable(enabled);
                     if (it2->second.textCtrl && ctrl != it2->second.textCtrl)
                         it2->second.textCtrl->Enable(enabled);
+                    if (it2->second.valueCurveBtn) it2->second.valueCurveBtn->Enable(enabled);
                 }
             }
         };

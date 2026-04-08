@@ -523,7 +523,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\WarpPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectTimingDialog.cpp" />
     <ClCompile Include="..\src-core\effects\CandleEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\CandlePanel.cpp" />
     <ClCompile Include="..\src-core\utils\AnimatedImage.cpp" />
     <ClCompile Include="..\src-core\effects\LiquidEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.cpp" />
@@ -699,10 +698,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasMorph.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasPictures.cpp" />
     <ClCompile Include="..\src-core\effects\BarsEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\BarsPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ButterflyEffect.cpp" />
     <ClCompile Include="..\src-core\effects\CirclesEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\CirclesPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ColorWashEffect.cpp" />
     <ClCompile Include="..\src-core\effects\CurtainEffect.cpp" />
     <ClCompile Include="..\src-core\effects\DMXEffect.cpp" />
@@ -726,7 +723,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\LightningEffect.cpp" />
     <ClCompile Include="..\src-core\effects\MarqueeEffect.cpp" />
     <ClCompile Include="..\src-core\effects\MeteorsEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MeteorsPanel.cpp" />
     <ClCompile Include="..\src-core\effects\MorphEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\MorphPanel.cpp" />
     <ClCompile Include="..\src-core\effects\MusicEffect.cpp" />
@@ -757,9 +753,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\StateEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\StatePanel.cpp" />
     <ClCompile Include="..\src-core\effects\StrobeEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\StrobePanel.cpp" />
     <ClCompile Include="..\src-core\effects\TendrilEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\TendrilPanel.cpp" />
     <ClCompile Include="..\src-core\effects\TextEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\TextPanel.cpp" />
     <ClCompile Include="..\src-core\effects\TreeEffect.cpp" />
@@ -1222,7 +1216,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\layout\Mouse3DManager.h" />
     <ClInclude Include="..\src-ui-wx\ui\sequencer\CustomTimingDialog.h" />
     <ClInclude Include="..\src-core\effects\CandleEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\CandlePanel.h" />
     <ClInclude Include="..\src-core\utils\AnimatedImage.h" />
     <ClInclude Include="..\src-core\effects\LiquidEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.h" />
@@ -1266,10 +1259,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectListDialog.h" />
     <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectsPanel.h" />
     <ClInclude Include="..\src-core\effects\BarsEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\BarsPanel.h" />
     <ClInclude Include="..\src-core\effects\ButterflyEffect.h" />
     <ClInclude Include="..\src-core\effects\CirclesEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\CirclesPanel.h" />
     <ClInclude Include="..\src-core\effects\ColorWashEffect.h" />
     <ClInclude Include="..\src-core\effects\CurtainEffect.h" />
     <ClInclude Include="..\src-core\effects\DMXEffect.h" />
@@ -1293,7 +1284,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\LightningEffect.h" />
     <ClInclude Include="..\src-core\effects\MarqueeEffect.h" />
     <ClInclude Include="..\src-core\effects\MeteorsEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MeteorsPanel.h" />
     <ClInclude Include="..\src-core\effects\MorphEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\MorphPanel.h" />
     <ClInclude Include="..\src-core\effects\MusicEffect.h" />
@@ -1324,9 +1314,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\StateEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\StatePanel.h" />
     <ClInclude Include="..\src-core\effects\StrobeEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\StrobePanel.h" />
     <ClInclude Include="..\src-core\effects\TendrilEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\TendrilPanel.h" />
     <ClInclude Include="..\src-core\effects\TextEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\TextPanel.h" />
     <ClInclude Include="..\src-core\effects\TreeEffect.h" />

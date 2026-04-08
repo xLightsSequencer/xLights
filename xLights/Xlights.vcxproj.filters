@@ -1109,15 +1109,6 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\BarsPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\CandlePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\CirclesPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\DMXPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
@@ -1137,9 +1128,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MeteorsPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\MorphPanel.cpp">
@@ -1188,12 +1176,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\StatePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\StrobePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\TendrilPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\TextPanel.cpp">
@@ -2474,15 +2456,6 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\BarsPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\CandlePanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\CirclesPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\DMXPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
@@ -2502,9 +2475,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MeteorsPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\MorphPanel.h">
@@ -2553,12 +2523,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\StatePanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\StrobePanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\TendrilPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\TextPanel.h">

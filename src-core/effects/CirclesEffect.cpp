@@ -122,7 +122,7 @@ CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const Settin
 }
 
 void CirclesEffect::RenderPixels(const SettingsMap& SettingsMap, RenderBuffer& buffer, CirclesRenderCache* cache,
-                                 bool plasma, bool fade, bool bubbles, bool bounce, bool collide)
+                                 bool plasma, bool fade, bool bubbles, bool bounce)
 {
     if (plasma)
     {
@@ -136,11 +136,11 @@ void CirclesEffect::RenderPixels(const SettingsMap& SettingsMap, RenderBuffer& b
             buffer.palette.GetHSV(cache->balls[ii]._colorindex, hsv);
             if (fade)
             {
-                buffer.DrawFadingCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bounce && !collide);
+                buffer.DrawFadingCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bounce);
             }
             else
             {
-                buffer.DrawCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bubbles, !bounce && !collide);
+                buffer.DrawCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bubbles, !bounce);
             }
         }
     }
@@ -158,8 +158,6 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
     bool radial_3D= SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D", false);
     bool fade     = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", false);
     bool bubbles  = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles",   false);
-    //bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m", false);
-    bool collide  = SettingsMap.GetBool("CHECKBOX_Circles_Collide",   false);
     bool bounce   = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",    false);
 
     size_t colorCnt = buffer.GetColorCount();
@@ -253,7 +251,7 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
         sdata.numBalls   = cache->numBalls;
         sdata.colorCount = (int)colorCnt;
         sdata.allowAlpha = buffer.allowAlpha ? 1 : 0;
-        sdata.wrap       = (bounce || collide) ? 0 : 1;
+        sdata.wrap       = bounce ? 0 : 1;
         for (int ii = 0; ii < cache->numBalls; ii++) {
             sdata.balls[ii].x        = effObjs[ii]._x;
             sdata.balls[ii].y        = effObjs[ii]._y;
@@ -285,7 +283,7 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
         return;
     } while (false);
 
-    RenderPixels(SettingsMap, buffer, cache, plasma, fade, bubbles, bounce, collide);
+    RenderPixels(SettingsMap, buffer, cache, plasma, fade, bubbles, bounce);
 }
 
 void CirclesEffect::RenderCirclesUpdate(RenderBuffer& buffer, int ballCnt, RgbBalls* effObjs, int circleSpeed)

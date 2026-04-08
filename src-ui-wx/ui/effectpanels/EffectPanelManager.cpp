@@ -19,9 +19,6 @@
 #include <spdlog/spdlog.h>
 
 #include "AdjustPanel.h"
-#include "BarsPanel.h"
-#include "CandlePanel.h"
-#include "CirclesPanel.h"
 #include "DMXPanel.h"
 #include "DuplicatePanel.h"
 #include "FacesPanel.h"
@@ -29,7 +26,6 @@
 #include "GuitarPanel.h"
 #include "KaleidoscopePanel.h"
 #include "LiquidPanel.h"
-#include "MeteorsPanel.h"
 #include "MorphPanel.h"
 #include "MovingHeadPanel.h"
 #include "MusicPanel.h"
@@ -45,8 +41,6 @@
 #include "SketchPanel.h"
 #include "SnowflakesPanel.h"
 #include "StatePanel.h"
-#include "StrobePanel.h"
-#include "TendrilPanel.h"
 #include "TextPanel.h"
 #include "VideoPanel.h"
 #include "VUMeterPanel.h"
@@ -114,10 +108,10 @@ void EffectPanelManager::RegisterPanels() {
     Register<OffPanel>(E::eff_OFF, "Off");
     Register<OnPanel>(E::eff_ON, "On");
     Register<AdjustPanel>(E::eff_ADJUST, "Adjust");
-    Register<BarsPanel>(E::eff_BARS, "Bars");
+    RegisterJson(E::eff_BARS, "Bars", "Bars");
     RegisterJson(E::eff_BUTTERFLY, "Butterfly", "Butterfly");
-    Register<CandlePanel>(E::eff_CANDLE, "Candle");
-    Register<CirclesPanel>(E::eff_CIRCLES, "Circles");
+    RegisterJson(E::eff_CANDLE, "Candle", "Candle");
+    RegisterJson(E::eff_CIRCLES, "Circles", "Circles");
     RegisterJson(E::eff_COLORWASH, "Color Wash", "ColorWash");
     RegisterJson(E::eff_CURTAIN, "Curtain", "Curtain");
     Register<DMXPanel>(E::eff_DMX, "DMX");
@@ -137,7 +131,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_LINES, "Lines", "Lines");
     Register<LiquidPanel>(E::eff_LIQUID, "Liquid");
     RegisterJson(E::eff_MARQUEE, "Marquee", "Marquee");
-    Register<MeteorsPanel>(E::eff_METEORS, "Meteors");
+    RegisterJson(E::eff_METEORS, "Meteors", "Meteors");
     Register<MorphPanel>(E::eff_MORPH, "Morph");
     Register<MovingHeadPanel>(E::eff_MOVINGHEAD, "Moving Head");
     Register<MusicPanel>(E::eff_MUSIC, "Music");
@@ -158,8 +152,8 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_SPIRALS, "Spirals", "Spirals");
     RegisterJson(E::eff_SPIROGRAPH, "Spirograph", "Spirograph");
     Register<StatePanel>(E::eff_STATE, "State");
-    Register<StrobePanel>(E::eff_STROBE, "Strobe");
-    Register<TendrilPanel>(E::eff_TENDRIL, "Tendril");
+    RegisterJson(E::eff_STROBE, "Strobe", "Strobe");
+    RegisterJson(E::eff_TENDRIL, "Tendril", "Tendril");
     Register<TextPanel>(E::eff_TEXT, "Text");
     RegisterJson(E::eff_TREE, "Tree", "Tree");
     RegisterJson(E::eff_TWINKLE, "Twinkle", "Twinkle");

@@ -1,0 +1,113 @@
+{
+    "effectName": "Bars",
+    "properties": [
+        {
+            "id": "Bars_BarCount",
+            "label": "Palette Rep",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 50,
+            "valueCurve": true,
+            "lockable": true,
+            "vcMax": 5
+        },
+        {
+            "id": "Bars_Cycles",
+            "label": "Cycles",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "min": 0,
+            "max": 500,
+            "vcMax": 300
+        },
+        {
+            "id": "Bars_Direction",
+            "label": "Direction",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "up",
+                "down",
+                "expand",
+                "compress",
+                "Left",
+                "Right",
+                "H-expand",
+                "H-compress",
+                "Alternate Up",
+                "Alternate Down",
+                "Alternate Left",
+                "Alternate Right",
+                "Custom Horz",
+                "Custom Vert"
+            ],
+            "default": "up",
+            "lockable": true
+        },
+        {
+            "id": "Bars_Center",
+            "label": "Center Point",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Bars_Highlight",
+            "label": "Highlight",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Bars_UseFirstColorForHighlight",
+            "label": "Use First Color for Highlight",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Bars_3D",
+            "label": "3D",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Bars_Gradient",
+            "label": "Gradient",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Bars_Direction",
+                "oneOf": [
+                    "expand",
+                    "compress",
+                    "H-expand",
+                    "H-compress",
+                    "Custom Horz",
+                    "Custom Vert"
+                ]
+            },
+            "enable": [
+                "Bars_Center"
+            ]
+        }
+    ]
+}

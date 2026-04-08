@@ -1,0 +1,63 @@
+{
+    "effectName": "Candle",
+    "properties": [
+        {
+            "id": "Candle_FlameAgility",
+            "label": "Flame Agility",
+            "type": "int",
+            "controlType": "slider",
+            "default": 2,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 1,
+            "max": 10
+        },
+        {
+            "id": "Candle_WindBaseline",
+            "label": "Wind Baseline",
+            "type": "int",
+            "controlType": "slider",
+            "default": 30,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 0,
+            "max": 255
+        },
+        {
+            "id": "Candle_WindVariability",
+            "label": "Wind Variability",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 0,
+            "max": 10
+        },
+        {
+            "id": "Candle_WindCalmness",
+            "label": "Wind Calmness",
+            "type": "int",
+            "controlType": "slider",
+            "default": 2,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 0,
+            "max": 10
+        },
+        {
+            "id": "PerNode",
+            "label": "Per node",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "UsePalette",
+            "label": "Use Palette",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        }
+    ]
+}
