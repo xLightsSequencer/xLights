@@ -1160,11 +1160,7 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
     std::string path = _model->GetFilePath(item);
     if (path.empty() || _sequenceMedia == nullptr) return;
 
-    MediaNode* node = static_cast<MediaNode*>(item.GetID());
-    MediaType type = (node && !node->isGroup) ? node->mediaType : MediaType::Image;
-
     wxMenu menu;
-
     // Reload option for non-embedded items
     auto [isEmbedded, isEmbeddable] = _sequenceMedia->GetMediaEmbedState(path);
     if (!isEmbedded) {

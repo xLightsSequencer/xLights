@@ -119,7 +119,7 @@ namespace
            dstPixels = rb.GetPixels();
            count = rb.GetPixelCount();
            cvOrig.resize(count + ISPC_SIMD_PAD, xlBLACK);
-           memcpy(cvOrig.data(), dstPixels, count * sizeof(xlColor));
+           memcpy((void*)cvOrig.data(), dstPixels, count * sizeof(xlColor));
            cvDst.resize(count + ISPC_SIMD_PAD, xlBLACK);
 
            wdata.width     = rb.BufferWi;
@@ -140,7 +140,7 @@ namespace
        ispc::uint8_t4* dst4() { return (ispc::uint8_t4*)cvDst.data(); }
 
        void copyBack() {
-           memcpy(dstPixels, cvDst.data(), count * sizeof(xlColor));
+           memcpy((void*)dstPixels, cvDst.data(), count * sizeof(xlColor));
        }
    };
 
