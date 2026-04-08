@@ -1,0 +1,54 @@
+{
+    "effectName": "Color Wash",
+    "properties": [
+        {
+            "id": "ColorWash_Cycles",
+            "label": "Count",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 1,
+            "max": 200
+        },
+        {
+            "id": "ColorWash_VFade",
+            "label": "Vertical Fade",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "ColorWash_HFade",
+            "label": "Horizontal Fade",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "ColorWash_ReverseFades",
+            "label": "Reverse Fades",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "ColorWash_Shimmer",
+            "label": "Shimmer",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "ColorWash_CircularPalette",
+            "label": "Circular Palette",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        }
+    ]
+}

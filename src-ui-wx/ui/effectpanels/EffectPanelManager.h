@@ -54,6 +54,13 @@ private:
         RegisterPanel(effectId, name, [](wxWindow* p) -> xlEffectPanel* { return new PanelT(p); });
     }
 
+    void RegisterJson(int effectId, const std::string& name, const std::string& jsonBaseName);
+
+public:
+    static std::string GetMetadataDirectory();
+
+private:
+
     struct PanelInfo {
         PanelFactory factory;
         std::string name;

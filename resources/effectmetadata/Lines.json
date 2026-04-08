@@ -1,0 +1,62 @@
+{
+    "effectName": "Lines",
+    "properties": [
+        {
+            "id": "Lines_Objects",
+            "label": "Lines",
+            "type": "int",
+            "controlType": "slider",
+            "default": 2,
+            "min": 1,
+            "max": 20,
+            "lockable": true
+        },
+        {
+            "id": "Lines_Segments",
+            "label": "Points",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 2,
+            "max": 6,
+            "lockable": true
+        },
+        {
+            "id": "Lines_Thickness",
+            "label": "Thickness",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "Lines_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "Lines_Trails",
+            "label": "Trails",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 10,
+            "lockable": true
+        },
+        {
+            "id": "Lines_FadeTrails",
+            "label": "Fade Trails",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        }
+    ]
+}

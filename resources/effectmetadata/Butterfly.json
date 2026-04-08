@@ -1,0 +1,72 @@
+{
+    "effectName": "Butterfly",
+    "properties": [
+        {
+            "id": "Butterfly_Colors",
+            "label": "Colors",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Rainbow",
+                "Palette"
+            ],
+            "default": "Rainbow",
+            "lockable": true
+        },
+        {
+            "id": "Butterfly_Style",
+            "label": "Style",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 10,
+            "lockable": true
+        },
+        {
+            "id": "Butterfly_Chunks",
+            "label": "Bkgrd Chunks",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Butterfly_Skip",
+            "label": "Bkgrd Skip",
+            "type": "int",
+            "controlType": "slider",
+            "default": 2,
+            "min": 2,
+            "max": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Butterfly_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Butterfly_Direction",
+            "label": "Direction",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Normal",
+                "Reverse"
+            ],
+            "default": "Normal",
+            "lockable": true
+        }
+    ]
+}

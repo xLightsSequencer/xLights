@@ -1,0 +1,44 @@
+{
+    "effectName": "Shimmer",
+    "properties": [
+        {
+            "id": "Shimmer_Duty_Factor",
+            "label": "Duty Factor",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Shimmer_Cycles",
+            "label": "Cycle Count",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 0,
+            "max": 6000
+        },
+        {
+            "id": "Shimmer_Use_All_Colors",
+            "label": "Use All Colors",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "checkboxLabel": "Yes",
+            "lockable": true
+        },
+        {
+            "id": "PRE_2017_7",
+            "label": "Pre v2017.7 Shimmer",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        }
+    ]
+}

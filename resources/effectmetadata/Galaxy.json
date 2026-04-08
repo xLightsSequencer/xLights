@@ -1,0 +1,181 @@
+{
+    "effectName": "Galaxy",
+    "properties": [
+        {
+            "id": "Galaxy_CenterX",
+            "label": "Center X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_CenterY",
+            "label": "Center Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_Start_Radius",
+            "label": "Radius",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 0,
+            "max": 250,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_Start_Width",
+            "label": "Width",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_Start_Angle",
+            "label": "Angle",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 360,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_End_Radius",
+            "label": "Radius",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 250,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_End_Width",
+            "label": "Width",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_Revolutions",
+            "label": "Rev's",
+            "type": "float",
+            "controlType": "slider",
+            "default": 4.0,
+            "min": 0,
+            "max": 3600,
+            "divisor": 360,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_Duration",
+            "label": "Head Duration",
+            "type": "int",
+            "controlType": "slider",
+            "default": 20,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_Accel",
+            "label": "Acceleration",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -10,
+            "max": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Galaxy_Reverse",
+            "label": "Reverse",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Galaxy_Blend_Edges",
+            "label": "Blend Edges",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Galaxy_Inward",
+            "label": "Inward",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Galaxy_Scale",
+            "label": "Scale To Buffer",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Start",
+                    "properties": [
+                        "Galaxy_CenterX",
+                        "Galaxy_CenterY",
+                        "Galaxy_Start_Radius",
+                        "Galaxy_Start_Width",
+                        "Galaxy_Start_Angle"
+                    ]
+                },
+                {
+                    "label": "End",
+                    "properties": [
+                        "Galaxy_End_Radius",
+                        "Galaxy_End_Width",
+                        "Galaxy_Revolutions"
+                    ]
+                },
+                {
+                    "label": "Options",
+                    "properties": [
+                        "Galaxy_Duration",
+                        "Galaxy_Accel",
+                        "Galaxy_Reverse",
+                        "Galaxy_Blend_Edges",
+                        "Galaxy_Inward",
+                        "Galaxy_Scale"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK_Galaxy"
+        }
+    ]
+}

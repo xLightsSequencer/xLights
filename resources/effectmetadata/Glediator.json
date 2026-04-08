@@ -1,0 +1,26 @@
+{
+    "effectName": "Glediator",
+    "properties": [
+        {
+            "id": "Glediator_Filename",
+            "label": "Glediator File",
+            "type": "file",
+            "controlType": "filepicker",
+            "default": "",
+            "fileFilter": "Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out|CSV files (*.csv)|*.csv",
+            "fileMessage": "Select a glediator file"
+        },
+        {
+            "id": "Glediator_DurationTreatment",
+            "label": "Duration Treatment",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Normal",
+                "Loop",
+                "Slow/Accelerate"
+            ],
+            "default": "Normal"
+        }
+    ]
+}

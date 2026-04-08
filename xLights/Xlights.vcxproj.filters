@@ -1112,19 +1112,10 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\BarsPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ButterflyPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\CandlePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\CirclesPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ColorWashPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\CurtainPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\DMXPanel.cpp">
@@ -1136,25 +1127,7 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\FacesPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\FanPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\FillPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\FirePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\FireworksPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\GalaxyPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\GarlandsPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\GlediatorPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\GuitarPanel.cpp">
@@ -1163,19 +1136,7 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\KaleidoscopePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\LifePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\LightningPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\LinesPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MarqueePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\MeteorsPanel.cpp">
@@ -1202,12 +1163,6 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\PicturesPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\PinwheelPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\PlasmaPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\RipplePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
@@ -1218,12 +1173,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShapePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShimmerPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShockwavePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\SingleStrandPanel.cpp">
@@ -1238,15 +1187,6 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SnowstormPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SpiralsPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SpirographPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\StatePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
@@ -1257,12 +1197,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\TextPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\TreePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\TwinklePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\VideoPanel.cpp">
@@ -1329,6 +1263,9 @@
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\EffectPanelManager.cpp">
+      <Filter>ui\effectpanels</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\ui\effectpanels\JsonEffectPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\EffectManager.cpp">
@@ -2540,19 +2477,10 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\BarsPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ButterflyPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\CandlePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\CirclesPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ColorWashPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\CurtainPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\DMXPanel.h">
@@ -2564,25 +2492,7 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\FacesPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\FanPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\FillPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\FirePanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\FireworksPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\GalaxyPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\GarlandsPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\GlediatorPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\GuitarPanel.h">
@@ -2591,19 +2501,7 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\KaleidoscopePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\LifePanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\LightningPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\LinesPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MarqueePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\MeteorsPanel.h">
@@ -2630,12 +2528,6 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\PicturesPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\PinwheelPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\PlasmaPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\RipplePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
@@ -2646,12 +2538,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShapePanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShimmerPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShockwavePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\SingleStrandPanel.h">
@@ -2666,15 +2552,6 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SnowstormPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SpiralsPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SpirographPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\StatePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
@@ -2685,12 +2562,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\TextPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\TreePanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\TwinklePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\VideoPanel.h">
@@ -2799,6 +2670,9 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\EffectPanelManager.h">
+      <Filter>ui\effectpanels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\ui\effectpanels\JsonEffectPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\EffectManager.h">

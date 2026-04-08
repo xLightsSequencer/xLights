@@ -1,0 +1,209 @@
+{
+    "effectName": "Fan",
+    "properties": [
+        {
+            "id": "Fan_CenterX",
+            "label": "Center X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_CenterY",
+            "label": "Center Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Start_Radius",
+            "label": "Radius1",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 0,
+            "max": 2500,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Start_Angle",
+            "label": "Angle",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 360,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_End_Radius",
+            "label": "Radius2",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 2500,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Revolutions",
+            "label": "Rev's",
+            "type": "float",
+            "controlType": "slider",
+            "default": 2.0,
+            "min": 0,
+            "max": 3600,
+            "divisor": 360,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Num_Blades",
+            "label": "# Blades",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 1,
+            "max": 16,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Blade_Width",
+            "label": "Width",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 5,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Blade_Angle",
+            "label": "Angle",
+            "type": "int",
+            "controlType": "slider",
+            "default": 90,
+            "min": -360,
+            "max": 360,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Num_Elements",
+            "label": "# Elements",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 4,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Element_Width",
+            "label": "Width",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 5,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Duration",
+            "label": "Duration",
+            "type": "int",
+            "controlType": "slider",
+            "default": 80,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Accel",
+            "label": "Acceleration",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -10,
+            "max": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fan_Reverse",
+            "label": "Reverse",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Fan_Blend_Edges",
+            "label": "Blend Edges",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Fan_Scale",
+            "label": "Scale to Buffer",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Position",
+                    "properties": [
+                        "Fan_CenterX",
+                        "Fan_CenterY",
+                        "Fan_Start_Radius",
+                        "Fan_Start_Angle",
+                        "Fan_End_Radius",
+                        "Fan_Revolutions"
+                    ]
+                },
+                {
+                    "label": "Blades",
+                    "properties": [
+                        "Fan_Num_Blades",
+                        "Fan_Blade_Width",
+                        "Fan_Blade_Angle",
+                        "Fan_Num_Elements",
+                        "Fan_Element_Width"
+                    ]
+                },
+                {
+                    "label": "Options",
+                    "properties": [
+                        "Fan_Duration",
+                        "Fan_Accel",
+                        "Fan_Reverse",
+                        "Fan_Blend_Edges",
+                        "Fan_Scale"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK_Fan"
+        }
+    ]
+}

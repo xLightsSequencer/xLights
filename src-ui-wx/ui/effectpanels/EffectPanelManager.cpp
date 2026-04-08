@@ -10,34 +10,25 @@
 
 #include "EffectPanelManager.h"
 #include "EffectPanelUtils.h"
+#include "JsonEffectPanel.h"
 #include "assist/AssistPanel.h"
 
 #include <wx/debug.h>
+#include <filesystem>
+#include <fstream>
+#include <spdlog/spdlog.h>
 
 #include "AdjustPanel.h"
 #include "BarsPanel.h"
-#include "ButterflyPanel.h"
 #include "CandlePanel.h"
 #include "CirclesPanel.h"
-#include "ColorWashPanel.h"
-#include "CurtainPanel.h"
 #include "DMXPanel.h"
 #include "DuplicatePanel.h"
 #include "FacesPanel.h"
-#include "FanPanel.h"
-#include "FillPanel.h"
-#include "FirePanel.h"
 #include "FireworksPanel.h"
-#include "GalaxyPanel.h"
-#include "GarlandsPanel.h"
-#include "GlediatorPanel.h"
 #include "GuitarPanel.h"
 #include "KaleidoscopePanel.h"
-#include "LifePanel.h"
-#include "LightningPanel.h"
-#include "LinesPanel.h"
 #include "LiquidPanel.h"
-#include "MarqueePanel.h"
 #include "MeteorsPanel.h"
 #include "MorphPanel.h"
 #include "MovingHeadPanel.h"
@@ -46,32 +37,24 @@
 #include "OnPanel.h"
 #include "PianoPanel.h"
 #include "PicturesPanel.h"
-#include "PinwheelPanel.h"
-#include "PlasmaPanel.h"
 #include "RipplePanel.h"
 #include "ServoPanel.h"
 #include "ShaderPanel.h"
 #include "ShapePanel.h"
-#include "ShimmerPanel.h"
-#include "ShockwavePanel.h"
 #include "SingleStrandPanel.h"
 #include "SketchPanel.h"
 #include "SnowflakesPanel.h"
-#include "SnowstormPanel.h"
-#include "SpiralsPanel.h"
-#include "SpirographPanel.h"
 #include "StatePanel.h"
 #include "StrobePanel.h"
 #include "TendrilPanel.h"
 #include "TextPanel.h"
-#include "TreePanel.h"
-#include "TwinklePanel.h"
 #include "VideoPanel.h"
 #include "VUMeterPanel.h"
 #include "WarpPanel.h"
 #include "WavePanel.h"
 
 #include "effects/EffectManager.h"
+#include "ui/shared/utils/wxUtilities.h"
 
 EffectPanelManager::EffectPanelManager() {
     RegisterPanels();
@@ -90,6 +73,41 @@ void EffectPanelManager::RegisterPanel(int effectId, const std::string& name, Pa
     panelsByName[name] = effectId;
 }
 
+std::string EffectPanelManager::GetMetadataDirectory() {
+    static std::string cachedDir;
+    if (!cachedDir.empty()) return cachedDir;
+
+    std::string resDir = GetResourcesDirectory();
+    std::string metaDir = resDir + "/effectmetadata";
+
+    std::error_code ec;
+    if (std::filesystem::is_directory(std::filesystem::path(metaDir), ec)) {
+        cachedDir = metaDir;
+        return cachedDir;
+    }
+    spdlog::error("Effect metadata directory not found: {}", metaDir);
+    return "";
+}
+
+void EffectPanelManager::RegisterJson(int effectId, const std::string& name, const std::string& jsonBaseName) {
+    // Capture jsonBaseName by value; JSON is loaded lazily when the panel is first created.
+    // This avoids depending on GetResourcesDirectory() at registration time.
+    RegisterPanel(effectId, name, [jsonBaseName](wxWindow* p) -> xlEffectPanel* {
+        std::string metaDir = EffectPanelManager::GetMetadataDirectory();
+        if (metaDir.empty()) {
+            spdlog::error("JsonEffectPanel: metadata directory not found for {}", jsonBaseName);
+            return nullptr;
+        }
+        std::string path = metaDir + "/" + jsonBaseName + ".json";
+        auto metadata = JsonEffectPanel::LoadMetadata(path);
+        if (metadata.empty()) {
+            spdlog::error("JsonEffectPanel: failed to load {}", path);
+            return nullptr;
+        }
+        return new JsonEffectPanel(p, metadata);
+    });
+}
+
 void EffectPanelManager::RegisterPanels() {
     using E = EffectManager::RGB_EFFECTS_e;
 
@@ -97,54 +115,54 @@ void EffectPanelManager::RegisterPanels() {
     Register<OnPanel>(E::eff_ON, "On");
     Register<AdjustPanel>(E::eff_ADJUST, "Adjust");
     Register<BarsPanel>(E::eff_BARS, "Bars");
-    Register<ButterflyPanel>(E::eff_BUTTERFLY, "Butterfly");
+    RegisterJson(E::eff_BUTTERFLY, "Butterfly", "Butterfly");
     Register<CandlePanel>(E::eff_CANDLE, "Candle");
     Register<CirclesPanel>(E::eff_CIRCLES, "Circles");
-    Register<ColorWashPanel>(E::eff_COLORWASH, "Color Wash");
-    Register<CurtainPanel>(E::eff_CURTAIN, "Curtain");
+    RegisterJson(E::eff_COLORWASH, "Color Wash", "ColorWash");
+    RegisterJson(E::eff_CURTAIN, "Curtain", "Curtain");
     Register<DMXPanel>(E::eff_DMX, "DMX");
     Register<DuplicatePanel>(E::eff_DUPLICATE, "Duplicate");
     Register<FacesPanel>(E::eff_FACES, "Faces");
-    Register<FanPanel>(E::eff_FAN, "Fan");
-    Register<FillPanel>(E::eff_FILL, "Fill");
-    Register<FirePanel>(E::eff_FIRE, "Fire");
+    RegisterJson(E::eff_FAN, "Fan", "Fan");
+    RegisterJson(E::eff_FILL, "Fill", "Fill");
+    RegisterJson(E::eff_FIRE, "Fire", "Fire");
     Register<FireworksPanel>(E::eff_FIREWORKS, "Fireworks");
-    Register<GalaxyPanel>(E::eff_GALAXY, "Galaxy");
-    Register<GarlandsPanel>(E::eff_GARLANDS, "Garlands");
-    Register<GlediatorPanel>(E::eff_GLEDIATOR, "Glediator");
+    RegisterJson(E::eff_GALAXY, "Galaxy", "Galaxy");
+    RegisterJson(E::eff_GARLANDS, "Garlands", "Garlands");
+    RegisterJson(E::eff_GLEDIATOR, "Glediator", "Glediator");
     Register<GuitarPanel>(E::eff_GUITAR, "Guitar");
     Register<KaleidoscopePanel>(E::eff_KALEIDOSCOPE, "Kaleidoscope");
-    Register<LifePanel>(E::eff_LIFE, "Life");
-    Register<LightningPanel>(E::eff_LIGHTNING, "Lightning");
-    Register<LinesPanel>(E::eff_LINES, "Lines");
+    RegisterJson(E::eff_LIFE, "Life", "Life");
+    RegisterJson(E::eff_LIGHTNING, "Lightning", "Lightning");
+    RegisterJson(E::eff_LINES, "Lines", "Lines");
     Register<LiquidPanel>(E::eff_LIQUID, "Liquid");
-    Register<MarqueePanel>(E::eff_MARQUEE, "Marquee");
+    RegisterJson(E::eff_MARQUEE, "Marquee", "Marquee");
     Register<MeteorsPanel>(E::eff_METEORS, "Meteors");
     Register<MorphPanel>(E::eff_MORPH, "Morph");
     Register<MovingHeadPanel>(E::eff_MOVINGHEAD, "Moving Head");
     Register<MusicPanel>(E::eff_MUSIC, "Music");
     Register<PianoPanel>(E::eff_PIANO, "Piano");
     Register<PicturesPanel>(E::eff_PICTURES, "Pictures");
-    Register<PinwheelPanel>(E::eff_PINWHEEL, "Pinwheel");
-    Register<PlasmaPanel>(E::eff_PLASMA, "Plasma");
+    RegisterJson(E::eff_PINWHEEL, "Pinwheel", "Pinwheel");
+    RegisterJson(E::eff_PLASMA, "Plasma", "Plasma");
     Register<RipplePanel>(E::eff_RIPPLE, "Ripple");
     Register<ServoPanel>(E::eff_SERVO, "Servo");
     Register<ShaderPanel>(E::eff_SHADER, "Shader");
     Register<ShapePanel>(E::eff_SHAPE, "Shape");
-    Register<ShimmerPanel>(E::eff_SHIMMER, "Shimmer");
-    Register<ShockwavePanel>(E::eff_SHOCKWAVE, "Shockwave");
+    RegisterJson(E::eff_SHIMMER, "Shimmer", "Shimmer");
+    RegisterJson(E::eff_SHOCKWAVE, "Shockwave", "Shockwave");
     Register<SingleStrandPanel>(E::eff_SINGLESTRAND, "SingleStrand");
     Register<SketchPanel>(E::eff_SKETCH, "Sketch");
     Register<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes");
-    Register<SnowstormPanel>(E::eff_SNOWSTORM, "Snowstorm");
-    Register<SpiralsPanel>(E::eff_SPIRALS, "Spirals");
-    Register<SpirographPanel>(E::eff_SPIROGRAPH, "Spirograph");
+    RegisterJson(E::eff_SNOWSTORM, "Snowstorm", "Snowstorm");
+    RegisterJson(E::eff_SPIRALS, "Spirals", "Spirals");
+    RegisterJson(E::eff_SPIROGRAPH, "Spirograph", "Spirograph");
     Register<StatePanel>(E::eff_STATE, "State");
     Register<StrobePanel>(E::eff_STROBE, "Strobe");
     Register<TendrilPanel>(E::eff_TENDRIL, "Tendril");
     Register<TextPanel>(E::eff_TEXT, "Text");
-    Register<TreePanel>(E::eff_TREE, "Tree");
-    Register<TwinklePanel>(E::eff_TWINKLE, "Twinkle");
+    RegisterJson(E::eff_TREE, "Tree", "Tree");
+    RegisterJson(E::eff_TWINKLE, "Twinkle", "Twinkle");
     Register<VideoPanel>(E::eff_VIDEO, "Video");
     Register<VUMeterPanel>(E::eff_VUMETER, "VU Meter");
     Register<WarpPanel>(E::eff_WARP, "Warp");

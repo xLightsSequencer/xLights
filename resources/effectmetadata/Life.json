@@ -1,0 +1,34 @@
+{
+    "effectName": "Life",
+    "properties": [
+        {
+            "id": "Life_Count",
+            "label": "Cells to start",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "Life_Seed",
+            "label": "Type",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 4,
+            "lockable": true
+        },
+        {
+            "id": "Life_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 1,
+            "max": 30
+        }
+    ]
+}

@@ -1,0 +1,181 @@
+{
+    "effectName": "Marquee",
+    "properties": [
+        {
+            "id": "Marquee_Band_Size",
+            "label": "Band Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_Skip_Size",
+            "label": "Skip Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_Thickness",
+            "label": "Thickness",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_Stagger",
+            "label": "Stagger",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 50,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 0,
+            "max": 50,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_Start",
+            "label": "Start Pos",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_Reverse",
+            "label": "Reverse",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Marquee_ScaleX",
+            "label": "Scale X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_ScaleY",
+            "label": "Scale Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Marquee_PixelOffsets",
+            "label": "Offsets In Pixels",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "separator": true
+        },
+        {
+            "id": "MarqueeXC",
+            "label": "X-axis Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Marquee_WrapX",
+            "label": "Wrap X",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "MarqueeYC",
+            "label": "Y-axis Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Marquee_WrapY",
+            "label": "Wrap Y",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Settings",
+                    "properties": [
+                        "Marquee_Band_Size",
+                        "Marquee_Skip_Size",
+                        "Marquee_Thickness",
+                        "Marquee_Stagger",
+                        "Marquee_Speed",
+                        "Marquee_Start",
+                        "Marquee_Reverse"
+                    ]
+                },
+                {
+                    "label": "Position",
+                    "properties": [
+                        "Marquee_ScaleX",
+                        "Marquee_ScaleY",
+                        "Marquee_PixelOffsets",
+                        "MarqueeXC",
+                        "Marquee_WrapX",
+                        "MarqueeYC",
+                        "Marquee_WrapY"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK_Marquee"
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "MarqueeXC",
+            "yProperty": "MarqueeYC",
+            "wrapX": "Marquee_WrapX",
+            "wrapY": "Marquee_WrapY"
+        }
+    ]
+}

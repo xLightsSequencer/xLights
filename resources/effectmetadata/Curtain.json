@@ -1,0 +1,65 @@
+{
+    "effectName": "Curtain",
+    "properties": [
+        {
+            "id": "Curtain_Edge",
+            "label": "Curtain Edge",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "left",
+                "center",
+                "right",
+                "bottom",
+                "middle",
+                "top"
+            ],
+            "default": "left",
+            "lockable": true
+        },
+        {
+            "id": "Curtain_Effect",
+            "label": "Effect",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "open",
+                "close",
+                "open then close",
+                "close then open"
+            ],
+            "default": "open",
+            "lockable": true
+        },
+        {
+            "id": "Curtain_Swag",
+            "label": "Swag Width",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 0,
+            "max": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Curtain_Speed",
+            "label": "Swag Speed",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Curtain_Repeat",
+            "label": "Repeat",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        }
+    ]
+}

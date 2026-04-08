@@ -1,0 +1,89 @@
+{
+    "effectName": "Lightning",
+    "properties": [
+        {
+            "id": "Number_Bolts",
+            "label": "Number of Segments",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 1,
+            "max": 50,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Number_Segments",
+            "label": "Width of Bolt",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 1,
+            "max": 20,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "ForkedLightning",
+            "label": "Forked Lightning",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "checkboxLabel": "Yes",
+            "lockable": true
+        },
+        {
+            "id": "Lightning_TopX",
+            "label": "Top X Location",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -50,
+            "max": 50,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Lightning_TopY",
+            "label": "Top Y Location",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Lightning_BOTX",
+            "label": "X Movement",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -50,
+            "max": 50,
+            "lockable": true
+        },
+        {
+            "id": "Lightning_WIDTH",
+            "label": "Width",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 7,
+            "lockable": true
+        },
+        {
+            "id": "Lightning_Direction",
+            "label": "Direction",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Up",
+                "Down"
+            ],
+            "default": "Up"
+        }
+    ]
+}

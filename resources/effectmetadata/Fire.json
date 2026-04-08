@@ -1,0 +1,60 @@
+{
+    "effectName": "Fire",
+    "properties": [
+        {
+            "id": "Fire_Height",
+            "label": "Height",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fire_HueShift",
+            "label": "Hue Shift",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fire_GrowthCycles",
+            "label": "Growth Cycles",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 0,
+            "max": 200
+        },
+        {
+            "id": "Fire_GrowWithMusic",
+            "label": "Grow with music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Fire_Location",
+            "label": "Location",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Bottom",
+                "Top",
+                "Left",
+                "Right"
+            ],
+            "default": "Bottom"
+        }
+    ]
+}

@@ -1,0 +1,133 @@
+{
+    "effectName": "Shockwave",
+    "properties": [
+        {
+            "id": "Shockwave_CenterX",
+            "label": "Center X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_CenterY",
+            "label": "Center Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_Start_Radius",
+            "label": "Radius1",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 0,
+            "max": 750,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_End_Radius",
+            "label": "Radius2",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 750,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_Start_Width",
+            "label": "Width1",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_End_Width",
+            "label": "Width2",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_Accel",
+            "label": "Acceleration",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -10,
+            "max": 10,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_Cycles",
+            "label": "Cycles",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "Shockwave_Blend_Edges",
+            "label": "Blend Edges",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Shockwave_Scale",
+            "label": "Scale to Buffer",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Position",
+                    "properties": [
+                        "Shockwave_CenterX",
+                        "Shockwave_CenterY",
+                        "Shockwave_Start_Radius",
+                        "Shockwave_End_Radius",
+                        "Shockwave_Start_Width",
+                        "Shockwave_End_Width"
+                    ]
+                },
+                {
+                    "label": "Options",
+                    "properties": [
+                        "Shockwave_Accel",
+                        "Shockwave_Cycles",
+                        "Shockwave_Blend_Edges",
+                        "Shockwave_Scale"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK_Shockwave"
+        }
+    ]
+}

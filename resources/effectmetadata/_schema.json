@@ -1,0 +1,215 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "xLights Effect Panel Metadata",
+    "description": "Cross-platform description of an effect's configurable properties and UI layout",
+    "type": "object",
+    "required": ["effectName", "properties"],
+    "properties": {
+        "effectName": {
+            "type": "string",
+            "description": "Effect name as registered in EffectManager (e.g. 'Fire')"
+        },
+        "properties": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/property" }
+        },
+        "groups": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/group" },
+            "description": "Tab groups or section groups for organizing properties"
+        },
+        "visibilityRules": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/visibilityRule" },
+            "description": "Conditional enable/disable/show/hide rules"
+        }
+    },
+    "definitions": {
+        "property": {
+            "type": "object",
+            "required": ["id", "label", "type", "controlType"],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "Property identifier (e.g. 'Fire_Height'). Setting key is derived from id + controlType."
+                },
+                "label": {
+                    "type": "string",
+                    "description": "Human-readable label"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["int", "float", "bool", "enum", "string", "color", "file", "font"],
+                    "description": "Semantic data type"
+                },
+                "controlType": {
+                    "type": "string",
+                    "enum": ["slider", "checkbox", "choice", "combobox", "spin", "text", "filepicker", "fontpicker", "colourpicker", "radiobutton", "togglebutton"],
+                    "description": "UI control type hint"
+                },
+                "default": {
+                    "description": "Default value (type depends on 'type' field)"
+                },
+                "min": {
+                    "type": "number",
+                    "description": "Minimum value for numeric types"
+                },
+                "max": {
+                    "type": "number",
+                    "description": "Maximum value for numeric types"
+                },
+                "divisor": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Float divisor. Slider stores value*divisor as int, text shows float. 1=int, 10=F1, 100=F2, 360=F360"
+                },
+                "valueCurve": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this property supports value curves for animation"
+                },
+                "vcMin": {
+                    "type": "number",
+                    "description": "Value curve minimum (overrides 'min' when VC range differs from slider range)"
+                },
+                "vcMax": {
+                    "type": "number",
+                    "description": "Value curve maximum (overrides 'max' when VC range differs from slider range)"
+                },
+                "lockable": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this property can be locked to prevent random effect changes"
+                },
+                "options": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Available choices for enum/choice types"
+                },
+                "dynamicOptions": {
+                    "type": "string",
+                    "description": "Source for dynamically populated options (e.g. 'faces', 'states')"
+                },
+                "separator": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Show a horizontal separator line above this property"
+                },
+                "fileFilter": {
+                    "type": "string",
+                    "description": "File filter/wildcard for file picker controls"
+                },
+                "fileMessage": {
+                    "type": "string",
+                    "description": "Dialog title for file picker controls"
+                }
+            }
+        },
+        "group": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["tabs", "section", "xyCenter"],
+                    "description": "tabs = wxNotebook, section = wxStaticBoxSizer, xyCenter = XY position control pair"
+                },
+                "xProperty": {
+                    "type": "string",
+                    "description": "Property id for horizontal (X) slider (xyCenter type)"
+                },
+                "yProperty": {
+                    "type": "string",
+                    "description": "Property id for vertical (Y) slider (xyCenter type)"
+                },
+                "wrapX": {
+                    "type": "string",
+                    "description": "Property id for Wrap X checkbox (xyCenter type, optional)"
+                },
+                "wrapY": {
+                    "type": "string",
+                    "description": "Property id for Wrap Y checkbox (xyCenter type, optional)"
+                },
+                "settingKey": {
+                    "type": "string",
+                    "description": "Setting key for tab selection (e.g. 'E_NOTEBOOK_Fan')"
+                },
+                "label": {
+                    "type": "string",
+                    "description": "Section label (for 'section' type)"
+                },
+                "tabs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["label", "properties"],
+                        "properties": {
+                            "label": { "type": "string" },
+                            "properties": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "Property ids in this tab"
+                            }
+                        }
+                    },
+                    "description": "Tab definitions (for 'tabs' type)"
+                },
+                "properties": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Property ids in this section (for 'section' type)"
+                }
+            }
+        },
+        "visibilityRule": {
+            "type": "object",
+            "required": ["when"],
+            "properties": {
+                "when": {
+                    "type": "object",
+                    "properties": {
+                        "property": {
+                            "type": "string",
+                            "description": "Property id to check"
+                        },
+                        "equals": {
+                            "description": "Value to compare against"
+                        },
+                        "notEquals": {
+                            "description": "Value that should not match"
+                        },
+                        "oneOf": {
+                            "type": "array",
+                            "description": "List of values, any of which matches"
+                        },
+                        "any": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "List of property ids; rule triggers if ANY are true/checked"
+                        }
+                    }
+                },
+                "enable": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Property ids to enable when condition is met"
+                },
+                "disable": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Property ids to disable when condition is met"
+                },
+                "show": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Property ids to show when condition is met"
+                },
+                "hide": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Property ids to hide when condition is met"
+                }
+            }
+        }
+    }
+}

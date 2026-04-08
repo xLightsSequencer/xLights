@@ -1,0 +1,51 @@
+{
+    "effectName": "Plasma",
+    "properties": [
+        {
+            "id": "Plasma_Color",
+            "label": "Color Choice",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Normal",
+                "Preset Colors 1",
+                "Preset Colors 2",
+                "Preset Colors 3",
+                "Preset Colors 4"
+            ],
+            "default": "Normal",
+            "lockable": true
+        },
+        {
+            "id": "Plasma_Style",
+            "label": "Add Twist to Effect",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 10,
+            "lockable": true
+        },
+        {
+            "id": "Plasma_Line_Density",
+            "label": "Line Density",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 10,
+            "lockable": true
+        },
+        {
+            "id": "Plasma_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        }
+    ]
+}

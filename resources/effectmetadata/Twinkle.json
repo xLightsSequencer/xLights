@@ -1,0 +1,55 @@
+{
+    "effectName": "Twinkle",
+    "properties": [
+        {
+            "id": "Twinkle_Count",
+            "label": "Percent of Lights",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 2,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Twinkle_Steps",
+            "label": "Twinkle Steps",
+            "type": "int",
+            "controlType": "slider",
+            "default": 30,
+            "min": 2,
+            "max": 400,
+            "vcMax": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Twinkle_Style",
+            "label": "Style",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Old Render Method",
+                "New Render Method"
+            ],
+            "default": "Old Render Method"
+        },
+        {
+            "id": "Twinkle_Strobe",
+            "label": "Strobe",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Twinkle_ReRandom",
+            "label": "Re-Randomize after twinkle",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        }
+    ]
+}

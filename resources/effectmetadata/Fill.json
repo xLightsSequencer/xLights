@@ -1,0 +1,84 @@
+{
+    "effectName": "Fill",
+    "properties": [
+        {
+            "id": "Fill_Position",
+            "label": "Position",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fill_Band_Size",
+            "label": "Band Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 250,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fill_Skip_Size",
+            "label": "Skip Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 250,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fill_Offset",
+            "label": "Offset",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fill_Offset_In_Pixels",
+            "label": "Offset in Pixels",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Fill_Color_Time",
+            "label": "Change Color based on Time",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Fill_Wrap",
+            "label": "Wrap",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Fill_Direction",
+            "label": "Direction",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Up",
+                "Down",
+                "Left",
+                "Right"
+            ],
+            "default": "Up",
+            "lockable": true
+        }
+    ]
+}

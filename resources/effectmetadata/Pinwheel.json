@@ -1,0 +1,131 @@
+{
+    "effectName": "Pinwheel",
+    "properties": [
+        {
+            "id": "Pinwheel_Arms",
+            "label": "#Arms",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 1,
+            "max": 20,
+            "lockable": true
+        },
+        {
+            "id": "Pinwheel_ArmSize",
+            "label": "Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 400,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Pinwheel_Twist",
+            "label": "Twist",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -360,
+            "max": 360,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Pinwheel_Thickness",
+            "label": "Thick",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Pinwheel_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 50,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Pinwheel_Offset",
+            "label": "Offset",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 360,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Pinwheel_Style",
+            "label": "Style",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Old Render Method",
+                "New Render Method"
+            ],
+            "default": "Old Render Method"
+        },
+        {
+            "id": "Pinwheel_Rotation",
+            "label": "Rotation",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true,
+            "checkboxLabel": "CCW",
+            "lockable": true
+        },
+        {
+            "id": "Pinwheel_3D",
+            "label": "3D",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "None",
+                "3D",
+                "3D Inverted",
+                "Sweep"
+            ],
+            "default": "None",
+            "lockable": true
+        },
+        {
+            "id": "PinwheelXC",
+            "label": "X-axis Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "PinwheelYC",
+            "label": "Y-axis center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        }
+    ],
+    "groups": [
+        {
+            "type": "xyCenter",
+            "xProperty": "PinwheelXC",
+            "yProperty": "PinwheelYC"
+        }
+    ]
+}

@@ -1,0 +1,83 @@
+{
+    "effectName": "Spirals",
+    "properties": [
+        {
+            "id": "Spirals_Count",
+            "label": "Palette Rep",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 5,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Spirals_Rotation",
+            "label": "Spiral Wraps",
+            "type": "float",
+            "controlType": "slider",
+            "default": 2.0,
+            "min": -300,
+            "max": 300,
+            "divisor": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Spirals_Thickness",
+            "label": "Thickness",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Spirals_Movement",
+            "label": "Movement",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "lockable": true,
+            "min": -200,
+            "max": 200
+        },
+        {
+            "id": "Spirals_Blend",
+            "label": "Blend",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Spirals_3D",
+            "label": "3D",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Spirals_Grow",
+            "label": "Grow",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Spirals_Shrink",
+            "label": "Shrink",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        }
+    ]
+}
