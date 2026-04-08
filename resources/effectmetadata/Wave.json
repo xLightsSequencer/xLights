@@ -1,0 +1,117 @@
+{
+    "effectName": "Wave",
+    "properties": [
+        {
+            "id": "Wave_Type",
+            "label": "Wave Type",
+            "description": "The waveform shape drawn across the model. Sine produces smooth curves, Triangle creates sharp zigzags, Square makes flat-topped waves, Decaying Sine fades over time, and Fractal/ivy generates random branching patterns.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Sine",
+                "Triangle",
+                "Square",
+                "Decaying Sine",
+                "Fractal/ivy"
+            ],
+            "default": "Sine",
+            "lockable": true
+        },
+        {
+            "id": "Fill_Colors",
+            "label": "Fill Colors",
+            "description": "How the area below the wave is filled. None leaves it empty, Rainbow fills with a hue gradient, and Palette fills using the effect color palette.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "None",
+                "Rainbow",
+                "Palette"
+            ],
+            "default": "None",
+            "lockable": true
+        },
+        {
+            "id": "Mirror_Wave",
+            "label": "Mirror Wave",
+            "description": "When enabled, a mirrored copy of the wave is drawn on the opposite side, creating a symmetrical pattern around the center.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Number_Waves",
+            "label": "Number of Waves",
+            "description": "Total degrees of waveform spread across the buffer width. Higher values fit more wave cycles onto the model, creating a denser pattern.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 900,
+            "min": 180,
+            "max": 3600,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Thickness_Percentage",
+            "label": "Thickness of Wave",
+            "description": "Vertical thickness of the wave line as a percentage of the buffer height. Higher values draw a wider band around the wave center.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Wave_Height",
+            "label": "Scale Height of Wave",
+            "description": "Scales the vertical amplitude of the wave as a percentage. Lower values flatten the wave; higher values make it reach closer to the buffer edges.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Wave_Speed",
+            "label": "Speed",
+            "description": "How fast the wave scrolls horizontally across the model. Higher values create faster-moving waves.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 10.0,
+            "divisor": 100,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 0,
+            "max": 5000
+        },
+        {
+            "id": "Wave_Direction",
+            "label": "Wave Direction",
+            "description": "The horizontal direction the wave scrolls. Right to Left moves the pattern leftward, Left to Right moves it rightward.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Right to Left",
+                "Left to Right"
+            ],
+            "default": "Right to Left",
+            "lockable": true
+        },
+        {
+            "id": "Wave_YOffset",
+            "label": "Y Offset",
+            "description": "Shifts the wave centerline up or down from the middle of the buffer. Positive values move the wave up, negative values move it down.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -250,
+            "max": 250,
+            "valueCurve": true
+        }
+    ]
+}

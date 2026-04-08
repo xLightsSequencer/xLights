@@ -1,0 +1,56 @@
+{
+    "effectName": "Duplicate",
+    "properties": [
+        {
+            "id": "Duplicate_Model",
+            "label": "Model",
+            "description": "The source model, submodel, or strand whose effects will be duplicated onto the current model.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": ""
+        },
+        {
+            "id": "Duplicate_Layer",
+            "label": "Layer",
+            "description": "The layer number on the source model to duplicate effects from. Layer 1 is the first (bottom) layer.",
+            "type": "int",
+            "controlType": "spin",
+            "default": 1,
+            "min": 1,
+            "max": 1000
+        },
+        {
+            "id": "Duplicate_Override_Palette",
+            "label": "Override duplicated Palette",
+            "description": "When enabled, the color palette from this effect is used instead of the palette from the duplicated source effect.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Duplicate_Override_Color",
+            "label": "Override duplicated Color settings",
+            "description": "When enabled, the color settings (sparkles, brightness, etc.) from this effect override those from the duplicated source.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Duplicate_Override_Timing",
+            "label": "Override duplicated Layer Blending settings",
+            "description": "When enabled, the layer blending and transition settings from this effect override those from the duplicated source.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Duplicate_Override_Buffer",
+            "label": "Override duplicated Layer settings",
+            "description": "When enabled, the buffer/layer settings (rotation, zoom, etc.) from this effect override those from the duplicated source.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        }
+    ]
+}

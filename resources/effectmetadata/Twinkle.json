@@ -4,6 +4,7 @@
         {
             "id": "Twinkle_Count",
             "label": "Percent of Lights",
+            "description": "Percentage of pixels that are actively twinkling at any given time. Higher values create a denser twinkling field.",
             "type": "int",
             "controlType": "slider",
             "default": 3,
@@ -15,6 +16,7 @@
         {
             "id": "Twinkle_Steps",
             "label": "Twinkle Steps",
+            "description": "Number of frames for a complete twinkle cycle (fade up then fade down). Lower values create faster, snappier twinkles; higher values create slow, gentle fades.",
             "type": "int",
             "controlType": "slider",
             "default": 30,
@@ -27,6 +29,7 @@
         {
             "id": "Twinkle_Style",
             "label": "Style",
+            "description": "Selects the rendering algorithm. Old Render Method uses the original per-frame logic; New Render Method uses an updated approach with smoother transitions.",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -38,6 +41,7 @@
         {
             "id": "Twinkle_Strobe",
             "label": "Strobe",
+            "description": "When enabled, twinkling pixels snap on and off instantly instead of fading, creating a strobe-like flash effect.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
@@ -46,6 +50,7 @@
         {
             "id": "Twinkle_ReRandom",
             "label": "Re-Randomize after twinkle",
+            "description": "When enabled, each pixel is assigned a new random position after its twinkle cycle completes. When disabled, pixels twinkle in the same locations repeatedly.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false,

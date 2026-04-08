@@ -11,7 +11,8 @@
                 "Palette"
             ],
             "default": "Palette",
-            "lockable": true
+            "lockable": true,
+            "description": "Selects the color source for the chase. Palette uses the user-defined palette colors; Rainbow cycles through all hues automatically."
         },
         {
             "id": "Number_Chases",
@@ -22,7 +23,8 @@
             "min": 1,
             "max": 20,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of simultaneous chase segments running across the strand."
         },
         {
             "id": "Color_Mix1",
@@ -33,7 +35,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Length of each lit chase segment as a percentage of the total strand length."
         },
         {
             "id": "Chase_Rotations",
@@ -45,7 +48,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 1,
-            "max": 500
+            "max": 500,
+            "description": "Number of complete chase traversals over the effect duration. Higher values make the chase move faster."
         },
         {
             "id": "Chase_Offset",
@@ -57,7 +61,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": -5000,
-            "max": 5000
+            "max": 5000,
+            "description": "Shifts the starting position of the chase pattern along the strand. Useful for staggering chases across multiple models."
         },
         {
             "id": "Chase_Type1",
@@ -82,7 +87,8 @@
                 "Static Double-Ended"
             ],
             "default": "Left-Right",
-            "lockable": true
+            "lockable": true,
+            "description": "Direction and movement pattern of the chase. Bounce types reverse at edges, Dual runs two chases simultaneously, Static types display without motion, and Middle types expand or contract from the center."
         },
         {
             "id": "Fade_Type",
@@ -97,7 +103,8 @@
                 "Middle"
             ],
             "default": "None",
-            "lockable": true
+            "lockable": true,
+            "description": "Applies a brightness fade to the chase segment. 'From Head' fades from the leading edge, 'From Tail' from the trailing edge, 'Head and Tail' fades both ends, and 'Middle' fades from the center outward."
         },
         {
             "id": "Chase_Group_All",
@@ -105,7 +112,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, treats all strands of the model as one continuous strand for the chase, so the pattern flows seamlessly across strand boundaries."
         },
         {
             "id": "Skips_BandSize",
@@ -115,7 +123,8 @@
             "default": 1,
             "min": 1,
             "max": 20,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of consecutive lit pixels in each colored band of the skip pattern."
         },
         {
             "id": "Skips_SkipSize",
@@ -125,7 +134,8 @@
             "default": 1,
             "min": 0,
             "max": 20,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of unlit (dark) pixels between each colored band. Set to 0 for no gaps."
         },
         {
             "id": "Skips_StartPos",
@@ -135,7 +145,8 @@
             "default": 1,
             "min": 1,
             "max": 20,
-            "lockable": true
+            "lockable": true,
+            "description": "Pixel offset where the first band begins on the strand."
         },
         {
             "id": "Skips_Advance",
@@ -145,7 +156,8 @@
             "default": 0,
             "min": 0,
             "max": 100,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of times the skip pattern shifts position over the effect duration. Higher values make the pattern appear to march along the strand."
         },
         {
             "id": "Skips_Direction",
@@ -159,7 +171,8 @@
                 "To Middle"
             ],
             "default": "Left",
-            "lockable": true
+            "lockable": true,
+            "description": "Direction in which the skip pattern is drawn. 'From Middle' and 'To Middle' mirror the pattern from the center of the strand."
         },
         {
             "id": "SingleStrand_FX",
@@ -168,7 +181,8 @@
             "controlType": "choice",
             "options": [],
             "default": "",
-            "dynamicOptions": "effect"
+            "dynamicOptions": "effect",
+            "description": "Selects which WS2812FX-style animation to run, such as Blink, Breath, Color Wipe, Rainbow, Fire Flicker, and many more."
         },
         {
             "id": "SingleStrand_FX_Palette",
@@ -177,7 +191,8 @@
             "controlType": "choice",
             "options": [],
             "default": "",
-            "dynamicOptions": "effect"
+            "dynamicOptions": "effect",
+            "description": "Selects the color palette mode used by the chosen FX animation, controlling how colors are applied to the effect."
         },
         {
             "id": "FX_Intensity",
@@ -187,7 +202,8 @@
             "default": 128,
             "min": 0,
             "max": 255,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Controls the intensity parameter of the selected FX animation. Its exact meaning varies by effect (e.g., brightness, size, or density)."
         },
         {
             "id": "FX_Speed",
@@ -197,7 +213,8 @@
             "default": 128,
             "min": 0,
             "max": 255,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Controls the speed of the selected FX animation. Higher values produce faster transitions and movement."
         }
     ],
     "groups": [

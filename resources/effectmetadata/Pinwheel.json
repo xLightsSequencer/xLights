@@ -9,7 +9,8 @@
             "default": 3,
             "min": 1,
             "max": 20,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of colored arms radiating from the center of the pinwheel. Each arm uses the next color from the palette."
         },
         {
             "id": "Pinwheel_ArmSize",
@@ -20,7 +21,8 @@
             "min": 0,
             "max": 400,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Length of each arm as a percentage of the maximum radius. Values above 100 extend the arms beyond the model edges."
         },
         {
             "id": "Pinwheel_Twist",
@@ -31,7 +33,8 @@
             "min": -360,
             "max": 360,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Degrees of curvature applied along each arm from center to tip. Positive values twist clockwise, negative values twist counter-clockwise, creating spiral arms."
         },
         {
             "id": "Pinwheel_Thickness",
@@ -42,7 +45,8 @@
             "min": 0,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Width of each arm as a percentage of the angular space between arms. At 100, adjacent arms touch with no gap between them."
         },
         {
             "id": "Pinwheel_Speed",
@@ -53,7 +57,8 @@
             "min": 0,
             "max": 50,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Rotation speed of the pinwheel. Higher values make the arms spin faster."
         },
         {
             "id": "Pinwheel_Offset",
@@ -64,7 +69,8 @@
             "min": 0,
             "max": 360,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Starting angular offset in degrees for the pinwheel arms. Rotates the initial position of the entire pinwheel without affecting the spin animation."
         },
         {
             "id": "Pinwheel_Style",
@@ -75,7 +81,8 @@
                 "Old Render Method",
                 "New Render Method"
             ],
-            "default": "Old Render Method"
+            "default": "Old Render Method",
+            "description": "Rendering algorithm to use. The new method uses ISPC-accelerated rendering for better performance and fills the entire buffer; the old method draws arms by stepping along radial lines."
         },
         {
             "id": "Pinwheel_Rotation",
@@ -84,7 +91,8 @@
             "controlType": "checkbox",
             "default": true,
             "checkboxLabel": "CCW",
-            "lockable": true
+            "lockable": true,
+            "description": "Sets the rotation direction. When checked, the pinwheel spins counter-clockwise; when unchecked, it spins clockwise."
         },
         {
             "id": "Pinwheel_3D",
@@ -98,7 +106,8 @@
                 "Sweep"
             ],
             "default": "None",
-            "lockable": true
+            "lockable": true,
+            "description": "Applies a brightness or alpha gradient across each arm to simulate depth. 3D fades edges, 3D Inverted fades the center, and Sweep applies a directional gradient from one edge to the other."
         },
         {
             "id": "PinwheelXC",
@@ -108,7 +117,8 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Horizontal position of the pinwheel center as a percentage offset from the model center."
         },
         {
             "id": "PinwheelYC",
@@ -118,7 +128,8 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Vertical position of the pinwheel center as a percentage offset from the model center."
         }
     ],
     "groups": [

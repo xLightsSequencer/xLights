@@ -1,0 +1,78 @@
+{
+    "effectName": "Servo",
+    "properties": [
+        {
+            "id": "Channel",
+            "label": "Base Channel",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "description": "Selects which channel on the DMX model to control. The channel list is populated from the model's node names."
+        },
+        {
+            "id": "16bit",
+            "label": "16 bit",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true,
+            "description": "When enabled, outputs a 16-bit value across two channels (coarse and fine) for higher precision servo positioning. When disabled, uses a single 8-bit channel."
+        },
+        {
+            "id": "Timing_Track",
+            "label": "Use Timing Track",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, the servo position is driven by phoneme data from a timing track instead of the start/end value sliders, useful for lip-sync animations."
+        },
+        {
+            "id": "Servo_TimingTrack",
+            "label": "Servo_TimingTrack",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "description": "Selects which timing track to use for phoneme-driven servo positioning when Use Timing Track is enabled."
+        },
+        {
+            "id": "Start",
+            "label": "Start",
+            "type": "bool",
+            "controlType": "togglebutton",
+            "default": false,
+            "description": "Toggle to lock the start position value when splitting or chaining servo effects, ensuring smooth transitions between consecutive effects."
+        },
+        {
+            "id": "Servo",
+            "label": "Start",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000,
+            "description": "Servo position at the start of the effect, as a percentage of the channel's range (0-100%). The servo linearly interpolates from this value to the end value."
+        },
+        {
+            "id": "End",
+            "label": "End",
+            "type": "bool",
+            "controlType": "togglebutton",
+            "default": false,
+            "description": "Toggle to lock the end position value when splitting or chaining servo effects, ensuring smooth transitions between consecutive effects."
+        },
+        {
+            "id": "EndValue",
+            "label": "End",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "divisor": 10,
+            "min": 0,
+            "max": 1000,
+            "description": "Servo position at the end of the effect, as a percentage of the channel's range (0-100%). The servo linearly interpolates from the start value to this value."
+        }
+    ]
+}

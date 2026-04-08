@@ -5,6 +5,7 @@
         {
             "id": "Action",
             "label": "Adjustment",
+            "description": "The type of channel value adjustment to apply. Options include adding/scaling values, clamping to min/max/range, shifting with wrap, excluding a range, or reversing brightness.",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -23,6 +24,7 @@
         {
             "id": "Value1",
             "label": "Value 1",
+            "description": "Primary adjustment value. Its meaning depends on the action: offset amount for Adjust By Value, percentage for Adjust By Percentage, minimum for Set Minimum, or lower bound for Set Range.",
             "type": "int",
             "controlType": "spin",
             "default": 0,
@@ -32,6 +34,7 @@
         {
             "id": "Value2",
             "label": "Value 2",
+            "description": "Secondary adjustment value used by actions that require a range, such as Set Range and Prevent Range, where it defines the upper bound.",
             "type": "int",
             "controlType": "spin",
             "default": 0,
@@ -41,6 +44,7 @@
         {
             "id": "NthChannel",
             "label": "Nth Channel",
+            "description": "Apply the adjustment to every Nth channel. A value of 1 adjusts every channel, 2 adjusts every other channel, 3 every third, etc.",
             "type": "int",
             "controlType": "spin",
             "default": 1,
@@ -50,6 +54,7 @@
         {
             "id": "StartingAt",
             "label": "Starting At",
+            "description": "The first channel number (1-based) to begin applying the adjustment. Channels before this position are left unchanged.",
             "type": "int",
             "controlType": "spin",
             "default": 1,
@@ -59,6 +64,7 @@
         {
             "id": "Count",
             "label": "Count",
+            "description": "Maximum number of channels to adjust. A value of 0 means adjust all matching channels with no limit.",
             "type": "int",
             "controlType": "spin",
             "default": 0,

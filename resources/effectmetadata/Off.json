@@ -14,7 +14,8 @@
                 "Transparent -> Black"
             ],
             "default": "Black",
-            "suppressIfDefault": true
+            "suppressIfDefault": true,
+            "description": "Controls how pixels are turned off. Black sets all pixels to black, Transparent leaves pixels unchanged, and the conversion modes swap black pixels to transparent or vice versa."
         }
     ]
 }

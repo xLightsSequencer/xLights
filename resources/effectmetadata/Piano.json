@@ -1,0 +1,83 @@
+{
+    "effectName": "Piano",
+    "properties": [
+        {
+            "id": "Piano_Type",
+            "label": "Type",
+            "description": "The visual style for displaying notes. True Piano renders a piano keyboard with keys lighting up; Bars displays horizontal bars for each active note.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "True Piano",
+                "Bars"
+            ],
+            "default": "True Piano"
+        },
+        {
+            "id": "Piano_StartMIDI",
+            "label": "Start MIDI Channel [0-127]",
+            "description": "The lowest MIDI note number to display. Notes below this value are ignored. Middle C is 60.",
+            "type": "int",
+            "controlType": "spin",
+            "default": 60,
+            "min": 0,
+            "max": 127
+        },
+        {
+            "id": "Piano_EndMIDI",
+            "label": "End MIDI Channel",
+            "description": "The highest MIDI note number to display. Together with Start MIDI, defines the visible note range on the keyboard.",
+            "type": "int",
+            "controlType": "spin",
+            "default": 72,
+            "min": 0,
+            "max": 127
+        },
+        {
+            "id": "Piano_ShowSharps",
+            "label": "Show Sharps and Flats",
+            "description": "When enabled, black keys (sharps/flats) are rendered on the piano. When disabled, only white keys are shown.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Piano_FadeNotes",
+            "label": "Fade notes",
+            "description": "When enabled, notes gradually fade out over their duration instead of staying at full brightness until they end.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Piano_MIDITrack_APPLYLAST",
+            "label": "Track",
+            "description": "The timing track containing MIDI note data that drives the piano display. The track must contain note-on/off events.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": ""
+        },
+        {
+            "id": "Piano_Scale",
+            "label": "Vertical Scale",
+            "description": "Scales the vertical size of the piano keys or bars as a percentage. Lower values shrink the display; 100 uses the full buffer height.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Piano_XOffset",
+            "label": "Horizontal Offset",
+            "description": "Shifts the piano display left or right within the buffer. Use to position the keyboard when the note range does not fill the full width.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100
+        }
+    ]
+}

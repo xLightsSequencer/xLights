@@ -10,7 +10,8 @@
             "min": 1,
             "max": 50,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of zigzag segments that make up the lightning bolt. More segments create a longer, more detailed bolt."
         },
         {
             "id": "Number_Segments",
@@ -21,7 +22,8 @@
             "min": 1,
             "max": 20,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Controls the horizontal deviation of each zigzag segment. Higher values make the bolt spread wider side-to-side."
         },
         {
             "id": "ForkedLightning",
@@ -30,7 +32,8 @@
             "controlType": "checkbox",
             "default": false,
             "checkboxLabel": "Yes",
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, the bolt splits into a secondary fork partway through, creating a branching lightning appearance."
         },
         {
             "id": "Lightning_TopX",
@@ -41,7 +44,8 @@
             "min": -50,
             "max": 50,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Horizontal offset of the bolt's starting point relative to center. Negative values shift left, positive shift right."
         },
         {
             "id": "Lightning_TopY",
@@ -52,7 +56,8 @@
             "min": 0,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Vertical offset of the bolt's starting point. For 'Up' direction this is from the bottom; for 'Down' it offsets from the top."
         },
         {
             "id": "Lightning_BOTX",
@@ -62,7 +67,8 @@
             "default": 0,
             "min": -50,
             "max": 50,
-            "lockable": true
+            "lockable": true,
+            "description": "Causes the entire bolt to drift horizontally over time. Positive values move right, negative values move left."
         },
         {
             "id": "Lightning_WIDTH",
@@ -72,7 +78,8 @@
             "default": 1,
             "min": 1,
             "max": 7,
-            "lockable": true
+            "lockable": true,
+            "description": "Pixel thickness of each bolt segment line. Higher values draw a wider, more visible bolt."
         },
         {
             "id": "Lightning_Direction",
@@ -83,7 +90,8 @@
                 "Up",
                 "Down"
             ],
-            "default": "Up"
+            "default": "Up",
+            "description": "Direction the lightning bolt extends. 'Up' draws from bottom to top, 'Down' draws from top to bottom."
         }
     ]
 }

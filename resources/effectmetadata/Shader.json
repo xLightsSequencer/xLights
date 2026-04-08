@@ -7,7 +7,8 @@
             "type": "file",
             "controlType": "filepicker",
             "default": "",
-            "fileFilter": "*.fs"
+            "fileFilter": "*.fs",
+            "description": "Path to the ISF-format fragment shader (.fs) file that defines the visual effect. The shader runs on the GPU to generate the pixel output."
         },
         {
             "id": "Shader_LeadIn",
@@ -17,7 +18,8 @@
             "settingPrefix": "TEXTCTRL",
             "default": 0,
             "min": 0,
-            "max": 1000
+            "max": 1000,
+            "description": "Number of frames to pre-render before the effect starts, allowing time-based shaders to reach a desired visual state at the beginning of the effect."
         },
         {
             "id": "Shader_Speed",
@@ -28,7 +30,8 @@
             "min": -1000,
             "max": 1000,
             "divisor": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Multiplier for the time value passed to the shader. Values above 1 speed up the animation, values below 1 slow it down, and negative values run the shader time in reverse."
         },
         {
             "id": "Shader_Offset_X",
@@ -39,7 +42,8 @@
             "default": 0,
             "valueCurve": true,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "description": "Horizontal offset of the shader viewport as a percentage. Shifts the visible portion of the shader output left or right."
         },
         {
             "id": "Shader_Offset_Y",
@@ -50,7 +54,8 @@
             "default": 0,
             "valueCurve": true,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "description": "Vertical offset of the shader viewport as a percentage. Shifts the visible portion of the shader output up or down."
         },
         {
             "id": "Shader_Zoom",
@@ -61,7 +66,8 @@
             "default": 0,
             "valueCurve": true,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "description": "Zoom level for the shader output. Positive values zoom in (up to 10x), negative values zoom out, and zero shows the shader at its native scale."
         }
     ]
 }

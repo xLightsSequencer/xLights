@@ -9,7 +9,8 @@
             "default": 50,
             "min": 0,
             "max": 100,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of snowstorm particles wandering across the buffer. Each particle leaves a fading trail behind it."
         },
         {
             "id": "Snowstorm_Length",
@@ -19,7 +20,8 @@
             "default": 50,
             "min": 0,
             "max": 100,
-            "lockable": true
+            "lockable": true,
+            "description": "Maximum length of the fading trail behind each particle. Longer trails create streaky, wind-blown looks."
         },
         {
             "id": "Snowstorm_Speed",
@@ -29,7 +31,8 @@
             "default": 10,
             "min": 1,
             "max": 50,
-            "lockable": true
+            "lockable": true,
+            "description": "Controls how fast each particle moves and how quickly trails grow and decay. Higher values produce more energetic, rapid movement."
         }
     ]
 }

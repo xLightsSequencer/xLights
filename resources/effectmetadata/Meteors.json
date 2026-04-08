@@ -12,7 +12,8 @@
                 "Palette"
             ],
             "default": "Rainbow",
-            "lockable": true
+            "lockable": true,
+            "description": "Color scheme for the meteors. Rainbow uses random hues, Range picks random colors from the palette range, and Palette cycles through the defined palette colors."
         },
         {
             "id": "Meteors_Effect",
@@ -30,7 +31,8 @@
                 "Icicles + bkg"
             ],
             "default": "Down",
-            "lockable": true
+            "lockable": true,
+            "description": "Direction of meteor movement. Down/Up/Left/Right move linearly, Implode moves toward center, Explode moves outward from center, and Icicles create random-length dripping streaks."
         },
         {
             "id": "Meteors_Count",
@@ -41,7 +43,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of new meteors spawned per frame. Higher values create a denser shower of meteors."
         },
         {
             "id": "Meteors_Length",
@@ -52,7 +55,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Length of the fading trail behind each meteor. Higher values create longer tails that fade more gradually."
         },
         {
             "id": "Meteors_Swirl_Intensity",
@@ -63,7 +67,8 @@
             "min": 0,
             "max": 20,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Adds a random sideways wobble to each meteor as it moves. Higher values create more pronounced swirling motion."
         },
         {
             "id": "Meteors_Speed",
@@ -73,7 +78,8 @@
             "default": 10,
             "min": 0,
             "max": 50,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "How fast the meteors travel across the model. Higher values make meteors move more pixels per frame."
         },
         {
             "id": "Meteors_WamupFrames",
@@ -82,7 +88,8 @@
             "controlType": "slider",
             "default": 0,
             "min": 0,
-            "max": 100
+            "max": 100,
+            "description": "Number of simulation frames to run before the first visible frame, so the effect starts with meteors already in flight rather than an empty screen."
         },
         {
             "id": "Meteors_XOffset",
@@ -94,7 +101,8 @@
             "lockable": true,
             "min": -100,
             "max": 100,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Shifts the center point horizontally for Implode and Explode modes. Negative values move the center left, positive values move it right."
         },
         {
             "id": "Meteors_YOffset",
@@ -106,7 +114,8 @@
             "lockable": true,
             "min": -100,
             "max": 100,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Shifts the center point vertically for Implode and Explode modes. Negative values move the center down, positive values move it up."
         },
         {
             "id": "Meteors_UseMusic",
@@ -114,7 +123,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, the meteor count is scaled by the current music volume, producing more meteors during loud passages and fewer during quiet ones."
         },
         {
             "id": "FadeWithDistance",
@@ -122,7 +132,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "For Implode/Explode modes, meteors fade in brightness based on their distance from center, creating a 3D starfield depth illusion."
         }
     ],
     "visibilityRules": [

@@ -4,6 +4,7 @@
         {
             "id": "Tree_Branches",
             "label": "Number Branches",
+            "description": "Number of horizontal branch rows on the tree. The buffer height is divided evenly among branches, with garland lights sweeping across each row.",
             "type": "int",
             "controlType": "slider",
             "default": 3,
@@ -14,6 +15,7 @@
         {
             "id": "Tree_Speed",
             "label": "Speed",
+            "description": "How fast the garland lights sweep across each branch row. Higher values make the animation cycle faster.",
             "type": "int",
             "controlType": "slider",
             "default": 10,
@@ -23,6 +25,7 @@
         {
             "id": "Tree_ShowLights",
             "label": "Show Tree Lights",
+            "description": "When enabled, displays additional twinkling Christmas lights on the tree branches alongside the garland sweep animation.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false

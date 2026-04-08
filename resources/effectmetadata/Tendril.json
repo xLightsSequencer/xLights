@@ -4,6 +4,7 @@
         {
             "id": "Tendril_Movement",
             "label": "Movement",
+            "description": "The path the tendril head follows. Options include geometric patterns like circle and square, zig-zag paths, music-reactive modes, or fully manual control via value curves.",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -24,6 +25,7 @@
         {
             "id": "Tendril_TuneMovement",
             "label": "Tune Movement",
+            "description": "Controls the magnitude of the tendril head movement. Higher values produce larger, more dramatic movements across the buffer.",
             "type": "int",
             "controlType": "slider",
             "default": 10,
@@ -36,6 +38,7 @@
         {
             "id": "Tendril_Thickness",
             "label": "Thickness",
+            "description": "The line width of the tendril in pixels. Higher values draw a thicker, more visible tendril strand.",
             "type": "int",
             "controlType": "slider",
             "default": 3,
@@ -48,6 +51,7 @@
         {
             "id": "Tendril_Friction",
             "label": "Friction",
+            "description": "Controls how quickly node velocity decays. Lower values allow nodes to move more freely, while higher values make the tendril more sluggish.",
             "type": "int",
             "controlType": "slider",
             "default": 10,
@@ -59,6 +63,7 @@
         {
             "id": "Tendril_Dampening",
             "label": "Dampening",
+            "description": "How much each node is influenced by the velocity of its predecessor. Higher values make the tendril body follow the head more closely.",
             "type": "int",
             "controlType": "slider",
             "default": 10,
@@ -70,6 +75,7 @@
         {
             "id": "Tendril_Tension",
             "label": "Tension",
+            "description": "Controls how quickly the spring force decays along the tendril chain. Higher values keep the tail tighter to the head; lower values let it wave more freely.",
             "type": "int",
             "controlType": "slider",
             "default": 20,
@@ -81,6 +87,7 @@
         {
             "id": "Tendril_Trails",
             "label": "Trails",
+            "description": "Number of parallel tendril strands drawn. Each trail has a slightly different spring constant, creating a ribbon-like appearance.",
             "type": "int",
             "controlType": "slider",
             "default": 1,
@@ -92,6 +99,7 @@
         {
             "id": "Tendril_Length",
             "label": "Length",
+            "description": "Number of nodes in the tendril chain. More nodes create a longer, more flowing tendril.",
             "type": "int",
             "controlType": "slider",
             "default": 60,
@@ -103,6 +111,7 @@
         {
             "id": "Tendril_Speed",
             "label": "Speed",
+            "description": "How fast the tendril head moves along its chosen path. Higher values make the tendril traverse its pattern more quickly.",
             "type": "int",
             "controlType": "slider",
             "default": 10,
@@ -113,6 +122,7 @@
         {
             "id": "Tendril_XOffset",
             "label": "Horizontal Offset",
+            "description": "Shifts the entire tendril pattern left or right as a percentage of the buffer width.",
             "type": "int",
             "controlType": "slider",
             "default": 0,
@@ -125,6 +135,7 @@
         {
             "id": "Tendril_YOffset",
             "label": "Vertical Offset",
+            "description": "Shifts the entire tendril pattern up or down as a percentage of the buffer height.",
             "type": "int",
             "controlType": "slider",
             "default": 0,
@@ -137,6 +148,7 @@
         {
             "id": "Tendril_ManualX",
             "label": "Manual X",
+            "description": "Manually sets the horizontal target position for the tendril head when movement is set to Manual. Use with a value curve to animate the path.",
             "type": "int",
             "controlType": "slider",
             "default": 0,
@@ -148,6 +160,7 @@
         {
             "id": "Tendril_ManualY",
             "label": "Manual Y",
+            "description": "Manually sets the vertical target position for the tendril head when movement is set to Manual. Use with a value curve to animate the path.",
             "type": "int",
             "controlType": "slider",
             "default": 0,

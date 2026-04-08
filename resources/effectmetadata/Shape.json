@@ -25,14 +25,16 @@
                 "Emoji",
                 "SVG"
             ],
-            "default": "Circle"
+            "default": "Circle",
+            "description": "The geometric shape, holiday object, emoji, or SVG to draw. Random selects a different shape for each new instance."
         },
         {
             "id": "Shape_Font",
             "label": "Shape_Font",
             "type": "font",
             "controlType": "fontpicker",
-            "default": ""
+            "default": "",
+            "description": "Font used for rendering emoji characters when Object to Draw is set to Emoji."
         },
         {
             "id": "Shape_Char",
@@ -41,7 +43,8 @@
             "controlType": "spin",
             "default": 127876,
             "min": 32,
-            "max": 917631
+            "max": 917631,
+            "description": "Unicode code point of the emoji or character to display when Object to Draw is set to Emoji."
         },
         {
             "id": "Shape_SkinTone",
@@ -56,7 +59,8 @@
                 "Medium Dark",
                 "Dark"
             ],
-            "default": "Default"
+            "default": "Default",
+            "description": "Skin tone modifier applied to emoji characters that support it. Only affects emoji rendering."
         },
         {
             "id": "SVG",
@@ -64,7 +68,8 @@
             "type": "file",
             "controlType": "filepicker",
             "default": "",
-            "fileFilter": "*.svg"
+            "fileFilter": "*.svg",
+            "description": "Path to an SVG file to use as the shape when Object to Draw is set to SVG."
         },
         {
             "id": "Shape_Thickness",
@@ -74,7 +79,8 @@
             "default": 3,
             "min": 1,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Line thickness used to draw the outline of each shape. Higher values produce bolder outlines."
         },
         {
             "id": "Shape_Count",
@@ -85,7 +91,8 @@
             "default": 5,
             "valueCurve": true,
             "min": 1,
-            "max": 100
+            "max": 100,
+            "description": "Number of shape instances spawned simultaneously on the model."
         },
         {
             "id": "Shape_StartSize",
@@ -95,14 +102,16 @@
             "default": 5,
             "min": 0,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Initial size of each shape when it first appears. The shape then grows or shrinks according to the Growth setting over its lifetime."
         },
         {
             "id": "Shape_RandomInitial",
             "label": "Random initial shape sizes",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, each shape starts at a random size and age rather than all beginning at the same start size, creating a more organic initial appearance."
         },
         {
             "id": "Shapes_Velocity",
@@ -112,7 +121,8 @@
             "default": 0,
             "min": 0,
             "max": 20,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Speed at which each shape moves across the model in the specified direction. Zero keeps shapes stationary."
         },
         {
             "id": "Shapes_Direction",
@@ -122,7 +132,8 @@
             "default": 90,
             "min": 0,
             "max": 359,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Angle in degrees that shapes travel when velocity is non-zero. 0 is right, 90 is up, 180 is left, 270 is down."
         },
         {
             "id": "Shape_Lifetime",
@@ -132,7 +143,8 @@
             "default": 5,
             "min": 1,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "How long each shape lives as a percentage of the total effect duration. After this time the shape is removed and a new one may be spawned."
         },
         {
             "id": "Shape_Growth",
@@ -142,7 +154,8 @@
             "default": 10,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Rate at which each shape changes size over its lifetime. Positive values make shapes grow larger, negative values make them shrink."
         },
         {
             "id": "Shape_CentreX",
@@ -152,7 +165,8 @@
             "default": 50,
             "min": 0,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Horizontal spawn position for shapes as a percentage of the model width, when random location is disabled."
         },
         {
             "id": "Shape_CentreY",
@@ -162,7 +176,8 @@
             "default": 50,
             "min": 0,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Vertical spawn position for shapes as a percentage of the model height, when random location is disabled."
         },
         {
             "id": "Shape_Points",
@@ -171,7 +186,8 @@
             "controlType": "slider",
             "default": 5,
             "min": 2,
-            "max": 9
+            "max": 9,
+            "description": "Number of points on star shapes. Only applies when the Object to Draw is set to Star."
         },
         {
             "id": "Shape_Rotation",
@@ -181,42 +197,48 @@
             "default": 0,
             "min": 0,
             "max": 360,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Rotation angle in degrees applied to each shape. Use a value curve to animate the shapes spinning over time."
         },
         {
             "id": "Shape_RandomLocation",
             "label": "Random Location",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, each shape spawns at a random position on the model instead of at the X/Y Center position."
         },
         {
             "id": "Shapes_RandomMovement",
             "label": "Random movement",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, each shape gets a random velocity and direction instead of using the Velocity and Direction settings."
         },
         {
             "id": "Shape_FadeAway",
             "label": "Fade Away",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, shapes gradually become transparent as they age, fading out over their lifetime."
         },
         {
             "id": "Shape_HoldColour",
             "label": "Hold Color",
             "type": "bool",
             "controlType": "checkbox",
-            "default": true
+            "default": true,
+            "description": "When enabled, each shape keeps the color it was assigned at creation. When disabled, shapes follow the current palette color as it changes."
         },
         {
             "id": "Shape_UseMusic",
             "label": "Fire with music",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, new shapes are spawned in response to audio peaks in the music rather than at regular intervals."
         },
         {
             "id": "Shape_Sensitivity",
@@ -225,14 +247,16 @@
             "controlType": "slider",
             "default": 50,
             "min": 0,
-            "max": 100
+            "max": 100,
+            "description": "Audio volume threshold for triggering new shapes when Fire with music is enabled. Lower values trigger on quieter sounds."
         },
         {
             "id": "Shape_FireTiming",
             "label": "Fire with timing track",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, new shapes are spawned at each timing mark in the selected timing track instead of at regular intervals."
         },
         {
             "id": "Shape_FireTimingTrack",
@@ -240,21 +264,24 @@
             "type": "enum",
             "controlType": "choice",
             "options": [],
-            "default": ""
+            "default": "",
+            "description": "Selects which timing track to use for triggering new shapes when Fire with timing track is enabled."
         },
         {
             "id": "Shape_FilterLabel",
             "label": "Filter Label",
             "type": "string",
             "controlType": "text",
-            "default": ""
+            "default": "",
+            "description": "Only timing marks whose label matches this text will trigger new shapes. Leave empty to match all marks."
         },
         {
             "id": "Shape_FilterReg",
             "label": "Reg",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, the Filter Label is treated as a regular expression for matching timing mark labels instead of a plain text match."
         }
     ]
 }

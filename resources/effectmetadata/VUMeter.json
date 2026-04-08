@@ -1,0 +1,174 @@
+{
+    "effectName": "VU Meter",
+    "properties": [
+        {
+            "id": "VUMeter_Bars",
+            "label": "Bars",
+            "description": "Number of bars or segments displayed in bar-based VU meter types. Controls the resolution of the frequency or level display.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 20,
+            "min": 1,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_Type",
+            "label": "Type",
+            "description": "The visualization style for the VU meter. Options include spectrogram, volume bars, waveform, timing event responses, level-based displays, note tracking, and more.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_TimingTrack",
+            "label": "Timing Track",
+            "description": "The timing track used for timing-event-based VU meter types. Events on this track trigger visual responses like spikes, sweeps, and color changes.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "lockable": true
+        },
+        {
+            "id": "Filter",
+            "label": "Filter Label",
+            "description": "Text filter applied to timing track labels. Only timing events whose labels match this filter text will trigger the VU meter response.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "Regex",
+            "label": "Regex",
+            "description": "When enabled, the filter text is treated as a regular expression pattern instead of a plain text match.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "VUMeter_Sensitivity",
+            "label": "Sensitivity",
+            "description": "Audio level threshold that must be exceeded to trigger the VU meter response. Lower values make it more responsive to quiet sounds.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 70,
+            "min": 0,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_Gain",
+            "label": "Gain",
+            "description": "Amplifies or attenuates the audio signal level before it drives the visualization. Positive values boost the signal, negative values reduce it.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "VUMeter_Shape",
+            "label": "Shape",
+            "description": "The shape used for level-shape VU meter type. The shape is drawn at a size proportional to the audio level.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Circle",
+                "Filled Circle",
+                "Square",
+                "Filled Square",
+                "Diamond",
+                "Filled Diamond",
+                "Star",
+                "Filled Star",
+                "Tree",
+                "Filled Tree",
+                "Crucifix",
+                "Filled Crucifix",
+                "Present",
+                "Filled Present",
+                "Candy Cane",
+                "Snowflake",
+                "Heart",
+                "Filled Heart",
+                "SVG"
+            ],
+            "default": "Circle",
+            "lockable": true
+        },
+        {
+            "id": "SVGFile",
+            "label": "SVG File",
+            "description": "Path to an SVG file used as the shape when Shape is set to SVG. The SVG is rendered at a size driven by the audio level.",
+            "type": "file",
+            "controlType": "filepicker",
+            "default": ""
+        },
+        {
+            "id": "VUMeter_SlowDownFalls",
+            "label": "Slow Down Falls",
+            "description": "When enabled, bars and levels fall gradually after a peak rather than dropping instantly, creating a smoother visual decay.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true,
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_StartNote",
+            "label": "Start Note",
+            "description": "The lowest MIDI note number included in frequency analysis. Used to focus the spectrogram or note display on a specific pitch range.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 36,
+            "min": 0,
+            "max": 127,
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_EndNote",
+            "label": "End Note",
+            "description": "The highest MIDI note number included in frequency analysis. Together with Start Note, defines the visible pitch range.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 84,
+            "min": 0,
+            "max": 127,
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_LogarithmicX",
+            "label": "Logarithmic X axis",
+            "description": "When enabled, the frequency axis uses a logarithmic scale that better matches human pitch perception, giving more space to lower frequencies.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "VUMeter_XOffset",
+            "label": "Horizontal Offset",
+            "description": "Shifts the VU meter display left or right as a percentage of the buffer width.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_YOffset",
+            "label": "Vertical Offset",
+            "description": "Shifts the VU meter display up or down as a percentage of the buffer height.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        }
+    ]
+}

@@ -7,7 +7,8 @@
             "type": "string",
             "controlType": "text",
             "settingPrefix": "TEXTCTRL",
-            "default": ""
+            "default": "",
+            "description": "Path to the image or animated GIF file to display on the model."
         },
         {
             "id": "Pictures_Direction",
@@ -40,7 +41,8 @@
                 "tile-up"
             ],
             "default": "none",
-            "lockable": true
+            "lockable": true,
+            "description": "Direction the image moves across the model. Includes scrolling, peekaboo pop-in effects, wiggle, zoom, flag wave, single-pass movements, and tiling modes."
         },
         {
             "id": "Pictures_Speed",
@@ -51,7 +53,8 @@
             "divisor": 10,
             "lockable": true,
             "min": 0,
-            "max": 200
+            "max": 200,
+            "description": "How fast the image moves in the chosen direction. Higher values make the image scroll or animate more quickly."
         },
         {
             "id": "Pictures_FrameRateAdj",
@@ -62,14 +65,16 @@
             "divisor": 10,
             "lockable": true,
             "min": 0,
-            "max": 200
+            "max": 200,
+            "description": "Multiplier for the playback speed of animated GIF frames. Values above 1.0 speed up the animation, values below 1.0 slow it down."
         },
         {
             "id": "Pictures_PixelOffsets",
             "label": "Offsets In Pixels",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, the X and Y center offset values are treated as pixel counts rather than percentages of the model dimensions."
         },
         {
             "id": "Scaling",
@@ -82,28 +87,32 @@
                 "Scale Keep Aspect Ratio",
                 "Scale Keep Aspect Ratio Crop"
             ],
-            "default": "No Scaling"
+            "default": "No Scaling",
+            "description": "How the image is resized to fit the model. No Scaling uses the original pixel size, Scale To Fit stretches to fill, and the aspect ratio options preserve proportions with or without cropping."
         },
         {
             "id": "Pictures_Shimmer",
             "label": "Shimmer",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, the image flickers on and off on alternating frames, creating a shimmering visual effect."
         },
         {
             "id": "LoopGIF",
             "label": "Loop Animated GIF",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, an animated GIF restarts from the first frame after reaching the last frame, looping continuously for the duration of the effect."
         },
         {
             "id": "SuppressGIFBackground",
             "label": "Suppress GIF Background",
             "type": "bool",
             "controlType": "checkbox",
-            "default": true
+            "default": true,
+            "description": "When enabled, the background color of an animated GIF is treated as transparent, allowing underlying effects to show through."
         },
         {
             "id": "Pictures_TransparentBlack",
@@ -113,7 +122,8 @@
             "settingPrefix": "TEXTCTRL",
             "default": 0,
             "min": 0,
-            "max": 300
+            "max": 300,
+            "description": "Pixels with brightness at or below this threshold are treated as transparent. Increase to make darker areas of the image see-through."
         },
         {
             "id": "PicturesXC",
@@ -123,14 +133,16 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Horizontal offset for the starting position of the image, as a percentage of the model width."
         },
         {
             "id": "Pictures_WrapX",
             "label": "Wrap X",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, the image wraps around horizontally so pixels that scroll off one side reappear on the other."
         },
         {
             "id": "PicturesYC",
@@ -140,7 +152,8 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Vertical offset for the starting position of the image, as a percentage of the model height."
         },
         {
             "id": "PicturesEndXC",
@@ -149,7 +162,8 @@
             "controlType": "slider",
             "default": 0,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "description": "Horizontal offset for the ending position of the image when using the vector movement mode."
         },
         {
             "id": "PicturesEndYC",
@@ -158,7 +172,8 @@
             "controlType": "slider",
             "default": 0,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "description": "Vertical offset for the ending position of the image when using the vector movement mode."
         },
         {
             "id": "Pictures_StartScale",
@@ -167,7 +182,8 @@
             "controlType": "slider",
             "default": 100,
             "min": 0,
-            "max": 1000
+            "max": 1000,
+            "description": "Scale factor for the image at the start of the effect, as a percentage. 100 is the original size."
         },
         {
             "id": "Pictures_EndScale",
@@ -176,7 +192,8 @@
             "controlType": "slider",
             "default": 100,
             "min": 0,
-            "max": 1000
+            "max": 1000,
+            "description": "Scale factor for the image at the end of the effect. The image smoothly transitions from the start scale to this value over the effect duration."
         }
     ],
     "groups": [

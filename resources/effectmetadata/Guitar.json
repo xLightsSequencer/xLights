@@ -11,7 +11,8 @@
                 "Bass Guitar",
                 "Banjo"
             ],
-            "default": "Guitar"
+            "default": "Guitar",
+            "description": "Selects the instrument type, which determines the number of strings and tuning used to map MIDI notes to fret positions."
         },
         {
             "id": "Guitar_MIDITrack_APPLYLAST",
@@ -20,7 +21,8 @@
             "controlType": "choice",
             "options": [],
             "default": "",
-            "dynamicOptions": "timingTracks"
+            "dynamicOptions": "timingTracks",
+            "description": "The timing track containing MIDI note data that drives the guitar visualization."
         },
         {
             "id": "StringAppearance",
@@ -31,7 +33,8 @@
                 "On",
                 "Wave"
             ],
-            "default": "On"
+            "default": "On",
+            "description": "How active strings are drawn. On fills a solid band for each string; Wave draws a sine wave oscillation simulating a vibrating string."
         },
         {
             "id": "MaxFrets",
@@ -40,7 +43,8 @@
             "controlType": "slider",
             "default": 19,
             "min": 8,
-            "max": 30
+            "max": 30,
+            "description": "Maximum number of frets on the instrument neck. Higher fret notes are drawn shorter across the buffer width."
         },
         {
             "id": "BaseWaveFactor",
@@ -50,7 +54,8 @@
             "default": 1.0,
             "min": 1,
             "max": 100,
-            "divisor": 10
+            "divisor": 10,
+            "description": "Base wavelength multiplier for the wave string appearance. Higher values produce longer, smoother waves."
         },
         {
             "id": "StringWaveFactor",
@@ -60,35 +65,40 @@
             "default": 0.0,
             "min": 0,
             "max": 100,
-            "divisor": 10
+            "divisor": 10,
+            "description": "How much the wavelength varies between strings. Higher values make lower-pitched strings wave more slowly than higher strings."
         },
         {
             "id": "Fade",
             "label": "Fade",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, notes fade out over their duration by reducing alpha transparency."
         },
         {
             "id": "Collapse",
             "label": "Collapse",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, the height of each string's visual shrinks over the note duration, simulating a decaying vibration."
         },
         {
             "id": "ShowStrings",
             "label": "Show Strings",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, draws a thin line for each string beyond the fret position, showing the unfretted portion of the string."
         },
         {
             "id": "VaryWaveLengthOnFret",
             "label": "Vary Wavelength By Fret",
             "type": "bool",
             "controlType": "checkbox",
-            "default": true
+            "default": true,
+            "description": "When enabled, the wave wavelength varies based on fret position so that higher frets produce shorter, tighter waves."
         }
     ],
     "visibilityRules": [

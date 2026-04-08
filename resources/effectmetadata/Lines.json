@@ -9,7 +9,8 @@
             "default": 2,
             "min": 1,
             "max": 20,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of independent line objects drawn on the model. Each line uses the next color from the palette."
         },
         {
             "id": "Lines_Segments",
@@ -19,7 +20,8 @@
             "default": 3,
             "min": 2,
             "max": 6,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of control points per line. Lines are drawn between consecutive points, so more points create multi-segment polylines."
         },
         {
             "id": "Lines_Thickness",
@@ -29,7 +31,8 @@
             "default": 1,
             "min": 1,
             "max": 10,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Pixel width of each drawn line. Higher values produce thicker, bolder lines."
         },
         {
             "id": "Lines_Speed",
@@ -39,7 +42,8 @@
             "default": 1,
             "min": 1,
             "max": 10,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "How fast the line points move across the model. Points bounce off the edges when they reach the boundary."
         },
         {
             "id": "Lines_Trails",
@@ -49,14 +53,16 @@
             "default": 0,
             "min": 0,
             "max": 10,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of trailing afterimages left behind each line, creating a motion trail effect. Zero means no trails."
         },
         {
             "id": "Lines_FadeTrails",
             "label": "Fade Trails",
             "type": "bool",
             "controlType": "checkbox",
-            "default": true
+            "default": true,
+            "description": "When enabled, older trail copies fade out progressively, creating a smooth motion blur. When disabled, all trail copies are drawn at full opacity."
         }
     ]
 }

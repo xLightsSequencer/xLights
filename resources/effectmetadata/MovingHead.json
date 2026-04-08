@@ -1,0 +1,254 @@
+{
+    "effectName": "Moving Head",
+    "properties": [
+        {
+            "id": "MHPan",
+            "label": "Pan (deg)",
+            "description": "The horizontal pan angle in degrees for the moving head fixture. Controls left/right beam positioning.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "min": -1800,
+            "max": 1800,
+            "divisor": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "MHTilt",
+            "label": "Tilt (deg)",
+            "description": "The vertical tilt angle in degrees for the moving head fixture. Controls up/down beam positioning.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "min": -1800,
+            "max": 1800,
+            "divisor": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "MHPanOffset",
+            "label": "Fan Pan",
+            "description": "Pan offset in degrees applied incrementally across grouped fixtures, fanning them apart horizontally. Creates a spread effect when multiple heads are grouped.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "min": -1800,
+            "max": 1800,
+            "divisor": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "MHTiltOffset",
+            "label": "Fan Tilt",
+            "description": "Tilt offset in degrees applied incrementally across grouped fixtures, fanning them apart vertically. Creates a spread effect when multiple heads are grouped.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "min": -1800,
+            "max": 1800,
+            "divisor": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "MHGroupings",
+            "label": "Groupings",
+            "description": "Number of fixture groupings for fan offset distribution. Fixtures within the same group share the same pan/tilt, with fan offsets applied between groups.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 6,
+            "valueCurve": true
+        },
+        {
+            "id": "MHCycles",
+            "label": "Cycles",
+            "description": "Number of full movement cycles to complete over the effect duration. Controls how many times a pathing animation repeats.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.1,
+            "min": 0,
+            "max": 100,
+            "divisor": 10
+        },
+        {
+            "id": "MHPathDef",
+            "label": "MHPathDef",
+            "description": "Encoded definition string for the movement path. Defines waypoints and curves that the moving head beam follows over time.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MHPathScale",
+            "label": "Scale",
+            "description": "Scales the size of the movement path. Positive values enlarge the path, negative values shrink it, and zero uses the default size.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "min": -100,
+            "max": 100,
+            "divisor": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "MHTimeOffset",
+            "label": "Time Offset",
+            "description": "Shifts the starting point in time along the movement path. Use to stagger multiple fixtures following the same path at different phases.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "min": -1000,
+            "max": 1000,
+            "divisor": 10,
+            "valueCurve": true
+        },
+        {
+            "id": "MHIgnorePan",
+            "label": "Ignore Pan",
+            "description": "When enabled, the pan component of the path is ignored, keeping the fixture at its current horizontal position while only tilt changes.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "MHIgnoreTilt",
+            "label": "Ignore Tilt",
+            "description": "When enabled, the tilt component of the path is ignored, keeping the fixture at its current vertical position while only pan changes.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "AUTO_SHUTTER",
+            "label": "Auto Shutter",
+            "description": "When enabled, the fixture shutter automatically opens when the dimmer is above zero and closes when the dimmer is zero, preventing unwanted light leaks during repositioning.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "MH1_Settings",
+            "label": "MH1_Settings",
+            "description": "Per-fixture override settings for moving head fixture 1. Stores individual pan, tilt, and other parameters that differ from the group defaults.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MH2_Settings",
+            "label": "MH2_Settings",
+            "description": "Per-fixture override settings for moving head fixture 2.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MH3_Settings",
+            "label": "MH3_Settings",
+            "description": "Per-fixture override settings for moving head fixture 3.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MH4_Settings",
+            "label": "MH4_Settings",
+            "description": "Per-fixture override settings for moving head fixture 4.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MH5_Settings",
+            "label": "MH5_Settings",
+            "description": "Per-fixture override settings for moving head fixture 5.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MH6_Settings",
+            "label": "MH6_Settings",
+            "description": "Per-fixture override settings for moving head fixture 6.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MH7_Settings",
+            "label": "MH7_Settings",
+            "description": "Per-fixture override settings for moving head fixture 7.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "MH8_Settings",
+            "label": "MH8_Settings",
+            "description": "Per-fixture override settings for moving head fixture 8.",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Color",
+                    "properties": []
+                },
+                {
+                    "label": "ColorWheel",
+                    "properties": [
+                        "AUTO_SHUTTER"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK2"
+        },
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Position",
+                    "properties": [
+                        "MHPan",
+                        "MHTilt",
+                        "MHPanOffset",
+                        "MHTiltOffset",
+                        "MHGroupings",
+                        "MHCycles"
+                    ]
+                },
+                {
+                    "label": "Dimmer",
+                    "properties": []
+                },
+                {
+                    "label": "Pathing",
+                    "properties": [
+                        "MHPathDef",
+                        "MHPathScale",
+                        "MHTimeOffset",
+                        "MHIgnorePan",
+                        "MHIgnoreTilt"
+                    ]
+                },
+                {
+                    "label": "Control",
+                    "properties": [
+                        "AUTO_SHUTTER"
+                    ]
+                },
+                {
+                    "label": "Status",
+                    "properties": []
+                }
+            ],
+            "settingKey": "E_NOTEBOOK1"
+        }
+    ]
+}

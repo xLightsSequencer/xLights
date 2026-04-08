@@ -10,7 +10,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of consecutive lit pixels in each color band of the marquee pattern."
         },
         {
             "id": "Marquee_Skip_Size",
@@ -21,7 +22,8 @@
             "min": 0,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of unlit (dark) pixels between each color band. Zero means bands are placed back-to-back with no gap."
         },
         {
             "id": "Marquee_Thickness",
@@ -32,7 +34,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of concentric marquee rings drawn inward from the outer edge. Each ring is offset by one pixel toward the center."
         },
         {
             "id": "Marquee_Stagger",
@@ -43,7 +46,8 @@
             "min": 0,
             "max": 50,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Offsets the starting position of each concentric ring so inner rings appear shifted relative to outer rings, creating a spiral-like look."
         },
         {
             "id": "Marquee_Speed",
@@ -54,7 +58,8 @@
             "min": 0,
             "max": 50,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "How fast the marquee pattern moves around the perimeter. Zero freezes the animation."
         },
         {
             "id": "Marquee_Start",
@@ -65,14 +70,16 @@
             "min": 0,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Initial offset position for the marquee pattern along the perimeter, allowing the starting point to be adjusted."
         },
         {
             "id": "Marquee_Reverse",
             "label": "Reverse",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, the marquee pattern moves in the opposite direction around the perimeter."
         },
         {
             "id": "Marquee_ScaleX",
@@ -83,7 +90,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Scales the marquee rectangle width as a percentage. Values below 100 shrink the marquee horizontally."
         },
         {
             "id": "Marquee_ScaleY",
@@ -94,7 +102,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Scales the marquee rectangle height as a percentage. Values below 100 shrink the marquee vertically."
         },
         {
             "id": "Marquee_PixelOffsets",
@@ -102,7 +111,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "separator": true
+            "separator": true,
+            "description": "When enabled, the X and Y center offset values are interpreted as absolute pixel counts instead of percentages of the buffer size."
         },
         {
             "id": "MarqueeXC",
@@ -112,14 +122,16 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Horizontal offset of the marquee center. Shifts the entire marquee rectangle left or right."
         },
         {
             "id": "Marquee_WrapX",
             "label": "Wrap X",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, pixels that move past the left or right edge wrap around to the opposite side instead of being clipped."
         },
         {
             "id": "MarqueeYC",
@@ -129,14 +141,16 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Vertical offset of the marquee center. Shifts the entire marquee rectangle up or down."
         },
         {
             "id": "Marquee_WrapY",
             "label": "Wrap Y",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, pixels that move past the top or bottom edge wrap around to the opposite side instead of being clipped."
         }
     ],
     "groups": [

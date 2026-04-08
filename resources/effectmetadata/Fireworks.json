@@ -9,7 +9,8 @@
             "default": 16,
             "min": 1,
             "max": 50,
-            "lockable": true
+            "lockable": true,
+            "description": "Total number of firework explosions randomly distributed across the effect duration. Disabled when using music or timing triggers."
         },
         {
             "id": "Fireworks_Count",
@@ -20,7 +21,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of particles created in each explosion. More particles create denser, more dramatic bursts."
         },
         {
             "id": "Fireworks_Velocity",
@@ -31,7 +33,8 @@
             "min": 1,
             "max": 10,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Maximum speed of particles as they fly outward from the explosion center. Higher values create larger bursts."
         },
         {
             "id": "Fireworks_XVelocity",
@@ -41,7 +44,8 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Horizontal drift applied to all particles. Positive values push particles to the right, negative to the left."
         },
         {
             "id": "Fireworks_YVelocity",
@@ -51,7 +55,8 @@
             "default": 0,
             "min": -100,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Vertical drift applied to all particles. Positive values push particles upward, negative downward."
         },
         {
             "id": "Fireworks_XLocation",
@@ -61,7 +66,8 @@
             "default": -1,
             "min": -1,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Fixed horizontal position for explosions as a percentage of buffer width. Set to -1 for random placement."
         },
         {
             "id": "Fireworks_YLocation",
@@ -71,21 +77,24 @@
             "default": -1,
             "min": -1,
             "max": 100,
-            "valueCurve": true
+            "valueCurve": true,
+            "description": "Fixed vertical position for explosions as a percentage of buffer height. Set to -1 for random placement."
         },
         {
             "id": "Fireworks_HoldColour",
             "label": "Hold color",
             "type": "bool",
             "controlType": "checkbox",
-            "default": true
+            "default": true,
+            "description": "When enabled, each particle keeps its initial color as it fades. When disabled, particles cycle through the palette as they age."
         },
         {
             "id": "Fireworks_Gravity",
             "label": "Gravity",
             "type": "bool",
             "controlType": "checkbox",
-            "default": true
+            "default": true,
+            "description": "When enabled, particles arc downward over time simulating gravity. When disabled, particles fly in straight lines."
         },
         {
             "id": "Fireworks_Fade",
@@ -96,7 +105,8 @@
             "min": 1,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "How long particles remain visible before fading out. Higher values make particles last longer."
         },
         {
             "id": "Fireworks_UseMusic",
@@ -104,7 +114,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, explosions are triggered by audio volume peaks instead of being evenly distributed."
         },
         {
             "id": "Fireworks_Sensitivity",
@@ -114,7 +125,8 @@
             "default": 50,
             "min": 0,
             "max": 100,
-            "lockable": true
+            "lockable": true,
+            "description": "Audio volume threshold for triggering explosions when Fire with music is enabled. Lower values trigger more easily."
         },
         {
             "id": "FIRETIMING",
@@ -122,7 +134,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, explosions are triggered at the start and end marks of a selected timing track."
         },
         {
             "id": "FIRETIMINGTRACK",
@@ -131,7 +144,8 @@
             "controlType": "choice",
             "options": [],
             "default": "",
-            "dynamicOptions": "timingTracks"
+            "dynamicOptions": "timingTracks",
+            "description": "The timing track whose marks trigger firework explosions when Fire with timing track is enabled."
         }
     ],
     "visibilityRules": [

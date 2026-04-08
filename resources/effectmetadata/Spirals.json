@@ -10,7 +10,8 @@
             "min": 1,
             "max": 5,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of times the full color palette is repeated across the spirals. Higher values create more spiral arms by duplicating the palette pattern."
         },
         {
             "id": "Spirals_Rotation",
@@ -22,7 +23,8 @@
             "max": 300,
             "divisor": 10,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Number of times each spiral arm wraps around the model from bottom to top. Negative values reverse the wrap direction. Larger absolute values produce tighter spirals."
         },
         {
             "id": "Spirals_Thickness",
@@ -33,7 +35,8 @@
             "min": 0,
             "max": 100,
             "valueCurve": true,
-            "lockable": true
+            "lockable": true,
+            "description": "Width of each spiral arm as a percentage of the available space. At 100% the arms fill the entire model with no gaps between them."
         },
         {
             "id": "Spirals_Movement",
@@ -45,7 +48,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": -200,
-            "max": 200
+            "max": 200,
+            "description": "Speed and direction of the spiral rotation. Positive values rotate in one direction, negative in the other. Zero keeps the spirals stationary."
         },
         {
             "id": "Spirals_Blend",
@@ -53,7 +57,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, blends all palette colors vertically across each spiral arm instead of using distinct per-arm colors."
         },
         {
             "id": "Spirals_3D",
@@ -61,7 +66,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, applies a brightness gradient across each spiral arm to simulate a 3D shading effect, making the arms appear rounded."
         },
         {
             "id": "Spirals_Grow",
@@ -69,7 +75,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, the spiral arms gradually increase in thickness over the effect duration."
         },
         {
             "id": "Spirals_Shrink",
@@ -77,7 +84,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "lockable": true
+            "lockable": true,
+            "description": "When enabled, the spiral arms gradually decrease in thickness over the effect duration. When both Grow and Shrink are enabled, the arms grow then shrink."
         }
     ]
 }

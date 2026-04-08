@@ -10,7 +10,8 @@
             "min": 0,
             "max": 100,
             "suppressIfDefault": true,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Sets the brightness level at the beginning of the effect as a percentage of the palette color's full value."
         },
         {
             "id": "Eff_On_End",
@@ -21,7 +22,8 @@
             "min": 0,
             "max": 100,
             "suppressIfDefault": true,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Sets the brightness level at the end of the effect as a percentage. The intensity ramps linearly from Start to End over the effect duration."
         },
         {
             "id": "On_Transparency",
@@ -32,7 +34,8 @@
             "valueCurve": true,
             "min": 0,
             "max": 100,
-            "suppressIfDefault": true
+            "suppressIfDefault": true,
+            "description": "Sets the alpha transparency of the effect. At 0 the color is fully opaque; at 100 it is fully transparent, allowing effects on lower layers to show through."
         },
         {
             "id": "On_Cycles",
@@ -43,7 +46,8 @@
             "divisor": 10,
             "min": 0,
             "max": 1000,
-            "suppressIfDefault": true
+            "suppressIfDefault": true,
+            "description": "Number of times the start-to-end intensity ramp repeats over the effect duration. Values greater than 1 create a pulsing look."
         },
         {
             "id": "On_Shimmer",
@@ -51,7 +55,8 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "suppressIfDefault": true
+            "suppressIfDefault": true,
+            "description": "When enabled, the effect alternates between the first and second palette colors on each frame, creating a rapid flickering shimmer."
         }
     ]
 }

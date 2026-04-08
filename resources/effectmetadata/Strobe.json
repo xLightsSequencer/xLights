@@ -4,6 +4,7 @@
         {
             "id": "Number_Strobes",
             "label": "Number Strobes",
+            "description": "How many strobe flashes are active at the same time. Higher values create a denser strobe field.",
             "type": "int",
             "controlType": "slider",
             "default": 3,
@@ -14,6 +15,7 @@
         {
             "id": "Strobe_Duration",
             "label": "Strobe Duration",
+            "description": "How many frames each strobe flash remains visible before fading out. Higher values make flashes linger longer.",
             "type": "int",
             "controlType": "slider",
             "default": 10,
@@ -24,6 +26,7 @@
         {
             "id": "Strobe_Type",
             "label": "Strobe Type",
+            "description": "Shape of each strobe flash. Type 1 is a single pixel, type 2 adds a random cross arm, type 3 is a full plus shape, and type 4 alternates between plus and X shapes.",
             "type": "int",
             "controlType": "slider",
             "default": 1,
@@ -34,6 +37,7 @@
         {
             "id": "Strobe_Music",
             "label": "Reacts to music",
+            "description": "When enabled, the number of active strobes scales with the current music volume level.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false,

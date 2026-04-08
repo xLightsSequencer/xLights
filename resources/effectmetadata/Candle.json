@@ -11,7 +11,8 @@
             "lockable": true,
             "min": 1,
             "max": 10,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Controls how quickly the flame responds to changes. Higher values make the flame snap to new brightness levels faster, creating a more erratic flicker."
         },
         {
             "id": "Candle_WindBaseline",
@@ -23,7 +24,8 @@
             "lockable": true,
             "min": 0,
             "max": 255,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Sets the resting wind strength that the simulated wind constantly settles toward. Higher values increase the chance of the wind knocking down the flame."
         },
         {
             "id": "Candle_WindVariability",
@@ -35,7 +37,8 @@
             "lockable": true,
             "min": 0,
             "max": 10,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Controls how often random wind gusts occur. Higher values produce more frequent gusts that disturb the flame."
         },
         {
             "id": "Candle_WindCalmness",
@@ -47,21 +50,24 @@
             "lockable": true,
             "min": 0,
             "max": 10,
-            "settingPrefix": "TEXTCTRL"
+            "settingPrefix": "TEXTCTRL",
+            "description": "Dampens the wind's effect on the flame. Higher values make the flame more resistant to being blown down, producing a calmer, steadier flicker."
         },
         {
             "id": "PerNode",
             "label": "Per node",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, each pixel gets its own independent flame simulation instead of all pixels showing the same flame color."
         },
         {
             "id": "UsePalette",
             "label": "Use Palette",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false
+            "default": false,
+            "description": "When enabled, the flame color blends between the first two palette colors based on brightness. When disabled, the flame uses a natural orange/yellow candle color."
         }
     ]
 }

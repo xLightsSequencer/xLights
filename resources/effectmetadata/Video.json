@@ -5,6 +5,7 @@
         {
             "id": "Video_Filename",
             "label": "Video_Filename",
+            "description": "Path to the video file to play. Supports common video formats that FFmpeg can decode.",
             "type": "file",
             "controlType": "filepicker",
             "default": ""
@@ -12,6 +13,7 @@
         {
             "id": "Video_Starttime",
             "label": "Start Time",
+            "description": "The timestamp in seconds within the video file to begin playback from. Allows skipping an intro or starting mid-video.",
             "type": "float",
             "controlType": "slider",
             "default": 0.0,
@@ -22,6 +24,7 @@
         {
             "id": "Video_DurationTreatment",
             "label": "Duration Treatment",
+            "description": "How the video duration maps to the effect duration. Normal plays at native speed, Loop repeats the video, Slow/Accelerate stretches or compresses playback to fit, and Manual allows explicit speed control.",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -37,6 +40,7 @@
         {
             "id": "Video_Speed",
             "label": "Speed",
+            "description": "Playback speed multiplier used in Manual duration treatment mode. Negative values play the video in reverse. Use a value curve for acceleration effects.",
             "type": "float",
             "controlType": "slider",
             "default": 1.0,
@@ -48,6 +52,7 @@
         {
             "id": "Video_AspectRatio",
             "label": "Maintain Aspect Ratio",
+            "description": "When enabled, the video is scaled to fit within the buffer while preserving its original aspect ratio, adding black bars if needed.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -55,6 +60,7 @@
         {
             "id": "SynchroniseWithAudio",
             "label": "Use sequence audio file as video file and synchronise",
+            "description": "When enabled, uses the sequence audio file as the video source and synchronises video playback to the audio timeline position.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -62,6 +68,7 @@
         {
             "id": "Video_CropLeft",
             "label": "Crop Left",
+            "description": "Percentage of the video frame to crop from the left edge. Use to remove unwanted portions of the video.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
@@ -73,6 +80,7 @@
         {
             "id": "Video_CropRight",
             "label": "Crop Right",
+            "description": "Percentage of the video frame visible from the left edge. Values less than 100 crop the right side of the video.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
@@ -84,6 +92,7 @@
         {
             "id": "Video_CropTop",
             "label": "Crop Top",
+            "description": "Percentage of the video frame visible from the bottom edge. Values less than 100 crop the top of the video.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
@@ -95,6 +104,7 @@
         {
             "id": "Video_CropBottom",
             "label": "Crop Bottom",
+            "description": "Percentage of the video frame to crop from the bottom edge. Use to remove unwanted lower portions of the video.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
@@ -106,6 +116,7 @@
         {
             "id": "Video_TransparentBlack",
             "label": "Transparent Black",
+            "description": "Brightness threshold below which video pixels are treated as transparent. Useful for keying out dark backgrounds so lower layers show through.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
@@ -116,6 +127,7 @@
         {
             "id": "SampleSpacing",
             "label": "Sample spacing",
+            "description": "Pixel spacing used when sampling the video frame onto the model. A value of 0 uses default sampling; higher values skip pixels for a coarser look.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",

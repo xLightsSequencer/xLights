@@ -1,0 +1,132 @@
+{
+    "effectName": "Music",
+    "properties": [
+        {
+            "id": "Music_Bars",
+            "label": "Bars",
+            "type": "int",
+            "controlType": "slider",
+            "default": 20,
+            "min": 1,
+            "max": 100,
+            "lockable": true,
+            "description": "Number of vertical bars spread across the model width, each representing a range of notes from the audio spectrum."
+        },
+        {
+            "id": "Music_Type",
+            "label": "Type",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Morph",
+                "Bounce",
+                "Collide",
+                "Separate",
+                "On"
+            ],
+            "default": "Morph",
+            "lockable": true,
+            "description": "Animation style for each bar. Morph sweeps color upward, Bounce alternates direction per event, Collide moves colors inward from both edges, Separate moves them outward, and On fills the entire bar height."
+        },
+        {
+            "id": "Music_StartNote",
+            "label": "Start Note",
+            "type": "int",
+            "controlType": "slider",
+            "default": 60,
+            "min": 0,
+            "max": 127,
+            "lockable": true,
+            "description": "Lowest MIDI note number to include in the visualization. Notes below this are ignored."
+        },
+        {
+            "id": "Music_EndNote",
+            "label": "End Note",
+            "type": "int",
+            "controlType": "slider",
+            "default": 80,
+            "min": 0,
+            "max": 127,
+            "lockable": true,
+            "description": "Highest MIDI note number to include in the visualization. Notes above this are ignored."
+        },
+        {
+            "id": "Music_Sensitivity",
+            "label": "Sensitivity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "lockable": true,
+            "description": "Threshold for triggering a music event. Lower values detect quieter notes; higher values require louder audio to activate a bar."
+        },
+        {
+            "id": "Music_Offset",
+            "label": "Offset",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true,
+            "description": "Horizontal pixel offset applied to the entire bar display, shifting the visualization left or right on the model."
+        },
+        {
+            "id": "Music_Scale",
+            "label": "Scale Bars",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true,
+            "description": "When enabled, each bar is scaled to fill its proportional share of the model width rather than being a single pixel wide."
+        },
+        {
+            "id": "Music_Scaling",
+            "label": "Notes Scaling",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "None",
+                "Individual Notes",
+                "All Notes"
+            ],
+            "default": "None",
+            "lockable": true,
+            "description": "Controls how the sensitivity threshold is scaled. None uses a fixed threshold, Individual Notes scales per bar based on each bar's peak, and All Notes scales based on the overall peak volume."
+        },
+        {
+            "id": "Music_Colour",
+            "label": "Color",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Distinct",
+                "Blend",
+                "Cycle"
+            ],
+            "default": "Distinct",
+            "lockable": true,
+            "description": "How colors from the palette are applied. Distinct assigns color bands by position within each bar, Blend smoothly interpolates between palette colors, and Cycle rotates through colors for each successive music event."
+        },
+        {
+            "id": "Music_Fade",
+            "label": "Fade",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true,
+            "description": "When enabled, the bar colors fade in alpha from bottom to top, creating a transparency gradient within each active bar."
+        },
+        {
+            "id": "Music_LogarithmicX",
+            "label": "Logarithmic X axis",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true,
+            "description": "When enabled, assigns more bars to lower frequencies and fewer to higher frequencies using a logarithmic scale, matching how humans perceive pitch."
+        }
+    ]
+}

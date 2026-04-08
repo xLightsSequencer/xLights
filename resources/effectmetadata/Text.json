@@ -4,6 +4,7 @@
         {
             "id": "Text",
             "label": "Text",
+            "description": "The text string to display. Supports multiple lines and special tokens for countdown modes.",
             "type": "string",
             "controlType": "text",
             "default": ""
@@ -11,6 +12,7 @@
         {
             "id": "Text_File",
             "label": "From File",
+            "description": "Path to a text file whose contents are displayed instead of the text field. Each line in the file is treated as a separate text line.",
             "type": "file",
             "controlType": "filepicker",
             "default": "",
@@ -20,6 +22,7 @@
         {
             "id": "Text_LyricTrack",
             "label": "From Lyrics",
+            "description": "Selects a lyric timing track to use as the text source. The current lyric phrase is displayed at each point in time.",
             "type": "enum",
             "controlType": "choice",
             "options": [],
@@ -28,6 +31,7 @@
         {
             "id": "Text_Font",
             "label": "Font",
+            "description": "The font face, size, and style used to render the text.",
             "type": "font",
             "controlType": "fontpicker",
             "default": ""
@@ -35,6 +39,7 @@
         {
             "id": "Text_Dir",
             "label": "Movement",
+            "description": "Direction the text moves across the model. Options include scrolling left/right/up/down, diagonal, wavey motion, word-flip, and vector-based movement between start and end positions.",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -59,6 +64,7 @@
         {
             "id": "TextToCenter",
             "label": "C",
+            "description": "When enabled, the text movement stops when the text reaches the center of the model rather than continuing off screen.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -66,6 +72,7 @@
         {
             "id": "TextNoRepeat",
             "label": "NoRep",
+            "description": "When enabled, the text scrolls through once and then stops instead of repeating in a loop.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -73,6 +80,7 @@
         {
             "id": "Text_Speed",
             "label": "Speed",
+            "description": "How fast the text scrolls across the model. Higher values produce faster movement.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
@@ -83,6 +91,7 @@
         {
             "id": "Text_Effect",
             "label": "Effect",
+            "description": "Text rendering style. Normal draws text horizontally; other options rotate or orient the text vertically.",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -100,6 +109,7 @@
         {
             "id": "Text_Count",
             "label": "Count down",
+            "description": "Enables countdown mode. The text field value is used as the target, and the displayed text shows the remaining time in the selected format.",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -118,6 +128,7 @@
         {
             "id": "Text_PixelOffsets",
             "label": "Offsets In Pixels",
+            "description": "When enabled, the X and Y position values are interpreted as pixel offsets rather than percentage-based positions.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -125,6 +136,7 @@
         {
             "id": "Text_Color_PerWord",
             "label": "Color Per Word",
+            "description": "When enabled, each word in the text is drawn using a different color from the palette, cycling through the available colors.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -132,6 +144,7 @@
         {
             "id": "Text_XStart",
             "label": "X",
+            "description": "Horizontal starting position of the text. Used as the origin for vector movement or as a static offset when movement is none.",
             "type": "int",
             "controlType": "slider",
             "default": 0,
@@ -141,6 +154,7 @@
         {
             "id": "Text_YStart",
             "label": "Y",
+            "description": "Vertical starting position of the text. Used as the origin for vector movement or as a static offset when movement is none.",
             "type": "int",
             "controlType": "slider",
             "default": 0,
@@ -150,6 +164,7 @@
         {
             "id": "Text_XEnd",
             "label": "X",
+            "description": "Horizontal ending position for vector movement mode. The text moves from the start position to this position over the effect duration.",
             "type": "int",
             "controlType": "slider",
             "default": 0,
@@ -159,6 +174,7 @@
         {
             "id": "Text_YEnd",
             "label": "Y",
+            "description": "Vertical ending position for vector movement mode. The text moves from the start position to this position over the effect duration.",
             "type": "int",
             "controlType": "slider",
             "default": 0,

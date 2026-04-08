@@ -1,0 +1,150 @@
+{
+    "effectName": "Faces",
+    "properties": [
+        {
+            "id": "Faces_Phoneme",
+            "label": "Faces_Phoneme",
+            "description": "The mouth phoneme shape to display. Used for manual lip-sync when no timing track is selected. Each phoneme corresponds to a different mouth position.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "AI",
+                "E",
+                "FV",
+                "L",
+                "MBP",
+                "O",
+                "U",
+                "WQ",
+                "etc",
+                "rest",
+                "(off)"
+            ],
+            "default": "AI"
+        },
+        {
+            "id": "Faces_TimingTrack",
+            "label": "Faces_TimingTrack",
+            "description": "The timing track containing phoneme data for automatic lip-sync. When set, phonemes change automatically based on timing marks.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": ""
+        },
+        {
+            "id": "Faces_FaceDefinition",
+            "label": "Face Definition",
+            "description": "Selects which face definition from the model to use. Face definitions map phonemes to specific nodes or image files on the model.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "faces"
+        },
+        {
+            "id": "Faces_Eyes",
+            "label": "Eyes",
+            "description": "Controls the eye state. Open keeps eyes always open, Closed keeps them shut, Auto adds periodic random blinking, and Off disables eye rendering.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Open",
+                "Closed",
+                "Auto",
+                "(off)"
+            ],
+            "default": "Auto"
+        },
+        {
+            "id": "Faces_EyeBlinkFrequency",
+            "label": "Frequency",
+            "description": "How often automatic eye blinks occur when Eyes is set to Auto. Faster settings produce more frequent blinking.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Slowest",
+                "Slow",
+                "Normal",
+                "Fast",
+                "Fastest"
+            ],
+            "default": "Normal"
+        },
+        {
+            "id": "Faces_EyeBlinkDuration",
+            "label": "Duration",
+            "description": "How long each automatic eye blink lasts when Eyes is set to Auto. Longer durations keep the eyes closed for more frames per blink.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Short",
+                "Normal",
+                "Long",
+                "Longer"
+            ],
+            "default": "Normal"
+        },
+        {
+            "id": "Faces_Outline",
+            "label": "Show outline",
+            "description": "When enabled, displays the face outline nodes in addition to the mouth and eyes, using the defined outline node group.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Faces_SuppressShimmer",
+            "label": "Suppress shimmer",
+            "description": "When enabled, prevents the shimmer animation on phoneme shapes that are defined with a shimmer suffix in the face definition.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Faces_UseState",
+            "label": "Use State as outline",
+            "description": "Selects a state definition to use as the face outline instead of the default outline. Allows combining state effects with face rendering.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "states"
+        },
+        {
+            "id": "Faces_SuppressWhenNotSinging",
+            "label": "Suppress when not singing",
+            "description": "When enabled, the entire face (including outline) is hidden during rest phonemes or when no phoneme is active.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Faces_LeadFrames",
+            "label": "Lead In/Out Frames",
+            "description": "Number of frames to fade in before the first phoneme and fade out after the last phoneme on the timing track. Creates smoother transitions at the start and end of singing.",
+            "type": "int",
+            "controlType": "spin",
+            "default": 0,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Faces_Fade",
+            "label": "Fade during lead in/out",
+            "description": "When enabled, the face brightness gradually fades during the lead in and lead out frames instead of appearing/disappearing abruptly.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Faces_TransparentBlack",
+            "label": "Transparent Black",
+            "description": "Brightness threshold below which face image pixels are treated as transparent. Used with image-based face definitions to key out dark backgrounds.",
+            "type": "int",
+            "controlType": "slider",
+            "default": false,
+            "min": 0,
+            "max": 300
+        }
+    ]
+}

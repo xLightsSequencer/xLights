@@ -8,7 +8,8 @@
             "controlType": "filepicker",
             "default": "",
             "fileFilter": "Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out|CSV files (*.csv)|*.csv",
-            "fileMessage": "Select a glediator file"
+            "fileMessage": "Select a glediator file",
+            "description": "Path to a Glediator (.gled), Jinx (.out), or CSV file containing pre-rendered pixel data to play back on the model."
         },
         {
             "id": "Glediator_DurationTreatment",
@@ -20,7 +21,8 @@
                 "Loop",
                 "Slow/Accelerate"
             ],
-            "default": "Normal"
+            "default": "Normal",
+            "description": "How to handle timing when the file length differs from the effect duration. Normal stops at the end, Loop restarts from the beginning, Slow/Accelerate stretches or compresses playback to fit."
         }
     ]
 }

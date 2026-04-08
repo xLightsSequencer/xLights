@@ -1,0 +1,1036 @@
+{
+    "effectName": "DMX",
+    "properties": [
+        {
+            "id": "DMX1",
+            "label": "Channel 1",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 1 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX1",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 1 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX2",
+            "label": "Channel 2",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 2 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX2",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 2 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX3",
+            "label": "Channel 3",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 3 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX3",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 3 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX4",
+            "label": "Channel 4",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 4 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX4",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 4 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX5",
+            "label": "Channel 5",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 5 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX5",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 5 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX6",
+            "label": "Channel 6",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 6 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX6",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 6 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX7",
+            "label": "Channel 7",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 7 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX7",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 7 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX8",
+            "label": "Channel 8",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 8 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX8",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 8 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX9",
+            "label": "Channel 9",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 9 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX9",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 9 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX10",
+            "label": "Channel 10",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 10 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX10",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 10 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX11",
+            "label": "Channel 11",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 11 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX11",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 11 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX12",
+            "label": "Channel 12",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 12 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX12",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 12 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX13",
+            "label": "Channel 13",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 13 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX13",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 13 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX14",
+            "label": "Channel 14",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 14 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX14",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 14 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX15",
+            "label": "Channel 15",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 15 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX15",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 15 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX16",
+            "label": "Channel 16",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 16 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX16",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 16 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX17",
+            "label": "Channel 17",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 17 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX17",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 17 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX18",
+            "label": "Channel 18",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 18 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX18",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 18 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX19",
+            "label": "Channel 19",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 19 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX19",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 19 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX20",
+            "label": "Channel 20",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 20 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX20",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 20 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX21",
+            "label": "Channel 21",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 21 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX21",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 21 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX22",
+            "label": "Channel 22",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 22 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX22",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 22 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX23",
+            "label": "Channel 23",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 23 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX23",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 23 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX24",
+            "label": "Channel 24",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 24 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX24",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 24 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX25",
+            "label": "Channel 25",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 25 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX25",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 25 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX26",
+            "label": "Channel 26",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 26 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX26",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 26 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX27",
+            "label": "Channel 27",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 27 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX27",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 27 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX28",
+            "label": "Channel 28",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 28 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX28",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 28 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX29",
+            "label": "Channel 29",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 29 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX29",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 29 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX30",
+            "label": "Channel 30",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 30 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX30",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 30 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX31",
+            "label": "Channel 31",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 31 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX31",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 31 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX32",
+            "label": "Channel 32",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 32 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX32",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 32 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX33",
+            "label": "Channel 33",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 33 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX33",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 33 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX34",
+            "label": "Channel 34",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 34 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX34",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 34 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX35",
+            "label": "Channel 35",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 35 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX35",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 35 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX36",
+            "label": "Channel 36",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 36 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX36",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 36 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX37",
+            "label": "Channel 37",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 37 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX37",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 37 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX38",
+            "label": "Channel 38",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 38 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX38",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 38 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX39",
+            "label": "Channel 39",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 39 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX39",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 39 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX40",
+            "label": "Channel 40",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 40 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX40",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 40 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX41",
+            "label": "Channel 41",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 41 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX41",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 41 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX42",
+            "label": "Channel 42",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 42 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX42",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 42 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX43",
+            "label": "Channel 43",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 43 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX43",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 43 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX44",
+            "label": "Channel 44",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 44 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX44",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 44 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX45",
+            "label": "Channel 45",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 45 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX45",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 45 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX46",
+            "label": "Channel 46",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 46 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX46",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 46 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX47",
+            "label": "Channel 47",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 47 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX47",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 47 (255 minus the slider value)."
+        },
+        {
+            "id": "DMX48",
+            "label": "Channel 48",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true,
+            "description": "Sets the output value (0-255) for DMX channel 48 on the model. Use value curves to animate channel changes over time."
+        },
+        {
+            "id": "INVDMX48",
+            "label": "Inv",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, inverts the output value of DMX channel 48 (255 minus the slider value)."
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Channels 1-16",
+                    "properties": [
+                        "DMX1",
+                        "INVDMX1",
+                        "DMX2",
+                        "INVDMX2",
+                        "DMX3",
+                        "INVDMX3",
+                        "DMX4",
+                        "INVDMX4",
+                        "DMX5",
+                        "INVDMX5",
+                        "DMX6",
+                        "INVDMX6",
+                        "DMX7",
+                        "INVDMX7",
+                        "DMX8",
+                        "INVDMX8",
+                        "DMX9",
+                        "INVDMX9",
+                        "DMX10",
+                        "INVDMX10",
+                        "DMX11",
+                        "INVDMX11",
+                        "DMX12",
+                        "INVDMX12",
+                        "DMX13",
+                        "INVDMX13",
+                        "DMX14",
+                        "INVDMX14",
+                        "DMX15",
+                        "INVDMX15",
+                        "DMX16",
+                        "INVDMX16"
+                    ]
+                },
+                {
+                    "label": "Channels 17-32",
+                    "properties": [
+                        "DMX17",
+                        "INVDMX17",
+                        "DMX18",
+                        "INVDMX18",
+                        "DMX19",
+                        "INVDMX19",
+                        "DMX20",
+                        "INVDMX20",
+                        "DMX21",
+                        "INVDMX21",
+                        "DMX22",
+                        "INVDMX22",
+                        "DMX23",
+                        "INVDMX23",
+                        "DMX24",
+                        "INVDMX24",
+                        "DMX25",
+                        "INVDMX25",
+                        "DMX26",
+                        "INVDMX26",
+                        "DMX27",
+                        "INVDMX27",
+                        "DMX28",
+                        "INVDMX28",
+                        "DMX29",
+                        "INVDMX29",
+                        "DMX30",
+                        "INVDMX30",
+                        "DMX31",
+                        "INVDMX31",
+                        "DMX32",
+                        "INVDMX32"
+                    ]
+                },
+                {
+                    "label": "Channels 33-48",
+                    "properties": [
+                        "DMX33",
+                        "INVDMX33",
+                        "DMX34",
+                        "INVDMX34",
+                        "DMX35",
+                        "INVDMX35",
+                        "DMX36",
+                        "INVDMX36",
+                        "DMX37",
+                        "INVDMX37",
+                        "DMX38",
+                        "INVDMX38",
+                        "DMX39",
+                        "INVDMX39",
+                        "DMX40",
+                        "INVDMX40",
+                        "DMX41",
+                        "INVDMX41",
+                        "DMX42",
+                        "INVDMX42",
+                        "DMX43",
+                        "INVDMX43",
+                        "DMX44",
+                        "INVDMX44",
+                        "DMX45",
+                        "INVDMX45",
+                        "DMX46",
+                        "INVDMX46",
+                        "DMX47",
+                        "INVDMX47",
+                        "DMX48",
+                        "INVDMX48"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK1"
+        }
+    ]
+}

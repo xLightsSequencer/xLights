@@ -9,7 +9,8 @@
             "default": 50,
             "min": 0,
             "max": 100,
-            "lockable": true
+            "lockable": true,
+            "description": "Percentage of the buffer cells that are initially alive. Higher values create a denser starting population."
         },
         {
             "id": "Life_Seed",
@@ -19,7 +20,8 @@
             "default": 0,
             "min": 0,
             "max": 4,
-            "lockable": true
+            "lockable": true,
+            "description": "Selects the cellular automaton ruleset: 0=B3/S23 (classic Conway), 1=B35/S236, 2=B357/S1358, 3=B378/S235678, 4=B25678/S5678. Each produces different patterns of growth and decay."
         },
         {
             "id": "Life_Speed",
@@ -28,7 +30,8 @@
             "controlType": "slider",
             "default": 10,
             "min": 1,
-            "max": 30
+            "max": 30,
+            "description": "Controls how fast generations advance. Higher values evolve the cell population more rapidly."
         }
     ]
 }
