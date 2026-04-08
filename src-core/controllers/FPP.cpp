@@ -1116,7 +1116,7 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
         }
         if (doMediaUpload) {
             if (!FileExists(mfn.string())) {
-                messages.push_back("ERROR:Uploading media: " + mediaBaseName + "     Source file not found: " + mediaFile);
+                messages.push_back("ERROR Uploading media: " + mediaBaseName + "     Source file not found: " + mediaFile);
                 faileduploads.push_back(mediaBaseName);
             } else {
                 std::string dir = "music";
