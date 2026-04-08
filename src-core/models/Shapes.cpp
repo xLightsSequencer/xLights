@@ -489,7 +489,7 @@ float BezierCurve3D::GetSegLength(int segment) {
     if (!matrix_valid) {
         UpdateMatrices();
     }
-    if (segment < num_points - 1) {
+    if (segment >= 0 && segment < num_points - 1) {
         return points[segment].length;
     }
     else {

@@ -710,9 +710,11 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
         bool up = dropSizes[drop_index] < 0;
         unsigned int drops_this_node = std::abs(dropSizes[drop_index]);
         while (current_pos > seg_end) {
+            float next_length = isCurve ? pPos[segment].curve->GetSegLength(sub_segment + 1) : 1.0f;
+            if (next_length <= 0.0f) break;  // no more sub-segments; stay on current one
             sub_segment++;
             seg_start = seg_end;
-            segment_length = isCurve ? pPos[segment].curve->GetSegLength(sub_segment) : 1.0f;
+            segment_length = next_length;
             seg_end = seg_start + segment_length;
         }
         glm::vec3 v;

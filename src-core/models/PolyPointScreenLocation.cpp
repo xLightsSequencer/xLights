@@ -77,6 +77,7 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create)
 {
 
     if (_locked) return;
+    if (seg_num < 0 || seg_num >= (int)mPos.size() - 1) return;
 
     if (create) {
         mPos[seg_num].has_curve = true;
@@ -1558,6 +1559,7 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int sca
     std::unique_lock<std::mutex> locker(_mutex);
 
     int pos = after_handle;
+    if (pos < 0 || pos >= (int)mPos.size() - 1) return;
     float x1_pos = mPos[pos].x;
     float x2_pos = mPos[pos+1].x;
     float y1_pos = mPos[pos].y;
