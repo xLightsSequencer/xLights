@@ -1510,7 +1510,10 @@ void xLightsFrame::SaveSequence()
     if (xlightsFilename.IsEmpty()) {
         wxString NewFilename;
 
-        wxString startname = CurrentSeqXmlFile->GetName();
+        wxString startname;
+        if (!CurrentSeqXmlFile->GetFullName().empty()) {
+            startname = CurrentSeqXmlFile->GetName();
+        }
         if (startname.IsEmpty() && !CurrentSeqXmlFile->GetMediaFile().empty()) {
             startname = wxFileName(CurrentSeqXmlFile->GetMediaFile()).GetName();
         }
