@@ -1045,7 +1045,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
                     NodeBaseClass* node = model->GetNode(n);
                     if (node && !node->Coords.empty()) {
                         int imgX = node->Coords[0].bufX - offsetX;
-                        int imgY = bufH - 1 - node->Coords[0].bufY - offsetY;
+                        int imgY = scaledH - 1 - (node->Coords[0].bufY - offsetY);
                         if (imgX >= 0 && imgX < scaledW && imgY >= 0 && imgY < scaledH) {
                             xlColor col(img.GetRed(imgX, imgY), img.GetGreen(imgX, imgY), img.GetBlue(imgX, imgY));
                             model->SetNodeColor(n, col);
