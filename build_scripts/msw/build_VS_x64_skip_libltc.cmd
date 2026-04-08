@@ -42,7 +42,7 @@ mkdir build_scripts\msw\xlDo
 copy xlDo\x64\Release\*.pdb build_scripts\msw\xlDo
 
 cd xLights
-msbuild.exe -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants=%1
+msbuild.exe -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64" /p:DefineConstants=%1 /p:NoWarn="4244;4267"
 if %ERRORLEVEL% NEQ 0 goto error
 
 %cwd%\prepmap x64\Release\xLights.map ..\bin64\xLights.map
