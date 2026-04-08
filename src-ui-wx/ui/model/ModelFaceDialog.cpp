@@ -1029,14 +1029,16 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
         if (!channels.empty()) {
             wxString imgPath(channels);
             wxImage img(imgPath);
-            if (img.IsOk()) {
+            if (img.IsOk() && img.GetWidth() > 0 && img.GetHeight() > 0) {
                 int bufW = model->GetDefaultBufferWi();
                 int bufH = model->GetDefaultBufferHt();
-                float scaleX = (float)bufW / img.GetWidth();
-                float scaleY = (float)bufH / img.GetHeight();
+                int imgW = img.GetWidth();
+                int imgH = img.GetHeight();
+                float scaleX = (float)bufW / imgW;
+                float scaleY = (float)bufH / imgH;
                 float scale = std::min(scaleX, scaleY);
-                int scaledW = (int)(img.GetWidth() * scale);
-                int scaledH = (int)(img.GetHeight() * scale);
+                int scaledW = (int)(imgW * scale);
+                int scaledH = (int)(imgH * scale);
                 img = img.Scale(scaledW, scaledH, wxIMAGE_QUALITY_HIGH);
                 int offsetX = (bufW - scaledW) / 2;
                 int offsetY = (bufH - scaledH) / 2;
