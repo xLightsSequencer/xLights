@@ -972,6 +972,11 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         // Columns 3+4: spacers
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
         if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+    } else if (controlType == "custom") {
+        // Delegate to subclass to create the control
+        CreateCustomControl(parentWin, sizer, prop, cols);
+        // Don't store in properties_ - the subclass manages custom controls
+        return;
     }
 
     properties_[id] = info;

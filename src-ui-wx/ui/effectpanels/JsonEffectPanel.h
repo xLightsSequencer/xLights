@@ -97,6 +97,11 @@ private:
     };
 
     void BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols);
+
+    // Override in subclasses to create custom controls for properties with controlType "custom".
+    // Should create the control(s), add them to sizer, and return the primary control.
+    // parentWin is the parent window, prop is the JSON property definition, cols is the grid column count.
+    virtual wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) { return nullptr; }
     void BuildTabGroup(wxSizer* parentSizer, const nlohmann::json& group, const nlohmann::json& metadata);
     void BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer, const nlohmann::json& group, const nlohmann::json& allProps);
     void ParseVisibilityRules(const nlohmann::json& metadata);

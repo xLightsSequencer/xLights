@@ -5,7 +5,7 @@
             "id": "Pictures_Filename",
             "label": "Pictures_Filename",
             "type": "string",
-            "controlType": "text",
+            "controlType": "custom",
             "settingPrefix": "TEXTCTRL",
             "default": "",
             "description": "Path to the image or animated GIF file to display on the model."
@@ -227,6 +227,29 @@
                         "Pictures_EndScale"
                     ]
                 }
+            ]
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "PicturesXC",
+            "yProperty": "PicturesYC",
+            "wrapX": "Pictures_WrapX"
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "PicturesEndXC",
+            "yProperty": "PicturesEndYC"
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Pictures_Direction",
+                "equals": "vector"
+            },
+            "enable": [
+                "PicturesEndXC",
+                "PicturesEndYC"
             ]
         }
     ]

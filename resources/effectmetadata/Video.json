@@ -1,13 +1,12 @@
 {
     "effectName": "Video",
-    "description": "0:00:00.000",
     "properties": [
         {
             "id": "Video_Filename",
             "label": "Video_Filename",
             "description": "Path to the video file to play. Supports common video formats that FFmpeg can decode.",
             "type": "file",
-            "controlType": "filepicker",
+            "controlType": "custom",
             "default": ""
         },
         {
@@ -134,6 +133,31 @@
             "default": 0,
             "min": 0,
             "max": 200
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "SynchroniseWithAudio",
+                "equals": true
+            },
+            "disable": [
+                "Video_Starttime",
+                "Video_DurationTreatment",
+                "Video_Filename"
+            ]
+        },
+        {
+            "when": {
+                "property": "Video_DurationTreatment",
+                "oneOf": [
+                    "Manual",
+                    "Manual and Loop"
+                ]
+            },
+            "enable": [
+                "Video_Speed"
+            ]
         }
     ]
 }
