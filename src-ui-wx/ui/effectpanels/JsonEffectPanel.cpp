@@ -24,6 +24,7 @@
 #include <wx/radiobut.h>
 #include <wx/tglbtn.h>
 #include <wx/statline.h>
+#include <wx/tokenzr.h>
 #include <wx/wfstream.h>
 
 #include "ui/shared/controls/BulkEditControls.h"
@@ -521,12 +522,15 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     bool hasValueCurve = prop.value("valueCurve", false);
     bool isLockable = prop.value("lockable", false);
     int divisor = prop.value("divisor", 1);
+    std::string settingPrefix = prop.value("settingPrefix", "");
 
     PropertyInfo info;
     info.id = id;
     info.controlType = controlType;
     info.type = type;
     info.divisor = divisor;
+    info.suppressIfDefault = prop.value("suppressIfDefault", false);
+    info.settingPrefix = settingPrefix;
     if (prop.contains("default")) {
         info.defaultValue = prop["default"];
     }
@@ -581,6 +585,16 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                                    wxString(sliderName));
                     break;
             }
+            info.buddySlider = slider;
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+        } else if (settingPrefix == "TEXTCTRL") {
+            // Integer slider where TEXTCTRL is the primary setting key (e.g. On effect)
+            // Slider is buddy (IDD_SLIDER_), text control is primary (ID_TEXTCTRL_)
+            std::string sliderName = "IDD_SLIDER_" + id;
+            wxWindowID sliderId = wxNewId();
+            auto* slider = new BulkEditSlider(parentWin, sliderId, defaultInt, minVal, maxVal,
+                                               wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                               wxString(sliderName));
             info.buddySlider = slider;
             sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
         } else {
@@ -652,6 +666,17 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                                        0, wxDefaultValidator, wxString(textName));
                     break;
             }
+            textCtrl->SetMaxLength(5);
+            info.textCtrl = textCtrl;
+            sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+        } else if (settingPrefix == "TEXTCTRL") {
+            // Integer slider where text is the primary setting (ID_TEXTCTRL_)
+            std::string textName = "ID_TEXTCTRL_" + id;
+            wxWindowID textId = wxNewId();
+            wxString defaultStr = wxString::Format("%d", defaultInt);
+            auto* textCtrl = new BulkEditTextCtrl(parentWin, textId, defaultStr,
+                                                    wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                    0, wxDefaultValidator, wxString(textName));
             textCtrl->SetMaxLength(5);
             info.textCtrl = textCtrl;
             sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
@@ -1056,6 +1081,83 @@ void JsonEffectPanel::ApplyVisibilityRules() {
             setEnabled(rule.disableIds, true);
         }
     }
+}
+
+wxString JsonEffectPanel::GetEffectString() {
+    // Check if any property uses suppressIfDefault
+    bool hasSuppression = false;
+    for (const auto& [id, info] : properties_) {
+        if (info.suppressIfDefault) { hasSuppression = true; break; }
+    }
+    if (!hasSuppression) {
+        return xlEffectPanel::GetEffectString();
+    }
+
+    // Build set of setting keys to suppress (those at default value)
+    std::set<std::string> suppressKeys;
+    for (const auto& [id, info] : properties_) {
+        if (!info.suppressIfDefault || info.defaultValue.is_null()) continue;
+
+        bool isDefault = false;
+        if (info.controlType == "slider") {
+            if (info.divisor > 1 && info.textCtrl) {
+                double current = 0;
+                info.textCtrl->GetValue().ToDouble(&current);
+                isDefault = std::abs(current - info.defaultValue.get<double>()) < 0.001;
+            } else if (!info.settingPrefix.empty() && info.textCtrl) {
+                long current = 0;
+                info.textCtrl->GetValue().ToLong(&current);
+                isDefault = current == info.defaultValue.get<int>();
+            } else if (info.slider) {
+                isDefault = info.slider->GetValue() == info.defaultValue.get<int>();
+            } else if (info.buddySlider) {
+                isDefault = static_cast<wxSlider*>(info.buddySlider)->GetValue() == info.defaultValue.get<int>();
+            }
+        } else if (info.controlType == "checkbox" && info.checkBox) {
+            isDefault = info.checkBox->GetValue() == info.defaultValue.get<bool>();
+        } else if ((info.controlType == "choice" || info.controlType == "combobox") && info.choice) {
+            isDefault = info.choice->GetStringSelection().ToStdString() == info.defaultValue.get<std::string>();
+        } else if (info.controlType == "spin" && info.spinCtrl) {
+            isDefault = info.spinCtrl->GetValue() == info.defaultValue.get<int>();
+        } else if (info.controlType == "text" && info.textCtrl) {
+            isDefault = info.textCtrl->GetValue().ToStdString() == info.defaultValue.get<std::string>();
+        }
+
+        if (isDefault) {
+            // Build the setting key prefix for this property
+            std::string prefix;
+            if (!info.settingPrefix.empty()) {
+                prefix = info.settingPrefix;
+            } else if (info.controlType == "slider") {
+                prefix = info.divisor > 1 ? "TEXTCTRL" : "SLIDER";
+            } else if (info.controlType == "checkbox") {
+                prefix = "CHECKBOX";
+            } else if (info.controlType == "choice" || info.controlType == "combobox") {
+                prefix = "CHOICE";
+            } else if (info.controlType == "spin") {
+                prefix = "SPINCTRL";
+            } else if (info.controlType == "text") {
+                prefix = "TEXTCTRL";
+            }
+            suppressKeys.insert("E_" + prefix + "_" + id);
+        }
+    }
+
+    // Get the full effect string from the base class, then filter
+    wxString full = xlEffectPanel::GetEffectString();
+    if (suppressKeys.empty() || full.empty()) return full;
+
+    wxString result;
+    wxStringTokenizer tkz(full, ",");
+    while (tkz.HasMoreTokens()) {
+        wxString token = tkz.GetNextToken();
+        wxString key = token.BeforeFirst('=');
+        if (suppressKeys.find(key.ToStdString()) == suppressKeys.end()) {
+            if (!result.empty()) result += ",";
+            result += token;
+        }
+    }
+    return result;
 }
 
 void JsonEffectPanel::ValidateWindow() {

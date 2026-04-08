@@ -95,6 +95,11 @@
                     "default": false,
                     "description": "Show a horizontal separator line above this property"
                 },
+                "suppressIfDefault": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Omit this property from the effect string when it has its default value"
+                },
                 "fileFilter": {
                     "type": "string",
                     "description": "File filter/wildcard for file picker controls"

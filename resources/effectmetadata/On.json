@@ -1,0 +1,57 @@
+{
+    "effectName": "On",
+    "properties": [
+        {
+            "id": "Eff_On_Start",
+            "label": "Start Intensity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "suppressIfDefault": true,
+            "settingPrefix": "TEXTCTRL"
+        },
+        {
+            "id": "Eff_On_End",
+            "label": "End Intensity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "suppressIfDefault": true,
+            "settingPrefix": "TEXTCTRL"
+        },
+        {
+            "id": "On_Transparency",
+            "label": "Transparency",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100,
+            "suppressIfDefault": true
+        },
+        {
+            "id": "On_Cycles",
+            "label": "Cycle Count",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "min": 0,
+            "max": 1000,
+            "suppressIfDefault": true
+        },
+        {
+            "id": "On_Shimmer",
+            "label": "Shimmer",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "suppressIfDefault": true
+        }
+    ]
+}

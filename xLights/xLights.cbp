@@ -774,12 +774,8 @@
 		<Unit filename="../src-ui-wx/ui/effectpanels/MusicPanel.h" />
 		<Unit filename="../src-core/effects/OffEffect.cpp" />
 		<Unit filename="../src-core/effects/OffEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/OffPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/OffPanel.h" />
 		<Unit filename="../src-core/effects/OnEffect.cpp" />
 		<Unit filename="../src-core/effects/OnEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/OnPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/OnPanel.h" />
 		<Unit filename="../src-core/effects/PianoEffect.cpp" />
 		<Unit filename="../src-core/effects/PianoEffect.h" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/PianoPanel.cpp" />

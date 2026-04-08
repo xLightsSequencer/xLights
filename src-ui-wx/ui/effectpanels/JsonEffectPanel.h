@@ -40,6 +40,7 @@ public:
 
     void ValidateWindow() override;
     void SetDefaultParameters() override;
+    wxString GetEffectString() override;
 
     // Load metadata from a file path and return the parsed JSON.
     static nlohmann::json LoadMetadata(const std::string& jsonPath);
@@ -74,6 +75,8 @@ private:
         std::string type;
         nlohmann::json defaultValue;
         int divisor = 1;
+        bool suppressIfDefault = false;
+        std::string settingPrefix; // Override setting key prefix (e.g. "TEXTCTRL" instead of "SLIDER")
 
         // Pointers to created controls (not all will be set)
         wxSlider* slider = nullptr;

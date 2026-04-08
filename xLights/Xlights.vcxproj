@@ -728,9 +728,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\MusicEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\MusicPanel.cpp" />
     <ClCompile Include="..\src-core\effects\OffEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\OffPanel.cpp" />
     <ClCompile Include="..\src-core\effects\OnEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\OnPanel.cpp" />
     <ClCompile Include="..\src-core\effects\PianoEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\PianoPanel.cpp" />
     <ClCompile Include="..\src-core\effects\PicturesEffect.cpp" />
@@ -1289,9 +1287,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\MusicEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\MusicPanel.h" />
     <ClInclude Include="..\src-core\effects\OffEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\OffPanel.h" />
     <ClInclude Include="..\src-core\effects\OnEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\OnPanel.h" />
     <ClInclude Include="..\src-core\effects\PianoEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\PianoPanel.h" />
     <ClInclude Include="..\src-core\effects\PicturesEffect.h" />

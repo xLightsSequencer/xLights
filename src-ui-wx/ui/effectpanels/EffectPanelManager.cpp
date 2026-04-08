@@ -29,8 +29,6 @@
 #include "MorphPanel.h"
 #include "MovingHeadPanel.h"
 #include "MusicPanel.h"
-#include "OffPanel.h"
-#include "OnPanel.h"
 #include "PianoPanel.h"
 #include "PicturesPanel.h"
 #include "RipplePanel.h"
@@ -105,8 +103,8 @@ void EffectPanelManager::RegisterJson(int effectId, const std::string& name, con
 void EffectPanelManager::RegisterPanels() {
     using E = EffectManager::RGB_EFFECTS_e;
 
-    Register<OffPanel>(E::eff_OFF, "Off");
-    Register<OnPanel>(E::eff_ON, "On");
+    RegisterJson(E::eff_OFF, "Off", "Off");
+    RegisterJson(E::eff_ON, "On", "On");
     Register<AdjustPanel>(E::eff_ADJUST, "Adjust");
     RegisterJson(E::eff_BARS, "Bars", "Bars");
     RegisterJson(E::eff_BUTTERFLY, "Butterfly", "Butterfly");

@@ -1,0 +1,20 @@
+{
+    "effectName": "Off",
+    "description": "This Effect simply turns every pixel off on this model.\n\nIf set to be transparent it does not change any pixels.",
+    "properties": [
+        {
+            "id": "Off_Style",
+            "label": "Off_Style",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Black",
+                "Transparent",
+                "Black -> Transparent",
+                "Transparent -> Black"
+            ],
+            "default": "Black",
+            "suppressIfDefault": true
+        }
+    ]
+}
