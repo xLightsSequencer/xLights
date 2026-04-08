@@ -1160,31 +1160,58 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
     std::string path = _model->GetFilePath(item);
     if (path.empty() || _sequenceMedia == nullptr) return;
 
-    if (!_sequenceMedia->HasImage(path)) return;  // context menu is image-only for now
-    auto entry = _sequenceMedia->GetImage(path);
-    if (!entry || entry->IsOk()) return;  // only show menu for broken images
-
-    // Count total broken images to decide whether to offer bulk find
-    int brokenCount = 0;
-    for (const auto& p : _sequenceMedia->GetImagePaths()) {
-        auto e = _sequenceMedia->GetImage(p);
-        if (e && !e->IsOk()) ++brokenCount;
-    }
+    MediaNode* node = static_cast<MediaNode*>(item.GetID());
+    MediaType type = (node && !node->isGroup) ? node->mediaType : MediaType::Image;
 
     wxMenu menu;
-    menu.Append(wxID_ANY, "Re-select Image...");
-    menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
-        OnReSelectImage(path);
-    }, menu.FindItemByPosition(0)->GetId());
 
-    if (brokenCount > 1) {
-        wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
-        menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-            OnBulkFindImages();
-        }, bulkItem->GetId());
+    // Reload option for non-embedded items
+    auto [isEmbedded, isEmbeddable] = _sequenceMedia->GetMediaEmbedState(path);
+    if (!isEmbedded) {
+        wxMenuItem* reloadItem = menu.Append(wxID_ANY, "Reload from Disk");
+        menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
+            OnReloadMedia(path);
+        }, reloadItem->GetId());
     }
 
-    PopupMenu(&menu);
+    // Broken image options
+    if (_sequenceMedia->HasImage(path)) {
+        auto entry = _sequenceMedia->GetImage(path);
+        if (entry && !entry->IsOk()) {
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+
+            wxMenuItem* reselectItem = menu.Append(wxID_ANY, "Re-select Image...");
+            menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
+                OnReSelectImage(path);
+            }, reselectItem->GetId());
+
+            // Count total broken images to decide whether to offer bulk find
+            int brokenCount = 0;
+            for (const auto& p : _sequenceMedia->GetImagePaths()) {
+                auto e = _sequenceMedia->GetImage(p);
+                if (e && !e->IsOk()) ++brokenCount;
+            }
+            if (brokenCount > 1) {
+                wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
+                menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+                    OnBulkFindImages();
+                }, bulkItem->GetId());
+            }
+        }
+    }
+
+    if (menu.GetMenuItemCount() > 0)
+        PopupMenu(&menu);
+}
+
+void ManageMediaPanel::OnReloadMedia(const std::string& path)
+{
+    if (_sequenceMedia == nullptr) return;
+
+    if (_sequenceMedia->ReloadMedia(path)) {
+        Populate(path);
+    }
 }
 
 void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)

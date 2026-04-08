@@ -1411,6 +1411,51 @@ void SequenceMedia::RemoveMedia(const std::string& filepath) {
     _videoCache.erase(filepath);
 }
 
+bool SequenceMedia::ReloadMedia(const std::string& filepath) {
+    std::scoped_lock lock(_cacheMutex);
+
+    // Helper: if found and not embedded, erase from cache and re-create to reload from disk
+    auto found = [&](auto& cache) -> bool {
+        auto it = cache.find(filepath);
+        if (it == cache.end()) return false;
+        if (it->second->IsEmbedded()) return false;  // embedded entries don't reload from disk
+        return true;
+    };
+
+    if (found(_imageCache)) {
+        _imageCache.erase(filepath);
+        GetImage(filepath);
+        return true;
+    }
+    if (found(_textCache)) {
+        _textCache.erase(filepath);
+        GetTextFile(filepath);
+        return true;
+    }
+    if (found(_svgCache)) {
+        _svgCache.erase(filepath);
+        GetSVG(filepath);
+        return true;
+    }
+    if (found(_shaderCache)) {
+        _shaderCache.erase(filepath);
+        GetShader(filepath);
+        return true;
+    }
+    if (found(_binaryCache)) {
+        auto subtype = _binaryCache[filepath]->GetSubtype();
+        _binaryCache.erase(filepath);
+        GetBinaryFile(filepath, subtype);
+        return true;
+    }
+    if (found(_videoCache)) {
+        _videoCache.erase(filepath);
+        GetVideo(filepath);
+        return true;
+    }
+    return false;
+}
+
 size_t SequenceMedia::GetMediaCount() const {
     std::scoped_lock lock(_cacheMutex);
     return _imageCache.size() + _textCache.size() + _svgCache.size() +

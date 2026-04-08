@@ -367,6 +367,8 @@ public:
     // === Cross-type queries ===
     bool HasMedia(const std::string& filepath) const;
     void RemoveMedia(const std::string& filepath);
+    // Reload a non-embedded entry from disk (erases and re-creates the cache entry)
+    bool ReloadMedia(const std::string& filepath);
     size_t GetMediaCount() const;
     std::vector<std::pair<std::string, MediaType>> GetAllMediaPaths() const;
     // Returns {isEmbedded, isEmbeddable} for any media path across all caches

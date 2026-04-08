@@ -111,6 +111,7 @@ private:
     void OnTreeItemSelected(wxDataViewEvent& event);
     void OnTreeMouseMotion(wxMouseEvent& event);
     void OnTreeContextMenu(wxDataViewEvent& event);
+    void OnReloadMedia(const std::string& path);
     void OnReSelectImage(const std::string& oldPath);
     void OnBulkFindImages();
     void OnAddButtonClick(wxCommandEvent& event);
