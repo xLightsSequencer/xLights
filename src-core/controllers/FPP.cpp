@@ -1116,6 +1116,7 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
         }
         if (doMediaUpload) {
             if (!FileExists(mfn.string())) {
+                spdlog::error("Uploading media: {}     Source file not found: {}", mediaBaseName, mediaFile);
                 messages.push_back("ERROR Uploading media: " + mediaBaseName + "     Source file not found: " + mediaFile);
                 faileduploads.push_back(mediaBaseName);
             } else {
