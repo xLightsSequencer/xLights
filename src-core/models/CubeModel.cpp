@@ -115,7 +115,7 @@ CubeModel::~CubeModel()
 
 int CubeModel::CalcTransformationIndex() const
 {
-    const std::string style = GetStrandStyle();
+    const std::string style = GetCubeStyle();
     bool leftright = Contains(style, "Left");
     bool horizontal = Contains(style, "Horizontal");
     bool stacked = Contains(style, "Stacked");
