@@ -11,7 +11,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 0,
-            "max": 50
+            "max": 50,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Spirograph_R",
@@ -55,7 +56,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": -50,
-            "max": 50
+            "max": 50,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Spirograph_Length",
@@ -66,7 +68,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 0,
-            "max": 50
+            "max": 50,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Spirograph_Width",
@@ -77,7 +80,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 1,
-            "max": 50
+            "max": 50,
+            "settingPrefix": "TEXTCTRL"
         }
     ]
 }

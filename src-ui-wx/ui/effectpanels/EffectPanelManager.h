@@ -17,6 +17,8 @@
 
 #include <wx/string.h>
 
+#include "JsonEffectPanel.h"
+
 class xlEffectPanel;
 class wxWindow;
 class Model;
@@ -55,6 +57,18 @@ private:
     }
 
     void RegisterJson(int effectId, const std::string& name, const std::string& jsonBaseName);
+
+    // Register a JsonEffectPanel subclass that takes (wxWindow*, nlohmann::json) constructor
+    template<typename PanelT>
+    void RegisterJsonSubclass(int effectId, const std::string& name, const std::string& jsonBaseName) {
+        RegisterPanel(effectId, name, [jsonBaseName](wxWindow* p) -> xlEffectPanel* {
+            std::string metaDir = EffectPanelManager::GetMetadataDirectory();
+            if (metaDir.empty()) return nullptr;
+            auto metadata = JsonEffectPanel::LoadMetadata(metaDir + "/" + jsonBaseName + ".json");
+            if (metadata.empty()) return nullptr;
+            return new PanelT(p, metadata);
+        });
+    }
 
 public:
     static std::string GetMetadataDirectory();

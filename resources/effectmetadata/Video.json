@@ -1,0 +1,127 @@
+{
+    "effectName": "Video",
+    "description": "0:00:00.000",
+    "properties": [
+        {
+            "id": "Video_Filename",
+            "label": "Video_Filename",
+            "type": "file",
+            "controlType": "filepicker",
+            "default": ""
+        },
+        {
+            "id": "Video_Starttime",
+            "label": "Start Time",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "divisor": 100,
+            "min": 0,
+            "max": 20
+        },
+        {
+            "id": "Video_DurationTreatment",
+            "label": "Duration Treatment",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Normal",
+                "Normal No Blue",
+                "Loop",
+                "Slow/Accelerate",
+                "Manual",
+                "Manual and Loop"
+            ],
+            "default": "Normal"
+        },
+        {
+            "id": "Video_Speed",
+            "label": "Speed",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 100,
+            "valueCurve": true,
+            "min": -1000,
+            "max": 1000
+        },
+        {
+            "id": "Video_AspectRatio",
+            "label": "Maintain Aspect Ratio",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "SynchroniseWithAudio",
+            "label": "Use sequence audio file as video file and synchronise",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Video_CropLeft",
+            "label": "Crop Left",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Video_CropRight",
+            "label": "Crop Right",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Video_CropTop",
+            "label": "Crop Top",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Video_CropBottom",
+            "label": "Crop Bottom",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Video_TransparentBlack",
+            "label": "Transparent Black",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "min": 0,
+            "max": 300
+        },
+        {
+            "id": "SampleSpacing",
+            "label": "Sample spacing",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "min": 0,
+            "max": 200
+        }
+    ]
+}

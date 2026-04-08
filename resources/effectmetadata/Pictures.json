@@ -1,0 +1,216 @@
+{
+    "effectName": "Pictures",
+    "properties": [
+        {
+            "id": "Pictures_Filename",
+            "label": "Pictures_Filename",
+            "type": "string",
+            "controlType": "text",
+            "settingPrefix": "TEXTCTRL",
+            "default": ""
+        },
+        {
+            "id": "Pictures_Direction",
+            "label": "Movement",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "none",
+                "left",
+                "right",
+                "up",
+                "down",
+                "up-left",
+                "down-left",
+                "up-right",
+                "down-right",
+                "peekaboo",
+                "wiggle",
+                "zoom in",
+                "peekaboo 90",
+                "peekaboo 180",
+                "peekaboo 270",
+                "flag wave",
+                "up once",
+                "down once",
+                "vector",
+                "tile-left",
+                "tile-right",
+                "tile-down",
+                "tile-up"
+            ],
+            "default": "none",
+            "lockable": true
+        },
+        {
+            "id": "Pictures_Speed",
+            "label": "Movement Speed",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "lockable": true,
+            "min": 0,
+            "max": 200
+        },
+        {
+            "id": "Pictures_FrameRateAdj",
+            "label": "Frame Rate Adj",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "lockable": true,
+            "min": 0,
+            "max": 200
+        },
+        {
+            "id": "Pictures_PixelOffsets",
+            "label": "Offsets In Pixels",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Scaling",
+            "label": "Scaling",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "No Scaling",
+                "Scale To Fit",
+                "Scale Keep Aspect Ratio",
+                "Scale Keep Aspect Ratio Crop"
+            ],
+            "default": "No Scaling"
+        },
+        {
+            "id": "Pictures_Shimmer",
+            "label": "Shimmer",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "LoopGIF",
+            "label": "Loop Animated GIF",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "SuppressGIFBackground",
+            "label": "Suppress GIF Background",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Pictures_TransparentBlack",
+            "label": "Transparent Black",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "min": 0,
+            "max": 300
+        },
+        {
+            "id": "PicturesXC",
+            "label": "X-axis Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Pictures_WrapX",
+            "label": "Wrap X",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "PicturesYC",
+            "label": "Y-axis Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "PicturesEndXC",
+            "label": "X-axis Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "PicturesEndYC",
+            "label": "Y-axis Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Pictures_StartScale",
+            "label": "Scaling",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Pictures_EndScale",
+            "label": "Scaling",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 1000
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Start Position",
+                    "properties": [
+                        "PicturesXC",
+                        "Pictures_WrapX",
+                        "PicturesYC"
+                    ]
+                },
+                {
+                    "label": "End Position",
+                    "properties": [
+                        "PicturesEndXC",
+                        "PicturesEndYC"
+                    ]
+                },
+                {
+                    "label": "Start Scale",
+                    "properties": [
+                        "Pictures_StartScale"
+                    ]
+                },
+                {
+                    "label": "End Scale",
+                    "properties": [
+                        "Pictures_EndScale"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -262,7 +262,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int yVelocity = GetValueCurveInt("Fireworks_YVelocity", 0, SettingsMap, offset, FIREWORKSYVELOCITY_MIN, FIREWORKSYVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int xLocation = GetValueCurveInt("Fireworks_XLocation", -1, SettingsMap, offset, FIREWORKSXLOCATION_MIN, FIREWORKSXLOCATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int yLocation = GetValueCurveInt("Fireworks_YLocation", -1, SettingsMap, offset, FIREWORKSYLOCATION_MIN, FIREWORKSYLOCATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool gravity = SettingsMap.GetBool("CHECKBOX_Fireworks_Gravity", false);
+    bool gravity = SettingsMap.GetBool("CHECKBOX_Fireworks_Gravity", true);
     bool holdColour = SettingsMap.GetBool("CHECKBOX_Fireworks_HoldColour", true);
 
     float f = 0.0;

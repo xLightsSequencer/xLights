@@ -29,6 +29,9 @@
 
 #include "ui/shared/controls/BulkEditControls.h"
 #include "ui/shared/utils/xlLockButton.h"
+#include "ui/sequencer/TimingPanel.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
 #include <fstream>
 #include <spdlog/spdlog.h>
@@ -1204,6 +1207,17 @@ void JsonEffectPanel::SetDefaultParameters() {
         } else if (info.controlType == "text") {
             if (info.textCtrl) {
                 SetTextValue(info.textCtrl, info.defaultValue.get<std::string>());
+            }
+        }
+    }
+
+    // Enable canvas mode if the effect requires it
+    if (metadata_.value("canvasMode", false)) {
+        xLightsFrame* frame = xLightsApp::GetFrame();
+        if (frame) {
+            TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
+            if (layerBlendingPanel) {
+                layerBlendingPanel->CheckBox_Canvas->SetValue(true);
             }
         }
     }

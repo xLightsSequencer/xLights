@@ -9,6 +9,11 @@
             "type": "string",
             "description": "Effect name as registered in EffectManager (e.g. 'Fire')"
         },
+        "canvasMode": {
+            "type": "boolean",
+            "default": false,
+            "description": "When true, automatically enable Canvas mode in Layer Blending when this effect is selected"
+        },
         "properties": {
             "type": "array",
             "items": { "$ref": "#/definitions/property" }

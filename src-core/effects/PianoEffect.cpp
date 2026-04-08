@@ -67,9 +67,9 @@ void PianoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     float oset = buffer.GetEffectTimeIntervalPosition();
     RenderPiano(buffer,
                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-                SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
-                SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
-                SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
+                SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI", 60),
+                SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI", 72),
+                SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps", true),
                 std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
                 GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset, PIANO_SCALE_MIN, PIANO_SCALE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                 std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),

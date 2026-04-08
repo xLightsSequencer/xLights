@@ -655,8 +655,8 @@ void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                  SettingsMap.GetBool("CHECKBOX_Fade", false),
                  SettingsMap.GetBool("CHECKBOX_Collapse", false),
                  SettingsMap.GetFloat("SLIDER_StringWaveFactor", 0.0) / 10.0,
-                 SettingsMap.GetFloat("SLIDER_BaseWaveFactor", 1.0) / 10.0,
-                 SettingsMap.GetBool("CHECKBOX_VaryWaveLengthOnFret", false));
+                 SettingsMap.GetFloat("SLIDER_BaseWaveFactor", 10.0) / 10.0,
+                 SettingsMap.GetBool("CHECKBOX_VaryWaveLengthOnFret", true));
 }
 
 bool notesort(const NoteTiming* first, const NoteTiming* second)

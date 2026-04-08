@@ -1,0 +1,69 @@
+{
+    "effectName": "Adjust",
+    "canvasMode": true,
+    "properties": [
+        {
+            "id": "Action",
+            "label": "Adjustment",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "None",
+                "Adjust By Value",
+                "Adjust By Percentage",
+                "Set Minimum",
+                "Set Maximum",
+                "Set Range",
+                "Shift With Wrap By Value",
+                "Prevent Range",
+                "Reverse"
+            ],
+            "default": "None"
+        },
+        {
+            "id": "Value1",
+            "label": "Value 1",
+            "type": "int",
+            "controlType": "spin",
+            "default": 0,
+            "min": -255,
+            "max": 255
+        },
+        {
+            "id": "Value2",
+            "label": "Value 2",
+            "type": "int",
+            "controlType": "spin",
+            "default": 0,
+            "min": -255,
+            "max": 255
+        },
+        {
+            "id": "NthChannel",
+            "label": "Nth Channel",
+            "type": "int",
+            "controlType": "spin",
+            "default": 1,
+            "min": 1,
+            "max": 32
+        },
+        {
+            "id": "StartingAt",
+            "label": "Starting At",
+            "type": "int",
+            "controlType": "spin",
+            "default": 1,
+            "min": 1,
+            "max": 100
+        },
+        {
+            "id": "Count",
+            "label": "Count",
+            "type": "int",
+            "controlType": "spin",
+            "default": 0,
+            "min": 0,
+            "max": 10000
+        }
+    ]
+}

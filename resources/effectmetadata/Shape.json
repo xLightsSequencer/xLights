@@ -1,0 +1,260 @@
+{
+    "effectName": "Shape",
+    "properties": [
+        {
+            "id": "Shape_ObjectToDraw",
+            "label": "Object to Draw",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Circle",
+                "Ellipse",
+                "Triangle",
+                "Square",
+                "Pentagon",
+                "Hexagon",
+                "Octagon",
+                "Star",
+                "Heart",
+                "Tree",
+                "Snowflake",
+                "Candy Cane",
+                "Random",
+                "Crucifix",
+                "Present",
+                "Emoji",
+                "SVG"
+            ],
+            "default": "Circle"
+        },
+        {
+            "id": "Shape_Font",
+            "label": "Shape_Font",
+            "type": "font",
+            "controlType": "fontpicker",
+            "default": ""
+        },
+        {
+            "id": "Shape_Char",
+            "label": "Shape_Char",
+            "type": "int",
+            "controlType": "spin",
+            "default": 127876,
+            "min": 32,
+            "max": 917631
+        },
+        {
+            "id": "Shape_SkinTone",
+            "label": "Shape_SkinTone",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Default",
+                "Light",
+                "Medium Light",
+                "Medium",
+                "Medium Dark",
+                "Dark"
+            ],
+            "default": "Default"
+        },
+        {
+            "id": "SVG",
+            "label": "SVG File",
+            "type": "file",
+            "controlType": "filepicker",
+            "default": "",
+            "fileFilter": "*.svg"
+        },
+        {
+            "id": "Shape_Thickness",
+            "label": "Thickness",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_Count",
+            "label": "Count",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 5,
+            "valueCurve": true,
+            "min": 1,
+            "max": 100
+        },
+        {
+            "id": "Shape_StartSize",
+            "label": "Start Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_RandomInitial",
+            "label": "Random initial shape sizes",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Shapes_Velocity",
+            "label": "Velocity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 20,
+            "valueCurve": true
+        },
+        {
+            "id": "Shapes_Direction",
+            "label": "Direction",
+            "type": "int",
+            "controlType": "slider",
+            "default": 90,
+            "min": 0,
+            "max": 359,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_Lifetime",
+            "label": "Lifetime",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_Growth",
+            "label": "Growth",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_CentreX",
+            "label": "X Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_CentreY",
+            "label": "Y Center",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_Points",
+            "label": "Points",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 2,
+            "max": 9
+        },
+        {
+            "id": "Shape_Rotation",
+            "label": "Rotation",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 360,
+            "valueCurve": true
+        },
+        {
+            "id": "Shape_RandomLocation",
+            "label": "Random Location",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Shapes_RandomMovement",
+            "label": "Random movement",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Shape_FadeAway",
+            "label": "Fade Away",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Shape_HoldColour",
+            "label": "Hold Color",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Shape_UseMusic",
+            "label": "Fire with music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Shape_Sensitivity",
+            "label": "Trigger level",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Shape_FireTiming",
+            "label": "Fire with timing track",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Shape_FireTimingTrack",
+            "label": "Timing Track",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": ""
+        },
+        {
+            "id": "Shape_FilterLabel",
+            "label": "Filter Label",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "Shape_FilterReg",
+            "label": "Reg",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        }
+    ]
+}

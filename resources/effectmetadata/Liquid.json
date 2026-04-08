@@ -1,0 +1,500 @@
+{
+    "effectName": "Liquid",
+    "properties": [
+        {
+            "id": "TopBarrier",
+            "label": "Top Barrier",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "BottomBarrier",
+            "label": "Bottom Barrier",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "LeftBarrier",
+            "label": "Left Barrier",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "RightBarrier",
+            "label": "Right Barrier",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "HoldColor",
+            "label": "Hold Particle Color",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "MixColors",
+            "label": "Mix Colors",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "ParticleType",
+            "label": "Type",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Powder",
+                "Elastic",
+                "Spring",
+                "Tensile",
+                "Viscous",
+                "Static Pressure",
+                "Water",
+                "Reactive",
+                "Repulsive"
+            ],
+            "default": "Elastic"
+        },
+        {
+            "id": "LifeTime",
+            "label": "Lifetime",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 1000,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Size",
+            "label": "Size",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 500,
+            "min": 1,
+            "max": 10000
+        },
+        {
+            "id": "WarmUpFrames",
+            "label": "Warm Up Frames",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "min": 0,
+            "max": 500
+        },
+        {
+            "id": "Despeckle",
+            "label": "Despeckle Threshold",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "min": 0,
+            "max": 4
+        },
+        {
+            "id": "Liquid_Gravity",
+            "label": "Gravity",
+            "type": "float",
+            "controlType": "slider",
+            "default": 10.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "min": -1000,
+            "max": 1000
+        },
+        {
+            "id": "Liquid_GravityAngle",
+            "label": "Gravity Angle",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "X1",
+            "label": "X",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 50,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Y1",
+            "label": "Y",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Direction1",
+            "label": "Direction",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 270,
+            "valueCurve": true,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "Velocity1",
+            "label": "Velocity",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Flow1",
+            "label": "Flow",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Liquid_SourceSize1",
+            "label": "Source Size",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "FlowMusic1",
+            "label": "Flow Matches Music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Enabled2",
+            "label": "Enabled",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "X2",
+            "label": "X",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Y2",
+            "label": "Y",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 50,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Direction2",
+            "label": "Direction",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "Velocity2",
+            "label": "Velocity",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Flow2",
+            "label": "Flow",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Liquid_SourceSize2",
+            "label": "Source Size",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "FlowMusic2",
+            "label": "Flow Matches Music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Enabled3",
+            "label": "Enabled",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "X3",
+            "label": "X",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 50,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Y3",
+            "label": "Y",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Direction3",
+            "label": "Direction",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 90,
+            "valueCurve": true,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "Velocity3",
+            "label": "Velocity",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Flow3",
+            "label": "Flow",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Liquid_SourceSize3",
+            "label": "Source Size",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "FlowMusic3",
+            "label": "Flow Matches Music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Enabled4",
+            "label": "Enabled",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "X4",
+            "label": "X",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Y4",
+            "label": "Y",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 50,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Direction4",
+            "label": "Direction",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 180,
+            "valueCurve": true,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "Velocity4",
+            "label": "Velocity",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Flow4",
+            "label": "Flow",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 100,
+            "valueCurve": true,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Liquid_SourceSize4",
+            "label": "Source Size",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "FlowMusic4",
+            "label": "Flow Matches Music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "1",
+                    "properties": [
+                        "X1",
+                        "Y1",
+                        "Direction1",
+                        "Velocity1",
+                        "Flow1",
+                        "Liquid_SourceSize1",
+                        "FlowMusic1"
+                    ]
+                },
+                {
+                    "label": "2",
+                    "properties": [
+                        "Enabled2",
+                        "X2",
+                        "Y2",
+                        "Direction2",
+                        "Velocity2",
+                        "Flow2",
+                        "Liquid_SourceSize2",
+                        "FlowMusic2"
+                    ]
+                },
+                {
+                    "label": "3",
+                    "properties": [
+                        "Enabled3",
+                        "X3",
+                        "Y3",
+                        "Direction3",
+                        "Velocity3",
+                        "Flow3",
+                        "Liquid_SourceSize3",
+                        "FlowMusic3"
+                    ]
+                },
+                {
+                    "label": "4",
+                    "properties": [
+                        "Enabled4",
+                        "X4",
+                        "Y4",
+                        "Direction4",
+                        "Velocity4",
+                        "Flow4",
+                        "Liquid_SourceSize4",
+                        "FlowMusic4"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK1"
+        }
+    ]
+}

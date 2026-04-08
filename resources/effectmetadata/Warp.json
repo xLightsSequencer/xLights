@@ -1,0 +1,91 @@
+{
+    "effectName": "Warp",
+    "description": "The warp effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work.",
+    "canvasMode": true,
+    "properties": [
+        {
+            "id": "Warp_Type",
+            "label": "Warp Type",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "water drops",
+                "dissolve",
+                "circle reveal",
+                "banded swirl",
+                "ripple",
+                "single water drop",
+                "circular swirl",
+                "drop",
+                "wavy",
+                "sample on",
+                "mirror",
+                "copy",
+                "flip"
+            ],
+            "default": "water drops"
+        },
+        {
+            "id": "Warp_Treatment_APPLYLAST",
+            "label": "Treatment",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "constant",
+                "in",
+                "out"
+            ],
+            "default": "constant"
+        },
+        {
+            "id": "Warp_X",
+            "label": "X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Warp_Y",
+            "label": "Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Warp_Cycle_Count",
+            "label": "Cycle Count",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 10,
+            "settingPrefix": "TEXTCTRL"
+        },
+        {
+            "id": "Warp_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 20,
+            "min": 0,
+            "max": 40,
+            "settingPrefix": "TEXTCTRL"
+        },
+        {
+            "id": "Warp_Frequency",
+            "label": "Frequency",
+            "type": "int",
+            "controlType": "slider",
+            "default": 20,
+            "min": 0,
+            "max": 40,
+            "settingPrefix": "TEXTCTRL"
+        }
+    ]
+}

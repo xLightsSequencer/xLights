@@ -30,7 +30,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 0,
-            "max": 20
+            "max": 20,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_Thickness",
@@ -41,7 +42,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 1,
-            "max": 20
+            "max": 20,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_Friction",
@@ -51,7 +53,8 @@
             "default": 10,
             "lockable": true,
             "min": 0,
-            "max": 20
+            "max": 20,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_Dampening",
@@ -61,7 +64,8 @@
             "default": 10,
             "lockable": true,
             "min": 0,
-            "max": 20
+            "max": 20,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_Tension",
@@ -71,7 +75,8 @@
             "default": 20,
             "lockable": true,
             "min": 0,
-            "max": 39
+            "max": 39,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_Trails",
@@ -81,7 +86,8 @@
             "default": 1,
             "lockable": true,
             "min": 1,
-            "max": 20
+            "max": 20,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_Length",
@@ -91,7 +97,8 @@
             "default": 60,
             "lockable": true,
             "min": 5,
-            "max": 100
+            "max": 100,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_Speed",
@@ -100,7 +107,8 @@
             "controlType": "slider",
             "default": 10,
             "min": 1,
-            "max": 10
+            "max": 10,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_XOffset",
@@ -111,7 +119,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_YOffset",
@@ -122,7 +131,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_ManualX",
@@ -132,7 +142,8 @@
             "default": 0,
             "valueCurve": true,
             "min": 0,
-            "max": 100
+            "max": 100,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Tendril_ManualY",
@@ -142,7 +153,8 @@
             "default": 0,
             "valueCurve": true,
             "min": 0,
-            "max": 100
+            "max": 100,
+            "settingPrefix": "TEXTCTRL"
         }
     ],
     "visibilityRules": [

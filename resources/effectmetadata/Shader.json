@@ -1,0 +1,67 @@
+{
+    "effectName": "Shader",
+    "properties": [
+        {
+            "id": "IFS",
+            "label": "Shader File",
+            "type": "file",
+            "controlType": "filepicker",
+            "default": "",
+            "fileFilter": "*.fs"
+        },
+        {
+            "id": "Shader_LeadIn",
+            "label": "Lead in frames",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Shader_Speed",
+            "label": "Time Speed",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "min": -1000,
+            "max": 1000,
+            "divisor": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Shader_Offset_X",
+            "label": "Offset X",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Shader_Offset_Y",
+            "label": "Offset Y",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Shader_Zoom",
+            "label": "Zoom",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 0,
+            "valueCurve": true,
+            "min": -100,
+            "max": 100
+        }
+    ]
+}

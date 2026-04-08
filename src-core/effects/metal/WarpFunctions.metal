@@ -120,6 +120,29 @@ kernel void WarpEffectCopy(constant WarpData &data,
         result[didx] = src[sidx];
     }
 }
+kernel void WarpEffectFlip(constant WarpData &data,
+                           device uchar4* result,
+                           const device uchar4* src,
+                           uint2 index [[thread_position_in_grid]]) {
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+
+    int w = data.width;
+    int h = data.height;
+    int ix = index.x;
+    if (index.x <= data.xPos && data.xPos != 0)
+        ix = (w - 1) - index.x;
+    int iy = index.y;
+    if (index.y <= data.yPos && data.yPos != 0)
+        iy = (h - 1) - index.y;
+
+    ix = clamp(ix, 0, w - 1);
+    iy = clamp(iy, 0, h - 1);
+
+    uint didx = index.y * w + index.x;
+    uint sidx = iy * w + ix;
+    result[didx] = src[sidx];
+}
 kernel void WarpEffectSampleOn(constant WarpData &data,
                                device uchar4* result,
                                uint2 index [[thread_position_in_grid]]) {

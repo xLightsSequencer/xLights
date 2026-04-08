@@ -1,0 +1,63 @@
+{
+    "effectName": "Kaleidoscope",
+    "canvasMode": true,
+    "description": "The Kaleidoscope effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work.",
+    "properties": [
+        {
+            "id": "Kaleidoscope_Type",
+            "label": "Kaleidoscope Type",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Triangle",
+                "Square",
+                "Square 2",
+                "6-Fold",
+                "8-Fold",
+                "12-Fold",
+                "Radial"
+            ],
+            "default": "Triangle"
+        },
+        {
+            "id": "Kaleidoscope_X",
+            "label": "Center X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Kaleidoscope_Y",
+            "label": "Center Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Kaleidoscope_Size",
+            "label": "Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 2,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Kaleidoscope_Rotation",
+            "label": "Rotation",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 359,
+            "valueCurve": true
+        }
+    ]
+}

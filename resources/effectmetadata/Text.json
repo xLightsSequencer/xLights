@@ -1,0 +1,190 @@
+{
+    "effectName": "Text",
+    "properties": [
+        {
+            "id": "Text",
+            "label": "Text",
+            "type": "string",
+            "controlType": "text",
+            "default": ""
+        },
+        {
+            "id": "Text_File",
+            "label": "From File",
+            "type": "file",
+            "controlType": "filepicker",
+            "default": "",
+            "fileFilter": "*.txt",
+            "fileMessage": "Select a text file"
+        },
+        {
+            "id": "Text_LyricTrack",
+            "label": "From Lyrics",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": ""
+        },
+        {
+            "id": "Text_Font",
+            "label": "Font",
+            "type": "font",
+            "controlType": "fontpicker",
+            "default": ""
+        },
+        {
+            "id": "Text_Dir",
+            "label": "Movement",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "none",
+                "left",
+                "right",
+                "up",
+                "down",
+                "vector",
+                "up-left",
+                "down-left",
+                "up-right",
+                "down-right",
+                "wavey",
+                "word-flip",
+                "left-right",
+                "up-down"
+            ],
+            "default": "none",
+            "lockable": true
+        },
+        {
+            "id": "TextToCenter",
+            "label": "C",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "TextNoRepeat",
+            "label": "NoRep",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Text_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "settingPrefix": "TEXTCTRL",
+            "default": 10,
+            "min": 0,
+            "max": 100
+        },
+        {
+            "id": "Text_Effect",
+            "label": "Effect",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "normal",
+                "vert text up",
+                "vert text down",
+                "rotate up 45",
+                "rotate up 90",
+                "rotate down 45",
+                "rotate down 90"
+            ],
+            "default": "normal",
+            "lockable": true
+        },
+        {
+            "id": "Text_Count",
+            "label": "Count down",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "none",
+                "seconds",
+                "minutes seconds",
+                "to date 'd h m s'",
+                "to date 'h:m:s'",
+                "to date 'm' or 's'",
+                "to date 's'",
+                "!to date!%fmt"
+            ],
+            "default": "none",
+            "lockable": true
+        },
+        {
+            "id": "Text_PixelOffsets",
+            "label": "Offsets In Pixels",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Text_Color_PerWord",
+            "label": "Color Per Word",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Text_XStart",
+            "label": "X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -200,
+            "max": 200
+        },
+        {
+            "id": "Text_YStart",
+            "label": "Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -200,
+            "max": 200
+        },
+        {
+            "id": "Text_XEnd",
+            "label": "X",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -200,
+            "max": 200
+        },
+        {
+            "id": "Text_YEnd",
+            "label": "Y",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -200,
+            "max": 200
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Start Position",
+                    "properties": [
+                        "Text_XStart",
+                        "Text_YStart"
+                    ]
+                },
+                {
+                    "label": "End Position",
+                    "properties": [
+                        "Text_XEnd",
+                        "Text_YEnd"
+                    ]
+                }
+            ]
+        }
+    ]
+}

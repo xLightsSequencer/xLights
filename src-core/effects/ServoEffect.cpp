@@ -141,7 +141,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
         position = position + (endPos - position) * buffer.GetEffectTimeIntervalPosition();
     }
     
-    bool is_16bit = SettingsMap.GetBool("CHECKBOX_16bit");
+    bool is_16bit = SettingsMap.GetBool("CHECKBOX_16bit", true);
 
     if (buffer.cur_model == "") {
         return;

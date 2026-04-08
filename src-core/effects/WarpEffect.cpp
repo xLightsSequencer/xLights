@@ -190,8 +190,8 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
     std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
     std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
     std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
-    int xPercentage = GetValueCurveInt( "Warp_X", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xPercentage = GetValueCurveInt( "Warp_X", 50, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yPercentage = GetValueCurveInt( "Warp_Y", 50, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double x = 0.01 * xPercentage;
     double y = 0.01 * yPercentage;
     float speed = std::strtof( speedStr.c_str(), nullptr );

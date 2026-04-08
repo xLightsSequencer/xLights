@@ -57,7 +57,8 @@
             "default": 0,
             "valueCurve": true,
             "min": -100,
-            "max": 100
+            "max": 100,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Bars_Highlight",

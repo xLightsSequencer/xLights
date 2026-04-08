@@ -25,6 +25,7 @@ public:
         functions[WarpEffect::WarpType::CIRCLE_REVEAL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectCircleReveal");
         functions[WarpEffect::WarpType::CIRCULAR_SWIRL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectCircleSwirl");
         functions[WarpEffect::WarpType::BANDED_SWIRL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectBandedSwirl");
+        functions[WarpEffect::WarpType::FLIP] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectFlip");
     }
     ~MetalWarpEffectData() {
         for (auto &f : functions) {
@@ -43,6 +44,7 @@ public:
             case WarpEffect::WarpType::DROP:
             case WarpEffect::WarpType::CIRCULAR_SWIRL:
             case WarpEffect::WarpType::BANDED_SWIRL:
+            case WarpEffect::WarpType::FLIP:
                 return true;
             default:
                 return false;
@@ -160,9 +162,9 @@ void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);
     std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment_APPLYLAST", "constant");
-    float xPercentage = GetValueCurveInt("Warp_X", 0, SettingsMap, progress, 0, 100,
+    float xPercentage = GetValueCurveInt("Warp_X", 50, SettingsMap, progress, 0, 100,
                                        buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float yPercentage = GetValueCurveInt("Warp_Y", 0, SettingsMap, progress, 0, 100,
+    float yPercentage = GetValueCurveInt("Warp_Y", 50, SettingsMap, progress, 0, 100,
                                        buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     float x = 0.01 * xPercentage;
     float y = 0.01 * yPercentage;

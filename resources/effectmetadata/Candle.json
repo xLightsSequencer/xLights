@@ -10,7 +10,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 1,
-            "max": 10
+            "max": 10,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Candle_WindBaseline",
@@ -21,7 +22,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 0,
-            "max": 255
+            "max": 255,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Candle_WindVariability",
@@ -32,7 +34,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 0,
-            "max": 10
+            "max": 10,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "Candle_WindCalmness",
@@ -43,7 +46,8 @@
             "valueCurve": true,
             "lockable": true,
             "min": 0,
-            "max": 10
+            "max": 10,
+            "settingPrefix": "TEXTCTRL"
         },
         {
             "id": "PerNode",

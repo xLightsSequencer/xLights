@@ -157,7 +157,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_TWINKLE, "Twinkle", "Twinkle");
     Register<VideoPanel>(E::eff_VIDEO, "Video");
     Register<VUMeterPanel>(E::eff_VUMETER, "VU Meter");
-    Register<WarpPanel>(E::eff_WARP, "Warp");
+    RegisterJsonSubclass<WarpPanel>(E::eff_WARP, "Warp", "Warp");
     Register<WavePanel>(E::eff_WAVE, "Wave");
 }
 
