@@ -1665,8 +1665,8 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                             wxYES_NO | wxCANCEL | wxICON_QUESTION, this);
                         if (answer == wxCANCEL) continue;
                         if (answer == wxYES) {
-                            wxCopyFile(wxString(path), destFile, true);
-                            newPath = destFile.ToStdString();
+                            if (wxCopyFile(wxString(path), destFile, true))
+                                newPath = destFile.ToStdString();
                         } else {
                             // Add as New — let MoveToShowFolder generate a suffix name
                             newPath = _xlFrame->MoveToShowFolder(path, sep + "Images");
