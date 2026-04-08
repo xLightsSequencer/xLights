@@ -49,6 +49,7 @@
 #include "xLightsMain.h"
 #include "ui/model/NodeSelectGrid.h"
 #include "models/Model.h"
+#include "models/Node.h"
 #include "models/SubModel.h"
 #include "xLightsApp.h"
 #include "utils/VectorMath.h"
@@ -1023,9 +1024,45 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
         model->SetNodeColor(node, cb);
     }
 
+    if (FaceTypeChoice->GetSelection() == MATRIX_FACE) {
+        modelPreview->SetbackgroundImage("");
+        if (!channels.empty()) {
+            wxString imgPath(channels);
+            wxImage img(imgPath);
+            if (img.IsOk() && img.GetWidth() > 0 && img.GetHeight() > 0) {
+                int bufW = model->GetDefaultBufferWi();
+                int bufH = model->GetDefaultBufferHt();
+                int imgW = img.GetWidth();
+                int imgH = img.GetHeight();
+                float scaleX = (float)bufW / imgW;
+                float scaleY = (float)bufH / imgH;
+                float scale = std::min(scaleX, scaleY);
+                int scaledW = (int)(imgW * scale);
+                int scaledH = (int)(imgH * scale);
+                img = img.Scale(scaledW, scaledH, wxIMAGE_QUALITY_HIGH);
+                int offsetX = (bufW - scaledW) / 2;
+                int offsetY = (bufH - scaledH) / 2;
+                int nodeCount = (int)model->GetNodeCount();
+                for (int n = 0; n < nodeCount; ++n) {
+                    NodeBaseClass* node = model->GetNode(n);
+                    if (node && !node->Coords.empty()) {
+                        int imgX = node->Coords[0].bufX - offsetX;
+                        int imgY = scaledH - 1 - (node->Coords[0].bufY - offsetY);
+                        if (imgX >= 0 && imgX < scaledW && imgY >= 0 && imgY < scaledH) {
+                            xlColor col(img.GetRed(imgX, imgY), img.GetGreen(imgX, imgY), img.GetBlue(imgX, imgY));
+                            model->SetNodeColor(n, col);
+                        }
+                    }
+                }
+            }
+        }
+        model->DisplayEffectOnWindow(modelPreview, mPointSize);
+        return;
+    }
+    modelPreview->SetbackgroundImage("");
+
     // now highlight selected
-    if (channels != "")
-    {
+    if (channels != "") {
         if (FaceTypeChoice->GetSelection() == SINGLE_NODE_FACE) {
             wxStringTokenizer wtkz(channels, ",");
             while (wtkz.HasMoreTokens())
@@ -1137,16 +1174,14 @@ void ModelFaceDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
     UpdatePreview(SingleNodeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL));
 }
 
-void ModelFaceDialog::OnMatrixModelsGridCellSelect(wxGridEvent& event)
-{
-    UpdatePreview("", *wxWHITE);
+void ModelFaceDialog::OnMatrixModelsGridCellSelect(wxGridEvent& event) {
+    UpdatePreview(MatrixModelsGrid->GetCellValue(event.GetRow(), event.GetCol()).ToStdString(), *wxWHITE);
     event.ResumePropagation(1);
     event.Skip();
 }
 
-void ModelFaceDialog::OnMatrixModelsGridCellLeftClick1(wxGridEvent& event)
-{
-    UpdatePreview("", *wxWHITE);
+void ModelFaceDialog::OnMatrixModelsGridCellLeftClick1(wxGridEvent& event) {
+    UpdatePreview(MatrixModelsGrid->GetCellValue(event.GetRow(), event.GetCol()).ToStdString(), *wxWHITE);
     event.ResumePropagation(1);
     event.Skip();
 }

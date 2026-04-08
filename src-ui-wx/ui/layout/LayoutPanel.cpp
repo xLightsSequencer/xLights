@@ -5484,11 +5484,15 @@ void LayoutPanel::EditFaces()
         return;
 
     ModelFaceDialog dlg(this, &xlights->_outputManager);
-    dlg.SetFaceInfo(md, md->GetFaceInfo());
+    auto oldFaceInfo = md->GetFaceInfo();
+    dlg.SetFaceInfo(md, oldFaceInfo);
     if (dlg.ShowModal() == wxID_OK) {
-        md->SetFaceInfo(dlg.GetFaceInfo());
-        md->IncrementChangeCount();
-        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
+        auto newFaceInfo = dlg.GetFaceInfo();
+        if (newFaceInfo != oldFaceInfo) {
+            md->SetFaceInfo(newFaceInfo);
+            md->IncrementChangeCount();
+            md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
+        }
     }
 }
 
