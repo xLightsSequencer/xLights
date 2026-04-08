@@ -987,7 +987,7 @@ bool FPP::uploadFileV7(const std::string &filename,
         }
         prepareCurlForMulti(ps);
     } else {
-        spdlog::warn("ERROR:Uploading file: {}    Could not open source file: {}", filename, file);
+        spdlog::warn("ERROR Uploading file: {}    Could not open source file: {}", filename, file);
         messages.push_back("ERROR Uploading file: " + filename + "    Could not open source file: " + file);
         faileduploads.push_back(filename);
         delete ps;
