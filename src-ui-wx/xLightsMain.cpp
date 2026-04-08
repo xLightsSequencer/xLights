@@ -6363,27 +6363,32 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             last = newlast;
             lastm = m;
         }
-        // Check for single line models with left-to-right physical orientation
+        // Check for single line models with correct physical orientation
         if (m->GetDisplayAs() == DisplayAsType::SingleLine) {
             size_t nodeCount = m->GetNodeCount();
             if (nodeCount < 2)
                 continue; // Not a valid line
 
             TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(m->GetBaseObjectScreenLocation());
-            glm::vec3 loc = screenLoc.GetWorldPosition();
-            float startX = loc.x;
-            float startY = loc.y;
-            float startZ = loc.z;
-            float endX = screenLoc.GetX2();
-            float endY = screenLoc.GetY2();
-            float endZ = screenLoc.GetZ2();
+            // x2, y2, z2 are offsets from the start (green square) to the end (blue square)
+            float dx = screenLoc.GetX2();
+            float dy = screenLoc.GetY2();
+            float dz = screenLoc.GetZ2();
 
-            float deltaX = fabs(startX - endX);
-            float deltaY = fabs(startY - endY);
-            float deltaZ = fabs(startZ - endZ);
+            float deltaX = fabs(dx);
+            float deltaY = fabs(dy);
+            float deltaZ = fabs(dz);
             if (deltaX > deltaY && deltaX > deltaZ) {
-                if (startX > endX) {
+                // Horizontal line: green square should be on the left (dx > 0)
+                if (dx < 0) {
                     wxString msg = wxString::Format("    %s: Model '%s' should have the green square on the left of the blue square for best render results.",
+                        "WARN", m->GetName());
+                    LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "config", errcount, warncount);
+                }
+            } else if (deltaY > deltaX && deltaY > deltaZ) {
+                // Vertical line: green square should be on the bottom (dy > 0)
+                if (dy < 0) {
+                    wxString msg = wxString::Format("    %s: Model '%s' should have the green square on the bottom of the blue square for best render results.",
                         "WARN", m->GetName());
                     LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "config", errcount, warncount);
                 }
