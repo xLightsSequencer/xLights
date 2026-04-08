@@ -72,9 +72,6 @@
     <ClCompile Include="..\src-core\render\RenderEngine.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\render\RenderUI.cpp">
-      <Filter>ui\render</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-core\render\RenderBuffer.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -648,7 +645,8 @@
     </ClCompile>
     <ClCompile Include="..\src-core\outputs\GenericSerialOutput.cpp">
       <Filter>Outputs</Filter>
-    </ClCompile>    <ClCompile Include="..\src-core\models\RulerObject.cpp">
+    </ClCompile>
+    <ClCompile Include="..\src-core\models\RulerObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\DMX\DmxGeneral.cpp">
@@ -740,9 +738,6 @@
     <ClCompile Include="..\src-ui-wx\ui\layout\LORPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\import-export\ExportSettings.cpp" />
     <ClCompile Include="..\src-core\render\GPURenderUtils.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\graphics\opengl\xlGLCanvas.cpp">
-      <Filter>ui\graphics\opengl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
@@ -834,20 +829,8 @@
     <ClCompile Include="..\src-core\utils\ip_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.cpp">
-      <Filter>ui\shared\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.cpp">
-      <Filter>ui\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\shared\utils\wxUtilities.cpp">
       <Filter>ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\color\wxColorCurveButton.cpp">
-      <Filter>ui\color</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\color\wxColorCurveRenderer.cpp">
-      <Filter>ui\color</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\controllerproperties\ControllerEthernetPropertyAdapter.cpp">
       <Filter>ui\controllerproperties</Filter>
@@ -993,9 +976,6 @@
     </ClCompile>
     <ClCompile Include="..\src-core\effects\GuitarEffect.cpp">
       <Filter>Effects</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\graphics\opengl\xlOGL3GraphicsContext.cpp">
-      <Filter>ui\graphics\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\sequencer\MetronomeLabelDialog.cpp" />
     <ClCompile Include="..\src-core\utils\CurlManager.cpp">
@@ -1321,32 +1301,8 @@
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.h">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginBufferingAdapter.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginChannelAdapter.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginHostAdapter.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginInputDomainAdapter.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginLoader.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginWrapper.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ai\AIImageDialog.cpp">
       <Filter>ai</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\acsymbols.c">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
     <ClCompile Include="..\dependencies\midifile\src\MidiEvent.cpp">
       <Filter>MIDI</Filter>
@@ -1378,32 +1334,11 @@
     <ClCompile Include="..\src-core\effects\EffectManager.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\host-c.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\support\EzGrid.cpp">
-      <Filter>ui\support</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\support\FastComboEditor.cpp">
-      <Filter>ui\support</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\support\GridCellChoiceRenderer.cpp">
-      <Filter>ui\support</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-core\utils\VectorMath.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\Files.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\FFT.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClCompile>
     <ClCompile Include="..\dependencies\wxHTTPServer\context.cpp">
       <Filter>wxHTTPServer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\vamp-hostsdk\RealTime.cpp">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClCompile>
     <ClCompile Include="..\dependencies\wxHTTPServer\status.cpp">
       <Filter>wxHTTPServer</Filter>
@@ -1454,6 +1389,30 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\discovery\Discovery.cpp" />
+    <ClCompile Include="..\src-core\utils\FileUtils.cpp" />
+    <ClCompile Include="..\src-core\utils\NodeUtils.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\graphics\opengl\xlGLCanvas.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\graphics\opengl\xlOGL3GraphicsContext.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\color\wxColorCurveButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\color\wxColorCurveRenderer.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\render\RenderUI.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\support\EzGrid.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\support\FastComboEditor.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\support\GridCellChoiceRenderer.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\acsymbols.c" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\FFT.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\Files.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\host-c.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginBufferingAdapter.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginChannelAdapter.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginHostAdapter.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginInputDomainAdapter.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginLoader.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\PluginWrapper.cpp" />
+    <ClCompile Include="..\dependencies\vamp-hostsdk\RealTime.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-ui-wx\ui\sequencer\BatchRenderDialog.h" />
@@ -1574,7 +1533,8 @@
     <ClInclude Include="..\src-ui-wx\ui\shared\utils\xlGridCanvas.h" />
     <ClInclude Include="..\src-ui-wx\xLightsApp.h" />
     <ClInclude Include="..\src-ui-wx\ui\import-export\xLightsImportChannelMapDialog.h" />
-    <ClInclude Include="..\src-ui-wx\xLightsMain.h" />    <ClInclude Include="..\src-core\xLightsVersion.h" />
+    <ClInclude Include="..\src-ui-wx\xLightsMain.h" />
+    <ClInclude Include="..\src-core\xLightsVersion.h" />
     <ClInclude Include="..\src-core\render\SequenceFile.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2104,7 +2064,8 @@
     </ClInclude>
     <ClInclude Include="..\src-core\outputs\GenericSerialOutput.h">
       <Filter>Outputs</Filter>
-    </ClInclude>    <ClInclude Include="..\src-core\models\RulerObject.h">
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\RulerObject.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\DMX\DmxGeneral.h">
@@ -2197,12 +2158,14 @@
     </ClInclude>
     <ClInclude Include="..\src-core\models\Pixels.h" />
     <ClInclude Include="..\src-ui-wx\ui\layout\LORPreview.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\ExportSettings.h" />    <ClInclude Include="..\src-core\graphics\xlGraphicsContext.h">
+    <ClInclude Include="..\src-ui-wx\ui\import-export\ExportSettings.h" />
+    <ClInclude Include="..\src-core\graphics\xlGraphicsContext.h">
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\graphics\xlGraphicsAccumulators.h">
       <Filter>graphics</Filter>
-    </ClInclude>    <ClInclude Include="..\src-core\graphics\xlFontInfo.h" />
+    </ClInclude>
+    <ClInclude Include="..\src-core\graphics\xlFontInfo.h" />
     <ClInclude Include="..\src-ui-wx\ui\automation\ScriptsDialog.h" />
     <ClInclude Include="..\src-core\graphics\tiny_obj_loader.h">
       <Filter>graphics</Filter>
@@ -2302,27 +2265,12 @@
     <ClInclude Include="..\src-core\effects\GuitarEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\graphics\opengl\xlOGL3GraphicsContext.h">
-      <Filter>ui\graphics\opengl</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\sequencer\MetronomeLabelDialog.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.h">
-      <Filter>ui\shared\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.h">
-      <Filter>ui\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\shared\utils\wxUtilities.h">
       <Filter>ui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\color\wxColorCurveButton.h">
-      <Filter>ui\color</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\color\wxColorCurveRenderer.h">
-      <Filter>ui\color</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\controllerproperties\ControllerEthernetPropertyAdapter.h">
       <Filter>ui\controllerproperties</Filter>
@@ -2775,39 +2723,6 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasEmpty.h">
       <Filter>ui\effectpanels\assist</Filter>
     </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginWrapper.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\Plugin.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\Plugin2.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBase.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBase2.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBufferingAdapter.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginChannelAdapter.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginHostAdapter.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginInputDomainAdapter.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginLoader.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ai\AIImageDialog.h">
       <Filter>ai</Filter>
     </ClInclude>
@@ -2835,6 +2750,15 @@
     <CustomBuild Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
+    <ClInclude Include="..\src-core\effects\ispc\ShockwaveFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\SpiralsFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\WarpFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\PinwheelFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -2880,44 +2804,8 @@
     <ClInclude Include="..\src-core\effects\EffectManager.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\hostguard.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\host-c.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\support\FastComboEditor.h">
-      <Filter>ui\support</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\support\EzGrid.h">
-      <Filter>ui\support</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\support\GridCellChoiceRenderer.h">
-      <Filter>ui\support</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-core\utils\VectorMath.h">
       <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\vamp-hostsdk.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\vamp.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\Files.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\RealTime2.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\RealTime.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\plugguard.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dependencies\vamp-hostsdk\Window.h">
-      <Filter>..\dependencies\vamp-hostsdk</Filter>
     </ClInclude>
     <ClInclude Include="..\dependencies\wxHTTPServer\sha1.h">
       <Filter>wxHTTPServer</Filter>
@@ -3002,6 +2890,38 @@
     <ClInclude Include="..\src-ui-wx\ui\shared\utils\xLightsTimer.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\utils\FileUtils.h" />
+    <ClInclude Include="..\src-core\utils\NodeUtils.h" />
+    <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
+    <ClInclude Include="..\src-ui-wx\ui\graphics\opengl\xlOGL3GraphicsContext.h" />
+    <ClInclude Include="..\src-ui-wx\ui\color\wxColorCurveButton.h" />
+    <ClInclude Include="..\src-ui-wx\ui\color\wxColorCurveRenderer.h" />
+    <ClInclude Include="..\src-ui-wx\ui\support\EzGrid.h" />
+    <ClInclude Include="..\src-ui-wx\ui\support\FastComboEditor.h" />
+    <ClInclude Include="..\src-ui-wx\ui\support\GridCellChoiceRenderer.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Files.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\host-c.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\hostguard.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\plugguard.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Plugin.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Plugin2.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBase.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBase2.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginBufferingAdapter.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginChannelAdapter.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginHostAdapter.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginInputDomainAdapter.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginLoader.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\PluginWrapper.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\RealTime.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\RealTime2.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\vamp-hostsdk.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\vamp.h" />
+    <ClInclude Include="..\dependencies\vamp-hostsdk\Window.h" />
+    <ClInclude Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.h" />
+    <ClInclude Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.h" />
+    <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -3140,6 +3060,12 @@
     <CustomBuild Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\ShockwaveFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\SpiralsFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
@@ -3150,6 +3076,12 @@
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\VideoFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\CirclesFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\WarpFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
   </ItemGroup>

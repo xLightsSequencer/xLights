@@ -41,3 +41,15 @@ OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/FanFuncti
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/KaleidoscopeFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/KaleidoscopeFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/ShockwaveFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/ShockwaveFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/SpiralsFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/SpiralsFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/CirclesFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/CirclesFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/WarpFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/WarpFunctions.o
