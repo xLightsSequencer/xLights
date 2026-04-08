@@ -1618,6 +1618,24 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                 // Embed in sequence
                 _sequenceMedia->GetImage(path);
                 std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                if (_sequenceMedia->HasImage(embeddedName)) {
+                    int answer = wxMessageBox(
+                        wxString::Format("'%s' is already embedded in the sequence.\n\nReplace it with the selected file?",
+                                         fn.GetFullName()),
+                        "Image Already Embedded",
+                        wxYES_NO | wxCANCEL | wxICON_QUESTION, this);
+                    if (answer == wxCANCEL) {
+                        _sequenceMedia->RemoveImage(path);
+                        continue;
+                    }
+                    if (answer == wxYES) {
+                        _sequenceMedia->RemoveImage(embeddedName);
+                        _sequenceMedia->RenameImage(path, embeddedName);
+                        _sequenceMedia->EmbedImage(embeddedName);
+                        lastPath = embeddedName;
+                        continue;
+                    }
+                }
                 int suffix = 1;
                 std::string candidate = embeddedName;
                 while (_sequenceMedia->HasImage(candidate)) {
@@ -1635,13 +1653,59 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                 std::string targetDir = copyTargets[sel - 1];
                 std::string newPath;
                 if (_xlFrame && targetDir == _showDirectory) {
-                    newPath = _xlFrame->MoveToShowFolder(path, sep + "Images");
+                    // Check if destination exists with different content before MoveToShowFolder
+                    // auto-suffixes it.
+                    wxString destDir = wxString(targetDir) + wxString(sep) + "Images";
+                    wxString destFile = destDir + wxString(sep) + fn.GetFullName();
+                    if (wxFileExists(destFile) && !_xlFrame->FilesMatch(path, destFile.ToStdString())) {
+                        int answer = wxMessageBox(
+                            wxString::Format("'%s' already exists in the folder.\n\nReplace it with the selected file?",
+                                             fn.GetFullName()),
+                            "File Already Exists",
+                            wxYES_NO | wxCANCEL | wxICON_QUESTION, this);
+                        if (answer == wxCANCEL) continue;
+                        if (answer == wxYES) {
+                            wxCopyFile(wxString(path), destFile, true);
+                            newPath = destFile.ToStdString();
+                        } else {
+                            // Add as New — let MoveToShowFolder generate a suffix name
+                            newPath = _xlFrame->MoveToShowFolder(path, sep + "Images");
+                        }
+                    } else {
+                        newPath = _xlFrame->MoveToShowFolder(path, sep + "Images");
+                    }
                 } else {
-                    wxString dest = wxString(targetDir) + wxString(sep) + "Images";
-                    if (!wxDirExists(dest)) wxMkdir(dest);
-                    dest += wxString(sep) + fn.GetFullName();
-                    if (wxCopyFile(wxString(path), dest, false))
-                        newPath = dest.ToStdString();
+                    wxString destDir = wxString(targetDir) + wxString(sep) + "Images";
+                    if (!wxDirExists(destDir)) wxMkdir(destDir);
+                    wxString dest = destDir + wxString(sep) + fn.GetFullName();
+                    if (wxFileExists(dest) &&
+                        (!_xlFrame || !_xlFrame->FilesMatch(path, dest.ToStdString()))) {
+                        int answer = wxMessageBox(
+                            wxString::Format("'%s' already exists in the folder.\n\nReplace it with the selected file?",
+                                             fn.GetFullName()),
+                            "File Already Exists",
+                            wxYES_NO | wxCANCEL | wxICON_QUESTION, this);
+                        if (answer == wxCANCEL) continue;
+                        if (answer == wxYES) {
+                            if (wxCopyFile(wxString(path), dest, true))
+                                newPath = dest.ToStdString();
+                        } else {
+                            // Add as New with suffix
+                            int suffix = 1;
+                            wxString suffixed = destDir + wxString(sep) + fn.GetName() +
+                                               wxString::Format("_%d", suffix) + "." + fn.GetExt();
+                            while (wxFileExists(suffixed)) {
+                                ++suffix;
+                                suffixed = destDir + wxString(sep) + fn.GetName() +
+                                           wxString::Format("_%d", suffix) + "." + fn.GetExt();
+                            }
+                            if (wxCopyFile(wxString(path), suffixed, false))
+                                newPath = suffixed.ToStdString();
+                        }
+                    } else {
+                        if (wxCopyFile(wxString(path), dest, false))
+                            newPath = dest.ToStdString();
+                    }
                 }
                 if (newPath.empty()) {
                     wxMessageBox("Failed to copy file to the selected folder.", "Error",
@@ -1658,6 +1722,10 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
             if (!rel.empty()) path = rel;
         }
 
+        // If the path is already in the cache (e.g. same file added again after
+        // being modified on disk), remove it first so GetImage reloads from disk.
+        if (_sequenceMedia->HasImage(path))
+            _sequenceMedia->RemoveImage(path);
         _sequenceMedia->GetImage(path);
         lastPath = path;
     }
