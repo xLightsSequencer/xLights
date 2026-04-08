@@ -41,6 +41,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Update the Model List after Model Inserts
     -bug (derwin12)             Only allow symmetrize on custom models
     -bug (derwin12)             Retain the directory used for shader, images, video file pickers
+    -bug (dkulp)                Prevent macOS persistent bookmarks file from becoming too large with bookmarks to tmp files
     -change (dkulp)             Move companion apps (xSchedule, xFade, xCapture, xScanner) to separate repos
     -change (dkulp)             Remove 32-bit Windows build targets
 2026.04  April 2, 2026
