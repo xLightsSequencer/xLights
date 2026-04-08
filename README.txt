@@ -13,25 +13,36 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
     -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs
+    -enh (dkulp)                Use AVFoundation for video decode on macOS (much faster than ffmpeg). Falls
+                                    back to ffmpeg for incompatible media files.
+    -enh (dkulp)                Support memory-mapped files for SequenceData on Mac when sequence would
+                                    use more than 50% of available memory. Better for low memory machines
+                                    like MacBook Neo
+    -enh (AGFazio)              Layout Model Icons resize on 4K/HiDPI monitors
+    -enh (scott)                Add Eleven Labs lyric import
+    -enh (derwin12)             ISPC acceleration for Bars, Fan, ColorWash, and Kaleidoscope effects
+    -bug (derwin12)             Fix Shape effect emoji/unicode characters rendering incorrectly on Windows
+    -bug (derwin12)             Fix Text Media Manager and MultiLine Text File
+    -bug (AGFazio)              Fix false positive missing texture error in Check Sequence for Mesh
+                                    objects with relative subfolder paths
+    -bug (derwin12)             Fix autobackup writing to wrong folder/filename when show directory has spaces
+    -bug (derwin12)             Fix Color Wheel Count by clearing default colors before loading
     -bug (derwin12)             Fix PolyLine with drop patterns
     -bug (derwin12)             Fix crash selecting multi-string PolyLine
-    -change (dkulp)             Remove SPXML dependency, replace with pugixml for format imports and
-                                lightweight XsqFileScanner for sequence file header peeking
-    -change (dkulp)             Migrate output runtime sockets from wxDatagramSocket/wxIPV4address to SocketAbstraction UDPSocket
-    -change (dkulp)             Refactor Render.cpp: split UI-coupled code into RenderUI.cpp behind abstract
-                                    interfaces (IRenderJobCallbacks, IRenderJobStatus, IRenderProgressSink)
-                                    to decouple the render engine from wxWidgets
-    -change (dkulp)             Extract IModelPreview interface from ModelPreview; models/ and DMX/ now use
-                                    IModelPreview* instead of ModelPreview*, removing the ui/layout dependency
-                                    from the core models layer
-    -change (dkulp)             Reorganize graphics/ as a wx-free core package: move IModelPreview to
-                                    graphics/, remove wx types from xlGraphicsContext/xlFontInfo headers,
-                                    move canvas implementations (xlGLCanvas, xlMetalCanvas, OGL3/Metal contexts)
-                                    to ui/graphics/ with backwards-compatible forwarders in graphics/
-    -change (dkulp)             Decouple OutputModelManager from xLightsFrame (uses std::function callbacks),
-                                    remove wx/wx.h from Model.cpp, move ViewpointMgr/PreviewCamera to render/
-                                    (wx-free, menu IDs moved to UI layer), remove xLightsMain.h from Effect.cpp
-                                    and CustomModel.cpp, remove LayoutGroup.h from Model.cpp
+    -bug (dkulp)                Fix issues with running xLights in Parallels
+    -bug (dkulp)                Make sure missing shaders/videos are flagged as missing in Media tab
+    -bug (derwin12)             Fix controller export pixel count
+    -bug (dkulp)                Save download cache xml after each download so a crash won't leave dangling files
+    -bug (dkulp)                Fix circle model center percent not being read from rgbeffects.xml
+    -bug (dkulp)                Fix crash on startup if multiple threads need curl to ping controllers
+    -bug (derwin12)             Fix Check Sequence crashing on face names with trailing slash
+    -bug (dkulp)                Fix potential crash if cancelling adding a new model
+    -bug (derwin12)             Only select the last timing track imported rather than all of them
+    -bug (derwin12)             Update the Model List after Model Inserts
+    -bug (derwin12)             Only allow symmetrize on custom models
+    -bug (derwin12)             Retain the directory used for shader, images, video file pickers
+    -change (dkulp)             Move companion apps (xSchedule, xFade, xCapture, xScanner) to separate repos
+    -change (dkulp)             Remove 32-bit Windows build targets
 2026.04  April 2, 2026
     -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
                                     and media manager. Animated GIFs/WebP cycle through all frames, videos
