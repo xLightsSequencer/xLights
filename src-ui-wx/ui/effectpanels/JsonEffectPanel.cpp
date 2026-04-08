@@ -31,6 +31,7 @@
 #include "ui/shared/utils/xlLockButton.h"
 #include "ui/sequencer/TimingPanel.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "effects/RenderableEffect.h"
 #include "render/SequenceElements.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
@@ -1194,6 +1195,28 @@ wxString JsonEffectPanel::GetEffectString() {
 
 void JsonEffectPanel::ValidateWindow() {
     ApplyVisibilityRules();
+}
+
+void JsonEffectPanel::SetRenderableEffect(RenderableEffect* eff) {
+    if (eff == nullptr) return;
+    for (auto& [id, info] : properties_) {
+        if (info.dynamicOptions == "effect" && info.choice) {
+            auto options = eff->GetSettingOptions(id);
+            if (!options.empty()) {
+                wxString selection = info.choice->GetStringSelection();
+                info.choice->Clear();
+                for (const auto& opt : options) {
+                    info.choice->Append(wxString(opt));
+                }
+                if (!selection.empty()) {
+                    info.choice->SetStringSelection(selection);
+                }
+                if (info.choice->GetSelection() == wxNOT_FOUND && info.choice->GetCount() > 0) {
+                    info.choice->SetSelection(0);
+                }
+            }
+        }
+    }
 }
 
 void JsonEffectPanel::SetPanelStatus(Model* cls) {

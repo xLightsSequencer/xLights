@@ -124,6 +124,11 @@ public:
     virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) {}
 
     static std::string UpgradeValueCurve(EffectManager* effectManager, const std::string& name, const std::string& value, const std::string& effectName);
+
+    // Return dynamic options for a setting. The setting name is the property id
+    // (e.g. "SingleStrand_FX"). Returns empty vector if not dynamic.
+    virtual std::vector<std::string> GetSettingOptions(const std::string& setting) const { return {}; }
+
 protected:
     virtual double GetSettingVCMin(const std::string& name) const
     {

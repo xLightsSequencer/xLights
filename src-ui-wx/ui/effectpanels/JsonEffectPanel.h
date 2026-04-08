@@ -41,6 +41,7 @@ public:
     void ValidateWindow() override;
     void SetDefaultParameters() override;
     void SetPanelStatus(Model* cls) override;
+    void SetRenderableEffect(RenderableEffect* eff) override;
     wxString GetEffectString() override;
 
     // Load metadata from a file path and return the parsed JSON.

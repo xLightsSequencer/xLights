@@ -49,6 +49,8 @@ public:
         return true;
     }
 
+    std::vector<std::string> GetSettingOptions(const std::string& setting) const override;
+
     virtual double GetSettingVCMin(const std::string& name) const override
     {
         if (name == "E_VALUECURVE_Chase_Rotations")

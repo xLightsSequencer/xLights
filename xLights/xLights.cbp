@@ -808,8 +808,6 @@
 		<Unit filename="../src-core/effects/ShockwaveEffect.h" />
 		<Unit filename="../src-core/effects/SingleStrandEffect.cpp" />
 		<Unit filename="../src-core/effects/SingleStrandEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SingleStrandPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SingleStrandPanel.h" />
 		<Unit filename="../src-core/effects/SketchEffect.cpp" />
 		<Unit filename="../src-core/effects/SketchEffect.h" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.cpp" />
@@ -818,8 +816,6 @@
 		<Unit filename="../src-ui-wx/ui/effectpanels/SketchPanel.h" />
 		<Unit filename="../src-core/effects/SnowflakesEffect.cpp" />
 		<Unit filename="../src-core/effects/SnowflakesEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SnowflakesPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SnowflakesPanel.h" />
 		<Unit filename="../src-core/effects/SnowstormEffect.cpp" />
 		<Unit filename="../src-core/effects/SnowstormEffect.h" />
 		<Unit filename="../src-core/effects/SpiralsEffect.cpp" />

@@ -32,7 +32,6 @@
 #include "ServoPanel.h"
 #include "ShaderPanel.h"
 #include "ShapePanel.h"
-#include "SingleStrandPanel.h"
 #include "SketchPanel.h"
 #include "SnowflakesPanel.h"
 #include "StatePanel.h"
@@ -140,9 +139,9 @@ void EffectPanelManager::RegisterPanels() {
     Register<ShapePanel>(E::eff_SHAPE, "Shape");
     RegisterJson(E::eff_SHIMMER, "Shimmer", "Shimmer");
     RegisterJson(E::eff_SHOCKWAVE, "Shockwave", "Shockwave");
-    Register<SingleStrandPanel>(E::eff_SINGLESTRAND, "SingleStrand");
+    RegisterJson(E::eff_SINGLESTRAND, "SingleStrand", "SingleStrand");
     Register<SketchPanel>(E::eff_SKETCH, "Sketch");
-    Register<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes");
+    RegisterJsonSubclass<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes", "Snowflakes");
     RegisterJson(E::eff_SNOWSTORM, "Snowstorm", "Snowstorm");
     RegisterJson(E::eff_SPIRALS, "Spirals", "Spirals");
     RegisterJson(E::eff_SPIROGRAPH, "Spirograph", "Spirograph");

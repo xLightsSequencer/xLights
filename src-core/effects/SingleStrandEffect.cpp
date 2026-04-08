@@ -31,6 +31,26 @@ SingleStrandEffect::SingleStrandEffect(int id)
     tooltip = "Single Strand";
 }
 
+std::vector<std::string> SingleStrandEffect::GetSettingOptions(const std::string& setting) const {
+    if (setting == "SingleStrand_FX") {
+        std::string names(JSON_mode_names);
+        Replace(names, "\n", "");
+        Replace(names, "\"", "");
+        Replace(names, "[", "");
+        Replace(names, "]", "");
+        return Split(names, ',');
+    }
+    if (setting == "SingleStrand_FX_Palette") {
+        std::string names(JSON_palette_names);
+        std::erase(names, '\n');
+        std::erase(names, '"');
+        std::erase(names, '[');
+        std::erase(names, ']');
+        return Split(names, ',');
+    }
+    return {};
+}
+
 SingleStrandEffect::~SingleStrandEffect()
 {
     //dtor

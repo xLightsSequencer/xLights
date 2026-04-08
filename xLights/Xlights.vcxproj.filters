@@ -1148,16 +1148,10 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShapePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SingleStrandPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\SketchCanvasPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\SketchPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\StatePanel.cpp">
@@ -2480,16 +2474,10 @@
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShapePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SingleStrandPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\SketchCanvasPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\SketchPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\StatePanel.h">

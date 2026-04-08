@@ -1,0 +1,59 @@
+{
+    "effectName": "Snowflakes",
+    "properties": [
+        {
+            "id": "Snowflakes_Count",
+            "label": "Max flakes",
+            "type": "int",
+            "controlType": "slider",
+            "default": 5,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Snowflakes_Type",
+            "label": "Type",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 0,
+            "max": 9,
+            "lockable": true
+        },
+        {
+            "id": "Snowflakes_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 0,
+            "max": 50,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Falling",
+            "label": "Falling",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Driving",
+                "Falling",
+                "Falling & Accumulating"
+            ],
+            "default": "Driving",
+            "lockable": true
+        },
+        {
+            "id": "Snowflakes_WarmupFrames",
+            "label": "Warm up frames",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100
+        }
+    ]
+}

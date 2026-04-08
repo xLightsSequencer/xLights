@@ -1,0 +1,254 @@
+{
+    "effectName": "SingleStrand",
+    "properties": [
+        {
+            "id": "SingleStrand_Colors",
+            "label": "Colors",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Rainbow",
+                "Palette"
+            ],
+            "default": "Palette",
+            "lockable": true
+        },
+        {
+            "id": "Number_Chases",
+            "label": "Number Chases",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 20,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Color_Mix1",
+            "label": "Chase Size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 10,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Chase_Rotations",
+            "label": "Cycles",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "lockable": true,
+            "min": 1,
+            "max": 500
+        },
+        {
+            "id": "Chase_Offset",
+            "label": "Offset",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "lockable": true,
+            "min": -5000,
+            "max": 5000
+        },
+        {
+            "id": "Chase_Type1",
+            "label": "Chase Types",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Left-Right",
+                "Right-Left",
+                "Bounce from Left",
+                "Bounce from Right",
+                "Dual Chase",
+                "From Middle",
+                "To Middle",
+                "Bounce to Middle",
+                "Bounce from Middle",
+                "Static Left-Right",
+                "Static Right-Left",
+                "Static Dual",
+                "Static From Middle",
+                "Static To Middle",
+                "Static Double-Ended"
+            ],
+            "default": "Left-Right",
+            "lockable": true
+        },
+        {
+            "id": "Fade_Type",
+            "label": "Fade",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "None",
+                "From Head",
+                "From Tail",
+                "Head and Tail",
+                "Middle"
+            ],
+            "default": "None",
+            "lockable": true
+        },
+        {
+            "id": "Chase_Group_All",
+            "label": "Group All Strands",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Skips_BandSize",
+            "label": "Band size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 20,
+            "lockable": true
+        },
+        {
+            "id": "Skips_SkipSize",
+            "label": "Skip size",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 0,
+            "max": 20,
+            "lockable": true
+        },
+        {
+            "id": "Skips_StartPos",
+            "label": "Starting Position",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 20,
+            "lockable": true
+        },
+        {
+            "id": "Skips_Advance",
+            "label": "Number of Advances",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "Skips_Direction",
+            "label": "Direction",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Left",
+                "Right",
+                "From Middle",
+                "To Middle"
+            ],
+            "default": "Left",
+            "lockable": true
+        },
+        {
+            "id": "SingleStrand_FX",
+            "label": "FX",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "effect"
+        },
+        {
+            "id": "SingleStrand_FX_Palette",
+            "label": "Palette",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "effect"
+        },
+        {
+            "id": "FX_Intensity",
+            "label": "Intensity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 128,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true
+        },
+        {
+            "id": "FX_Speed",
+            "label": "Speed",
+            "type": "int",
+            "controlType": "slider",
+            "default": 128,
+            "min": 0,
+            "max": 255,
+            "valueCurve": true
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Chase",
+                    "properties": [
+                        "SingleStrand_Colors",
+                        "Number_Chases",
+                        "Color_Mix1",
+                        "Chase_Rotations",
+                        "Chase_Offset",
+                        "Chase_Type1",
+                        "Fade_Type",
+                        "Chase_Group_All"
+                    ]
+                },
+                {
+                    "label": "Skips",
+                    "properties": [
+                        "Skips_BandSize",
+                        "Skips_SkipSize",
+                        "Skips_StartPos",
+                        "Skips_Advance",
+                        "Skips_Direction"
+                    ]
+                },
+                {
+                    "label": "FX",
+                    "properties": [
+                        "SingleStrand_FX",
+                        "SingleStrand_FX_Palette",
+                        "FX_Intensity",
+                        "FX_Speed"
+                    ]
+                }
+            ],
+            "settingKey": "E_NOTEBOOK_SSEFFECT_TYPE"
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Chase_Type1",
+                "startsWith": "Static"
+            },
+            "disable": [
+                "Chase_Rotations"
+            ]
+        }
+    ]
+}

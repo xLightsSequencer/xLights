@@ -739,9 +739,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\ShimmerEffect.cpp" />
     <ClCompile Include="..\src-core\effects\ShockwaveEffect.cpp" />
     <ClCompile Include="..\src-core\effects\SingleStrandEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SingleStrandPanel.cpp" />
     <ClCompile Include="..\src-core\effects\SnowflakesEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.cpp" />
     <ClCompile Include="..\src-core\effects\SnowstormEffect.cpp" />
     <ClCompile Include="..\src-core\effects\SpiralsEffect.cpp" />
     <ClCompile Include="..\src-core\effects\SpirographEffect.cpp" />
@@ -1295,9 +1293,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\ShimmerEffect.h" />
     <ClInclude Include="..\src-core\effects\ShockwaveEffect.h" />
     <ClInclude Include="..\src-core\effects\SingleStrandEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SingleStrandPanel.h" />
     <ClInclude Include="..\src-core\effects\SnowflakesEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.h" />
     <ClInclude Include="..\src-core\effects\SnowstormEffect.h" />
     <ClInclude Include="..\src-core\effects\SpiralsEffect.h" />
     <ClInclude Include="..\src-core\effects\SpirographEffect.h" />
