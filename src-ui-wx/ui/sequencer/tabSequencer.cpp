@@ -3024,12 +3024,14 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
     EffectsPanel1->SetDefaultEffectValues(effect);
 }
 void xLightsFrame::ResetAllPanelDefaultSettings() {
-    SetChoicebook(EffectsPanel1->EffectChoicebook, "On");
+    EffectsPanel1->SetDefaultEffectValues(); // set ALL the panel defaults
+    
+    // Now do the explicits to set to what we want for the default state
+    SetChoicebook(EffectsPanel1->EffectChoicebook, "Off");
     timingPanel->SetDefaultControls(nullptr, false);
     bufferPanel->SetDefaultControls(nullptr, false);
     colorPanel->SetDefaultSettings(false);
-
-    EffectsPanel1->SetDefaultEffectValues();
+    EffectsPanel1->SetDefaultEffectValues("Off");
 }
 
 
