@@ -40,6 +40,7 @@ public:
 
     void ValidateWindow() override;
     void SetDefaultParameters() override;
+    void SetPanelStatus(Model* cls) override;
     wxString GetEffectString() override;
 
     // Load metadata from a file path and return the parsed JSON.
@@ -77,6 +78,7 @@ private:
         int divisor = 1;
         bool suppressIfDefault = false;
         std::string settingPrefix; // Override setting key prefix (e.g. "TEXTCTRL" instead of "SLIDER")
+        std::string dynamicOptions; // Source for dynamically populated options (e.g. "timingTracks")
 
         // Pointers to created controls (not all will be set)
         wxSlider* slider = nullptr;

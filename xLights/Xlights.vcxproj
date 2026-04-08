@@ -497,10 +497,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.cpp" />
     <ClCompile Include="..\src-core\effects\FX.cpp" />
     <ClCompile Include="..\src-core\effects\GuitarEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\GuitarPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp" />
     <ClCompile Include="..\src-core\effects\KaleidoscopeEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\KaleidoscopePanel.cpp" />
     <ClCompile Include="..\src-core\effects\LinesEffect.cpp" />
     <ClCompile Include="..\src-core\effects\MovingHeadEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanel.cpp" />
@@ -715,7 +713,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\FillEffect.cpp" />
     <ClCompile Include="..\src-core\effects\FireEffect.cpp" />
     <ClCompile Include="..\src-core\effects\FireworksEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\FireworksPanel.cpp" />
     <ClCompile Include="..\src-core\effects\GalaxyEffect.cpp" />
     <ClCompile Include="..\src-core\effects\GarlandsEffect.cpp" />
     <ClCompile Include="..\src-core\effects\GlediatorEffect.cpp" />
@@ -1089,7 +1086,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.h" />
     <ClInclude Include="..\src-core\effects\FX.h" />
     <ClInclude Include="..\src-core\effects\GuitarEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\GuitarPanel.h" />
     <ClInclude Include="..\src-core\effects\ispc\BarsFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ButterflyFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ColorWashFunctions.ispc.h" />
@@ -1111,7 +1107,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\KaleidoscopeEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\KaleidoscopePanel.h" />
     <ClInclude Include="..\src-core\effects\LinesEffect.h" />
     <ClInclude Include="..\src-core\effects\MovingHeadEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanel.h" />
@@ -1274,7 +1269,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\FillEffect.h" />
     <ClInclude Include="..\src-core\effects\FireEffect.h" />
     <ClInclude Include="..\src-core\effects\FireworksEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\FireworksPanel.h" />
     <ClInclude Include="..\src-core\effects\GalaxyEffect.h" />
     <ClInclude Include="..\src-core\effects\GarlandsEffect.h" />
     <ClInclude Include="..\src-core\effects\GlediatorEffect.h" />

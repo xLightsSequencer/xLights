@@ -1118,15 +1118,6 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\FacesPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\FireworksPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\GuitarPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\KaleidoscopePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
@@ -2457,15 +2448,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\FacesPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\FireworksPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\GuitarPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\KaleidoscopePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.h">

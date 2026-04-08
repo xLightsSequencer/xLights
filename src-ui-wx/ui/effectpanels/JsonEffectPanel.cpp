@@ -30,6 +30,8 @@
 #include "ui/shared/controls/BulkEditControls.h"
 #include "ui/shared/utils/xlLockButton.h"
 #include "ui/sequencer/TimingPanel.h"
+#include "ui/shared/utils/wxUtilities.h"
+#include "render/SequenceElements.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 
@@ -182,6 +184,32 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     // Connect standard events
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&JsonEffectPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&JsonEffectPanel::OnValidateWindow, 0, this);
+
+    // Connect timing track event for dynamicOptions: "timingTracks" properties
+    bool hasTimingTracks = false;
+    for (const auto& [id, info] : properties_) {
+        if (!info.dynamicOptions.empty()) {
+            hasTimingTracks = true;
+            break;
+        }
+    }
+    if (hasTimingTracks) {
+        Bind(EVT_SETTIMINGTRACKS, [this](wxCommandEvent& event) {
+            auto tracks = wxSplit(event.GetString(), '|');
+            for (auto& [id, info] : properties_) {
+                if (info.dynamicOptions == "timingTracks" && info.choice) {
+                    wxString selection = info.choice->GetStringSelection();
+                    info.choice->Clear();
+                    for (const auto& t : tracks) {
+                        if (!t.empty()) info.choice->Append(t);
+                    }
+                    if (!selection.empty()) info.choice->SetStringSelection(selection);
+                    // Enable/disable based on whether tracks are available
+                    info.choice->Enable(info.choice->GetCount() > 0);
+                }
+            }
+        });
+    }
 
     // Set panel name for identification
     SetName(wxString::Format("ID_PANEL_%s", wxString(effectName).Upper()));
@@ -534,6 +562,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     info.divisor = divisor;
     info.suppressIfDefault = prop.value("suppressIfDefault", false);
     info.settingPrefix = settingPrefix;
+    info.dynamicOptions = prop.value("dynamicOptions", "");
     if (prop.contains("default")) {
         info.defaultValue = prop["default"];
     }
@@ -1165,6 +1194,27 @@ wxString JsonEffectPanel::GetEffectString() {
 
 void JsonEffectPanel::ValidateWindow() {
     ApplyVisibilityRules();
+}
+
+void JsonEffectPanel::SetPanelStatus(Model* cls) {
+    // Populate timing track choices from sequence elements
+    bool hasTimingTracks = false;
+    for (const auto& [id, info] : properties_) {
+        if (info.dynamicOptions == "timingTracks") { hasTimingTracks = true; break; }
+    }
+    if (hasTimingTracks && mSequenceElements != nullptr) {
+        std::string timingtracks;
+        for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
+            Element* e = mSequenceElements->GetElement(i);
+            if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() <= 1) {
+                if (!timingtracks.empty()) timingtracks += "|";
+                timingtracks += e->GetName();
+            }
+        }
+        wxCommandEvent event(EVT_SETTIMINGTRACKS);
+        event.SetString(timingtracks);
+        wxPostEvent(this, event);
+    }
 }
 
 void JsonEffectPanel::SetDefaultParameters() {

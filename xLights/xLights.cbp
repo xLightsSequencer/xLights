@@ -713,8 +713,6 @@
 		<Unit filename="../src-core/effects/FireEffect.h" />
 		<Unit filename="../src-core/effects/FireworksEffect.cpp" />
 		<Unit filename="../src-core/effects/FireworksEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/FireworksPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/FireworksPanel.h" />
 		<Unit filename="../src-core/utils/AnimatedImage.cpp" />
 		<Unit filename="../src-core/utils/AnimatedImage.h" />
 		<Unit filename="../src-core/effects/GalaxyEffect.cpp" />
@@ -725,12 +723,8 @@
 		<Unit filename="../src-core/effects/GlediatorEffect.h" />
 		<Unit filename="../src-core/effects/GuitarEffect.cpp" />
 		<Unit filename="../src-core/effects/GuitarEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/GuitarPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/GuitarPanel.h" />
 		<Unit filename="../src-core/effects/KaleidoscopeEffect.cpp" />
 		<Unit filename="../src-core/effects/KaleidoscopeEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/KaleidoscopePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/KaleidoscopePanel.h" />
 		<Unit filename="../src-core/effects/LifeEffect.cpp" />
 		<Unit filename="../src-core/effects/LifeEffect.h" />
 		<Unit filename="../src-core/effects/LightningEffect.cpp" />

@@ -22,9 +22,6 @@
 #include "DMXPanel.h"
 #include "DuplicatePanel.h"
 #include "FacesPanel.h"
-#include "FireworksPanel.h"
-#include "GuitarPanel.h"
-#include "KaleidoscopePanel.h"
 #include "LiquidPanel.h"
 #include "MorphPanel.h"
 #include "MovingHeadPanel.h"
@@ -118,12 +115,12 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_FAN, "Fan", "Fan");
     RegisterJson(E::eff_FILL, "Fill", "Fill");
     RegisterJson(E::eff_FIRE, "Fire", "Fire");
-    Register<FireworksPanel>(E::eff_FIREWORKS, "Fireworks");
+    RegisterJson(E::eff_FIREWORKS, "Fireworks", "Fireworks");
     RegisterJson(E::eff_GALAXY, "Galaxy", "Galaxy");
     RegisterJson(E::eff_GARLANDS, "Garlands", "Garlands");
     RegisterJson(E::eff_GLEDIATOR, "Glediator", "Glediator");
-    Register<GuitarPanel>(E::eff_GUITAR, "Guitar");
-    Register<KaleidoscopePanel>(E::eff_KALEIDOSCOPE, "Kaleidoscope");
+    RegisterJson(E::eff_GUITAR, "Guitar", "Guitar");
+    RegisterJson(E::eff_KALEIDOSCOPE, "Kaleidoscope", "Kaleidoscope");
     RegisterJson(E::eff_LIFE, "Life", "Life");
     RegisterJson(E::eff_LIGHTNING, "Lightning", "Lightning");
     RegisterJson(E::eff_LINES, "Lines", "Lines");

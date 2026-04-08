@@ -1,0 +1,168 @@
+{
+    "effectName": "Fireworks",
+    "properties": [
+        {
+            "id": "Fireworks_Explosions",
+            "label": "Number of Explosions",
+            "type": "int",
+            "controlType": "slider",
+            "default": 16,
+            "min": 1,
+            "max": 50,
+            "lockable": true
+        },
+        {
+            "id": "Fireworks_Count",
+            "label": "Particles in Explosion",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fireworks_Velocity",
+            "label": "Velocity of Particles",
+            "type": "int",
+            "controlType": "slider",
+            "default": 2,
+            "min": 1,
+            "max": 10,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fireworks_XVelocity",
+            "label": "X Velocity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Fireworks_YVelocity",
+            "label": "Y Velocity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Fireworks_XLocation",
+            "label": "X Location",
+            "type": "int",
+            "controlType": "slider",
+            "default": -1,
+            "min": -1,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Fireworks_YLocation",
+            "label": "Y Location",
+            "type": "int",
+            "controlType": "slider",
+            "default": -1,
+            "min": -1,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Fireworks_HoldColour",
+            "label": "Hold color",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Fireworks_Gravity",
+            "label": "Gravity",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        },
+        {
+            "id": "Fireworks_Fade",
+            "label": "Particle Fade",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "Fireworks_UseMusic",
+            "label": "Fire with music",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "Fireworks_Sensitivity",
+            "label": "Trigger level",
+            "type": "int",
+            "controlType": "slider",
+            "default": 50,
+            "min": 0,
+            "max": 100,
+            "lockable": true
+        },
+        {
+            "id": "FIRETIMING",
+            "label": "Fire with timing track",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true
+        },
+        {
+            "id": "FIRETIMINGTRACK",
+            "label": "Timing Track",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "timingTracks"
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Fireworks_UseMusic",
+                "equals": true
+            },
+            "enable": [
+                "Fireworks_Sensitivity"
+            ]
+        },
+        {
+            "when": {
+                "property": "FIRETIMING",
+                "equals": true
+            },
+            "enable": [
+                "FIRETIMINGTRACK"
+            ]
+        },
+        {
+            "when": {
+                "any": [
+                    "FIRETIMING",
+                    "Fireworks_UseMusic"
+                ]
+            },
+            "disable": [
+                "Fireworks_Explosions"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,107 @@
+{
+    "effectName": "Guitar",
+    "properties": [
+        {
+            "id": "Guitar_Type",
+            "label": "Type",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Guitar",
+                "Bass Guitar",
+                "Banjo"
+            ],
+            "default": "Guitar"
+        },
+        {
+            "id": "Guitar_MIDITrack_APPLYLAST",
+            "label": "Track",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "timingTracks"
+        },
+        {
+            "id": "StringAppearance",
+            "label": "String Appearance",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "On",
+                "Wave"
+            ],
+            "default": "On"
+        },
+        {
+            "id": "MaxFrets",
+            "label": "Fret Count",
+            "type": "int",
+            "controlType": "slider",
+            "default": 19,
+            "min": 8,
+            "max": 30
+        },
+        {
+            "id": "BaseWaveFactor",
+            "label": "Base Wavelength",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "min": 1,
+            "max": 100,
+            "divisor": 10
+        },
+        {
+            "id": "StringWaveFactor",
+            "label": "Vary Wavelength By String",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.0,
+            "min": 0,
+            "max": 100,
+            "divisor": 10
+        },
+        {
+            "id": "Fade",
+            "label": "Fade",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Collapse",
+            "label": "Collapse",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "ShowStrings",
+            "label": "Show Strings",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "VaryWaveLengthOnFret",
+            "label": "Vary Wavelength By Fret",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "StringAppearance",
+                "equals": "Wave"
+            },
+            "enable": [
+                "BaseWaveFactor",
+                "StringWaveFactor",
+                "VaryWaveLengthOnFret"
+            ]
+        }
+    ]
+}
