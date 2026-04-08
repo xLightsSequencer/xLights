@@ -12,7 +12,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -bug (derwin12)             Cube Model ignored Direction
+    -enh (AGFazio)              Add face definition matrix previews
     -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs
+    -enh (derwin12)             FPP media/file upload now reports missing source files as errors instead of silently skipping 
     -enh (dkulp)                Use AVFoundation for video decode on macOS (much faster than ffmpeg). Falls
                                     back to ffmpeg for incompatible media files.
     -enh (dkulp)                Support memory-mapped files for SequenceData on Mac when sequence would
@@ -20,11 +23,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     like MacBook Neo
     -enh (AGFazio)              Layout Model Icons resize on 4K/HiDPI monitors
     -enh (scott)                Add Eleven Labs lyric import
+    -enh (scott)                Changes/Improvements to the Build Job
     -enh (derwin12)             ISPC acceleration for Bars, Circles, Fan, ColorWash, Shockwave, Spirals, Warp, and Kaleidoscope effects
     -bug (derwin12)             Fix Shape effect emoji/unicode characters rendering incorrectly on Windows
     -bug (derwin12)             Fix Text Media Manager and MultiLine Text File
-    -bug (AGFazio)              Fix false positive missing texture error in Check Sequence for Mesh
-                                    objects with relative subfolder paths
+    -bug (AGFazio)              Fix false positive missing texture error in Check Sequence for Mesh objects
     -bug (derwin12)             Fix autobackup writing to wrong folder/filename when show directory has spaces
     -bug (derwin12)             Fix Color Wheel Count by clearing default colors before loading
     -bug (derwin12)             Fix PolyLine with drop patterns
@@ -34,6 +37,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Fix controller export pixel count
     -bug (dkulp)                Save download cache xml after each download so a crash won't leave dangling files
     -bug (dkulp)                Fix circle model center percent not being read from rgbeffects.xml
+    -bug (derwin12)             Enable the OK button on ExportModel groups
     -bug (dkulp)                Fix crash on startup if multiple threads need curl to ping controllers
     -bug (derwin12)             Fix Check Sequence crashing on face names with trailing slash
     -bug (dkulp)                Fix potential crash if cancelling adding a new model
@@ -43,7 +47,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Retain the directory used for shader, images, video file pickers
     -bug (dkulp)                Prevent macOS persistent bookmarks file from becoming too large with bookmarks to tmp files
     -change (dkulp)             Move companion apps (xSchedule, xFade, xCapture, xScanner) to separate repos
-    -change (dkulp)             Remove 32-bit Windows build targets
+    -change (dkulp)             Remove 32-bit Windows build targets. restructure file layout
 2026.04  April 2, 2026
     -enh (dkulp)                Add animated preview thumbnails to effect panels (Pictures, Shader, Video)
                                     and media manager. Animated GIFs/WebP cycle through all frames, videos
