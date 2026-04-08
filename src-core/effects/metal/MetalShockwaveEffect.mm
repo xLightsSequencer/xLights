@@ -106,7 +106,7 @@ void MetalShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap
     int end_width = GetValueCurveInt("Shockwave_End_Width", 0, SettingsMap, eff_pos, SHOCKWAVE_ENDWIDTH_MIN, SHOCKWAVE_ENDWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", 0);
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges");
-    bool scale = SettingsMap.GetBool("CHECKBOX_Shockwave_Scale", false);
+    bool scale = SettingsMap.GetBool("CHECKBOX_Shockwave_Scale", true);
 
     int num_colors = buffer.palette.Size();
     if (num_colors == 0) {

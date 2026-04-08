@@ -59,9 +59,6 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 1);
     int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
     int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset, PLASMA_SPEED_MIN, PLASMA_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    std::string PlasmaDirectionStr = SettingsMap["CHOICE_Plasma_Direction"];
-
-    int PlasmaDirection = 0; //fixme?
     const int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
 
 
@@ -71,8 +68,6 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     const int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
     const double Speed_plasma = (101-PlasmaSpeed)*3; // we want a large number to divide by
     const double time = (state+1.0)/Speed_plasma;
-
-    if (PlasmaDirection==1) offset = -offset;
 
     const double sin_time_5 = buffer.sin(time / 5);
     const double cos_time_3 = buffer.cos(time / 3);

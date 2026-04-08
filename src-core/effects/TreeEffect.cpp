@@ -31,7 +31,7 @@ TreeEffect::~TreeEffect()
 }
 
 void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", 1);
+    int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", 3);
     int tspeed = SettingsMap.GetInt("SLIDER_Tree_Speed", 10);
     bool showlights = SettingsMap.GetBool("CHECKBOX_Tree_ShowLights", false);
     
