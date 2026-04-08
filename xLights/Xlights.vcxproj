@@ -1684,7 +1684,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\render\IRenderJobStatus.h" />
     <ClInclude Include="..\src-core\models\PWMOutput.h" />
     <ClInclude Include="..\src-core\utils\GitUtils.h" />
-    <ClInclude Include="..\..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
