@@ -82,7 +82,18 @@ struct WarpData {
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 extern "C" {
 #endif // __cplusplus
-    extern void WarpEffectISPC(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint8_t4   * src, uint8_t4   * dst, const uint8_t * dissolve);
+    extern void WarpBandedSwirl(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint8_t4   * src, uint8_t4   * dst, bool inward);
+    extern void WarpCircleReveal(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint8_t4   * src, uint8_t4   * dst, bool inward);
+    extern void WarpCircularSwirl(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint8_t4   * src, uint8_t4   * dst);
+    extern void WarpCopy(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint32_t * src, uint32_t * dst);
+    extern void WarpDissolve(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint8_t4   * src, uint8_t4   * dst, const uint8_t * dissolve, bool inward);
+    extern void WarpDrop(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint32_t * src, uint32_t * dst, const uint8_t * dissolve);
+    extern void WarpFlip(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint32_t * src, uint32_t * dst);
+    extern void WarpMirror(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint32_t * src, uint32_t * dst);
+    extern void WarpRipple(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint8_t4   * src, uint8_t4   * dst, bool inward);
+    extern void WarpSingleWaterDrop(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint32_t * src, uint32_t * dst);
+    extern void WarpWaterDrops(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint32_t * src, uint32_t * dst);
+    extern void WarpWavy(const struct WarpData * data, int32_t startIdx, int32_t endIdx, const uint32_t * src, uint32_t * dst, const uint8_t * dissolve);
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus
