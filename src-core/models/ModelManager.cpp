@@ -1083,8 +1083,18 @@ bool ModelManager::ReworkStartChannel() const
     for (const auto& it : modelsToSet) {
         Model* m = GetModel(it);
         auto osc = m->ModelStartChannel;
-        m->SetStartChannel(std::to_string(lastChannel + 1));
+        std::string newSC = std::to_string(lastChannel + 1);
+        if (newSC != m->ModelStartChannel) {
+            // Directly set ModelStartChannel and update internal state without triggering
+            // WORK_CALCULATE_START_CHANNELS. ReworkStartChannel is the authoritative source
+            // for No Controller model start channels, so the round-trip through
+            // RecalcStartChannels is unnecessary and can cause an infinite loop when
+            // lastChannel shifts between iterations due to other models' ActChan updates.
+            m->ModelStartChannel = newSC;
+            m->IncrementChangeCount();
+        }
         m->ClearIndividualStartChannels();
+        m->UpdateChannels();
         lastChannel += m->GetChanCount();
         if (osc != m->ModelStartChannel) {
             outputsChanged = true;
