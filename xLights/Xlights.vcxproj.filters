@@ -3078,7 +3078,9 @@
     <CustomBuild Include="..\src-core\effects\ispc\VideoFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\src-core\effects\ispc\CirclesFunctions.ispc" />
+    <CustomBuild Include="..\src-core\effects\ispc\CirclesFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\WarpFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
