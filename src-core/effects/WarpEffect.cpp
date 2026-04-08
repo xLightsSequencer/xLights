@@ -25,6 +25,7 @@
 #include "../render/DissolveTransitionPattern.h"
 #include "UtilFunctions.h"
 
+#include "ispc/WarpFunctions.ispc.h"
 #include "Parallel.h"
 
 namespace
@@ -463,6 +464,57 @@ namespace
 
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
 
+   // ISPC warp mode integers (must match WarpFunctions.ispc defines)
+   enum WarpISPCMode {
+       WARP_ISPC_WATER_DROPS       = 0,
+       WARP_ISPC_RIPPLE_IN         = 1,
+       WARP_ISPC_RIPPLE_OUT        = 2,
+       WARP_ISPC_DISSOLVE_IN       = 3,
+       WARP_ISPC_DISSOLVE_OUT      = 4,
+       WARP_ISPC_CIRCLE_REVEAL_IN  = 5,
+       WARP_ISPC_CIRCLE_REVEAL_OUT = 6,
+       WARP_ISPC_BANDED_SWIRL_IN   = 7,
+       WARP_ISPC_BANDED_SWIRL_OUT  = 8,
+       WARP_ISPC_SINGLE_WATER_DROP = 9,
+       WARP_ISPC_CIRCULAR_SWIRL    = 10,
+       WARP_ISPC_DROP              = 11,
+       WARP_ISPC_WAVY              = 12,
+       WARP_ISPC_MIRROR            = 13,
+       WARP_ISPC_COPY              = 14,
+       WARP_ISPC_FLIP              = 15,
+   };
+
+   void RenderPixelTransformISPC(int ispcMode, RenderBuffer& rb, const WarpEffectParams& params)
+   {
+       xlColor* pixels = rb.GetPixels();
+       int count = rb.GetPixelCount();
+       xlColorVector cvOrig(pixels, pixels + count);
+
+       ispc::WarpData wdata;
+       wdata.width     = rb.BufferWi;
+       wdata.height    = rb.BufferHt;
+       wdata.warpMode  = ispcMode;
+       wdata.progress  = params.progress;
+       wdata.cx        = (float)params.xy.x;
+       wdata.cy        = (float)params.xy.y;
+       wdata.speed     = params.speed;
+       wdata.frequency = params.frequency;
+       wdata.dissolveW = (int)DissolvePatternWidth;
+       wdata.dissolveH = (int)DissolvePatternHeight;
+
+       constexpr int bfBlockSize = 4096;
+       int blocks = count / bfBlockSize + 1;
+       parallel_for(0, blocks, [&wdata, &cvOrig, &rb, count](int blk) {
+           int start = blk * bfBlockSize;
+           int end = std::min(start + bfBlockSize, count);
+           ispc::WarpEffectISPC(
+               &wdata, start, end,
+               (const ispc::uint8_t4*)cvOrig.data(),
+               (ispc::uint8_t4*)rb.GetPixels(),
+               DissolveTransitonPattern);
+       });
+   }
+
    void RenderSampleOn(RenderBuffer& rb, double x, double y)
    {
        int xx = x * (rb.BufferWi - 1);
@@ -533,19 +585,19 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
 
     WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
     if ( warpType == WarpEffect::WarpType::WATER_DROPS) {
-        RenderPixelTransform( waterDrops, buffer, params );
+        RenderPixelTransformISPC( WARP_ISPC_WATER_DROPS, buffer, params );
     } else if (warpType == WarpEffect::WarpType::SAMPLE_ON) {
         RenderSampleOn(buffer, x, y);
     } else if (warpType == WarpEffect::WarpType::WAVY) {
         LinearInterpolater interpolater;
         params.speed = interpolate( params.speed, 0.0,0.5, 40.0,5.0, interpolater );
-        RenderPixelTransform( wavy, buffer, params );
+        RenderPixelTransformISPC( WARP_ISPC_WAVY, buffer, params );
     } else if (warpType == WarpEffect::WarpType::MIRROR) {
-        RenderPixelTransform(mirror, buffer, params);
+        RenderPixelTransformISPC( WARP_ISPC_MIRROR, buffer, params );
     } else if (warpType == WarpEffect::WarpType::COPY) {
-        RenderPixelTransform(copy, buffer, params);
+        RenderPixelTransformISPC( WARP_ISPC_COPY, buffer, params );
     } else if (warpType == WarpEffect::WarpType::FLIP) {
-        RenderPixelTransform(flip, buffer, params);
+        RenderPixelTransformISPC( WARP_ISPC_FLIP, buffer, params );
     } else if (warpType == WarpEffect::WarpType::SINGLE_WATER_DROP) {
         float cycleCount = std::strtof( warpStrCycleCount.c_str(), nullptr );
         float intervalLen = 1.f / cycleCount;
@@ -557,9 +609,9 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
         float interpolatedProgress = interpolate( intervalProgress, 0.0,0.20, 1.0,0.45, interpolater );
 
         params.progress = interpolatedProgress;
-        RenderPixelTransform( singleWaterDrop, buffer, params );
+        RenderPixelTransformISPC( WARP_ISPC_SINGLE_WATER_DROP, buffer, params );
     } else {
-        PixelTransform xform = nullptr;
+        int ispcMode = -1;
         // the other warps were originally intended as transitions in or out... for constant
         // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
         // a very good description, maybe back-and-forth or something would be more accurate
@@ -574,36 +626,36 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
             }
             params.progress = intervalProgress;
             if (warpType == WarpEffect::WarpType::RIPPLE) {
-                xform = rippleIn;
+                ispcMode = WARP_ISPC_RIPPLE_IN;
             } else if (warpType == WarpEffect::WarpType::DISSOLVE) {
-                xform = dissolveIn;
+                ispcMode = WARP_ISPC_DISSOLVE_IN;
             } else if (warpType == WarpEffect::WarpType::BANDED_SWIRL) {
-                xform = bandedSwirlIn;
+                ispcMode = WARP_ISPC_BANDED_SWIRL_IN;
             } else if (warpType == WarpEffect::WarpType::CIRCLE_REVEAL) {
-                xform = circleRevealIn;
+                ispcMode = WARP_ISPC_CIRCLE_REVEAL_IN;
             } else if (warpType == WarpEffect::WarpType::CIRCULAR_SWIRL) {
                 params.progress = 1. - params.progress;
-                xform = circularSwirl;
+                ispcMode = WARP_ISPC_CIRCULAR_SWIRL;
             } else if (warpType == WarpEffect::WarpType::DROP) {
                 params.progress = 1. - params.progress;
-                xform = drop;
+                ispcMode = WARP_ISPC_DROP;
             }
         } else {
             if (warpType == WarpEffect::WarpType::RIPPLE) {
-                xform = warpTreatment == "in" ? rippleIn : rippleOut;
+                ispcMode = (warpTreatment == "in") ? WARP_ISPC_RIPPLE_IN : WARP_ISPC_RIPPLE_OUT;
             } else if (warpType == WarpEffect::WarpType::DISSOLVE) {
-                xform = ( warpTreatment == "in" ) ? dissolveIn : dissolveOut;
+                ispcMode = (warpTreatment == "in") ? WARP_ISPC_DISSOLVE_IN : WARP_ISPC_DISSOLVE_OUT;
             } else if (warpType == WarpEffect::WarpType::BANDED_SWIRL) {
-                xform = ( warpTreatment == "in" ) ? bandedSwirlIn : bandedSwirlOut;
+                ispcMode = (warpTreatment == "in") ? WARP_ISPC_BANDED_SWIRL_IN : WARP_ISPC_BANDED_SWIRL_OUT;
             } else if (warpType == WarpEffect::WarpType::CIRCLE_REVEAL) {
-                xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
+                ispcMode = (warpTreatment == "in") ? WARP_ISPC_CIRCLE_REVEAL_IN : WARP_ISPC_CIRCLE_REVEAL_OUT;
             } else if (warpType == WarpEffect::WarpType::CIRCULAR_SWIRL) {
-                xform = circularSwirl;
+                ispcMode = WARP_ISPC_CIRCULAR_SWIRL;
             } else if (warpType == WarpEffect::WarpType::DROP) {
-                xform = drop;
                 if (warpTreatment == "in") {
                     params.progress = 1. - params.progress;
                 }
+                ispcMode = WARP_ISPC_DROP;
             }
         }
 
@@ -614,8 +666,8 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
             }
         }
 
-        if (xform != nullptr) {
-            RenderPixelTransform( xform, buffer, params );
+        if (ispcMode >= 0) {
+            RenderPixelTransformISPC( ispcMode, buffer, params );
         }
     }
 }

@@ -22,6 +22,9 @@
 #include "../../include/shockwave-48.xpm"
 #include "../../include/shockwave-64.xpm"
 
+#include "ispc/ShockwaveFunctions.ispc.h"
+#include "Parallel.h"
+
 ShockwaveEffect::ShockwaveEffect(int id) :
     RenderableEffect(id, "Shockwave", shockwave_16, shockwave_24, shockwave_32, shockwave_48, shockwave_64)
 {
@@ -117,6 +120,41 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     radius1 = radius_center - half_width;
     radius2 = radius_center + half_width;
     radius1 = std::max(0.0, radius1);
+
+    do {
+        if (buffer.palette.IsSpatial(color_index)) break;
+
+        HSVValue colorHsv = color.asHSV();
+        ispc::ShockwaveData sdata;
+        sdata.width         = buffer.BufferWi;
+        sdata.height        = buffer.BufferHt;
+        sdata.xc_adj        = (float)xc_adj;
+        sdata.yc_adj        = (float)yc_adj;
+        sdata.radius1       = (float)radius1;
+        sdata.radius2       = (float)radius2;
+        sdata.radius_center = (float)radius_center;
+        sdata.half_width    = (float)half_width;
+        sdata.blend_edges   = blend_edges ? 1 : 0;
+        sdata.allowAlpha    = buffer.allowAlpha ? 1 : 0;
+        sdata.color.v[0]    = color.red;
+        sdata.color.v[1]    = color.green;
+        sdata.color.v[2]    = color.blue;
+        sdata.color.v[3]    = color.alpha;
+        sdata.colorH        = (float)colorHsv.hue;
+        sdata.colorS        = (float)colorHsv.saturation;
+        sdata.colorV        = (float)colorHsv.value;
+
+        int max = buffer.BufferWi * buffer.BufferHt;
+        constexpr int bfBlockSize = 4096;
+        int blocks = max / bfBlockSize + 1;
+        parallel_for(0, blocks, [&sdata, &buffer, max](int blk) {
+            int start = blk * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > max) end = max;
+            ispc::ShockwaveEffectISPC(&sdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+        });
+        return;
+    } while (false);
 
     for (int x = 0; x < buffer.BufferWi; x++) {
         int x1 = x - xc_adj;

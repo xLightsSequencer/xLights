@@ -19,7 +19,7 @@
 #include "../../include/spirals-48.xpm"
 #include "../../include/spirals-64.xpm"
 
-
+#include "ispc/SpiralsFunctions.ispc.h"
 #include "Parallel.h"
 
 SpiralsEffect::SpiralsEffect(int id) : RenderableEffect(id, "Spirals", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64)
@@ -74,6 +74,52 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     long SpiralState = position * buffer.BufferWi * 10 * Direction;
 
     SpiralThickness += ThicknessState;
+
+    do {
+        if (Blend) break;
+        if (colorcnt > MAX_ISPC_SPIRALS_COLORS) break;
+        bool hasSpatial = false;
+        for (size_t i = 0; i < colorcnt; i++) {
+            if (buffer.palette.IsSpatial(i)) { hasSpatial = true; break; }
+        }
+        if (hasSpatial) break;
+
+        ispc::SpiralsData sdata;
+        sdata.width          = buffer.BufferWi;
+        sdata.height         = buffer.BufferHt;
+        sdata.spiralCount    = SpiralCount;
+        sdata.colorCount     = (int)colorcnt;
+        sdata.spiralState    = (float)SpiralState;
+        sdata.rotation       = Rotation;
+        sdata.rotation_sign  = Rotation < 0 ? -1.0f : 1.0f;
+        sdata.deltaStrands   = (float)deltaStrands;
+        sdata.spiralThickness = (float)SpiralThickness;
+        sdata.show3D         = Show3D ? 1 : 0;
+        sdata.allowAlpha     = buffer.allowAlpha ? 1 : 0;
+        for (size_t i = 0; i < colorcnt; i++) {
+            xlColor c;
+            buffer.palette.GetColor(i, c);
+            sdata.colorsAsRGBA[i].v[0] = c.red;
+            sdata.colorsAsRGBA[i].v[1] = c.green;
+            sdata.colorsAsRGBA[i].v[2] = c.blue;
+            sdata.colorsAsRGBA[i].v[3] = c.alpha;
+            HSVValue hsv = c.asHSV();
+            sdata.colorsH[i] = (float)hsv.hue;
+            sdata.colorsS[i] = (float)hsv.saturation;
+            sdata.colorsV[i] = (float)hsv.value;
+        }
+
+        int max = buffer.BufferWi * buffer.BufferHt;
+        constexpr int bfBlockSize = 4096;
+        int blocks = max / bfBlockSize + 1;
+        parallel_for(0, blocks, [&sdata, &buffer, max](int blk) {
+            int start = blk * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > max) end = max;
+            ispc::SpiralsEffectISPC(&sdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+        });
+        return;
+    } while (false);
 
     for (int ns = 0; ns < SpiralCount; ns++) {
         int strand_base = ns * deltaStrands;

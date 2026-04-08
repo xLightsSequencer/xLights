@@ -1,0 +1,100 @@
+//
+// (Header written to match the struct and export in SpiralsFunctions.ispc.)
+// Keep in sync with SpiralsFunctions.ispc manually.
+//
+
+#pragma once
+#include <stdint.h>
+
+#if !defined(__cplusplus)
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+#include <stdbool.h>
+#else
+typedef int bool;
+#endif
+#endif
+
+
+
+#ifdef __cplusplus
+namespace ispc { /* namespace */
+#endif // __cplusplus
+///////////////////////////////////////////////////////////////////////////
+// Vector types with external visibility from ispc code
+///////////////////////////////////////////////////////////////////////////
+
+#ifndef __ISPC_VECTOR_uint8_t4__
+#define __ISPC_VECTOR_uint8_t4__
+#ifdef _MSC_VER
+__declspec( align(4) ) struct uint8_t4 { uint8_t v[4]; };
+#else
+struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
+#endif
+#endif
+
+
+
+/* Portable alignment macro that works across different compilers and standards */
+#if defined(__cplusplus) && __cplusplus >= 201103L
+/* C++11 or newer - use alignas keyword */
+#define __ISPC_ALIGN__(x) alignas(x)
+#elif defined(__GNUC__) || defined(__clang__)
+/* GCC or Clang - use __attribute__ */
+#define __ISPC_ALIGN__(x) __attribute__((aligned(x)))
+#elif defined(_MSC_VER)
+/* Microsoft Visual C++ - use __declspec */
+#define __ISPC_ALIGN__(x) __declspec(align(x))
+#else
+/* Unknown compiler/standard - alignment not supported */
+#define __ISPC_ALIGN__(x)
+#warning "Alignment not supported on this compiler"
+#endif // defined(__cplusplus) && __cplusplus >= 201103L
+#ifndef __ISPC_ALIGNED_STRUCT__
+#if defined(__clang__) || !defined(_MSC_VER) || _MSC_VER > 1943
+// Clang, GCC, ICC, Visual Studio
+#define __ISPC_ALIGNED_STRUCT__(s) struct __ISPC_ALIGN__(s)
+#else
+// Older Visual Studio
+#define __ISPC_ALIGNED_STRUCT__(s) __ISPC_ALIGN__(s) struct
+#endif // defined(__clang__) || !defined(_MSC_VER) || _MSC_VER > 1943
+#endif // __ISPC_ALIGNED_STRUCT__
+
+#define MAX_ISPC_SPIRALS_COLORS 8
+
+#ifndef __ISPC_STRUCT_SpiralsData__
+#define __ISPC_STRUCT_SpiralsData__
+struct SpiralsData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  spiralCount;
+    int32_t  colorCount;
+    float    spiralState;
+    float    rotation;
+    float    rotation_sign;
+    float    deltaStrands;
+    float    spiralThickness;
+    int32_t  show3D;
+    int32_t  allowAlpha;
+    uint8_t4 colorsAsRGBA[MAX_ISPC_SPIRALS_COLORS];
+    float    colorsH[MAX_ISPC_SPIRALS_COLORS];
+    float    colorsS[MAX_ISPC_SPIRALS_COLORS];
+    float    colorsV[MAX_ISPC_SPIRALS_COLORS];
+};
+#endif
+
+
+///////////////////////////////////////////////////////////////////////////
+// Functions exported from ispc code
+///////////////////////////////////////////////////////////////////////////
+#if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
+extern "C" {
+#endif // __cplusplus
+    extern void SpiralsEffectISPC(const struct SpiralsData * data, int32_t startIdx, int32_t endIdx, uint8_t4 * result);
+#if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
+} /* end extern C */
+#endif // __cplusplus
+
+
+#ifdef __cplusplus
+} /* namespace */
+#endif // __cplusplus

@@ -19,6 +19,9 @@
 #include "../../include/circles-48.xpm"
 #include "../../include/circles-64.xpm"
 
+#include "ispc/CirclesFunctions.ispc.h"
+#include "Parallel.h"
+
 CirclesEffect::CirclesEffect(int i) : RenderableEffect(i, "Circles", circles_16, circles_24, circles_32, circles_48, circles_64)
 {
     //ctor
@@ -162,11 +165,116 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
         int start_y = buffer.BufferHt / 2;
         start_x = start_x + (GetValueCurveInt("Circles_XC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_x);
         start_y = start_y + (GetValueCurveInt("Circles_YC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_y);
+        do {
+            if ((int)colorCnt > MAX_ISPC_CIRCLES_COLORS) break;
+            bool hasSpatial = false;
+            for (size_t i = 0; i < colorCnt; i++) {
+                if (buffer.palette.IsSpatial(i)) { hasSpatial = true; break; }
+            }
+            if (hasSpatial) break;
+
+            int barht = buffer.BufferHt / (radius + 1);
+            if (barht < 1) barht = 1;
+            int blockHt = (int)colorCnt * barht;
+            int maxRadius = effectState > buffer.BufferHt ? buffer.BufferHt : effectState / 2 + radius;
+
+            ispc::CirclesData sdata = {};
+            sdata.width       = buffer.BufferWi;
+            sdata.height      = buffer.BufferHt;
+            sdata.mode        = radial_3D ? CIRCLES_MODE_RADIAL_3D : CIRCLES_MODE_RADIAL;
+            sdata.colorCount  = (int)colorCnt;
+            sdata.allowAlpha  = buffer.allowAlpha ? 1 : 0;
+            sdata.cx          = start_x;
+            sdata.cy          = start_y;
+            sdata.barSize     = barht;
+            sdata.blockSize   = blockHt;
+            sdata.f_offset    = effectState / 4 % (blockHt + 1);
+            sdata.maxRadius   = maxRadius;
+            sdata.number      = number;
+            sdata.effectState = effectState;
+            for (size_t i = 0; i < colorCnt; i++) {
+                xlColor c;
+                buffer.palette.GetColor(i, c);
+                sdata.colorsAsRGBA[i].v[0] = c.red;
+                sdata.colorsAsRGBA[i].v[1] = c.green;
+                sdata.colorsAsRGBA[i].v[2] = c.blue;
+                sdata.colorsAsRGBA[i].v[3] = c.alpha;
+                HSVValue hsv = c.asHSV();
+                sdata.colorsH[i] = (float)hsv.hue;
+                sdata.colorsS[i] = (float)hsv.saturation;
+                sdata.colorsV[i] = (float)hsv.value;
+            }
+
+            int total = buffer.BufferWi * buffer.BufferHt;
+            constexpr int bfBlockSize = 4096;
+            int blocks = total / bfBlockSize + 1;
+            parallel_for(0, blocks, [&sdata, &buffer, total](int blk) {
+                int start = blk * bfBlockSize;
+                int end = start + bfBlockSize;
+                if (end > total) end = total;
+                ispc::CirclesEffectISPC(&sdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+            });
+            return;
+        } while (false);
+
         RenderRadial(buffer, start_x, start_y, radius, colorCnt, number, radial_3D, effectState);
         return;
     }
 
     CirclesRenderCache* cache = UpdateCacheState(effect, SettingsMap, buffer);
+
+    do {
+        if (bubbles) break;
+        if ((int)colorCnt > MAX_ISPC_CIRCLES_COLORS) break;
+        if (cache->numBalls > MAX_ISPC_CIRCLES_BALLS) break;
+        bool hasSpatial = false;
+        for (size_t i = 0; i < colorCnt; i++) {
+            if (buffer.palette.IsSpatial(i)) { hasSpatial = true; break; }
+        }
+        if (hasSpatial) break;
+
+        RgbBalls* effObjs = plasma ? (RgbBalls*)cache->metaballs : cache->balls;
+
+        ispc::CirclesData sdata = {};
+        sdata.width      = buffer.BufferWi;
+        sdata.height     = buffer.BufferHt;
+        sdata.mode       = plasma ? CIRCLES_MODE_METABALLS
+                                  : (fade ? CIRCLES_MODE_FADING : CIRCLES_MODE_REGULAR);
+        sdata.numBalls   = cache->numBalls;
+        sdata.colorCount = (int)colorCnt;
+        sdata.allowAlpha = buffer.allowAlpha ? 1 : 0;
+        sdata.wrap       = (bounce || collide) ? 0 : 1;
+        for (int ii = 0; ii < cache->numBalls; ii++) {
+            sdata.balls[ii].x        = effObjs[ii]._x;
+            sdata.balls[ii].y        = effObjs[ii]._y;
+            sdata.balls[ii].radius   = effObjs[ii]._radius;
+            sdata.balls[ii].colorIdx = effObjs[ii]._colorindex;
+        }
+        for (size_t i = 0; i < colorCnt; i++) {
+            xlColor c;
+            buffer.palette.GetColor(i, c);
+            sdata.colorsAsRGBA[i].v[0] = c.red;
+            sdata.colorsAsRGBA[i].v[1] = c.green;
+            sdata.colorsAsRGBA[i].v[2] = c.blue;
+            sdata.colorsAsRGBA[i].v[3] = c.alpha;
+            HSVValue hsv = c.asHSV();
+            sdata.colorsH[i] = (float)hsv.hue;
+            sdata.colorsS[i] = (float)hsv.saturation;
+            sdata.colorsV[i] = (float)hsv.value;
+        }
+
+        int total = buffer.BufferWi * buffer.BufferHt;
+        constexpr int bfBlockSize = 4096;
+        int blocks = total / bfBlockSize + 1;
+        parallel_for(0, blocks, [&sdata, &buffer, total](int blk) {
+            int start = blk * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > total) end = total;
+            ispc::CirclesEffectISPC(&sdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+        });
+        return;
+    } while (false);
+
     RenderPixels(SettingsMap, buffer, cache, plasma, fade, bubbles, bounce, collide);
 }
 

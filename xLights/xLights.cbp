@@ -952,6 +952,22 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/KaleidoscopeFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/ShockwaveFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/ShockwaveFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/SpiralsFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/SpiralsFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/CirclesFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/CirclesFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/WarpFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/WarpFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/ButterflyFunctions.ispc">
 			<Option link="1" />
 		</Unit>
