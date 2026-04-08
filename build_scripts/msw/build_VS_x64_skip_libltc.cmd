@@ -68,7 +68,6 @@ goto exit
 :error
 
 @echo Error compiling x64
-pause
 exit 1
 
 :exit

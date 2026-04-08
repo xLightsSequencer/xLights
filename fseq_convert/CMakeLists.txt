@@ -40,16 +40,16 @@ file(WRITE "${CMAKE_BINARY_DIR}/git_version.h"
 )
 
 IF (WIN32)
-    include_directories(../include ../include/zlib ../xLights ${CMAKE_CURRENT_BINARY_DIR})
+    include_directories(../include ../include/zlib ../src-core ${CMAKE_CURRENT_BINARY_DIR})
     link_directories(../lib/windows64)
 ELSE()
-    include_directories(../xLights ${CMAKE_CURRENT_BINARY_DIR})
+    include_directories(../src-core ${CMAKE_CURRENT_BINARY_DIR})
 ENDIF()
 
 set(SRC_FILES
     fseq_convert.cpp
-    ../xLights/render/FSEQFile.cpp
-    ../xLights/render/FSEQFile.h
+    ../src-core/render/FSEQFile.cpp
+    ../src-core/render/FSEQFile.h
     )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
