@@ -1060,28 +1060,17 @@ bool ModelManager::ReworkStartChannel() const
     // first we need to work out the last used channel by all controllers and models other than those on No Controller
     uint32_t lastChannel = 0;
     for (const auto& it : _outputManager->GetControllers()) {
-        auto ec = (uint32_t)it->GetEndChannel();
-        if (ec > lastChannel) {
-            lastChannel = ec;
-        }
+        lastChannel = std::max(lastChannel, (uint32_t)it->GetEndChannel());
     }
 
     std::list<std::string> modelsToSet;
     {
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
         for (auto itm : models) {
-            // SubModels share channel space with their parent — skip them here;
-            // the parent (or its controller) already accounts for their channels.
-            if (dynamic_cast<SubModel*>(itm.second) != nullptr) continue;
             std::list<std::string> visited;
-            auto ctrlName = itm.second->GetControllerName();
-            bool isNoController = (ctrlName == NO_CONTROLLER || ctrlName.empty());
-            if (ModelHasNoDependencyOnNoController(itm.second, visited) || isNoController) {
-                if (!isNoController) {
-                    auto lc = (uint32_t)itm.second->GetLastChannel() + 1;
-                    if (lc > lastChannel) {
-                        lastChannel = lc;
-                    }
+            if (ModelHasNoDependencyOnNoController(itm.second, visited) || itm.second->GetControllerName() == NO_CONTROLLER) {
+                if (itm.second->GetControllerName() != NO_CONTROLLER) {
+                    lastChannel = std::max(lastChannel, itm.second->GetLastChannel() + 1);
                 } else {
                     modelsToSet.push_back(itm.first);
                 }
@@ -1120,8 +1109,7 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
         std::string dependson = BeforeFirst(sc.substr(1), ':');
         Model* mm = GetModel(dependson);
         if (mm != nullptr) {
-            auto mmCtrl = mm->GetControllerName();
-            if (mmCtrl == NO_CONTROLLER || mmCtrl.empty())
+            if (mm->GetControllerName() == NO_CONTROLLER)
                 return false;
             return ModelHasNoDependencyOnNoController(mm, visited);
         }
