@@ -1034,14 +1034,35 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
                 int bufH = model->GetDefaultBufferHt();
                 int imgW = img.GetWidth();
                 int imgH = img.GetHeight();
-                float scaleX = (float)bufW / imgW;
-                float scaleY = (float)bufH / imgH;
-                float scale = std::min(scaleX, scaleY);
-                int scaledW = (int)(imgW * scale);
-                int scaledH = (int)(imgH * scale);
-                img = img.Scale(scaledW, scaledH, wxIMAGE_QUALITY_HIGH);
-                int offsetX = (bufW - scaledW) / 2;
-                int offsetY = (bufH - scaledH) / 2;
+                wxString placement = MatrixImagePlacementChoice->GetStringSelection();
+                int scaledW, scaledH, offsetX, offsetY;
+                if (placement == "Centered") {
+                    scaledW = imgW;
+                    scaledH = imgH;
+                    offsetX = (bufW - scaledW) / 2;
+                    offsetY = (bufH - scaledH) / 2;
+                } else if (placement == "Scaled") {
+                    scaledW = bufW;
+                    scaledH = bufH;
+                    offsetX = 0;
+                    offsetY = 0;
+                    img = img.Scale(scaledW, scaledH, wxIMAGE_QUALITY_NEAREST);
+                } else if (placement == "Scale Keep Aspect Ratio Crop") {
+                    float scale = std::max((float)bufW / imgW, (float)bufH / imgH);
+                    scaledW = (int)(imgW * scale);
+                    scaledH = (int)(imgH * scale);
+                    img = img.Scale(scaledW, scaledH, wxIMAGE_QUALITY_NEAREST);
+                    offsetX = (bufW - scaledW) / 2;
+                    offsetY = (bufH - scaledH) / 2;
+                } else {
+                    // "Scale Keep Aspect Ratio" (default)
+                    float scale = std::min((float)bufW / imgW, (float)bufH / imgH);
+                    scaledW = (int)(imgW * scale);
+                    scaledH = (int)(imgH * scale);
+                    img = img.Scale(scaledW, scaledH, wxIMAGE_QUALITY_NEAREST);
+                    offsetX = (bufW - scaledW) / 2;
+                    offsetY = (bufH - scaledH) / 2;
+                }
                 int nodeCount = (int)model->GetNodeCount();
                 for (int n = 0; n < nodeCount; ++n) {
                     NodeBaseClass* node = model->GetNode(n);
