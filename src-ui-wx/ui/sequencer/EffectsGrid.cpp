@@ -1382,10 +1382,12 @@ Effect* EffectsGrid::FillRandomEffects() {
                             Effect* eff = tel->GetEffect(i);
                             if (eff != nullptr) {
                                 if (effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
+                                    std::string rndSettings, rndPalette;
+                                    std::string rndEffectName = xlights->CreateEffectStringRandom(rndSettings, rndPalette);
                                     Effect* ef = effectLayer->AddEffect(0,
-                                                                        "Random",
-                                                                        "",
-                                                                        "",
+                                                                        rndEffectName,
+                                                                        rndSettings,
+                                                                        rndPalette,
                                                                         eff->GetStartTimeMS(),
                                                                         eff->GetEndTimeMS(),
                                                                         EFFECT_SELECTED,
@@ -1394,7 +1396,11 @@ Effect* EffectsGrid::FillRandomEffects() {
                                         res = ef;
                                     if (ef != nullptr) {
                                         mSequenceElements->get_undo_mgr().CaptureAddedEffect(effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID());
-                                        RaiseSelectedEffectChanged(ef, true, false);
+                                        if (!ef->IsRenderDisabled()) {
+                                            sendRenderEvent(effectLayer->GetParentElement()->GetModelName(),
+                                                            ef->GetStartTimeMS(),
+                                                            ef->GetEndTimeMS(), true);
+                                        }
                                         mSelectedEffect = ef;
                                     }
                                 }
@@ -1418,10 +1424,12 @@ Effect* EffectsGrid::FillRandomEffects() {
         if (el != nullptr) {
             int end_time = mDropEndTimeMS;
             if (el->GetRangeIsClearMS(mDropStartTimeMS, end_time)) {
+                std::string rndSettings, rndPalette;
+                std::string rndEffectName = xlights->CreateEffectStringRandom(rndSettings, rndPalette);
                 Effect* ef = el->AddEffect(0,
-                                           "Random",
-                                           "",
-                                           "",
+                                           rndEffectName,
+                                           rndSettings,
+                                           rndPalette,
                                            mDropStartTimeMS,
                                            mDropEndTimeMS,
                                            EFFECT_SELECTED,
@@ -1445,6 +1453,7 @@ Effect* EffectsGrid::FillRandomEffects() {
             }
         }
     }
+    Draw();
     SetCursor(wxCURSOR_ARROW);
     return res;
 }
