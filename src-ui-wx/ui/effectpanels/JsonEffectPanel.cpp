@@ -88,25 +88,44 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     std::string effectName = metadata.value("effectName", "Unknown");
 
     // Collect property ids that are owned by groups (tabs, xyCenter, section).
+    // Tabs and sections each anchor at the index of their first listed
+    // property in the overall property list, so they interleave naturally
+    // with ungrouped flat-grid properties in source order. (Pre-fix, tabs
+    // were always emitted at the top — that broke layouts like Liquid where
+    // a notebook follows a block of global settings.)
     std::set<std::string> groupedPropIds;
-    nlohmann::json tabGroup;
-    bool hasTabs = false;
     std::vector<nlohmann::json> xyCenterGroups;
-    // Sections keyed by their insertion index — the position of the first listed
-    // property in the overall property list — so sections can be interleaved with
-    // flat-grid properties in source order.
-    std::map<int, nlohmann::json> sectionsByFirstIndex;
+    enum class GroupKind { Tabs, Section };
+    struct AnchoredGroup {
+        GroupKind kind;
+        nlohmann::json group;
+    };
+    std::map<int, AnchoredGroup> groupsByFirstIndex;
+
+    auto findFirstIndex = [&metadata](const std::set<std::string>& propIds) -> int {
+        if (!metadata.contains("properties")) return -1;
+        int idx = 0;
+        for (const auto& prop : metadata["properties"]) {
+            if (propIds.count(prop.value("id", ""))) return idx;
+            idx++;
+        }
+        return -1;
+    };
 
     if (metadata.contains("groups")) {
         for (const auto& group : metadata["groups"]) {
             std::string gtype = group.value("type", "");
             if (gtype == "tabs") {
-                hasTabs = true;
-                tabGroup = group;
+                std::set<std::string> tabPropIds;
                 for (const auto& tab : group["tabs"]) {
                     for (const auto& pid : tab["properties"]) {
+                        tabPropIds.insert(pid.get<std::string>());
                         groupedPropIds.insert(pid.get<std::string>());
                     }
+                }
+                int firstIdx = findFirstIndex(tabPropIds);
+                if (firstIdx >= 0) {
+                    groupsByFirstIndex[firstIdx] = {GroupKind::Tabs, group};
                 }
             } else if (gtype == "xyCenter") {
                 xyCenterGroups.push_back(group);
@@ -115,27 +134,14 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
                 if (group.contains("wrapX")) groupedPropIds.insert(group["wrapX"].get<std::string>());
                 if (group.contains("wrapY")) groupedPropIds.insert(group["wrapY"].get<std::string>());
             } else if (gtype == "section" && group.contains("properties")) {
-                // Record the section's property ids and locate its first
-                // property in the overall list; that index becomes the
-                // section's insertion point in the flat layout.
                 std::set<std::string> sectionPropIds;
                 for (const auto& pid : group["properties"]) {
                     sectionPropIds.insert(pid.get<std::string>());
                     groupedPropIds.insert(pid.get<std::string>());
                 }
-                int firstIdx = -1;
-                if (metadata.contains("properties")) {
-                    int idx = 0;
-                    for (const auto& prop : metadata["properties"]) {
-                        if (sectionPropIds.count(prop.value("id", ""))) {
-                            firstIdx = idx;
-                            break;
-                        }
-                        idx++;
-                    }
-                }
+                int firstIdx = findFirstIndex(sectionPropIds);
                 if (firstIdx >= 0) {
-                    sectionsByFirstIndex[firstIdx] = group;
+                    groupsByFirstIndex[firstIdx] = {GroupKind::Section, group};
                 }
             }
         }
@@ -147,93 +153,79 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
         descText = metadata["description"].get<std::string>();
     }
 
-    if (hasTabs) {
-        // Tabbed layout
-        auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
-        outerSizer->AddGrowableCol(0);
-        if (!descText.empty()) {
-            auto* desc = new wxStaticText(this, wxID_ANY, wxString(descText));
-            desc->Wrap(300);
-            outerSizer->Add(desc, 0, wxALL | wxEXPAND, 5);
+    // Single unified layout pass: walks the property list in declared order,
+    // emitting tabs/sections inline at their anchor index and putting the
+    // rest into flat grids. Always uses an outer 1-col sizer when the panel
+    // has anything that breaks out of the flat grid.
+    bool hasXY = !xyCenterGroups.empty();
+    bool hasGroups = !groupsByFirstIndex.empty();
+    bool hasSeparator = false;
+    for (const auto& prop : metadata["properties"]) {
+        if (prop.value("separator", false)) { hasSeparator = true; break; }
+    }
+    bool needsOuter = hasXY || hasGroups || hasSeparator || !descText.empty();
+
+    auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    outerSizer->AddGrowableCol(0);
+
+    if (!descText.empty()) {
+        auto* descLabel = new wxStaticText(this, wxID_ANY, wxString(descText));
+        descLabel->Wrap(300);
+        outerSizer->Add(descLabel, 0, wxALL | wxEXPAND, 5);
+    }
+
+    auto* gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
+    gridSizer->AddGrowableCol(1);
+
+    auto flushGrid = [&]() {
+        if (gridSizer->GetItemCount() > 0) {
+            outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+        } else {
+            delete gridSizer;
         }
-        BuildTabGroup(outerSizer, tabGroup, metadata);
+        gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
+        gridSizer->AddGrowableCol(1);
+    };
+
+    int propIndex = 0;
+    for (const auto& prop : metadata["properties"]) {
+        // Insert any tabs/section that anchors at this position before
+        // emitting the next flat property.
+        auto groupIt = groupsByFirstIndex.find(propIndex);
+        if (groupIt != groupsByFirstIndex.end()) {
+            flushGrid();
+            if (groupIt->second.kind == GroupKind::Tabs) {
+                BuildTabGroup(outerSizer, groupIt->second.group, metadata);
+            } else {
+                BuildSection(outerSizer, groupIt->second.group, metadata["properties"]);
+            }
+        }
+        propIndex++;
+
+        std::string pid = prop.value("id", "");
+        if (groupedPropIds.find(pid) != groupedPropIds.end()) continue;
+
+        if (prop.value("separator", false) && needsOuter) {
+            flushGrid();
+            auto* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+            outerSizer->Add(line, 0, wxALL | wxEXPAND, 5);
+        }
+        BuildPropertyRow(this, gridSizer, prop, 4);
+    }
+
+    if (needsOuter) {
+        if (gridSizer->GetItemCount() > 0) {
+            outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+        } else {
+            delete gridSizer;
+        }
+        for (const auto& xyGroup : xyCenterGroups) {
+            BuildXYCenter(this, outerSizer, xyGroup, metadata["properties"]);
+        }
         SetSizer(outerSizer);
     } else {
-        // Flat or mixed layout
-        // Check if we need a 1-column outer sizer (for XY groups, sections, separators, or description)
-        bool hasXY = !xyCenterGroups.empty();
-        bool hasSections = !sectionsByFirstIndex.empty();
-        bool hasSeparator = false;
-        for (const auto& prop : metadata["properties"]) {
-            if (prop.value("separator", false)) { hasSeparator = true; break; }
-        }
-        bool needsOuter = hasXY || hasSections || hasSeparator || !descText.empty();
-
-        auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
-        outerSizer->AddGrowableCol(0);
-
-        // Description appears at the top, matching tabbed layout.
-        if (!descText.empty()) {
-            auto* descLabel = new wxStaticText(this, wxID_ANY, wxString(descText));
-            descLabel->Wrap(300);
-            outerSizer->Add(descLabel, 0, wxALL | wxEXPAND, 5);
-        }
-
-        auto* gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
-        gridSizer->AddGrowableCol(1);
-
-        // Helper: flush the current flat grid into the outer sizer (if it has
-        // anything) and hand back a fresh grid to continue with.
-        auto flushGrid = [&]() {
-            if (gridSizer->GetItemCount() > 0) {
-                outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
-            } else {
-                delete gridSizer;
-            }
-            gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
-            gridSizer->AddGrowableCol(1);
-        };
-
-        // Build properties into the grid, flushing and emitting sections at
-        // the position of each section's first property. Skips properties
-        // that are owned by groups (tabs/xyCenter/section).
-        int propIndex = 0;
-        for (const auto& prop : metadata["properties"]) {
-            // Insert any section that anchors at this position before emitting
-            // the next flat property.
-            auto secIt = sectionsByFirstIndex.find(propIndex);
-            if (secIt != sectionsByFirstIndex.end()) {
-                flushGrid();
-                BuildSection(outerSizer, secIt->second, metadata["properties"]);
-            }
-            propIndex++;
-
-            std::string pid = prop.value("id", "");
-            if (groupedPropIds.find(pid) != groupedPropIds.end()) continue;
-
-            if (prop.value("separator", false) && needsOuter) {
-                flushGrid();
-                auto* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-                outerSizer->Add(line, 0, wxALL | wxEXPAND, 5);
-            }
-            BuildPropertyRow(this, gridSizer, prop, 4);
-        }
-
-        if (needsOuter) {
-            // Flush any trailing flat grid contents into the outer sizer.
-            if (gridSizer->GetItemCount() > 0) {
-                outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
-            } else {
-                delete gridSizer;
-            }
-            for (const auto& xyGroup : xyCenterGroups) {
-                BuildXYCenter(this, outerSizer, xyGroup, metadata["properties"]);
-            }
-            SetSizer(outerSizer);
-        } else {
-            delete outerSizer;
-            SetSizer(gridSizer);
-        }
+        delete outerSizer;
+        SetSizer(gridSizer);
     }
 
     // Parse visibility rules
@@ -404,28 +396,9 @@ void JsonEffectPanel::BuildTabGroup(wxSizer* parentSizer, const nlohmann::json& 
     }
 
     parentSizer->Add(notebook, 1, wxALL | wxEXPAND, 0);
-
-    // Add any properties that aren't in any tab (e.g., properties below the notebook)
-    bool hasUntabbed = false;
-    for (const auto& prop : allProps) {
-        std::string id = prop.value("id", "");
-        if (tabbedPropIds.find(id) == tabbedPropIds.end()) {
-            hasUntabbed = true;
-            break;
-        }
-    }
-
-    if (hasUntabbed) {
-        auto* belowSizer = new wxFlexGridSizer(0, 4, 0, 0);
-        belowSizer->AddGrowableCol(1);
-        for (const auto& prop : allProps) {
-            std::string id = prop.value("id", "");
-            if (tabbedPropIds.find(id) == tabbedPropIds.end()) {
-                BuildPropertyRow(this, belowSizer, prop, 4);
-            }
-        }
-        parentSizer->Add(belowSizer, 0, wxALL | wxEXPAND, 0);
-    }
+    // Untabbed properties used to be emitted below the notebook here, but
+    // they're now handled by the unified flat walk in BuildFromJson which
+    // emits this notebook at the index of its first listed property.
 }
 
 void JsonEffectPanel::BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer,

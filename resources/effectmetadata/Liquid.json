@@ -487,7 +487,7 @@
             "type": "tabs",
             "tabs": [
                 {
-                    "label": "1",
+                    "label": "Top",
                     "properties": [
                         "X1",
                         "Y1",
@@ -499,7 +499,7 @@
                     ]
                 },
                 {
-                    "label": "2",
+                    "label": "Lef",
                     "properties": [
                         "Enabled2",
                         "X2",
@@ -512,7 +512,7 @@
                     ]
                 },
                 {
-                    "label": "3",
+                    "label": "Bot",
                     "properties": [
                         "Enabled3",
                         "X3",
@@ -525,7 +525,7 @@
                     ]
                 },
                 {
-                    "label": "4",
+                    "label": "Rig",
                     "properties": [
                         "Enabled4",
                         "X4",
@@ -537,8 +537,7 @@
                         "FlowMusic4"
                     ]
                 }
-            ],
-            "settingKey": "E_NOTEBOOK1"
+            ]
         }
     ],
     "visibilityRules": [
