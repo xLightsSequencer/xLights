@@ -4009,29 +4009,37 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
     } else {
         spdlog::debug("EffectsGrid::MoveSelectedEffectUp moving multiple effects.");
 
-        // check if its clear for all effects
-        bool all_clear = true;
+        // Find the minimum offset to move all selected effects up, skipping over blocked rows
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
-        int num_effects = mSequenceElements->GetEffectLayer(first_model_row)->GetSelectedEffectCount();
-        if (num_effects > 0) {
-            all_clear = false;
-        }
-        for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize() && all_clear; row++) {
-            EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
-            EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
-            if (mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0) {
-                num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
-                for (int i = 0; (i < num_effects) && all_clear; ++i) {
-                    Effect* eff = el2->GetEffect(i);
-                    if (eff->GetSelected() && !eff->IsLocked()) {
-                        if (!el1->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS(), true)) {
+        int move_offset = 0;
+        if (mSequenceElements->GetEffectLayer(first_model_row)->GetSelectedEffectCount() == 0) {
+            for (int offset = 1; offset < mSequenceElements->GetRowInformationSize() - first_model_row && move_offset == 0; offset++) {
+                bool all_clear = true;
+                for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize() && all_clear; row++) {
+                    if (mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0) {
+                        int target_row = row - offset;
+                        if (target_row < first_model_row) {
                             all_clear = false;
+                            break;
+                        }
+                        EffectLayer* target_el = mSequenceElements->GetEffectLayer(target_row);
+                        int num_eff = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
+                        for (int i = 0; i < num_eff && all_clear; ++i) {
+                            Effect* eff = mSequenceElements->GetEffectLayer(row)->GetEffect(i);
+                            if (eff->GetSelected() && !eff->IsLocked()) {
+                                if (!target_el->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS(), true)) {
+                                    all_clear = false;
+                                }
+                            }
                         }
                     }
                 }
+                if (all_clear) {
+                    move_offset = offset;
+                }
             }
         }
-        if (all_clear) // all clear so now move them all up
+        if (move_offset > 0) // found a valid offset, so now move them all up
         {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
@@ -4039,11 +4047,11 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
             xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize(); row++) {
-                EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
                 EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
                 if (mSequenceElements->GetEffectLayer(row)->GetTaggedEffectCount() > 0) {
-                    num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
-                    for (int i = 0; (i < num_effects) && all_clear; ++i) {
+                    EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - move_offset);
+                    int num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
+                    for (int i = 0; i < num_effects; ++i) {
                         Effect* eff = el2->GetEffect(i);
                         if (eff->GetSelected() && eff->GetTagged() && !eff->IsLocked()) {
                             eff->SetTagged(false);
@@ -4149,41 +4157,50 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
     } else {
         spdlog::debug("EffectsGrid::MoveSelectedEffectDown moving multiple effects.");
 
-        // check if its clear for all effects
-        bool all_clear = true;
+        // Find the minimum offset to move all selected effects down, skipping over blocked rows
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
-        int num_effects = mSequenceElements->GetEffectLayer(mSequenceElements->GetRowInformationSize() - 1)->GetSelectedEffectCount();
-        if (num_effects > 0) {
-            all_clear = false;
-        }
-        for (int row = mSequenceElements->GetRowInformationSize() - 1; row > first_model_row && all_clear; row--) {
-            EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
-            EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
-            if (mSequenceElements->GetEffectLayer(row - 1)->GetSelectedEffectCount() > 0) {
-                int num_effects = mSequenceElements->GetEffectLayer(row - 1)->GetEffectCount();
-                for (int i = 0; (i < num_effects) && all_clear; ++i) {
-                    Effect* eff = el1->GetEffect(i);
-                    if (eff->GetSelected() && !eff->IsLocked()) {
-                        if (!el2->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS(), true)) {
+        int last_row = mSequenceElements->GetRowInformationSize() - 1;
+        int move_offset = 0;
+        if (mSequenceElements->GetEffectLayer(last_row)->GetSelectedEffectCount() == 0) {
+            for (int offset = 1; offset <= last_row - first_model_row && move_offset == 0; offset++) {
+                bool all_clear = true;
+                for (int row = last_row - 1; row >= first_model_row && all_clear; row--) {
+                    if (mSequenceElements->GetEffectLayer(row)->GetSelectedEffectCount() > 0) {
+                        int target_row = row + offset;
+                        if (target_row > last_row) {
                             all_clear = false;
+                            break;
+                        }
+                        EffectLayer* target_el = mSequenceElements->GetEffectLayer(target_row);
+                        int num_eff = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
+                        for (int i = 0; i < num_eff && all_clear; ++i) {
+                            Effect* eff = mSequenceElements->GetEffectLayer(row)->GetEffect(i);
+                            if (eff->GetSelected() && !eff->IsLocked()) {
+                                if (!target_el->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS(), true)) {
+                                    all_clear = false;
+                                }
+                            }
                         }
                     }
                 }
+                if (all_clear) {
+                    move_offset = offset;
+                }
             }
         }
-        if (all_clear) // all clear so now move them all down
+        if (move_offset > 0) // found a valid offset, so now move them all down
         {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
             xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
-            for (int row = mSequenceElements->GetRowInformationSize() - 1; row > first_model_row; row--) {
+            for (int row = last_row; row > first_model_row; row--) {
                 EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
-                EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
                 if (mSequenceElements->GetEffectLayer(row - 1)->GetTaggedEffectCount() > 0) {
-                    num_effects = mSequenceElements->GetEffectLayer(row - 1)->GetEffectCount();
-                    for (int i = 0; (i < num_effects) && all_clear; ++i) {
+                    EffectLayer* el2 = mSequenceElements->GetEffectLayer(row - 1 + move_offset);
+                    int num_effects = mSequenceElements->GetEffectLayer(row - 1)->GetEffectCount();
+                    for (int i = 0; i < num_effects; ++i) {
                         Effect* eff = el1->GetEffect(i);
                         if (eff->GetSelected() && eff->GetTagged() && !eff->IsLocked()) {
                             eff->SetTagged(false);

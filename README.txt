@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -bug (AGFazio)              Multi-selected effects can now skip over other effects when moved with arrow keys, matching single-effect behavior
     -bug (derwin12)             Fix crash when adding/defining a curve on the last polyline segment
     -bug (derwin12)             Make Random Effects Random Again
     -bug (derwin12)             Cube Model ignored Direction
