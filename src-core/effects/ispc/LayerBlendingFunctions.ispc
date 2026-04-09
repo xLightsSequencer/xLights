@@ -271,7 +271,7 @@ export void PutColorsForNodes(uniform const LayerBlendingData &data,
             if (mask[midx] > 0) {
                 result[idx] = ZERO_COLOR;
             } else {
-                result[idx] = src[idx];
+                result[idx] = src[index];
             }
         } else {
             result[idx] = src[index];
