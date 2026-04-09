@@ -110,7 +110,7 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
                               const device int32_t *indexes,
                               uint index [[thread_position_in_grid]])
 {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     int32_t idx = indexes[index];
     
     int32_t x = idx % data.bufferWi;
@@ -150,7 +150,7 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
                               const device int32_t *indexes,
                               uint index [[thread_position_in_grid]])
 {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     int32_t idx = indexes[index];
     if (idx == -1) {
         //result[idx] = {0, 0, 0, 0};
@@ -186,7 +186,7 @@ kernel void AdjustHSV(constant LayerBlendingData &data,
                       device uchar4* result,
                       uint index [[thread_position_in_grid]])
 {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 color = result[index];
     
     float3 hsv = toHSV(color);
@@ -228,7 +228,7 @@ kernel void ApplySparkles(constant LayerBlendingData &data,
                           device uint16_t* sparkles,
                           uint index [[thread_position_in_grid]])
 {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     
     uchar4 c = result[index];
     if (c.r != 0 || c.g != 0 || c.b != 0) {
@@ -262,7 +262,7 @@ kernel void ApplySparkles(constant LayerBlendingData &data,
 kernel void AdjustBrightnessContrast(constant LayerBlendingData &data,
                                      device uchar4* result,
                                      uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 color = result[index];
 
     float b = data.brightness;
@@ -302,13 +302,14 @@ kernel void AdjustBrightnessContrast(constant LayerBlendingData &data,
 kernel void AdjustBrightnessLevel(constant LayerBlendingData &data,
                                   device uchar4* result,
                                   uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 color = result[index];
     uint8_t c = 0;
     if (color.r > 25) ++c;
     if (color.g > 25) ++c;
     if (color.b > 25) ++c;
-    if (c == 0) {
+    // c == 0 or 1: no adjustment (matches ISPC: "0 and 1 result in no adjustment")
+    if (c < 2) {
         return;
     }
     color /= {c, c, c, 1};
@@ -320,8 +321,9 @@ kernel void FirstLayerFade(constant LayerBlendingData &data,
                            device uchar4* result,
                            const device uchar4* src,
                            uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 color = src[index];
+    uchar origAlpha = color.a;
     if (data.fadeFactor != 1.0) {
         float3 hsv = toHSV(color);
         hsv.z *= data.fadeFactor;
@@ -330,6 +332,7 @@ kernel void FirstLayerFade(constant LayerBlendingData &data,
             hsv.z /= 255.0f;
         }
         color = fromHSV(hsv);
+        color.a = origAlpha;
     }
     if (color.a == 0) {
         result[index] = {0, 0, 0, 0};
@@ -348,7 +351,7 @@ kernel void FirstLayerFade(constant LayerBlendingData &data,
 kernel void NonAlphaFade(constant LayerBlendingData &data,
                          device uchar4* result,
                          uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 color = result[index];
     float3 hsv = toHSV(color);
     hsv.z *= data.fadeFactor;
@@ -367,7 +370,7 @@ float ColourDistance(const uchar4 e1, const uchar4 e2) {
 }
 
 bool applyChroma(constant LayerBlendingData &data,
-                 uchar4 c) {
+                 thread uchar4 &c) {
     if (c.a < 255) {
         c.r = (int)(c.r * c.a) / 255;
         c.g = (int)(c.g * c.a) / 255;
@@ -396,7 +399,7 @@ kernel void NormalBlendFunction(constant LayerBlendingData &data,
                                 device uchar4* result,
                                 const device uchar4* src,
                                 uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         fg.a = fg.a * data.fadeFactor * (1.0 - data.effectMixThreshold);
@@ -409,7 +412,7 @@ kernel void Effect1_2_Function(constant LayerBlendingData &data,
                                const device uchar4* src,
                                uint index [[thread_position_in_grid]]) {
     const int n = 0; // increase to change the curve of the crossfade
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -445,7 +448,7 @@ kernel void Mask1Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         float3 hsv0 = toHSV(fg);
@@ -458,7 +461,7 @@ kernel void Mask2Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -477,7 +480,7 @@ kernel void Unmask1Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -495,7 +498,7 @@ kernel void Unmask2Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -514,7 +517,7 @@ kernel void TrueUnmask1Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         float3 hsv0 = toHSV(fg);
@@ -527,7 +530,7 @@ kernel void TrueUnmask2Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -545,7 +548,7 @@ kernel void Shadow_1on2Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -569,7 +572,7 @@ kernel void Shadow_2on1Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -587,7 +590,7 @@ kernel void LayeredFunction(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -602,7 +605,7 @@ kernel void AveragedFunction(constant LayerBlendingData &data,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
     const uchar3 BLACK = {0, 0, 0};
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -619,7 +622,7 @@ kernel void Reveal12Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -631,7 +634,7 @@ kernel void Reveal21Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -644,7 +647,7 @@ kernel void AdditiveFunction(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -665,7 +668,7 @@ kernel void SubtractiveFunction(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -685,7 +688,7 @@ kernel void MaxFunction(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -700,7 +703,7 @@ kernel void MinFunction(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -716,14 +719,14 @@ kernel void AsBrightnessFunction(constant LayerBlendingData &data,
                                  device uchar4* result,
                                  const device uchar4* src,
                                  uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
         float alpha = (float)fg.a / 255.0;
-        int r = fg.r * bg.r / 255 * alpha;
-        int g = fg.g * bg.g / 255 * alpha;
-        int b = fg.b * bg.b / 255 * alpha;
+        int r = (int)fg.r * (int)bg.r * alpha / 255;
+        int g = (int)fg.g * (int)bg.g * alpha / 255;
+        int b = (int)fg.b * (int)bg.b * alpha / 255;
         result[index] = {(uchar)r, (uchar)g, (uchar)b, 255};
     }
 }
@@ -731,7 +734,7 @@ kernel void HighlightFunction(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -748,7 +751,7 @@ kernel void HighlightVibrantFunction(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
@@ -774,7 +777,7 @@ kernel void BottomTopFunction(constant LayerBlendingData &data,
                               const device uchar4* src,
                               const device int32_t* indexes,
                               uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         int32_t idx = indexes[index];
@@ -798,7 +801,7 @@ kernel void LeftRightFunction(constant LayerBlendingData &data,
                               const device uchar4* src,
                               const device int32_t* indexes,
                               uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         int32_t idx = indexes[index];
@@ -822,7 +825,7 @@ kernel void Function(constant LayerBlendingData &data,
                           device uchar4* result,
                           const device uchar4* src,
                           uint index [[thread_position_in_grid]]) {
-    if (index > (uint)data.nodeCount) return;
+    if (index >= (uint)data.nodeCount) return;
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];

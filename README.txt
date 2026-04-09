@@ -12,6 +12,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -bug (dkulp/derwin12)       Fix five Metal layer blending bugs: off-by-one bounds check in all kernels, applyChroma
+                                not propagating alpha premultiplication back to caller, FirstLayerFade losing original
+                                alpha after HSV fade, AdjustBrightnessLevel incorrectly dividing single-channel pixels,
+                                and AsBrightnessFunction using wrong order of operations (early integer truncation)
     -bug (derwin12)             Improved Layout Indentation for better readability
     -bug (AGFazio)              Multi-selected effects can now skip over other effects when moved with arrow keys, matching single-effect behavior
     -bug (derwin12)             Fix crash when adding/defining a curve on the last polyline segment
