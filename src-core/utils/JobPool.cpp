@@ -60,8 +60,12 @@ class JobPoolWorker
         UNKNOWN
     };
     std::atomic<STATUS_TYPE> status;
+#ifdef __APPLE__
+    pthread_t pThread;
+#else
     std::thread *thread;
-    std::thread::id tid;
+#endif
+    uint64_t tid;
     std::shared_ptr<spdlog::logger> m_logger{ nullptr };
 
 public:
@@ -95,24 +99,34 @@ static void startFunc(JobPoolWorker *jpw) {
 }
 
 JobPoolWorker::JobPoolWorker(JobPool *p) :
-    pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr), m_logger(spdlog::get("job") ? spdlog::get("job") : spdlog::default_logger()) {
-    //
+    pool(p), stopped(false), currentJob(nullptr), status(STARTING), tid(0), m_logger(spdlog::get("job") ? spdlog::get("job") : spdlog::default_logger()) {
+#ifdef __APPLE__
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 1024 * 1024); // 1MB stack (default is 512KB on macOS)
+    pthread_create(&pThread, &attr, [](void* arg) -> void* {
+        startFunc(static_cast<JobPoolWorker*>(arg));
+        return nullptr;
+    }, this);
+    pthread_attr_destroy(&attr);
+    tid = (uint64_t)pThread;
+#else
     thread = new std::thread(startFunc, this);
-    tid = thread->get_id();
-    std::ostringstream oss;
-    oss << tid;
-    m_logger->debug("JobPoolWorker created {}", oss.str()); // fixed in c++23
+    tid = (uint64_t)thread->native_handle();
+#endif
+    m_logger->debug("JobPoolWorker created {:x}", tid);
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
-    //
-    std::ostringstream oss;
-    oss << tid;
-    m_logger->debug("JobPoolWorker destroyed {}", oss.str());
+    m_logger->debug("JobPoolWorker destroyed {:x}", tid);
     status = UNKNOWN;
+#ifdef __APPLE__
+    pthread_detach(pThread);
+#else
     thread->detach();
     delete thread;
+#endif
 }
 
 std::string JobPoolWorker::GetStatus()
