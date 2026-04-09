@@ -61,10 +61,6 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset, PLASMA_SPEED_MIN, PLASMA_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     const int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
 
-
-    int curState = (buffer.curPeriod - buffer.curEffStartPer) * PlasmaSpeed * buffer.frameTimeInMs / 50;
-    double offset=double(curState)/200.0;
-
     const int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
     const double Speed_plasma = (101-PlasmaSpeed)*3; // we want a large number to divide by
     const double time = (state+1.0)/Speed_plasma;
