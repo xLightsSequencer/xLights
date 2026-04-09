@@ -2,17 +2,17 @@
     "effectName": "Video",
     "properties": [
         {
-            "id": "Video_Filename",
-            "label": "Video_Filename",
-            "description": "Path to the video file to play. Supports common video formats that FFmpeg can decode.",
-            "type": "file",
+            "id": "Video_FilenameBlock",
+            "label": "",
+            "description": "Video file selection: Select / Clear buttons, animated preview thumbnail, filename label, computed video duration, and a 'Match Effect To Video Duration' button.",
+            "type": "string",
             "controlType": "custom",
             "default": ""
         },
         {
             "id": "Video_Starttime",
             "label": "Start Time",
-            "description": "The timestamp in seconds within the video file to begin playback from. Allows skipping an intro or starting mid-video.",
+            "description": "The timestamp in seconds within the video file to begin playback from. Allows skipping an intro or starting mid-video. Maximum updates dynamically once the picked video has been probed.",
             "type": "float",
             "controlType": "slider",
             "default": 0.0,
@@ -113,15 +113,12 @@
             "max": 100
         },
         {
-            "id": "Video_TransparentBlack",
-            "label": "Transparent Black",
-            "description": "Brightness threshold below which video pixels are treated as transparent. Useful for keying out dark backgrounds so lower layers show through.",
-            "type": "int",
-            "controlType": "slider",
-            "settingPrefix": "TEXTCTRL",
-            "default": 0,
-            "min": 0,
-            "max": 300
+            "id": "Video_TransparentBlackRow",
+            "label": "",
+            "description": "Transparent Black checkbox with an inline brightness threshold slider (0-300). When enabled, video pixels below the threshold are keyed out as transparent.",
+            "type": "string",
+            "controlType": "custom",
+            "default": ""
         },
         {
             "id": "SampleSpacing",
@@ -136,6 +133,18 @@
             "max": 200
         }
     ],
+    "groups": [
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Video_FilenameBlock"]
+        },
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Video_TransparentBlackRow"]
+        }
+    ],
     "visibilityRules": [
         {
             "when": {
@@ -144,8 +153,7 @@
             },
             "disable": [
                 "Video_Starttime",
-                "Video_DurationTreatment",
-                "Video_Filename"
+                "Video_DurationTreatment"
             ]
         },
         {

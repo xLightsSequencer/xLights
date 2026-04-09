@@ -10,174 +10,106 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-//(*Headers(VideoPanel)
-#include <wx/panel.h>
+#include "JsonEffectPanel.h"
+#include "ui/shared/controls/BulkEditControls.h"
+
+#include <wx/timer.h>
+
+#include <map>
+#include <memory>
+#include <mutex>
+#include <vector>
+
+#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif"
+
+class Model;
 class wxBitmapButton;
 class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxFilePickerCtrl;
-class wxFlexGridSizer;
 class wxSlider;
+class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
-//*)
-
-#include <memory>
-#include <vector>
-#include <wx/filepicker.h>
-#include <wx/timer.h>
-#include <mutex>
-#include <map>
-
-#include "ui/shared/controls/BulkEditControls.h"
-#include "EffectPanelUtils.h"
-
-#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv;*.gif"
-
+class wxFileDirPickerEvent;
 class xlImage;
-class wxStaticBitmap;
 
 wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 
+// Subclass of BulkEditFilePickerCtrl that bakes in the video wildcard.
+// Kept here so the file picker the subclass creates inside its custom block
+// has the same behavior as the legacy panel.
 class xlVideoFilePickerCtrl : public BulkEditFilePickerCtrl {
 public:
-	xlVideoFilePickerCtrl(wxWindow *parent,
-		wxWindowID id,
-		const wxString& path = wxEmptyString,
-		const wxString& message = wxFileSelectorPromptStr,
-		const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		long style = wxFLP_DEFAULT_STYLE,
-		const wxValidator& validator = wxDefaultValidator,
-		const wxString& name = wxFilePickerCtrlNameStr)
-		: BulkEditFilePickerCtrl(parent, id, path, message, VIDEOWILDCARD, pos, size, style, validator, name) {
-
-	}
-	virtual ~xlVideoFilePickerCtrl() {}
+    xlVideoFilePickerCtrl(wxWindow* parent,
+                          wxWindowID id,
+                          const wxString& path = wxEmptyString,
+                          const wxString& message = wxFileSelectorPromptStr,
+                          const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+                          const wxPoint& pos = wxDefaultPosition,
+                          const wxSize& size = wxDefaultSize,
+                          long style = wxFLP_DEFAULT_STYLE,
+                          const wxValidator& validator = wxDefaultValidator,
+                          const wxString& name = wxFilePickerCtrlNameStr) :
+        BulkEditFilePickerCtrl(parent, id, path, message, VIDEOWILDCARD, pos, size, style, validator, name) {}
+    ~xlVideoFilePickerCtrl() override = default;
 };
 
-class VideoPanel: public xlEffectPanel
-{
-    void AddVideoTime(std::string fn, unsigned long ms);
+class VideoPanel : public JsonEffectPanel {
+public:
+    VideoPanel(wxWindow* parent, const nlohmann::json& metadata);
+    ~VideoPanel() override;
 
-	public:
-
-		VideoPanel(wxWindow* parent);
-		virtual ~VideoPanel();
-		virtual void ValidateWindow() override;
-		virtual void SetDefaultParameters() override;
-
-        //(*Declarations(VideoPanel)
-        BulkEditCheckBox* CheckBox_SynchroniseWithAudio;
-        BulkEditCheckBox* CheckBox_TransparentBlack;
-        BulkEditCheckBox* CheckBox_Video_AspectRatio;
-        BulkEditChoice* Choice_Video_DurationTreatment;
-        BulkEditSlider* Slider1;
-        BulkEditSlider* Slider_SampleSpacing;
-        BulkEditSlider* Slider_Video_CropBottom;
-        BulkEditSlider* Slider_Video_CropLeft;
-        BulkEditSlider* Slider_Video_CropRight;
-        BulkEditSlider* Slider_Video_CropTop;
-        BulkEditSliderF2* Slider_Video_Speed;
-        BulkEditSliderF2* Slider_Video_Starttime;
-        BulkEditTextCtrl* TextCtrl1;
-        BulkEditTextCtrl* TextCtrl_SampleSpacing;
-        BulkEditTextCtrl* TextCtrl_Video_CropBottom;
-        BulkEditTextCtrl* TextCtrl_Video_CropLeft;
-        BulkEditTextCtrl* TextCtrl_Video_CropRight;
-        BulkEditTextCtrl* TextCtrl_Video_CropTop;
-        BulkEditTextCtrlF2* TextCtrl_Video_Speed;
-        BulkEditTextCtrlF2* TextCtrl_Video_Starttime;
-        BulkEditValueCurveButton* BitmapButton_Video_CropBottomVC;
-        BulkEditValueCurveButton* BitmapButton_Video_CropLeftVC;
-        BulkEditValueCurveButton* BitmapButton_Video_CropRightVC;
-        BulkEditValueCurveButton* BitmapButton_Video_CropTopVC;
-        BulkEditValueCurveButton* BitmapButton_Video_Speed;
-        wxButton* Button_MatchVideoDuration;
-        wxStaticText* StaticText1;
-        wxStaticText* StaticText2;
-        wxStaticText* StaticText3;
-        wxStaticText* StaticText4;
-        wxStaticText* StaticText5;
-        wxStaticText* StaticText6;
-        wxStaticText* StaticText7;
-        wxStaticText* StaticText8;
-        wxStaticText* StaticText9;
-        wxTextCtrl* TextCtrl2;
-        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
-        //*)
+    void ValidateWindow() override;
 
 protected:
+    wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                   const nlohmann::json& prop, int cols) override;
 
-        std::mutex lock;
-        std::map<std::string, unsigned long> videoTimeCache;
-    
-		//(*Identifiers(VideoPanel)
-		static const long ID_FILEPICKERCTRL_Video_Filename;
-		static const long ID_STATICTEXT_Video_Starttime;
-		static const long IDD_SLIDER_Video_Starttime;
-		static const long ID_TEXTCTRL_Video_Starttime;
-		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL_Duration;
-		static const long ID_BUTTON1;
-		static const long ID_STATICTEXT_Video_DurationTreatment;
-		static const long ID_CHOICE_Video_DurationTreatment;
-		static const long ID_STATICTEXT2;
-		static const long IDD_SLIDER_Video_Speed;
-		static const long ID_VALUECURVE_Video_Speed;
-		static const long ID_TEXTCTRL_Video_Speed;
-		static const long ID_CHECKBOX_Video_AspectRatio;
-		static const long ID_CHECKBOX_SynchroniseWithAudio;
-		static const long ID_STATICTEXT_Video_CropLeft;
-		static const long IDD_SLIDER_Video_CropLeft;
-		static const long ID_VALUECURVE_Video_CropLeft;
-		static const long ID_TEXTCTRL_Video_CropLeft;
-		static const long ID_STATICTEXT_Video_CropRight;
-		static const long IDD_SLIDER_Video_CropRight;
-		static const long ID_VALUECURVE_Video_CropRight;
-		static const long ID_TEXTCTRL_Video_CropRight;
-		static const long ID_STATICTEXT_Video_CropTop;
-		static const long IDD_SLIDER_Video_CropTop;
-		static const long ID_VALUECURVE_Video_CropTop;
-		static const long ID_TEXTCTRL_Video_CropTop;
-		static const long ID_STATICTEXT_Video_CropBottom;
-		static const long IDD_SLIDER_Video_CropBottom;
-		static const long ID_VALUECURVE_Video_CropBottom;
-		static const long ID_TEXTCTRL_Video_CropBottom;
-		static const long ID_CHECKBOX_Video_TransparentBlack;
-		static const long IDD_SLIDER_Video_TransparentBlack;
-		static const long ID_TEXTCTRL_Video_TransparentBlack;
-		static const long ID_STATICTEXT3;
-		static const long IDD_SLIDER_SampleSpacing;
-		static const long ID_TEXTCTRL_SampleSpacing;
-		//*)
+private:
+    wxWindow* BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer);
+    wxWindow* BuildTransparentBlackRow(wxWindow* parentWin, wxSizer* sizer);
 
-	public:
+    void OnSelectClick(wxCommandEvent& event);
+    void OnClearClick(wxCommandEvent& event);
+    void OnFilePickerChanged(wxFileDirPickerEvent& event);
+    void OnMatchVideoDurationClick(wxCommandEvent& event);
+    void OnVideoDetails(wxCommandEvent& event);
+    void OnPreviewTimer(wxTimerEvent& event);
+    void AddVideoTime(std::string fn, unsigned long ms);
+    void UpdatePreview();
+    void ShowPreviewFrame(size_t index);
 
-		//(*Handlers(VideoPanel)
-		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
-		void OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event);
-		void OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event);
-		void OnButton_MatchVideoDurationClick(wxCommandEvent& event);
-		//*)
+    // Custom-built top block (file picker + select/clear/preview/duration/match).
+    xlVideoFilePickerCtrl* _hiddenFilePicker = nullptr;
+    wxStaticBitmap* _previewBitmap = nullptr;
+    wxStaticText* _filenameLabel = nullptr;
+    wxButton* _selectButton = nullptr;
+    wxBitmapButton* _clearButton = nullptr;
+    wxTextCtrl* _durationDisplay = nullptr;
+    wxButton* _matchDurationButton = nullptr;
 
-        void SetVideoDetails(wxCommandEvent& event);
+    // Custom-built TransparentBlack inline row.
+    wxCheckBox* _transparentBlackCheck = nullptr;
+    wxSlider* _transparentBlackSlider = nullptr;
+    wxTextCtrl* _transparentBlackText = nullptr;
 
-        // Animated preview
-        void UpdatePreview();
-        void OnPreviewTimer(wxTimerEvent& event);
-        void ShowPreviewFrame(size_t index);
+    // Cached pointers to framework-built controls used in ValidateWindow /
+    // dynamic Start Time max updates.
+    wxSlider* _startTimeSlider = nullptr;
+    wxTextCtrl* _startTimeText = nullptr;
+    wxChoice* _durationTreatmentChoice = nullptr;
+    wxCheckBox* _syncWithAudioCheck = nullptr;
 
-        wxStaticBitmap* _previewBitmap = nullptr;
-        wxStaticText* _filenameLabel = nullptr;
-        wxButton* _selectButton = nullptr;
-        wxButton* _clearButton = nullptr;
-        wxTimer _previewTimer;
-        std::vector<std::shared_ptr<xlImage>> _previewFrames;
-        std::vector<long> _previewFrameTimes;
-        size_t _currentPreviewFrame = 0;
+    // Animated preview state.
+    wxTimer _previewTimer;
+    std::vector<std::shared_ptr<xlImage>> _previewFrames;
+    std::vector<long> _previewFrameTimes;
+    size_t _currentPreviewFrame = 0;
 
-		DECLARE_EVENT_TABLE()
+    // Video duration cache (filename → milliseconds), populated by the
+    // EVT_VIDEODETAILS event posted from the background video probe thread.
+    std::mutex _videoTimeLock;
+    std::map<std::string, unsigned long> _videoTimeCache;
 };

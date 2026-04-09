@@ -1515,7 +1515,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/ValueCurvesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/VendorModelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/VendorMusicDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/VideoPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ViewObjectPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ViewSettingsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ViewpointDialog.wxs" />
@@ -1707,7 +1706,6 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/TendrilPanel.wxs" src="../src-ui-wx/ui/effectpanels/TendrilPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/TreePanel.wxs" src="../src-ui-wx/ui/effectpanels/TreePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/TwinklePanel.wxs" src="../src-ui-wx/ui/effectpanels/TwinklePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/VideoPanel.wxs" src="../src-ui-wx/ui/effectpanels/VideoPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/VideoPanel.h" fwddecl="1" i18n="1" name="VideoPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/WavePanel.wxs" src="../src-ui-wx/ui/effectpanels/WavePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/AssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/AssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
