@@ -63,6 +63,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
         void ApplyPositionZones(uint8_t* frameData, uint32_t startChannel) const;
         void AddPositionZone(const PositionZone& zone) { position_zones.push_back(zone); }
+        const std::vector<PositionZone>& GetPositionZones() const { return position_zones; }
 
     protected:
         virtual void InitModel() override;
