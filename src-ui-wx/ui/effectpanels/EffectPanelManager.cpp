@@ -128,8 +128,8 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_METEORS, "Meteors", "Meteors");
     Register<MorphPanel>(E::eff_MORPH, "Morph");
     Register<MovingHeadPanel>(E::eff_MOVINGHEAD, "Moving Head");
-    Register<MusicPanel>(E::eff_MUSIC, "Music");
-    Register<PianoPanel>(E::eff_PIANO, "Piano");
+    RegisterJsonSubclass<MusicPanel>(E::eff_MUSIC, "Music", "Music");
+    RegisterJsonSubclass<PianoPanel>(E::eff_PIANO, "Piano", "Piano");
     Register<PicturesPanel>(E::eff_PICTURES, "Pictures");
     RegisterJson(E::eff_PINWHEEL, "Pinwheel", "Pinwheel");
     RegisterJson(E::eff_PLASMA, "Plasma", "Plasma");

@@ -56,7 +56,8 @@
             "type": "enum",
             "controlType": "choice",
             "options": [],
-            "default": ""
+            "default": "",
+            "dynamicOptions": "timingTracks"
         },
         {
             "id": "Piano_Scale",

@@ -760,16 +760,12 @@
 		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MovingHeadDimmerPanel.h" />
 		<Unit filename="../src-core/effects/MusicEffect.cpp" />
 		<Unit filename="../src-core/effects/MusicEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MusicPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MusicPanel.h" />
 		<Unit filename="../src-core/effects/OffEffect.cpp" />
 		<Unit filename="../src-core/effects/OffEffect.h" />
 		<Unit filename="../src-core/effects/OnEffect.cpp" />
 		<Unit filename="../src-core/effects/OnEffect.h" />
 		<Unit filename="../src-core/effects/PianoEffect.cpp" />
 		<Unit filename="../src-core/effects/PianoEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/PianoPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/PianoPanel.h" />
 		<Unit filename="../src-core/effects/PicturesEffect.cpp" />
 		<Unit filename="../src-core/effects/PicturesEffect.h" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/PicturesPanel.cpp" />
