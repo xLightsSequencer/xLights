@@ -136,7 +136,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJsonSubclass<RipplePanel>(E::eff_RIPPLE, "Ripple", "Ripple");
     Register<ServoPanel>(E::eff_SERVO, "Servo");
     Register<ShaderPanel>(E::eff_SHADER, "Shader");
-    Register<ShapePanel>(E::eff_SHAPE, "Shape");
+    RegisterJsonSubclass<ShapePanel>(E::eff_SHAPE, "Shape", "Shape");
     RegisterJson(E::eff_SHIMMER, "Shimmer", "Shimmer");
     RegisterJson(E::eff_SHOCKWAVE, "Shockwave", "Shockwave");
     RegisterJson(E::eff_SINGLESTRAND, "SingleStrand", "SingleStrand");

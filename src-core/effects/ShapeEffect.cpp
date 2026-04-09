@@ -418,7 +418,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     int growth = GetValueCurveInt("Shape_Growth", 10, SettingsMap, oset, SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int count = GetValueCurveInt("Shape_Count", 5, SettingsMap, oset, SHAPE_COUNT_MIN, SHAPE_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int startSize = GetValueCurveInt("Shape_StartSize", 5, SettingsMap, oset, SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int emoji = SettingsMap.GetInt("SPINCTRL_Shape_Char", 65);
+    int emoji = SettingsMap.GetInt("SPINCTRL_Shape_Char", 127876);
     int emojiTone = 0;
     std::string font = SettingsMap["FONTPICKER_Shape_Font"];
     std::string svgFilename = SettingsMap["FILEPICKERCTRL_SVG"];

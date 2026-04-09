@@ -32,7 +32,7 @@
             "id": "Shape_Font",
             "label": "Shape_Font",
             "type": "font",
-            "controlType": "fontpicker",
+            "controlType": "custom",
             "default": "",
             "description": "Font used for rendering emoji characters when Object to Draw is set to Emoji."
         },
@@ -40,7 +40,7 @@
             "id": "Shape_Char",
             "label": "Shape_Char",
             "type": "int",
-            "controlType": "spin",
+            "controlType": "custom",
             "default": 127876,
             "min": 32,
             "max": 917631,
@@ -50,7 +50,7 @@
             "id": "Shape_SkinTone",
             "label": "Shape_SkinTone",
             "type": "enum",
-            "controlType": "choice",
+            "controlType": "custom",
             "options": [
                 "Default",
                 "Light",
@@ -76,7 +76,7 @@
             "label": "Thickness",
             "type": "int",
             "controlType": "slider",
-            "default": 3,
+            "default": 1,
             "min": 1,
             "max": 100,
             "valueCurve": true,
@@ -99,7 +99,7 @@
             "label": "Start Size",
             "type": "int",
             "controlType": "slider",
-            "default": 5,
+            "default": 1,
             "min": 0,
             "max": 100,
             "valueCurve": true,
@@ -110,7 +110,7 @@
             "label": "Random initial shape sizes",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false,
+            "default": true,
             "description": "When enabled, each shape starts at a random size and age rather than all beginning at the same start size, creating a more organic initial appearance."
         },
         {
@@ -205,7 +205,7 @@
             "label": "Random Location",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false,
+            "default": true,
             "description": "When enabled, each shape spawns at a random position on the model instead of at the X/Y Center position."
         },
         {
@@ -221,7 +221,7 @@
             "label": "Fade Away",
             "type": "bool",
             "controlType": "checkbox",
-            "default": false,
+            "default": true,
             "description": "When enabled, shapes gradually become transparent as they age, fading out over their lifetime."
         },
         {
@@ -265,7 +265,8 @@
             "controlType": "choice",
             "options": [],
             "default": "",
-            "description": "Selects which timing track to use for triggering new shapes when Fire with timing track is enabled."
+            "description": "Selects which timing track to use for triggering new shapes when Fire with timing track is enabled.",
+            "dynamicOptions": "timingTracks"
         },
         {
             "id": "Shape_FilterLabel",

@@ -35,7 +35,9 @@ class ValueCurveButton;
 class JsonEffectPanel : public xlEffectPanel {
 public:
     // Construct from a JSON metadata object (already parsed).
-    JsonEffectPanel(wxWindow* parent, const nlohmann::json& metadata);
+    // Set deferBuild=true when subclass overrides CreateCustomControl (virtual dispatch
+    // doesn't work during base construction). Subclass must call BuildFromJson() itself.
+    JsonEffectPanel(wxWindow* parent, const nlohmann::json& metadata, bool deferBuild = false);
     virtual ~JsonEffectPanel();
 
     void ValidateWindow() override;

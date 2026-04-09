@@ -53,10 +53,12 @@ nlohmann::json JsonEffectPanel::LoadMetadata(const std::string& jsonPath) {
     }
 }
 
-JsonEffectPanel::JsonEffectPanel(wxWindow* parent, const nlohmann::json& metadata)
+JsonEffectPanel::JsonEffectPanel(wxWindow* parent, const nlohmann::json& metadata, bool deferBuild)
     : xlEffectPanel(), metadata_(metadata) {
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-    BuildFromJson(metadata);
+    if (!deferBuild) {
+        BuildFromJson(metadata);
+    }
 }
 
 JsonEffectPanel::~JsonEffectPanel() {

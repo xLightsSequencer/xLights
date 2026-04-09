@@ -510,7 +510,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\ShaderEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShaderPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ShapeEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShapePanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\SketchCanvasPanel.cpp" />
     <ClCompile Include="..\src-core\effects\SketchEffect.cpp" />
     <ClCompile Include="..\src-core\effects\SketchEffectDrawing.cpp" />
@@ -1109,7 +1108,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\ShaderEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShaderPanel.h" />
     <ClInclude Include="..\src-core\effects\ShapeEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShapePanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\SketchCanvasPanel.h" />
     <ClInclude Include="..\src-core\effects\SketchEffect.h" />
     <ClInclude Include="..\src-core\effects\SketchEffectDrawing.h" />

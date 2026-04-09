@@ -790,8 +790,6 @@
 		<Unit filename="../src-ui-wx/ui/effectpanels/ShaderPanel.h" />
 		<Unit filename="../src-core/effects/ShapeEffect.cpp" />
 		<Unit filename="../src-core/effects/ShapeEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ShapePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ShapePanel.h" />
 		<Unit filename="../src-core/effects/ShimmerEffect.cpp" />
 		<Unit filename="../src-core/effects/ShimmerEffect.h" />
 		<Unit filename="../src-core/effects/ShockwaveEffect.cpp" />
