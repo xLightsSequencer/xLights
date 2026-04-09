@@ -16,6 +16,7 @@
 #include <wx/debug.h>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 #include <spdlog/spdlog.h>
 
 #include "AdjustPanel.h"
@@ -66,14 +67,29 @@ std::string EffectPanelManager::GetMetadataDirectory() {
     if (!cachedDir.empty()) return cachedDir;
 
     std::string resDir = GetResourcesDirectory();
-    std::string metaDir = resDir + "/effectmetadata";
-
     std::error_code ec;
-    if (std::filesystem::is_directory(std::filesystem::path(metaDir), ec)) {
-        cachedDir = metaDir;
-        return cachedDir;
+
+    // Candidate locations to search for effectmetadata. The first existing directory wins.
+    // The fallbacks let dev builds find resources/effectmetadata in the source tree
+    // without requiring a post-build copy step.
+    std::vector<std::string> candidates;
+    candidates.push_back(resDir + "/effectmetadata");
+#ifdef _WIN32
+    // Visual Studio builds run from xLights/x64/<Config>/, so the source resources
+    // dir is three levels up.
+    candidates.push_back(resDir + "/../../../resources/effectmetadata");
+#endif
+#ifdef LINUX
+    candidates.push_back(resDir + "/../resources/effectmetadata");
+#endif
+
+    for (const auto& dir : candidates) {
+        if (std::filesystem::is_directory(std::filesystem::path(dir), ec)) {
+            cachedDir = dir;
+            return cachedDir;
+        }
     }
-    spdlog::error("Effect metadata directory not found: {}", metaDir);
+    spdlog::error("Effect metadata directory not found: {}", candidates.front());
     return "";
 }
 

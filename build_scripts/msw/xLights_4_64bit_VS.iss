@@ -92,6 +92,9 @@ Source: "../../bin64/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../resources/dictionaries/*"; DestDir: "{app}/dictionaries"; Flags: ignoreversion
 Source: "../../bin/german_dictionary";    DestDir: "{app}"
 
+; Effect metadata (JSON definitions for effect panels)
+Source: "../../resources/effectmetadata/*"; DestDir: "{app}/effectmetadata"; Flags: ignoreversion recursesubdirs
+
 ; Vamp dll's
 Source: "../../bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 

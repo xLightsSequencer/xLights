@@ -70,6 +70,14 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, EffectPanel
         RenderableEffect *p = it;
         wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, "ID_PANEL" + p->Name());
         xlEffectPanel *panel = effectPanelManager->GetPanel(p->GetId(), sw);
+        if (panel == nullptr) {
+            // Factory failed (e.g. effect metadata JSON missing). Log and skip
+            // so we don't crash with a null deref. The effect will simply have
+            // no panel in the choicebook.
+            spdlog::error("EffectsPanel: failed to create panel for effect '{}' (id {}) - skipping", (const char*)p->Name().c_str(), p->GetId());
+            sw->Destroy();
+            continue;
+        }
         panel->AddChangeListeners(timer);
         wxFlexGridSizer *fgs = new wxFlexGridSizer(1, 1, 0, 0);
         fgs->AddGrowableCol(0);
