@@ -292,10 +292,19 @@ void ShapePanel::ValidateWindow() {
     auto* pointsLabel = dynamic_cast<wxStaticText*>(wxWindow::FindWindowByName("ID_STATICTEXT_Shape_Points", this));
     if (pointsLabel) pointsLabel->SetLabel(object == "Ellipse" ? "Ratio" : "Points");
 
-    // SVG media picker
+    // SVG media picker. The hidden BulkEditFilePickerCtrl holds the actual
+    // path for serialization, so it must be enabled/disabled in lockstep —
+    // otherwise GetEffectStringFromWindow (which only skips *disabled* controls)
+    // will leak E_FILEPICKERCTRL_SVG into the effect string when Object != SVG.
+    bool isSvg = (object == "SVG");
     if (_svgPicker) {
-        _svgPicker->Enable(object == "SVG");
-        if (object != "SVG") _svgPicker->SetPath("");
+        _svgPicker->Enable(isSvg);
+        if (!isSvg) _svgPicker->SetPath("");
+    }
+    auto* hiddenSvgPicker = dynamic_cast<wxFilePickerCtrl*>(wxWindow::FindWindowByName("ID_FILEPICKERCTRL_SVG", this));
+    if (hiddenSvgPicker) {
+        hiddenSvgPicker->Enable(isSvg);
+        if (!isSvg) hiddenSvgPicker->SetFileName(wxFileName(""));
     }
 
     // Emoji controls

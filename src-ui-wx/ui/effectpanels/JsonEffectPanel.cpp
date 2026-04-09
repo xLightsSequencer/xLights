@@ -1167,13 +1167,52 @@ void JsonEffectPanel::ApplyVisibilityRules() {
             }
         };
 
+        // Tracks whether show/hide was actually applied; triggers a single
+        // Layout() pass at the end so sizer cells collapse/expand correctly.
+        bool visibilityChanged = false;
+        auto setVisible = [this, &visibilityChanged](const std::vector<std::string>& ids, bool visible) {
+            for (const auto& id : ids) {
+                auto it2 = properties_.find(id);
+                if (it2 == properties_.end()) continue;
+
+                wxWindow* ctrl = FindControlForProperty(id);
+                if (ctrl) { ctrl->Show(visible); visibilityChanged = true; }
+                if (it2->second.buddySlider) it2->second.buddySlider->Show(visible);
+                if (it2->second.buddyText) it2->second.buddyText->Show(visible);
+                if (it2->second.textCtrl && ctrl != it2->second.textCtrl)
+                    it2->second.textCtrl->Show(visible);
+                if (it2->second.valueCurveBtn) it2->second.valueCurveBtn->Show(visible);
+
+                // Hide the sibling label so the row doesn't leave an orphan cell.
+                wxWindow* label = wxWindow::FindWindowByName(wxString::Format("ID_STATICTEXT_%s", id), this);
+                if (label) label->Show(visible);
+
+                // Hide the lock button if present. The name encodes the control
+                // type (SLIDER/CHECKBOX/CHOICE); the wrong ones just return null.
+                for (const char* type : { "SLIDER", "CHECKBOX", "CHOICE" }) {
+                    wxWindow* lock = wxWindow::FindWindowByName(
+                        wxString::Format("ID_BITMAPBUTTON_%s_%s", type, id), this);
+                    if (lock) lock->Show(visible);
+                }
+            }
+        };
+
         if (conditionMet) {
             setEnabled(rule.enableIds, true);
             setEnabled(rule.disableIds, false);
+            setVisible(rule.showIds, true);
+            setVisible(rule.hideIds, false);
         } else {
             // Reverse the rule when condition is not met
             setEnabled(rule.enableIds, false);
             setEnabled(rule.disableIds, true);
+            setVisible(rule.showIds, false);
+            setVisible(rule.hideIds, true);
+        }
+
+        // wxFlexGridSizer won't collapse hidden cells without a relayout.
+        if (visibilityChanged) {
+            Layout();
         }
     }
 }
