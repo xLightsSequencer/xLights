@@ -45,7 +45,7 @@ When adding new `.cpp`/`.h` files, place them in `src-core/` (wx-free core) or `
 The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`) uses `PBXFileSystemSynchronizedRootGroup` for both `src-core/` and `src-ui-wx/` — files in those directories are auto-discovered. No manual pbxproj editing needed for new files in existing directories.
 
 ### Release Notes
-`README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a line to the current release section:
+`README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a single summary line with no code to the current release section:
 - **Enhancements**: `    -enh (author)                Description of the enhancement`
 - **Bug fixes**: `    -bug (author)                Description of the bug fix`
 - **Changes**: `    -change (author)             Description of the change`
