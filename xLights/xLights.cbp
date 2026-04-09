@@ -667,8 +667,6 @@
 		<Unit filename="../src-ui-wx/import_export/TimingImport.cpp" />
 		<Unit filename="../src-core/effects/AdjustEffect.cpp" />
 		<Unit filename="../src-core/effects/AdjustEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/AdjustPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/AdjustPanel.h" />
 		<Unit filename="../src-core/effects/BarsEffect.cpp" />
 		<Unit filename="../src-core/effects/BarsEffect.h" />
 		<Unit filename="../src-core/effects/ButterflyEffect.cpp" />
@@ -687,8 +685,6 @@
 		<Unit filename="../src-ui-wx/ui/effectpanels/DMXPanel.h" />
 		<Unit filename="../src-core/effects/DuplicateEffect.cpp" />
 		<Unit filename="../src-core/effects/DuplicateEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/DuplicatePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/DuplicatePanel.h" />
 		<Unit filename="../src-core/effects/EffectManager.cpp" />
 		<Unit filename="../src-core/effects/EffectManager.h" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/EffectIconCache.cpp" />
@@ -788,8 +784,6 @@
 		<Unit filename="../src-core/effects/nanosvgrast_impl.h" />
 		<Unit filename="../src-core/effects/RippleEffect.cpp" />
 		<Unit filename="../src-core/effects/RippleEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/RipplePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/RipplePanel.h" />
 		<Unit filename="../src-core/effects/ServoEffect.cpp" />
 		<Unit filename="../src-core/effects/ServoEffect.h" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/ServoPanel.cpp" />
@@ -852,8 +846,6 @@
 		<Unit filename="../src-ui-wx/ui/effectpanels/WarpPanel.h" />
 		<Unit filename="../src-core/effects/WaveEffect.cpp" />
 		<Unit filename="../src-core/effects/WaveEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/WavePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/WavePanel.h" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/assist/AssistPanel.cpp" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/assist/AssistPanel.h" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.cpp" />

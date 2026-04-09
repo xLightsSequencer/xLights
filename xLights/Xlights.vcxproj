@@ -491,10 +491,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\import_export\ImportEffects.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\TimingImport.cpp" />
     <ClCompile Include="..\src-core\effects\AdjustEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\SketchAssistPanel.cpp" />
     <ClCompile Include="..\src-core\effects\DuplicateEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.cpp" />
     <ClCompile Include="..\src-core\effects\FX.cpp" />
     <ClCompile Include="..\src-core\effects\GuitarEffect.cpp" />
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp" />
@@ -735,7 +733,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\RenderableEffect.cpp" />
     <ClCompile Include="..\src-core\effects\nanosvgrast_impl.cpp" />
     <ClCompile Include="..\src-core\effects\RippleEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\RipplePanel.cpp" />
     <ClCompile Include="..\src-core\effects\ShimmerEffect.cpp" />
     <ClCompile Include="..\src-core\effects\ShockwaveEffect.cpp" />
     <ClCompile Include="..\src-core\effects\SingleStrandEffect.cpp" />
@@ -756,7 +753,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\VUMeterEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\VUMeterPanel.cpp" />
     <ClCompile Include="..\src-core\effects\WaveEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\WavePanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectTreeDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\import-export\ExportModelSelect.cpp" />
@@ -1073,7 +1069,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\model\EditSubmodelAliasesDialog.h" />
     <ClInclude Include="..\src-core\effects\AdjustEffect.h" />
     <ClInclude Include="..\dependencies\midifile\include\Binasc.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\AssistPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\PicturesAssistPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\SketchAssistPanel.h" />
@@ -1081,7 +1076,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="..\src-core\effects\DuplicateEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.h" />
     <ClInclude Include="..\src-core\effects\FX.h" />
     <ClInclude Include="..\src-core\effects\GuitarEffect.h" />
     <ClInclude Include="..\src-core\effects\ispc\BarsFunctions.ispc.h" />
@@ -1289,7 +1283,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\RenderableEffect.h" />
     <ClInclude Include="..\src-core\effects\nanosvgrast_impl.h" />
     <ClInclude Include="..\src-core\effects\RippleEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\RipplePanel.h" />
     <ClInclude Include="..\src-core\effects\ShimmerEffect.h" />
     <ClInclude Include="..\src-core\effects\ShockwaveEffect.h" />
     <ClInclude Include="..\src-core\effects\SingleStrandEffect.h" />
@@ -1310,7 +1303,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\VUMeterEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\VUMeterPanel.h" />
     <ClInclude Include="..\src-core\effects\WaveEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\WavePanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectTreeDialog.h" />
     <ClInclude Include="..\src-ui-wx\ui\import-export\ExportModelSelect.h" />

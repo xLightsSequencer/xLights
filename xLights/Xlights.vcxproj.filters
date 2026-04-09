@@ -1106,13 +1106,7 @@
     <ClCompile Include="..\src-ui-wx\ai\OpenAIImageGenerator.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\DMXPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\FacesPanel.cpp">
@@ -1134,9 +1128,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\PicturesPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\RipplePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\ServoPanel.cpp">
@@ -1167,9 +1158,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\WarpPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\WavePanel.cpp">
       <Filter>ui\effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\AssistPanel.cpp">
@@ -2432,13 +2420,7 @@
     <ClInclude Include="..\src-ui-wx\ai\OpenAIImageGenerator.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\DMXPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\FacesPanel.h">
@@ -2460,9 +2442,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\PicturesPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\RipplePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\ServoPanel.h">
@@ -2493,9 +2472,6 @@
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\WarpPanel.h">
-      <Filter>ui\effectpanels</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\WavePanel.h">
       <Filter>ui\effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\AssistPanel.h">

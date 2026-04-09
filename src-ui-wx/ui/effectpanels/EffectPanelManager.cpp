@@ -101,7 +101,7 @@ void EffectPanelManager::RegisterPanels() {
 
     RegisterJson(E::eff_OFF, "Off", "Off");
     RegisterJson(E::eff_ON, "On", "On");
-    Register<AdjustPanel>(E::eff_ADJUST, "Adjust");
+    RegisterJsonSubclass<AdjustPanel>(E::eff_ADJUST, "Adjust", "Adjust");
     RegisterJson(E::eff_BARS, "Bars", "Bars");
     RegisterJson(E::eff_BUTTERFLY, "Butterfly", "Butterfly");
     RegisterJson(E::eff_CANDLE, "Candle", "Candle");
@@ -109,7 +109,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_COLORWASH, "Color Wash", "ColorWash");
     RegisterJson(E::eff_CURTAIN, "Curtain", "Curtain");
     Register<DMXPanel>(E::eff_DMX, "DMX");
-    Register<DuplicatePanel>(E::eff_DUPLICATE, "Duplicate");
+    RegisterJsonSubclass<DuplicatePanel>(E::eff_DUPLICATE, "Duplicate", "Duplicate");
     Register<FacesPanel>(E::eff_FACES, "Faces");
     RegisterJson(E::eff_FAN, "Fan", "Fan");
     RegisterJson(E::eff_FILL, "Fill", "Fill");
@@ -133,7 +133,7 @@ void EffectPanelManager::RegisterPanels() {
     Register<PicturesPanel>(E::eff_PICTURES, "Pictures");
     RegisterJson(E::eff_PINWHEEL, "Pinwheel", "Pinwheel");
     RegisterJson(E::eff_PLASMA, "Plasma", "Plasma");
-    Register<RipplePanel>(E::eff_RIPPLE, "Ripple");
+    RegisterJsonSubclass<RipplePanel>(E::eff_RIPPLE, "Ripple", "Ripple");
     Register<ServoPanel>(E::eff_SERVO, "Servo");
     Register<ShaderPanel>(E::eff_SHADER, "Shader");
     Register<ShapePanel>(E::eff_SHAPE, "Shape");
@@ -154,7 +154,7 @@ void EffectPanelManager::RegisterPanels() {
     Register<VideoPanel>(E::eff_VIDEO, "Video");
     Register<VUMeterPanel>(E::eff_VUMETER, "VU Meter");
     RegisterJsonSubclass<WarpPanel>(E::eff_WARP, "Warp", "Warp");
-    Register<WavePanel>(E::eff_WAVE, "Wave");
+    RegisterJsonSubclass<WavePanel>(E::eff_WAVE, "Wave", "Wave");
 }
 
 xlEffectPanel* EffectPanelManager::GetPanel(int effectId, wxWindow* parent) {
