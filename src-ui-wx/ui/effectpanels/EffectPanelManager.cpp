@@ -23,7 +23,6 @@
 #include "DMXPanel.h"
 #include "DuplicatePanel.h"
 #include "FacesPanel.h"
-#include "LiquidPanel.h"
 #include "MorphPanel.h"
 #include "MovingHeadPanel.h"
 #include "MusicPanel.h"
@@ -139,7 +138,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_LIFE, "Life", "Life");
     RegisterJson(E::eff_LIGHTNING, "Lightning", "Lightning");
     RegisterJson(E::eff_LINES, "Lines", "Lines");
-    Register<LiquidPanel>(E::eff_LIQUID, "Liquid");
+    RegisterJson(E::eff_LIQUID, "Liquid", "Liquid");
     RegisterJson(E::eff_MARQUEE, "Marquee", "Marquee");
     RegisterJson(E::eff_METEORS, "Meteors", "Meteors");
     Register<MorphPanel>(E::eff_MORPH, "Morph");
@@ -168,7 +167,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_TREE, "Tree", "Tree");
     RegisterJson(E::eff_TWINKLE, "Twinkle", "Twinkle");
     Register<VideoPanel>(E::eff_VIDEO, "Video");
-    Register<VUMeterPanel>(E::eff_VUMETER, "VU Meter");
+    RegisterJsonSubclass<VUMeterPanel>(E::eff_VUMETER, "VU Meter", "VUMeter");
     RegisterJsonSubclass<WarpPanel>(E::eff_WARP, "Warp", "Warp");
     RegisterJsonSubclass<WavePanel>(E::eff_WAVE, "Wave", "Wave");
 }

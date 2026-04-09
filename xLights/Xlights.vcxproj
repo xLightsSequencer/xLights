@@ -526,7 +526,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\CandleEffect.cpp" />
     <ClCompile Include="..\src-core\utils\AnimatedImage.cpp" />
     <ClCompile Include="..\src-core\effects\LiquidEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ServoEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\ServoPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\EmailDialog.cpp" />
@@ -1213,7 +1212,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\CandleEffect.h" />
     <ClInclude Include="..\src-core\utils\AnimatedImage.h" />
     <ClInclude Include="..\src-core\effects\LiquidEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.h" />
     <ClInclude Include="..\src-core\effects\ServoEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\ServoPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\setup\IPEntryDialog.h" />

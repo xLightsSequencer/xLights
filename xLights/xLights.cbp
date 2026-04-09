@@ -729,8 +729,6 @@
 		<Unit filename="../src-core/effects/LinesEffect.h" />
 		<Unit filename="../src-core/effects/LiquidEffect.cpp" />
 		<Unit filename="../src-core/effects/LiquidEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/LiquidPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/LiquidPanel.h" />
 		<Unit filename="../src-core/effects/MarqueeEffect.cpp" />
 		<Unit filename="../src-core/effects/MarqueeEffect.h" />
 		<Unit filename="../src-core/effects/MeteorsEffect.cpp" />
@@ -1429,7 +1427,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/LightningPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LinesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LinkJukeboxButtonDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/LiquidPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LyricUserDictDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LyricsDialog.wxs" />
@@ -1515,7 +1512,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/TwinklePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/UpdaterDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/VAMPPluginDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/VUMeterPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ValueCurvesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/VendorModelDialog.wxs" />
@@ -1710,12 +1706,10 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/SpirographPanel.wxs" src="../src-ui-wx/ui/effectpanels/SpirographPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SpirographPanel.h" fwddecl="1" i18n="1" name="SpirographPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/StrobePanel.wxs" src="../src-ui-wx/ui/effectpanels/StrobePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/TendrilPanel.wxs" src="../src-ui-wx/ui/effectpanels/TendrilPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/LiquidPanel.wxs" src="../src-ui-wx/ui/effectpanels/LiquidPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/LiquidPanel.h" fwddecl="1" i18n="1" name="LiquidPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/TextPanel.wxs" src="../src-ui-wx/ui/effectpanels/TextPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TextPanel.h" fwddecl="1" i18n="1" name="TextPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/TreePanel.wxs" src="../src-ui-wx/ui/effectpanels/TreePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/TwinklePanel.wxs" src="../src-ui-wx/ui/effectpanels/TwinklePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/VideoPanel.wxs" src="../src-ui-wx/ui/effectpanels/VideoPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/VideoPanel.h" fwddecl="1" i18n="1" name="VideoPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/VUMeterPanel.wxs" src="../src-ui-wx/ui/effectpanels/VUMeterPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/VUMeterPanel.h" fwddecl="1" i18n="1" name="VUMeterPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/WavePanel.wxs" src="../src-ui-wx/ui/effectpanels/WavePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/AssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/AssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />

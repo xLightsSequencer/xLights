@@ -540,5 +540,28 @@
             ],
             "settingKey": "E_NOTEBOOK1"
         }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Enabled2", "equals": true },
+            "enable": [
+                "X2", "Y2", "Direction2", "Velocity2", "Flow2",
+                "Liquid_SourceSize2", "FlowMusic2"
+            ]
+        },
+        {
+            "when": { "property": "Enabled3", "equals": true },
+            "enable": [
+                "X3", "Y3", "Direction3", "Velocity3", "Flow3",
+                "Liquid_SourceSize3", "FlowMusic3"
+            ]
+        },
+        {
+            "when": { "property": "Enabled4", "equals": true },
+            "enable": [
+                "X4", "Y4", "Direction4", "Velocity4", "Flow4",
+                "Liquid_SourceSize4", "FlowMusic4"
+            ]
+        }
     ]
 }
