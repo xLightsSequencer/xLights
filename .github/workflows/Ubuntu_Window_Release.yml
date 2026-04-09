@@ -18,11 +18,7 @@ jobs:
       - name: Extract release notes
         id: release_notes
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          NOTES=$(awk -v ver="$TAG" '
-            /^[0-9]{4}\.[0-9]{2}/ { if (found) exit; if ($1 == ver) found=1 }
-            found { print }
-          ' README.txt)
+          NOTES=$(python3 ci_scripts/release_notes_to_md.py "${GITHUB_REF_NAME}")
           {
             echo "notes<<RELEASE_NOTES_EOF"
             echo "$NOTES"

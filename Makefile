@@ -143,6 +143,14 @@ install:
 	cp -r resources/valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/mhpresets
 	cp -r resources/mhpresets/* $(DESTDIR)/${PREFIX}/share/xLights/mhpresets
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/palettes
+	cp -r resources/palettes/* $(DESTDIR)/${PREFIX}/share/xLights/palettes
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/scripts
+	cp -r resources/scripts/* $(DESTDIR)/${PREFIX}/share/xLights/scripts
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/prompts
+	cp -r resources/prompts/* $(DESTDIR)/${PREFIX}/share/xLights/prompts
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/html
+	cp -r resources/html/* $(DESTDIR)/${PREFIX}/share/xLights/html
 	$(foreach size, $(ICON_SIZES), install -D -m 644 resources/images/xLightsIcons/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
 	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
