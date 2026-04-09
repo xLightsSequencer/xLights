@@ -32,13 +32,17 @@ SingleStrandEffect::SingleStrandEffect(int id)
 }
 
 std::vector<std::string> SingleStrandEffect::GetSettingOptions(const std::string& setting) const {
+    // NOTE: this parser mirrors DecodeMode/DecodePalette in FX.cpp. The
+    // JSON_*_names blobs in FX.h contain quoted, comma-separated names with
+    // no embedded commas. We pass trim=true defensively in case future entries
+    // pick up incidental whitespace.
     if (setting == "SingleStrand_FX") {
         std::string names(JSON_mode_names);
         Replace(names, "\n", "");
         Replace(names, "\"", "");
         Replace(names, "[", "");
         Replace(names, "]", "");
-        return Split(names, ',');
+        return Split(names, ',', true);
     }
     if (setting == "SingleStrand_FX_Palette") {
         std::string names(JSON_palette_names);
@@ -46,7 +50,7 @@ std::vector<std::string> SingleStrandEffect::GetSettingOptions(const std::string
         std::erase(names, '"');
         std::erase(names, '[');
         std::erase(names, ']');
-        return Split(names, ',');
+        return Split(names, ',', true);
     }
     return {};
 }

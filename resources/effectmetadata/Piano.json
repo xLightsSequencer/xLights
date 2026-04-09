@@ -39,7 +39,8 @@
             "description": "When enabled, black keys (sharps/flats) are rendered on the piano. When disabled, only white keys are shown.",
             "type": "bool",
             "controlType": "checkbox",
-            "default": true
+            "default": true,
+            "lockable": true
         },
         {
             "id": "Piano_FadeNotes",

@@ -19,16 +19,40 @@
 #include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/sizer.h>
+#include <wx/menu.h>
+#include <wx/fontenum.h>
 
 #include "ui/shared/controls/BulkEditControls.h"
 #include "ui/shared/controls/MediaPickerCtrl.h"
 #include "render/TextDrawingContext.h"
 #include "ui/effects/CharMapDialog.h"
 
+namespace {
+class ShapePanelFontEnumerator : public wxFontEnumerator {
+public:
+    bool Exists(const std::string& font) const {
+        return std::find(_fonts.begin(), _fonts.end(), font) != _fonts.end();
+    }
+    bool OnFacename(const wxString& facename) override {
+        _fonts.push_back(facename.ToStdString());
+        return true;
+    }
+private:
+    std::list<std::string> _fonts;
+};
+} // namespace
+
 ShapePanel::ShapePanel(wxWindow* parent, const nlohmann::json& metadata)
     : JsonEffectPanel(parent, metadata, true) {
     // Build now that virtual dispatch to CreateCustomControl will work
     BuildFromJson(metadata);
+
+    // Populate the curated emoji shortcut list and wire up the right-click
+    // context menu on the emoji display label.
+    PopulateEmojiList();
+    if (_emojiDisplay) {
+        _emojiDisplay->Bind(wxEVT_CONTEXT_MENU, &ShapePanel::OnEmojiContextMenu, this);
+    }
 
     // Bind change events for ValidateWindow
     auto* objectCtrl = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Shape_ObjectToDraw", this));
@@ -48,6 +72,110 @@ ShapePanel::ShapePanel(wxWindow* parent, const nlohmann::json& metadata)
     if (_skinToneChoice) _skinToneChoice->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) { FireChangeEvent(); ValidateWindow(); e.Skip(); });
 
     ValidateWindow();
+}
+
+ShapePanel::~ShapePanel() {
+    for (auto* e : _emojis) {
+        delete e;
+    }
+    _emojis.clear();
+}
+
+void ShapePanel::PopulateEmojiList() {
+    ShapePanelFontEnumerator fontEnumerator;
+    fontEnumerator.EnumerateFacenames();
+
+    if (fontEnumerator.Exists("Webdings")) {
+        _emojis.push_back(new ShapePanelEmoji("Spider", "Webdings", 33));
+        _emojis.push_back(new ShapePanelEmoji("Web", "Webdings", 34));
+        _emojis.push_back(new ShapePanelEmoji("Explosion", "Webdings", 42));
+        _emojis.push_back(new ShapePanelEmoji("Cause Ribbon", "Webdings", 45));
+        _emojis.push_back(new ShapePanelEmoji("Heart", "Webdings", 89));
+        _emojis.push_back(new ShapePanelEmoji("Roses", "Webdings", 90));
+        _emojis.push_back(new ShapePanelEmoji("Badge", "Webdings", 100));
+        _emojis.push_back(new ShapePanelEmoji("Present 1", "Webdings", 101));
+        _emojis.push_back(new ShapePanelEmoji("Fire Truck", "Webdings", 102));
+        _emojis.push_back(new ShapePanelEmoji("Police Car", "Webdings", 112));
+        _emojis.push_back(new ShapePanelEmoji("Musical Note", "Webdings", 175));
+    }
+
+    if (fontEnumerator.Exists("Wingdings")) {
+        _emojis.push_back(new ShapePanelEmoji("Bell", "Wingdings", 37));
+        _emojis.push_back(new ShapePanelEmoji("Candle", "Wingdings", 39));
+        _emojis.push_back(new ShapePanelEmoji("Smiley", "Wingdings", 74));
+        _emojis.push_back(new ShapePanelEmoji("Snowflake 1", "Wingdings", 84));
+        _emojis.push_back(new ShapePanelEmoji("Cross 1", "Wingdings", 85));
+        _emojis.push_back(new ShapePanelEmoji("Cross 2", "Wingdings", 86));
+        _emojis.push_back(new ShapePanelEmoji("Cross 3", "Wingdings", 87));
+        _emojis.push_back(new ShapePanelEmoji("Star of David", "Wingdings", 89));
+        _emojis.push_back(new ShapePanelEmoji("Star", "Wingdings", 171));
+    }
+
+    if (fontEnumerator.Exists(NATIVE_EMOJI_FONT)) {
+        _emojis.push_back(new ShapePanelEmoji("Snowman 1", NATIVE_EMOJI_FONT, 9924));
+        _emojis.push_back(new ShapePanelEmoji("Snowman 2", NATIVE_EMOJI_FONT, 9927));
+        _emojis.push_back(new ShapePanelEmoji("Snowflake 2", NATIVE_EMOJI_FONT, 10052));
+        _emojis.push_back(new ShapePanelEmoji("Snowflake 3", NATIVE_EMOJI_FONT, 10053));
+        _emojis.push_back(new ShapePanelEmoji("Snowflake 4", NATIVE_EMOJI_FONT, 10054));
+
+        _emojis.push_back(new ShapePanelEmoji("Christmas Tree", NATIVE_EMOJI_FONT, 0x1F384));
+        _emojis.push_back(new ShapePanelEmoji("Gift", NATIVE_EMOJI_FONT, 0x1F381));
+        _emojis.push_back(new ShapePanelEmoji("Mr. Claus", NATIVE_EMOJI_FONT, 0x1F385));
+        _emojis.push_back(new ShapePanelEmoji("Mrs. Claus", NATIVE_EMOJI_FONT, 0x1F936));
+    }
+
+    if (fontEnumerator.Exists("XmasDings")) {
+        _emojis.push_back(new ShapePanelEmoji("Presents ->", "XmasDings", 49));
+        _emojis.push_back(new ShapePanelEmoji("Baubles ->", "XmasDings", 66));
+        _emojis.push_back(new ShapePanelEmoji("Bells ->", "XmasDings", 80));
+        _emojis.push_back(new ShapePanelEmoji("Angels ->", "XmasDings", 85));
+        _emojis.push_back(new ShapePanelEmoji("Stockings ->", "XmasDings", 87));
+        _emojis.push_back(new ShapePanelEmoji("Trees ->", "XmasDings", 97));
+        _emojis.push_back(new ShapePanelEmoji("Wreaths ->", "XmasDings", 104));
+        _emojis.push_back(new ShapePanelEmoji("Hollies ->", "XmasDings", 107));
+        _emojis.push_back(new ShapePanelEmoji("Candles ->", "XmasDings", 109));
+        _emojis.push_back(new ShapePanelEmoji("Snowmen ->", "XmasDings", 113));
+        _emojis.push_back(new ShapePanelEmoji("Santas ->", "XmasDings", 116));
+        _emojis.push_back(new ShapePanelEmoji("Candy Canes ->", "XmasDings", 120));
+    }
+}
+
+void ShapePanel::OnEmojiContextMenu(wxContextMenuEvent& event) {
+    if (_emojis.empty()) return;
+    wxMenu mnuEmoji;
+    for (const auto* e : _emojis) {
+        mnuEmoji.Append(wxNewId(), wxString(e->GetName()));
+    }
+    mnuEmoji.Connect(wxEVT_COMMAND_MENU_SELECTED,
+                     (wxObjectEventFunction)&ShapePanel::OnEmojiMenuItem,
+                     nullptr, this);
+    PopupMenu(&mnuEmoji);
+}
+
+void ShapePanel::OnEmojiMenuItem(wxCommandEvent& event) {
+    auto* eo = static_cast<wxMenu*>(event.GetEventObject());
+    wxString item = eo->GetLabelText(event.GetId());
+    for (const auto* e : _emojis) {
+        if (wxString(e->GetName()) == item) {
+            if (_fontPicker) {
+                wxFont f;
+                f.Create(10, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL,
+                         false, wxString(e->GetFont()), wxFONTENCODING_DEFAULT);
+                if (f.IsOk()) {
+                    _fontPicker->SetSelectedFont(f);
+                    wxFontPickerEvent fpe;
+                    HandleFontChange(fpe);
+                }
+            }
+            if (_charSpin) {
+                _charSpin->SetValue(e->GetChar());
+                wxSpinEvent sce;
+                HandleSpinChange(sce);
+            }
+            ValidateWindow();
+            return;
+        }
+    }
 }
 
 wxWindow* ShapePanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) {
@@ -137,9 +265,9 @@ wxWindow* ShapePanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, c
                                               "ID_CHOICE_Shape_SkinTone");
         _skinToneChoice->Append("Default");
         _skinToneChoice->Append("Light");
-        _skinToneChoice->Append("Medium-Light");
+        _skinToneChoice->Append("Medium Light");
         _skinToneChoice->Append("Medium");
-        _skinToneChoice->Append("Medium-Dark");
+        _skinToneChoice->Append("Medium Dark");
         _skinToneChoice->Append("Dark");
         _skinToneChoice->SetSelection(0);
         sizer->Add(_skinToneChoice, 1, wxALL | wxEXPAND, 2);

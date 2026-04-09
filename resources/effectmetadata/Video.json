@@ -127,6 +127,7 @@
             "id": "SampleSpacing",
             "label": "Sample spacing",
             "description": "Pixel spacing used when sampling the video frame onto the model. A value of 0 uses default sampling; higher values skip pixels for a coarser look.",
+            "tooltip": "Use 0 to scale image. >0 to sample image.",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",

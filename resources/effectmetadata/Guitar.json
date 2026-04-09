@@ -9,7 +9,8 @@
             "options": [
                 "Guitar",
                 "Bass Guitar",
-                "Banjo"
+                "Banjo",
+                "Violin"
             ],
             "default": "Guitar",
             "description": "Selects the instrument type, which determines the number of strings and tuning used to map MIDI notes to fret positions."

@@ -61,7 +61,7 @@ void PinwheelEffect::RenderNewMethod(Effect* effect, const SettingsMap& Settings
     
     data.pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    data.pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation");
+    data.pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation", true);
     const std::string& pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
     data.xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset, PINWHEEL_X_MIN, PINWHEEL_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     data.yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -179,7 +179,7 @@ void PinwheelEffect::RenderOldMethod(Effect* effect, const SettingsMap& Settings
     int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", 3);
     int pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation");
+    int pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation", true);
     const std::string& pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
     int xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset, PINWHEEL_X_MIN, PINWHEEL_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

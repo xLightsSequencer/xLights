@@ -207,15 +207,44 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 }
 
 void EffectPanelUtils::enableControlsByName(wxWindow *window, const wxString &name, bool enable) {
-    wxWindow *w = window->FindWindow(name);
-    if (w != nullptr) {
-        w->Enable(enable);
+    auto enableIfFound = [&](const wxString& nm) {
+        wxWindow *w2 = window->FindWindow(nm);
+        if (w2 != nullptr) {
+            w2->Enable(enable);
+        }
+    };
+
+    // Toggle the primary control as named.
+    enableIfFound(name);
+
+    // Extract the bare property id (everything after the second underscore).
+    // e.g. "ID_SLIDER_Ripple_Points" -> "Ripple_Points"
+    int firstUnder = name.Find('_');
+    if (firstUnder == wxNOT_FOUND) {
+        return;
     }
-    wxString n2 = "IDD_" + name.SubString(3, name.size());
-    w = window->FindWindow(n2);
-    if (w != nullptr) {
-        w->Enable(enable);
+    wxString tail = name.Mid(firstUnder + 1);
+    int secondUnderInTail = tail.Find('_');
+    if (secondUnderInTail == wxNOT_FOUND) {
+        return;
     }
+    wxString bare = tail.Mid(secondUnderInTail + 1);
+
+    // Toggle every related sibling control for this property: int/float slider
+    // and text-buddy twins, value curve button, and lock bitmap buttons. The
+    // legacy panel had separate paths for ID_/IDD_ depending on whether the
+    // primary was the slider or the text control; the JSON-driven panel mixes
+    // both, so we look up every variant. FindWindow returns nullptr for any
+    // sibling that does not exist for this property, so over-broad lookups
+    // are harmless.
+    enableIfFound("ID_SLIDER_" + bare);
+    enableIfFound("ID_TEXTCTRL_" + bare);
+    enableIfFound("IDD_SLIDER_" + bare);
+    enableIfFound("IDD_TEXTCTRL_" + bare);
+    enableIfFound("ID_VALUECURVE_" + bare);
+    enableIfFound("ID_BITMAPBUTTON_SLIDER_" + bare);
+    enableIfFound("ID_BITMAPBUTTON_CHECKBOX_" + bare);
+    enableIfFound("ID_BITMAPBUTTON_CHOICE_" + bare);
 }
 
 void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)

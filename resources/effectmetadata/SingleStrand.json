@@ -24,6 +24,7 @@
             "max": 20,
             "valueCurve": true,
             "lockable": true,
+            "tooltip": "Number of chases within the string, may overlap if chase size is greater than can fit.",
             "description": "Number of simultaneous chase segments running across the strand."
         },
         {
@@ -36,6 +37,7 @@
             "max": 100,
             "valueCurve": true,
             "lockable": true,
+            "tooltip": "Size of the effect in percentage of the string, will overlap if the number of chases are larger than can fit.  3 chases + > 33.3 percent = overlap",
             "description": "Length of each lit chase segment as a percentage of the total strand length."
         },
         {
@@ -62,6 +64,7 @@
             "lockable": true,
             "min": -5000,
             "max": 5000,
+            "tooltip": "Offset by the percentage of the string, will loop > +/- 100",
             "description": "Shifts the starting position of the chase pattern along the strand. Useful for staggering chases across multiple models."
         },
         {
@@ -104,6 +107,7 @@
             ],
             "default": "None",
             "lockable": true,
+            "tooltip": "From Head - Brightest at the start, From Tail - Brightest and the end, Head and Tail - Brightest at both ends, Middle - Brightest in the middle",
             "description": "Applies a brightness fade to the chase segment. 'From Head' fades from the leading edge, 'From Tail' from the trailing edge, 'Head and Tail' fades both ends, and 'Middle' fades from the center outward."
         },
         {

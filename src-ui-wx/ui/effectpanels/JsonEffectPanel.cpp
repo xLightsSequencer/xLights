@@ -57,6 +57,24 @@ JsonEffectPanel::JsonEffectPanel(wxWindow* parent, const nlohmann::json& metadat
     : xlEffectPanel(), metadata_(metadata) {
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     if (!deferBuild) {
+        // Sanity check: if the metadata declares any "custom" controlType properties,
+        // the panel must be a subclass that overrides CreateCustomControl, which only
+        // works if the subclass passes deferBuild=true (otherwise virtual dispatch from
+        // this base constructor resolves to the no-op base method). Detect that mistake
+        // here so it fails loudly rather than silently producing a broken panel.
+        if (metadata.contains("properties")) {
+            for (const auto& prop : metadata["properties"]) {
+                if (prop.value("controlType", "") == "custom") {
+                    spdlog::error("JsonEffectPanel: effect '{}' has a 'custom' controlType property "
+                                  "('{}') but the panel was constructed with deferBuild=false. "
+                                  "Subclasses with CreateCustomControl overrides must pass deferBuild=true "
+                                  "and call BuildFromJson() themselves, otherwise the override will not run.",
+                                  metadata.value("effectName", "?"),
+                                  prop.value("id", "?"));
+                    break;
+                }
+            }
+        }
         BuildFromJson(metadata);
     }
 }
@@ -123,6 +141,14 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
 
         auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
         outerSizer->AddGrowableCol(0);
+
+        // Description appears at the top, matching tabbed layout.
+        if (!descText.empty()) {
+            auto* descLabel = new wxStaticText(this, wxID_ANY, wxString(descText));
+            descLabel->Wrap(300);
+            outerSizer->Add(descLabel, 0, wxALL | wxEXPAND, 5);
+        }
+
         auto* gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
         gridSizer->AddGrowableCol(1);
 
@@ -146,11 +172,6 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
             outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
             for (const auto& xyGroup : xyCenterGroups) {
                 BuildXYCenter(this, outerSizer, xyGroup, metadata["properties"]);
-            }
-            if (!descText.empty()) {
-                auto* descLabel = new wxStaticText(this, wxID_ANY, wxString(descText));
-                descLabel->Wrap(300);
-                outerSizer->Add(descLabel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
             }
             SetSizer(outerSizer);
         } else {
@@ -181,6 +202,15 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
             if (it->second.slider) {
                 it->second.slider->Bind(wxEVT_SLIDER, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
             }
+            if (it->second.spinCtrl) {
+                it->second.spinCtrl->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.radioButton) {
+                it->second.radioButton->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.textCtrl) {
+                it->second.textCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
         }
     }
 
@@ -207,6 +237,16 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
                         if (!t.empty()) info.choice->Append(t);
                     }
                     if (!selection.empty()) info.choice->SetStringSelection(selection);
+                    // Fall back to JSON default if no selection survives the
+                    // re-population (covers new drag-drop where there is no
+                    // prior selection to restore).
+                    if (info.choice->GetSelection() == wxNOT_FOUND &&
+                        !info.defaultValue.is_null() && info.defaultValue.is_string()) {
+                        std::string def = info.defaultValue.get<std::string>();
+                        if (!def.empty()) {
+                            info.choice->SetStringSelection(wxString(def));
+                        }
+                    }
                     // Enable/disable based on whether tracks are available
                     info.choice->Enable(info.choice->GetCount() > 0);
                 }
@@ -557,6 +597,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     bool isLockable = prop.value("lockable", false);
     int divisor = prop.value("divisor", 1);
     std::string settingPrefix = prop.value("settingPrefix", "");
+    std::string tooltip = prop.value("tooltip", "");
 
     PropertyInfo info;
     info.id = id;
@@ -976,12 +1017,26 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
     } else if (controlType == "custom") {
         // Delegate to subclass to create the control
-        CreateCustomControl(parentWin, sizer, prop, cols);
+        wxWindow* customCtrl = CreateCustomControl(parentWin, sizer, prop, cols);
+        if (customCtrl == nullptr) {
+            spdlog::warn("JsonEffectPanel: property '{}' has controlType 'custom' but CreateCustomControl returned null. "
+                          "If this is a subclass with a custom override, ensure the subclass passes deferBuild=true to JsonEffectPanel.", id);
+        } else if (!tooltip.empty()) {
+            customCtrl->SetToolTip(wxString(tooltip));
+        }
         // Don't store in properties_ - the subclass manages custom controls
         return;
     }
 
     properties_[id] = info;
+
+    // Apply tooltip to the primary control for this property
+    if (!tooltip.empty()) {
+        wxWindow* primary = FindControlForProperty(id);
+        if (primary != nullptr) {
+            primary->SetToolTip(wxString(tooltip));
+        }
+    }
 }
 
 void JsonEffectPanel::ParseVisibilityRules(const nlohmann::json& metadata) {
@@ -1141,8 +1196,9 @@ wxString JsonEffectPanel::GetEffectString() {
         bool isDefault = false;
         if (info.controlType == "slider") {
             if (info.divisor > 1 && info.textCtrl) {
-                double current = 0;
-                info.textCtrl->GetValue().ToDouble(&current);
+                // Use wxAtof for locale-independent parsing (wxString::ToDouble
+                // is locale-aware and breaks for users in locales with ',' decimal).
+                double current = wxAtof(info.textCtrl->GetValue());
                 isDefault = std::abs(current - info.defaultValue.get<double>()) < 0.001;
             } else if (!info.settingPrefix.empty() && info.textCtrl) {
                 long current = 0;
@@ -1218,6 +1274,15 @@ void JsonEffectPanel::SetRenderableEffect(RenderableEffect* eff) {
                 if (!selection.empty()) {
                     info.choice->SetStringSelection(selection);
                 }
+                // If still no selection (e.g. brand-new effect), try the JSON
+                // default first, then fall back to the first available option.
+                if (info.choice->GetSelection() == wxNOT_FOUND &&
+                    !info.defaultValue.is_null() && info.defaultValue.is_string()) {
+                    std::string def = info.defaultValue.get<std::string>();
+                    if (!def.empty()) {
+                        info.choice->SetStringSelection(wxString(def));
+                    }
+                }
                 if (info.choice->GetSelection() == wxNOT_FOUND && info.choice->GetCount() > 0) {
                     info.choice->SetSelection(0);
                 }
@@ -1278,7 +1343,12 @@ void JsonEffectPanel::SetDefaultParameters() {
             }
         } else if (info.controlType == "choice" || info.controlType == "combobox") {
             if (info.choice) {
-                SetChoiceValue(info.choice, info.defaultValue.get<std::string>());
+                std::string def = info.defaultValue.get<std::string>();
+                // Skip empty defaults: SetChoiceValue would fire a spurious change
+                // event with no useful payload (and SetStringSelection("") fails).
+                if (!def.empty()) {
+                    SetChoiceValue(info.choice, def);
+                }
             }
         } else if (info.controlType == "spin") {
             if (info.spinCtrl) {
@@ -1286,7 +1356,11 @@ void JsonEffectPanel::SetDefaultParameters() {
             }
         } else if (info.controlType == "text") {
             if (info.textCtrl) {
-                SetTextValue(info.textCtrl, info.defaultValue.get<std::string>());
+                std::string def = info.defaultValue.get<std::string>();
+                // Skip empty default for text controls for the same reason.
+                if (!def.empty()) {
+                    SetTextValue(info.textCtrl, def);
+                }
             }
         }
     }

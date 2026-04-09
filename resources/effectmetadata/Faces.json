@@ -45,6 +45,7 @@
             "id": "Faces_Eyes",
             "label": "Eyes",
             "description": "Controls the eye state. Open keeps eyes always open, Closed keeps them shut, Auto adds periodic random blinking, and Off disables eye rendering.",
+            "tooltip": "When Auto, blink occurs during rest or (off).",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -59,6 +60,7 @@
             "id": "Faces_EyeBlinkFrequency",
             "label": "Frequency",
             "description": "How often automatic eye blinks occur when Eyes is set to Auto. Faster settings produce more frequent blinking.",
+            "tooltip": "How often the blink happens.",
             "type": "enum",
             "controlType": "choice",
             "options": [

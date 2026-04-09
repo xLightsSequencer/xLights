@@ -111,7 +111,8 @@
             "default": 0,
             "min": -250,
             "max": 250,
-            "valueCurve": true
+            "valueCurve": true,
+            "lockable": true
         }
     ]
 }

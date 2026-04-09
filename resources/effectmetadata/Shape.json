@@ -30,7 +30,7 @@
         },
         {
             "id": "Shape_Font",
-            "label": "Shape_Font",
+            "label": "Character",
             "type": "font",
             "controlType": "custom",
             "default": "",
@@ -38,7 +38,7 @@
         },
         {
             "id": "Shape_Char",
-            "label": "Shape_Char",
+            "label": "Character Code",
             "type": "int",
             "controlType": "custom",
             "default": 127876,
@@ -48,7 +48,7 @@
         },
         {
             "id": "Shape_SkinTone",
-            "label": "Shape_SkinTone",
+            "label": "Skin Tone",
             "type": "enum",
             "controlType": "custom",
             "options": [

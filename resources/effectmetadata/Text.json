@@ -65,6 +65,7 @@
             "id": "TextToCenter",
             "label": "C",
             "description": "When enabled, the text movement stops when the text reaches the center of the model rather than continuing off screen.",
+            "tooltip": "Move to center and stop",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -73,6 +74,7 @@
             "id": "TextNoRepeat",
             "label": "NoRep",
             "description": "When enabled, the text scrolls through once and then stops instead of repeating in a loop.",
+            "tooltip": "Do not cycle the text.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -110,6 +112,7 @@
             "id": "Text_Count",
             "label": "Count down",
             "description": "Enables countdown mode. The text field value is used as the target, and the displayed text shows the remaining time in the selected format.",
+            "tooltip": "seconds: enter time in seconds\nminutes seconds: enter time as mm:ss. To prepend or append text to the counter, delimit the time with / (The next show begins in /15:30/! Stay Tuned.)\n\nto date 'd h m s'\nto date 'h:m:s'\nto date 'm' or 's'\nto date 's'\n\nThese options count down to given date based on system date and time. Enter Date in on of the following formats: \nFri, 25 Dec 2015 00:00:00 +0100\nFri, 25 Dec 2015 00:00:00 CST\nFri, 25 Dec 2015 00:00:00 MST\n\n\n!to date!%fmt\n\nThis option allows you to choose the output format. i.e. days only.\nEnter Date in the following format to display days only:\n/Fri, 25 Dec 2015 00:00:00 +0100/ %D",
             "type": "enum",
             "controlType": "choice",
             "options": [
@@ -137,6 +140,7 @@
             "id": "Text_Color_PerWord",
             "label": "Color Per Word",
             "description": "When enabled, each word in the text is drawn using a different color from the palette, cycling through the available colors.",
+            "tooltip": "Change color after each word if checked",
             "type": "bool",
             "controlType": "checkbox",
             "default": false

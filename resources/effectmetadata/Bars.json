@@ -8,10 +8,9 @@
             "controlType": "slider",
             "default": 1,
             "min": 1,
-            "max": 50,
+            "max": 5,
             "valueCurve": true,
             "lockable": true,
-            "vcMax": 5,
             "description": "Number of times the full palette color sequence repeats across the model. Higher values produce more, thinner bars."
         },
         {
@@ -23,8 +22,7 @@
             "divisor": 10,
             "valueCurve": true,
             "min": 0,
-            "max": 500,
-            "vcMax": 300,
+            "max": 300,
             "description": "Number of times the bars scroll completely across the model during the effect. Higher values make the bars move faster."
         },
         {

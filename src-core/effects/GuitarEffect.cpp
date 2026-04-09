@@ -654,9 +654,41 @@ void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                  SettingsMap.GetBool("CHECKBOX_ShowStrings", false),
                  SettingsMap.GetBool("CHECKBOX_Fade", false),
                  SettingsMap.GetBool("CHECKBOX_Collapse", false),
-                 SettingsMap.GetFloat("SLIDER_StringWaveFactor", 0.0) / 10.0,
-                 SettingsMap.GetFloat("SLIDER_BaseWaveFactor", 10.0) / 10.0,
+                 SettingsMap.GetDouble("TEXTCTRL_StringWaveFactor", 0.0),
+                 SettingsMap.GetDouble("TEXTCTRL_BaseWaveFactor", 1.0),
                  SettingsMap.GetBool("CHECKBOX_VaryWaveLengthOnFret", true));
+}
+
+bool GuitarEffect::needToAdjustSettings(const std::string& version) {
+    return IsVersionOlder("2026.06", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
+void GuitarEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    SettingsMap& settings = effect->GetSettings();
+
+    if (IsVersionOlder("2026.06", version)) {
+        // The wave factor sliders previously stored an int 1..100 in E_SLIDER_*
+        // (the renderer divided by 10). The JSON-driven panel now stores a float
+        // 0.1..10.0 directly in E_TEXTCTRL_*. Migrate the legacy keys forward so
+        // existing sequences keep their saved wavelength.
+        if (!settings.Contains("E_TEXTCTRL_BaseWaveFactor") &&
+             settings.Contains("E_SLIDER_BaseWaveFactor")) {
+            int v = settings.GetInt("E_SLIDER_BaseWaveFactor", 10);
+            settings["E_TEXTCTRL_BaseWaveFactor"] = std::format("{:.1f}", v / 10.0);
+        }
+        settings.erase("E_SLIDER_BaseWaveFactor");
+
+        if (!settings.Contains("E_TEXTCTRL_StringWaveFactor") &&
+             settings.Contains("E_SLIDER_StringWaveFactor")) {
+            int v = settings.GetInt("E_SLIDER_StringWaveFactor", 0);
+            settings["E_TEXTCTRL_StringWaveFactor"] = std::format("{:.1f}", v / 10.0);
+        }
+        settings.erase("E_SLIDER_StringWaveFactor");
+    }
 }
 
 bool notesort(const NoteTiming* first, const NoteTiming* second)

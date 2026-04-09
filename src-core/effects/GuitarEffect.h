@@ -32,6 +32,8 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     static std::vector<float> Parse(const std::string& l);
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual int GetColorSupportedCount() const override
     {
         return 5;

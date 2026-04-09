@@ -24,6 +24,7 @@
             "divisor": 10,
             "valueCurve": true,
             "lockable": true,
+            "tooltip": "Number of times a band wraps around the matrix",
             "description": "Number of times each spiral arm wraps around the model from bottom to top. Negative values reverse the wrap direction. Larger absolute values produce tighter spirals."
         },
         {

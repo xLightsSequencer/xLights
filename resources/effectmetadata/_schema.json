@@ -42,6 +42,10 @@
                     "type": "string",
                     "description": "Human-readable label"
                 },
+                "tooltip": {
+                    "type": "string",
+                    "description": "Tooltip text shown on hover for the primary control"
+                },
                 "type": {
                     "type": "string",
                     "enum": ["int", "float", "bool", "enum", "string", "color", "file", "font"],

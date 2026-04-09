@@ -12,8 +12,14 @@
 
 #include "JsonEffectPanel.h"
 
+class MediaPickerCtrl;
+
 class RipplePanel : public JsonEffectPanel {
 public:
     RipplePanel(wxWindow* parent, const nlohmann::json& metadata);
     void ValidateWindow() override;
+    wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) override;
+
+private:
+    MediaPickerCtrl* _svgPicker = nullptr;
 };

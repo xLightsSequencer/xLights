@@ -28,6 +28,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     weak-link FoundationModels and ImagePlayground frameworks so the binary
                                     loads on older macOS, gate Color Palette to macOS 26+ (FoundationModels)
                                     and Image Generation to macOS 15.4+ (ImagePlayground.ImageCreator)
+    -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
+                                    instead of wxSmith-generated C++ code. 43 of 55 effect panels migrated.
+                                    Side effects: Warp X/Y and Fireworks XLocation/YLocation/XVelocity/YVelocity/Fade
+                                    settings now serialize as E_SLIDER_* instead of E_TEXTCTRL_*. Render code reads
+                                    both forms via GetValueCurveInt fallback so behavior is unchanged, but tools that
+                                    parse sequence XML directly should accept either prefix.
+    -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
+                                    Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
+    -bug (dkulp)                Fix Circles effect Collide checkbox removal causing silent behavior change in old sequences.
+                                    Sequences with Collide=1 are now migrated to Bounce=1 to preserve their non-wrapping render.
+    -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
+                                    using stale defaults of 0 for Start/End Radius/Width).
+    -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
 2026.05  April 9, 2026
     -enh (AGFazio)              Add face definition matrix previews
     -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs

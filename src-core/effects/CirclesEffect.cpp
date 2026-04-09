@@ -12,6 +12,7 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
+#include "UtilFunctions.h"
 
 #include "../../include/circles-16.xpm"
 #include "../../include/circles-24.xpm"
@@ -40,6 +41,31 @@ CirclesEffect::CirclesEffect(int i) : RenderableEffect(i, "Circles", circles_16,
 CirclesEffect::~CirclesEffect()
 {
     //dtor
+}
+
+bool CirclesEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2026.06", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
+void CirclesEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    SettingsMap& settings = effect->GetSettings();
+
+    if (IsVersionOlder("2026.06", version)) {
+        // The Collide checkbox was removed when migrating to the JSON-driven panel.
+        // Old behavior was: wrap = !(bounce || collide). New behavior: wrap = !bounce.
+        // Promote any old Collide=1 to Bounce=1 so existing sequences keep their
+        // non-wrapping render behavior.
+        if (settings.GetBool("E_CHECKBOX_Circles_Collide", false)) {
+            settings["E_CHECKBOX_Circles_Bounce"] = "1";
+        }
+        settings.erase("E_CHECKBOX_Circles_Collide");
+    }
 }
 
 CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)

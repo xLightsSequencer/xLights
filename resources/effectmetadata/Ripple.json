@@ -56,9 +56,9 @@
         },
         {
             "id": "Ripple_SVG",
-            "label": "Ripple_SVG",
+            "label": "SVG",
             "type": "file",
-            "controlType": "filepicker",
+            "controlType": "custom",
             "default": "",
             "fileFilter": "*.svg",
             "fileMessage": "Choose a SIMPLE svg file",
@@ -92,7 +92,7 @@
         },
         {
             "id": "Ripple_Outline",
-            "label": "Ripple_Outline",
+            "label": "Outline",
             "type": "float",
             "controlType": "slider",
             "default": 1.0,
