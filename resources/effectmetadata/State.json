@@ -13,21 +13,22 @@
         },
         {
             "id": "State_State",
-            "label": "State_State",
+            "label": "State",
             "type": "enum",
             "controlType": "choice",
             "options": [],
             "default": "",
-            "description": "Selects a specific named state to display. Multiple states can be separated by commas. Use '*' or '<ALL>' to activate all defined states."
+            "description": "Selects a specific named state to display. Multiple states can be separated by commas. Use '*' or '<ALL>' to activate all defined states. When left empty, the Timing Track is used instead."
         },
         {
             "id": "State_TimingTrack",
-            "label": "State_TimingTrack",
+            "label": "Timing Track",
             "type": "enum",
             "controlType": "choice",
             "options": [],
             "default": "",
-            "description": "Selects a timing track whose labels drive which states are shown over time. Each timing mark's label is matched to a state name."
+            "dynamicOptions": "timingTracks",
+            "description": "Selects a timing track whose labels drive which states are shown over time. Each timing mark's label is matched to a state name. Ignored if a State is selected above."
         },
         {
             "id": "State_Mode",

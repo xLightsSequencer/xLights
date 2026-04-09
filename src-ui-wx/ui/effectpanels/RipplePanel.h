@@ -21,5 +21,10 @@ public:
     wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) override;
 
 private:
+    // Mediate the mutual exclusion between Object=SVG and Style=Old in the
+    // direction the user just changed (so the OTHER control yields).
+    void OnObjectChanged();
+    void OnStyleChanged();
+
     MediaPickerCtrl* _svgPicker = nullptr;
 };

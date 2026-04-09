@@ -1388,7 +1388,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FPPConnectDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FPPUploadProgressDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/FacesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FanPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FillPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FindDataPanel.wxs" />
@@ -1472,7 +1471,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ServicesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ServoConfigDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ServoPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShaderDownloadDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShaderPanel.wxs" />
@@ -1488,7 +1486,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/SpirographPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SplashDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/StartChannelDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/StatePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/StrobePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SubModelsDialog.wxs" />
@@ -1665,7 +1662,6 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/CurtainPanel.wxs" src="../src-ui-wx/ui/effectpanels/CurtainPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/DMXPanel.wxs" src="../src-ui-wx/ui/effectpanels/DMXPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/DuplicatePanel.wxs" src="../src-ui-wx/ui/effectpanels/DuplicatePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/DuplicatePanel.h" fwddecl="1" i18n="1" name="DuplicatePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/FacesPanel.wxs" src="../src-ui-wx/ui/effectpanels/FacesPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/FanPanel.wxs" src="../src-ui-wx/ui/effectpanels/FanPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/FillPanel.wxs" src="../src-ui-wx/ui/effectpanels/FillPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/FindDataPanel.wxs" src="../src-ui-wx/ui/diagnostics/FindDataPanel.cpp" hdr="../src-ui-wx/ui/diagnostics/FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
@@ -1696,7 +1692,6 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/SnowstormPanel.wxs" src="../src-ui-wx/ui/effectpanels/SnowstormPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SnowstormPanel.h" fwddecl="1" i18n="1" name="SnowstormPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/SpiralsPanel.wxs" src="../src-ui-wx/ui/effectpanels/SpiralsPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SpiralsPanel.h" fwddecl="1" i18n="1" name="SpiralsPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/SpirographPanel.wxs" src="../src-ui-wx/ui/effectpanels/SpirographPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SpirographPanel.h" fwddecl="1" i18n="1" name="SpirographPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/StatePanel.wxs" src="../src-ui-wx/ui/effectpanels/StatePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/StatePanel.h" fwddecl="1" i18n="1" name="StatePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/StrobePanel.wxs" src="../src-ui-wx/ui/effectpanels/StrobePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/TendrilPanel.wxs" src="../src-ui-wx/ui/effectpanels/TendrilPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/LiquidPanel.wxs" src="../src-ui-wx/ui/effectpanels/LiquidPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/LiquidPanel.h" fwddecl="1" i18n="1" name="LiquidPanel" language="CPP" />
@@ -1711,7 +1706,6 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/BufferPanel.wxs" src="../src-ui-wx/ui/sequencer/BufferPanel.cpp" hdr="../src-ui-wx/ui/sequencer/BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/LayoutPanel.wxs" src="../src-ui-wx/ui/layout/LayoutPanel.cpp" hdr="../src-ui-wx/ui/layout/LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/ModelGroupPanel.wxs" src="../src-ui-wx/ui/layout/ModelGroupPanel.cpp" hdr="../src-ui-wx/ui/layout/ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ServoPanel.wxs" src="../src-ui-wx/ui/effectpanels/ServoPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/ViewsModelsPanel.wxs" src="../src-ui-wx/ui/layout/ViewsModelsPanel.cpp" hdr="../src-ui-wx/ui/layout/ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/HousePreviewPanel.wxs" src="../src-ui-wx/ui/layout/HousePreviewPanel.cpp" hdr="../src-ui-wx/ui/layout/HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/SelectPanel.wxs" src="../src-ui-wx/ui/sequencer/SelectPanel.cpp" hdr="../src-ui-wx/ui/sequencer/SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />

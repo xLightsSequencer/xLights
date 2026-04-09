@@ -10,89 +10,50 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-//(*Headers(ServoPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxButton;
-class wxCheckBox;
-class wxChoice;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
-class wxTextCtrl;
-class wxToggleButton;
-//*)
-
-
-#include "ui/shared/controls/BulkEditControls.h"
-#include "EffectPanelUtils.h"
+#include "JsonEffectPanel.h"
 
 class Model;
+class wxButton;
+class wxCheckBox;
+class wxStaticText;
+class BulkEditSliderF1;
+class BulkEditTextCtrlF1;
+class BulkEditValueCurveButton;
+class LinkedToggleButton;
 
-class ServoPanel: public xlEffectPanel
-{
-	public:
+class ServoPanel : public JsonEffectPanel {
+public:
+    ServoPanel(wxWindow* parent, const nlohmann::json& metadata);
+    ~ServoPanel() override = default;
 
-		ServoPanel(wxWindow* parent);
-		virtual ~ServoPanel();
-		virtual void ValidateWindow() override;
-		virtual void SetDefaultParameters() override;
-		virtual void SetPanelStatus(Model* cls) override;
+    void ValidateWindow() override;
+    void SetDefaultParameters() override;
 
-		//(*Declarations(ServoPanel)
-		BulkEditCheckBox* CheckBox_16bit;
-		BulkEditCheckBox* CheckBox_Timing_Track;
-		BulkEditChoice* Choice_Channel;
-		BulkEditChoice* Choice_Servo_TimingTrack;
-		BulkEditSliderF1* SliderEndValue;
-		BulkEditSliderF1* Slider_Servo;
-		BulkEditTextCtrlF1* TextCtrl_EndValue;
-		BulkEditTextCtrlF1* TextCtrl_Servo;
-		BulkEditValueCurveButton* ValueCurve_Servo;
-		LinkedToggleButton* EndLinkedButton;
-		LinkedToggleButton* StartLinkedButton;
-		wxButton* EqualButton;
-		wxButton* SwapButton;
-		wxCheckBox* SyncCheckBox;
-		wxFlexGridSizer* FlexGridSizer_Main;
-		wxStaticText* EndDMXLabel;
-		wxStaticText* Label_DMX1;
-		wxStaticText* StaticText1;
-		//*)
+protected:
+    wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                   const nlohmann::json& prop, int cols) override;
 
-	protected:
+private:
+    wxWindow* BuildStartEndRow(wxWindow* parentWin, wxSizer* sizer);
+    wxWindow* BuildButtonRow(wxWindow* parentWin, wxSizer* sizer);
 
-		//(*Identifiers(ServoPanel)
-		static const wxWindowID ID_STATICTEXT_Channel;
-		static const wxWindowID ID_CHOICE_Channel;
-		static const wxWindowID ID_CHECKBOX_16bit;
-		static const wxWindowID ID_CHECKBOX_Timing_Track;
-		static const wxWindowID ID_CHOICE_Servo_TimingTrack;
-		static const wxWindowID ID_TOGGLEBUTTON_Start;
-		static const wxWindowID ID_STATICTEXT_Servo;
-		static const wxWindowID IDD_SLIDER_Servo;
-		static const wxWindowID ID_VALUECURVE_Servo;
-		static const wxWindowID ID_TEXTCTRL_Servo;
-		static const wxWindowID ID_TOGGLEBUTTON_End;
-		static const wxWindowID ID_STATICTEXT1;
-		static const wxWindowID IDD_SLIDER_EndValue;
-		static const wxWindowID ID_TEXTCTRL_EndValue;
-		static const wxWindowID IDD_CHECKBOX_Sync;
-		static const wxWindowID ID_BUTTON1;
-		static const wxWindowID IDD_SwapButton;
-		//*)
+    void OnStartValueUpdated(wxCommandEvent& event);
+    void OnEndValueUpdated(wxCommandEvent& event);
+    void OnSyncClicked(wxCommandEvent& event);
+    void OnEqualClicked(wxCommandEvent& event);
+    void OnSwapClicked(wxCommandEvent& event);
 
-	private:
-
-		//(*Handlers(ServoPanel)
-		void OnCheckBox1Click(wxCommandEvent& event);
-		void OnCheckBox_Timing_TrackClick(wxCommandEvent& event);
-		void OnSwapButtonClick(wxCommandEvent& event);
-		void OnEqualButtonClick(wxCommandEvent& event);
-		void OnSyncCheckBoxClick(wxCommandEvent& event);
-		void StartValueUpdated(wxCommandEvent& event);
-		void EndValueUpdated(wxCommandEvent& event);
-		//*)
-
-		DECLARE_EVENT_TABLE()
+    // Custom-built controls (not in properties_ map).
+    LinkedToggleButton* _startLinked = nullptr;
+    LinkedToggleButton* _endLinked = nullptr;
+    wxStaticText* _startLabel = nullptr;
+    wxStaticText* _endLabel = nullptr;
+    BulkEditSliderF1* _startSlider = nullptr;
+    BulkEditSliderF1* _endSlider = nullptr;
+    BulkEditTextCtrlF1* _startText = nullptr;
+    BulkEditTextCtrlF1* _endText = nullptr;
+    BulkEditValueCurveButton* _startVC = nullptr;
+    wxCheckBox* _syncCheck = nullptr;
+    wxButton* _equalButton = nullptr;
+    wxButton* _swapButton = nullptr;
 };

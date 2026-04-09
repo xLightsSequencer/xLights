@@ -98,6 +98,11 @@ private:
         wxTextCtrl* buddyText = nullptr;   // IDD_TEXTCTRL for int slider props
     };
 
+    // Repopulate any choices that source their options from the sequence's
+    // timing tracks. Called from SetPanelStatus and from the rename-timing
+    // event handler so the dropdowns always reflect current state.
+    void RepopulateTimingTrackChoices();
+
     void BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols);
 
     // Override in subclasses to create custom controls for properties with controlType "custom".
@@ -106,6 +111,10 @@ private:
     virtual wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) { return nullptr; }
     void BuildTabGroup(wxSizer* parentSizer, const nlohmann::json& group, const nlohmann::json& metadata);
     void BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer, const nlohmann::json& group, const nlohmann::json& allProps);
+    // Build a section group: a wxStaticBoxSizer (if label is present) or a plain
+    // sub-sizer containing an inner grid with the listed properties. Used for
+    // logical grouping like "Mouth Movements" or "Eyes" on the Faces panel.
+    void BuildSection(wxSizer* parentSizer, const nlohmann::json& group, const nlohmann::json& allProps);
     void ParseVisibilityRules(const nlohmann::json& metadata);
     void ApplyVisibilityRules();
 

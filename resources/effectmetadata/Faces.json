@@ -2,33 +2,11 @@
     "effectName": "Faces",
     "properties": [
         {
-            "id": "Faces_Phoneme",
-            "label": "Faces_Phoneme",
-            "description": "The mouth phoneme shape to display. Used for manual lip-sync when no timing track is selected. Each phoneme corresponds to a different mouth position.",
+            "id": "Faces_MouthMovements",
+            "label": "",
+            "description": "Drives the mouth phonemes. Pick a Phoneme for a single fixed mouth shape, or pick a Timing Track with phoneme labels for automatic lip-sync.",
             "type": "enum",
-            "controlType": "choice",
-            "options": [
-                "AI",
-                "E",
-                "FV",
-                "L",
-                "MBP",
-                "O",
-                "U",
-                "WQ",
-                "etc",
-                "rest",
-                "(off)"
-            ],
-            "default": "AI"
-        },
-        {
-            "id": "Faces_TimingTrack",
-            "label": "Faces_TimingTrack",
-            "description": "The timing track containing phoneme data for automatic lip-sync. When set, phonemes change automatically based on timing marks.",
-            "type": "enum",
-            "controlType": "choice",
-            "options": [],
+            "controlType": "custom",
             "default": ""
         },
         {
@@ -38,13 +16,13 @@
             "type": "enum",
             "controlType": "choice",
             "options": [],
-            "default": "",
+            "default": "Default",
             "dynamicOptions": "faces"
         },
         {
             "id": "Faces_Eyes",
-            "label": "Eyes",
-            "description": "Controls the eye state. Open keeps eyes always open, Closed keeps them shut, Auto adds periodic random blinking, and Off disables eye rendering.",
+            "label": "State",
+            "description": "Controls the eye state. Open keeps eyes always open, Closed keeps them shut, Auto adds periodic random blinking, and (off) disables eye rendering.",
             "tooltip": "When Auto, blink occurs during rest or (off).",
             "type": "enum",
             "controlType": "choice",
@@ -58,7 +36,7 @@
         },
         {
             "id": "Faces_EyeBlinkFrequency",
-            "label": "Frequency",
+            "label": "Blink Frequency",
             "description": "How often automatic eye blinks occur when Eyes is set to Auto. Faster settings produce more frequent blinking.",
             "tooltip": "How often the blink happens.",
             "type": "enum",
@@ -74,7 +52,7 @@
         },
         {
             "id": "Faces_EyeBlinkDuration",
-            "label": "Duration",
+            "label": "Blink Duration",
             "description": "How long each automatic eye blink lasts when Eyes is set to Auto. Longer durations keep the eyes closed for more frames per blink.",
             "type": "enum",
             "controlType": "choice",
@@ -115,7 +93,7 @@
         {
             "id": "Faces_SuppressWhenNotSinging",
             "label": "Suppress when not singing",
-            "description": "When enabled, the entire face (including outline) is hidden during rest phonemes or when no phoneme is active.",
+            "description": "When enabled, the entire face (including outline) is hidden during rest phonemes or when no phoneme is active. Requires a Timing Track.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -139,14 +117,45 @@
             "default": false
         },
         {
-            "id": "Faces_TransparentBlack",
-            "label": "Transparent Black",
-            "description": "Brightness threshold below which face image pixels are treated as transparent. Used with image-based face definitions to key out dark backgrounds.",
+            "id": "Faces_TransparentBlackRow",
+            "label": "",
+            "description": "Transparent Black enable checkbox with an inline brightness threshold slider (0-300). When enabled, face image pixels below the threshold are keyed out as transparent.",
             "type": "int",
-            "controlType": "slider",
-            "default": false,
-            "min": 0,
-            "max": 300
+            "controlType": "custom",
+            "default": 0
+        }
+    ],
+    "groups": [
+        {
+            "type": "section",
+            "label": "Mouth Movements",
+            "columns": 1,
+            "properties": ["Faces_MouthMovements"]
+        },
+        {
+            "type": "section",
+            "label": "Eyes",
+            "columns": 4,
+            "properties": ["Faces_Eyes", "Faces_EyeBlinkFrequency", "Faces_EyeBlinkDuration"]
+        },
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Faces_TransparentBlackRow"]
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Faces_Outline", "equals": true },
+            "enable": ["Faces_UseState"]
+        },
+        {
+            "when": { "property": "Faces_Eyes", "equals": "Auto" },
+            "enable": ["Faces_EyeBlinkFrequency", "Faces_EyeBlinkDuration"]
+        },
+        {
+            "when": { "property": "Faces_SuppressWhenNotSinging", "equals": true },
+            "enable": ["Faces_LeadFrames", "Faces_Fade"]
         }
     ]
 }

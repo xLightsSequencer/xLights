@@ -32,6 +32,8 @@
 #include "ui/sequencer/TimingPanel.h"
 #include "ui/shared/utils/wxUtilities.h"
 #include "effects/RenderableEffect.h"
+#include "models/Model.h"
+#include "models/ModelGroup.h"
 #include "render/SequenceElements.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
@@ -85,11 +87,15 @@ JsonEffectPanel::~JsonEffectPanel() {
 void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     std::string effectName = metadata.value("effectName", "Unknown");
 
-    // Collect property ids that are owned by groups (tabs, xyCenter, etc.)
+    // Collect property ids that are owned by groups (tabs, xyCenter, section).
     std::set<std::string> groupedPropIds;
     nlohmann::json tabGroup;
     bool hasTabs = false;
     std::vector<nlohmann::json> xyCenterGroups;
+    // Sections keyed by their insertion index — the position of the first listed
+    // property in the overall property list — so sections can be interleaved with
+    // flat-grid properties in source order.
+    std::map<int, nlohmann::json> sectionsByFirstIndex;
 
     if (metadata.contains("groups")) {
         for (const auto& group : metadata["groups"]) {
@@ -108,6 +114,29 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
                 if (group.contains("yProperty")) groupedPropIds.insert(group["yProperty"].get<std::string>());
                 if (group.contains("wrapX")) groupedPropIds.insert(group["wrapX"].get<std::string>());
                 if (group.contains("wrapY")) groupedPropIds.insert(group["wrapY"].get<std::string>());
+            } else if (gtype == "section" && group.contains("properties")) {
+                // Record the section's property ids and locate its first
+                // property in the overall list; that index becomes the
+                // section's insertion point in the flat layout.
+                std::set<std::string> sectionPropIds;
+                for (const auto& pid : group["properties"]) {
+                    sectionPropIds.insert(pid.get<std::string>());
+                    groupedPropIds.insert(pid.get<std::string>());
+                }
+                int firstIdx = -1;
+                if (metadata.contains("properties")) {
+                    int idx = 0;
+                    for (const auto& prop : metadata["properties"]) {
+                        if (sectionPropIds.count(prop.value("id", ""))) {
+                            firstIdx = idx;
+                            break;
+                        }
+                        idx++;
+                    }
+                }
+                if (firstIdx >= 0) {
+                    sectionsByFirstIndex[firstIdx] = group;
+                }
             }
         }
     }
@@ -131,13 +160,14 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
         SetSizer(outerSizer);
     } else {
         // Flat or mixed layout
-        // Check if we need a 1-column outer sizer (for XY groups, separators, or description)
+        // Check if we need a 1-column outer sizer (for XY groups, sections, separators, or description)
         bool hasXY = !xyCenterGroups.empty();
+        bool hasSections = !sectionsByFirstIndex.empty();
         bool hasSeparator = false;
         for (const auto& prop : metadata["properties"]) {
             if (prop.value("separator", false)) { hasSeparator = true; break; }
         }
-        bool needsOuter = hasXY || hasSeparator || !descText.empty();
+        bool needsOuter = hasXY || hasSections || hasSeparator || !descText.empty();
 
         auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
         outerSizer->AddGrowableCol(0);
@@ -152,24 +182,50 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
         auto* gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
         gridSizer->AddGrowableCol(1);
 
-        // Build ungrouped properties into the grid, handling separators
+        // Helper: flush the current flat grid into the outer sizer (if it has
+        // anything) and hand back a fresh grid to continue with.
+        auto flushGrid = [&]() {
+            if (gridSizer->GetItemCount() > 0) {
+                outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+            } else {
+                delete gridSizer;
+            }
+            gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
+            gridSizer->AddGrowableCol(1);
+        };
+
+        // Build properties into the grid, flushing and emitting sections at
+        // the position of each section's first property. Skips properties
+        // that are owned by groups (tabs/xyCenter/section).
+        int propIndex = 0;
         for (const auto& prop : metadata["properties"]) {
+            // Insert any section that anchors at this position before emitting
+            // the next flat property.
+            auto secIt = sectionsByFirstIndex.find(propIndex);
+            if (secIt != sectionsByFirstIndex.end()) {
+                flushGrid();
+                BuildSection(outerSizer, secIt->second, metadata["properties"]);
+            }
+            propIndex++;
+
             std::string pid = prop.value("id", "");
             if (groupedPropIds.find(pid) != groupedPropIds.end()) continue;
 
             if (prop.value("separator", false) && needsOuter) {
-                // Close current grid, add separator, start new grid
-                outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+                flushGrid();
                 auto* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
                 outerSizer->Add(line, 0, wxALL | wxEXPAND, 5);
-                gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
-                gridSizer->AddGrowableCol(1);
             }
             BuildPropertyRow(this, gridSizer, prop, 4);
         }
 
         if (needsOuter) {
-            outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+            // Flush any trailing flat grid contents into the outer sizer.
+            if (gridSizer->GetItemCount() > 0) {
+                outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+            } else {
+                delete gridSizer;
+            }
             for (const auto& xyGroup : xyCenterGroups) {
                 BuildXYCenter(this, outerSizer, xyGroup, metadata["properties"]);
             }
@@ -218,39 +274,21 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&JsonEffectPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&JsonEffectPanel::OnValidateWindow, 0, this);
 
-    // Connect timing track event for dynamicOptions: "timingTracks" properties
-    bool hasTimingTracks = false;
+    // Refresh timing-track choices when a track is renamed elsewhere in the UI.
+    // We ignore the event payload (which sends an unfiltered name list) and
+    // re-derive the lists from mSequenceElements ourselves so layer-count
+    // filtering stays consistent with SetPanelStatus.
+    bool hasTimingTrackChoices = false;
     for (const auto& [id, info] : properties_) {
-        if (!info.dynamicOptions.empty()) {
-            hasTimingTracks = true;
+        if (info.dynamicOptions == "timingTracks" || info.dynamicOptions == "lyricTimingTracks") {
+            hasTimingTrackChoices = true;
             break;
         }
     }
-    if (hasTimingTracks) {
+    if (hasTimingTrackChoices) {
         Bind(EVT_SETTIMINGTRACKS, [this](wxCommandEvent& event) {
-            auto tracks = wxSplit(event.GetString(), '|');
-            for (auto& [id, info] : properties_) {
-                if (info.dynamicOptions == "timingTracks" && info.choice) {
-                    wxString selection = info.choice->GetStringSelection();
-                    info.choice->Clear();
-                    for (const auto& t : tracks) {
-                        if (!t.empty()) info.choice->Append(t);
-                    }
-                    if (!selection.empty()) info.choice->SetStringSelection(selection);
-                    // Fall back to JSON default if no selection survives the
-                    // re-population (covers new drag-drop where there is no
-                    // prior selection to restore).
-                    if (info.choice->GetSelection() == wxNOT_FOUND &&
-                        !info.defaultValue.is_null() && info.defaultValue.is_string()) {
-                        std::string def = info.defaultValue.get<std::string>();
-                        if (!def.empty()) {
-                            info.choice->SetStringSelection(wxString(def));
-                        }
-                    }
-                    // Enable/disable based on whether tracks are available
-                    info.choice->Enable(info.choice->GetCount() > 0);
-                }
-            }
+            RepopulateTimingTrackChoices();
+            event.Skip();
         });
     }
 
@@ -586,6 +624,51 @@ void JsonEffectPanel::BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer,
     properties_[yId] = yInfo;
 
     parentSizer->Add(xySizer, 0, wxALL | wxEXPAND, 0);
+}
+
+void JsonEffectPanel::BuildSection(wxSizer* parentSizer, const nlohmann::json& group,
+                                    const nlohmann::json& allProps) {
+    std::string label = group.value("label", "");
+    int columns = group.value("columns", 4);
+
+    // Build a lookup of property id -> property json for quick access.
+    std::map<std::string, nlohmann::json> propLookup;
+    for (const auto& prop : allProps) {
+        propLookup[prop.value("id", "")] = prop;
+    }
+
+    // If a label is provided wrap the section in a wxStaticBoxSizer so it
+    // reads visually as a grouped region, otherwise just use a plain grid.
+    wxSizer* contentSizer = nullptr;
+    wxWindow* parentWin = this;
+
+    wxFlexGridSizer* innerGrid = new wxFlexGridSizer(0, columns, 0, 0);
+    if (columns >= 2) {
+        // Column 1 is typically labels; grow column 2 (controls) so rows
+        // expand horizontally the same way the flat panel grid does.
+        innerGrid->AddGrowableCol(1);
+    } else {
+        innerGrid->AddGrowableCol(0);
+    }
+
+    if (!label.empty()) {
+        auto* boxSizer = new wxStaticBoxSizer(wxVERTICAL, this, wxString(label));
+        boxSizer->Add(innerGrid, 1, wxALL | wxEXPAND, 2);
+        parentSizer->Add(boxSizer, 0, wxALL | wxEXPAND, 5);
+    } else {
+        parentSizer->Add(innerGrid, 0, wxALL | wxEXPAND, 5);
+    }
+    contentSizer = innerGrid;
+
+    // Emit each listed property into the section's inner grid, preserving
+    // declared order within the section.
+    if (group.contains("properties")) {
+        for (const auto& pid : group["properties"]) {
+            auto it = propLookup.find(pid.get<std::string>());
+            if (it == propLookup.end()) continue;
+            BuildPropertyRow(parentWin, contentSizer, it->second, columns);
+        }
+    }
 }
 
 void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) {
@@ -1330,24 +1413,106 @@ void JsonEffectPanel::SetRenderableEffect(RenderableEffect* eff) {
     }
 }
 
-void JsonEffectPanel::SetPanelStatus(Model* cls) {
-    // Populate timing track choices from sequence elements
-    bool hasTimingTracks = false;
-    for (const auto& [id, info] : properties_) {
-        if (info.dynamicOptions == "timingTracks") { hasTimingTracks = true; break; }
-    }
-    if (hasTimingTracks && mSequenceElements != nullptr) {
-        std::string timingtracks;
-        for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
-            Element* e = mSequenceElements->GetElement(i);
-            if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() <= 1) {
-                if (!timingtracks.empty()) timingtracks += "|";
-                timingtracks += e->GetName();
+void JsonEffectPanel::RepopulateTimingTrackChoices() {
+    // Walk all properties; for each one that wants timing tracks, query
+    // mSequenceElements directly with the appropriate layer-count filter.
+    // Regular ("timingTracks") = layers <= 1, lyric ("lyricTimingTracks") = 3.
+    for (auto& [id, info] : properties_) {
+        bool wantsRegular = info.dynamicOptions == "timingTracks";
+        bool wantsLyric = info.dynamicOptions == "lyricTimingTracks";
+        if ((!wantsRegular && !wantsLyric) || info.choice == nullptr) continue;
+
+        wxString selection = info.choice->GetStringSelection();
+        info.choice->Clear();
+        if (mSequenceElements != nullptr) {
+            for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
+                Element* e = mSequenceElements->GetElement(i);
+                if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) continue;
+                int layers = e->GetEffectLayerCount();
+                bool match = wantsRegular ? (layers <= 1) : (layers == 3);
+                if (match) info.choice->Append(e->GetName());
             }
         }
-        wxCommandEvent event(EVT_SETTIMINGTRACKS);
-        event.SetString(timingtracks);
-        wxPostEvent(this, event);
+        if (!selection.empty()) {
+            info.choice->SetStringSelection(selection);
+        }
+        // Fall back to JSON default for brand-new effects.
+        if (info.choice->GetSelection() == wxNOT_FOUND &&
+            !info.defaultValue.is_null() && info.defaultValue.is_string()) {
+            std::string def = info.defaultValue.get<std::string>();
+            if (!def.empty()) info.choice->SetStringSelection(wxString(def));
+        }
+        info.choice->Enable(info.choice->GetCount() > 0);
+    }
+}
+
+void JsonEffectPanel::SetPanelStatus(Model* cls) {
+    RepopulateTimingTrackChoices();
+
+    // Populate model-driven choices (states, faces, modelNodeNames). For
+    // ModelGroups, use the first contained model — matches legacy behavior.
+    Model* m = cls;
+    if (cls != nullptr && cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
+        m = static_cast<ModelGroup*>(cls)->GetFirstModel();
+    }
+
+    auto populateFromDefinitions = [this, m](const std::string& sourceName, const FaceStateData& defs) {
+        for (auto& [id, info] : properties_) {
+            if (info.dynamicOptions != sourceName || info.choice == nullptr) continue;
+            wxString selection = info.choice->GetStringSelection();
+            info.choice->Clear();
+            if (m != nullptr) {
+                std::set<std::string> seen;
+                for (const auto& it : defs) {
+                    if (seen.insert(it.first).second) {
+                        info.choice->Append(wxString(it.first));
+                    }
+                }
+            }
+            if (!selection.empty()) {
+                info.choice->SetStringSelection(selection);
+            }
+            if (info.choice->GetSelection() == wxNOT_FOUND && info.choice->GetCount() > 0) {
+                info.choice->SetSelection(0);
+            }
+        }
+    };
+
+    if (m != nullptr) {
+        populateFromDefinitions("states", m->GetStateInfo());
+        populateFromDefinitions("faces", m->GetFaceInfo());
+
+        // Populate any choice that wants the model's per-channel node names
+        // (e.g. Servo's Channel selector). Skips empty / "-"-prefixed names
+        // to match legacy ServoPanel behavior.
+        int numChannels = m->GetNumChannels();
+        for (auto& [id, info] : properties_) {
+            if (info.dynamicOptions != "modelNodeNames" || info.choice == nullptr) continue;
+            wxString selection = info.choice->GetStringSelection();
+            info.choice->Clear();
+            for (int i = 0; i <= numChannels; ++i) {
+                std::string name = m->GetNodeName(i);
+                if (!name.empty() && name[0] != '-') {
+                    info.choice->Append(wxString(name));
+                }
+            }
+            if (!selection.empty()) {
+                info.choice->SetStringSelection(selection);
+            }
+            if (info.choice->GetSelection() == wxNOT_FOUND && info.choice->GetCount() > 0) {
+                info.choice->SetSelection(0);
+            }
+        }
+    } else {
+        // Model is null (brand-new effect with no associated model) — clear any
+        // model-driven choices so stale entries from a previous model aren't shown.
+        for (auto& [id, info] : properties_) {
+            if ((info.dynamicOptions == "states" ||
+                 info.dynamicOptions == "faces" ||
+                 info.dynamicOptions == "modelNodeNames") && info.choice) {
+                info.choice->Clear();
+            }
+        }
     }
 }
 

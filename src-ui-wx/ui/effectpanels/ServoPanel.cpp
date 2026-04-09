@@ -9,241 +9,223 @@
  **************************************************************/
 
 #include "ServoPanel.h"
-#include "effects/ServoEffect.h"
-#include "models/Model.h"
-#include "models/ModelGroup.h"
-#include "render/SequenceElements.h"
-#include "render/Element.h"
-#include "utils/string_utils.h"
 #include "EffectPanelUtils.h"
 
-//(*InternalHeaders(ServoPanel)
-#include <wx/bitmap.h>
-#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/image.h>
-#include <wx/intl.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/tglbtn.h>
-//*)
 
-#include "../../xLightsMain.h"
+#include "ui/shared/controls/BulkEditControls.h"
+#include "effects/ServoEffect.h"
+#include "effects/EffectManager.h"
+#include "render/Effect.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
-//(*IdInit(ServoPanel)
-const wxWindowID ServoPanel::ID_STATICTEXT_Channel = wxNewId();
-const wxWindowID ServoPanel::ID_CHOICE_Channel = wxNewId();
-const wxWindowID ServoPanel::ID_CHECKBOX_16bit = wxNewId();
-const wxWindowID ServoPanel::ID_CHECKBOX_Timing_Track = wxNewId();
-const wxWindowID ServoPanel::ID_CHOICE_Servo_TimingTrack = wxNewId();
-const wxWindowID ServoPanel::ID_TOGGLEBUTTON_Start = wxNewId();
-const wxWindowID ServoPanel::ID_STATICTEXT_Servo = wxNewId();
-const wxWindowID ServoPanel::IDD_SLIDER_Servo = wxNewId();
-const wxWindowID ServoPanel::ID_VALUECURVE_Servo = wxNewId();
-const wxWindowID ServoPanel::ID_TEXTCTRL_Servo = wxNewId();
-const wxWindowID ServoPanel::ID_TOGGLEBUTTON_End = wxNewId();
-const wxWindowID ServoPanel::ID_STATICTEXT1 = wxNewId();
-const wxWindowID ServoPanel::IDD_SLIDER_EndValue = wxNewId();
-const wxWindowID ServoPanel::ID_TEXTCTRL_EndValue = wxNewId();
-const wxWindowID ServoPanel::IDD_CHECKBOX_Sync = wxNewId();
-const wxWindowID ServoPanel::ID_BUTTON1 = wxNewId();
-const wxWindowID ServoPanel::IDD_SwapButton = wxNewId();
-//*)
+ServoPanel::ServoPanel(wxWindow* parent, const nlohmann::json& metadata)
+    : JsonEffectPanel(parent, metadata, /*deferBuild*/ true) {
+    BuildFromJson(metadata);
 
-BEGIN_EVENT_TABLE(ServoPanel,wxPanel)
-	//(*EventTable(ServoPanel)
-	//*)
-END_EVENT_TABLE()
+    // The Use Timing Track checkbox change requires us to refresh enable
+    // states across the start/end controls (declarative visibility rules
+    // would be too coarse — we have multiple interacting predicates).
+    auto* tt = dynamic_cast<wxCheckBox*>(wxWindow::FindWindowByName("ID_CHECKBOX_Timing_Track", this));
+    if (tt) {
+        tt->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
+            ValidateWindow();
+            e.Skip();
+        });
+    }
+    auto* track = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Servo_TimingTrack", this));
+    if (track) {
+        track->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) {
+            ValidateWindow();
+            e.Skip();
+        });
+    }
 
-ServoPanel::ServoPanel(wxWindow* parent) : xlEffectPanel()
-{
-	//(*Initialize(ServoPanel)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
-
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer_Main = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer_Main->AddGrowableCol(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer2->AddGrowableCol(1);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Channel, _("Base Channel:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Channel"));
-	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Channel = new BulkEditChoice(this, ID_CHOICE_Channel, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Channel"));
-	FlexGridSizer2->Add(Choice_Channel, 1, wxALL, 5);
-	CheckBox_16bit = new BulkEditCheckBox(this, ID_CHECKBOX_16bit, _("16 bit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_16bit"));
-	CheckBox_16bit->SetValue(true);
-	FlexGridSizer2->Add(CheckBox_16bit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_Timing_Track = new BulkEditCheckBox(this, ID_CHECKBOX_Timing_Track, _("Use Timing Track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Timing_Track"));
-	CheckBox_Timing_Track->SetValue(false);
-	FlexGridSizer2->Add(CheckBox_Timing_Track, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Servo_TimingTrack = new BulkEditChoice(this, ID_CHOICE_Servo_TimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Servo_TimingTrack"));
-	Choice_Servo_TimingTrack->Disable();
-	FlexGridSizer2->Add(Choice_Servo_TimingTrack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer_Main->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 5, 0, 0);
-	FlexGridSizer1->AddGrowableCol(2);
-	StartLinkedButton = new LinkedToggleButton(this, ID_TOGGLEBUTTON_Start, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TOGGLEBUTTON_Start"));
-	FlexGridSizer1->Add(StartLinkedButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Label_DMX1 = new wxStaticText(this, ID_STATICTEXT_Servo, _("Start:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Servo"));
-	FlexGridSizer1->Add(Label_DMX1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Servo = new BulkEditSliderF1(this, IDD_SLIDER_Servo, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Servo"));
-	FlexGridSizer1->Add(Slider_Servo, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_Servo = new BulkEditValueCurveButton(this, ID_VALUECURVE_Servo, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Servo"));
-	FlexGridSizer1->Add(ValueCurve_Servo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Servo = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Servo, _T("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Servo"));
-	FlexGridSizer1->Add(TextCtrl_Servo, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	EndLinkedButton = new LinkedToggleButton(this, ID_TOGGLEBUTTON_End, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TOGGLEBUTTON_End"));
-	FlexGridSizer1->Add(EndLinkedButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	EndDMXLabel = new wxStaticText(this, ID_STATICTEXT1, _("End:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer1->Add(EndDMXLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	SliderEndValue = new BulkEditSliderF1(this, IDD_SLIDER_EndValue, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_EndValue"));
-	FlexGridSizer1->Add(SliderEndValue, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_EndValue = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_EndValue, _T("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_EndValue"));
-	FlexGridSizer1->Add(TextCtrl_EndValue, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer_Main->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
-	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableCol(1);
-	SyncCheckBox = new wxCheckBox(this, IDD_CHECKBOX_Sync, _("Sync"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_CHECKBOX_Sync"));
-	SyncCheckBox->SetValue(false);
-	FlexGridSizer3->Add(SyncCheckBox, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	EqualButton = new wxButton(this, ID_BUTTON1, _("Equal"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer3->Add(EqualButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SwapButton = new wxButton(this, IDD_SwapButton, _("Swap"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SwapButton"));
-	FlexGridSizer3->Add(SwapButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer_Main->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
-	SetSizer(FlexGridSizer_Main);
-
-	Connect(ID_CHECKBOX_Timing_Track, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ServoPanel::OnCheckBox_Timing_TrackClick);
-	Connect(IDD_SLIDER_Servo, wxEVT_SLIDER, (wxObjectEventFunction)&ServoPanel::StartValueUpdated);
-	Connect(ID_TEXTCTRL_Servo, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ServoPanel::StartValueUpdated);
-	Connect(IDD_SLIDER_EndValue, wxEVT_SLIDER, (wxObjectEventFunction)&ServoPanel::EndValueUpdated);
-	Connect(ID_TEXTCTRL_EndValue, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ServoPanel::EndValueUpdated);
-	Connect(IDD_CHECKBOX_Sync, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ServoPanel::OnSyncCheckBoxClick);
-	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServoPanel::OnEqualButtonClick);
-	Connect(IDD_SwapButton, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServoPanel::OnSwapButtonClick);
-	//*)
-
-    SetName("ID_PANEL_SERVO");
-
-	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, nullptr, this);
-	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ServoPanel::OnValidateWindow, nullptr, this);
-    Connect(ID_VALUECURVE_Servo, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServoPanel::OnVCButtonClick);
-    
-    ValueCurve_Servo->GetValue()->SetLimits(SERVO_MIN, SERVO_MAX);
-    ValueCurve_Servo->GetValue()->SetDivisor(SERVO_DIVISOR);
-
-	ValidateWindow();
+    ValidateWindow();
 }
 
-ServoPanel::~ServoPanel()
-{
-	//(*Destroy(ServoPanel)
-	//*)
+wxWindow* ServoPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                           const nlohmann::json& prop, int cols) {
+    std::string id = prop.value("id", "");
+    if (id == "Servo_StartEndRow") {
+        return BuildStartEndRow(parentWin, sizer);
+    }
+    if (id == "Servo_ButtonRow") {
+        return BuildButtonRow(parentWin, sizer);
+    }
+    return nullptr;
 }
 
-void ServoPanel::ValidateWindow()
-{
-	if (CheckBox_Timing_Track->IsChecked()) {
-		Choice_Servo_TimingTrack->Enable();
-        if (!Choice_Servo_TimingTrack->GetStringSelection().empty()) {
-            SliderEndValue->Disable();
-            TextCtrl_EndValue->Disable();
-            EndDMXLabel->Disable();
-            TextCtrl_Servo->Disable();
-            Slider_Servo->Disable();
-            ValueCurve_Servo->Disable();
-            Label_DMX1->Disable();
-            SwapButton->Disable();
-            EqualButton->Disable();
-            SyncCheckBox->Disable();
-            StartLinkedButton->Disable();
-            EndLinkedButton->Disable();
-        }
-	} else {
-		Choice_Servo_TimingTrack->Disable();
+wxWindow* ServoPanel::BuildStartEndRow(wxWindow* parentWin, wxSizer* sizer) {
+    // 5-column grid: linked-toggle | label | slider | VC button | text.
+    // Two rows (Start, End). The End row reuses col 4 as a spacer because
+    // only Start has a value-curve in the legacy panel.
+    auto* grid = new wxFlexGridSizer(0, 5, 0, 0);
+    grid->AddGrowableCol(2);
 
-        TextCtrl_Servo->Enable();
-        Slider_Servo->Enable();
-        ValueCurve_Servo->Enable();
-        Label_DMX1->Enable();
+    // === Start row ===
+    _startLinked = new LinkedToggleButton(parentWin, wxNewId(), wxEmptyString,
+                                           wxDefaultPosition, wxDefaultSize,
+                                           0, wxDefaultValidator,
+                                           _T("ID_TOGGLEBUTTON_Start"));
+    grid->Add(_startLinked, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
 
-        if (ValueCurve_Servo->GetValue()->IsActive()) {
-            Label_DMX1->SetLabelText("Value:");
-            SliderEndValue->Disable();
-            TextCtrl_EndValue->Disable();
-            EndDMXLabel->Disable();
-            SwapButton->Disable();
-            EqualButton->Disable();
-            SyncCheckBox->SetValue(false);
-            SyncCheckBox->Disable();
-            StartLinkedButton->Disable();
-            EndLinkedButton->Disable();
-        } else {
-            Label_DMX1->SetLabelText("Start:");
-            EndDMXLabel->Enable();
-            SwapButton->Enable();
-            EqualButton->Enable();
-            SyncCheckBox->Enable();
-            if (TextCtrl_Servo->GetValue() != TextCtrl_EndValue->GetValue()) {
-                SyncCheckBox->SetValue(false);
-            }
-            SliderEndValue->Enable();
-            TextCtrl_EndValue->Enable();
-            StartLinkedButton->Enable();
-            EndLinkedButton->Enable();
-        }
-	}
+    _startLabel = new wxStaticText(parentWin, wxID_ANY, _("Start:"),
+                                    wxDefaultPosition, wxDefaultSize, 0,
+                                    _T("ID_STATICTEXT_Servo"));
+    grid->Add(_startLabel, 0, wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 2);
+
+    _startSlider = new BulkEditSliderF1(parentWin, wxNewId(), 0, 0, 1000,
+                                         wxDefaultPosition, wxDefaultSize,
+                                         0, wxDefaultValidator,
+                                         _T("IDD_SLIDER_Servo"));
+    grid->Add(_startSlider, 1, wxALL | wxEXPAND, 2);
+
+    _startVC = new BulkEditValueCurveButton(parentWin, wxNewId(),
+                                             GetValueCurveNotSelectedBitmap(),
+                                             wxDefaultPosition, wxDefaultSize,
+                                             wxBU_AUTODRAW | wxBORDER_NONE,
+                                             wxDefaultValidator,
+                                             _T("ID_VALUECURVE_Servo"));
+    _startVC->GetValue()->SetLimits(SERVO_MIN, SERVO_MAX);
+    _startVC->GetValue()->SetDivisor(SERVO_DIVISOR);
+    grid->Add(_startVC, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    Connect(_startVC->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            (wxObjectEventFunction)&ServoPanel::OnVCButtonClick);
+
+    _startText = new BulkEditTextCtrlF1(parentWin, wxNewId(), _T("0"),
+                                         wxDefaultPosition,
+                                         wxDLG_UNIT(parentWin, wxSize(25, -1)),
+                                         wxTE_PROCESS_ENTER, wxDefaultValidator,
+                                         _T("ID_TEXTCTRL_Servo"));
+    grid->Add(_startText, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+    // === End row ===
+    _endLinked = new LinkedToggleButton(parentWin, wxNewId(), wxEmptyString,
+                                         wxDefaultPosition, wxDefaultSize,
+                                         0, wxDefaultValidator,
+                                         _T("ID_TOGGLEBUTTON_End"));
+    grid->Add(_endLinked, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+
+    _endLabel = new wxStaticText(parentWin, wxID_ANY, _("End:"),
+                                  wxDefaultPosition, wxDefaultSize, 0,
+                                  _T("ID_STATICTEXT1"));
+    grid->Add(_endLabel, 0, wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 2);
+
+    _endSlider = new BulkEditSliderF1(parentWin, wxNewId(), 0, 0, 1000,
+                                       wxDefaultPosition, wxDefaultSize,
+                                       0, wxDefaultValidator,
+                                       _T("IDD_SLIDER_EndValue"));
+    grid->Add(_endSlider, 1, wxALL | wxEXPAND, 2);
+
+    grid->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+
+    _endText = new BulkEditTextCtrlF1(parentWin, wxNewId(), _T("0"),
+                                       wxDefaultPosition,
+                                       wxDLG_UNIT(parentWin, wxSize(25, -1)),
+                                       wxTE_PROCESS_ENTER, wxDefaultValidator,
+                                       _T("ID_TEXTCTRL_EndValue"));
+    grid->Add(_endText, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+    sizer->Add(grid, 1, wxALL | wxEXPAND, 0);
+
+    // Wire change events for sync + neighbor-effect propagation.
+    _startSlider->Bind(wxEVT_SLIDER, &ServoPanel::OnStartValueUpdated, this);
+    _startText->Bind(wxEVT_TEXT, &ServoPanel::OnStartValueUpdated, this);
+    _endSlider->Bind(wxEVT_SLIDER, &ServoPanel::OnEndValueUpdated, this);
+    _endText->Bind(wxEVT_TEXT, &ServoPanel::OnEndValueUpdated, this);
+
+    return _startSlider;
 }
 
-void ServoPanel::OnCheckBox_Timing_TrackClick(wxCommandEvent& event)
-{
-	ValidateWindow();
+wxWindow* ServoPanel::BuildButtonRow(wxWindow* parentWin, wxSizer* sizer) {
+    auto* row = new wxFlexGridSizer(0, 4, 0, 0);
+    row->AddGrowableCol(0);
+    row->AddGrowableCol(1);
+
+    _syncCheck = new wxCheckBox(parentWin, wxNewId(), _("Sync"),
+                                 wxDefaultPosition, wxDefaultSize, 0,
+                                 wxDefaultValidator, _T("IDD_CHECKBOX_Sync"));
+    _syncCheck->SetValue(false);
+    row->Add(_syncCheck, 1, wxALL | wxEXPAND, 5);
+
+    row->Add(-1, -1, 1, wxALL | wxEXPAND, 5);
+
+    _equalButton = new wxButton(parentWin, wxNewId(), _("Equal"),
+                                 wxDefaultPosition, wxDefaultSize, 0,
+                                 wxDefaultValidator, _T("ID_BUTTON1"));
+    row->Add(_equalButton, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+
+    _swapButton = new wxButton(parentWin, wxNewId(), _("Swap"),
+                                wxDefaultPosition, wxDefaultSize, 0,
+                                wxDefaultValidator, _T("IDD_SwapButton"));
+    row->Add(_swapButton, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+
+    sizer->Add(row, 1, wxALL | wxEXPAND, 0);
+
+    _syncCheck->Bind(wxEVT_CHECKBOX, &ServoPanel::OnSyncClicked, this);
+    _equalButton->Bind(wxEVT_BUTTON, &ServoPanel::OnEqualClicked, this);
+    _swapButton->Bind(wxEVT_BUTTON, &ServoPanel::OnSwapClicked, this);
+
+    return _syncCheck;
 }
 
-void ServoPanel::OnSwapButtonClick(wxCommandEvent& event)
-{
-    wxString v1 = TextCtrl_Servo->GetValue();
-    wxString v2 = TextCtrl_EndValue->GetValue();
-    TextCtrl_Servo->SetValue(v2);
-    TextCtrl_EndValue->SetValue(v1);
+void ServoPanel::OnSwapClicked(wxCommandEvent& event) {
+    if (_startText && _endText) {
+        wxString v1 = _startText->GetValue();
+        wxString v2 = _endText->GetValue();
+        _startText->SetValue(v2);
+        _endText->SetValue(v1);
+    }
+    event.Skip();
 }
 
-void ServoPanel::OnEqualButtonClick(wxCommandEvent& event)
-{
-    wxString v1 = TextCtrl_Servo->GetValue();
-    TextCtrl_EndValue->SetValue(v1);
+void ServoPanel::OnEqualClicked(wxCommandEvent& event) {
+    if (_startText && _endText) {
+        _endText->SetValue(_startText->GetValue());
+    }
+    event.Skip();
 }
 
-void ServoPanel::OnSyncCheckBoxClick(wxCommandEvent& event)
-{
-    if (SyncCheckBox->IsChecked()) {
-        SliderEndValue->SetValue(Slider_Servo->GetValue());
-        TextCtrl_EndValue->SetValue(TextCtrl_Servo->GetValue());
+void ServoPanel::OnSyncClicked(wxCommandEvent& event) {
+    if (_syncCheck && _syncCheck->IsChecked() &&
+        _startSlider && _endSlider && _startText && _endText) {
+        _endSlider->SetValue(_startSlider->GetValue());
+        _endText->SetValue(_startText->GetValue());
         FireChangeEvent();
     }
+    event.Skip();
 }
 
-void ServoPanel::StartValueUpdated(wxCommandEvent& event)
-{
+void ServoPanel::OnStartValueUpdated(wxCommandEvent& event) {
+    // CRITICAL: Skip() must be called so that BulkEditSlider's own
+    // SLIDER_UPDATED handler (which mirrors the slider value into the buddy
+    // text control) still runs after this handler. Without Skip the slider
+    // and the text box go out of sync.
+    event.Skip();
+
+    if (!_startSlider || !_startText || !_endSlider || !_endText) return;
     bool changed = false;
-    if (SyncCheckBox->IsChecked()) {
-        SliderEndValue->SetValue(Slider_Servo->GetValue());
-        TextCtrl_EndValue->ChangeValue(TextCtrl_Servo->GetValue());
+
+    if (_syncCheck && _syncCheck->IsChecked()) {
+        _endSlider->SetValue(_startSlider->GetValue());
+        _endText->ChangeValue(_startText->GetValue());
         changed = true;
     }
-    if (StartLinkedButton->IsEnabled() && StartLinkedButton->GetValue()) {
-        xLightsFrame::GetFrame()->CallOnEffectBeforeSelected([&changed, this](Effect *eff) {
+    if (_startLinked && _startLinked->IsEnabled() && _startLinked->GetValue()) {
+        // Push the new start value into the END field of the previous Servo
+        // effect on the same row, so consecutive servo effects chain smoothly.
+        xLightsFrame::GetFrame()->CallOnEffectBeforeSelected([&changed, this](Effect* eff) {
             if (eff->GetEffectIndex() == EffectManager::eff_SERVO) {
-                changed |= eff->SetSetting("E_TEXTCTRL_EndValue", TextCtrl_Servo->GetValue());
+                changed |= eff->SetSetting("E_TEXTCTRL_EndValue", _startText->GetValue());
             }
             return changed;
         });
@@ -251,79 +233,113 @@ void ServoPanel::StartValueUpdated(wxCommandEvent& event)
     if (changed) {
         FireChangeEvent();
     }
-
 }
 
-void ServoPanel::EndValueUpdated(wxCommandEvent& event)
-{
+void ServoPanel::OnEndValueUpdated(wxCommandEvent& event) {
+    // See OnStartValueUpdated — Skip() lets BulkEditSlider sync to its text.
+    event.Skip();
+
+    if (!_startSlider || !_startText || !_endSlider || !_endText) return;
     bool changed = false;
-    if (SyncCheckBox->IsChecked()) {
-        Slider_Servo->SetValue(SliderEndValue->GetValue());
-        TextCtrl_Servo->ChangeValue(TextCtrl_EndValue->GetValue());
+
+    if (_syncCheck && _syncCheck->IsChecked()) {
+        _startSlider->SetValue(_endSlider->GetValue());
+        _startText->ChangeValue(_endText->GetValue());
         changed = true;
     }
-    if (EndLinkedButton->IsEnabled() && EndLinkedButton->GetValue()) {
-        xLightsFrame::GetFrame()->CallOnEffectAfterSelected([&changed, this](Effect *eff) {
+    if (_endLinked && _endLinked->IsEnabled() && _endLinked->GetValue()) {
+        // Push the new end value into the START field of the next Servo effect.
+        xLightsFrame::GetFrame()->CallOnEffectAfterSelected([&changed, this](Effect* eff) {
             if (eff->GetEffectIndex() == EffectManager::eff_SERVO) {
-                changed |= eff->SetSetting("E_TEXTCTRL_Servo", TextCtrl_EndValue->GetValue());
+                changed |= eff->SetSetting("E_TEXTCTRL_Servo", _endText->GetValue());
             }
             return changed;
         });
     }
     if (changed) {
         FireChangeEvent();
+    }
+}
+
+void ServoPanel::ValidateWindow() {
+    // Skip JsonEffectPanel::ValidateWindow's visibility-rule pass — Servo
+    // doesn't declare any rules, and the start/end interactions below need
+    // direct enable/disable on widgets that aren't tracked in properties_.
+    auto* tt = dynamic_cast<wxCheckBox*>(wxWindow::FindWindowByName("ID_CHECKBOX_Timing_Track", this));
+    auto* track = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Servo_TimingTrack", this));
+
+    bool useTiming = tt && tt->IsChecked();
+    bool hasTrack = track && !track->GetStringSelection().empty();
+    bool vcActive = _startVC && _startVC->GetValue() && _startVC->GetValue()->IsActive();
+
+    if (track) track->Enable(useTiming);
+
+    if (useTiming && hasTrack) {
+        // Phoneme-driven mode: every value control is irrelevant. Disable the
+        // entire start/end+button area.
+        if (_startSlider) _startSlider->Disable();
+        if (_startText) _startText->Disable();
+        if (_startVC) _startVC->Disable();
+        if (_startLabel) _startLabel->Disable();
+        if (_endSlider) _endSlider->Disable();
+        if (_endText) _endText->Disable();
+        if (_endLabel) _endLabel->Disable();
+        if (_swapButton) _swapButton->Disable();
+        if (_equalButton) _equalButton->Disable();
+        if (_syncCheck) _syncCheck->Disable();
+        if (_startLinked) _startLinked->Disable();
+        if (_endLinked) _endLinked->Disable();
+        return;
+    }
+
+    // Manual value mode: Start is always enabled.
+    if (_startSlider) _startSlider->Enable();
+    if (_startText) _startText->Enable();
+    if (_startVC) _startVC->Enable();
+    if (_startLabel) _startLabel->Enable();
+
+    if (vcActive) {
+        // Value curve drives the whole effect — there is no separate End,
+        // just a single value over time. Repurpose the Start label and
+        // disable everything that implies a start-vs-end split.
+        if (_startLabel) _startLabel->SetLabelText(_("Value:"));
+        if (_endSlider) _endSlider->Disable();
+        if (_endText) _endText->Disable();
+        if (_endLabel) _endLabel->Disable();
+        if (_swapButton) _swapButton->Disable();
+        if (_equalButton) _equalButton->Disable();
+        if (_syncCheck) {
+            _syncCheck->SetValue(false);
+            _syncCheck->Disable();
+        }
+        if (_startLinked) _startLinked->Disable();
+        if (_endLinked) _endLinked->Disable();
+    } else {
+        if (_startLabel) _startLabel->SetLabelText(_("Start:"));
+        if (_endLabel) _endLabel->Enable();
+        if (_swapButton) _swapButton->Enable();
+        if (_equalButton) _equalButton->Enable();
+        if (_syncCheck) {
+            _syncCheck->Enable();
+            // If the user has manually changed Start vs End apart, the panel
+            // shouldn't claim they're still synced.
+            if (_startText && _endText && _startText->GetValue() != _endText->GetValue()) {
+                _syncCheck->SetValue(false);
+            }
+        }
+        if (_endSlider) _endSlider->Enable();
+        if (_endText) _endText->Enable();
+        if (_startLinked) _startLinked->Enable();
+        if (_endLinked) _endLinked->Enable();
     }
 }
 
 void ServoPanel::SetDefaultParameters() {
-    EndLinkedButton->SetValue(false);
-    StartLinkedButton->SetValue(false);
-    ValueCurve_Servo->SetActive(false);
-    SetSliderValue(Slider_Servo, 0);
-    SetSliderValue(SliderEndValue, 0);
-    Choice_Channel->SetSelection(-1);
-    CheckBox_16bit->SetValue(false);
-    SetCheckBoxValue(CheckBox_Timing_Track, false);
-    Choice_Servo_TimingTrack->SetSelection(-1);
-    SyncCheckBox->SetValue(false);
-}
-
-void ServoPanel::SetPanelStatus(Model* cls) {
-    if (cls == nullptr) {
-        return;
-    }
-
-    Model* m = cls;
-    if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        m = dynamic_cast<ModelGroup*>(cls)->GetFirstModel();
-        if (m == nullptr)
-            m = cls;
-    }
-
-    Choice_Servo_TimingTrack->Clear();
-    SequenceElements& se = xLightsFrame::GetFrame()->GetSequenceElements();
-    for (size_t i = 0; i < se.GetElementCount(); i++) {
-        Element* e = se.GetElement(i);
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() == 3) {
-            Choice_Servo_TimingTrack->Append(e->GetName());
-        }
-    }
-
-    int num_channels = m->GetNumChannels();
-
-    std::string choice_ctrl = "ID_CHOICE_Channel";
-    wxChoice* choice = (wxChoice*)(FindWindowByName(choice_ctrl));
-
-    if (choice != nullptr) {
-        choice->Clear();
-        for (int i = 0; i <= num_channels; ++i) {
-            std::string name = m->GetNodeName(i);
-            if (name != "" && name[0] != '-') {
-                choice->Append(name);
-            }
-        }
-        choice->SetSelection(0);
-    }
-    FlexGridSizer_Main->Layout();
-    Refresh();
+    JsonEffectPanel::SetDefaultParameters();
+    if (_endLinked) _endLinked->SetValue(false);
+    if (_startLinked) _startLinked->SetValue(false);
+    if (_startVC) _startVC->SetActive(false);
+    if (_startSlider) SetSliderValue(_startSlider, 0);
+    if (_endSlider) SetSliderValue(_endSlider, 0);
+    if (_syncCheck) _syncCheck->SetValue(false);
 }

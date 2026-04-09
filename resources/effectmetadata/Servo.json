@@ -8,6 +8,7 @@
             "controlType": "choice",
             "options": [],
             "default": "",
+            "dynamicOptions": "modelNodeNames",
             "description": "Selects which channel on the DMX model to control. The channel list is populated from the model's node names."
         },
         {
@@ -28,51 +29,41 @@
         },
         {
             "id": "Servo_TimingTrack",
-            "label": "Servo_TimingTrack",
+            "label": "Timing Track",
             "type": "enum",
             "controlType": "choice",
             "options": [],
             "default": "",
+            "dynamicOptions": "lyricTimingTracks",
             "description": "Selects which timing track to use for phoneme-driven servo positioning when Use Timing Track is enabled."
         },
         {
-            "id": "Start",
-            "label": "Start",
-            "type": "bool",
-            "controlType": "togglebutton",
-            "default": false,
-            "description": "Toggle to lock the start position value when splitting or chaining servo effects, ensuring smooth transitions between consecutive effects."
+            "id": "Servo_StartEndRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Start/End servo position sliders (0-100% as a float with 0.1 precision) with optional value-curve and per-effect link toggles."
         },
         {
-            "id": "Servo",
-            "label": "Start",
-            "type": "float",
-            "controlType": "slider",
-            "default": 0.0,
-            "divisor": 10,
-            "valueCurve": true,
-            "min": 0,
-            "max": 1000,
-            "description": "Servo position at the start of the effect, as a percentage of the channel's range (0-100%). The servo linearly interpolates from this value to the end value."
+            "id": "Servo_ButtonRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Sync (mirrors Start and End values), Equal (copies Start to End), and Swap (exchanges Start and End) action buttons."
+        }
+    ],
+    "groups": [
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Servo_StartEndRow"]
         },
         {
-            "id": "End",
-            "label": "End",
-            "type": "bool",
-            "controlType": "togglebutton",
-            "default": false,
-            "description": "Toggle to lock the end position value when splitting or chaining servo effects, ensuring smooth transitions between consecutive effects."
-        },
-        {
-            "id": "EndValue",
-            "label": "End",
-            "type": "float",
-            "controlType": "slider",
-            "default": 0.0,
-            "divisor": 10,
-            "min": 0,
-            "max": 1000,
-            "description": "Servo position at the end of the effect, as a percentage of the channel's range (0-100%). The servo linearly interpolates from the start value to this value."
+            "type": "section",
+            "columns": 1,
+            "properties": ["Servo_ButtonRow"]
         }
     ]
 }

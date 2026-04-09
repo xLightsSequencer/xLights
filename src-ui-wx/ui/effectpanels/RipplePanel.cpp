@@ -26,9 +26,49 @@ RipplePanel::RipplePanel(wxWindow* parent, const nlohmann::json& metadata)
 
     auto* objectCtrl = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Ripple_Object_To_Draw", this));
     auto* styleCtrl = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Ripple_Draw_Style", this));
-    if (objectCtrl) objectCtrl->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
-    if (styleCtrl) styleCtrl->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+    // Separate handlers so each choice can mediate the SVG/"Old" mutual
+    // exclusion in the correct direction (the user changed THIS control,
+    // so the OTHER one should yield).
+    if (objectCtrl) {
+        objectCtrl->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) {
+            OnObjectChanged();
+            ValidateWindow();
+            e.Skip();
+        });
+    }
+    if (styleCtrl) {
+        styleCtrl->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) {
+            OnStyleChanged();
+            ValidateWindow();
+            e.Skip();
+        });
+    }
     ValidateWindow();
+}
+
+void RipplePanel::OnObjectChanged() {
+    auto* objectCtrl = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Ripple_Object_To_Draw", this));
+    auto* styleCtrl = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Ripple_Draw_Style", this));
+    if (!objectCtrl || !styleCtrl) return;
+    // SVG only renders under the new draw styles. If the user picks SVG
+    // while Style is still "Old", bump Style to a sensible non-Old default
+    // instead of silently snapping the object back to Circle.
+    if (objectCtrl->GetStringSelection() == "SVG" &&
+        styleCtrl->GetStringSelection() == "Old") {
+        styleCtrl->SetStringSelection("Lines Outward");
+    }
+}
+
+void RipplePanel::OnStyleChanged() {
+    auto* objectCtrl = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Ripple_Object_To_Draw", this));
+    auto* styleCtrl = dynamic_cast<wxChoice*>(wxWindow::FindWindowByName("ID_CHOICE_Ripple_Draw_Style", this));
+    if (!objectCtrl || !styleCtrl) return;
+    // The reverse: Style "Old" doesn't support SVG, so revert Object to
+    // Circle when the user picks Old while SVG is selected.
+    if (styleCtrl->GetStringSelection() == "Old" &&
+        objectCtrl->GetStringSelection() == "SVG") {
+        objectCtrl->SetStringSelection("Circle");
+    }
 }
 
 wxWindow* RipplePanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) {
@@ -71,18 +111,15 @@ void RipplePanel::ValidateWindow() {
     EffectPanelUtils::enableControlsByName(this, "ID_SLIDER_RIPPLE_POINTS", hasPoints);
     EffectPanelUtils::enableControlsByName(this, "ID_SLIDER_Ripple_Rotation", hasPoints);
 
-    // New features enabled when style is not "Old"
+    // New features enabled when style is not "Old". The cross-mediation between
+    // Object=SVG and Style=Old happens in OnObjectChanged()/OnStyleChanged()
+    // so we can pick the right direction based on which control the user just
+    // changed; here we only handle enable/disable.
     bool newFeatures = (style != "Old");
 
     // Rotation also enabled for new draw styles
     if (newFeatures) {
         EffectPanelUtils::enableControlsByName(this, "ID_SLIDER_Ripple_Rotation", true);
-    }
-
-    // Force SVG to Circle if not new features
-    if (!newFeatures && object == "SVG") {
-        objectCtrl->SetStringSelection("Circle");
-        object = "Circle";
     }
 
     // SVG media picker only for SVG object in new mode. The hidden file picker
