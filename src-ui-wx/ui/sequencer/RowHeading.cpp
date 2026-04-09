@@ -1833,14 +1833,15 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
 
 bool RowHeading::HitTestCollapseExpand(int row, int x, bool* IsCollapsed)
 {
-    if (mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != ElementType::ELEMENT_TYPE_TIMING &&
-        x < DEFAULT_ROW_HEADING_MARGIN) {
-        *IsCollapsed = mSequenceElements->GetVisibleRowInformation(row)->Collapsed;
-        return true;
+    Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(row);
+    if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        int indentX = rowInfo->nestDepth * FromDIP(8);
+        if (x >= indentX && x < indentX + DEFAULT_ROW_HEADING_MARGIN) {
+            *IsCollapsed = rowInfo->Collapsed;
+            return true;
+        }
     }
-    else {
-        return false;
-    }
+    return false;
 }
 
 bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
@@ -1944,14 +1945,13 @@ void RowHeading::render( wxPaintEvent& event )
     }
     wxPen effectNoticePen(effectNoticeColor);
     wxBrush effectNoticeBrush(effectNoticeColor);
-    
+
+    const int indentPerLevel = FromDIP(8);
+
     for (int i = 0; i < (int)mSequenceElements->GetVisibleRowInformationSize(); i++) {
         Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
-        wxString prefix;
         wxString layers;
-        if (rowInfo->submodel) {
-            prefix = "  ";
-        }
+        int indentX = rowInfo->nestDepth * indentPerLevel;
         if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1) {
             layers = wxString::Format(" [%d] ", (int)rowInfo->element->GetEffectLayerCount());
         }
@@ -1997,7 +1997,7 @@ void RowHeading::render( wxPaintEvent& event )
             dc.DrawLine(1,startY-1,w-1,startY-1);
             dc.SetPen(*wxBLACK_PEN);
             if (rowInfo->strandIndex >= 0) {
-                wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
+                wxRect r(DEFAULT_ROW_HEADING_MARGIN + indentX, startY, w - DEFAULT_ROW_HEADING_MARGIN - indentX, DEFAULT_ROW_HEADING_HEIGHT);
                 wxString name = rowInfo->displayName;
                 if (name == "") {
                     if (rowInfo->nodeIndex >= 0) {
@@ -2008,25 +2008,25 @@ void RowHeading::render( wxPaintEvent& event )
                     }
                 }
                 if (rowInfo->nodeIndex >= 0) {
-                    dc.DrawLabel(prefix + "     " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel(name + layers, r, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else if (rowInfo->layerIndex == 0) {
-                    wxString lay = prefix + "  " + name + layers;
+                    wxString lay = name + layers;
                     if (!rowInfo->layerName.empty()) {
                         lay += rowInfo->layerName;
                     }
                     dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else {
                     dc.SetPen(*wxBLUE_PEN);
-                    wxString lay = wxString::Format("   [%d] ", rowInfo->layerIndex + 1);
+                    wxString lay = wxString::Format("[%d] ", rowInfo->layerIndex + 1);
                     if (!rowInfo->layerName.empty()) {
                         lay += rowInfo->layerName;
                     }
                     dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
                 }
             } else {
-                wxRect r(DEFAULT_ROW_HEADING_MARGIN, startY, w - DEFAULT_ROW_HEADING_MARGIN, DEFAULT_ROW_HEADING_HEIGHT);
+                wxRect r(DEFAULT_ROW_HEADING_MARGIN + indentX, startY, w - DEFAULT_ROW_HEADING_MARGIN - indentX, DEFAULT_ROW_HEADING_HEIGHT);
                 dc.SetPen(*wxBLUE_PEN);
-                wxString lay = wxString::Format("   [%d] ", rowInfo->layerIndex + 1);
+                wxString lay = wxString::Format("[%d] ", rowInfo->layerIndex + 1);
                 if (!rowInfo->layerName.empty()) {
                     lay += rowInfo->layerName;
                 }
@@ -2038,8 +2038,6 @@ void RowHeading::render( wxPaintEvent& event )
             // Draw label
             auto name = rowInfo->element->GetName();
             if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
-                prefix += "  ";
-
                 // find the parent row so we can work out its type
                 int toprow = mSequenceElements->GetFirstVisibleModelRow();
                 int parent = toprow + rowInfo->RowNumber;
@@ -2057,14 +2055,11 @@ void RowHeading::render( wxPaintEvent& event )
                     Model* pm = xLightsApp::GetFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
                     if (pm != nullptr && pm->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         name = rowInfo->element->GetFullName();
-                        if (prefix.size() >= 3) {
-                            prefix = prefix.substr(3);
-                        }
                     }
                 }
             }
-            wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            wxString lay = prefix + name + layers;
+            wxRect r(DEFAULT_ROW_HEADING_MARGIN + indentX, startY, w - DEFAULT_ROW_HEADING_MARGIN - indentX, DEFAULT_ROW_HEADING_HEIGHT);
+            wxString lay = name + layers;
             if (!rowInfo->layerName.empty()) {
                 lay += rowInfo->layerName;
             }
@@ -2078,10 +2073,10 @@ void RowHeading::render( wxPaintEvent& event )
                 // The +/- to expand/contract the elements layers
                 dc.SetBrush(*wxWHITE_BRUSH);
                 dc.SetPen(*wxBLACK_PEN);
-                dc.DrawRectangle(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4,9,9);
-                dc.DrawLine(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2,9,startY + DEFAULT_ROW_HEADING_HEIGHT/2);
+                dc.DrawRectangle(2 + indentX, startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4, 9, 9);
+                dc.DrawLine(2 + indentX, startY + DEFAULT_ROW_HEADING_HEIGHT/2, 9 + indentX, startY + DEFAULT_ROW_HEADING_HEIGHT/2);
                 if (rowInfo->Collapsed) {
-                    dc.DrawLine(6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 + 4,6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4);
+                    dc.DrawLine(6 + indentX, startY + DEFAULT_ROW_HEADING_HEIGHT/2 + 4, 6 + indentX, startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4);
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
