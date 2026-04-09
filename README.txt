@@ -12,7 +12,6 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
-    -bug (derwin12)             Suppress autosave backup prompt during batch render
     -bug (derwin12)             Make Random Effects Random Again
     -bug (derwin12)             Cube Model ignored Direction
     -enh (AGFazio)              Add face definition matrix previews
