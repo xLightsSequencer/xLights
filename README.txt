@@ -12,6 +12,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
+    -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
+                                    in a mov container, bit-exact and decoded natively by AVFoundation,
+                                    replaces the deprecated uncompressed AVI export for pixel-perfect
+                                    video capture. Compatibility warning now points users at this as
+                                    the lossless replacement for uncompressed AVI.
+    -enh (dkulp)                Warn the user when picking the deprecated "Uncompressed Video, *.avi"
+                                    format from the model export dialog, suggesting the new lossless
+                                    RGB MOV instead.
     -enh (dkulp)                Add "Don't show again for this version" checkbox to the AVFoundation
                                     media compatibility warning shown on sequence load
     -enh (dkulp)                Format GitHub release notes as markdown (sectioned headings, bullet

@@ -912,15 +912,24 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     int width = origwidth;
     int height = origheight;
 
-    // must be a multiple of 2
-    if (width % 2 > 0)
-        width++;
-    if (height % 2 > 0)
-        height++;
-
     const char* filename = filenames.c_str();
-    if (!EndsWith(filename, ".avi")) {
+    bool isAvi = EndsWith(filename, ".avi");
+    bool isMov = EndsWith(filename, ".mov");
+
+    // YUV420P (used by H.264/MP4) requires even dimensions because chroma is
+    // half-resolution. qtrle and rawvideo are RGB and have no such constraint,
+    // so for the lossless paths (MOV/qtrle and AVI/raw) we leave odd dimensions
+    // alone — otherwise sws_scale would bicubic-resample by a pixel and the
+    // output wouldn't be bit-exact for odd-sized models.
+    if (!isMov && !isAvi) {
+        if (width % 2 > 0)
+            width++;
+        if (height % 2 > 0)
+            height++;
+    }
+    if (!isAvi && !isMov) {
         // minimin width/height is 16 otherwise the encoder failes ... so scale it if necessary
+        // (raw / qtrle have no such constraint)
         if (width < 16 || height < 16) {
             float scale = std::max(16.0 / width, 16.0 / height);
             if (scale > 1.0) {
@@ -944,21 +953,27 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 #endif
 
     // AVCodecID vc = !EndsWith(filename, ".avi") ? (compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_HEVC) : AVCodecID::AV_CODEC_ID_RAWVIDEO;
-    AVCodecID vc = !EndsWith(filename, ".avi") ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_RAWVIDEO;
+    // Lossless RGB MOV uses rawvideo+rgb24 in a mov container. Modern macOS
+    // AVFoundation has dropped its decoders for the legacy QuickTime codecs
+    // (qtrle, png, etc.) so they aren't viable replacements for raw AVI even
+    // though ffmpeg can still produce them — uncompressed RGB in a mov box is
+    // the only bit-exact format VideoToolbox still ships a decoder for.
+    AVCodecID vc = (isAvi || isMov) ? AVCodecID::AV_CODEC_ID_RAWVIDEO : AVCodecID::AV_CODEC_ID_H264;
     const AVCodec* codec = ::avcodec_find_encoder(vc);
     if (codec == nullptr) {
-        // h264/h265 not working, stick with original guess (likely mpeg4)
+        // h264/rawvideo not working, stick with original guess (likely mpeg4)
         vc = av_guess_format(nullptr, filename, nullptr)->video_codec;
         codec = ::avcodec_find_encoder(vc);
     }
     // Create the codec context that will configure the codec
     AVFormatContext* oc = nullptr;
     AVDictionary* av_opts = nullptr;
-    if (vc != AVCodecID::AV_CODEC_ID_RAWVIDEO) {
+    if (!isAvi && !isMov) {
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "+disable_chpl+write_colr", 0);
     }
-    int ret = avformat_alloc_output_context2(&oc, nullptr, EndsWith(filename, ".avi") ? "avi" : "mp4", filename);
+    const char* containerFormat = isAvi ? "avi" : (isMov ? "mov" : "mp4");
+    int ret = avformat_alloc_output_context2(&oc, nullptr, containerFormat, filename);
     if (ret < 0 || oc == nullptr) {
         spdlog::warn("   Could not create output context. {}", AVERROR(ret));
         return;
@@ -1023,7 +1038,20 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
     } else if (codecContext->codec_id == AV_CODEC_ID_RAWVIDEO) {
-        codecContext->pix_fmt = AV_PIX_FMT_BGR24;
+        // For .mov we use RGB24 (matches the source, makes sws_scale a true
+        // pass-through, and pairs with the 'raw ' tag in the MOV sample
+        // description). For .avi we keep the legacy BGR24 layout.
+        codecContext->pix_fmt = isMov ? AV_PIX_FMT_RGB24 : AV_PIX_FMT_BGR24;
+        if (isMov) {
+            // AVFoundation/QuickTime require pasp + fiel atoms in the mov stsd;
+            // the mov muxer only emits them if these fields are populated on
+            // the codec context BEFORE avcodec_open2.
+            codecContext->sample_aspect_ratio = AVRational{ 1, 1 };
+            codecContext->field_order = AV_FIELD_PROGRESSIVE;
+        }
+        codecContext->gop_size = 1;
+        codecContext->has_b_frames = 0;
+        codecContext->max_b_frames = 0;
         ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
     } else if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {

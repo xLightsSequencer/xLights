@@ -41,11 +41,12 @@
 #include "ui/layout/ViewsModelsPanel.h"
 #include "ui/import-export/VsaImportDialog.h"
 #include "ui/import-export/xLightsImportChannelMapDialog.h"
-#include "xLightsMain.h"
 #include "render/SequenceMedia.h"
 #include "media/MediaCompatibility.h"
 #include <wx/textdlg.h>
 #include <wx/richmsgdlg.h>
+#include <wx/checkbox.h>
+#include <wx/textctrl.h>
 #include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
@@ -617,18 +618,81 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
                 auto issues = MediaCompatibility::CheckSequenceMedia(audioFile, videoFiles);
                 if (!issues.empty()) {
-                    wxString msg = "The following media files are not compatible with AVFoundation and will soon not render on a Mac:\n\n";
+                    // Build the file list once for the monospace box and the log.
+                    wxString fileList;
                     for (const auto& issue : issues) {
                         wxString type = issue.isVideo ? "Video" : "Audio";
                         std::string basename = std::filesystem::path(issue.filePath).filename().string();
-                        msg += wxString::Format("  %s: %s\n    Reason: %s\n\n", type, basename, issue.reason);
+                        fileList += wxString::Format("  %s: %s\n    Reason: %s\n", type, basename, issue.reason);
                     }
-                    msg += "\nConsider re-encoding with Handbrake using H.264/H.265 (video) or AAC/MP3 (audio) for maximum compatibility and performance.";
-                    spdlog::warn("Media compatibility warning: {}", msg.ToStdString());
-                    wxRichMessageDialog dlg(this, msg, "Warning", wxOK | wxICON_WARNING);
-                    dlg.ShowCheckBox(wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
+                    if (!fileList.empty() && fileList.Last() == '\n') {
+                        fileList.RemoveLast();
+                    }
+                    spdlog::warn("Media compatibility warning:\n{}", fileList.ToStdString());
+
+                    // Custom dialog: wxRichMessageDialog (=NSAlert on macOS) collapses
+                    // blank lines and is fixed-width, which made the multi-paragraph
+                    // guidance unreadable. This dialog uses system-font wxStaticText
+                    // for prose, a scrollable monospace wxTextCtrl for the file list
+                    // (in case there are many files), and a one-line monospace text
+                    // ctrl for the ffmpeg command so the user can copy it.
+                    constexpr int kWrapWidth = 660;
+                    wxDialog dlg(this, wxID_ANY, "Media Compatibility Warning",
+                                 wxDefaultPosition, wxSize(720, 560),
+                                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+                    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+
+                    auto* intro = new wxStaticText(&dlg, wxID_ANY,
+                        "The following media files are not compatible with AVFoundation and will soon not render on a Mac:");
+                    intro->Wrap(kWrapWidth);
+                    topSizer->Add(intro, 0, wxALL, 12);
+
+                    wxTextCtrl* fileListCtrl = new wxTextCtrl(&dlg, wxID_ANY, fileList,
+                        wxDefaultPosition, wxSize(-1, 160),
+                        wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP | wxBORDER_SUNKEN);
+                    fileListCtrl->SetFont(wxFont(wxFontInfo(11).Family(wxFONTFAMILY_TELETYPE)));
+                    fileListCtrl->SetInsertionPoint(0);
+                    // proportion=1 → grows to fill any extra vertical space when resized
+                    topSizer->Add(fileListCtrl, 1, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 12);
+
+                    auto* advice1 = new wxStaticText(&dlg, wxID_ANY,
+                        "Consider re-encoding with Handbrake using H.264/H.265 (video) or AAC/MP3 (audio) for maximum compatibility and performance.");
+                    advice1->Wrap(kWrapWidth);
+                    topSizer->Add(advice1, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+                    auto* advice2 = new wxStaticText(&dlg, wxID_ANY,
+                        "If you need pixel-perfect lossless RGB video (the original reason for using uncompressed AVI), "
+                        "re-encode the source as an uncompressed RGB MOV — modern AVFoundation has dropped its decoders "
+                        "for the legacy QuickTime lossless codecs (Animation/qtrle, PNG, etc.), so uncompressed RGB in a "
+                        "mov box is the only bit-exact format VideoToolbox still ships a decoder for. With ffmpeg:");
+                    advice2->Wrap(kWrapWidth);
+                    topSizer->Add(advice2, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+                    wxTextCtrl* cmdCtrl = new wxTextCtrl(&dlg, wxID_ANY,
+                        "ffmpeg -i input.avi -c:v rawvideo -pix_fmt rgb24 output.mov",
+                        wxDefaultPosition, wxDefaultSize,
+                        wxTE_READONLY | wxBORDER_SUNKEN);
+                    cmdCtrl->SetFont(wxFont(wxFontInfo(11).Family(wxFONTFAMILY_TELETYPE)));
+                    topSizer->Add(cmdCtrl, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 12);
+
+                    auto* note = new wxStaticText(&dlg, wxID_ANY,
+                        "xLights' model export dialog can also write this format directly via \"Lossless RGB Video, *.mov\".");
+                    note->Wrap(kWrapWidth);
+                    topSizer->Add(note, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+                    wxCheckBox* suppressCheck = new wxCheckBox(&dlg, wxID_ANY,
+                        wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
+                    topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+                    wxSizer* btnSizer = dlg.CreateButtonSizer(wxOK);
+                    if (btnSizer) {
+                        topSizer->Add(btnSizer, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+                    }
+                    dlg.SetSizer(topSizer);
+                    dlg.SetMinSize(wxSize(600, 480));
+                    dlg.Layout();
                     dlg.ShowModal();
-                    if (dlg.IsCheckBoxChecked()) {
+                    if (suppressCheck->IsChecked()) {
                         wxConfigBase::Get()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
                         wxConfigBase::Get()->Flush();
                     }
