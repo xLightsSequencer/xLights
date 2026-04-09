@@ -1,0 +1,105 @@
+{
+    "effectName": "Sketch",
+    "properties": [
+        {
+            "id": "Sketch_Info",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Explanatory text describing the Sketch effect plus links to demo videos. Display only — not part of the saved effect."
+        },
+        {
+            "id": "Sketch_DefRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Read-only display of the active sketch definition string. The actual sketch is drawn / edited via the Effect Assist panel; this control just shows the resulting definition."
+        },
+        {
+            "id": "Sketch_BackgroundRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Background image used as a tracing reference inside the Effect Assist panel. The image itself is not rendered into the effect output."
+        },
+        {
+            "id": "SketchBackgroundOpacity",
+            "label": "Opacity",
+            "type": "int",
+            "controlType": "slider",
+            "default": 48,
+            "min": 0,
+            "max": 255,
+            "description": "Opacity (0-255) of the background tracing image when shown inside the Effect Assist panel. Has no effect on rendering — just controls how prominent the reference image is when sketching."
+        },
+        {
+            "id": "DrawPercentage",
+            "label": "Draw Percentage",
+            "type": "int",
+            "controlType": "slider",
+            "default": 40,
+            "min": 0,
+            "max": 100,
+            "valueCurve": true,
+            "separator": true,
+            "description": "Percentage of the effect duration over which the sketch progressively draws on. The remaining duration shows the fully drawn sketch. Disabled when Motion is enabled."
+        },
+        {
+            "id": "Thickness",
+            "label": "Thickness",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 25,
+            "valueCurve": true,
+            "description": "Line thickness in pixels used when drawing the sketch."
+        },
+        {
+            "id": "MotionEnabled",
+            "label": "Motion",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, the sketch is fully drawn over the entire effect duration but only a percentage is rendered at any given time, creating simple motion-graphics-like effects."
+        },
+        {
+            "id": "MotionPercentage",
+            "label": "Motion Percentage",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 1,
+            "max": 100,
+            "valueCurve": true,
+            "description": "When Motion is enabled, percentage of the sketch to render at any given time. Only used when Motion is enabled."
+        }
+    ],
+    "groups": [
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Sketch_Info"]
+        },
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Sketch_DefRow"]
+        },
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Sketch_BackgroundRow"]
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "MotionEnabled", "equals": true },
+            "enable": ["MotionPercentage"],
+            "disable": ["DrawPercentage"]
+        }
+    ]
+}

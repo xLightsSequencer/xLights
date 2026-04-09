@@ -156,7 +156,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_SHIMMER, "Shimmer", "Shimmer");
     RegisterJson(E::eff_SHOCKWAVE, "Shockwave", "Shockwave");
     RegisterJson(E::eff_SINGLESTRAND, "SingleStrand", "SingleStrand");
-    Register<SketchPanel>(E::eff_SKETCH, "Sketch");
+    RegisterJsonSubclass<SketchPanel>(E::eff_SKETCH, "Sketch", "Sketch");
     RegisterJsonSubclass<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes", "Snowflakes");
     RegisterJson(E::eff_SNOWSTORM, "Snowstorm", "Snowstorm");
     RegisterJson(E::eff_SPIRALS, "Spirals", "Spirals");
