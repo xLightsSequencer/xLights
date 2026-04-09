@@ -58,8 +58,11 @@ long VideoReader::GetVideoLength(const std::string& filename)
     return AVFoundationVideoReader::GetVideoLengthStatic(filename);
 #elif defined(__APPLE__)
     // On macOS, try AVFoundation first (faster, no FFmpeg init overhead)
-    long len = AVFoundationVideoReader::GetVideoLengthStatic(filename);
-    if (len > 0) return len;
+    // unless hardware acceleration is disabled
+    if (FFmpegVideoReader::IsHardwareAcceleratedVideo()) {
+        long len = AVFoundationVideoReader::GetVideoLengthStatic(filename);
+        if (len > 0) return len;
+    }
     return FFmpegVideoReader::GetVideoLengthStatic(filename);
 #else
     return FFmpegVideoReader::GetVideoLengthStatic(filename);
@@ -74,12 +77,17 @@ VideoReader::VideoReader(const std::string& filename, int width, int height, boo
     _impl = new AVFoundationVideoReader(filename, width, height, keepaspectratio,
                                         usenativeresolution, wantAlpha, bgr, wantsHardwareDecoderType);
 #elif defined(__APPLE__)
-    // macOS: try AVFoundation first, fall back to FFmpeg if it fails
-    _impl = new AVFoundationVideoReader(filename, width, height, keepaspectratio,
-                                        usenativeresolution, wantAlpha, bgr, wantsHardwareDecoderType);
-    if (!_impl->IsValid()) {
-        spdlog::info("AVFoundationVideoReader failed for {}, falling back to FFmpeg", filename);
-        delete _impl;
+    // macOS: try AVFoundation first (unless hardware acceleration disabled), fall back to FFmpeg if it fails
+    if (FFmpegVideoReader::IsHardwareAcceleratedVideo()) {
+        _impl = new AVFoundationVideoReader(filename, width, height, keepaspectratio,
+                                            usenativeresolution, wantAlpha, bgr, wantsHardwareDecoderType);
+        if (!_impl->IsValid()) {
+            spdlog::info("AVFoundationVideoReader failed for {}, falling back to FFmpeg", filename);
+            delete _impl;
+            _impl = new FFmpegVideoReader(filename, width, height, keepaspectratio,
+                                          usenativeresolution, wantAlpha, bgr, wantsHardwareDecoderType);
+        }
+    } else {
         _impl = new FFmpegVideoReader(filename, width, height, keepaspectratio,
                                       usenativeresolution, wantAlpha, bgr, wantsHardwareDecoderType);
     }
