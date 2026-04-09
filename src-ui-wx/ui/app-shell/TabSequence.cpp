@@ -161,7 +161,7 @@ void xLightsFrame::LoadEffectsFile()
         xx.SetExt("xbkp");
         wxString asfile = xx.GetLongPath();
 
-        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && FileExists(asfile)) {
+        if (!_renderMode && !_checkSequenceMode && FileExists(asfile)) {
             // the autosave file exists
             wxDateTime xmltime = fn.GetModificationTime();
             wxFileName asfn(asfile);
@@ -274,7 +274,7 @@ void xLightsFrame::LoadEffectsFile()
         // Check for autosave backup of presets file
         wxFileName presetsBkp(presetsFile);
         presetsBkp.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
-        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && FileExists(presetsBkp.GetFullPath())) {
+        if (!_renderMode && !_checkSequenceMode && FileExists(presetsBkp.GetFullPath())) {
             if (FileExists(presetsFile.GetFullPath())) {
                 wxDateTime jsonTime = presetsFile.GetModificationTime();
                 wxDateTime bkpTime = presetsBkp.GetModificationTime();

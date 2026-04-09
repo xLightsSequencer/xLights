@@ -274,7 +274,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         if (rp.IsEmpty()) {
             // check if there is a autosave backup file which is newer than the file we have been asked to open
-            if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
+            if (!_renderMode && !_checkSequenceMode && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
                 wxFileName fn(filename);
                 wxFileName xx = fn;
                 xx.SetExt("xbkp");
