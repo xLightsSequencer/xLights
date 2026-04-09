@@ -301,6 +301,10 @@ int PolyLinePropertyAdapter::OnPropertyGridSelection(wxPropertyGridInterface* gr
         str = str.SubString(str.Find(".") + 1, str.length());
         str = str.SubString(6, str.length());
         int segment = wxAtoi(str) - 1;
+        // Corners are 1-indexed points; the last corner has no outgoing segment,
+        // so clamp to the last valid segment index.
+        int maxSeg = _polyLine.GetNumSegments() - 1;
+        if (segment > maxSeg) segment = maxSeg;
         return segment;
     }
     return -1;
