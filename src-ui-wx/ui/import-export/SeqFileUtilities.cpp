@@ -45,6 +45,7 @@
 #include "render/SequenceMedia.h"
 #include "media/MediaCompatibility.h"
 #include <wx/textdlg.h>
+#include <wx/richmsgdlg.h>
 #include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
@@ -608,18 +609,30 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         // Check media compatibility with AVFoundation/AudioToolbox
         if (loaded_xml && !_renderMode && !_checkSequenceMode) {
-            std::string audioFile = CurrentSeqXmlFile->GetMediaFile();
-            std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
-            auto issues = MediaCompatibility::CheckSequenceMedia(audioFile, videoFiles);
-            if (!issues.empty()) {
-                wxString msg = "The following media files may not be compatible with AVFoundation:\n\n";
-                for (const auto& issue : issues) {
-                    wxString type = issue.isVideo ? "Video" : "Audio";
-                    std::string basename = std::filesystem::path(issue.filePath).filename().string();
-                    msg += wxString::Format("  %s: %s\n    Reason: %s\n\n", type, basename, issue.reason);
+            // Allow user to suppress this warning until the next xLights version release
+            wxString suppressedVersion;
+            wxConfigBase::Get()->Read("xLightsSuppressMediaCompatWarnVersion", &suppressedVersion, "");
+            if (suppressedVersion != xlights_version_string) {
+                std::string audioFile = CurrentSeqXmlFile->GetMediaFile();
+                std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
+                auto issues = MediaCompatibility::CheckSequenceMedia(audioFile, videoFiles);
+                if (!issues.empty()) {
+                    wxString msg = "The following media files are not compatible with AVFoundation and will soon not render on a Mac:\n\n";
+                    for (const auto& issue : issues) {
+                        wxString type = issue.isVideo ? "Video" : "Audio";
+                        std::string basename = std::filesystem::path(issue.filePath).filename().string();
+                        msg += wxString::Format("  %s: %s\n    Reason: %s\n\n", type, basename, issue.reason);
+                    }
+                    msg += "\nConsider re-encoding with Handbrake using H.264/H.265 (video) or AAC/MP3 (audio) for maximum compatibility and performance.";
+                    spdlog::warn("Media compatibility warning: {}", msg.ToStdString());
+                    wxRichMessageDialog dlg(this, msg, "Warning", wxOK | wxICON_WARNING);
+                    dlg.ShowCheckBox(wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
+                    dlg.ShowModal();
+                    if (dlg.IsCheckBoxChecked()) {
+                        wxConfigBase::Get()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
+                        wxConfigBase::Get()->Flush();
+                    }
                 }
-                msg += "Consider re-encoding with Handbrake using H.264/H.265 (video) or AAC/MP3 (audio) for maximum compatibility and performance.";
-                DisplayWarning(msg, this);
             }
         }
 
