@@ -21,6 +21,7 @@
 #include <wx/sizer.h>
 
 #include "ui/shared/controls/BulkEditControls.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include "render/TextDrawingContext.h"
 #include "ui/effects/CharMapDialog.h"
 
@@ -51,6 +52,28 @@ ShapePanel::ShapePanel(wxWindow* parent, const nlohmann::json& metadata)
 
 wxWindow* ShapePanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) {
     std::string id = prop.value("id", "");
+
+    if (id == "SVG") {
+        // Row: label | hidden file picker + MediaPickerCtrl
+        auto* label = new wxStaticText(parentWin, wxID_ANY, "SVG File");
+        sizer->Add(label, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+
+        // Hidden file picker for serialization
+        auto* hiddenPicker = new BulkEditFilePickerCtrl(parentWin, wxNewId(), wxEmptyString, wxEmptyString,
+                                                         "*.svg", wxDefaultPosition, wxDefaultSize,
+                                                         wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
+                                                         wxDefaultValidator, "ID_FILEPICKERCTRL_SVG");
+        hiddenPicker->Hide();
+
+        // Media picker that links to the hidden file picker
+        _svgPicker = new MediaPickerCtrl(parentWin, wxID_ANY, MediaType::SVG);
+        _svgPicker->SetLinkedPicker(hiddenPicker);
+        sizer->Add(_svgPicker, 1, wxALL | wxEXPAND, 2);
+
+        if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
+        if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+        return _svgPicker;
+    }
 
     if (id == "Shape_Font") {
         // Row: label | font picker
@@ -141,11 +164,10 @@ void ShapePanel::ValidateWindow() {
     auto* pointsLabel = dynamic_cast<wxStaticText*>(wxWindow::FindWindowByName("ID_STATICTEXT_Shape_Points", this));
     if (pointsLabel) pointsLabel->SetLabel(object == "Ellipse" ? "Ratio" : "Points");
 
-    // SVG file picker
-    auto* svgPicker = dynamic_cast<wxFilePickerCtrl*>(wxWindow::FindWindowByName("ID_FILEPICKERCTRL_SVG", this));
-    if (svgPicker) {
-        svgPicker->Enable(object == "SVG");
-        if (object != "SVG") svgPicker->SetFileName(wxFileName(""));
+    // SVG media picker
+    if (_svgPicker) {
+        _svgPicker->Enable(object == "SVG");
+        if (object != "SVG") _svgPicker->SetPath("");
     }
 
     // Emoji controls

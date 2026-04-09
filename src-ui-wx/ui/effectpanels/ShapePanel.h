@@ -13,10 +13,10 @@
 #include "JsonEffectPanel.h"
 
 class wxStaticText;
-
 class wxFontPickerCtrl;
 class wxSpinCtrl;
 class wxChoice;
+class MediaPickerCtrl;
 
 class ShapePanel : public JsonEffectPanel {
 public:
@@ -29,4 +29,5 @@ private:
     wxFontPickerCtrl* _fontPicker = nullptr;
     wxSpinCtrl* _charSpin = nullptr;
     wxChoice* _skinToneChoice = nullptr;
+    MediaPickerCtrl* _svgPicker = nullptr;
 };

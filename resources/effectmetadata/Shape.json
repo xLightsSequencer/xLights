@@ -66,7 +66,7 @@
             "id": "SVG",
             "label": "SVG File",
             "type": "file",
-            "controlType": "filepicker",
+            "controlType": "custom",
             "default": "",
             "fileFilter": "*.svg",
             "description": "Path to an SVG file to use as the shape when Object to Draw is set to SVG."
