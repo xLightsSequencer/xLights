@@ -26,8 +26,11 @@
 ServiceManager::ServiceManager(xLightsFrame* xl)
 {
 #if defined(__WXOSX__) && defined(__arm64__)
-    if (wxCheckOsVersion(26, 0, 0)) {
-        m_services.push_back(std::make_unique<AppleIntelligence>(this));
+    {
+        auto appleIntel = std::make_unique<AppleIntelligence>(this);
+        if (!appleIntel->GetTypes().empty()) {
+            m_services.push_back(std::move(appleIntel));
+        }
     }
 #endif
     m_services.push_back(std::make_unique<chatGPT>(this));

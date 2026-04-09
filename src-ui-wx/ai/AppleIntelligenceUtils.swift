@@ -7,10 +7,10 @@
 //
 
 import Foundation
-import FoundationModels
+@_weakLinked import FoundationModels
 import CoreGraphics
 
-import ImagePlayground
+@_weakLinked import ImagePlayground
 
 @available(macOS 26.0, *)
 struct DynObjCreator {
@@ -116,7 +116,7 @@ public func RunAppleIntelligenceGeneratePalette(_ prompt: String) -> String {
     public func generateImages(prompt: String, fullInstructions: String, style: String) async -> (CGImage?, String) {
         // Handle availability at runtime and catch thrown errors from ImageCreator()
         let image : CGImage! = nil
-        if #available(macOS 26.0, *) {
+        if #available(macOS 15.4, *) {
             do {
                 let imageCreator = try await ImageCreator()
                 
@@ -146,7 +146,7 @@ public func RunAppleIntelligenceGeneratePalette(_ prompt: String) -> String {
                 return (image, "An unexpected error occurred: \(error)")
             }
         } else {
-            return (image, "Image generation requires macOS 26.0 or later")
+            return (image, "Image generation requires macOS 15.4 or later")
         }
     }
 }

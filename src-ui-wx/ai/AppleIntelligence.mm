@@ -16,6 +16,21 @@
 #include "AppleIntelligence.h"
 
 
+std::list<aiType::TYPE> AppleIntelligence::GetTypes() const {
+    // At this point, don't handle "PROMPT" as the session size limits
+    // are too small for the crazy long input prompts needed for the mapping.
+    // The on-device LLM (FoundationModels.LanguageModelSession) requires macOS 26.0+,
+    // while ImagePlayground.ImageCreator only requires macOS 15.4+.
+    std::list<aiType::TYPE> types;
+    if (wxCheckOsVersion(26, 0, 0)) {
+        types.push_back(aiType::TYPE::COLORPALETTES);
+    }
+    if (wxCheckOsVersion(15, 4, 0)) {
+        types.push_back(aiType::TYPE::IMAGES);
+    }
+    return types;
+}
+
 bool AppleIntelligence::IsAvailable() const {
     return !_enabledTypes.empty();
 }

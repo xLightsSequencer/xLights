@@ -34,12 +34,7 @@ public:
         return "AppleIntelligence";
     }
     
-    [[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
-        // At this point, don't handle "PROMPT" as the session size limits
-        // are too small for the crazy long input prompts needed for the mapping
-        //return std::list({aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES});
-        return std::list({aiType::TYPE::COLORPALETTES, aiType::TYPE::IMAGES});
-    }
+    [[nodiscard]] std::list<aiType::TYPE> GetTypes() const override;
     
     virtual AIColorPalette GenerateColorPalette(const std::string &prompt) const override;
     
