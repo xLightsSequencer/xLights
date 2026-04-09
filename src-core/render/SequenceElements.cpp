@@ -1096,7 +1096,8 @@ int SequenceElements::GetSelectedTimingRow()
 void addSubModelElement(SubModelElement* elem,
     std::vector<Row_Information_Struct>& mRowInformation,
     int& rowIndex,
-    std::vector <Element*>& elements) {
+    std::vector <Element*>& elements,
+    int nestDepth = 0) {
     if (elem == nullptr) {
         spdlog::error("addSubModelElement attempted to add null element.");
         return;
@@ -1113,6 +1114,7 @@ void addSubModelElement(SubModelElement* elem,
             ri.layerIndex = j;
             ri.Index = rowIndex++;
             ri.submodel = true;
+            ri.nestDepth = nestDepth + 1;
             mRowInformation.push_back(ri);
         }
     }
@@ -1126,6 +1128,7 @@ void addSubModelElement(SubModelElement* elem,
         ri.layerIndex = 0;
         ri.Index = rowIndex++;
         ri.submodel = true;
+        ri.nestDepth = nestDepth + 1;
         mRowInformation.push_back(ri);
     }
 }
@@ -1133,7 +1136,8 @@ void addSubModelElement(SubModelElement* elem,
 void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mRowInformation,
     int& rowIndex,
     std::vector <Element*>& elements,
-    bool submodel)
+    bool submodel,
+    int nestDepth = 0)
 {
 
     if (elem == nullptr) {
@@ -1152,6 +1156,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
             ri.layerIndex = j;
             ri.Index = rowIndex++;
             ri.submodel = submodel;
+            ri.nestDepth = nestDepth;
             mRowInformation.push_back(ri);
         }
     }
@@ -1165,6 +1170,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
         ri.layerIndex = 0;
         ri.Index = rowIndex++;
         ri.submodel = submodel;
+        ri.nestDepth = nestDepth;
         mRowInformation.push_back(ri);
     }
     Model* cls = elem->GetSequenceElements()->GetRenderContext()->GetModel(elem->GetModelName());
@@ -1188,10 +1194,10 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                     ModelElement* melem = dynamic_cast<ModelElement*>(elements[x]);
                     if (subModel != "") {
                         SubModelElement* selem = melem->GetSubModel(subModel);
-                        addSubModelElement(selem, mRowInformation, rowIndex, elements);
+                        addSubModelElement(selem, mRowInformation, rowIndex, elements, nestDepth + 1);
                     }
                     else {
-                        addModelElement(melem, mRowInformation, rowIndex, elements, true);
+                        addModelElement(melem, mRowInformation, rowIndex, elements, true, nestDepth + 1);
                     }
                 }
             }
@@ -1219,6 +1225,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                     ri.strandIndex = ((StrandElement*)se)->GetStrand();
                 }
                 ri.submodel = submodel;
+                ri.nestDepth = nestDepth + 1;
                 mRowInformation.push_back(ri);
             }
 
@@ -1236,6 +1243,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                     ri.strandIndex = s;
                     ri.nodeIndex = n;
                     ri.submodel = submodel;
+                    ri.nestDepth = nestDepth + 2;
                     mRowInformation.push_back(ri);
                 }
             }

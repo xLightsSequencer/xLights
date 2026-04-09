@@ -41,6 +41,7 @@ public:
     std::string displayName;
     std::string layerName;
     bool submodel = false;
+    int nestDepth = 0;
 };
 
 struct EffectRange
