@@ -41,7 +41,8 @@ kernel void RotoZoomRotateX(constant RotoZoomData &data,
         tox = -1 * sine * (pivot - x) + pivot;
     }
     if (tox >= 0 && tox < data.width) {
-        uint didx = index.y * data.width + tox;
+        int toxi = (int)round(tox);
+        uint didx = index.y * data.width + toxi;
         result[didx] = src[sidx];
     }
 }

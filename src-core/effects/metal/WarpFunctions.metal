@@ -163,7 +163,8 @@ kernel void WarpEffectWavy(constant WarpData &data,
     if (index.y >= data.height) return;
     uint didx = index.y * data.width + index.x;
 
-    float2 uv = float2(float(index.x) / float(data.width), float(index.y) / float(data.height));
+    float2 uv = float2(data.width  > 1 ? float(index.x) / float(data.width  - 1) : 0.0f,
+                       data.height > 1 ? float(index.y) / float(data.height - 1) : 0.0f);
     float time = data.speed * data.progress;
 
     uv.x += 0.4 * noise(time + 0.3 * uv, dissolvePattern);

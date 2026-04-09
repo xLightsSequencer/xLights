@@ -152,7 +152,7 @@ kernel void KaleidoscopeEffectTriangle(constant KaleidoscopeData &data,
         // Reflect across the edge we are most outside of
         if (d0 < d1 && d0 < d2) {
             ReflectPointAcrossLine(x, y, v0x, v0y, v1x, v1y);
-        } else if (d1 < d2) {
+        } else if (d1 < d0 && d1 < d2) {
             ReflectPointAcrossLine(x, y, v1x, v1y, v2x, v2y);
         } else {
             ReflectPointAcrossLine(x, y, v2x, v2y, v0x, v0y);

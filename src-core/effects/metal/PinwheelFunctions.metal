@@ -18,7 +18,7 @@ kernel void PinwheelEffectStyle0(constant MetalPinwheelData &data,
                                   device uchar4* result,
                                   uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
 

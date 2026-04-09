@@ -41,7 +41,7 @@ kernel void ButterflyEffectStyle1(constant ButterflyData &data,
                                   device uchar4* result,
                                   uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
 
@@ -63,7 +63,7 @@ kernel void ButterflyEffectStyle2(constant ButterflyData &data,
                                   device uchar4* result,
                                   uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
 
@@ -87,7 +87,7 @@ kernel void ButterflyEffectStyle3(constant ButterflyData &data,
                                   device uchar4* result,
                                   uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
 
@@ -112,7 +112,7 @@ kernel void ButterflyEffectStyle4(constant ButterflyData &data,
                                   device uchar4* result,
                                   uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
 
@@ -137,7 +137,7 @@ kernel void ButterflyEffectStyle5(constant ButterflyData &data,
                                   device uchar4* result,
                                   uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
 
@@ -173,7 +173,7 @@ kernel void ButterflyEffectPlasmaStyles(constant ButterflyData &data,
     const half fifthTime = time / 5.0;
     const half chunks = data.chunks;
 
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
     

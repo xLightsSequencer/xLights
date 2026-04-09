@@ -12,6 +12,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -bug (dkulp)                Fix Metal rendering bugs in Butterfly, Pinwheel, Circles, ColorWash, Fan, Kaleidoscope,
+                                RotoZoom, and Warp effects: off-by-one bounds checks, division by zero for degenerate
+                                inputs, Kaleidoscope triangle reflection tie-break mismatch with ISPC, RotoZoomRotateX
+                                float used directly as array index, and WarpWavy UV normalization off-by-one
     -bug (dkulp/derwin12)       Fix five Metal layer blending bugs: off-by-one bounds check in all kernels, applyChroma
                                 not propagating alpha premultiplication back to caller, FirstLayerFade losing original
                                 alpha after HSV fade, AdjustBrightnessLevel incorrectly dividing single-channel pixels,

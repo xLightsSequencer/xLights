@@ -36,11 +36,11 @@ kernel void ColorWashEffect(constant MetalColorWashData &data [[buffer(0)]],
     float multH = 1.0f;
     float multV = 1.0f;
 
-    if (data.horizFade) {
+    if (data.horizFade && halfWi > 0.0f) {
         float dist = fabs(halfWi - (float)px);
         multH = data.reverseFades ? (dist / halfWi) : (1.0f - dist / halfWi);
     }
-    if (data.vertFade) {
+    if (data.vertFade && halfHt > 0.0f) {
         float dist = fabs(halfHt - (float)py);
         multV = data.reverseFades ? (dist / halfHt) : (1.0f - dist / halfHt);
     }

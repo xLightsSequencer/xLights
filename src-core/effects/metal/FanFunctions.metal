@@ -48,7 +48,7 @@ kernel void FanEffect(constant MetalFanData &data,
 
     if (r < data.radius1 || r > data.radius2) return;
 
-    float degrees_twist = (r / data.max_radius) * data.blade_angle;
+    float degrees_twist = (data.max_radius > 0.0f) ? (r / data.max_radius) * data.blade_angle : 0.0f;
     // Matches CPU: theta = atan2(x1,y1)*180/PI + degrees_twist + start_angle
     float theta = (atan2(x1, y1) * 180.0f / FAN_PI) + degrees_twist + data.start_angle;
 

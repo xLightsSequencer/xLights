@@ -114,7 +114,8 @@ kernel void CirclesEffect(constant MetalCirclesData &data [[buffer(0)]],
         colorIdx = clamp(colorIdx, 0, data.colorCount - 1);
 
         if (mode == CIRCLES_MODE_RADIAL_3D) {
-            float hue = (float)(ii + data.effectState) / ((float)data.maxRadius / (float)data.number);
+            float denom = (data.number > 0) ? ((float)data.maxRadius / (float)data.number) : 1.0f;
+            float hue = (float)(ii + data.effectState) / denom;
             hue = hue - floor(hue);
             result[index] = circHsv2rgba(hue, 1.0f, 1.0f);
         } else {
