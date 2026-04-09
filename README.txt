@@ -29,10 +29,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     loads on older macOS, gate Color Palette to macOS 26+ (FoundationModels)
                                     and Image Generation to macOS 15.4+ (ImagePlayground.ImageCreator)
     -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
-                                    instead of wxSmith-generated C++ code. 49 of 55 effect panels migrated
-                                    (State, Faces, Servo, Sketch, Liquid, and VU Meter panels migrated; the
-                                    State/Timing Track radio buttons on State are removed — pick one side by
-                                    setting it, leave the other empty).
+                                    instead of wxSmith-generated C++ code. 50 of 55 effect panels migrated
+                                    (State, Faces, Servo, Sketch, Liquid, VU Meter, and Text panels migrated;
+                                    the State/Timing Track radio buttons on State are removed — pick one side
+                                    by setting it, leave the other empty).
                                     Side effects: Warp X/Y and Fireworks XLocation/YLocation/XVelocity/YVelocity/Fade
                                     settings now serialize as E_SLIDER_* instead of E_TEXTCTRL_*. Render code reads
                                     both forms via GetValueCurveInt fallback so behavior is unchanged, but tools that

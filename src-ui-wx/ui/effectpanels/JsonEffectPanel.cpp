@@ -1024,9 +1024,25 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         info.fontPicker = picker;
         sizer->Add(picker, 1, wxALL | wxEXPAND, 2);
 
-        // Columns 3+4: spacers
+        // Column 3: spacer
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
-        if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+        // Column 4: Lock button (matches legacy ID_BITMAPBUTTON_FONTPICKER_<id>
+        // naming used by Text panel so old saved sequences round-trip).
+        if (cols >= 4) {
+            if (isLockable) {
+                std::string lockName = "ID_BITMAPBUTTON_FONTPICKER_" + id;
+                wxWindowID lockId = wxNewId();
+                auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
+                                                  wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                                  wxString(lockName));
+                lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+                sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
+                        (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
+            } else {
+                sizer->Add(-1, -1, 1, wxALL, 1);
+            }
+        }
 
     } else if (controlType == "colourpicker") {
         std::string defaultColor = prop.value("default", "#FFFFFF");

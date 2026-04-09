@@ -4,25 +4,23 @@
         {
             "id": "Text",
             "label": "Text",
-            "description": "The text string to display. Supports multiple lines and special tokens for countdown modes.",
+            "description": "The text string to display. Supports multiple lines and special tokens for countdown modes. When non-empty, the file picker and lyric track are disabled.",
             "type": "string",
             "controlType": "text",
             "default": ""
         },
         {
-            "id": "Text_File",
+            "id": "Text_File_Row",
             "label": "From File",
-            "description": "Path to a text file whose contents are displayed instead of the text field. Each line in the file is treated as a separate text line.",
-            "type": "file",
-            "controlType": "filepicker",
-            "default": "",
-            "fileFilter": "*.txt",
-            "fileMessage": "Select a text file"
+            "description": "Path to a text file whose contents are displayed instead of the text field. Each line in the file is treated as a separate text line. Disabled when the Text field above is non-empty.",
+            "type": "string",
+            "controlType": "custom",
+            "default": ""
         },
         {
             "id": "Text_LyricTrack",
             "label": "From Lyrics",
-            "description": "Selects a lyric timing track to use as the text source. The current lyric phrase is displayed at each point in time.",
+            "description": "Selects a lyric timing track to use as the text source. The current lyric phrase or word is displayed at each point in time. Disabled when Text or From File is set.",
             "type": "enum",
             "controlType": "choice",
             "options": [],
@@ -34,6 +32,15 @@
             "description": "The font face, size, and style used to render the text.",
             "type": "font",
             "controlType": "fontpicker",
+            "default": "",
+            "lockable": true
+        },
+        {
+            "id": "Text_Font_XL_Row",
+            "label": "XL Font",
+            "description": "Selects an xLights bitmap font (under fonts/) to use instead of the OS font. 'Use OS Fonts' falls back to the Font picker above.",
+            "type": "string",
+            "controlType": "custom",
             "default": ""
         },
         {
@@ -63,8 +70,8 @@
         },
         {
             "id": "TextToCenter",
-            "label": "C",
-            "description": "When enabled, the text movement stops when the text reaches the center of the model rather than continuing off screen.",
+            "label": "Move to center",
+            "description": "When enabled, the text movement stops when the text reaches the center of the model rather than continuing off screen. Only meaningful when Movement is not 'none'.",
             "tooltip": "Move to center and stop",
             "type": "bool",
             "controlType": "checkbox",
@@ -72,8 +79,8 @@
         },
         {
             "id": "TextNoRepeat",
-            "label": "NoRep",
-            "description": "When enabled, the text scrolls through once and then stops instead of repeating in a loop.",
+            "label": "Do not repeat",
+            "description": "When enabled, the text scrolls through once and then stops instead of repeating in a loop. Only meaningful when Movement is not 'none'.",
             "tooltip": "Do not cycle the text.",
             "type": "bool",
             "controlType": "checkbox",
@@ -147,7 +154,7 @@
         },
         {
             "id": "Text_XStart",
-            "label": "X",
+            "label": "X-axis Start",
             "description": "Horizontal starting position of the text. Used as the origin for vector movement or as a static offset when movement is none.",
             "type": "int",
             "controlType": "slider",
@@ -157,7 +164,7 @@
         },
         {
             "id": "Text_YStart",
-            "label": "Y",
+            "label": "Y-axis Start",
             "description": "Vertical starting position of the text. Used as the origin for vector movement or as a static offset when movement is none.",
             "type": "int",
             "controlType": "slider",
@@ -167,7 +174,7 @@
         },
         {
             "id": "Text_XEnd",
-            "label": "X",
+            "label": "X-axis End",
             "description": "Horizontal ending position for vector movement mode. The text moves from the start position to this position over the effect duration.",
             "type": "int",
             "controlType": "slider",
@@ -177,7 +184,7 @@
         },
         {
             "id": "Text_YEnd",
-            "label": "Y",
+            "label": "Y-axis End",
             "description": "Vertical ending position for vector movement mode. The text moves from the start position to this position over the effect duration.",
             "type": "int",
             "controlType": "slider",
@@ -205,6 +212,16 @@
                     ]
                 }
             ]
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "Text_XStart",
+            "yProperty": "Text_YStart"
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "Text_XEnd",
+            "yProperty": "Text_YEnd"
         }
     ]
 }

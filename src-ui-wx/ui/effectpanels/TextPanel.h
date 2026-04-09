@@ -10,163 +10,38 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-//(*Headers(TextPanel)
-#include <wx/panel.h>
-class wxBitmapButton;
-class wxCheckBox;
+#include "JsonEffectPanel.h"
+
+class Model;
+class MediaPickerCtrl;
 class wxChoice;
 class wxFilePickerCtrl;
-class wxFlexGridSizer;
-class wxFontPickerCtrl;
-class wxGridBagSizer;
-class wxNotebook;
-class wxNotebookEvent;
-class wxSlider;
 class wxStaticText;
 class wxTextCtrl;
-//*)
 
-#include <wx/filepicker.h>
-#include "ui/shared/controls/BulkEditControls.h"
-#include "EffectPanelUtils.h"
-#include "utils/ExternalHooks.h"
-
-class MediaPickerCtrl;
-
-class xlTextFilePickerCtrl : public BulkEditFilePickerCtrl {
+class TextPanel : public JsonEffectPanel {
 public:
-    xlTextFilePickerCtrl(wxWindow *parent,
-        wxWindowID id,
-        const wxString& path = wxEmptyString,
-        const wxString& message = wxFileSelectorPromptStr,
-        const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize,
-        long style = wxFLP_DEFAULT_STYLE,
-        const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = wxFilePickerCtrlNameStr)
-        : BulkEditFilePickerCtrl(parent, id, path, message, _T("*.txt"), pos, size, style, validator, name) {
-    }
-    virtual ~xlTextFilePickerCtrl()
-    {}
+    TextPanel(wxWindow* parent, const nlohmann::json& metadata);
+    ~TextPanel() override = default;
+
+    void ValidateWindow() override;
+    void SetPanelStatus(Model* cls) override;
 
 protected:
-    void ValidateControl() override;
-};
+    wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                   const nlohmann::json& prop, int cols) override;
 
+private:
+    wxWindow* BuildFileRow(wxWindow* parentWin, wxSizer* sizer, int cols);
+    wxWindow* BuildXLFontRow(wxWindow* parentWin, wxSizer* sizer, int cols);
 
-class TextPanel: public xlEffectPanel
-{
-	public:
+    // Custom-built controls (not in properties_ map).
+    wxFilePickerCtrl* _hiddenFilePicker = nullptr;
+    MediaPickerCtrl* _filePickerMedia = nullptr;
+    wxChoice* _xlFontChoice = nullptr;
 
-		TextPanel(wxWindow* parent);
-		virtual ~TextPanel();
-		virtual void ValidateWindow() override;
-		virtual void SetDefaultParameters() override;
-		virtual void SetPanelStatus(Model* cls) override;
-
-		//(*Declarations(TextPanel)
-		BulkEditCheckBox* CheckBox_NoRepeat;
-		BulkEditCheckBox* CheckBox_TextToCenter;
-		BulkEditCheckBox* CheckBox_Text_Color_PerWord;
-		BulkEditCheckBox* CheckBox_Text_PixelOffsets;
-		BulkEditChoice* Choice_Text_Count;
-		BulkEditChoice* Choice_Text_Dir;
-		BulkEditChoice* Choice_Text_Effect;
-		BulkEditChoice* Choice_Text_Font;
-		BulkEditSlider* Slider_Text_Speed;
-		BulkEditSlider* Slider_Text_XEnd;
-		BulkEditSlider* Slider_Text_XStart;
-		BulkEditSlider* Slider_Text_YEnd;
-		BulkEditSlider* Slider_Text_YStart;
-		BulkEditTextCtrl* TextCtrl_Text;
-		wxChoice* Choice_LyricTrack;
-		wxPanel* Panel17;
-		wxPanel* Panel_Text1;
-		wxStaticText* StaticText107;
-		wxStaticText* StaticText162;
-		wxStaticText* StaticText186;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText211;
-		wxStaticText* StaticText212;
-		wxStaticText* StaticText213;
-		wxStaticText* StaticText214;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText3;
-		wxStaticText* StaticText53;
-		wxStaticText* StaticText78;
-		wxStaticText* StaticText98;
-		xlLockButton* BitmapButton1;
-		xlLockButton* BitmapButton_TextCount;
-		xlLockButton* BitmapButton_TextDir;
-		xlLockButton* BitmapButton_TextEffect;
-		xlLockButton* BitmapButton_TextFont;
-		xlLockButton* BitmapButton_TextToCenter;
-		xlLockButton* BitmapButton_Text_Speed;
-		xlTextFilePickerCtrl* FilePickerCtrl1;
-		//*)
-
-
-		//(*Identifiers(TextPanel)
-		static const wxWindowID ID_STATICTEXT_Text;
-		static const wxWindowID ID_TEXTCTRL_Text;
-		static const wxWindowID ID_STATICTEXT1;
-		static const wxWindowID ID_FILEPICKERCTRL_Text_File;
-		static const wxWindowID ID_STATICTEXT2;
-		static const wxWindowID ID_CHOICE_Text_LyricTrack;
-		static const wxWindowID ID_STATICTEXT_FONTLABEL;
-		static const wxWindowID ID_FONTPICKER_Text_Font;
-		static const wxWindowID ID_BITMAPBUTTON_FONTPICKER_Text_Font;
-		static const wxWindowID ID_STATICTEXT_Text_Font;
-		static const wxWindowID ID_CHOICE_Text_Font;
-		static const wxWindowID ID_BITMAPBUTTON1;
-		static const wxWindowID ID_STATICTEXT_Text_Dir;
-		static const wxWindowID ID_CHOICE_Text_Dir;
-		static const wxWindowID ID_BITMAPBUTTON_CHOICE_Text_Dir;
-		static const wxWindowID ID_CHECKBOX_TextToCenter;
-		static const wxWindowID ID_CHECKBOX_TextNoRepeat;
-		static const wxWindowID ID_BITMAPBUTTON_TextToCenter;
-		static const wxWindowID ID_STATICTEXT_Text_Speed;
-		static const wxWindowID IDD_SLIDER_Text_Speed;
-		static const wxWindowID ID_TEXTCTRL_Text_Speed;
-		static const wxWindowID ID_BITMAPBUTTON_Text_Speed;
-		static const wxWindowID ID_STATICTEXT_Text_Effect;
-		static const wxWindowID ID_CHOICE_Text_Effect;
-		static const wxWindowID ID_BITMAPBUTTON_CHOICE_Text_Effect;
-		static const wxWindowID ID_STATICTEXT_Text_Count;
-		static const wxWindowID ID_CHOICE_Text_Count;
-		static const wxWindowID ID_BITMAPBUTTON_CHOICE_Text_Count;
-		static const wxWindowID ID_CHECKBOX_Text_PixelOffsets;
-		static const wxWindowID ID_CHECKBOX_Text_Color_PerWord;
-		static const wxWindowID ID_STATICTEXT_Text_XStart;
-		static const wxWindowID ID_SLIDER_Text_XStart;
-		static const wxWindowID IDD_TEXTCTRL_Text_XStart;
-		static const wxWindowID ID_STATICTEXT_Text_YStart;
-		static const wxWindowID IDD_TEXTCTRL_Text_YStart;
-		static const wxWindowID ID_SLIDER_Text_YStart;
-		static const wxWindowID IDD_PANEL6;
-		static const wxWindowID ID_STATICTEXT_Text_XEnd;
-		static const wxWindowID ID_SLIDER_Text_XEnd;
-		static const wxWindowID IDD_TEXTCTRL_Text_XEnd;
-		static const wxWindowID ID_STATICTEXT_Text_YEnd;
-		static const wxWindowID IDD_TEXTCTRL_Text_YEnd;
-		static const wxWindowID ID_SLIDER_Text_YEnd;
-		static const wxWindowID IDD_PANEL17;
-		static const wxWindowID IDD_NOTEBOOK1;
-		static const wxWindowID ID_PANEL_Text1;
-		//*)
-    protected:
-
-	public:
-
-		//(*Handlers(TextPanel)
-		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
-		void OnTextCtrl_TextText(wxCommandEvent& event);
-		void OnChoice_LyricTrackSelect(wxCommandEvent& event);
-		void OnChoice_Text_DirSelect(wxCommandEvent& event);
-		//*)
-
-		MediaPickerCtrl* _mediaPicker = nullptr;
-
-		DECLARE_EVENT_TABLE()
+    // Cached pointers to framework-built controls used by ValidateWindow.
+    wxTextCtrl* _textInput = nullptr;
+    wxChoice* _movementChoice = nullptr;
+    wxChoice* _lyricTrackChoice = nullptr;
 };

@@ -163,7 +163,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJsonSubclass<StatePanel>(E::eff_STATE, "State", "State");
     RegisterJson(E::eff_STROBE, "Strobe", "Strobe");
     RegisterJson(E::eff_TENDRIL, "Tendril", "Tendril");
-    Register<TextPanel>(E::eff_TEXT, "Text");
+    RegisterJsonSubclass<TextPanel>(E::eff_TEXT, "Text", "Text");
     RegisterJson(E::eff_TREE, "Tree", "Tree");
     RegisterJson(E::eff_TWINKLE, "Twinkle", "Twinkle");
     Register<VideoPanel>(E::eff_VIDEO, "Video");
