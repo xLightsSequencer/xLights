@@ -854,6 +854,22 @@
 		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasMorph.h" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasPictures.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/AdjustPanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/AdjustPanel.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/DuplicatePanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/DuplicatePanel.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/MusicPanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/MusicPanel.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/PianoPanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/PianoPanel.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/RipplePanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/RipplePanel.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/ShapePanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/ShapePanel.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/SnowflakesPanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/SnowflakesPanel.h" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/WavePanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/effectpanels/WavePanel.h" />
 		<Unit filename="../src-core/effects/ispc/BarsFunctions.ispc">
 			<Option link="1" />
 		</Unit>
