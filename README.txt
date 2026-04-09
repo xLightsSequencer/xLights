@@ -12,6 +12,18 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.05  April ??, 2026
+    -enh (AGFazio)              Add face definition matrix previews
+    -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs
+    -enh (derwin12)             FPP media/file upload now reports missing source files as errors instead of silently skipping
+    -enh (dkulp)                Use AVFoundation for video decode on macOS (much faster than ffmpeg). Falls
+                                    back to ffmpeg for incompatible media files.
+    -enh (dkulp)                Support memory-mapped files for SequenceData on Mac when sequence would
+                                    use more than 50% of available memory. Better for low memory machines
+                                    like MacBook Neo
+    -enh (AGFazio)              Layout Model Icons resize on 4K/HiDPI monitors
+    -enh (scott)                Add Eleven Labs lyric import
+    -enh (scott)                Changes/Improvements to the Build Job
+    -enh (derwin12)             ISPC acceleration for Bars, Circles, Fan, ColorWash, Shockwave, Spirals, Warp, and Kaleidoscope effects
     -bug (dkulp)                Fix Metal rendering bugs in Butterfly, Pinwheel, Circles, ColorWash, Fan, Kaleidoscope,
                                 RotoZoom, and Warp effects: off-by-one bounds checks, division by zero for degenerate
                                 inputs, Kaleidoscope triangle reflection tie-break mismatch with ISPC, RotoZoomRotateX
@@ -25,18 +37,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Fix crash when adding/defining a curve on the last polyline segment
     -bug (derwin12)             Make Random Effects Random Again
     -bug (derwin12)             Cube Model ignored Direction
-    -enh (AGFazio)              Add face definition matrix previews
-    -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs
-    -enh (derwin12)             FPP media/file upload now reports missing source files as errors instead of silently skipping 
-    -enh (dkulp)                Use AVFoundation for video decode on macOS (much faster than ffmpeg). Falls
-                                    back to ffmpeg for incompatible media files.
-    -enh (dkulp)                Support memory-mapped files for SequenceData on Mac when sequence would
-                                    use more than 50% of available memory. Better for low memory machines
-                                    like MacBook Neo
-    -enh (AGFazio)              Layout Model Icons resize on 4K/HiDPI monitors
-    -enh (scott)                Add Eleven Labs lyric import
-    -enh (scott)                Changes/Improvements to the Build Job
-    -enh (derwin12)             ISPC acceleration for Bars, Circles, Fan, ColorWash, Shockwave, Spirals, Warp, and Kaleidoscope effects
     -bug (derwin12)             Fix Shape effect emoji/unicode characters rendering incorrectly on Windows
     -bug (derwin12)             Fix Text Media Manager and MultiLine Text File
     -bug (AGFazio)              Fix false positive missing texture error in Check Sequence for Mesh objects
