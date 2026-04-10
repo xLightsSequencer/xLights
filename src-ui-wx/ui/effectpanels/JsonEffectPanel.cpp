@@ -160,10 +160,14 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     bool hasXY = !xyCenterGroups.empty();
     bool hasGroups = !groupsByFirstIndex.empty();
     bool hasSeparator = false;
+    bool hasFullWidthCustom = false;
     for (const auto& prop : metadata["properties"]) {
-        if (prop.value("separator", false)) { hasSeparator = true; break; }
+        if (prop.value("separator", false)) { hasSeparator = true; }
+        if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false)) {
+            hasFullWidthCustom = true;
+        }
     }
-    bool needsOuter = hasXY || hasGroups || hasSeparator || !descText.empty();
+    bool needsOuter = hasXY || hasGroups || hasSeparator || !descText.empty() || hasFullWidthCustom;
 
     auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
     outerSizer->AddGrowableCol(0);
@@ -210,6 +214,17 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
             auto* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
             outerSizer->Add(line, 0, wxALL | wxEXPAND, 5);
         }
+
+        // Full-width custom properties break out of the 4-col grid so their
+        // single-item sizer.Add() spans the panel width. Without this, the
+        // custom only fills one of four grid columns and the next property's
+        // controls leak into the same row.
+        if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false) && needsOuter) {
+            flushGrid();
+            BuildPropertyRow(this, outerSizer, prop, 1);
+            continue;
+        }
+
         BuildPropertyRow(this, gridSizer, prop, 4);
     }
 

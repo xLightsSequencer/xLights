@@ -7,6 +7,7 @@
             "type": "string",
             "controlType": "custom",
             "default": "",
+            "fullWidth": true,
             "description": "Notebook with three tabs (Channels 1-16, 17-32, 33-48). Each tab contains 16 rows of: channel label + slider + value curve + text buddy + invert checkbox. Channel values are serialized as E_SLIDER_DMX<N> (0-255), value curves as E_VALUECURVE_DMX<N>, and invert flags as E_CHECKBOX_INVDMX<N>. Channel labels are driven by the target model's node names via SetPanelStatus, and out-of-range channels are disabled based on the model's channel count."
         },
         {
@@ -15,6 +16,7 @@
             "type": "string",
             "controlType": "custom",
             "default": "",
+            "fullWidth": true,
             "description": "Custom row with three buttons: Remap Channels (opens the remap dialog, with a right-click menu for bulk-editing selected effects), Save As State (saves the current channel values as a SingleNode CustomColors state on the target model), and Load From State (reads channel values from an existing SingleNode state). The Save button is disabled when any channel has an active value curve."
         }
     ]

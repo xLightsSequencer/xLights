@@ -7,6 +7,7 @@
             "type": "string",
             "controlType": "custom",
             "default": "",
+            "fullWidth": true,
             "description": "Custom block with Select/Clear/Download buttons, animated shader preview, and filename label. The shader file path is serialized as E_0FILEPICKERCTRL_IFS via a hidden file picker; the leading 0 forces it to be processed first at load time so the shader config is known before dynamic uniform settings are applied."
         },
         {
@@ -26,6 +27,7 @@
             "type": "string",
             "controlType": "custom",
             "default": "",
+            "fullWidth": true,
             "description": "Custom Time Speed slider row. Built as a BulkEditSliderF2 with the slider as the serialized control (E_SLIDER_Shader_Speed, divisor 100) and a buddy text control, matching the legacy naming so old sequences continue to deserialize."
         },
         {
@@ -70,6 +72,7 @@
             "type": "string",
             "controlType": "custom",
             "default": "",
+            "fullWidth": true,
             "description": "Container for per-shader dynamic uniform controls. The subclass parses the loaded shader's uniform declarations and builds sliders, checkboxes, choices, and point controls here; this sizer is wiped and rebuilt whenever the shader file changes."
         }
     ]
