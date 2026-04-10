@@ -123,7 +123,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_CIRCLES, "Circles", "Circles");
     RegisterJson(E::eff_COLORWASH, "Color Wash", "ColorWash");
     RegisterJson(E::eff_CURTAIN, "Curtain", "Curtain");
-    Register<DMXPanel>(E::eff_DMX, "DMX");
+    RegisterJsonSubclass<DMXPanel>(E::eff_DMX, "DMX", "DMX");
     RegisterJsonSubclass<DuplicatePanel>(E::eff_DUPLICATE, "Duplicate", "Duplicate");
     RegisterJsonSubclass<FacesPanel>(E::eff_FACES, "Faces", "Faces");
     RegisterJson(E::eff_FAN, "Fan", "Fan");
