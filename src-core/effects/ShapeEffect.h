@@ -16,6 +16,8 @@
 #include "../render/TextDrawingContext.h"
 #include "../utils/xlPoint.h"
 
+class ShapeRenderCache;
+
 #define SHAPE_THICKNESS_MIN 1
 #define SHAPE_THICKNESS_MAX 100
 
@@ -136,7 +138,7 @@ private:
     void Drawcandycane(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
     void Drawcrucifix(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
     void Drawpresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
-    void Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font) const;
+    void Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font, ShapeRenderCache* cache) const;
     void Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
     void DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
 };

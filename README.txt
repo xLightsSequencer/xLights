@@ -11,8 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-<<<<<<< Updated upstream
 2026.06  May ??, 2026
+    -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
     -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
                                     in a mov container, bit-exact and decoded natively by AVFoundation,
                                     replaces the deprecated uncompressed AVI export for pixel-perfect
@@ -46,6 +46,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
     -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
+
 2026.05  April 9, 2026
 =======
 2026.05  April ??, 2026
@@ -54,7 +55,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Fix crash when adding/defining a curve on the last polyline segment
     -bug (derwin12)             Make Random Effects Random Again
     -bug (derwin12)             Cube Model ignored Direction
->>>>>>> Stashed changes
     -enh (AGFazio)              Add face definition matrix previews
     -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs
     -enh (derwin12)             FPP media/file upload now reports missing source files as errors instead of silently skipping
