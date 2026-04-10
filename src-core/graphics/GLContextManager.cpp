@@ -749,8 +749,9 @@ void* GLContextManager::GetNativeDisplay() const {
 #include <EGL/egl.h>
 #include <GL/gl.h>
 
-// Main-thread-only rendering; one context is enough.
-static constexpr int kMaxPoolSize = 1;
+// One context per background render thread, plus one for the main thread.
+// Mirrors the macOS CGL pool size.
+static constexpr int kMaxPoolSize = 24;
 
 struct GLContextManager::PlatformState {
     // GLX path (X11 / XWayland)
@@ -1044,7 +1045,10 @@ void GLContextManager::ReleaseContext(ContextHandle ctx) {
 }
 
 bool GLContextManager::CanRenderOnBackgroundThread() const {
-    return false; // Linux shader rendering runs on the main thread
+    // GLX pbuffer contexts are thread-safe (XInitThreads() is called at startup).
+    // EGL contexts are inherently thread-safe.  Both paths use an independent
+    // Display*/EGLDisplay with no ties to the wx UI thread.
+    return true;
 }
 
 void GLContextManager::Shutdown() {
