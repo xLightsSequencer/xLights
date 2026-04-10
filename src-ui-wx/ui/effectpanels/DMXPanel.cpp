@@ -85,7 +85,7 @@ void DMXPanel::BuildChannelPage(wxWindow* pagePanel, int startChannel) {
 
         // Label
         auto* label = new wxStaticText(pagePanel, wxNewId(),
-                                        wxString::Format("Channel %d:", ch),
+                                        wxString::Format("Channel %d", ch),
                                         wxDefaultPosition, wxDefaultSize, 0,
                                         wxString::Format("ID_STATICTEXT_DMX%d", ch));
         grid->Add(label, 1, wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 2);
@@ -211,9 +211,9 @@ void DMXPanel::SetPanelStatus(Model* cls) {
         if (label) {
             std::string name = m->GetNodeName(i - 1);
             if (name.empty()) {
-                label->SetLabel(wxString::Format("Channel %d:", i));
+                label->SetLabel(wxString::Format("Channel %d", i));
             } else {
-                label->SetLabel(wxString::Format("%s:", name));
+                label->SetLabel(wxString(name));
             }
         }
         bool enabled = (i <= num_channels);
@@ -396,11 +396,7 @@ void DMXPanel::OnSaveAsStateClick(wxCommandEvent& /*event*/) {
 
             auto* label = dynamic_cast<wxStaticText*>(
                 wxWindow::FindWindowByName(wxString::Format("ID_STATICTEXT_DMX%d", i + 1), this));
-            std::string l;
-            if (label) {
-                l = label->GetLabelText().ToStdString();
-                if (!l.empty() && l.back() == ':') l.pop_back();
-            }
+            std::string l = label ? label->GetLabelText().ToStdString() : "";
             if (StartsWith(l, "Channel")) {
                 l = std::format("Node {}", i + 1);
             }
