@@ -219,7 +219,7 @@ std::list<std::string> FacesEffect::GetFileReferences(Model* model, const Settin
     std::list<std::string> res;
 
     if (model != nullptr) {
-        std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+        std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "Default");
         if (definition == "Default" && !model->GetFaceInfo().empty() && model->GetFaceInfo().begin()->first != "") {
             definition = model->GetFaceInfo().begin()->first;
         }

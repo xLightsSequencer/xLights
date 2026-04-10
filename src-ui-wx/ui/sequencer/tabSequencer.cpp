@@ -190,9 +190,14 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(_coloursPanel, wxAuiPaneInfo().Name(wxT("ColourDropper")).Caption(wxT("Colours")).Top().Layer(0).Hide());
     m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0).Hide());
     m_mgr->AddPane(_findDataPanel, wxAuiPaneInfo().Name(wxT("FindData")).Caption(wxT("Find Data")).Top().Layer(0).Hide());
-    m_mgr->AddPane(colorPanel, wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
-    m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
-    m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
+    // The three shared panels use an internal wxScrolledWindow so they can
+    // shrink below the natural content size. MinSize on the AUI pane lets
+    // the user drag below the natural content height — the inner scroll
+    // window shows the scroll bar.
+    auto smallMin = wxSize(50, 50);
+    m_mgr->AddPane(colorPanel, wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0).MinSize(smallMin));
+    m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0).MinSize(smallMin));
+    m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0).MinSize(smallMin));
 
     spdlog::debug( "        Sequence Video." );
     sequenceVideoPanel = new SequenceVideoPanel( this );
@@ -1103,7 +1108,6 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->ScrollBarEffectsVertical->Refresh();
 
     colorPanel->Refresh();
-    colorPanel->ColorScrollWindow->Refresh();
     mainSequencer->UpdateEffectGridVerticalScrollBar();
 }
 

@@ -23,7 +23,6 @@
 #include "DMXPanel.h"
 #include "DuplicatePanel.h"
 #include "FacesPanel.h"
-#include "LiquidPanel.h"
 #include "MorphPanel.h"
 #include "MovingHeadPanel.h"
 #include "MusicPanel.h"
@@ -124,7 +123,7 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_CIRCLES, "Circles", "Circles");
     RegisterJson(E::eff_COLORWASH, "Color Wash", "ColorWash");
     RegisterJson(E::eff_CURTAIN, "Curtain", "Curtain");
-    Register<DMXPanel>(E::eff_DMX, "DMX");
+    RegisterJsonSubclass<DMXPanel>(E::eff_DMX, "DMX", "DMX");
     RegisterJsonSubclass<DuplicatePanel>(E::eff_DUPLICATE, "Duplicate", "Duplicate");
     RegisterJsonSubclass<FacesPanel>(E::eff_FACES, "Faces", "Faces");
     RegisterJson(E::eff_FAN, "Fan", "Fan");
@@ -139,24 +138,24 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_LIFE, "Life", "Life");
     RegisterJson(E::eff_LIGHTNING, "Lightning", "Lightning");
     RegisterJson(E::eff_LINES, "Lines", "Lines");
-    Register<LiquidPanel>(E::eff_LIQUID, "Liquid");
+    RegisterJson(E::eff_LIQUID, "Liquid", "Liquid");
     RegisterJson(E::eff_MARQUEE, "Marquee", "Marquee");
     RegisterJson(E::eff_METEORS, "Meteors", "Meteors");
-    Register<MorphPanel>(E::eff_MORPH, "Morph");
+    RegisterJsonSubclass<MorphPanel>(E::eff_MORPH, "Morph", "Morph");
     Register<MovingHeadPanel>(E::eff_MOVINGHEAD, "Moving Head");
     RegisterJsonSubclass<MusicPanel>(E::eff_MUSIC, "Music", "Music");
     RegisterJsonSubclass<PianoPanel>(E::eff_PIANO, "Piano", "Piano");
-    Register<PicturesPanel>(E::eff_PICTURES, "Pictures");
+    RegisterJsonSubclass<PicturesPanel>(E::eff_PICTURES, "Pictures", "Pictures");
     RegisterJson(E::eff_PINWHEEL, "Pinwheel", "Pinwheel");
     RegisterJson(E::eff_PLASMA, "Plasma", "Plasma");
     RegisterJsonSubclass<RipplePanel>(E::eff_RIPPLE, "Ripple", "Ripple");
     RegisterJsonSubclass<ServoPanel>(E::eff_SERVO, "Servo", "Servo");
-    Register<ShaderPanel>(E::eff_SHADER, "Shader");
+    RegisterJsonSubclass<ShaderPanel>(E::eff_SHADER, "Shader", "Shader");
     RegisterJsonSubclass<ShapePanel>(E::eff_SHAPE, "Shape", "Shape");
     RegisterJson(E::eff_SHIMMER, "Shimmer", "Shimmer");
     RegisterJson(E::eff_SHOCKWAVE, "Shockwave", "Shockwave");
     RegisterJson(E::eff_SINGLESTRAND, "SingleStrand", "SingleStrand");
-    Register<SketchPanel>(E::eff_SKETCH, "Sketch");
+    RegisterJsonSubclass<SketchPanel>(E::eff_SKETCH, "Sketch", "Sketch");
     RegisterJsonSubclass<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes", "Snowflakes");
     RegisterJson(E::eff_SNOWSTORM, "Snowstorm", "Snowstorm");
     RegisterJson(E::eff_SPIRALS, "Spirals", "Spirals");
@@ -164,11 +163,11 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJsonSubclass<StatePanel>(E::eff_STATE, "State", "State");
     RegisterJson(E::eff_STROBE, "Strobe", "Strobe");
     RegisterJson(E::eff_TENDRIL, "Tendril", "Tendril");
-    Register<TextPanel>(E::eff_TEXT, "Text");
+    RegisterJsonSubclass<TextPanel>(E::eff_TEXT, "Text", "Text");
     RegisterJson(E::eff_TREE, "Tree", "Tree");
     RegisterJson(E::eff_TWINKLE, "Twinkle", "Twinkle");
-    Register<VideoPanel>(E::eff_VIDEO, "Video");
-    Register<VUMeterPanel>(E::eff_VUMETER, "VU Meter");
+    RegisterJsonSubclass<VideoPanel>(E::eff_VIDEO, "Video", "Video");
+    RegisterJsonSubclass<VUMeterPanel>(E::eff_VUMETER, "VU Meter", "VUMeter");
     RegisterJsonSubclass<WarpPanel>(E::eff_WARP, "Warp", "Warp");
     RegisterJsonSubclass<WavePanel>(E::eff_WAVE, "Wave", "Wave");
 }

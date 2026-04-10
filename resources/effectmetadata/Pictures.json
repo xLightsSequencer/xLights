@@ -2,13 +2,12 @@
     "effectName": "Pictures",
     "properties": [
         {
-            "id": "Pictures_Filename",
-            "label": "Pictures_Filename",
+            "id": "Pictures_FilenameBlock",
+            "label": "",
             "type": "string",
             "controlType": "custom",
-            "settingPrefix": "TEXTCTRL",
             "default": "",
-            "description": "Path to the image or animated GIF file to display on the model."
+            "description": "Image file selection: Select / AI Generate / Clear buttons, animated preview thumbnail, filename label, and a hidden text control that holds the actual path so the saved E_TEXTCTRL_Pictures_Filename round-trips."
         },
         {
             "id": "Pictures_Direction",
@@ -115,15 +114,12 @@
             "description": "When enabled, the background color of an animated GIF is treated as transparent, allowing underlying effects to show through."
         },
         {
-            "id": "Pictures_TransparentBlack",
-            "label": "Transparent Black",
-            "type": "int",
-            "controlType": "slider",
-            "settingPrefix": "TEXTCTRL",
-            "default": 0,
-            "min": 0,
-            "max": 300,
-            "description": "Pixels with brightness at or below this threshold are treated as transparent. Increase to make darker areas of the image see-through."
+            "id": "Pictures_TransparentBlackRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Transparent Black checkbox with an inline brightness threshold slider (0-300). When enabled, image pixels at or below the threshold are keyed out as transparent."
         },
         {
             "id": "PicturesXC",
@@ -197,6 +193,16 @@
         }
     ],
     "groups": [
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Pictures_FilenameBlock"]
+        },
+        {
+            "type": "section",
+            "columns": 1,
+            "properties": ["Pictures_TransparentBlackRow"]
+        },
         {
             "type": "tabs",
             "tabs": [

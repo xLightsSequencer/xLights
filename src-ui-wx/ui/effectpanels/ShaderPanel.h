@@ -10,130 +10,98 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "../graphics/opengl/xlGLCanvas.h"
-#include "ui/shared/controls/BulkEditControls.h"
-#include "EffectPanelUtils.h"
+#include "JsonEffectPanel.h"
 
 #include <memory>
 #include <vector>
 #include <wx/timer.h>
 
+#ifndef __WXOSX__
+#include "../graphics/opengl/xlGLCanvas.h"
+#endif
+
 class ShaderConfig;
 class ShaderMediaCacheEntry;
 class SequenceElements;
 class xlImage;
+class wxBitmapButton;
+class wxButton;
+class wxFilePickerCtrl;
+class wxFlexGridSizer;
+class wxSizer;
 class wxStaticBitmap;
+class wxStaticText;
+class BulkEditSliderF2;
+class BulkEditTextCtrlF2;
+class BulkEditValueCurveButton;
 
-//(*Headers(ShaderPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/button.h>
-#include <wx/filepicker.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+class ShaderPanel : public JsonEffectPanel {
+public:
+    ShaderPanel(wxWindow* parent, const nlohmann::json& metadata);
+    ~ShaderPanel() override;
 
-class ShaderPanel: public xlEffectPanel
-{
+    void ValidateWindow() override;
+    void SetDefaultParameters() override;
+
+#ifndef __WXOSX__
+    xlGLCanvas* GetPreview() const { return _preview; }
+#endif
+
+protected:
+    wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                   const nlohmann::json& prop, int cols) override;
+
+private:
+    // Custom block builders
+    wxWindow* BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer, int cols);
+    wxWindow* BuildSpeedRow(wxWindow* parentWin, wxSizer* sizer, int cols);
+    wxWindow* BuildDynamicParams(wxWindow* parentWin, wxSizer* sizer, int cols);
+
+    // Handlers
+    void OnSelectClicked(wxCommandEvent& event);
+    void OnClearClicked(wxCommandEvent& event);
+    void OnDownloadClicked(wxCommandEvent& event);
+    void OnFilePickerChanged(wxFileDirPickerEvent& event);
+    void OnPreviewTimer(wxTimerEvent& event);
+    void OnShowPanel(wxShowEvent& event);
+
+    // Internal helpers
+    void ApplyShaderConfig(bool resetParams);
+    void BuildDynamicUI();
+    void ClearDynamicUI();
+    void ShowHideStaticControls(bool hasTime, bool hasCoord);
+    void UpdatePreview();
+    void ShowPreviewFrame(size_t index);
+
+    // Custom-built controls
+    wxFilePickerCtrl* _hiddenFilePicker = nullptr;
+    wxButton* _selectButton = nullptr;
+    wxBitmapButton* _clearButton = nullptr;
+    wxButton* _downloadButton = nullptr;
+    wxStaticBitmap* _previewBitmap = nullptr;
+    wxStaticText* _filenameLabel = nullptr;
+
+    // Shader_Speed custom row (SLIDER-primary F2 with buddy text + VC)
+    BulkEditSliderF2* _speedSlider = nullptr;
+    BulkEditTextCtrlF2* _speedText = nullptr;
+    BulkEditValueCurveButton* _speedVC = nullptr;
+    wxStaticText* _speedLabel = nullptr;
+
+    // Dynamic uniform container
+    wxFlexGridSizer* _dynamicSizer = nullptr;
+
+    // Hold a ref to keep the ShaderMediaCacheEntry alive while we reference its _shaderConfig
+    std::shared_ptr<ShaderMediaCacheEntry> _shaderCacheEntry;
     ShaderConfig* _shaderConfig = nullptr;
 
-	public:
-
-		ShaderPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~ShaderPanel();
-		virtual void ValidateWindow() override;
-		virtual void SetDefaultParameters() override;
-#ifndef __WXOSX__
-        xlGLCanvas *GetPreview() const { return _preview; }
-#endif
-
-		//(*Declarations(ShaderPanel)
-		BulkEditFilePickerCtrl* FilePickerCtrl1;
-		BulkEditSlider* Slider_Shader_LeadIn;
-		BulkEditSlider* Slider_Shader_Offset_X;
-		BulkEditSlider* Slider_Shader_Offset_Y;
-		BulkEditSlider* Slider_Shader_Zoom;
-		BulkEditSliderF2* Slider_Shader_Speed;
-		BulkEditTextCtrl* TextCtrl_Shader_LeadIn;
-		BulkEditTextCtrl* TextCtrl_Shader_Offset_X;
-		BulkEditTextCtrl* TextCtrl_Shader_Offset_Y;
-		BulkEditTextCtrl* TextCtrl_Shader_Zoom;
-		BulkEditTextCtrlF2* TextCtrl_Shader_Speed;
-		BulkEditValueCurveButton* BitmapButton_Shader_Offset_X;
-		BulkEditValueCurveButton* BitmapButton_Shader_Offset_Y;
-		BulkEditValueCurveButton* BitmapButton_Shader_Speed;
-		BulkEditValueCurveButton* BitmapButton_Shader_Zoom;
-		wxButton* Button_Download;
-		wxFlexGridSizer* FlexGridSizer1;
-		wxFlexGridSizer* FlexGridSizer_Dynamic;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText_Shader_LeadIn;
-		wxStaticText* StaticText_Shader_Offset_X;
-		wxStaticText* StaticText_Shader_Offset_Y;
-		wxStaticText* StaticText_Shader_Speed;
-		wxStaticText* StaticText_Shader_Zoom;
-		//*)
-
-	protected:
-
-		//(*Identifiers(ShaderPanel)
-		static const long ID_STATICTEXT1;
-		static const long ID_0FILEPICKERCTRL_IFS;
-		static const long ID_BUTTON1;
-		static const long ID_STATICTEXT2;
-		static const long IDD_SLIDER_Shader_LeadIn;
-		static const long ID_TEXTCTRL_Shader_LeadIn;
-		static const long ID_STATICTEXT3;
-		static const long ID_SLIDER_Shader_Speed;
-		static const long ID_VALUECURVE_Shader_Speed;
-		static const long IDD_TEXTCTRL_Shader_Speed;
-		static const long ID_STATICTEXT4;
-		static const long IDD_SLIDER_Shader_Offset_X;
-		static const long ID_VALUECURVE_Shader_Offset_X;
-		static const long ID_TEXTCTRL_Shader_Offset_X;
-		static const long ID_STATICTEXT5;
-		static const long IDD_SLIDER_Shader_Offset_Y;
-		static const long ID_VALUECURVE_Shader_Offset_Y;
-		static const long ID_TEXTCTRL_Shader_Offset_Y;
-		static const long ID_STATICTEXT6;
-		static const long IDD_SLIDER_Shader_Zoom;
-		static const long ID_VALUECURVE_Shader_Zoom;
-		static const long ID_TEXTCTRL_Shader_Zoom;
-		//*)
-
-		static const long ID_CANVAS;
+    // Animated preview
+    wxTimer _previewTimer;
+    std::vector<std::shared_ptr<xlImage>> _previewFrames;
+    std::vector<long> _previewFrameTimes;
+    size_t _currentPreviewFrame = 0;
 
 #ifndef __WXOSX__
-        xlGLCanvas *_preview;
+    xlGLCanvas* _preview = nullptr;
+    static const long ID_CANVAS;
 #endif
-        friend class ShaderEffect;
-
-	private:
-
-		//(*Handlers(ShaderPanel)
-		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
-		void OnButton_DownloadClick(wxCommandEvent& event);
-		//*)
-
-        bool BuildUI(ShaderMediaCacheEntry* shaderEntry, SequenceElements* sequenceElements);
-        void UpdatePreview();
-        void OnPreviewTimer(wxTimerEvent& event);
-        void ShowPreviewFrame(size_t index);
-
-        // Hold a ref to keep the ShaderMediaCacheEntry alive while we reference its _shaderConfig
-        std::shared_ptr<ShaderMediaCacheEntry> _shaderCacheEntry;
-
-        // Animated preview
-        wxStaticBitmap* _previewBitmap = nullptr;
-        wxStaticText* _filenameLabel = nullptr;
-        wxButton* _selectButton = nullptr;
-        wxButton* _clearButton = nullptr;
-        wxTimer _previewTimer;
-        std::vector<std::shared_ptr<xlImage>> _previewFrames;
-        std::vector<long> _previewFrameTimes;
-        size_t _currentPreviewFrame = 0;
-
-		DECLARE_EVENT_TABLE()
 };

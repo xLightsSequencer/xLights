@@ -179,7 +179,7 @@
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
-xcopy /Y /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
@@ -225,7 +225,7 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
-xcopy /Y /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
@@ -259,7 +259,7 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
-xcopy /Y /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
@@ -303,7 +303,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
-xcopy /Y /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
@@ -347,7 +347,7 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
-xcopy /Y /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
@@ -391,7 +391,7 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
-xcopy /Y /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
 xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
@@ -526,7 +526,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\CandleEffect.cpp" />
     <ClCompile Include="..\src-core\utils\AnimatedImage.cpp" />
     <ClCompile Include="..\src-core\effects\LiquidEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ServoEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\ServoPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\EmailDialog.cpp" />
@@ -1213,7 +1212,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\CandleEffect.h" />
     <ClInclude Include="..\src-core\utils\AnimatedImage.h" />
     <ClInclude Include="..\src-core\effects\LiquidEffect.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\LiquidPanel.h" />
     <ClInclude Include="..\src-core\effects\ServoEffect.h" />
     <ClInclude Include="..\src-ui-wx\ui\effectpanels\ServoPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\setup\IPEntryDialog.h" />

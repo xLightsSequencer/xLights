@@ -1,19 +1,26 @@
 #pragma once
 
-#include "EffectPanelUtils.h"
-#include "ui/shared/controls/BulkEditControls.h"
-#include "effects/SketchEffect.h"
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
 
-class BulkEditCheckBox;
-class BulkEditSlider;
+#include "JsonEffectPanel.h"
+#include "ui/shared/controls/BulkEditControls.h"
+
 class BulkEditTextCtrl;
-class BulkEditValueCurveButton;
 class MediaPickerCtrl;
 class SketchAssistPanel;
-
 class wxFilePickerCtrl;
 class wxSlider;
 
+// File picker subclass that defaults the wildcard to wxImage::GetImageExtWildcard().
+// Kept here so the subclass can hand the same control to MediaPickerCtrl.
 class xlSketchFilePickerCtrl : public BulkEditFilePickerCtrl
 {
 public:
@@ -30,72 +37,42 @@ public:
         BulkEditFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name)
     {
     }
-    virtual ~xlSketchFilePickerCtrl()
-    {}
+    ~xlSketchFilePickerCtrl() override = default;
 };
 
-class SketchPanel : public xlEffectPanel
-{
+class SketchPanel : public JsonEffectPanel {
 public:
-    SketchPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
-    virtual ~SketchPanel() = default;
+    SketchPanel(wxWindow* parent, const nlohmann::json& metadata);
+    ~SketchPanel() override = default;
 
     void ValidateWindow() override;
     void SetDefaultParameters() override;
+
     bool HasAssistPanel() override { return true; }
     AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
 
-    // controls are public to allow SketchEffect access
-    BulkEditTextCtrl* TextCtrl_SketchDef = nullptr;
-    wxFilePickerCtrl* FilePicker_SketchBackground = nullptr;
-    wxSlider* Slider_SketchBackgroundOpacity = nullptr;
-    BulkEditSlider* Slider_DrawPercentage = nullptr;
-    BulkEditValueCurveButton* BitmapButton_DrawPercentage = nullptr;
-    BulkEditTextCtrl* TextCtrl_DrawPercentage = nullptr;
-    BulkEditSlider* Slider_Thickness = nullptr;
-    BulkEditValueCurveButton* BitmapButton_Thickness = nullptr;
-    BulkEditTextCtrl* TextCtrl_Thickness = nullptr;
-    BulkEditCheckBox* CheckBox_MotionEnabled = nullptr;
-    BulkEditSlider* Slider_MotionPercentage = nullptr;
-    BulkEditValueCurveButton* BitmapButton_MotionPercentage = nullptr;
-    BulkEditTextCtrl* TextCtrl_MotionPercentage = nullptr;
-
-    static const int DrawPercentageMin = SketchEffect::DrawPercentageMin;
-    static const int DrawPercentageDef = SketchEffect::DrawPercentageDef;
-    static const int DrawPercentageMax = SketchEffect::DrawPercentageMax;
-
-    static const int ThicknessMin = SketchEffect::ThicknessMin;
-    static const int ThicknessDef = SketchEffect::ThicknessDef;
-    static const int ThicknessMax = SketchEffect::ThicknessMax;
-
-    static const int MotionPercentageMin = SketchEffect::MotionPercentageMin;
-    static const int MotionPercentageDef = SketchEffect::MotionPercentageDef;
-    static const int MotionPercentageMax = SketchEffect::MotionPercentageMax;
-
 protected:
-    static const long ID_TEXTCTRL_SketchDef;
-    static const long ID_FILEPICKER_SketchBackground;
-    static const long ID_SLIDER_SketchBackgroundOpacity;
-    static const long ID_SLIDER_DrawPercentage;
-    static const long ID_TEXTCTRL_DrawPercentage;
-    static const long ID_VALUECURVE_DrawPercentage;
-    static const long ID_SLIDER_Thickness;
-    static const long ID_VALUECURVE_Thickness;
-    static const long ID_TEXTCTRL_Thickness;
-    static const long ID_CHECKBOX_MotionEnabled;
-    static const long ID_SLIDER_MotionPercentage;
-    static const long ID_VALUECURVE_MotionPercentage;
-    static const long ID_TEXTCTRL_MotionPercentage;
+    wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                   const nlohmann::json& prop, int cols) override;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxWindow* BuildInfoBlock(wxWindow* parentWin, wxSizer* sizer);
+    wxWindow* BuildSketchDefRow(wxWindow* parentWin, wxSizer* sizer);
+    wxWindow* BuildBackgroundRow(wxWindow* parentWin, wxSizer* sizer);
 
-    void OnFilePickerCtrl_FileChanged(wxCommandEvent& event);
-    void OnSlider_BgAlphaChanged(wxCommandEvent& event);
-    void OnCheckBox_MotionClick(wxCommandEvent& event);
+    void OnFilePickerChanged(wxCommandEvent& event);
+    void OnOpacitySliderChanged(wxCommandEvent& event);
+    void UpdateSketchAssistFromControls();
+    void UpdateSketchAssistBackground() const;
 
-    void updateSketchAssist(SketchAssistPanel* panel);
-    void updateSketchAssistBackground() const;
-    mutable SketchAssistPanel* m_sketchAssistPanel = nullptr;
+    // Custom-built controls (not in properties_ map).
+    BulkEditTextCtrl* _sketchDefText = nullptr;
+    xlSketchFilePickerCtrl* _hiddenFilePicker = nullptr;
     MediaPickerCtrl* _mediaPicker = nullptr;
+
+    // Cached pointer to the framework-built opacity slider so the
+    // file-picker / opacity event handlers can read it without re-walking.
+    wxSlider* _opacitySlider = nullptr;
+
+    mutable SketchAssistPanel* _sketchAssistPanel = nullptr;
 };

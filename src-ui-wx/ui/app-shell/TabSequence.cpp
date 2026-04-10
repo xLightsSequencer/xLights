@@ -1200,6 +1200,11 @@ void xLightsFrame::UpdateModelsList()
     UnselectEffect();
     modelsChangeCount++;
 
+    // Refresh model group pointer vectors before accessing them. Submodel add/remove operations
+    // (e.g. SubModelsDialog Join) delete and recreate SubModel objects without going through
+    // RecalcStartChannels, leaving group models vectors with dangling pointers.
+    AllModels.ResetModelGroups();
+
     // Add all models to default House Preview that are set to Default or All Previews
     for (const auto& it : AllModels) {
         Model* model = it.second;
