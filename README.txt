@@ -11,8 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-<<<<<<< Updated upstream
 2026.06  May ??, 2026
+    -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
     -bug (AGFazio)                Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view
     -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
                                     in a mov container, bit-exact and decoded natively by AVFoundation,
@@ -55,6 +55,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     settings now serialize as E_SLIDER_* instead of E_TEXTCTRL_*. Render code reads
                                     both forms via GetValueCurveInt fallback so behavior is unchanged, but tools that
                                     parse sequence XML directly should accept either prefix.
+    -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
+                                    Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
+    -bug (dkulp)                Fix Circles effect Collide checkbox removal causing silent behavior change in old sequences.
+                                    Sequences with Collide=1 are now migrated to Bounce=1 to preserve their non-wrapping render.
+    -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
+                                    using stale defaults of 0 for Start/End Radius/Width).
+    -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
+    -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
+
     -change (dkulp)             Effect default / min / max / divisor values are now read from the JSON metadata at
                                     startup instead of from #define constants in each effect. The JSON is the
                                     source of truth — adjusting a slider's default or range in resources/effectmetadata/
@@ -67,7 +76,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Fix crash when adding/defining a curve on the last polyline segment
     -bug (derwin12)             Make Random Effects Random Again
     -bug (derwin12)             Cube Model ignored Direction
->>>>>>> Stashed changes
     -enh (AGFazio)              Add face definition matrix previews
     -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs
     -enh (derwin12)             FPP media/file upload now reports missing source files as errors instead of silently skipping

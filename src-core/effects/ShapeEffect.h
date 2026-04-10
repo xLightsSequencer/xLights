@@ -18,6 +18,38 @@
 
 class ShapeRenderCache;
 
+#define SHAPE_THICKNESS_MIN 1
+#define SHAPE_THICKNESS_MAX 100
+
+#define SHAPE_STARTSIZE_MIN 0
+#define SHAPE_STARTSIZE_MAX 100
+
+#define SHAPE_CENTREX_MIN 0
+#define SHAPE_CENTREX_MAX 100
+
+#define SHAPE_CENTREY_MIN 0 
+#define SHAPE_CENTREY_MAX 100
+
+#define SHAPE_LIFETIME_MIN 1
+#define SHAPE_LIFETIME_MAX 100
+
+#define SHAPE_GROWTH_MIN -100
+#define SHAPE_GROWTH_MAX 100
+
+#define SHAPE_COUNT_MIN 1
+#define SHAPE_COUNT_MAX 100
+
+#define SHAPE_ROTATION_MIN 0
+#define SHAPE_ROTATION_MAX 360
+
+#define SHAPE_VELOCITY_MIN 0
+#define SHAPE_VELOCITY_MAX 20
+
+#define SHAPE_DIRECTION_MIN 0
+#define SHAPE_DIRECTION_MAX 359
+
+class ShapeRenderCache;
+
 class ShapeEffect : public RenderableEffect
 {
 public:
@@ -98,7 +130,7 @@ private:
     void Drawcandycane(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
     void Drawcrucifix(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
     void Drawpresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
-    void Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font) const;
+    void Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font, ShapeRenderCache* cache) const;
     void Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
     void DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
 };
