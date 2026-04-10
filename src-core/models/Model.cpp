@@ -3104,7 +3104,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
             } else {
                 IModelPreview* preview = static_cast<IModelPreview*>(ctx->getContextualValue("modelPreview"));
-                float pointSize = preview->calcPixelSize(pixelSize);
+                float pointSize = preview->calcPixelSize(pixelSize) * preview->getViewScale();
                 ctx->drawPoints(cache->vica, pointSize, _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, 0, cache->vica->getCount());
             }
         });
