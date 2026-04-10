@@ -10,179 +10,78 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-//(*Headers(PicturesPanel)
-#include <wx/panel.h>
+#include "JsonEffectPanel.h"
+
+#include <wx/timer.h>
+
+#include <memory>
+#include <vector>
+
+class Model;
+class SequenceMedia;
 class wxBitmapButton;
 class wxButton;
 class wxCheckBox;
 class wxChoice;
-class wxFlexGridSizer;
-class wxGridBagSizer;
-class wxNotebook;
-class wxNotebookEvent;
 class wxSlider;
 class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
-//*)
-
-#include <memory>
-#include <vector>
-#include <wx/bmpbuttn.h>
-#include <wx/filepicker.h>
-#include <wx/timer.h>
-#include "ui/shared/controls/BulkEditControls.h"
-#include "EffectPanelUtils.h"
-
-class SequenceMedia;
 class xlImage;
 
-class xlPictureFilePickerCtrl : public BulkEditFilePickerCtrl {
+class PicturesPanel : public JsonEffectPanel {
 public:
-    xlPictureFilePickerCtrl(wxWindow *parent,
-        wxWindowID id,
-        const wxString& path = wxEmptyString,
-        const wxString& message = wxFileSelectorPromptStr,
-        const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize,
-        long style = wxFLP_DEFAULT_STYLE,
-        const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = wxFilePickerCtrlNameStr)
-        : BulkEditFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name) {
+    PicturesPanel(wxWindow* parent, const nlohmann::json& metadata);
+    ~PicturesPanel() override;
 
-    }
-    virtual ~xlPictureFilePickerCtrl() {}
-};
+    void ValidateWindow() override;
+    bool HasAssistPanel() override { return true; }
+    AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
 
-class PicturesPanel: public xlEffectPanel
-{
-	public:
+    // Provide access to sequence media for the image preview thumbnail (used
+    // by the legacy unit-test harness; preserved for compatibility).
+    void SetSequenceMedia(SequenceMedia* media) { _sequenceMedia = media; }
 
-		PicturesPanel(wxWindow* parent);
-		virtual ~PicturesPanel();
-		virtual void ValidateWindow() override;
-		virtual void SetDefaultParameters() override;
-		bool HasAssistPanel() override { return true; }
-		AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
-
-		//(*Declarations(PicturesPanel)
-		BulkEditCheckBox* CheckBox_LoopGIF;
-		BulkEditCheckBox* CheckBox_Pictures_PixelOffsets;
-		BulkEditCheckBox* CheckBox_Pictures_Shimmer;
-		BulkEditCheckBox* CheckBox_Pictures_WrapX;
-		BulkEditCheckBox* CheckBox_SuppressGIFBackground;
-		BulkEditCheckBox* CheckBox_TransparentBlack;
-		BulkEditChoice* Choice_Pictures_Direction;
-		BulkEditChoice* Choice_Scaling;
-		BulkEditSlider* Slider1;
-		BulkEditSlider* Slider_PicturesEndXC;
-		BulkEditSlider* Slider_PicturesEndYC;
-		BulkEditSlider* Slider_PicturesXC;
-		BulkEditSlider* Slider_PicturesYC;
-		BulkEditSlider* Slider_Pictures_EndScale;
-		BulkEditSlider* Slider_Pictures_StartScale;
-		BulkEditSliderF1* Slider_Pictures_FR;
-		BulkEditSliderF1* Slider_Pictures_Speed;
-		BulkEditTextCtrl* TextCtrl3;
-		BulkEditValueCurveButton* BitmapButton_PicturesXC;
-		BulkEditValueCurveButton* BitmapButton_PicturesYC;
-		wxButton* AIGenerateButton;
-		wxButton* SelectButton;
-		wxPanel* PictureEndPositionPanel;
-		wxStaticBitmap* BitmapPreview;
-		wxStaticText* StaticText160;
-		wxStaticText* StaticText161;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText46;
-		wxStaticText* StaticText68;
-		wxStaticText* StaticText96;
-		wxStaticText* StaticText_Pictures_XC;
-		wxStaticText* StaticText_Pictures_YC;
-		wxTextCtrl* FileNameCtrl;
-		xlLockButton* BitmapButton_PicturesDirection;
-		xlLockButton* BitmapButton_PicturesFrameRateAdj;
-		xlLockButton* BitmapButton_PicturesSpeed;
-		//*)
-
-	protected:
-
-		//(*Identifiers(PicturesPanel)
-		static const wxWindowID ID_BUTTON1;
-		static const wxWindowID ID_BUTTON2;
-		static const wxWindowID ID_TEXTCTRL_Pictures_Filename;
-		static const wxWindowID ID_STATICBITMAP1;
-		static const wxWindowID ID_STATICTEXT_Pictures_Direction;
-		static const wxWindowID ID_CHOICE_Pictures_Direction;
-		static const wxWindowID ID_BITMAPBUTTON_CHOICE_Pictures_Direction;
-		static const wxWindowID ID_STATICTEXT_Pictures_Speed;
-		static const wxWindowID IDD_SLIDER_Pictures_Speed;
-		static const wxWindowID ID_TEXTCTRL_Pictures_Speed;
-		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Pictures_Speed;
-		static const wxWindowID ID_STATICTEXT_Pictures_FrameRateAdj;
-		static const wxWindowID IDD_SLIDER_Pictures_FrameRateAdj;
-		static const wxWindowID ID_TEXTCTRL_Pictures_FrameRateAdj;
-		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj;
-		static const wxWindowID ID_CHECKBOX_Pictures_PixelOffsets;
-		static const wxWindowID ID_CHOICE_Scaling;
-		static const wxWindowID ID_CHECKBOX_Pictures_Shimmer;
-		static const wxWindowID ID_CHECKBOX_LoopGIF;
-		static const wxWindowID ID_CHECKBOX_SuppressGIFBackground;
-		static const wxWindowID ID_CHECKBOX_Pictures_TransparentBlack;
-		static const wxWindowID IDD_SLIDER_Pictures_TransparentBlack;
-		static const wxWindowID ID_TEXTCTRL_Pictures_TransparentBlack;
-		static const wxWindowID ID_STATICTEXT_PicturesXC;
-		static const wxWindowID ID_SLIDER_PicturesXC;
-		static const wxWindowID ID_CHECKBOX_Pictures_WrapX;
-		static const wxWindowID IDD_TEXTCTRL_PicturesXC;
-		static const wxWindowID ID_VALUECURVE_PicturesXC;
-		static const wxWindowID ID_STATICTEXT_PicturesYC;
-		static const wxWindowID IDD_TEXTCTRL_PicturesYC;
-		static const wxWindowID ID_VALUECURVE_PicturesYC;
-		static const wxWindowID ID_SLIDER_PicturesYC;
-		static const wxWindowID ID_PANEL43;
-		static const wxWindowID ID_STATICTEXT_PicturesEndXC;
-		static const wxWindowID ID_SLIDER_PicturesEndXC;
-		static const wxWindowID IDD_TEXTCTRL_PicturesEndXC;
-		static const wxWindowID ID_STATICTEXT_PicturesEndYC;
-		static const wxWindowID IDD_TEXTCTRL_PicturesEndYC;
-		static const wxWindowID ID_SLIDER_PicturesEndYC;
-		static const wxWindowID ID_PANEL45;
-		static const wxWindowID ID_STATICTEXT_Pictures_StartScale;
-		static const wxWindowID ID_SLIDER_Pictures_StartScale;
-		static const wxWindowID IDD_TEXTCTRL_Pictures_StartScale;
-		static const wxWindowID ID_PANEL1;
-		static const wxWindowID ID_STATICTEXT_Pictures_EndScale;
-		static const wxWindowID ID_SLIDER_Pictures_EndScale;
-		static const wxWindowID IDD_TEXTCTRL_Pictures_EndScale;
-		static const wxWindowID ID_PANEL2;
-		static const wxWindowID IDD_NOTEBOOK_Pictures_Positions;
-		//*)
-
-	public:
-
-		//(*Handlers(PicturesPanel)
-		void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
-		void OnAIGenerateButtonClick(wxCommandEvent& event);
-		void OnSelectButtonClick(wxCommandEvent& event);
-		//*)
-
-		// Provide access to sequence media for the image preview thumbnail
-		void SetSequenceMedia(SequenceMedia* media) { _sequenceMedia = media; }
-
-		DECLARE_EVENT_TABLE()
+protected:
+    wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                   const nlohmann::json& prop, int cols) override;
 
 private:
-		void UpdatePreviewBitmap(const wxString& filename);
-		void OnPreviewTimer(wxTimerEvent& event);
-		void ShowPreviewFrame(size_t index);
+    wxWindow* BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer);
+    wxWindow* BuildTransparentBlackRow(wxWindow* parentWin, wxSizer* sizer);
 
-		SequenceMedia* _sequenceMedia = nullptr;
-		wxTimer _previewTimer;
-		std::vector<std::shared_ptr<xlImage>> _previewFrames;
-		std::vector<long> _previewFrameTimes;
-		size_t _currentPreviewFrame = 0;
-		wxStaticText* _filenameLabel = nullptr;
-		wxBitmapButton* _clearButton = nullptr;
+    void OnSelectClick(wxCommandEvent& event);
+    void OnAIGenerateClick(wxCommandEvent& event);
+    void OnClearClick(wxCommandEvent& event);
+    void OnPreviewTimer(wxTimerEvent& event);
+    void UpdatePreviewBitmap(const wxString& filename);
+    void ShowPreviewFrame(size_t index);
+
+    // Custom-built top block.
+    wxButton* _selectButton = nullptr;
+    wxButton* _aiGenerateButton = nullptr;
+    wxBitmapButton* _clearButton = nullptr;
+    wxTextCtrl* _filenameCtrl = nullptr;  // hidden, holds the actual path
+    wxStaticBitmap* _previewBitmap = nullptr;
+    wxStaticText* _filenameLabel = nullptr;
+
+    // Custom-built TransparentBlack inline row.
+    wxCheckBox* _transparentBlackCheck = nullptr;
+    wxSlider* _transparentBlackSlider = nullptr;
+    wxTextCtrl* _transparentBlackText = nullptr;
+
+    // Cached pointers to framework-built controls used in ValidateWindow.
+    wxChoice* _directionChoice = nullptr;
+    wxCheckBox* _loopGifCheck = nullptr;
+    wxCheckBox* _suppressGifBgCheck = nullptr;
+    wxWindow* _xcVcButton = nullptr;
+    wxWindow* _ycVcButton = nullptr;
+
+    // Animated preview state.
+    wxTimer _previewTimer;
+    std::vector<std::shared_ptr<xlImage>> _previewFrames;
+    std::vector<long> _previewFrameTimes;
+    size_t _currentPreviewFrame = 0;
+
+    SequenceMedia* _sequenceMedia = nullptr;
 };

@@ -214,6 +214,22 @@
             "default": false,
             "lockable": true,
             "description": "Automatically calculates the repeat count needed to fill the entire model based on the morph size and skip spacing."
+        },
+        {
+            "id": "Morph_QuickSet",
+            "label": "Quick Set",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Preset start/end point configurations (Full or Single Sweep in each direction) that write predefined values into all eight X/Y coordinate fields at once. Selection resets to blank after the preset is applied."
+        },
+        {
+            "id": "Morph_Swap",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "description": "Swap the start and end X/Y coordinate values (and any active value curves) so the morph plays in reverse."
         }
     ],
     "groups": [
@@ -228,7 +244,8 @@
                         "Morph_Start_X2",
                         "Morph_Start_Y2",
                         "MorphStartLength",
-                        "Morph_Start_Link"
+                        "Morph_Start_Link",
+                        "Morph_QuickSet"
                     ]
                 },
                 {
@@ -251,11 +268,22 @@
                         "Morph_Repeat_Skip",
                         "Morph_Stagger",
                         "ShowHeadAtStart",
-                        "Morph_AutoRepeat"
+                        "Morph_AutoRepeat",
+                        "Morph_Swap"
                     ]
                 }
             ],
             "settingKey": "E_NOTEBOOK_Morph"
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Morph_Start_Link", "equals": true },
+            "disable": ["Morph_Start_X2", "Morph_Start_Y2"]
+        },
+        {
+            "when": { "property": "Morph_End_Link", "equals": true },
+            "disable": ["Morph_End_X2", "Morph_End_Y2"]
         }
     ]
 }

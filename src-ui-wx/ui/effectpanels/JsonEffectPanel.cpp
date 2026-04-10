@@ -219,7 +219,26 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
         } else {
             delete gridSizer;
         }
+        // Skip xyCenter groups whose xProperty is owned by a tab page —
+        // BuildTabGroup already emits the XY layout inside the tab itself.
+        // Without this filter, panels like Pictures (which have xyCenter
+        // groups for the Start Position / End Position tab contents) would
+        // show the XY controls twice: once inside the tab and again as a
+        // floating block at the bottom of the panel.
+        std::set<std::string> tabbedXyXIds;
+        if (metadata.contains("groups")) {
+            for (const auto& g : metadata["groups"]) {
+                if (g.value("type", "") != "tabs") continue;
+                for (const auto& tab : g["tabs"]) {
+                    for (const auto& pid : tab["properties"]) {
+                        tabbedXyXIds.insert(pid.get<std::string>());
+                    }
+                }
+            }
+        }
         for (const auto& xyGroup : xyCenterGroups) {
+            std::string xId = xyGroup.value("xProperty", "");
+            if (tabbedXyXIds.count(xId)) continue;
             BuildXYCenter(this, outerSizer, xyGroup, metadata["properties"]);
         }
         SetSizer(outerSizer);

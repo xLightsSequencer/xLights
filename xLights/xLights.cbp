@@ -1443,7 +1443,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/ModelPreview3DDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelRemap.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelStateDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/MorphPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MovingHeadPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MusicPanel.wxs" />
@@ -1460,7 +1459,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PianoPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/PicturesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PinwheelPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PixelTestDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PlasmaPanel.wxs" />
@@ -1687,10 +1685,8 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/LinesPanel.wxs" src="../src-ui-wx/ui/effectpanels/LinesPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/MarqueePanel.wxs" src="../src-ui-wx/ui/effectpanels/MarqueePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/MeteorsPanel.wxs" src="../src-ui-wx/ui/effectpanels/MeteorsPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/MorphPanel.wxs" src="../src-ui-wx/ui/effectpanels/MorphPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MorphPanel.h" fwddecl="1" i18n="1" name="MorphPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/MusicPanel.wxs" src="../src-ui-wx/ui/effectpanels/MusicPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MusicPanel.h" fwddecl="1" i18n="1" name="MusicPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/PianoPanel.wxs" src="../src-ui-wx/ui/effectpanels/PianoPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/PianoPanel.h" fwddecl="1" i18n="1" name="PianoPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/PicturesPanel.wxs" src="../src-ui-wx/ui/effectpanels/PicturesPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/PicturesPanel.h" fwddecl="1" i18n="1" name="PicturesPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/PinwheelPanel.wxs" src="../src-ui-wx/ui/effectpanels/PinwheelPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/PinwheelPanel.h" fwddecl="1" i18n="1" name="PinwheelPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/PlasmaPanel.wxs" src="../src-ui-wx/ui/effectpanels/PlasmaPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/PlasmaPanel.h" fwddecl="1" i18n="1" name="PlasmaPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/RipplePanel.wxs" src="../src-ui-wx/ui/effectpanels/RipplePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/RipplePanel.h" fwddecl="1" i18n="1" name="RipplePanel" language="CPP" />
