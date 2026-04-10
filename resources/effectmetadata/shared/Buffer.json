@@ -1,7 +1,16 @@
 {
-    "description": "Buffer / layer-level render settings. These control how each effect layer's pixel buffer is sized, transformed, and rotated before the effect renders into it. Serialized with the B_ prefix; CopySettingsMap at src-core/render/Effect.cpp:690 strips the prefix before passing to PixelBuffer::SetLayerSettings (src-core/render/PixelBuffer.cpp:2077). Note: the Buffer panel also surfaces CHOICE_LayerMethod, SLIDER_EffectLayerMix, CHECKBOX_LayerMorph, and CHECKBOX_Canvas, but those are documented in shared/Timing.json — this file covers only buffer-shape / transform / rotation settings.",
+    "effectName": "Buffer",
     "prefix": "B_",
     "properties": [
+        {
+            "id": "ResetPanelRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "UI-only 'Reset panel when changing effects' checkbox, NOT serialized. Persisted to wxConfig under xLightsResetBufferPanel by the subclass."
+        },
         {
             "id": "BufferStyle",
             "label": "Render Style",
@@ -13,28 +22,31 @@
                 "As Pixel"
             ],
             "default": "Default",
-            "description": "Determines how the model's node layout is projected into a 2D pixel buffer. Default uses the model's configured buffer style; Per Preview renders through a 3D camera view; As Pixel collapses the model to a single-pixel buffer. The actual dropdown is populated at runtime from the model's supported styles, so additional values may appear."
+            "expandToFill": true,
+            "suppressIfDefault": true,
+            "description": "How the model's node layout is projected into a 2D pixel buffer. Populated dynamically from the model's supported styles."
         },
         {
             "id": "BufferStagger",
             "label": "Buffer Stagger",
             "type": "int",
-            "controlType": "spinCtrl",
+            "controlType": "spin",
             "min": -100,
             "max": 0,
             "default": 0,
-            "description": "Percent offset applied to effect start time across nodes to create a cascading appearance. Negative values stagger backward in time; 0 disables staggering."
+            "suppressIfDefault": true,
+            "description": "Percent offset applied to effect start time across nodes for a cascading appearance."
         },
         {
             "id": "PerPreviewCamera",
             "label": "Camera",
             "type": "enum",
             "controlType": "choice",
-            "options": [
-                "2D"
-            ],
+            "options": ["2D"],
             "default": "2D",
-            "description": "Camera to project the model through when BufferStyle is 'Per Preview'. Populated at runtime from the set of defined 3D cameras in the preview setup."
+            "expandToFill": true,
+            "suppressIfDefault": true,
+            "description": "Camera to project the model through when BufferStyle is 'Per Preview'. Populated at runtime from 3D cameras in the preview setup."
         },
         {
             "id": "BufferTransform",
@@ -52,7 +64,8 @@
                 "Rotate CW 90 Flip Horizontal"
             ],
             "default": "None",
-            "description": "Applies a fixed geometric transform to the buffer coordinate system before the effect renders. Useful for mounting an effect designed for one orientation onto a differently-oriented model."
+            "suppressIfDefault": true,
+            "description": "Fixed geometric transform applied to the buffer coordinate system before the effect renders."
         },
         {
             "id": "Blur",
@@ -63,15 +76,39 @@
             "max": 15,
             "default": 1,
             "valueCurve": true,
-            "description": "Box blur applied to the rendered buffer. 1 is no blur; higher values progressively blur each pixel with its neighbors. Supports value curves for animated blur."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Gaussian blur radius applied to the rendered buffer."
         },
         {
             "id": "OverlayBkg",
-            "label": "Persistent",
+            "label": "",
+            "checkboxLabel": "Persistent",
             "type": "bool",
             "controlType": "checkbox",
             "default": false,
-            "description": "When enabled, the buffer is not cleared between frames — each frame's render composites onto the previous one. Used by effects like 'Life' and 'Shimmer' that need running state."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "When enabled, the buffer is not cleared between frames — each frame composites onto the previous one."
+        },
+        {
+            "id": "SubBuffer",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "growable": true,
+            "default": "",
+            "description": "Interactive sub-buffer rectangle picker (SubBufferPanel widget). Serialized as B_CUSTOM_SubBuffer. Built by the subclass because the widget instance is reused for live preview. 'growable: true' makes its tab-page row stretch to fill remaining vertical space, matching the legacy BufferPanel layout where the preview absorbed all available height."
+        },
+        {
+            "id": "RotoZoomPreset",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Roto-Zoom preset dropdown: 'None - Reset', '1 Rev CW', '1 Rev CCW', 'Explode', 'Collapse', 'Explode + Spin CW', 'Shake', 'Spin CW Accelerate'. NOT serialized — applies preset values to other sliders and resets selection. UI-only."
         },
         {
             "id": "Rotation",
@@ -82,11 +119,13 @@
             "max": 100,
             "default": 0,
             "valueCurve": true,
-            "description": "Static Z-axis rotation as a 0-100 percentage of a full turn (RZ_ROTATION_MIN/MAX in src-core/render/ValueCurveConsts.h). 0 = no rotation, 100 = full 360 degrees. For animated multi-turn rotation, use Rotations."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Static Z-axis rotation as a 0-100 percentage of a full turn (RZ_ROTATION_MAX). 100 = 360 degrees."
         },
         {
             "id": "Rotations",
-            "label": "Z Rotations",
+            "label": "Rotations",
             "type": "float",
             "controlType": "slider",
             "min": 0,
@@ -94,29 +133,35 @@
             "default": 0,
             "divisor": 10,
             "valueCurve": true,
-            "description": "Number of full Z-axis rotations over the effect duration. Stored as an integer; the render engine divides by 10 for 0.1-rotation precision (max value 200 = 20 full rotations)."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Number of full Z-axis rotations over the effect duration. Stored as int; the engine divides by 10."
         },
         {
             "id": "PivotPointX",
-            "label": "Z Pivot Point X",
+            "label": "Pivot Point X",
             "type": "int",
             "controlType": "slider",
             "min": 0,
             "max": 100,
             "default": 50,
             "valueCurve": true,
-            "description": "X coordinate of the Z-rotation pivot as a percentage of buffer width. 50 is the horizontal center."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "X coordinate of the Z-rotation pivot as a percentage of buffer width."
         },
         {
             "id": "PivotPointY",
-            "label": "Z Pivot Point Y",
+            "label": "Pivot Point Y",
             "type": "int",
             "controlType": "slider",
             "min": 0,
             "max": 100,
             "default": 50,
             "valueCurve": true,
-            "description": "Y coordinate of the Z-rotation pivot as a percentage of buffer height. 50 is the vertical center."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Y coordinate of the Z-rotation pivot as a percentage of buffer height."
         },
         {
             "id": "Zoom",
@@ -125,10 +170,12 @@
             "controlType": "slider",
             "min": 0,
             "max": 30,
-            "default": 10,
+            "default": 1.0,
             "divisor": 10,
             "valueCurve": true,
-            "description": "Buffer zoom factor. Stored as an integer; the render engine divides by 10 so 10 = 1.0x (no zoom), 20 = 2.0x, max 30 = 3.0x."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Buffer zoom factor. Stored with divisor 10; 10 = 1.0x (no zoom), max 30 = 3.0x."
         },
         {
             "id": "ZoomQuality",
@@ -138,7 +185,9 @@
             "min": 1,
             "max": 10,
             "default": 1,
-            "description": "Number of interpolation samples used when zooming. Higher values give smoother zoom at the cost of render time."
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Number of interpolation samples used when zooming."
         },
         {
             "id": "XRotation",
@@ -149,18 +198,20 @@
             "max": 360,
             "default": 0,
             "valueCurve": true,
-            "description": "Fixed rotation around the X (horizontal) axis in degrees. Applied in 3D with Y/Z rotations according to RotationOrder."
+            "suppressIfDefault": true,
+            "description": "Fixed rotation around the X axis in degrees."
         },
         {
             "id": "XPivot",
-            "label": "X Pivot Point",
+            "label": "X Pivot",
             "type": "int",
             "controlType": "slider",
             "min": 0,
             "max": 100,
             "default": 50,
             "valueCurve": true,
-            "description": "Pivot coordinate for X-axis rotation as a percentage of buffer height. 50 is the center."
+            "suppressIfDefault": true,
+            "description": "Pivot coordinate for X-axis rotation."
         },
         {
             "id": "YRotation",
@@ -171,18 +222,20 @@
             "max": 360,
             "default": 0,
             "valueCurve": true,
-            "description": "Fixed rotation around the Y (vertical) axis in degrees. Applied in 3D with X/Z rotations according to RotationOrder."
+            "suppressIfDefault": true,
+            "description": "Fixed rotation around the Y axis in degrees."
         },
         {
             "id": "YPivot",
-            "label": "Y Pivot Point",
+            "label": "Y Pivot",
             "type": "int",
             "controlType": "slider",
             "min": 0,
             "max": 100,
             "default": 50,
             "valueCurve": true,
-            "description": "Pivot coordinate for Y-axis rotation as a percentage of buffer width. 50 is the center."
+            "suppressIfDefault": true,
+            "description": "Pivot coordinate for Y-axis rotation."
         },
         {
             "id": "RZ_RotationOrder",
@@ -198,31 +251,55 @@
                 "Z-Y-X"
             ],
             "default": "X-Y-Z",
-            "description": "Order in which X, Y, and Z rotations compose when any 3D rotation is non-zero. Different orders produce different final orientations because rotation is non-commutative."
-        },
-        {
-            "id": "SubBuffer",
-            "label": "Sub-Buffer",
-            "type": "string",
-            "controlType": "custom",
-            "default": "",
-            "description": "Restricts the effect to a rectangular subset of the model buffer. Serialized as a compact 'x1 y1 x2 y2' string (with optional rotation and per-corner kerf) by the SubBufferPanel widget. Empty means the full buffer."
+            "suppressIfDefault": true,
+            "description": "Order in which X, Y, and Z rotations compose when any 3D rotation is non-zero."
         }
     ],
-    "visibilityRules": [
+    "groups": [
         {
-            "when": { "property": "BufferStyle", "equals": "Per Preview" },
-            "show": ["PerPreviewCamera"]
+            "type": "tabs",
+            "persistSelection": false,
+            "scrollable": true,
+            "tabs": [
+                {
+                    "label": "Buffer",
+                    "properties": [
+                        "BufferStyle",
+                        "BufferStagger",
+                        "PerPreviewCamera",
+                        "BufferTransform",
+                        "Blur",
+                        "OverlayBkg",
+                        "SubBuffer"
+                    ]
+                },
+                {
+                    "label": "Roto-Zoom",
+                    "properties": [
+                        "RotoZoomPreset",
+                        "Rotation",
+                        "Rotations",
+                        "PivotPointX",
+                        "PivotPointY",
+                        "Zoom",
+                        "ZoomQuality",
+                        "XRotation",
+                        "XPivot",
+                        "YRotation",
+                        "YPivot",
+                        "RZ_RotationOrder"
+                    ]
+                }
+            ]
         }
     ],
     "notes": [
-        "RotationOrder is only semantically meaningful when XRotation or YRotation is non-zero; the UI doesn't gate it, so it's just a no-op in the 2D case.",
-        "Authoritative slider ranges live in src-core/render/ValueCurveConsts.h (BLUR_*, RZ_*). The wxSmith file does not always mirror those values — e.g. the Z Rotation slider has no explicit <min>/<max>, relying on the wx default of 100 which happens to match RZ_ROTATION_MAX.",
-        "XRotation and YRotation are 0-360 (RZ_XROTATION_MAX / RZ_YROTATION_MAX), but Z Rotation is 0-100 (RZ_ROTATION_MAX). They're inconsistent by design — Z is percentage-of-full-turn, X/Y are degrees.",
-        "SLIDER_Rotations (plural) is stored with divisor 10 (RZ_ROTATIONS_DIVISOR): raw 0-200 represents 0.0-20.0 full rotations over the effect duration.",
-        "SLIDER_Zoom is stored with divisor 10 (RZ_ZOOM_DIVISOR): raw 0-30 represents 0.0-3.0x zoom.",
-        "Layer-level settings (LayerMethod, EffectLayerMix, LayerMorph, Canvas, fade in/out, transitions, palette, brightness, etc.) are also read by PixelBuffer::SetLayerSettings but are contributed by the Timing and Color panels — see shared/Timing.json and shared/Color.json.",
-        "SubBuffer is managed by a dedicated SubBufferPanel sub-control inside BufferPanel; its serialized format is opaque to this schema (a custom string parsed by PixelBuffer).",
-        "All SLIDER_* entries that list 'valueCurve: true' are persisted as a companion B_VALUECURVE_<id> serialized key when the user activates the curve; the engine's GetValueCurveInt/Double fallback reads the slider value when no curve is present."
+        "BufferStyle is populated dynamically from the model's GetBufferStyles() via BufferPanel::UpdateBufferStyles; the JSON options list is just a fallback for when no model is selected.",
+        "PerPreviewCamera is populated from xLightsFrame::viewpoint_mgr when BufferStyle is 'Per Preview' or 'Per Model Per Preview'; disabled otherwise. Repopulation happens in BufferPanel::UpdateCamera.",
+        "BufferStagger is only meaningful for stacked ModelGroup buffer styles ('Horizontal Stack' / 'Vertical Stack'); ValidateWindow disables it for other styles.",
+        "Z Rotation is 0-100 (percentage of turn) while X/Y Rotation are 0-360 degrees — this asymmetry is intentional and preserved from the legacy panel.",
+        "SLIDER_Zoom and SLIDER_Rotations are stored with divisor 10: the UI shows 1.0x / 0.0 rotations while the int value is 10 / 0.",
+        "The Roto-Zoom preset dropdown is NOT serialized — selecting an entry writes preset values into the other Roto-Zoom sliders and VCs, then resets itself to blank. Handled as a subclass custom.",
+        "SubBufferPanel is a live-preview rectangle editor; serialized as B_CUSTOM_SubBuffer with a compact 'x1 y1 x2 y2' string."
     ]
 }
