@@ -249,10 +249,11 @@ void DmxMovingHeadAdv::ApplyPositionZones(uint8_t* frameData, uint32_t startChan
 
     int tiltVal = frameData[startChannel + tiltCoarse - 1];
 
+    int numChannels = (int)Nodes.size();
     for (const auto& zone : position_zones) {
         if (panVal >= zone.pan_min && panVal <= zone.pan_max &&
             tiltVal >= zone.tilt_min && tiltVal <= zone.tilt_max) {
-            if (zone.channel > 0) {
+            if (zone.channel > 0 && zone.channel <= numChannels) {
                 frameData[startChannel + zone.channel - 1] = zone.value;
             }
         }

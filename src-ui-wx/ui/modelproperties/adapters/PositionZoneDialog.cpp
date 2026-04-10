@@ -87,7 +87,7 @@ void PositionZoneDialog::OnButton_AddZoneClick(wxCommandEvent& event)
     Grid_Zones->SetCellValue(row, 1, "255");
     Grid_Zones->SetCellValue(row, 2, "0");
     Grid_Zones->SetCellValue(row, 3, "255");
-    Grid_Zones->SetCellValue(row, 4, "0");
+    Grid_Zones->SetCellValue(row, 4, "1");
     Grid_Zones->SetCellValue(row, 5, "0");
 
     PositionZone zone;
@@ -122,25 +122,65 @@ void PositionZoneDialog::OnGrid_ZonesCellChanged(wxGridEvent& event)
         return;
 
     int val = wxAtoi(Grid_Zones->GetCellValue(row, col));
+    wxString errMsg;
 
     switch (col) {
-    case 0:
-        _zones[row].pan_min = val;
+    case 0: // Pan Min
+        if (val < 0 || val > 255)
+            errMsg = "Pan Min must be 0-255.";
+        else if (val > _zones[row].pan_max)
+            errMsg = "Pan Min must be <= Pan Max.";
+        else
+            _zones[row].pan_min = val;
         break;
-    case 1:
-        _zones[row].pan_max = val;
+    case 1: // Pan Max
+        if (val < 0 || val > 255)
+            errMsg = "Pan Max must be 0-255.";
+        else if (val < _zones[row].pan_min)
+            errMsg = "Pan Max must be >= Pan Min.";
+        else
+            _zones[row].pan_max = val;
         break;
-    case 2:
-        _zones[row].tilt_min = val;
+    case 2: // Tilt Min
+        if (val < 0 || val > 255)
+            errMsg = "Tilt Min must be 0-255.";
+        else if (val > _zones[row].tilt_max)
+            errMsg = "Tilt Min must be <= Tilt Max.";
+        else
+            _zones[row].tilt_min = val;
         break;
-    case 3:
-        _zones[row].tilt_max = val;
+    case 3: // Tilt Max
+        if (val < 0 || val > 255)
+            errMsg = "Tilt Max must be 0-255.";
+        else if (val < _zones[row].tilt_min)
+            errMsg = "Tilt Max must be >= Tilt Min.";
+        else
+            _zones[row].tilt_max = val;
         break;
-    case 4:
-        _zones[row].channel = val;
+    case 4: // Channel
+        if (val < 1)
+            errMsg = "Channel must be >= 1.";
+        else
+            _zones[row].channel = val;
         break;
-    case 5:
-        _zones[row].value = (uint8_t)val;
+    case 5: // Value
+        if (val < 0 || val > 255)
+            errMsg = "Value must be 0-255.";
+        else
+            _zones[row].value = (uint8_t)val;
         break;
+    }
+
+    if (!errMsg.empty()) {
+        wxMessageBox(errMsg, "Invalid Value", wxOK | wxICON_WARNING, this);
+        // revert the cell to the current stored value
+        switch (col) {
+        case 0: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].pan_min)); break;
+        case 1: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].pan_max)); break;
+        case 2: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].tilt_min)); break;
+        case 3: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].tilt_max)); break;
+        case 4: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].channel)); break;
+        case 5: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].value)); break;
+        }
     }
 }

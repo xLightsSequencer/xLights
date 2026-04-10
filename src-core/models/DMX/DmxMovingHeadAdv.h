@@ -24,7 +24,7 @@ struct PositionZone {
     int pan_max = 255;
     int tilt_min = 0;
     int tilt_max = 255;
-    int channel = 0;
+    int channel = 1;
     uint8_t value = 0;
 };
 class DmxMovingHeadAdv : public DmxMovingHeadComm
