@@ -693,7 +693,7 @@ bool xLightsFrame::CloseSequence()
                     wxFileName asfn(asfile);
                     wxDateTime xbkptime = asfn.GetModificationTime();
 
-                    if (xbkptime > xmltime) {
+                    if (xmltime.IsValid() && xbkptime.IsValid() && xbkptime > xmltime) {
                         // set the backup to be older than the XML files to avoid re-promting
                         xmltime -= wxTimeSpan(0, 0, 3, 0); // subtract 2 seconds as FAT time resulution is 2 seconds
                         asfn.SetTimes(&xmltime, &xmltime, &xmltime);
