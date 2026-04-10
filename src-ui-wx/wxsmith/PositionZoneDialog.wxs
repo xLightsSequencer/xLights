@@ -3,6 +3,7 @@
 	<object class="wxDialog" name="PositionZoneDialog">
 		<title>Position Zones</title>
 		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -30,7 +31,7 @@
 					<cols>2</cols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_AddZone" variable="Button_AddZone" member="yes">
-							<label>Add Zone!</label>
+							<label>Add Zone</label>
 							<handler function="OnButton_AddZoneClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

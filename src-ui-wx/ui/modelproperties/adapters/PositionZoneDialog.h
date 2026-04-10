@@ -7,13 +7,13 @@
 #include <wx/grid.h>
 #include <wx/sizer.h>
 //*)
-#include "DmxMovingHeadAdv.h"
+#include "models/DMX/DmxMovingHeadAdv.h"
 
 class PositionZoneDialog: public wxDialog
 {
     public:
 
-        PositionZoneDialog(std::vector<PositionZone>& zones, wxXmlNode* modelXml, wxWindow* parent, wxWindowID id = wxID_ANY);
+        PositionZoneDialog(std::vector<PositionZone>& zones, wxWindow* parent, wxWindowID id = wxID_ANY);
         virtual ~PositionZoneDialog();
 
         //(*Declarations(PositionZoneDialog)
@@ -40,7 +40,6 @@ class PositionZoneDialog: public wxDialog
         //*)
 
         std::vector<PositionZone>& _zones;
-        wxXmlNode* _modelXml;
 
         DECLARE_EVENT_TABLE()
 };
