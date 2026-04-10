@@ -3647,7 +3647,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     FinalizeModel();
 }
 
-static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm)
+static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm, std::vector<DownloadedModelInfo>* additionalModels = nullptr)
 {
     pugi::xml_document doc;
     bool docLoaded = false;
@@ -3667,6 +3667,14 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     widthmm = dlg.GetModelWidthMM();
                     heightmm = dlg.GetModelHeightMM();
                     depthmm = dlg.GetModelDepthMM();
+
+                    // Capture additional downloaded models (beyond the first) for batch placement
+                    if (additionalModels != nullptr) {
+                        const auto& allDownloaded = dlg.GetDownloadedModels();
+                        if (allDownloaded.size() > 1) {
+                            additionalModels->assign(allDownloaded.begin() + 1, allDownloaded.end());
+                        }
+                    }
 
                     if (last_model.empty()) {
                         DisplayError("Failed to download model file.");
@@ -3909,11 +3917,14 @@ void LayoutPanel::FinalizeModel()
         _newModel->GetBaseObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
         // cache the selected button as it may change during a download or some such event
         auto b = selectedButton;
+        std::vector<DownloadedModelInfo> additionalModels;
+        glm::vec3 firstModelPos(0.0f);
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel We were downloading or importing.");
             bool cancelled = false;
             auto pos = _newModel->GetBaseObjectScreenLocation().GetWorldPosition();
+            firstModelPos = pos;
 
             wxProgressDialog* prog = nullptr;
             if (b->GetModelType() == "Download")
@@ -3930,7 +3941,7 @@ void LayoutPanel::FinalizeModel()
             int heightmm = -1;
             int depthmm = -1;
 
-            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm);
+            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels);
 
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
@@ -4015,6 +4026,47 @@ void LayoutPanel::FinalizeModel()
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
 
         _newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
+
+        // Process additional models from multi-select download
+        if (!additionalModels.empty()) {
+            float xOffset = 200.0f; // horizontal spacing between models in layout units
+            float currentX = firstModelPos.x + xOffset;
+
+            for (const auto& modelInfo : additionalModels) {
+                std::string extraModelPath = modelInfo.modelFile;
+                if (extraModelPath.empty()) continue;
+
+                std::string extraModelLower = extraModelPath;
+                std::transform(extraModelLower.begin(), extraModelLower.end(), extraModelLower.begin(), ::tolower);
+                if (!extraModelLower.ends_with(".xmodel")) continue;
+
+                pugi::xml_document extraDoc;
+                extraDoc.load_file(extraModelPath.c_str());
+                if (!extraDoc.document_element()) continue;
+
+                bool extraCancelled = false;
+                xlights->GetOutputModelManager()->DisableASAPWork(true);
+                Model* extraModel = xlights->AllModels.CreateDefaultModel("Custom", "1");
+                xlights->GetOutputModelManager()->DisableASAPWork(false);
+
+                if (extraModel == nullptr) continue;
+
+                extraModel->SetStartChannel("1");
+                extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+
+                if (extraCancelled || extraModel == nullptr) {
+                    delete extraModel;
+                    continue;
+                }
+
+                extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(currentX, firstModelPos.y, firstModelPos.z));
+                extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
+                xlights->AllModels.AddModel(extraModel);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
+
+                currentX += xOffset;
+            }
+        }
 
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         modelPreview->SetAdditionalModel(nullptr);

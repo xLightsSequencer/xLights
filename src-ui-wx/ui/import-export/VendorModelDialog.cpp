@@ -817,7 +817,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     FlexGridSizer2->AddGrowableRow(0);
-    TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
+    TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
     FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer9->AddGrowableCol(0);
@@ -1185,9 +1185,9 @@ void VendorModelDialog::OnHyperlinkCtrl_ModelWebLinkClick(wxCommandEvent& event)
 
 void VendorModelDialog::OnButton_PriorClick(wxCommandEvent& event)
 {
-    if (TreeCtrl_Navigator->GetSelection().IsOk())
+    if (GetFocusedItem().IsOk())
     {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(GetFocusedItem());
 
         if (tid != nullptr)
         {
@@ -1210,9 +1210,9 @@ void VendorModelDialog::OnButton_PriorClick(wxCommandEvent& event)
 
 void VendorModelDialog::OnButton_NextClick(wxCommandEvent& event)
 {
-    if (TreeCtrl_Navigator->GetSelection().IsOk())
+    if (GetFocusedItem().IsOk())
     {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(GetFocusedItem());
 
         if (tid != nullptr)
         {
@@ -1318,16 +1318,82 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
     }
 }
 
+wxTreeItemId VendorModelDialog::GetFocusedItem() const
+{
+    wxArrayTreeItemIds selections;
+    TreeCtrl_Navigator->GetSelections(selections);
+    if (selections.GetCount() > 0) {
+        return selections[selections.GetCount() - 1];
+    }
+    return wxTreeItemId();
+}
+
+std::vector<MModelWiring*> VendorModelDialog::GetSelectedWirings()
+{
+    std::vector<MModelWiring*> wirings;
+    wxArrayTreeItemIds selections;
+    TreeCtrl_Navigator->GetSelections(selections);
+
+    for (size_t i = 0; i < selections.GetCount(); i++) {
+        wxTreeItemId itemId = selections[i];
+        if (!itemId.IsOk()) continue;
+
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(itemId);
+        if (tid == nullptr) continue;
+
+        std::string type = ((VendorBaseTreeItemData*)tid)->GetType();
+
+        if (type == "Wiring") {
+            wirings.push_back(((MWiringTreeItemData*)tid)->GetWiring());
+        } else if (type == "Model") {
+            MModel* model = ((MModelTreeItemData*)tid)->GetModel();
+            if (model->_wiring.size() == 1) {
+                wirings.push_back(model->_wiring.front());
+            }
+        }
+    }
+
+    return wirings;
+}
+
+void VendorModelDialog::DownloadSelectedModels()
+{
+    _downloadedModels.clear();
+
+    auto wirings = GetSelectedWirings();
+    for (auto* wiring : wirings) {
+        _modelFile.clear();
+        _modelWidthMM = -1;
+        _modelHeightMM = -1;
+        _modelDepthMM = -1;
+
+        DownloadModel(wiring);
+
+        if (!_modelFile.empty()) {
+            _downloadedModels.push_back({_modelFile, _modelWidthMM, _modelHeightMM, _modelDepthMM});
+        }
+    }
+
+    // Populate legacy single-model fields from first result for backward compatibility
+    if (!_downloadedModels.empty()) {
+        _modelFile = _downloadedModels[0].modelFile;
+        _modelWidthMM = _downloadedModels[0].widthMM;
+        _modelHeightMM = _downloadedModels[0].heightMM;
+        _modelDepthMM = _downloadedModels[0].depthMM;
+    }
+}
+
 void VendorModelDialog::OnButton_InsertModelClick(wxCommandEvent& event)
 {
-    if (TreeCtrl_Navigator->GetSelection().IsOk())
-    {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
+    auto wirings = GetSelectedWirings();
+    if (wirings.empty()) {
+        return;
+    }
 
-        if (tid != nullptr && ((VendorBaseTreeItemData*)tid)->GetType() == "Wiring")
-        {
-            DownloadModel(((MWiringTreeItemData*)tid)->GetWiring());
-        }
+    DownloadSelectedModels();
+
+    if (_downloadedModels.empty()) {
+        return;
     }
 
     EndDialog(wxID_OK);
@@ -1339,11 +1405,11 @@ void VendorModelDialog::OnNotebookPanelsPageChanged(wxNotebookEvent& event)
 
 void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 {
-    wxTreeItemId startid = TreeCtrl_Navigator->GetSelection();
+    wxTreeItemId startid = event.GetItem();
 
     SetCursor(wxCURSOR_WAIT);
 
-    if (TreeCtrl_Navigator->GetSelection().IsOk()) {
+    if (startid.IsOk()) {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
 
         if (tid != nullptr) {
@@ -1385,11 +1451,11 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     // Because this code triggers a web download this function can be re-entered and this is not good
     busy = true;
 
-    wxTreeItemId startid = TreeCtrl_Navigator->GetSelection();
+    wxTreeItemId startid = GetFocusedItem();
 
     SetCursor(wxCURSOR_WAIT);
 
-    if (TreeCtrl_Navigator->GetSelection().IsOk())
+    if (GetFocusedItem().IsOk())
     {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
 
@@ -1452,7 +1518,7 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 
     busy = false;
 
-    if (startid != TreeCtrl_Navigator->GetSelection())
+    if (startid != GetFocusedItem())
     {
         // selection changed while we were processing so lets try again
         wxPostEvent(this, event);
@@ -1471,7 +1537,7 @@ void VendorModelDialog::OnHyperlinkCtrl_FacebookClick(wxCommandEvent& event)
 
 void VendorModelDialog::ValidateWindow()
 {
-    wxTreeItemId current = TreeCtrl_Navigator->GetSelection();
+    wxTreeItemId current = GetFocusedItem();
     if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !current.IsOk())
     {
         Button_Search->Disable();
@@ -1481,9 +1547,25 @@ void VendorModelDialog::ValidateWindow()
         Button_Search->Enable();
     }
 
-    if (TreeCtrl_Navigator->GetSelection().IsOk())
+    // Check multi-select for Insert button state and label
+    auto wirings = GetSelectedWirings();
+    if (wirings.size() > 1) {
+        Button_InsertModel->Enable();
+        Button_InsertModel->SetLabel(wxString::Format("Insert %zu Models", wirings.size()));
+        Button_InsertModel->GetParent()->GetSizer()->Layout();
+    } else if (wirings.size() == 1) {
+        Button_InsertModel->Enable();
+        Button_InsertModel->SetLabel("Insert Model");
+        Button_InsertModel->GetParent()->GetSizer()->Layout();
+    } else {
+        Button_InsertModel->Disable();
+        Button_InsertModel->SetLabel("Insert Model");
+        Button_InsertModel->GetParent()->GetSizer()->Layout();
+    }
+
+    if (GetFocusedItem().IsOk())
     {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(GetFocusedItem());
 
         if (tid != nullptr)
         {
@@ -1492,12 +1574,7 @@ void VendorModelDialog::ValidateWindow()
 
             if (type == "Wiring")
             {
-                Button_InsertModel->Enable();
                 imageCount = ((MWiringTreeItemData*)tid)->GetWiring()->_imageFiles.size();
-            }
-            else
-            {
-                Button_InsertModel->Disable();
             }
 
             if (type == "Model")
@@ -1528,7 +1605,6 @@ void VendorModelDialog::ValidateWindow()
     {
         Button_Next->Disable();
         Button_Prior->Disable();
-        Button_InsertModel->Disable();
     }
 }
 
@@ -1791,9 +1867,9 @@ void VendorModelDialog::OnResize(wxSizeEvent& event)
 void VendorModelDialog::OnCheckBox_DontDownloadClick(wxCommandEvent& event)
 {
     std::string vendor = "";
-    wxTreeItemId startid = TreeCtrl_Navigator->GetSelection();
+    wxTreeItemId startid = GetFocusedItem();
 
-    if (TreeCtrl_Navigator->GetSelection().IsOk())
+    if (GetFocusedItem().IsOk())
     {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
 
@@ -1860,7 +1936,7 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 		return;
 	}
 
-	wxTreeItemId current = TreeCtrl_Navigator->GetSelection();
+	wxTreeItemId current = GetFocusedItem();
 	wxTreeItemId start = current;
 	if (current.IsOk())
 	{

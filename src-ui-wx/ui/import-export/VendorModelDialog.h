@@ -30,6 +30,7 @@
 #include <wx/filename.h>
 #include <list>
 #include <string>
+#include <vector>
 #include <wx/uri.h>
 #include "CachedFileDownloader.h"
 
@@ -38,6 +39,13 @@ class MVendor;
 class MModel;
 class MModelWiring;
 class MVendorCategory;
+
+struct DownloadedModelInfo {
+    std::string modelFile;
+    int widthMM = -1;
+    int heightMM = -1;
+    int depthMM = -1;
+};
 
 class VendorModelDialog: public wxDialog
 {
@@ -50,6 +58,7 @@ class VendorModelDialog: public wxDialog
 	int _modelWidthMM = -1;
 	int _modelHeightMM = -1;
 	int _modelDepthMM = -1;
+    std::vector<DownloadedModelInfo> _downloadedModels;
 
     [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
@@ -65,6 +74,9 @@ class VendorModelDialog: public wxDialog
     [[nodiscard]] bool IsVendorSuppressed(const std::string& vendor);
     void SuppressVendor(const std::string& vendor, bool suppress);
 	void DownloadModel(MModelWiring* wiring);
+    [[nodiscard]] std::vector<MModelWiring*> GetSelectedWirings();
+    void DownloadSelectedModels();
+    [[nodiscard]] wxTreeItemId GetFocusedItem() const;
 
 	public:
 
@@ -74,6 +86,7 @@ class VendorModelDialog: public wxDialog
         [[nodiscard]] int GetModelWidthMM() const { return _modelWidthMM; }
 		[[nodiscard]] int GetModelHeightMM() const { return _modelHeightMM; }
 		[[nodiscard]] int GetModelDepthMM() const { return _modelDepthMM; }
+        [[nodiscard]] const std::vector<DownloadedModelInfo>& GetDownloadedModels() const { return _downloadedModels; }
         [[nodiscard]] bool DlgInit(wxProgressDialog* prog, int low, int high);
         [[nodiscard]] bool FindModelFile(const std::string &vendor, const std::string &model);
         [[nodiscard]] static CachedFileDownloader& GetCache() {
