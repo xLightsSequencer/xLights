@@ -333,16 +333,21 @@ void TimingPanel::OnResetTimingPanelClick(wxCommandEvent& /*event*/) {
     }
 }
 
-void TimingPanel::OnLayerMethodSelect(wxCommandEvent& /*event*/) {
+void TimingPanel::OnLayerMethodSelect(wxCommandEvent& event) {
     if (_layerMethodChoice && _layerMethodChoice->GetStringSelection() == "Canvas") {
         wxCommandEvent eventUpdateEffect(EVT_UPDATE_EFFECT);
         wxPostEvent(GetParent(), eventUpdateEffect);
     }
     ValidateWindow();
+    // Must Skip so the Connect()-wired HandleCommandChange on the parent
+    // panel also runs and fires the save timer — otherwise the user's
+    // choice is silently discarded.
+    event.Skip();
 }
 
-void TimingPanel::OnCanvasClick(wxCommandEvent& /*event*/) {
+void TimingPanel::OnCanvasClick(wxCommandEvent& event) {
     ValidateWindow();
+    event.Skip();
 }
 
 void TimingPanel::OnLayersClick(wxCommandEvent& /*event*/) {

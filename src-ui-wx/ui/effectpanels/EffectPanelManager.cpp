@@ -130,7 +130,9 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJson(E::eff_METEORS, "Meteors");
     RegisterJsonSubclass<MorphPanel>(E::eff_MORPH, "Morph");
     Register<MovingHeadPanel>(E::eff_MOVINGHEAD, "Moving Head");
-    RegisterJsonSubclass<MusicPanel>(E::eff_MUSIC, "Music");
+    // Must match MusicEffect::Name() exactly — the registration name is used
+    // to look the effect up in the EffectManager to fetch its cached metadata.
+    RegisterJsonSubclass<MusicPanel>(E::eff_MUSIC, "Music Effect");
     RegisterJsonSubclass<PianoPanel>(E::eff_PIANO, "Piano");
     RegisterJsonSubclass<PicturesPanel>(E::eff_PICTURES, "Pictures");
     RegisterJson(E::eff_PINWHEEL, "Pinwheel");

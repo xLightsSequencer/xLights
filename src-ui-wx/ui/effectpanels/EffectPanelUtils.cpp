@@ -368,8 +368,16 @@ void xlEffectPanel::AddListeners(wxWindow *ParentWin)
             Connect(ChildWin->GetId(),wxEVT_FONTPICKER_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleFontChange);
         } else if (ChildName.StartsWith("ID_COLOURPICKERCTR")) {
             Connect(ChildWin->GetId(),wxEVT_COLOURPICKER_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleColorChange);
-        } else if (ChildName.StartsWith("ID_NOTEBOOK")) {
-            Connect(ChildWin->GetId(),wxEVT_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleNotebookChange);
+        } else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK")) {
+            // Only bind the page-changed event on persisted notebooks
+            // (ID_NOTEBOOK); IDD_NOTEBOOK's selection is NOT serialized so
+            // tab switches must not fire a change event. But in BOTH cases
+            // we must recurse into each page — otherwise the controls on
+            // subsequent pages never get change listeners and the user's
+            // edits silently vanish.
+            if (ChildName.StartsWith("ID_NOTEBOOK")) {
+                Connect(ChildWin->GetId(),wxEVT_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleNotebookChange);
+            }
             wxBookCtrlBase *nb = (wxBookCtrlBase*)ChildWin;
             for (int x = 0; x < (int)nb->GetPageCount(); x++) {
                 AddListeners(nb->GetPage(x));
