@@ -1095,7 +1095,7 @@ private:
 };
 
 
-// RenderRange � moved to RenderUI.cpp (uses RenderCommandEvent wx type)
+// RenderRange - moved to RenderUI.cpp (uses RenderCommandEvent wx type)
 
 RenderEngine::RenderEngine(RenderContext& ctx, JobPool& pool, RenderCache& cache)
     : _ctx(ctx), _jobPool(pool), _renderCache(cache) {}
@@ -1140,7 +1140,7 @@ void RenderEngine::RenderEffectOnMainThread(RenderEvent *ev) {
 // RenderProgressInfo is defined in RenderProgressInfo.h (included above).
 // It was moved to a header so RenderUI.cpp can also access it.
 
-// LogRenderStatus � moved to RenderUI.cpp (needs access to RenderProgressInfo)
+// LogRenderStatus - moved to RenderUI.cpp (needs access to RenderProgressInfo)
 
 static bool HasEffects(ModelElement *me) {
     if (me->HasEffects()) {
@@ -1164,7 +1164,7 @@ static bool HasEffects(ModelElement *me) {
 }
 
 // OnProgressBarDoubleClick, OnRenderStatusTimerTrigger, UpdateRenderStatus,
-// RenderDone � all moved to RenderUI.cpp (wx UI handlers / progress-bar updates).
+// RenderDone - all moved to RenderUI.cpp (wx UI handlers / progress-bar updates).
 
 class RenderTreeData {
 public:
