@@ -1,0 +1,161 @@
+{
+    "description": "Color panel render-time settings: palette colors, brightness/contrast adjustments, HSV color shifts, sparkle effects, and chroma keying. These settings are serialized with the C_ prefix in effect XML and consumed by the render engine's PixelBuffer layer.",
+    "prefix": "C_",
+    "properties": [
+        {
+            "id": "Palette",
+            "label": "Palette Colors",
+            "description": "Active palette colors (up to 8 colors per effect). Each palette slot has a color (BUTTON_Palette1-8) and an enabled checkbox (CHECKBOX_Palette1-8). The render engine reads enabled colors via ParseColorMap, building the active xlColorVector and color curves.",
+            "type": "palette",
+            "controlType": "colorpicker",
+            "count": 8,
+            "default": "#FF0000,#00FF00,#0000FF,#FFFF00,#FF00FF,#00FFFF,#FFFFFF,#000000",
+            "paletteEntries": [
+                {"index": 1, "buttonKey": "C_BUTTON_Palette1", "checkboxKey": "C_CHECKBOX_Palette1"},
+                {"index": 2, "buttonKey": "C_BUTTON_Palette2", "checkboxKey": "C_CHECKBOX_Palette2"},
+                {"index": 3, "buttonKey": "C_BUTTON_Palette3", "checkboxKey": "C_CHECKBOX_Palette3"},
+                {"index": 4, "buttonKey": "C_BUTTON_Palette4", "checkboxKey": "C_CHECKBOX_Palette4"},
+                {"index": 5, "buttonKey": "C_BUTTON_Palette5", "checkboxKey": "C_CHECKBOX_Palette5"},
+                {"index": 6, "buttonKey": "C_BUTTON_Palette6", "checkboxKey": "C_CHECKBOX_Palette6"},
+                {"index": 7, "buttonKey": "C_BUTTON_Palette7", "checkboxKey": "C_CHECKBOX_Palette7"},
+                {"index": 8, "buttonKey": "C_BUTTON_Palette8", "checkboxKey": "C_CHECKBOX_Palette8"}
+            ]
+        },
+        {
+            "id": "SparkleFrequency",
+            "label": "Sparkles",
+            "description": "Sparkle frequency count. Multiplied by music factor if MusicSparkles is enabled. Render reads via settingsMap.GetInt(SLIDER_SparkleFrequency, 0); consumed in PixelBuffer layer as sparkle_count, used to add random bright pixels during rendering.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 200,
+            "valueCurve": true,
+            "vcMin": 0,
+            "vcMax": 200
+        },
+        {
+            "id": "MusicSparkles",
+            "label": "Sparkles reflect music",
+            "description": "Enable music-reactive sparkle count scaling. When true, sparkle_count is multiplied by a music factor (0.0-2.0) from the MusicManager. Render reads via settingsMap.GetBool(CHECKBOX_MusicSparkles, false).",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "SparklesColour",
+            "label": "Sparkles Color",
+            "description": "Color used for sparkle pixels. Defaults to white. Render reads via settingsMap.Get(COLOURPICKERCTRL_SparklesColour, \"#FFFFFF\") and stored in LayerInfo.sparklesColour for use when rendering sparkles.",
+            "type": "color",
+            "controlType": "colourpicker",
+            "default": "#FFFFFF"
+        },
+        {
+            "id": "Brightness",
+            "label": "Brightness",
+            "description": "Brightness multiplier as percentage (100=unchanged). Applied as HSV.value *= brightness/100 in PixelBuffer. Render reads via settingsMap.GetInt(SLIDER_Brightness, 100).",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 400,
+            "valueCurve": true,
+            "vcMin": 0,
+            "vcMax": 400
+        },
+        {
+            "id": "BrightnessLevel",
+            "label": "Brightness Level",
+            "description": "Toggle to enable brightness level mode. Alters how brightness adjustment is interpreted. Render reads via settingsMap.GetBool(CHECKBOX_BrightnessLevel, false) and stored in LayerInfo.brightnessLevel.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Contrast",
+            "label": "Contrast",
+            "description": "Contrast adjustment applied after brightness. If HSV.value < 0.5, reduces by (value * contrast/100); else increases. Value of 0=no contrast change. Render reads via settingsMap.GetInt(SLIDER_Contrast, 0).",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Color_HueAdjust",
+            "label": "Hue",
+            "description": "HSV hue shift in 0-1 range (values stored as -100 to 100, divided by 100 at render). Wraps around hue circle. Render reads via settingsMap.GetInt(SLIDER_HueAdjust, 0) and applies as hsv.hue += adjustment/100.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true,
+            "vcMin": -100,
+            "vcMax": 100
+        },
+        {
+            "id": "Color_SaturationAdjust",
+            "label": "Saturation",
+            "description": "HSV saturation shift in 0-1 range (values stored as -100 to 100, divided by 100 at render). Clamped to [0,1]. Render reads via settingsMap.GetInt(SLIDER_SaturationAdjust, 0) and applies as hsv.saturation += adjustment/100.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true,
+            "vcMin": -100,
+            "vcMax": 100
+        },
+        {
+            "id": "Color_ValueAdjust",
+            "label": "Value",
+            "description": "HSV value (lightness) shift in 0-1 range (values stored as -100 to 100, divided by 100 at render). Clamped to [0,1]. Render reads via settingsMap.GetInt(SLIDER_ValueAdjust, 0) and applies as hsv.value += adjustment/100.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true,
+            "vcMin": -100,
+            "vcMax": 100
+        },
+        {
+            "id": "Chroma",
+            "label": "Enable Chroma Key",
+            "description": "Enable chroma keying (color-based masking). When enabled, pixels matching the ChromaColour (within ChromaSensitivity threshold) are made transparent. Render reads via settingsMap.GetBool(CHECKBOX_Chroma, false) and stored in LayerInfo.isChromaKey.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "ChromaSensitivity",
+            "label": "Chroma Key Sensitivity",
+            "description": "Tolerance/threshold for chroma key color matching. Range 1-255; higher values match more similar colors. Render reads via settingsMap.GetInt(SLIDER_ChromaSensitivity, 1).",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1,
+            "min": 1,
+            "max": 255
+        },
+        {
+            "id": "ChromaColour",
+            "label": "Chroma Key Color",
+            "description": "Reference color for chroma keying. Pixels matching this color (within sensitivity) are removed. Defaults to black. Render reads via settingsMap.Get(COLOURPICKERCTRL_ChromaColour, \"\") and stored in LayerInfo.chromaKeyColour.",
+            "type": "color",
+            "controlType": "colourpicker",
+            "default": "#000000"
+        }
+    ],
+    "notes": [
+        "Palette entry points: C_BUTTON_Palette1-8 store color data (hex strings or ColorCurve serialization); C_CHECKBOX_Palette1-8 control active/enabled state. Render engine reads both via ParseColorMap in Effect.cpp::151.",
+        "Value curves: SparkleFrequency, Brightness, Color_HueAdjust, Color_SaturationAdjust, Color_ValueAdjust all support time-varying curves via VALUECURVE_* keys. PixelBuffer reads these via ComputeValueCurve and GetOutputValueAt.",
+        "HSV adjustments: Hue wraps at 0/1 boundary; Saturation and Value are clamped to [0,1] range after adjustment.",
+        "Brightness: stored as integer 0-400 representing percent (100 = 1.0x). Applied before contrast in PixelBuffer line 1471.",
+        "Contrast: applied post-brightness via piecewise function (line 1474-1478): if V<0.5 reduce, else increase. Creates S-curve effect.",
+        "Chroma key and Sparkles color default to black and white respectively, but panel defaults may override (wxs shows #000000 and wxSYS_COLOUR_BTNHIGHLIGHT).",
+        "BrightnessLevel checkbox mode changes how brightness is interpreted - semantics TBD in render engine.",
+        "No dead settings found: all panel controls (C_ prefixed) are read by render engine at SetLayerSettings.",
+        "All SLIDER_/CHECKBOX_/VALUECURVE_/COLOURPICKERCTRL_ keys are prefixed with C_ when persisted and stripped on CopySettingsMap (Effect.cpp:704-706)."
+    ]
+}
