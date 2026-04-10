@@ -1,0 +1,130 @@
+{
+    "effectName": "Color",
+    "prefix": "C_",
+    "scrollable": true,
+    "properties": [
+        {
+            "id": "ResetPanelRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "UI-only 'Reset panel when changing effects' checkbox, persisted to wxConfig under xLightsResetColorPanel. NOT serialized with a C_ prefix. Placed at the top of the panel to match Buffer / Timing."
+        },
+        {
+            "id": "PaletteHeaderRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Compound top row: palette grid + shift/reverse buttons + recent-palettes dropdown + ☰ menu button. Built entirely by the subclass because the palette widgets are bespoke (ColorCurveButton + drag-drop targets + 4-row grid)."
+        },
+        {
+            "id": "ChromaKeyRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Compound chroma key row: 'Chroma Key' label + ChromaSensitivity slider + ChromaColour picker + Enable checkbox. Slider/picker are disabled when Enable is off; subclass handles the enable state."
+        },
+        {
+            "id": "SparklesRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Compound sparkles row: 'Sparkles' label + SparkleFrequency slider + VC button + text + lock + 'Sparkles reflect music' checkbox + SparklesColour picker + lock. Single-line compound to match legacy layout."
+        },
+        {
+            "id": "Brightness",
+            "label": "Brightness",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 400,
+            "default": 100,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "HSV brightness multiplier as a percentage (100 = unchanged). Applied per-pixel as hsv.v *= brightness/100 at render time."
+        },
+        {
+            "id": "Contrast",
+            "label": "Contrast",
+            "type": "int",
+            "controlType": "slider",
+            "min": -100,
+            "max": 100,
+            "default": 0,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "S-curve contrast adjustment applied after brightness. 0 is no change."
+        },
+        {
+            "id": "BrightnessLevelRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "'Brightness Level' checkbox. Built as a custom control because the legacy serialization key is 'CHECKBOXBRIGHTNESSLEVEL' (no underscore between CHECKBOX and BRIGHTNESSLEVEL) and the render engine reads that exact key."
+        },
+        {
+            "id": "Color_HueAdjust",
+            "label": "Hue",
+            "type": "int",
+            "controlType": "slider",
+            "min": -100,
+            "max": 100,
+            "default": 0,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "HSV hue shift (stored -100..100, divided by 100 at render). Wraps around."
+        },
+        {
+            "id": "Color_SaturationAdjust",
+            "label": "Saturation",
+            "type": "int",
+            "controlType": "slider",
+            "min": -100,
+            "max": 100,
+            "default": 0,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "HSV saturation shift. Clamped to [0,1] after adjustment."
+        },
+        {
+            "id": "Color_ValueAdjust",
+            "label": "Value",
+            "type": "int",
+            "controlType": "slider",
+            "min": -100,
+            "max": 100,
+            "default": 0,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "HSV value (lightness) shift. Clamped to [0,1] after adjustment."
+        }
+    ],
+    "groups": [
+        {
+            "type": "section",
+            "label": "Adjustment",
+            "properties": [
+                "Color_HueAdjust",
+                "Color_SaturationAdjust",
+                "Color_ValueAdjust"
+            ]
+        }
+    ],
+    "notes": [
+        "Palette colors (BUTTON_Palette1..8) and their enable checkboxes (CHECKBOX_Palette1..8) are serialized manually by ColorPanel::GetColorString — they're not in properties_ because ColorCurveButton is a specialized widget that serializes either a hex color or a color-curve blob depending on state.",
+        "BrightnessLevel is stored as CHECKBOXBRIGHTNESSLEVEL (no underscore) by the legacy panel and read that way by PixelBuffer.cpp — that's why it needs a custom control instead of the framework-standard checkbox row.",
+        "The Reset panel checkbox is persisted in wxConfig under xLightsResetColorPanel, NOT serialized with a C_ prefix.",
+        "See also: the Phase 2 audit of Color.json confirmed all 13 settings are round-trip clean with PixelBuffer::SetLayerSettings."
+    ]
+}

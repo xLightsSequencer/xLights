@@ -80,7 +80,7 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
 
         int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
         int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", 0);
-        int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", 0);
+        int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", 1);
         int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
 
         if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel) {

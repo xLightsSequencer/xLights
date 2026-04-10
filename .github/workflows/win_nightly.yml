@@ -39,12 +39,12 @@ jobs:
 
     steps:
       - name: Checkout xLights
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           submodules: 'true'
 
       - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v3
 
       - name: install ISPC
         uses: ispc/install-ispc-action@main

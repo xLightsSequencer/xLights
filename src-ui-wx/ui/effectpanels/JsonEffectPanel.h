@@ -19,6 +19,7 @@
 
 class wxSlider;
 class wxTextCtrl;
+class wxComboBox;
 class wxCheckBox;
 class wxChoice;
 class wxSpinCtrl;
@@ -54,25 +55,25 @@ protected:
     // property grid, then add their own custom controls on top.
     void BuildFromJson(const nlohmann::json& metadata);
 
-private:
-    struct VisibilityRule {
-        std::string conditionPropertyId;
-        bool conditionEquals = true; // check for equals (true) vs notEquals (false)
-        // For bool conditions:
-        bool conditionBoolValue = true;
-        // For enum/choice conditions:
-        std::vector<std::string> conditionOneOf;
-        std::string conditionStartsWith;
-        std::string conditionStringEquals;
-        // For "any" conditions (OR of multiple checkbox properties):
-        std::vector<std::string> conditionAnyIds;
+    // Parent window that framework-built controls should use. Defaults to
+    // the panel itself; when the metadata has "scrollable": true the
+    // framework creates a wxScrolledWindow child and points this at it so
+    // controls scroll with their content. Subclasses that build custom
+    // widgets should use this instead of `this` for the parent argument.
+    wxWindow* contentParent_ = nullptr;
 
-        std::vector<std::string> enableIds;
-        std::vector<std::string> disableIds;
-        std::vector<std::string> showIds;
-        std::vector<std::string> hideIds;
-    };
+    // When scrollable is active we override the panel's best size so that
+    // wxAUI and parent sizers don't compute the pane's minimum from the
+    // natural size of all the embedded controls — the inner scroll window
+    // should handle overflow, and the user should be free to drag the pane
+    // smaller than the content. Returns a small default when scrollable,
+    // otherwise delegates to the base class.
+    wxSize DoGetBestClientSize() const override;
 
+    // Info about a built property row. Made protected so subclasses can
+    // reach into the framework-built controls for custom serialization
+    // (e.g. TimingPanel::GetTimingString needs to walk the map with the
+    // T_ prefix instead of the default E_).
     struct PropertyInfo {
         std::string id;
         std::string controlType;
@@ -86,6 +87,7 @@ private:
         // Pointers to created controls (not all will be set)
         wxSlider* slider = nullptr;
         wxTextCtrl* textCtrl = nullptr;
+        wxComboBox* comboBox = nullptr;  // Used when "text" controlType has "commonValues"
         wxCheckBox* checkBox = nullptr;
         wxChoice* choice = nullptr;
         wxSpinCtrl* spinCtrl = nullptr;
@@ -96,6 +98,39 @@ private:
         ValueCurveButton* valueCurveBtn = nullptr;
         wxWindow* buddySlider = nullptr;   // IDD_SLIDER for float props
         wxTextCtrl* buddyText = nullptr;   // IDD_TEXTCTRL for int slider props
+    };
+
+    // Subclasses can look up the built control info for a property by id.
+    // Returns nullptr if the property doesn't exist.
+    PropertyInfo* GetPropertyInfo(const std::string& propId);
+    const PropertyInfo* GetPropertyInfo(const std::string& propId) const;
+
+    // Subclasses (especially shared panels loading their metadata
+    // internally) need direct access to the parsed metadata object so
+    // they can call BuildFromJson(metadata_) without re-reading the file.
+    nlohmann::json metadata_;
+
+private:
+    struct VisibilityRule {
+        std::string conditionPropertyId;
+        bool conditionEquals = true; // check for equals (true) vs notEquals (false)
+        // For bool conditions:
+        bool conditionBoolValue = true;
+        // For enum/choice conditions:
+        std::vector<std::string> conditionOneOf;
+        bool conditionOneOfInverted = false; // treat conditionOneOf as notOneOf when true
+        std::string conditionStartsWith;
+        std::string conditionStringEquals;
+        // For numeric-text conditions:
+        bool conditionHasGreaterThan = false;
+        double conditionGreaterThan = 0.0;
+        // For "any" conditions (OR of multiple checkbox properties):
+        std::vector<std::string> conditionAnyIds;
+
+        std::vector<std::string> enableIds;
+        std::vector<std::string> disableIds;
+        std::vector<std::string> showIds;
+        std::vector<std::string> hideIds;
     };
 
     // Repopulate any choices that source their options from the sequence's
@@ -122,5 +157,4 @@ private:
 
     std::map<std::string, PropertyInfo> properties_;
     std::vector<VisibilityRule> visibilityRules_;
-    nlohmann::json metadata_;
 };

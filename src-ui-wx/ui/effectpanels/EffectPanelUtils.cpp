@@ -498,8 +498,18 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
                 s += AttrName + "=" + ctrl->GetValue()->Serialise() + ",";
             }
         } else if (ChildName.StartsWith("ID_TEXTCTRL")) {
-            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            wxString v = ctrl->GetValue();
+            // ID_TEXTCTRL_ can map to either wxTextCtrl or wxComboBox (used
+            // when the JSON text property declares commonValues). Both expose
+            // GetValue() via wxTextEntry, but we need the dynamic_cast so the
+            // vtable is walked correctly for each type.
+            wxString v;
+            if (auto* tc = dynamic_cast<wxTextCtrl*>(ChildWin)) {
+                v = tc->GetValue();
+            } else if (auto* cb = dynamic_cast<wxComboBox*>(ChildWin)) {
+                v = cb->GetValue();
+            } else {
+                continue;
+            }
             v.Replace("&", "&amp;", true);
             v.Replace(",", "&comma;", true);
             s += AttrName + "=" + v + ",";

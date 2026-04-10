@@ -9,670 +9,715 @@
  **************************************************************/
 
 #include "ShaderPanel.h"
-#include "effects/ShaderEffect.h"
-#include "ui/shared/controls/BulkEditControls.h"
-#include "EffectPanelUtils.h"
-#include "../../ui/effects/ShaderDownloadDialog.h"
-#include "utils/ExternalHooks.h"
-#include "ui/shared/utils/wxUtilities.h"
-#include "render/SequenceMedia.h"
-#include "render/SequenceElements.h"
-#include "ui/media/ManageMediaPanel.h"
-#include "ui/media/ShaderPreviewGenerator.h"
-#include "utils/xlImage.h"
 
-#include "../../xLightsMain.h"
+#include <wx/artprov.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/filepicker.h>
+#include <wx/progdlg.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/statbmp.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/timer.h>
+
+#include "ui/shared/controls/BulkEditControls.h"
+#include "ui/shared/utils/wxUtilities.h"
+#include "../../ui/effects/ShaderDownloadDialog.h"
+#include "../../ui/media/ManageMediaPanel.h"
+#include "../../ui/media/ShaderPreviewGenerator.h"
+#include "../../ui/sequencer/TimingPanel.h"
 #include "../../xLightsApp.h"
-#include "ui/sequencer/TimingPanel.h"
+#include "../../xLightsMain.h"
+#include "effects/ShaderEffect.h"
+#include "render/SequenceElements.h"
+#include "render/SequenceMedia.h"
+#include "utils/ExternalHooks.h"
+#include "utils/xlImage.h"
 #include "UtilFunctions.h"
 
-#include <wx/settings.h>
-#include <wx/statbmp.h>
-
- //(*InternalHeaders(ShaderPanel)
- #include <wx/bitmap.h>
- #include <wx/image.h>
- #include <wx/intl.h>
- #include <wx/string.h>
- //*)
-#include <wx/artprov.h>
-#include <wx/progdlg.h>
-
-
 #ifndef __WXOSX__
-class ShaderPreview : public xlGLCanvas
-{
+class ShaderPreview : public xlGLCanvas {
 public:
-    ShaderPreview(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
-                  const wxSize &size=wxDefaultSize,
-                  long style=0,
-                  const wxString &name=wxPanelNameStr,
-                  bool coreProfile = true) : xlGLCanvas(parent, id, pos, size, style, name, coreProfile) {
-    }
-    virtual ~ShaderPreview() {}
+    ShaderPreview(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition,
+                  const wxSize& size = wxDefaultSize,
+                  long style = 0,
+                  const wxString& name = wxPanelNameStr,
+                  bool coreProfile = true) :
+        xlGLCanvas(parent, id, pos, size, style, name, coreProfile) {}
+    ~ShaderPreview() override = default;
 
     void InitializeGLContext() override {
         SetCurrentGLContext();
     }
 };
-#endif
-
-
-//(*IdInit(ShaderPanel)
-const long ShaderPanel::ID_STATICTEXT1 = wxNewId();
-const long ShaderPanel::ID_0FILEPICKERCTRL_IFS = wxNewId();
-const long ShaderPanel::ID_BUTTON1 = wxNewId();
-const long ShaderPanel::ID_STATICTEXT2 = wxNewId();
-const long ShaderPanel::IDD_SLIDER_Shader_LeadIn = wxNewId();
-const long ShaderPanel::ID_TEXTCTRL_Shader_LeadIn = wxNewId();
-const long ShaderPanel::ID_STATICTEXT3 = wxNewId();
-const long ShaderPanel::ID_SLIDER_Shader_Speed = wxNewId();
-const long ShaderPanel::ID_VALUECURVE_Shader_Speed = wxNewId();
-const long ShaderPanel::IDD_TEXTCTRL_Shader_Speed = wxNewId();
-const long ShaderPanel::ID_STATICTEXT4 = wxNewId();
-const long ShaderPanel::IDD_SLIDER_Shader_Offset_X = wxNewId();
-const long ShaderPanel::ID_VALUECURVE_Shader_Offset_X = wxNewId();
-const long ShaderPanel::ID_TEXTCTRL_Shader_Offset_X = wxNewId();
-const long ShaderPanel::ID_STATICTEXT5 = wxNewId();
-const long ShaderPanel::IDD_SLIDER_Shader_Offset_Y = wxNewId();
-const long ShaderPanel::ID_VALUECURVE_Shader_Offset_Y = wxNewId();
-const long ShaderPanel::ID_TEXTCTRL_Shader_Offset_Y = wxNewId();
-const long ShaderPanel::ID_STATICTEXT6 = wxNewId();
-const long ShaderPanel::IDD_SLIDER_Shader_Zoom = wxNewId();
-const long ShaderPanel::ID_VALUECURVE_Shader_Zoom = wxNewId();
-const long ShaderPanel::ID_TEXTCTRL_Shader_Zoom = wxNewId();
-//*)
 
 const long ShaderPanel::ID_CANVAS = wxNewId();
+#endif
 
-BEGIN_EVENT_TABLE(ShaderPanel, wxPanel)
-//(*EventTable(ShaderPanel)
-//*)
-END_EVENT_TABLE()
-
-ShaderPanel::ShaderPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) : xlEffectPanel()
-{
-    // I have deliberately given the file picker a ID_- prefix to force it to be processed first
-
-    //(*Initialize(ShaderPanel)
-    wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizer3;
-
-    Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
-    FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer2->AddGrowableCol(1);
-    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Shader File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FilePickerCtrl1 = new BulkEditFilePickerCtrl(this, ID_0FILEPICKERCTRL_IFS, wxEmptyString, wxEmptyString, _T("*.fs"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_0FILEPICKERCTRL_IFS"));
-    FlexGridSizer2->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 2);
-    Button_Download = new wxButton(this, ID_BUTTON1, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer2->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
-    FlexGridSizer3->AddGrowableCol(1);
-    StaticText_Shader_LeadIn = new wxStaticText(this, ID_STATICTEXT2, _("Lead in frames:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer3->Add(StaticText_Shader_LeadIn, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Shader_LeadIn = new BulkEditSlider(this, IDD_SLIDER_Shader_LeadIn, 0, 0, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_LeadIn"));
-    FlexGridSizer3->Add(Slider_Shader_LeadIn, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Shader_LeadIn = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_LeadIn, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_LeadIn"));
-    FlexGridSizer3->Add(TextCtrl_Shader_LeadIn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText_Shader_Speed = new wxStaticText(this, ID_STATICTEXT3, _("Time Speed:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer3->Add(StaticText_Shader_Speed, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Shader_Speed = new BulkEditSliderF2(this, ID_SLIDER_Shader_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_SLIDER_Shader_Speed"));
-    FlexGridSizer3->Add(Slider_Shader_Speed, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Speed, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Speed"));
-    FlexGridSizer3->Add(BitmapButton_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Shader_Speed = new BulkEditTextCtrlF2(this, IDD_TEXTCTRL_Shader_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("IDD_TEXTCTRL_Shader_Speed"));
-    FlexGridSizer3->Add(TextCtrl_Shader_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText_Shader_Offset_X = new wxStaticText(this, ID_STATICTEXT4, _("Offset X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    FlexGridSizer3->Add(StaticText_Shader_Offset_X, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Shader_Offset_X = new BulkEditSlider(this, IDD_SLIDER_Shader_Offset_X, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Offset_X"));
-    FlexGridSizer3->Add(Slider_Shader_Offset_X, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Offset_X = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_X, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_X"));
-    FlexGridSizer3->Add(BitmapButton_Shader_Offset_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Shader_Offset_X = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Offset_X, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Offset_X"));
-    FlexGridSizer3->Add(TextCtrl_Shader_Offset_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_Shader_Offset_Y = new wxStaticText(this, ID_STATICTEXT5, _("Offset Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer3->Add(StaticText_Shader_Offset_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Shader_Offset_Y = new BulkEditSlider(this, IDD_SLIDER_Shader_Offset_Y, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Offset_Y"));
-    FlexGridSizer3->Add(Slider_Shader_Offset_Y, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Offset_Y = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Offset_Y, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Offset_Y"));
-    FlexGridSizer3->Add(BitmapButton_Shader_Offset_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Shader_Offset_Y = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Offset_Y, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Offset_Y"));
-    FlexGridSizer3->Add(TextCtrl_Shader_Offset_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_Shader_Zoom = new wxStaticText(this, ID_STATICTEXT6, _("Zoom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    FlexGridSizer3->Add(StaticText_Shader_Zoom, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Shader_Zoom = new BulkEditSlider(this, IDD_SLIDER_Shader_Zoom, 0, -100, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Shader_Zoom"));
-    FlexGridSizer3->Add(Slider_Shader_Zoom, 1, wxALL|wxEXPAND, 2);
-    BitmapButton_Shader_Zoom = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shader_Zoom, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shader_Zoom"));
-    FlexGridSizer3->Add(BitmapButton_Shader_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Shader_Zoom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shader_Zoom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Shader_Zoom"));
-    FlexGridSizer3->Add(TextCtrl_Shader_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer_Dynamic = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer_Dynamic->AddGrowableCol(1);
-    FlexGridSizer1->Add(FlexGridSizer_Dynamic, 1, wxALL|wxEXPAND, 2);
-    SetSizer(FlexGridSizer1);
-
-    Connect(ID_0FILEPICKERCTRL_IFS,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ShaderPanel::OnFilePickerCtrl1FileChanged);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShaderPanel::OnButton_DownloadClick);
-    //*)
-
-    // Hide the original file picker and its row - we replace with Select/x/Download + preview
-    FilePickerCtrl1->Hide();
-    StaticText1->Hide(); // "Shader File:" label
-
-    // Build top section: buttons left, preview right (like PicturesPanel)
-    auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
-    topRow->AddGrowableCol(1);
-
-    auto* buttonSizer = new wxFlexGridSizer(0, 1, 0, 0);
-    // Select + x on one row
-    auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
-    _selectButton = new wxButton(this, wxID_ANY, "Select...");
-    selectRow->Add(_selectButton, 1, wxRIGHT, 2);
-    wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
-    _clearButton = new wxBitmapButton(this, wxID_ANY, clearBmp, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-    selectRow->Add(_clearButton, 0, 0, 0);
-    buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
-    // Detach download button from its old sizer before adding to new one
-    if (auto* oldSizer = Button_Download->GetContainingSizer()) {
-        oldSizer->Detach(Button_Download);
-    }
-    buttonSizer->Add(Button_Download, 0, wxALL | wxEXPAND, 5);
-    topRow->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-    _previewBitmap = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
-    _previewBitmap->SetMinSize(wxDLG_UNIT(this, wxSize(0, 50)));
-    topRow->Add(_previewBitmap, 1, wxALL | wxEXPAND, 5);
-
-    FlexGridSizer1->Insert(0, topRow, 1, wxALL | wxEXPAND, 0);
-
-    _filenameLabel = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                                       wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
-    FlexGridSizer1->Insert(1, _filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
-
-    // Bind Select/Clear button events
-    _selectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
-        if (!xl) return;
-        SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
-        SequenceElements& elements = xl->GetSequenceElements();
-        std::string currentPath = FilePickerCtrl1->GetFileName().GetFullPath().ToStdString();
-        SelectMediaDialog dlg(this, &media, &elements,
-                              xl->GetShowDirectory(), xl, MediaType::Shader, currentPath);
-        if (dlg.ShowModal() != wxID_OK) return;
-        std::string selected = dlg.GetSelectedPath();
-        if (selected.empty()) return;
-        FilePickerCtrl1->SetFileName(wxFileName(selected));
-        // Trigger the existing file change handler
-        wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, FilePickerCtrl1, FilePickerCtrl1->GetId(), selected);
-        ProcessWindowEvent(evt);
-    });
-    _clearButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        FilePickerCtrl1->SetFileName(wxFileName());
-        wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, FilePickerCtrl1, FilePickerCtrl1->GetId(), "");
-        ProcessWindowEvent(evt);
-    });
-
-    Connect(ID_VALUECURVE_Shader_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-    Connect(ID_VALUECURVE_Shader_Offset_X, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-    Connect(ID_VALUECURVE_Shader_Offset_Y, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-    Connect(ID_VALUECURVE_Shader_Zoom, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShaderPanel::OnVCChanged, 0, this);
-    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ShaderPanel::OnValidateWindow, 0, this);
-
-    BitmapButton_Shader_Speed->GetValue()->SetLimits(SHADER_SPEED_MIN, SHADER_SPEED_MAX);
-    BitmapButton_Shader_Speed->GetValue()->SetDivisor(SHADER_SPEED_DIVISOR);
-
-    BitmapButton_Shader_Offset_X->GetValue()->SetLimits(SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX);
-    BitmapButton_Shader_Offset_Y->GetValue()->SetLimits(SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX);
-    BitmapButton_Shader_Zoom->GetValue()->SetLimits(SHADER_ZOOM_MIN, SHADER_ZOOM_MAX);
+ShaderPanel::ShaderPanel(wxWindow* parent, const nlohmann::json& metadata) :
+    JsonEffectPanel(parent, metadata, /*deferBuild*/ true) {
+    BuildFromJson(metadata);
 
     _previewTimer.SetOwner(this);
     Bind(wxEVT_TIMER, &ShaderPanel::OnPreviewTimer, this, _previewTimer.GetId());
 
-    ValidateWindow();
+    // Pause the preview timer when the panel is hidden (user switches to a
+    // different effect) and resume when it's shown again. The effect panels
+    // are cached by EffectPanelManager so the timer would otherwise keep
+    // decoding / rescaling frames for a hidden widget. Bound as a member
+    // function (not a lambda) so the destructor can Unbind it — otherwise
+    // a wxEVT_SHOW dispatched from the Win32 HWND teardown after
+    // ~ShaderPanel has already destroyed _previewFrames / _previewTimer
+    // would access destroyed members and crash on exit.
+    Bind(wxEVT_SHOW, &ShaderPanel::OnShowPanel, this);
 
 #ifndef __WXOSX__
+    // Hidden Linux GL canvas used as a context provider for the shader renderer.
+    // Created off-screen (not added to any sizer) — xLightsMain activates its
+    // GL context before doing any shader rendering.
     _preview = new ShaderPreview(this, ID_CANVAS);
+    _preview->Hide();
 #endif
-}
-
-ShaderPanel::~ShaderPanel()
-{
-    _previewTimer.Stop();
-    // _shaderConfig is owned by ShaderMediaCacheEntry, don't delete here
-    //(*Destroy(ShaderPanel)
-    //*)
-}
-
-void ShaderPanel::ValidateWindow()
-{
-    auto file = FilePickerCtrl1->GetFileName().GetFullPath();
-    bool fileExists = file.empty() || FileExists(file);
-    if (!fileExists) {
-        auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
-        if (xl) {
-            fileExists = xl->GetSequenceElements().GetSequenceMedia().HasMedia(file.ToStdString());
-        }
-    }
-    if (!file.empty() && !fileExists) {
-        FilePickerCtrl1->SetBackgroundColour(*wxRED);
-        SetToolTip("File " + file + " does not exist.");
-    } else if (!file.empty() && !IsXmlSafe(file)) {
-        FilePickerCtrl1->SetBackgroundColour(*wxYELLOW);
-        SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-    } else {
-        FilePickerCtrl1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        SetToolTip(file);
-    }
-}
-
-void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
-{
-    static wxString last = "";
-
-    // Use event path — GetFileName() on the control can lag or return empty
-    wxString fullPath = event.GetPath();
-    wxString newf = wxFileName(fullPath).GetFullName();
-    ObtainAccessToURL(fullPath.ToStdString());
-
-    // if shader name hasnt changed dont reset
-    if (newf == last) {
-        return;
-    }
 
     ValidateWindow();
-
-    // restore time to defaults
-    BitmapButton_Shader_Speed->SetActive(false);
-    BitmapButton_Shader_Offset_X->SetActive(false);
-    BitmapButton_Shader_Offset_Y->SetActive(false);
-    BitmapButton_Shader_Zoom->SetActive(false);
-    Slider_Shader_LeadIn->SetValue(0);
-    Slider_Shader_Speed->SetValue(100);
-    TextCtrl_Shader_LeadIn->SetValue("0");
-    TextCtrl_Shader_Speed->SetValue("1.0");
-    TextCtrl_Shader_Offset_X->SetValue("0");
-    TextCtrl_Shader_Offset_Y->SetValue("0");
-    TextCtrl_Shader_Zoom->SetValue("0");
-
-    if (fullPath.empty()) {
-        Freeze();
-        last = "";
-        _shaderCacheEntry.reset();
-        _shaderConfig = nullptr;
-        FlexGridSizer_Dynamic->DeleteWindows();
-        FilePickerCtrl1->UnsetToolTip();
-        Thaw();
-        CallAfter([this]() { UpdatePreview(); });
-        FireChangeEvent();
-        return;
-    }
-
-    // Resolve shader through SequenceMedia (handles relative paths and embedded shaders)
-    auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
-    auto& media = xl->GetSequenceElements().GetSequenceMedia();
-    _shaderCacheEntry = media.GetShader(fullPath.ToStdString());
-    if (!_shaderCacheEntry) {
-        _shaderConfig = nullptr;
-        return;
-    }
-    _shaderCacheEntry->MarkIsUsed();
-    if (!_shaderCacheEntry->GetShaderSource().empty()) {
-        if (BuildUI(_shaderCacheEntry.get(), &xl->GetSequenceElements())) {
-            last = newf;
-        }
-        FilePickerCtrl1->Enable(true); // force a validate
-    }
-    else {
-        Freeze();
-        last = "";
-        _shaderCacheEntry.reset();
-        _shaderConfig = nullptr;
-        FlexGridSizer_Dynamic->DeleteWindows();
-        FilePickerCtrl1->UnsetToolTip();
-        Thaw();
-    }
-    // Defer so GenerateShaderPreview's render loop doesn't re-enter event handlers
-    CallAfter([this]() { UpdatePreview(); });
-    FireChangeEvent();
 }
 
-bool ShaderPanel::BuildUI(ShaderMediaCacheEntry* shaderEntry, SequenceElements* sequenceElements)
-{
-    Freeze();
-
-    FlexGridSizer_Dynamic->DeleteWindows();
-    FilePickerCtrl1->UnsetToolTip();
-
-    // Use the cached ShaderConfig from the media entry
-    _shaderConfig = shaderEntry->GetShaderConfig(sequenceElements);
-
-    if (_shaderConfig != nullptr) {
-        wxString desc = _shaderConfig->GetDescription();
-        if (desc != "") desc += "\n";
-        if (_shaderConfig->IsCanvasShader()) {
-            desc += "Use Canvas Mode for this shader.";
-
-            // Turn on canvas mode as this really only makes sense in canvas mode
-            xLightsFrame* frame = xLightsApp::GetFrame();
-            TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
-            layerBlendingPanel->CheckBox_Canvas->SetValue(true);
-        }
-        wxString const shortName = wxFileName(_shaderConfig->GetFilename()).GetFullName();
-        FilePickerCtrl1->SetToolTip(shortName + "\n\n" + desc);
-
-        if (_shaderConfig->HasTime()) {
-            StaticText_Shader_LeadIn->Show();
-            TextCtrl_Shader_LeadIn->Show();
-            Slider_Shader_LeadIn->Show();
-            StaticText_Shader_Speed->Show();
-            TextCtrl_Shader_Speed->Show();
-            Slider_Shader_Speed->Show();
-            BitmapButton_Shader_Speed->Show();
-        }
-        else {
-            StaticText_Shader_LeadIn->Hide();
-            TextCtrl_Shader_LeadIn->Hide();
-            Slider_Shader_LeadIn->Hide();
-            StaticText_Shader_Speed->Hide();
-            TextCtrl_Shader_Speed->Hide();
-            Slider_Shader_Speed->Hide();
-            BitmapButton_Shader_Speed->Hide();
-        }
-
-        if (_shaderConfig->HasCoord()) {
-            StaticText_Shader_Offset_X->Show();
-            StaticText_Shader_Offset_Y->Show();
-            StaticText_Shader_Zoom->Show();
-            TextCtrl_Shader_Offset_X->Show();
-            TextCtrl_Shader_Offset_Y->Show();
-            TextCtrl_Shader_Zoom->Show();
-            Slider_Shader_Offset_X->Show();
-            Slider_Shader_Offset_Y->Show();
-            Slider_Shader_Zoom->Show();
-            BitmapButton_Shader_Offset_X->Show();
-            BitmapButton_Shader_Offset_Y->Show();
-            BitmapButton_Shader_Zoom->Show();
-        }
-        else {
-            StaticText_Shader_Offset_X->Hide();
-            StaticText_Shader_Offset_Y->Hide();
-            StaticText_Shader_Zoom->Hide();
-            TextCtrl_Shader_Offset_X->Hide();
-            TextCtrl_Shader_Offset_Y->Hide();
-            TextCtrl_Shader_Zoom->Hide();
-            Slider_Shader_Offset_X->Hide();
-            Slider_Shader_Offset_Y->Hide();
-            Slider_Shader_Zoom->Hide();
-            BitmapButton_Shader_Offset_X->Hide();
-            BitmapButton_Shader_Offset_Y->Hide();
-            BitmapButton_Shader_Zoom->Hide();
-        }
-
-        for (const auto& it : _shaderConfig->GetParms()) {
-            if (it.ShowParm()) {
-                if (it._type == ShaderParmType::SHADER_PARM_FLOAT) {
-                    auto staticText = new wxStaticText(this, wxNewId(), wxString(it.GetLabel()), wxDefaultPosition, wxDefaultSize, 0, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-
-                    auto sizer = new wxFlexGridSizer(0, 2, 0, 0);
-                    sizer->AddGrowableCol(0);
-
-                    auto slider = new BulkEditSliderF2(this, wxNewId(), it._default * 100, it._min * 100, it._max * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)));
-                    sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
-                    auto id = wxNewId();
-                    auto vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)));
-                    sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                    vcb->GetValue()->SetLimits(it._min * 100, it._max * 100);
-                    vcb->GetValue()->SetDivisor(100);
-                    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-
-                    FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
-
-                    auto def = wxString::Format("%.2f", it._default);
-                    auto text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)));
-                    FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-
-                    Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                    Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_LONG) {
-                    auto staticText = new wxStaticText(this, wxNewId(), wxString(it.GetLabel()), wxDefaultPosition, wxDefaultSize, 0, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-
-                    auto sizer = new wxFlexGridSizer(0, 2, 0, 0);
-                    sizer->AddGrowableCol(0);
-
-                    auto slider = new BulkEditSlider(this, wxNewId(), it._default, it._min, it._max, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)));
-                    sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
-                    auto id = wxNewId();
-                    auto vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)));
-                    sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                    vcb->GetValue()->SetLimits(it._min, it._max);
-                    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-
-                    FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
-
-                    auto def = wxString::Format("%l", (long)it._default);
-                    auto text = new BulkEditTextCtrl(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)));
-                    FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-
-                    Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                    Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_LONGCHOICE) {
-                    auto staticText = new wxStaticText(this, wxNewId(), wxString(it.GetLabel()), wxDefaultPosition, wxDefaultSize, 0, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-
-                    auto choice = new BulkEditChoice(this, wxNewId(), wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE)));
-                    for (auto it2 : it.GetChoices()) {
-                        choice->AppendString(wxString(it2));
-                    }
-                    int def = it._default;
-                    if (it._valueOptions.find(def) != it._valueOptions.end()) {
-                        choice->SetStringSelection(wxString(it._valueOptions.find(def)->second));
-                    }
-                    else {
-                        choice->SetSelection(0);
-                    }
-                    FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-                    FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-
-                    Connect(choice->GetId(), wxEVT_CHOICE, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_EVENT) {
-                    auto staticText = new wxStaticText(this, wxNewId(), wxString(it.GetLabel()), wxDefaultPosition, wxDefaultSize, 0, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-
-                    auto choice = new BulkEditChoice(this, wxNewId(), wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE)));
-                    for (auto it2 : it.GetChoices()) {
-                        choice->AppendString(wxString(it2));
-                    }
-                    choice->SetSelection(it._default);
-                    FlexGridSizer_Dynamic->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-                    FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                    Connect(choice->GetId(), wxEVT_CHOICE, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_BOOL) {
-                    auto staticText = new wxStaticText(this, wxNewId(), wxString(it.GetLabel()), wxDefaultPosition, wxDefaultSize, 0, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-                    auto checkbox = new BulkEditCheckBox(this, wxNewId(), _(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_CHECKBOX)));
-                    checkbox->SetValue(it._default == 1);
-                    FlexGridSizer_Dynamic->Add(checkbox, 1, wxALL | wxEXPAND, 2);
-                    FlexGridSizer_Dynamic->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                    Connect(checkbox->GetId(), wxEVT_CHECKBOX, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                }
-                else if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
-                    auto staticText = new wxStaticText(this, wxNewId(), wxString(it.GetLabel()) + " X", wxDefaultPosition, wxDefaultSize, 0, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)) + "X");
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-
-                    auto sizer = new wxFlexGridSizer(0, 2, 0, 0);
-                    sizer->AddGrowableCol(0);
-
-                    auto slider = new BulkEditSliderF2(this, wxNewId(), it._defaultPt.x * 100, it._minPt.x * 100, it._maxPt.x * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)) + "X");
-                    sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
-                    auto id = wxNewId();
-                    auto vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)) + "X");
-                    sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                    vcb->GetValue()->SetLimits(it._minPt.x * 100, it._maxPt.x * 100);
-                    vcb->GetValue()->SetDivisor(100);
-                    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-
-                    FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
-
-                    auto def = wxString::Format("%.2f", it._defaultPt.x);
-                    auto text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)) + "X");
-                    FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-
-                    staticText = new wxStaticText(this, wxNewId(), wxString(it.GetLabel()) + " Y", wxDefaultPosition, wxDefaultSize, 0, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)) + "Y");
-                    FlexGridSizer_Dynamic->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-
-                    sizer = new wxFlexGridSizer(0, 2, 0, 0);
-                    sizer->AddGrowableCol(0);
-
-                    Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                    Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-
-                    slider = new BulkEditSliderF2(this, wxNewId(), it._defaultPt.y * 100, it._minPt.y * 100, it._maxPt.y * 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)) + "Y");
-                    sizer->Add(slider, 1, wxALL | wxEXPAND, 2);
-                    id = wxNewId();
-                    vcb = new BulkEditValueCurveButton(this, id, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)) + "Y");
-                    sizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-                    vcb->GetValue()->SetLimits(it._minPt.y * 100, it._maxPt.y * 100);
-                    vcb->GetValue()->SetDivisor(100);
-                    Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
-
-                    FlexGridSizer_Dynamic->Add(sizer, 1, wxALL | wxEXPAND, 0);
-
-                    def = wxString::Format("%.2f", it._defaultPt.y);
-                    text = new BulkEditTextCtrlF2(this, wxNewId(), def, wxDefaultPosition, wxDLG_UNIT(this, wxSize(30, -1)), 0, wxDefaultValidator, wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)) + "Y");
-                    FlexGridSizer_Dynamic->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-
-                    Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                    Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
-                }
-            }
-        }
-    }
-    else {
-        StaticText_Shader_LeadIn->Hide();
-        TextCtrl_Shader_LeadIn->Hide();
-        Slider_Shader_LeadIn->Hide();
-        StaticText_Shader_Speed->Hide();
-        TextCtrl_Shader_Speed->Hide();
-        Slider_Shader_Speed->Hide();
-        BitmapButton_Shader_Speed->Hide();
-
-        StaticText_Shader_Offset_X->Hide();
-        StaticText_Shader_Offset_Y->Hide();
-        StaticText_Shader_Zoom->Hide();
-        TextCtrl_Shader_Offset_X->Hide();
-        TextCtrl_Shader_Offset_Y->Hide();
-        TextCtrl_Shader_Zoom->Hide();
-        TextCtrl_Shader_LeadIn->Enable(false);
-        TextCtrl_Shader_Speed->Enable(false);
-        Slider_Shader_Offset_X->Hide();
-        Slider_Shader_Offset_Y->Hide();
-        Slider_Shader_Zoom->Hide();
-        Slider_Shader_LeadIn->Enable(false);
-        Slider_Shader_Speed->Enable(false);
-        BitmapButton_Shader_Offset_X->Hide();
-        BitmapButton_Shader_Offset_Y->Hide();
-        BitmapButton_Shader_Zoom->Hide();
-        BitmapButton_Shader_Speed->Enable(false);
-    }
-
-    Layout();
-
-    SetMinSize(FlexGridSizer1->CalcMin());
-
-    wxScrolledWindow* sw = dynamic_cast<wxScrolledWindow*>(GetParent());
-    sw->FitInside();
-    sw->SetScrollRate(5, 5);
-    sw->Refresh();
-
-    Thaw();
-
-    return true;
+ShaderPanel::~ShaderPanel() {
+    Unbind(wxEVT_SHOW, &ShaderPanel::OnShowPanel, this);
+    _previewTimer.Stop();
+    // _shaderConfig is owned by ShaderMediaCacheEntry; do not delete here.
 }
 
-void ShaderPanel::OnButton_DownloadClick(wxCommandEvent& event)
-{
-    wxProgressDialog prog("Shader download", "Downloading shaders ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+void ShaderPanel::OnShowPanel(wxShowEvent& event) {
+    if (event.IsShown()) {
+        if (_previewFrames.size() > 1) {
+            size_t idx = _currentPreviewFrame < _previewFrameTimes.size() ? _currentPreviewFrame : 0;
+            long interval = (_previewFrameTimes[idx] > 0) ? _previewFrameTimes[idx] : 50;
+            _previewTimer.Start(interval);
+        }
+    } else {
+        _previewTimer.Stop();
+    }
+    event.Skip();
+}
+
+wxWindow* ShaderPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                            const nlohmann::json& prop, int cols) {
+    std::string id = prop.value("id", "");
+    if (id == "Shader_FilenameBlock") {
+        return BuildFilenameBlock(parentWin, sizer, cols);
+    }
+    if (id == "Shader_SpeedRow") {
+        return BuildSpeedRow(parentWin, sizer, cols);
+    }
+    if (id == "Shader_DynamicParams") {
+        return BuildDynamicParams(parentWin, sizer, cols);
+    }
+    return nullptr;
+}
+
+wxWindow* ShaderPanel::BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer, int cols) {
+    // Two-column block: button stack on the left, preview bitmap on the right,
+    // filename label below. Hidden file picker holds the actual path for
+    // serialization as E_0FILEPICKERCTRL_IFS (the leading 0 forces it to be
+    // loaded first so dynamic uniform controls can bind to an already-loaded
+    // shader config).
+    auto* outer = new wxFlexGridSizer(0, 1, 0, 0);
+    outer->AddGrowableCol(0);
+
+    auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
+    topRow->AddGrowableCol(1);
+
+    auto* buttonSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
+    _selectButton = new wxButton(parentWin, wxID_ANY, "Select...");
+    selectRow->Add(_selectButton, 1, wxRIGHT, 2);
+    wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
+    _clearButton = new wxBitmapButton(parentWin, wxID_ANY, clearBmp, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    selectRow->Add(_clearButton, 0, 0, 0);
+    buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
+
+    _downloadButton = new wxButton(parentWin, wxID_ANY, "Download");
+    buttonSizer->Add(_downloadButton, 0, wxALL | wxEXPAND, 5);
+    topRow->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+
+    _previewBitmap = new wxStaticBitmap(parentWin, wxID_ANY, wxNullBitmap);
+    _previewBitmap->SetMinSize(wxDLG_UNIT(parentWin, wxSize(0, 50)));
+    topRow->Add(_previewBitmap, 1, wxALL | wxEXPAND, 5);
+
+    outer->Add(topRow, 1, wxALL | wxEXPAND, 0);
+
+    _filenameLabel = new wxStaticText(parentWin, wxID_ANY, wxEmptyString,
+                                       wxDefaultPosition, wxDefaultSize,
+                                       wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
+    outer->Add(_filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
+
+    // Hidden file picker holds the actual path. The leading "0" in the control
+    // name is intentional: it makes this setting sort first alphabetically in
+    // the SettingsMap so the shader config is available when dynamic uniform
+    // settings are applied downstream.
+    _hiddenFilePicker = new BulkEditFilePickerCtrl(parentWin, wxNewId(),
+                                                    wxEmptyString,
+                                                    wxEmptyString,
+                                                    _T("*.fs"),
+                                                    wxDefaultPosition, wxDefaultSize,
+                                                    wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
+                                                    wxDefaultValidator,
+                                                    _T("ID_0FILEPICKERCTRL_IFS"));
+    _hiddenFilePicker->Hide();
+    outer->Add(_hiddenFilePicker, 0, 0, 0);
+
+    sizer->Add(outer, 1, wxALL | wxEXPAND, 2);
+
+    // Bind events
+    _selectButton->Bind(wxEVT_BUTTON, &ShaderPanel::OnSelectClicked, this);
+    _clearButton->Bind(wxEVT_BUTTON, &ShaderPanel::OnClearClicked, this);
+    _downloadButton->Bind(wxEVT_BUTTON, &ShaderPanel::OnDownloadClicked, this);
+    _hiddenFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &ShaderPanel::OnFilePickerChanged, this);
+
+    return _selectButton;
+}
+
+wxWindow* ShaderPanel::BuildSpeedRow(wxWindow* parentWin, wxSizer* sizer, int cols) {
+    // Custom Time Speed row: BulkEditSliderF2 is the primary serialized control
+    // (E_SLIDER_Shader_Speed with divisor 100) with buddy text + value curve,
+    // matching the legacy naming so old sequences round-trip. Wrap everything
+    // in a 4-col flex grid so the row matches the layout of the framework-
+    // built rows (label | slider+VC | text | spacer).
+    auto* row = new wxFlexGridSizer(0, 4, 0, 0);
+    row->AddGrowableCol(1);
+
+    _speedLabel = new wxStaticText(parentWin, wxID_ANY, "Time Speed");
+    row->Add(_speedLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+    auto* sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
+    sliderSizer->AddGrowableCol(0);
+
+    _speedSlider = new BulkEditSliderF2(parentWin, wxNewId(), 100, -1000, 1000,
+                                         wxDefaultPosition, wxDefaultSize, 0,
+                                         wxDefaultValidator,
+                                         _T("ID_SLIDER_Shader_Speed"));
+    sliderSizer->Add(_speedSlider, 1, wxALL | wxEXPAND, 2);
+
+    _speedVC = new BulkEditValueCurveButton(parentWin, wxNewId(), GetValueCurveNotSelectedBitmap(),
+                                             wxDefaultPosition, wxDefaultSize,
+                                             wxBU_AUTODRAW | wxBORDER_NONE,
+                                             wxDefaultValidator,
+                                             _T("ID_VALUECURVE_Shader_Speed"));
+    _speedVC->GetValue()->SetLimits(SHADER_SPEED_MIN, SHADER_SPEED_MAX);
+    _speedVC->GetValue()->SetDivisor(SHADER_SPEED_DIVISOR);
+    sliderSizer->Add(_speedVC, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+    row->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+    _speedText = new BulkEditTextCtrlF2(parentWin, wxNewId(), _("1.00"),
+                                         wxDefaultPosition,
+                                         wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                         0, wxDefaultValidator,
+                                         _T("IDD_TEXTCTRL_Shader_Speed"));
+    _speedText->SetMaxLength(5);
+    row->Add(_speedText, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+    row->Add(-1, -1, 1, wxALL, 1);
+
+    sizer->Add(row, 1, wxALL | wxEXPAND, 0);
+
+    // Value curve clicks go through the standard panel handler.
+    _speedVC->Bind(wxEVT_BUTTON, &ShaderPanel::OnVCButtonClick, this);
+
+    return _speedSlider;
+}
+
+wxWindow* ShaderPanel::BuildDynamicParams(wxWindow* parentWin, wxSizer* sizer, int cols) {
+    // Container for dynamic shader uniforms. Filled by BuildDynamicUI() on
+    // shader load and wiped on shader change.
+    _dynamicSizer = new wxFlexGridSizer(0, 3, 0, 0);
+    _dynamicSizer->AddGrowableCol(1);
+    sizer->Add(_dynamicSizer, 1, wxALL | wxEXPAND, 2);
+    return nullptr; // no single wxWindow to return; sizer has no placeholder
+}
+
+void ShaderPanel::OnSelectClicked(wxCommandEvent& /*event*/) {
+    auto* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
+    if (xl == nullptr || _hiddenFilePicker == nullptr) return;
+
+    SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
+    SequenceElements& elements = xl->GetSequenceElements();
+    std::string currentPath = _hiddenFilePicker->GetFileName().GetFullPath().ToStdString();
+    SelectMediaDialog dlg(this, &media, &elements, xl->GetShowDirectory(), xl,
+                          MediaType::Shader, currentPath);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    std::string selected = dlg.GetSelectedPath();
+    if (selected.empty()) return;
+
+    _hiddenFilePicker->SetFileName(wxFileName(selected));
+    wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
+                             _hiddenFilePicker->GetId(), selected);
+    ProcessWindowEvent(evt);
+}
+
+void ShaderPanel::OnClearClicked(wxCommandEvent& /*event*/) {
+    if (_hiddenFilePicker == nullptr) return;
+    _hiddenFilePicker->SetFileName(wxFileName());
+    wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
+                             _hiddenFilePicker->GetId(), "");
+    ProcessWindowEvent(evt);
+}
+
+void ShaderPanel::OnDownloadClicked(wxCommandEvent& /*event*/) {
+    wxProgressDialog prog("Shader download", "Downloading shaders ...", 100, this,
+                          wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prog.Show();
     ShaderDownloadDialog dlg(this);
     SetCursor(wxCURSOR_WAIT);
     if (dlg.DlgInit(&prog, 0, 100)) {
         prog.Update(100);
         SetCursor(wxCURSOR_DEFAULT);
-        if (dlg.ShowModal() == wxID_OK) {
-            FilePickerCtrl1->SetFileName(wxFileName(dlg.GetShaderFile()));
-            wxFileDirPickerEvent e(wxEVT_COMMAND_FILEPICKER_CHANGED, FilePickerCtrl1, ID_0FILEPICKERCTRL_IFS, FilePickerCtrl1->GetFileName().GetFullPath());
+        if (dlg.ShowModal() == wxID_OK && _hiddenFilePicker) {
+            _hiddenFilePicker->SetFileName(wxFileName(dlg.GetShaderFile()));
+            wxFileDirPickerEvent e(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
+                                   _hiddenFilePicker->GetId(),
+                                   _hiddenFilePicker->GetFileName().GetFullPath());
             wxPostEvent(this, e);
-            FireChangeEvent();
         }
-    }
-    else {
+    } else {
         SetCursor(wxCURSOR_DEFAULT);
     }
 }
 
-void ShaderPanel::SetDefaultParameters()
-{
-    // Release the shader cache entry ref and clear the config pointer
-    _shaderCacheEntry.reset();
+void ShaderPanel::OnFilePickerChanged(wxFileDirPickerEvent& event) {
+    static wxString last = "";
+
+    wxString fullPath = event.GetPath();
+    wxString newf = wxFileName(fullPath).GetFullName();
+    ObtainAccessToURL(fullPath.ToStdString());
+
+    // If shader name hasn't changed, don't reset parameters.
+    if (newf == last) return;
+
+    ValidateWindow();
+
+    // Reset time / coordinate parameters to defaults on shader change.
+    if (_speedVC) _speedVC->SetActive(false);
+    if (_speedSlider) _speedSlider->SetValue(100);
+    if (_speedText) _speedText->SetValue("1.0");
+
+    auto resetVC = [this](const char* name) {
+        if (auto* vc = dynamic_cast<BulkEditValueCurveButton*>(
+                wxWindow::FindWindowByName(name, this))) {
+            vc->SetActive(false);
+        }
+    };
+    auto resetText = [this](const char* name, const wxString& value) {
+        if (auto* txt = dynamic_cast<wxTextCtrl*>(
+                wxWindow::FindWindowByName(name, this))) {
+            txt->SetValue(value);
+        }
+    };
+    resetVC("ID_VALUECURVE_Shader_Offset_X");
+    resetVC("ID_VALUECURVE_Shader_Offset_Y");
+    resetVC("ID_VALUECURVE_Shader_Zoom");
+    resetText("ID_TEXTCTRL_Shader_LeadIn", "0");
+    resetText("ID_TEXTCTRL_Shader_Offset_X", "0");
+    resetText("ID_TEXTCTRL_Shader_Offset_Y", "0");
+    resetText("ID_TEXTCTRL_Shader_Zoom", "0");
+
+    if (fullPath.empty()) {
+        Freeze();
+        last = "";
+        _shaderCacheEntry.reset();
+        _shaderConfig = nullptr;
+        ClearDynamicUI();
+        if (_hiddenFilePicker) _hiddenFilePicker->UnsetToolTip();
+        Thaw();
+        CallAfter([this]() { UpdatePreview(); });
+        FireChangeEvent();
+        return;
+    }
+
+    // Resolve shader through SequenceMedia (handles relative paths + embedded shaders).
+    // Null out the config pointer first — it's owned by the current cache
+    // entry and the reassignment below may drop the last ref, freeing the
+    // config we'd otherwise leave dangling if we return early.
+    auto* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
+    if (xl == nullptr) return;
     _shaderConfig = nullptr;
+    auto& media = xl->GetSequenceElements().GetSequenceMedia();
+    _shaderCacheEntry = media.GetShader(fullPath.ToStdString());
+    if (!_shaderCacheEntry) {
+        return;
+    }
+    _shaderCacheEntry->MarkIsUsed();
+    if (!_shaderCacheEntry->GetShaderSource().empty()) {
+        ApplyShaderConfig(/*resetParams*/ true);
+        last = newf;
+        if (_hiddenFilePicker) _hiddenFilePicker->Enable(true); // trigger a re-validate
+    } else {
+        Freeze();
+        last = "";
+        _shaderCacheEntry.reset();
+        _shaderConfig = nullptr;
+        ClearDynamicUI();
+        if (_hiddenFilePicker) _hiddenFilePicker->UnsetToolTip();
+        Thaw();
+    }
 
-    BitmapButton_Shader_Speed->SetActive(false);
-    BitmapButton_Shader_Offset_X->SetActive(false);
-    BitmapButton_Shader_Offset_Y->SetActive(false);
-    BitmapButton_Shader_Zoom->SetActive(false);
+    // Defer so GenerateShaderPreview's render loop doesn't re-enter event handlers.
+    CallAfter([this]() { UpdatePreview(); });
+    FireChangeEvent();
+}
 
-    SetSliderValue(Slider_Shader_LeadIn, 0);
-    SetSliderValue(Slider_Shader_Speed, 100);
-    FilePickerCtrl1->SetFileName(wxFileName());
-    SetSliderValue(Slider_Shader_Offset_X, 0);
-    SetSliderValue(Slider_Shader_Offset_Y, 0);
-    SetSliderValue(Slider_Shader_Zoom, 0);
+void ShaderPanel::ClearDynamicUI() {
+    if (_dynamicSizer) {
+        _dynamicSizer->Clear(/*delete_windows*/ true);
+    }
+}
+
+void ShaderPanel::ApplyShaderConfig(bool resetParams) {
+    if (_shaderCacheEntry == nullptr) return;
+
+    auto* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
+    if (xl == nullptr) return;
+
+    Freeze();
+
+    ClearDynamicUI();
+    if (_hiddenFilePicker) _hiddenFilePicker->UnsetToolTip();
+
+    _shaderConfig = _shaderCacheEntry->GetShaderConfig(&xl->GetSequenceElements());
 
     if (_shaderConfig != nullptr) {
-        for (const auto& it : _shaderConfig->GetParms()) {
-            if (it.ShowParm()) {
-                if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
-                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X";
-                    wxWindow *c = FindWindow(wxString(id));
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                    id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y";
-                    c = FindWindow(wxString(id));
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                } else {
-                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE);
-                    wxWindow *c = FindWindow(wxString(id));
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                }
+        wxString desc = _shaderConfig->GetDescription();
+        if (desc != "") desc += "\n";
+        if (_shaderConfig->IsCanvasShader()) {
+            desc += "Use Canvas Mode for this shader.";
+            TimingPanel* layerBlendingPanel = xl->GetLayerBlendingPanel();
+            layerBlendingPanel->CheckBox_Canvas->SetValue(true);
+        }
+        wxString const shortName = wxFileName(_shaderConfig->GetFilename()).GetFullName();
+        if (_hiddenFilePicker) _hiddenFilePicker->SetToolTip(shortName + "\n\n" + desc);
+
+        ShowHideStaticControls(_shaderConfig->HasTime(), _shaderConfig->HasCoord());
+
+        BuildDynamicUI();
+    } else {
+        ShowHideStaticControls(false, false);
+    }
+
+    Layout();
+
+    if (auto* sw = dynamic_cast<wxScrolledWindow*>(GetParent())) {
+        sw->FitInside();
+        sw->SetScrollRate(5, 5);
+        sw->Refresh();
+    }
+
+    Thaw();
+}
+
+void ShaderPanel::ShowHideStaticControls(bool hasTime, bool hasCoord) {
+    // Helper: show/hide framework-built rows by looking up each of the four
+    // controls the framework generates for an int-slider row (label, slider,
+    // text, optional value-curve button).
+    auto showRow = [this](const char* id, bool show, bool hasVC) {
+        auto* label = wxWindow::FindWindowByName(wxString("ID_STATICTEXT_") + id, this);
+        auto* slider = wxWindow::FindWindowByName(wxString("IDD_SLIDER_") + id, this);
+        auto* text = wxWindow::FindWindowByName(wxString("ID_TEXTCTRL_") + id, this);
+        auto* vc = hasVC ? wxWindow::FindWindowByName(wxString("ID_VALUECURVE_") + id, this) : nullptr;
+        if (label) label->Show(show);
+        if (slider) slider->Show(show);
+        if (text) text->Show(show);
+        if (vc) vc->Show(show);
+    };
+
+    showRow("Shader_LeadIn", hasTime, /*hasVC*/ false);
+    if (_speedLabel) _speedLabel->Show(hasTime);
+    if (_speedSlider) _speedSlider->Show(hasTime);
+    if (_speedText) _speedText->Show(hasTime);
+    if (_speedVC) _speedVC->Show(hasTime);
+
+    showRow("Shader_Offset_X", hasCoord, /*hasVC*/ true);
+    showRow("Shader_Offset_Y", hasCoord, /*hasVC*/ true);
+    showRow("Shader_Zoom", hasCoord, /*hasVC*/ true);
+}
+
+void ShaderPanel::BuildDynamicUI() {
+    if (_shaderConfig == nullptr || _dynamicSizer == nullptr) return;
+
+    wxWindow* parentWin = _dynamicSizer->GetContainingWindow();
+    if (parentWin == nullptr) parentWin = this;
+
+    for (const auto& it : _shaderConfig->GetParms()) {
+        if (!it.ShowParm()) continue;
+
+        if (it._type == ShaderParmType::SHADER_PARM_FLOAT) {
+            auto* staticText = new wxStaticText(parentWin, wxNewId(), wxString(it.GetLabel()),
+                                                 wxDefaultPosition, wxDefaultSize, 0,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
+            _dynamicSizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+            auto* sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
+            sliderSizer->AddGrowableCol(0);
+
+            auto* slider = new BulkEditSliderF2(parentWin, wxNewId(),
+                                                 it._default * 100, it._min * 100, it._max * 100,
+                                                 wxDefaultPosition, wxDefaultSize, 0,
+                                                 wxDefaultValidator,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)));
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+
+            auto vcId = wxNewId();
+            auto* vcb = new BulkEditValueCurveButton(parentWin, vcId, GetValueCurveNotSelectedBitmap(),
+                                                      wxDefaultPosition, wxDefaultSize,
+                                                      wxBU_AUTODRAW | wxNO_BORDER,
+                                                      wxDefaultValidator,
+                                                      wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)));
+            sliderSizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+            vcb->GetValue()->SetLimits(it._min * 100, it._max * 100);
+            vcb->GetValue()->SetDivisor(100);
+            Connect(vcId, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
+
+            _dynamicSizer->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+            auto def = wxString::Format("%.2f", it._default);
+            auto* text = new BulkEditTextCtrlF2(parentWin, wxNewId(), def,
+                                                 wxDefaultPosition,
+                                                 wxDLG_UNIT(parentWin, wxSize(30, -1)), 0,
+                                                 wxDefaultValidator,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)));
+            _dynamicSizer->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+            Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+            Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (it._type == ShaderParmType::SHADER_PARM_LONG) {
+            auto* staticText = new wxStaticText(parentWin, wxNewId(), wxString(it.GetLabel()),
+                                                 wxDefaultPosition, wxDefaultSize, 0,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
+            _dynamicSizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+            auto* sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
+            sliderSizer->AddGrowableCol(0);
+
+            auto* slider = new BulkEditSlider(parentWin, wxNewId(),
+                                               it._default, it._min, it._max,
+                                               wxDefaultPosition, wxDefaultSize, 0,
+                                               wxDefaultValidator,
+                                               wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)));
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+
+            auto vcId = wxNewId();
+            auto* vcb = new BulkEditValueCurveButton(parentWin, vcId, GetValueCurveNotSelectedBitmap(),
+                                                      wxDefaultPosition, wxDefaultSize,
+                                                      wxBU_AUTODRAW | wxNO_BORDER,
+                                                      wxDefaultValidator,
+                                                      wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)));
+            sliderSizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+            vcb->GetValue()->SetLimits(it._min, it._max);
+            Connect(vcId, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
+
+            _dynamicSizer->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+            auto def = wxString::Format("%ld", (long)it._default);
+            auto* text = new BulkEditTextCtrl(parentWin, wxNewId(), def,
+                                               wxDefaultPosition,
+                                               wxDLG_UNIT(parentWin, wxSize(30, -1)), 0,
+                                               wxDefaultValidator,
+                                               wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)));
+            _dynamicSizer->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+            Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+            Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (it._type == ShaderParmType::SHADER_PARM_LONGCHOICE) {
+            auto* staticText = new wxStaticText(parentWin, wxNewId(), wxString(it.GetLabel()),
+                                                 wxDefaultPosition, wxDefaultSize, 0,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
+            _dynamicSizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+            auto* choice = new BulkEditChoice(parentWin, wxNewId(),
+                                               wxDefaultPosition, wxDefaultSize, 0, 0, 0,
+                                               wxDefaultValidator,
+                                               wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE)));
+            for (const auto& opt : it.GetChoices()) {
+                choice->AppendString(wxString(opt));
             }
+            int def = it._default;
+            if (it._valueOptions.find(def) != it._valueOptions.end()) {
+                choice->SetStringSelection(wxString(it._valueOptions.find(def)->second));
+            } else {
+                choice->SetSelection(0);
+            }
+            _dynamicSizer->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+            _dynamicSizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+            Connect(choice->GetId(), wxEVT_CHOICE, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (it._type == ShaderParmType::SHADER_PARM_EVENT) {
+            auto* staticText = new wxStaticText(parentWin, wxNewId(), wxString(it.GetLabel()),
+                                                 wxDefaultPosition, wxDefaultSize, 0,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
+            _dynamicSizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+            auto* choice = new BulkEditChoice(parentWin, wxNewId(),
+                                               wxDefaultPosition, wxDefaultSize, 0, 0, 0,
+                                               wxDefaultValidator,
+                                               wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_CHOICE)));
+            for (const auto& opt : it.GetChoices()) {
+                choice->AppendString(wxString(opt));
+            }
+            choice->SetSelection(it._default);
+            _dynamicSizer->Add(choice, 1, wxTOP | wxBOTTOM | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+            _dynamicSizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+            Connect(choice->GetId(), wxEVT_CHOICE, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (it._type == ShaderParmType::SHADER_PARM_BOOL) {
+            auto* staticText = new wxStaticText(parentWin, wxNewId(), wxString(it.GetLabel()),
+                                                 wxDefaultPosition, wxDefaultSize, 0,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)));
+            _dynamicSizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+            auto* checkbox = new BulkEditCheckBox(parentWin, wxNewId(), _(""),
+                                                   wxDefaultPosition, wxDefaultSize, 0,
+                                                   wxDefaultValidator,
+                                                   wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_CHECKBOX)));
+            checkbox->SetValue(it._default == 1);
+            _dynamicSizer->Add(checkbox, 1, wxALL | wxEXPAND, 2);
+            _dynamicSizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+            Connect(checkbox->GetId(), wxEVT_CHECKBOX, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
+            // X
+            auto* staticText = new wxStaticText(parentWin, wxNewId(),
+                                                 wxString(it.GetLabel()) + " X",
+                                                 wxDefaultPosition, wxDefaultSize, 0,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)) + "X");
+            _dynamicSizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+            auto* sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
+            sliderSizer->AddGrowableCol(0);
+
+            auto* slider = new BulkEditSliderF2(parentWin, wxNewId(),
+                                                 it._defaultPt.x * 100, it._minPt.x * 100, it._maxPt.x * 100,
+                                                 wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)) + "X");
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+
+            auto vcIdX = wxNewId();
+            auto* vcb = new BulkEditValueCurveButton(parentWin, vcIdX, GetValueCurveNotSelectedBitmap(),
+                                                      wxDefaultPosition, wxDefaultSize,
+                                                      wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator,
+                                                      wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)) + "X");
+            sliderSizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+            vcb->GetValue()->SetLimits(it._minPt.x * 100, it._maxPt.x * 100);
+            vcb->GetValue()->SetDivisor(100);
+            Connect(vcIdX, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
+
+            _dynamicSizer->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+            auto def = wxString::Format("%.2f", it._defaultPt.x);
+            auto* text = new BulkEditTextCtrlF2(parentWin, wxNewId(), def,
+                                                 wxDefaultPosition,
+                                                 wxDLG_UNIT(parentWin, wxSize(30, -1)), 0,
+                                                 wxDefaultValidator,
+                                                 wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)) + "X");
+            _dynamicSizer->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+            Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+            Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+
+            // Y
+            staticText = new wxStaticText(parentWin, wxNewId(),
+                                           wxString(it.GetLabel()) + " Y",
+                                           wxDefaultPosition, wxDefaultSize, 0,
+                                           wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_STATIC)) + "Y");
+            _dynamicSizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+            sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
+            sliderSizer->AddGrowableCol(0);
+
+            slider = new BulkEditSliderF2(parentWin, wxNewId(),
+                                           it._defaultPt.y * 100, it._minPt.y * 100, it._maxPt.y * 100,
+                                           wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                           wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_SLIDER)) + "Y");
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+
+            auto vcIdY = wxNewId();
+            vcb = new BulkEditValueCurveButton(parentWin, vcIdY, GetValueCurveNotSelectedBitmap(),
+                                                wxDefaultPosition, wxDefaultSize,
+                                                wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator,
+                                                wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE)) + "Y");
+            sliderSizer->Add(vcb, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+            vcb->GetValue()->SetLimits(it._minPt.y * 100, it._maxPt.y * 100);
+            vcb->GetValue()->SetDivisor(100);
+            Connect(vcIdY, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderPanel::OnVCButtonClick);
+
+            _dynamicSizer->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+            def = wxString::Format("%.2f", it._defaultPt.y);
+            text = new BulkEditTextCtrlF2(parentWin, wxNewId(), def,
+                                           wxDefaultPosition,
+                                           wxDLG_UNIT(parentWin, wxSize(30, -1)), 0,
+                                           wxDefaultValidator,
+                                           wxString(it.GetId(ShaderCtrlType::SHADER_CTRL_TEXTCTRL)) + "Y");
+            _dynamicSizer->Add(text, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+            Connect(text->GetId(), wxEVT_TEXT, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+            Connect(slider->GetId(), wxEVT_SLIDER, (wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
         }
     }
 }
 
-void ShaderPanel::UpdatePreview()
-{
+void ShaderPanel::ValidateWindow() {
+    JsonEffectPanel::ValidateWindow();
+
+    if (_hiddenFilePicker == nullptr) return;
+
+    wxString file = _hiddenFilePicker->GetFileName().GetFullPath();
+    bool fileExists = file.empty() || FileExists(file);
+    if (!fileExists) {
+        auto* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
+        if (xl) {
+            fileExists = xl->GetSequenceElements().GetSequenceMedia().HasMedia(file.ToStdString());
+        }
+    }
+    if (!file.empty() && !fileExists) {
+        _hiddenFilePicker->SetBackgroundColour(*wxRED);
+        SetToolTip("File " + file + " does not exist.");
+    } else if (!file.empty() && !IsXmlSafe(file)) {
+        _hiddenFilePicker->SetBackgroundColour(*wxYELLOW);
+        SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+    } else {
+        _hiddenFilePicker->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        SetToolTip(file);
+    }
+}
+
+void ShaderPanel::SetDefaultParameters() {
+    JsonEffectPanel::SetDefaultParameters();
+
+    _shaderCacheEntry.reset();
+    _shaderConfig = nullptr;
+
+    if (_speedVC) _speedVC->SetActive(false);
+    if (_speedSlider) _speedSlider->SetValue(100);
+    if (_speedText) _speedText->SetValue("1.00");
+
+    if (_hiddenFilePicker) _hiddenFilePicker->SetFileName(wxFileName());
+
+    auto resetVC = [this](const char* name) {
+        if (auto* vc = dynamic_cast<BulkEditValueCurveButton*>(
+                wxWindow::FindWindowByName(name, this))) {
+            vc->SetActive(false);
+        }
+    };
+    resetVC("ID_VALUECURVE_Shader_Offset_X");
+    resetVC("ID_VALUECURVE_Shader_Offset_Y");
+    resetVC("ID_VALUECURVE_Shader_Zoom");
+
+    ClearDynamicUI();
+}
+
+void ShaderPanel::UpdatePreview() {
     _previewTimer.Stop();
     _previewFrames.clear();
     _previewFrameTimes.clear();
@@ -680,14 +725,13 @@ void ShaderPanel::UpdatePreview()
 
     if (!_previewBitmap) return;
 
-    auto file = FilePickerCtrl1->GetFileName().GetFullPath().ToStdString();
+    std::string file = _hiddenFilePicker ? _hiddenFilePicker->GetFileName().GetFullPath().ToStdString() : "";
     if (_filenameLabel) _filenameLabel->SetLabel(file);
     if (file.empty()) {
         _previewBitmap->SetBitmap(wxNullBitmap);
         return;
     }
 
-    // Find xLightsFrame via parent chain
     xLightsFrame* xl = nullptr;
     wxWindow* w = GetParent();
     while (w) {
@@ -697,7 +741,6 @@ void ShaderPanel::UpdatePreview()
     }
     if (!xl) return;
 
-    // Look up shader through SequenceMedia (handles embedded and relative paths)
     SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
     auto entry = media.GetShader(file);
     if (!entry || entry->GetShaderSource().empty()) {
@@ -705,7 +748,6 @@ void ShaderPanel::UpdatePreview()
         return;
     }
 
-    // Generate and cache shader preview frames (rendered with default parameters)
     GenerateShaderPreview(entry.get(), xl);
 
     for (size_t i = 0; i < entry->GetPreviewFrameCount(); i++) {
@@ -715,9 +757,9 @@ void ShaderPanel::UpdatePreview()
 
     if (_previewFrames.empty()) return;
 
-    // Ensure the sizer has run so _previewBitmap->GetSize() is valid before scaling
-    if (_previewBitmap->GetSize().x <= 0)
+    if (_previewBitmap->GetSize().x <= 0) {
         Layout();
+    }
 
     ShowPreviewFrame(0);
 
@@ -727,8 +769,7 @@ void ShaderPanel::UpdatePreview()
     }
 }
 
-void ShaderPanel::OnPreviewTimer(wxTimerEvent& event)
-{
+void ShaderPanel::OnPreviewTimer(wxTimerEvent& /*event*/) {
     if (_previewFrames.empty()) {
         _previewTimer.Stop();
         return;
@@ -742,8 +783,7 @@ void ShaderPanel::OnPreviewTimer(wxTimerEvent& event)
     _previewTimer.Start(interval);
 }
 
-void ShaderPanel::ShowPreviewFrame(size_t index)
-{
+void ShaderPanel::ShowPreviewFrame(size_t index) {
     if (index >= _previewFrames.size() || !_previewFrames[index] || !_previewFrames[index]->IsOk()) return;
 
     const auto& img = _previewFrames[index];
@@ -771,6 +811,7 @@ void ShaderPanel::ShowPreviewFrame(size_t index)
     _previewBitmap->InvalidateBestSize();
     _previewBitmap->Refresh();
     _previewBitmap->Update();
-    if (_previewBitmap->GetParent())
+    if (_previewBitmap->GetParent()) {
         _previewBitmap->GetParent()->Layout();
+    }
 }

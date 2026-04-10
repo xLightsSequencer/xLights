@@ -16,6 +16,7 @@
 #include <string_view>
 #include "xLightsMain.h"
 #include "ui/sequencer/BufferPanel.h"
+#include "render/ValueCurveConsts.h"
 #include "utils/ExternalHooks.h"
 
 //(*InternalHeaders(BufferSizeDialog)

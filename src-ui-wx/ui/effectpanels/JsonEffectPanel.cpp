@@ -84,29 +84,64 @@ JsonEffectPanel::JsonEffectPanel(wxWindow* parent, const nlohmann::json& metadat
 JsonEffectPanel::~JsonEffectPanel() {
 }
 
+wxSize JsonEffectPanel::DoGetBestClientSize() const {
+    // When scrollable, return a small default so the panel (and the AUI
+    // pane that hosts it) computes its minimum from this rather than from
+    // the sizer's CalcMin() — which would include the natural height of
+    // every row and prevent the user from resizing the pane smaller than
+    // the whole content. The inner scroll window handles overflow.
+    if (contentParent_ != nullptr && contentParent_ != this) {
+        return wxSize(50, 50);
+    }
+    return wxPanel::DoGetBestClientSize();
+}
+
 void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
+    if (metadata.is_null() || !metadata.is_object()) {
+        spdlog::warn("JsonEffectPanel: BuildFromJson called with null/invalid metadata - panel will be empty");
+        return;
+    }
     std::string effectName = metadata.value("effectName", "Unknown");
 
     // Collect property ids that are owned by groups (tabs, xyCenter, section).
+    // Tabs and sections each anchor at the index of their first listed
+    // property in the overall property list, so they interleave naturally
+    // with ungrouped flat-grid properties in source order. (Pre-fix, tabs
+    // were always emitted at the top — that broke layouts like Liquid where
+    // a notebook follows a block of global settings.)
     std::set<std::string> groupedPropIds;
-    nlohmann::json tabGroup;
-    bool hasTabs = false;
     std::vector<nlohmann::json> xyCenterGroups;
-    // Sections keyed by their insertion index — the position of the first listed
-    // property in the overall property list — so sections can be interleaved with
-    // flat-grid properties in source order.
-    std::map<int, nlohmann::json> sectionsByFirstIndex;
+    enum class GroupKind { Tabs, Section };
+    struct AnchoredGroup {
+        GroupKind kind;
+        nlohmann::json group;
+    };
+    std::map<int, AnchoredGroup> groupsByFirstIndex;
+
+    auto findFirstIndex = [&metadata](const std::set<std::string>& propIds) -> int {
+        if (!metadata.contains("properties")) return -1;
+        int idx = 0;
+        for (const auto& prop : metadata["properties"]) {
+            if (propIds.count(prop.value("id", ""))) return idx;
+            idx++;
+        }
+        return -1;
+    };
 
     if (metadata.contains("groups")) {
         for (const auto& group : metadata["groups"]) {
             std::string gtype = group.value("type", "");
             if (gtype == "tabs") {
-                hasTabs = true;
-                tabGroup = group;
+                std::set<std::string> tabPropIds;
                 for (const auto& tab : group["tabs"]) {
                     for (const auto& pid : tab["properties"]) {
+                        tabPropIds.insert(pid.get<std::string>());
                         groupedPropIds.insert(pid.get<std::string>());
                     }
+                }
+                int firstIdx = findFirstIndex(tabPropIds);
+                if (firstIdx >= 0) {
+                    groupsByFirstIndex[firstIdx] = {GroupKind::Tabs, group};
                 }
             } else if (gtype == "xyCenter") {
                 xyCenterGroups.push_back(group);
@@ -115,27 +150,14 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
                 if (group.contains("wrapX")) groupedPropIds.insert(group["wrapX"].get<std::string>());
                 if (group.contains("wrapY")) groupedPropIds.insert(group["wrapY"].get<std::string>());
             } else if (gtype == "section" && group.contains("properties")) {
-                // Record the section's property ids and locate its first
-                // property in the overall list; that index becomes the
-                // section's insertion point in the flat layout.
                 std::set<std::string> sectionPropIds;
                 for (const auto& pid : group["properties"]) {
                     sectionPropIds.insert(pid.get<std::string>());
                     groupedPropIds.insert(pid.get<std::string>());
                 }
-                int firstIdx = -1;
-                if (metadata.contains("properties")) {
-                    int idx = 0;
-                    for (const auto& prop : metadata["properties"]) {
-                        if (sectionPropIds.count(prop.value("id", ""))) {
-                            firstIdx = idx;
-                            break;
-                        }
-                        idx++;
-                    }
-                }
+                int firstIdx = findFirstIndex(sectionPropIds);
                 if (firstIdx >= 0) {
-                    sectionsByFirstIndex[firstIdx] = group;
+                    groupsByFirstIndex[firstIdx] = {GroupKind::Section, group};
                 }
             }
         }
@@ -147,91 +169,178 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
         descText = metadata["description"].get<std::string>();
     }
 
-    if (hasTabs) {
-        // Tabbed layout
-        auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
-        outerSizer->AddGrowableCol(0);
-        if (!descText.empty()) {
-            auto* desc = new wxStaticText(this, wxID_ANY, wxString(descText));
-            desc->Wrap(300);
-            outerSizer->Add(desc, 0, wxALL | wxEXPAND, 5);
-        }
-        BuildTabGroup(outerSizer, tabGroup, metadata);
-        SetSizer(outerSizer);
-    } else {
-        // Flat or mixed layout
-        // Check if we need a 1-column outer sizer (for XY groups, sections, separators, or description)
-        bool hasXY = !xyCenterGroups.empty();
-        bool hasSections = !sectionsByFirstIndex.empty();
-        bool hasSeparator = false;
+    // Single unified layout pass: walks the property list in declared order,
+    // emitting tabs/sections inline at their anchor index and putting the
+    // rest into flat grids. Always uses an outer 1-col sizer when the panel
+    // has anything that breaks out of the flat grid.
+    bool hasXY = !xyCenterGroups.empty();
+    bool hasGroups = !groupsByFirstIndex.empty();
+    bool hasSeparator = false;
+    bool hasFullWidthCustom = false;
+    if (metadata.contains("properties")) {
         for (const auto& prop : metadata["properties"]) {
-            if (prop.value("separator", false)) { hasSeparator = true; break; }
+            if (prop.value("separator", false)) { hasSeparator = true; }
+            if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false)) {
+                hasFullWidthCustom = true;
+            }
         }
-        bool needsOuter = hasXY || hasSections || hasSeparator || !descText.empty();
+    }
+    bool needsOuter = hasXY || hasGroups || hasSeparator || !descText.empty() || hasFullWidthCustom;
 
-        auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
-        outerSizer->AddGrowableCol(0);
+    // When the metadata requests a scrollable panel, create a wxScrolledWindow
+    // as a child of the panel and use it as contentParent_ for all subsequent
+    // child creation. The panel itself gets a 1-item sizer hosting the scroll
+    // window so small panel sizes show scroll bars instead of clipping.
+    contentParent_ = this;
+    bool scrollable = metadata.value("scrollable", false);
+    if (scrollable) {
+        auto* scrollWin = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition,
+                                                wxDefaultSize, wxVSCROLL | wxHSCROLL);
+        scrollWin->SetScrollRate(5, 5);
+        // Cap the scroll window's min size to a small value so it doesn't
+        // propagate the content's natural size up to the panel. Without this,
+        // wxWidgets uses the content's CalcMin() as the scroll window's min
+        // size, which in turn becomes the panel's min size and prevents the
+        // user from resizing the panel below that — the scroll bars never
+        // appear because the window can't shrink below its content.
+        scrollWin->SetMinSize(wxSize(50, 50));
+        contentParent_ = scrollWin;
 
-        // Description appears at the top, matching tabbed layout.
-        if (!descText.empty()) {
-            auto* descLabel = new wxStaticText(this, wxID_ANY, wxString(descText));
-            descLabel->Wrap(300);
-            outerSizer->Add(descLabel, 0, wxALL | wxEXPAND, 5);
-        }
+        auto* panelSizer = new wxFlexGridSizer(0, 1, 0, 0);
+        panelSizer->AddGrowableCol(0);
+        panelSizer->AddGrowableRow(0);
+        panelSizer->Add(scrollWin, 1, wxALL | wxEXPAND, 0);
+        SetSizer(panelSizer);
+    }
 
-        auto* gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
-        gridSizer->AddGrowableCol(1);
+    auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    outerSizer->AddGrowableCol(0);
 
-        // Helper: flush the current flat grid into the outer sizer (if it has
-        // anything) and hand back a fresh grid to continue with.
-        auto flushGrid = [&]() {
-            if (gridSizer->GetItemCount() > 0) {
-                outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
-            } else {
-                delete gridSizer;
-            }
-            gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
-            gridSizer->AddGrowableCol(1);
-        };
+    if (!descText.empty()) {
+        auto* descLabel = new wxStaticText(contentParent_, wxID_ANY, wxString(descText));
+        descLabel->Wrap(300);
+        outerSizer->Add(descLabel, 0, wxALL | wxEXPAND, 5);
+    }
 
-        // Build properties into the grid, flushing and emitting sections at
-        // the position of each section's first property. Skips properties
-        // that are owned by groups (tabs/xyCenter/section).
-        int propIndex = 0;
-        for (const auto& prop : metadata["properties"]) {
-            // Insert any section that anchors at this position before emitting
-            // the next flat property.
-            auto secIt = sectionsByFirstIndex.find(propIndex);
-            if (secIt != sectionsByFirstIndex.end()) {
-                flushGrid();
-                BuildSection(outerSizer, secIt->second, metadata["properties"]);
-            }
-            propIndex++;
+    auto* gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
+    gridSizer->AddGrowableCol(1);
 
-            std::string pid = prop.value("id", "");
-            if (groupedPropIds.find(pid) != groupedPropIds.end()) continue;
-
-            if (prop.value("separator", false) && needsOuter) {
-                flushGrid();
-                auto* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-                outerSizer->Add(line, 0, wxALL | wxEXPAND, 5);
-            }
-            BuildPropertyRow(this, gridSizer, prop, 4);
-        }
-
-        if (needsOuter) {
-            // Flush any trailing flat grid contents into the outer sizer.
-            if (gridSizer->GetItemCount() > 0) {
-                outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
-            } else {
-                delete gridSizer;
-            }
-            for (const auto& xyGroup : xyCenterGroups) {
-                BuildXYCenter(this, outerSizer, xyGroup, metadata["properties"]);
-            }
-            SetSizer(outerSizer);
+    auto flushGrid = [&]() {
+        if (gridSizer->GetItemCount() > 0) {
+            outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
         } else {
-            delete outerSizer;
+            delete gridSizer;
+        }
+        gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
+        gridSizer->AddGrowableCol(1);
+    };
+
+    // Helper: does any property inside this group's tabs have growable:true?
+    // If yes, the group's row in the outer sizer must also be growable so
+    // the growable child has vertical space to expand into.
+    auto groupHasGrowableChild = [&](const nlohmann::json& group) {
+        if (group.value("type", "") != "tabs") return false;
+        if (!group.contains("tabs")) return false;
+        std::map<std::string, nlohmann::json> propLookup;
+        for (const auto& p : metadata.value("properties", nlohmann::json::array())) {
+            propLookup[p.value("id", "")] = p;
+        }
+        for (const auto& tab : group["tabs"]) {
+            for (const auto& pid : tab["properties"]) {
+                auto it = propLookup.find(pid.get<std::string>());
+                if (it != propLookup.end() && it->second.value("growable", false)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    int propIndex = 0;
+    for (const auto& prop : metadata.value("properties", nlohmann::json::array())) {
+        // Insert any tabs/section that anchors at this position before
+        // emitting the next flat property.
+        auto groupIt = groupsByFirstIndex.find(propIndex);
+        if (groupIt != groupsByFirstIndex.end()) {
+            flushGrid();
+            if (groupIt->second.kind == GroupKind::Tabs) {
+                BuildTabGroup(outerSizer, groupIt->second.group, metadata);
+                // Propagate growability: if any property inside the tabs
+                // is marked growable, the notebook's row in outerSizer must
+                // stretch vertically to give the tab page extra space.
+                if (groupHasGrowableChild(groupIt->second.group)) {
+                    int rowIdx = (int)outerSizer->GetItemCount() - 1;
+                    if (rowIdx >= 0) outerSizer->AddGrowableRow(rowIdx);
+                }
+            } else {
+                BuildSection(outerSizer, groupIt->second.group, metadata["properties"]);
+            }
+        }
+        propIndex++;
+
+        std::string pid = prop.value("id", "");
+        if (groupedPropIds.find(pid) != groupedPropIds.end()) continue;
+
+        if (prop.value("separator", false) && needsOuter) {
+            flushGrid();
+            auto* line = new wxStaticLine(contentParent_, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+            outerSizer->Add(line, 0, wxALL | wxEXPAND, 5);
+        }
+
+        // Full-width custom properties break out of the 4-col grid so their
+        // single-item sizer.Add() spans the panel width. Without this, the
+        // custom only fills one of four grid columns and the next property's
+        // controls leak into the same row.
+        if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false) && needsOuter) {
+            flushGrid();
+            BuildPropertyRow(contentParent_, outerSizer, prop, 1);
+            continue;
+        }
+
+        BuildPropertyRow(contentParent_, gridSizer, prop, 4);
+    }
+
+    if (needsOuter) {
+        if (gridSizer->GetItemCount() > 0) {
+            outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+        } else {
+            delete gridSizer;
+        }
+        // Skip xyCenter groups whose xProperty is owned by a tab page —
+        // BuildTabGroup already emits the XY layout inside the tab itself.
+        // Without this filter, panels like Pictures (which have xyCenter
+        // groups for the Start Position / End Position tab contents) would
+        // show the XY controls twice: once inside the tab and again as a
+        // floating block at the bottom of the panel.
+        std::set<std::string> tabbedXyXIds;
+        if (metadata.contains("groups")) {
+            for (const auto& g : metadata["groups"]) {
+                if (g.value("type", "") != "tabs") continue;
+                for (const auto& tab : g["tabs"]) {
+                    for (const auto& pid : tab["properties"]) {
+                        tabbedXyXIds.insert(pid.get<std::string>());
+                    }
+                }
+            }
+        }
+        for (const auto& xyGroup : xyCenterGroups) {
+            std::string xId = xyGroup.value("xProperty", "");
+            if (tabbedXyXIds.count(xId)) continue;
+            BuildXYCenter(contentParent_, outerSizer, xyGroup, metadata["properties"]);
+        }
+        // When we created a scroll wrapper, the outer sizer lives on the
+        // scrolled window, not on the panel itself (which already has a
+        // 1-item sizer hosting the scroll window).
+        if (contentParent_ != this) {
+            contentParent_->SetSizer(outerSizer);
+        } else {
+            SetSizer(outerSizer);
+        }
+    } else {
+        delete outerSizer;
+        if (contentParent_ != this) {
+            contentParent_->SetSizer(gridSizer);
+        } else {
             SetSizer(gridSizer);
         }
     }
@@ -266,6 +375,10 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
             }
             if (it->second.textCtrl) {
                 it->second.textCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.comboBox) {
+                it->second.comboBox->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+                it->second.comboBox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
             }
         }
     }
@@ -302,12 +415,34 @@ void JsonEffectPanel::BuildTabGroup(wxSizer* parentSizer, const nlohmann::json& 
                                      const nlohmann::json& metadata) {
     const auto& allProps = metadata["properties"];
 
-    // Create the notebook
+    // Create the notebook. The name prefix controls serialization behavior:
+    //   "ID_NOTEBOOK" — serializer records the active page text as a setting
+    //   "IDD_NOTEBOOK" — serializer skips the selection (still recurses into pages)
+    // JSON tab groups can set "persistSelection": false to get the IDD_ variant,
+    // which is what the shared Timing/Buffer panels want.
     std::string settingKey = group.value("settingKey", "");
-    std::string notebookName = settingKey.empty() ? "ID_NOTEBOOK" : ("ID_" + settingKey.substr(2)); // E_NOTEBOOK_X -> ID_NOTEBOOK_X
+    bool persistSelection = group.value("persistSelection", true);
+    std::string notebookName;
+    if (settingKey.empty()) {
+        notebookName = persistSelection ? "ID_NOTEBOOK" : "IDD_NOTEBOOK";
+    } else {
+        // settingKey is typically "E_NOTEBOOK_X" from effect panels; strip the
+        // 2-char prefix and re-prepend ID_ or IDD_ depending on persistSelection.
+        notebookName = (persistSelection ? "ID_" : "IDD_") + settingKey.substr(2);
+    }
     wxWindowID notebookId = wxNewId();
-    auto* notebook = new wxNotebook(this, notebookId, wxDefaultPosition, wxDefaultSize, 0, wxString(notebookName));
+    auto* notebook = new wxNotebook(contentParent_ ? contentParent_ : this, notebookId,
+                                     wxDefaultPosition, wxDefaultSize, 0, wxString(notebookName));
     notebook->SetName(wxString(notebookName));
+    // When the tabs group itself is scrollable (per-tab scroll), cap the
+    // notebook's min size so the tallest tab page doesn't dictate the panel's
+    // minimum height — the inner scrolled pages will handle overflow.
+    // Do NOT cap when only root-level scrolling is active: the root scroll
+    // needs the notebook's natural size to know when to show scrollbars.
+    bool tabsScrollable = group.value("scrollable", false);
+    if (tabsScrollable) {
+        notebook->SetMinSize(wxSize(50, 50));
+    }
 
     // Build a lookup of property id -> property json
     std::map<std::string, nlohmann::json> propLookup;
@@ -341,7 +476,20 @@ void JsonEffectPanel::BuildTabGroup(wxSizer* parentSizer, const nlohmann::json& 
     // Create pages
     for (const auto& tab : group["tabs"]) {
         std::string tabLabel = tab.value("label", "");
-        auto* page = new wxPanel(notebook, wxID_ANY);
+        // Per-tab scroll: each page is a wxScrolledWindow so the tallest tab
+        // doesn't dictate the notebook's minimum height — the scrollbars show
+        // up inside the page when the user drags the panel smaller. Legacy
+        // BufferPanel uses this pattern (ScrolledWindow1/2 inside Panel3/4).
+        wxPanel* page = nullptr;
+        if (tabsScrollable) {
+            auto* sp = new wxScrolledWindow(notebook, wxID_ANY, wxDefaultPosition,
+                                             wxDefaultSize, wxVSCROLL | wxHSCROLL);
+            sp->SetScrollRate(5, 5);
+            sp->SetMinSize(wxSize(50, 50));
+            page = sp;
+        } else {
+            page = new wxPanel(notebook, wxID_ANY);
+        }
 
         // Check if this tab contains xyCenter properties
         // If so, use a 1-col outer sizer to stack grid + XY
@@ -386,46 +534,93 @@ void JsonEffectPanel::BuildTabGroup(wxSizer* parentSizer, const nlohmann::json& 
             }
             page->SetSizer(pageOuterSizer);
         } else {
-            // Simple tab: all grid properties
-            auto* pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
-            pageSizer->AddGrowableCol(1);
-
+            // Check for fullWidth custom properties in this tab — they need to
+            // break out of the 4-col grid or subsequent rows will leak into
+            // the unfilled columns.
+            bool tabHasFullWidthCustom = false;
             for (const auto& propId : tab["properties"]) {
-                std::string id = propId.get<std::string>();
-                auto it = propLookup.find(id);
-                if (it != propLookup.end()) {
-                    BuildPropertyRow(page, pageSizer, it->second, 4);
+                auto it = propLookup.find(propId.get<std::string>());
+                if (it == propLookup.end()) continue;
+                if (it->second.value("controlType", "") == "custom" &&
+                    it->second.value("fullWidth", false)) {
+                    tabHasFullWidthCustom = true;
+                    break;
+                }
+                if (it->second.value("growable", false)) {
+                    tabHasFullWidthCustom = true;
+                    break;
                 }
             }
-            page->SetSizer(pageSizer);
+
+            if (tabHasFullWidthCustom) {
+                // Mixed tab: alternate grid segments and full-width customs
+                // the same way the outer flat walk does.
+                auto* pageOuterSizer = new wxFlexGridSizer(0, 1, 0, 0);
+                pageOuterSizer->AddGrowableCol(0);
+                auto* pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+                pageSizer->AddGrowableCol(1);
+
+                auto flushTabGrid = [&]() {
+                    if (pageSizer->GetItemCount() > 0) {
+                        pageOuterSizer->Add(pageSizer, 0, wxALL | wxEXPAND, 0);
+                    } else {
+                        delete pageSizer;
+                    }
+                    pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+                    pageSizer->AddGrowableCol(1);
+                };
+
+                for (const auto& propId : tab["properties"]) {
+                    std::string id = propId.get<std::string>();
+                    auto it = propLookup.find(id);
+                    if (it == propLookup.end()) continue;
+                    bool isFullWidth = it->second.value("controlType", "") == "custom" &&
+                                        it->second.value("fullWidth", false);
+                    bool isGrowable = it->second.value("growable", false);
+                    if (isFullWidth || isGrowable) {
+                        flushTabGrid();
+                        BuildPropertyRow(page, pageOuterSizer, it->second, 1);
+                        // A growable custom row gets its flex-grid row marked
+                        // growable so it expands to fill remaining vertical
+                        // space on the tab page (e.g. Buffer panel's SubBuffer
+                        // live preview stretches to fill the Buffer tab).
+                        if (isGrowable) {
+                            int rowIdx = (int)pageOuterSizer->GetItemCount() - 1;
+                            if (rowIdx >= 0) pageOuterSizer->AddGrowableRow(rowIdx);
+                        }
+                    } else {
+                        BuildPropertyRow(page, pageSizer, it->second, 4);
+                    }
+                }
+                if (pageSizer->GetItemCount() > 0) {
+                    pageOuterSizer->Add(pageSizer, 0, wxALL | wxEXPAND, 0);
+                } else {
+                    delete pageSizer;
+                }
+                page->SetSizer(pageOuterSizer);
+            } else {
+                // Simple tab: all grid properties
+                auto* pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+                pageSizer->AddGrowableCol(1);
+
+                for (const auto& propId : tab["properties"]) {
+                    std::string id = propId.get<std::string>();
+                    auto it = propLookup.find(id);
+                    if (it != propLookup.end()) {
+                        BuildPropertyRow(page, pageSizer, it->second, 4);
+                    }
+                }
+                page->SetSizer(pageSizer);
+            }
         }
 
         notebook->AddPage(page, wxString(tabLabel));
     }
 
     parentSizer->Add(notebook, 1, wxALL | wxEXPAND, 0);
-
-    // Add any properties that aren't in any tab (e.g., properties below the notebook)
-    bool hasUntabbed = false;
-    for (const auto& prop : allProps) {
-        std::string id = prop.value("id", "");
-        if (tabbedPropIds.find(id) == tabbedPropIds.end()) {
-            hasUntabbed = true;
-            break;
-        }
-    }
-
-    if (hasUntabbed) {
-        auto* belowSizer = new wxFlexGridSizer(0, 4, 0, 0);
-        belowSizer->AddGrowableCol(1);
-        for (const auto& prop : allProps) {
-            std::string id = prop.value("id", "");
-            if (tabbedPropIds.find(id) == tabbedPropIds.end()) {
-                BuildPropertyRow(this, belowSizer, prop, 4);
-            }
-        }
-        parentSizer->Add(belowSizer, 0, wxALL | wxEXPAND, 0);
-    }
+    // Untabbed properties used to be emitted below the notebook here, but
+    // they're now handled by the unified flat walk in BuildFromJson which
+    // emits this notebook at the index of its first listed property.
 }
 
 void JsonEffectPanel::BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer,
@@ -640,7 +835,7 @@ void JsonEffectPanel::BuildSection(wxSizer* parentSizer, const nlohmann::json& g
     // If a label is provided wrap the section in a wxStaticBoxSizer so it
     // reads visually as a grouped region, otherwise just use a plain grid.
     wxSizer* contentSizer = nullptr;
-    wxWindow* parentWin = this;
+    wxWindow* parentWin = contentParent_ ? contentParent_ : this;
 
     wxFlexGridSizer* innerGrid = new wxFlexGridSizer(0, columns, 0, 0);
     if (columns >= 2) {
@@ -652,7 +847,9 @@ void JsonEffectPanel::BuildSection(wxSizer* parentSizer, const nlohmann::json& g
     }
 
     if (!label.empty()) {
-        auto* boxSizer = new wxStaticBoxSizer(wxVERTICAL, this, wxString(label));
+        // Parent the static box to contentParent_ (the scroll window when
+        // the panel is scrollable) so the frame scrolls with its contents.
+        auto* boxSizer = new wxStaticBoxSizer(wxVERTICAL, parentWin, wxString(label));
         boxSizer->Add(innerGrid, 1, wxALL | wxEXPAND, 2);
         parentSizer->Add(boxSizer, 0, wxALL | wxEXPAND, 5);
     } else {
@@ -938,7 +1135,18 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 choice->SetSelection(0);
             }
         }
-        sizer->Add(choice, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        // By default choices stay at their natural (shortest-entry) width
+        // so static lists don't stretch awkwardly. Set "expandToFill": true
+        // on the JSON property for dynamically-populated choices (e.g. Buffer
+        // panel Render Style / Camera) where entries arrive at runtime and
+        // can otherwise get truncated with "..." despite a growable column.
+        int choiceFlags = wxALL | wxALIGN_CENTER_VERTICAL;
+        if (prop.value("expandToFill", false)) {
+            choiceFlags |= wxEXPAND;
+        } else {
+            choiceFlags |= wxALIGN_LEFT;
+        }
+        sizer->Add(choice, 1, choiceFlags, 5);
 
         // Columns 3+4: spacers (choices don't have buddy text or usually lock)
         if (cols >= 3) {
@@ -995,14 +1203,43 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                              wxDefaultSize, 0, wxString(labelName));
         sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
-        // Column 2: Text control
+        // Column 2: Text control. If "commonValues" is provided, build as a
+        // BulkEditComboBox with those entries in the dropdown — used by the
+        // Timing panel's fade time fields where 0.5 / 1.0 / 2.0 are common.
         std::string ctrlName = "ID_TEXTCTRL_" + id;
         wxWindowID ctrlId = wxNewId();
-        auto* textCtrl = new BulkEditTextCtrl(parentWin, ctrlId, wxString(defaultVal),
-                                               wxDefaultPosition, wxDefaultSize, 0,
-                                               wxDefaultValidator, wxString(ctrlName));
-        info.textCtrl = textCtrl;
-        sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 2);
+        if (prop.contains("commonValues") && prop["commonValues"].is_array() && !prop["commonValues"].empty()) {
+            // BulkEditComboBox's constructor asserts when non-null choices are
+            // passed directly (see BulkEditControls.cpp:297). The legacy usage
+            // pattern is: construct empty, then AppendDefault + Append for each
+            // item so _defaultOptions tracks the list for later PopulateComboBox
+            // refreshes. Match that here.
+            auto* combo = new BulkEditComboBox(parentWin, ctrlId, wxString(defaultVal),
+                                                wxDefaultPosition, wxDefaultSize,
+                                                0, nullptr, 0,
+                                                wxDefaultValidator, wxString(ctrlName));
+            for (const auto& v : prop["commonValues"]) {
+                std::string item;
+                if (v.is_string()) {
+                    item = v.get<std::string>();
+                } else if (v.is_number()) {
+                    item = wxString::Format("%g", v.get<double>()).ToStdString();
+                } else {
+                    continue;
+                }
+                combo->AppendDefault(item);
+                combo->Append(wxString(item));
+            }
+            combo->SetValue(wxString(defaultVal));
+            info.comboBox = combo;
+            sizer->Add(combo, 1, wxALL | wxEXPAND, 2);
+        } else {
+            auto* textCtrl = new BulkEditTextCtrl(parentWin, ctrlId, wxString(defaultVal),
+                                                   wxDefaultPosition, wxDefaultSize, 0,
+                                                   wxDefaultValidator, wxString(ctrlName));
+            info.textCtrl = textCtrl;
+            sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 2);
+        }
 
         // Columns 3+4: spacers
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
@@ -1051,9 +1288,25 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         info.fontPicker = picker;
         sizer->Add(picker, 1, wxALL | wxEXPAND, 2);
 
-        // Columns 3+4: spacers
+        // Column 3: spacer
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
-        if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+        // Column 4: Lock button (matches legacy ID_BITMAPBUTTON_FONTPICKER_<id>
+        // naming used by Text panel so old saved sequences round-trip).
+        if (cols >= 4) {
+            if (isLockable) {
+                std::string lockName = "ID_BITMAPBUTTON_FONTPICKER_" + id;
+                wxWindowID lockId = wxNewId();
+                auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
+                                                  wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                                  wxString(lockName));
+                lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+                sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
+                        (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
+            } else {
+                sizer->Add(-1, -1, 1, wxALL, 1);
+            }
+        }
 
     } else if (controlType == "colourpicker") {
         std::string defaultColor = prop.value("default", "#FFFFFF");
@@ -1151,6 +1404,16 @@ void JsonEffectPanel::ParseVisibilityRules(const nlohmann::json& metadata) {
                     vr.conditionOneOf.push_back(v.get<std::string>());
                 }
             }
+            if (when.contains("notOneOf")) {
+                vr.conditionOneOfInverted = true;
+                for (const auto& v : when["notOneOf"]) {
+                    vr.conditionOneOf.push_back(v.get<std::string>());
+                }
+            }
+            if (when.contains("greaterThan")) {
+                vr.conditionHasGreaterThan = true;
+                vr.conditionGreaterThan = when["greaterThan"].get<double>();
+            }
             if (when.contains("startsWith")) {
                 vr.conditionStartsWith = when["startsWith"].get<std::string>();
             }
@@ -1183,6 +1446,7 @@ wxWindow* JsonEffectPanel::FindControlForProperty(const std::string& propId) {
     const auto& info = it->second;
     if (info.slider) return info.slider;
     if (info.textCtrl) return info.textCtrl;
+    if (info.comboBox) return info.comboBox;
     if (info.checkBox) return info.checkBox;
     if (info.choice) return info.choice;
     if (info.spinCtrl) return info.spinCtrl;
@@ -1221,15 +1485,32 @@ void JsonEffectPanel::ApplyVisibilityRules() {
                 } else if (info.choice) {
                     std::string sel = info.choice->GetStringSelection().ToStdString();
                     if (!rule.conditionOneOf.empty()) {
+                        bool inList = false;
                         for (const auto& v : rule.conditionOneOf) {
-                            if (sel == v) { conditionMet = true; break; }
+                            if (sel == v) { inList = true; break; }
                         }
+                        conditionMet = rule.conditionOneOfInverted ? !inList : inList;
                     } else if (!rule.conditionStartsWith.empty()) {
                         conditionMet = sel.find(rule.conditionStartsWith) == 0;
                     } else if (!rule.conditionStringEquals.empty()) {
                         conditionMet = rule.conditionEquals ? (sel == rule.conditionStringEquals)
                                                              : (sel != rule.conditionStringEquals);
                     }
+                } else if (info.textCtrl && rule.conditionHasGreaterThan) {
+                    // Numeric-text condition: compare the control's current
+                    // value against the threshold using strtod so bad input
+                    // doesn't throw (matching the codebase's no-exception rule).
+                    wxString text = info.textCtrl->GetValue();
+                    double value = std::strtod(text.ToStdString().c_str(), nullptr);
+                    conditionMet = value > rule.conditionGreaterThan;
+                } else if (info.comboBox && rule.conditionHasGreaterThan) {
+                    wxString text = info.comboBox->GetValue();
+                    double value = std::strtod(text.ToStdString().c_str(), nullptr);
+                    conditionMet = value > rule.conditionGreaterThan;
+                } else if (info.spinCtrl && rule.conditionHasGreaterThan) {
+                    conditionMet = static_cast<double>(info.spinCtrl->GetValue()) > rule.conditionGreaterThan;
+                } else if (info.slider && rule.conditionHasGreaterThan) {
+                    conditionMet = static_cast<double>(info.slider->GetValue()) > rule.conditionGreaterThan;
                 }
             }
         }
@@ -1245,6 +1526,8 @@ void JsonEffectPanel::ApplyVisibilityRules() {
                     if (it2->second.buddyText) it2->second.buddyText->Enable(enabled);
                     if (it2->second.textCtrl && ctrl != it2->second.textCtrl)
                         it2->second.textCtrl->Enable(enabled);
+                    if (it2->second.comboBox && ctrl != it2->second.comboBox)
+                        it2->second.comboBox->Enable(enabled);
                     if (it2->second.valueCurveBtn) it2->second.valueCurveBtn->Enable(enabled);
                 }
             }
@@ -1264,6 +1547,8 @@ void JsonEffectPanel::ApplyVisibilityRules() {
                 if (it2->second.buddyText) it2->second.buddyText->Show(visible);
                 if (it2->second.textCtrl && ctrl != it2->second.textCtrl)
                     it2->second.textCtrl->Show(visible);
+                if (it2->second.comboBox && ctrl != it2->second.comboBox)
+                    it2->second.comboBox->Show(visible);
                 if (it2->second.valueCurveBtn) it2->second.valueCurveBtn->Show(visible);
 
                 // Hide the sibling label so the row doesn't leave an orphan cell.
@@ -1339,6 +1624,8 @@ wxString JsonEffectPanel::GetEffectString() {
             isDefault = info.spinCtrl->GetValue() == info.defaultValue.get<int>();
         } else if (info.controlType == "text" && info.textCtrl) {
             isDefault = info.textCtrl->GetValue().ToStdString() == info.defaultValue.get<std::string>();
+        } else if (info.controlType == "text" && info.comboBox) {
+            isDefault = info.comboBox->GetValue().ToStdString() == info.defaultValue.get<std::string>();
         }
 
         if (isDefault) {
@@ -1516,6 +1803,16 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
     }
 }
 
+JsonEffectPanel::PropertyInfo* JsonEffectPanel::GetPropertyInfo(const std::string& propId) {
+    auto it = properties_.find(propId);
+    return it == properties_.end() ? nullptr : &it->second;
+}
+
+const JsonEffectPanel::PropertyInfo* JsonEffectPanel::GetPropertyInfo(const std::string& propId) const {
+    auto it = properties_.find(propId);
+    return it == properties_.end() ? nullptr : &it->second;
+}
+
 void JsonEffectPanel::SetDefaultParameters() {
     // Deactivate all value curves
     for (auto& [id, info] : properties_) {
@@ -1559,11 +1856,13 @@ void JsonEffectPanel::SetDefaultParameters() {
                 SetSpinValue(info.spinCtrl, info.defaultValue.get<int>());
             }
         } else if (info.controlType == "text") {
-            if (info.textCtrl) {
-                std::string def = info.defaultValue.get<std::string>();
-                // Skip empty default for text controls for the same reason.
-                if (!def.empty()) {
+            std::string def = info.defaultValue.get<std::string>();
+            // Skip empty default for text controls for the same reason.
+            if (!def.empty()) {
+                if (info.textCtrl) {
                     SetTextValue(info.textCtrl, def);
+                } else if (info.comboBox) {
+                    info.comboBox->SetValue(wxString(def));
                 }
             }
         }
