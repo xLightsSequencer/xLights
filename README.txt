@@ -44,6 +44,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
                                     using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
+    -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
 2026.05  April 9, 2026
     -enh (AGFazio)              Add face definition matrix previews
     -enh (derwin12)             Limit preset GIF output to 250 frames to prevent large gifs
