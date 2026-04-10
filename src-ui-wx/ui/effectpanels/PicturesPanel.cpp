@@ -144,10 +144,14 @@ wxWindow* PicturesPanel::BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer)
     // Hidden text control holds the path. Named to match legacy
     // ID_TEXTCTRL_Pictures_Filename so GetEffectStringFromWindow writes
     // E_TEXTCTRL_Pictures_Filename — what PicturesEffect::Render reads.
+    // Added to the outer sizer so it participates in layout ownership like
+    // every other control the builder creates; wxRESERVE_SPACE_EVEN_IF_HIDDEN
+    // is omitted so it consumes no visual space.
     _filenameCtrl = new wxTextCtrl(parentWin, wxNewId(), wxEmptyString,
                                     wxDefaultPosition, wxDefaultSize, 0,
                                     wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Filename"));
     _filenameCtrl->Hide();
+    outer->Add(_filenameCtrl, 0, 0, 0);
 
     sizer->Add(outer, 1, wxALL | wxEXPAND, 0);
 

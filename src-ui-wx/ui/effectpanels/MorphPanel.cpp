@@ -29,6 +29,21 @@
 #include "UtilFunctions.h"
 
 namespace {
+// Quick Set preset table shared between the inline panel handler and the
+// MorphQuickSet bulk-edit popup. Value order matches:
+// Start_X1, Start_X2, End_X1, End_X2, Start_Y1, Start_Y2, End_Y1, End_Y2.
+struct MorphPreset { const char* name; const char* values[8]; };
+static const MorphPreset MORPH_PRESETS[] = {
+    {"Full Sweep Up",     {"0","100","0","100","0","0","100","100"}},
+    {"Full Sweep Down",   {"0","100","0","100","100","100","0","0"}},
+    {"Full Sweep Left",   {"100","100","0","0","0","100","0","100"}},
+    {"Full Sweep Right",  {"0","0","100","100","0","100","0","100"}},
+    {"Single Sweep Up",   {"0","0","0","0","0","0","100","100"}},
+    {"Single Sweep Down", {"0","0","0","0","100","100","0","0"}},
+    {"Single Sweep Left", {"100","100","0","0","0","0","0","0"}},
+    {"Single Sweep Right",{"0","0","100","100","0","0","0","0"}},
+};
+
 // MorphQuickSet is a BulkEditChoice subclass that provides the bulk-edit popup
 // for the Quick Set preset list. On bulk-edit it applies the preset across
 // all selected Morph effects in addition to the local panel.
@@ -70,19 +85,7 @@ public:
         SetSelection(dlg.GetSelection());
         std::string value = GetString(dlg.GetSelection()).ToStdString();
 
-        struct Preset { const char* name; const char* values[8]; };
-        // Order matches Start_X1, Start_X2, End_X1, End_X2, Start_Y1, Start_Y2, End_Y1, End_Y2.
-        static const Preset presets[] = {
-            {"Full Sweep Up",     {"0","100","0","100","0","0","100","100"}},
-            {"Full Sweep Down",   {"0","100","0","100","100","100","0","0"}},
-            {"Full Sweep Left",   {"100","100","0","0","0","100","0","100"}},
-            {"Full Sweep Right",  {"0","0","100","100","0","100","0","100"}},
-            {"Single Sweep Up",   {"0","0","0","0","0","0","100","100"}},
-            {"Single Sweep Down", {"0","0","0","0","100","100","0","0"}},
-            {"Single Sweep Left", {"100","100","0","0","0","0","0","0"}},
-            {"Single Sweep Right",{"0","0","100","100","0","0","0","0"}},
-        };
-        for (const auto& p : presets) {
+        for (const auto& p : MORPH_PRESETS) {
             if (value != p.name) continue;
             ApplyEffectSetting("E_SLIDER_Morph_Start_X1", p.values[0]);
             ApplyEffectSetting("E_SLIDER_Morph_Start_X2", p.values[1]);
@@ -238,19 +241,7 @@ void MorphPanel::OnQuickSetSelect(wxCommandEvent& event) {
     if (_quickSetChoice == nullptr) return;
     wxString value = _quickSetChoice->GetStringSelection();
 
-    struct Preset { const char* name; const char* values[8]; };
-    // Order: Start_X1, Start_X2, End_X1, End_X2, Start_Y1, Start_Y2, End_Y1, End_Y2.
-    static const Preset presets[] = {
-        {"Full Sweep Up",     {"0","100","0","100","0","0","100","100"}},
-        {"Full Sweep Down",   {"0","100","0","100","100","100","0","0"}},
-        {"Full Sweep Left",   {"100","100","0","0","0","100","0","100"}},
-        {"Full Sweep Right",  {"0","0","100","100","0","100","0","100"}},
-        {"Single Sweep Up",   {"0","0","0","0","0","0","100","100"}},
-        {"Single Sweep Down", {"0","0","0","0","100","100","0","0"}},
-        {"Single Sweep Left", {"100","100","0","0","0","0","0","0"}},
-        {"Single Sweep Right",{"0","0","100","100","0","0","0","0"}},
-    };
-    for (const auto& p : presets) {
+    for (const auto& p : MORPH_PRESETS) {
         if (value != p.name) continue;
         if (_textStartX1) _textStartX1->SetValue(p.values[0]);
         if (_textStartX2) _textStartX2->SetValue(p.values[1]);

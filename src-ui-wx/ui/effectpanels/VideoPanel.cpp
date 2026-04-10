@@ -300,11 +300,19 @@ void VideoPanel::OnMatchVideoDurationClick(wxCommandEvent& /*event*/) {
     // Has to be dispatched up to xLightsFrame — the panel can't change its
     // own effect's duration directly.
     if (!_hiddenFilePicker) return;
-    wxCommandEvent e(EVT_SET_EFFECT_DURATION);
     wxFileName fn = _hiddenFilePicker->GetFileName();
     ObtainAccessToURL(fn.GetFullPath().ToStdString());
-    auto duration = _videoTimeCache[fn.GetFullPath().ToStdString()];
+
+    unsigned long duration = 0;
+    {
+        std::unique_lock<std::mutex> locker(_videoTimeLock);
+        auto it = _videoTimeCache.find(fn.GetFullPath().ToStdString());
+        if (it != _videoTimeCache.end()) {
+            duration = it->second;
+        }
+    }
     if (duration > 0) {
+        wxCommandEvent e(EVT_SET_EFFECT_DURATION);
         e.SetString("Video");
         e.SetInt(duration);
         wxPostEvent(wxTheApp->GetTopWindow(), e);

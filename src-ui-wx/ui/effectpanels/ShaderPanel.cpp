@@ -335,12 +335,15 @@ void ShaderPanel::OnFilePickerChanged(wxFileDirPickerEvent& event) {
     }
 
     // Resolve shader through SequenceMedia (handles relative paths + embedded shaders).
+    // Null out the config pointer first — it's owned by the current cache
+    // entry and the reassignment below may drop the last ref, freeing the
+    // config we'd otherwise leave dangling if we return early.
     auto* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
     if (xl == nullptr) return;
+    _shaderConfig = nullptr;
     auto& media = xl->GetSequenceElements().GetSequenceMedia();
     _shaderCacheEntry = media.GetShader(fullPath.ToStdString());
     if (!_shaderCacheEntry) {
-        _shaderConfig = nullptr;
         return;
     }
     _shaderCacheEntry->MarkIsUsed();
