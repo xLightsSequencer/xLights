@@ -1484,7 +1484,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/ServoConfigDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShaderDownloadDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ShaderPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShapePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShockwavePanel.wxs" />
@@ -1715,7 +1714,6 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/JukeboxPanel.wxs" src="../src-ui-wx/ui/media/JukeboxPanel.cpp" hdr="../src-ui-wx/ui/media/JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/WarpPanel.wxs" src="../src-ui-wx/ui/effectpanels/WarpPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/ViewObjectPanel.wxs" src="../src-ui-wx/ui/layout/ViewObjectPanel.cpp" hdr="../src-ui-wx/ui/layout/ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ShaderPanel.wxs" src="../src-ui-wx/ui/effectpanels/ShaderPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/BackupSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/BackupSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/CheckSequenceSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/ViewSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/ViewSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
