@@ -1421,7 +1421,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(pugi::xml_node 
             zone.pan_max = n.attribute("PanMax").as_int(255);
             zone.tilt_min = n.attribute("TiltMin").as_int(0);
             zone.tilt_max = n.attribute("TiltMax").as_int(255);
-            zone.channel = n.attribute("Channel").as_int(0);
+            zone.channel = std::max(1, n.attribute("Channel").as_int(1));
             zone.value = (uint8_t)n.attribute("Value").as_int(0);
             model->AddPositionZone(zone);
         }

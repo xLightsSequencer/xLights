@@ -1587,7 +1587,7 @@ void RenderEngine::SignalAbort() {
     }
 }
 
-// RenderGridToSeqData � moved to RenderUI.cpp (creates WxRenderProgressSink)
+// RenderGridToSeqData - moved to RenderUI.cpp (creates WxRenderProgressSink)
 
 static Effect* GetPersistentEffectOnModelStartingAtTime(SequenceElements& seqElements, const std::string& model, uint32_t startms) {
     Element* e = seqElements.GetElement(model);

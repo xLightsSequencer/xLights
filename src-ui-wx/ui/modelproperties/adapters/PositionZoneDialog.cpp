@@ -17,7 +17,7 @@ BEGIN_EVENT_TABLE(PositionZoneDialog,wxDialog)
     //*)
 END_EVENT_TABLE()
 
-PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindow* parent, wxWindowID id) : _zones(zones) {
+PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindow* parent) : _zones(zones) {
     //(*Initialize(PositionZoneDialog)
     wxFlexGridSizer* FlexGridSizer2;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
@@ -57,6 +57,15 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
     Connect(ID_BUTTON_AddZone, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PositionZoneDialog::OnButton_AddZoneClick);
     Connect(ID_BUTTON_DeleteZone, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PositionZoneDialog::OnButton_DeleteZoneClick);
     //*)
+
+    // restrict all columns to integer input
+    Grid_Zones->SetDefaultEditor(new wxGridCellNumberEditor());
+    Grid_Zones->SetColFormatNumber(0);
+    Grid_Zones->SetColFormatNumber(1);
+    Grid_Zones->SetColFormatNumber(2);
+    Grid_Zones->SetColFormatNumber(3);
+    Grid_Zones->SetColFormatNumber(4);
+    Grid_Zones->SetColFormatNumber(5);
 
     for (const auto& zone : _zones) {
         int row = Grid_Zones->GetNumberRows();

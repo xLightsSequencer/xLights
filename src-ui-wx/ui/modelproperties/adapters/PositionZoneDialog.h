@@ -13,7 +13,7 @@ class PositionZoneDialog: public wxDialog
 {
     public:
 
-        PositionZoneDialog(std::vector<PositionZone>& zones, wxWindow* parent, wxWindowID id = wxID_ANY);
+        PositionZoneDialog(std::vector<PositionZone>& zones, wxWindow* parent);
         virtual ~PositionZoneDialog();
 
         //(*Declarations(PositionZoneDialog)
