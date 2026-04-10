@@ -622,14 +622,14 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
     // create missing shapes
     if (useTiming) {
-        if (mSequenceElements == nullptr) {
+        if (GetSequenceElements(buffer) == nullptr) {
             // no timing tracks ... this shouldnt happen
         } else {
             // Load the names of the timing tracks
             Element* t = nullptr;
-            for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
+            for (size_t l = 0; l < GetSequenceElements(buffer)->GetElementCount(); l++)
             {
-                Element* e = mSequenceElements->GetElement(l);
+                Element* e = GetSequenceElements(buffer)->GetElement(l);
                 if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
                 {
                     if (e->GetName() == timing)

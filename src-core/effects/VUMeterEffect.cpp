@@ -1179,7 +1179,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
     {
         if (start + i >= 0)
         {
-            Effect* timing = GetTimingEvent(timingtrack, (start + i) * buffer.frameTimeInMs, filter, regex);
+            Effect* timing = GetTimingEvent(buffer, timingtrack, (start + i) * buffer.frameTimeInMs, filter, regex);
             if (timing != nullptr && timing->GetStartTimeMS() == (start + i) * buffer.frameTimeInMs)
             {
                 timingmarks.remove(start + i);
@@ -1265,7 +1265,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
 
 void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount, const std::string& filter, bool regex)
 {
-    Effect* timing = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+    Effect* timing = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
     if (timing == nullptr) return;
 
@@ -1313,7 +1313,7 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
 
 void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount, const std::string& filter, bool regex)
 {
-    Effect* timing = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+    Effect* timing = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
     if (timing == nullptr)
         return;
@@ -2404,14 +2404,17 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	}
 }
 
-Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex)
+Effect* VUMeterEffect::GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex)
 {
     if (timingTrack == "")
         return nullptr;
 
+    SequenceElements* seqEl = GetSequenceElements(buffer);
+    if (seqEl == nullptr) return nullptr;
+
     Element* t = nullptr;
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
-        Element* e = mSequenceElements->GetElement(i);
+    for (size_t i = 0; i < seqEl->GetElementCount(); i++) {
+        Element* e = seqEl->GetElement(i);
         if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingTrack) {
             t = e;
             break;
@@ -2441,7 +2444,7 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallfra
 
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs)
         {
@@ -2482,7 +2485,7 @@ void VUMeterEffect::RenderTimingEventPulseFrame(RenderBuffer& buffer, int fadefr
 {
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             lastsize = fadeframes;
@@ -2510,7 +2513,7 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer& buffer, int 
 {
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             lastsize = fadeframes;
@@ -2542,7 +2545,7 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer& buffer, int& colo
 {
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             colourindex++;
@@ -2768,7 +2771,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
 
 void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex, bool bounce, int& lastDirection ) {
     if (timingtrack != "") {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             colourindex++;

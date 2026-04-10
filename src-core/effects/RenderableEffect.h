@@ -97,6 +97,10 @@ public:
     {
         mSequenceElements = els;
     }
+    // Get SequenceElements from the RenderBuffer's RenderContext.
+    // Falls back to mSequenceElements for legacy callers that don't have a buffer.
+    SequenceElements* GetSequenceElements(RenderBuffer& buffer) const;
+    SequenceElements* GetSequenceElements() const { return mSequenceElements; }
 
     // Methods for rendering the effect
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)

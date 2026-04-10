@@ -1,6 +1,16 @@
+#include <TargetConditionals.h>
 #include <Metal/Metal.h>
 #include <MetalKit/MetalKit.h>
 #include <ModelIO/ModelIO.h>
+
+// iOS uses shared memory (no didModifyRange needed); macOS uses managed
+#if TARGET_OS_IPHONE
+#define XL_MTL_BUFFER_MODE MTLResourceStorageModeShared
+#define XL_MTL_DID_MODIFY_RANGE(buf, start, len) /* no-op on iOS */
+#else
+#define XL_MTL_BUFFER_MODE MTLResourceStorageModeManaged
+#define XL_MTL_DID_MODIFY_RANGE(buf, start, len) [buf didModifyRange:NSMakeRange(start, len)]
+#endif
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -199,9 +209,7 @@ public:
     }
     virtual void FlushRange(uint32_t start, uint32_t len) override {
         if (buffer && (!finalized || mayChange)) {
-            uint32_t s = start * sizeof(simd_float3);
-            uint32_t l = len * sizeof(simd_float3);
-            [buffer didModifyRange:NSMakeRange(s, l)];
+            XL_MTL_DID_MODIFY_RANGE(buffer, start * sizeof(simd_float3), len * sizeof(simd_float3));
         }
     }
 
@@ -210,7 +218,7 @@ public:
         int sz = count * sizeof(simd_float3);
         if (finalized) {
             if (!buffer) {
-                buffer = [device newBufferWithBytes:&vertices[0] length:(sizeof(simd_float3) * count) options:MTLResourceStorageModeManaged];
+                buffer = [device newBufferWithBytes:&vertices[0] length:(sizeof(simd_float3) * count) options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [buffer setLabel:n];
@@ -222,7 +230,7 @@ public:
             [encoder setVertexBuffer:buffer offset:0 atIndex:index];
         } else if (sz > 4095 || buffer != nil) {
             if (!buffer) {
-                buffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                buffer = [device newBufferWithBytes:&vertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [buffer setLabel:n];
@@ -347,14 +355,10 @@ public:
     }
     virtual void FlushRange(uint32_t start, uint32_t len) override {
         if (bufferVertices && (!finalized || mayChangeVertices)) {
-            uint32_t s = start * sizeof(simd_float3);
-            uint32_t l = len * sizeof(simd_float3);
-            [vbuffer didModifyRange:NSMakeRange(s, l)];
+            XL_MTL_DID_MODIFY_RANGE(vbuffer, start * sizeof(simd_float3), len * sizeof(simd_float3));
         }
         if (bufferColors && (!finalized || mayChangeColors)) {
-            uint32_t s = start * sizeof(simd_uchar4);
-            uint32_t l = len * sizeof(simd_uchar4);
-            [cbuffer didModifyRange:NSMakeRange(s, l)];
+            XL_MTL_DID_MODIFY_RANGE(cbuffer, start * sizeof(simd_uchar4), len * sizeof(simd_uchar4));
         }
     }
 
@@ -363,7 +367,7 @@ public:
         int sz = count * sizeof(simd_float3);
         if (finalized) {
             if (!vbuffer) {
-                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
@@ -374,7 +378,7 @@ public:
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
         } else if (sz > 4095 || vbuffer != nil) {
             if (vbuffer == nil) {
-                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
@@ -389,7 +393,7 @@ public:
         sz = count * sizeof(simd_uchar4);
         if (finalized) {
             if (!cbuffer) {
-                cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
+                cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Colors";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
@@ -400,7 +404,7 @@ public:
             [encoder setVertexBuffer:cbuffer offset:0 atIndex:indexC];
         } else if (sz > 4095 || cbuffer != nil) {
             if (cbuffer == nil) {
-                cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
+                cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Colors";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
@@ -560,9 +564,7 @@ public:
     }
     virtual void FlushRange(uint32_t start, uint32_t len) override {
         if (bufferVertices && (!finalized || mayChangeVertices)) {
-            uint32_t s = start * sizeof(IndexedColorVertex);
-            uint32_t l = len * sizeof(IndexedColorVertex);
-            [vbuffer didModifyRange:NSMakeRange(s, l)];
+            XL_MTL_DID_MODIFY_RANGE(vbuffer, start * sizeof(IndexedColorVertex), len * sizeof(IndexedColorVertex));
         }
     }
     virtual void FlushColors(uint32_t start, uint32_t len) override {
@@ -570,7 +572,7 @@ public:
         if (bufferColors && (!finalized || mayChangeColors)) {
             uint32_t s = start * sizeof(simd_uchar4);
             uint32_t l = len * sizeof(simd_uchar4);
-            [cbuffer didModifyRange:NSMakeRange(s, l)];
+            XL_MTL_DID_MODIFY_RANGE(cbuffer, s, l);
         }
          */
     }
@@ -579,7 +581,7 @@ public:
         int sz = count * sizeof(IndexedColorVertex);
         if (finalized) {
             if (!vbuffer) {
-                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
@@ -591,7 +593,7 @@ public:
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
         } else if (sz > 4095 || vbuffer != nil) {
             if (vbuffer == nil) {
-                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
@@ -606,7 +608,7 @@ public:
         sz = colors.size() * sizeof(simd_uchar4);
         if (finalized) {
             if (!cbuffer) {
-                //cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
+                //cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:XL_MTL_BUFFER_MODE];
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeShared];
                 std::string n2 = name + " Colors";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
@@ -731,14 +733,10 @@ public:
 
     virtual void FlushRange(uint32_t start, uint32_t len) override {
         if (bufferVertices && (!finalized || mayChangeVertices)) {
-            uint32_t s = start * sizeof(simd_float3);
-            uint32_t l = len * sizeof(simd_float3);
-            [vbuffer didModifyRange:NSMakeRange(s, l)];
+            XL_MTL_DID_MODIFY_RANGE(vbuffer, start * sizeof(simd_float3), len * sizeof(simd_float3));
         }
         if (bufferTexture && (!finalized || mayChangeTextures)) {
-            uint32_t s = start * sizeof(simd_float2);
-            uint32_t l = len * sizeof(simd_float2);
-            [tbuffer didModifyRange:NSMakeRange(s, l)];
+            XL_MTL_DID_MODIFY_RANGE(tbuffer, start * sizeof(simd_float2), len * sizeof(simd_float2));
         }
     }
 
@@ -746,7 +744,7 @@ public:
         int sz = count * sizeof(simd_float3);
         if (finalized) {
             if (!vbuffer) {
-                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
@@ -757,7 +755,7 @@ public:
             [encoder setVertexBuffer:vbuffer offset:0 atIndex:indexV];
         } else if (sz > 4095 || vbuffer != nil) {
             if (vbuffer == nil) {
-                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
+                vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
@@ -772,7 +770,7 @@ public:
         sz = count * sizeof(simd_float2);
         if (finalized) {
             if (!tbuffer) {
-                tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
+                tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Texture Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [tbuffer setLabel:n];
@@ -783,7 +781,7 @@ public:
             [encoder setVertexBuffer:tbuffer offset:0 atIndex:indexT];
         } else if (sz > 4095 || tbuffer != nil) {
             if (tbuffer == nil) {
-                tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
+                tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:XL_MTL_BUFFER_MODE];
                 std::string n2 = name + " Texture Vertices";
                 NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [tbuffer setLabel:n];
@@ -811,7 +809,9 @@ public:
 };
 
 
+#if !TARGET_OS_IPHONE
 extern void VideoToolboxCopyToTexture(CIImage *image, id<MTLTexture> texture, id<MTLCommandBuffer> cmdBuf);
+#endif
 
 class xlMetalTexture : public xlTexture {
 public:
@@ -913,9 +913,11 @@ public:
                 CIImage *image = [CIImage imageWithCVImageBuffer:pixbuf];
                 image = [image imageByApplyingCGOrientation: kCGImagePropertyOrientationDownMirrored];
                 
+#if !TARGET_OS_IPHONE
                 id<MTLCommandBuffer> buffer = [MetalDeviceManager::instance().getMTLCommandQueue() commandBuffer];
                 VideoToolboxCopyToTexture(image, texture, buffer);
                 [buffer commit];
+#endif
             }
         }
     }
@@ -1228,7 +1230,7 @@ public:
             }
         }
         int sz = input.size() * sizeof(MeshVertexInput);
-        vbuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithBytes:&input[0] length:sz options:MTLResourceStorageModeManaged];
+        vbuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithBytes:&input[0] length:sz options:XL_MTL_BUFFER_MODE];
         
         if (!lines.empty()) {
             linesStart = indexes.size();
@@ -1246,9 +1248,9 @@ public:
         [vbuffer setLabel:n];
         sz = indexes.size() * sizeof(uint32_t);
         if (sz == 0) {
-            ibuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithLength:12 options:MTLResourceStorageModeManaged];
+            ibuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithLength:12 options:XL_MTL_BUFFER_MODE];
         } else {
-            ibuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
+            ibuffer = [MetalDeviceManager::instance().getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:XL_MTL_BUFFER_MODE];
         }
         n2 = name + " Indexes";
         n = [NSString stringWithUTF8String:n2.c_str()];

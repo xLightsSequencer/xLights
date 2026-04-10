@@ -929,7 +929,6 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
 
 #pragma region Getters and Setters
 std::string OutputManager::GetFirstUnusedCommPort() const {
-
     auto ports = SerialOutput::GetAvailableSerialPorts();
     if (ports.size() == 1) {
         if (ports.front() == "(no available ports)") return "NotConnected";
