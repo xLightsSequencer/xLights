@@ -12,7 +12,7 @@
         },
         {
             "id": "Shader_LeadIn",
-            "label": "Lead in frames:",
+            "label": "Lead in frames",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",

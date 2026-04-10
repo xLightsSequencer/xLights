@@ -179,9 +179,14 @@ wxWindow* ShaderPanel::BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer, i
 wxWindow* ShaderPanel::BuildSpeedRow(wxWindow* parentWin, wxSizer* sizer, int cols) {
     // Custom Time Speed row: BulkEditSliderF2 is the primary serialized control
     // (E_SLIDER_Shader_Speed with divisor 100) with buddy text + value curve,
-    // matching the legacy naming so old sequences round-trip.
-    _speedLabel = new wxStaticText(parentWin, wxID_ANY, "Time Speed:");
-    sizer->Add(_speedLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    // matching the legacy naming so old sequences round-trip. Wrap everything
+    // in a 4-col flex grid so the row matches the layout of the framework-
+    // built rows (label | slider+VC | text | spacer).
+    auto* row = new wxFlexGridSizer(0, 4, 0, 0);
+    row->AddGrowableCol(1);
+
+    _speedLabel = new wxStaticText(parentWin, wxID_ANY, "Time Speed");
+    row->Add(_speedLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
     auto* sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
     sliderSizer->AddGrowableCol(0);
@@ -201,7 +206,7 @@ wxWindow* ShaderPanel::BuildSpeedRow(wxWindow* parentWin, wxSizer* sizer, int co
     _speedVC->GetValue()->SetDivisor(SHADER_SPEED_DIVISOR);
     sliderSizer->Add(_speedVC, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
 
-    sizer->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+    row->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
 
     _speedText = new BulkEditTextCtrlF2(parentWin, wxNewId(), _("1.00"),
                                          wxDefaultPosition,
@@ -209,7 +214,11 @@ wxWindow* ShaderPanel::BuildSpeedRow(wxWindow* parentWin, wxSizer* sizer, int co
                                          0, wxDefaultValidator,
                                          _T("IDD_TEXTCTRL_Shader_Speed"));
     _speedText->SetMaxLength(5);
-    sizer->Add(_speedText, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+    row->Add(_speedText, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+    row->Add(-1, -1, 1, wxALL, 1);
+
+    sizer->Add(row, 1, wxALL | wxEXPAND, 0);
 
     // Value curve clicks go through the standard panel handler.
     _speedVC->Bind(wxEVT_BUTTON, &ShaderPanel::OnVCButtonClick, this);
