@@ -54,6 +54,7 @@ private:
     void OnAIGenerateClick(wxCommandEvent& event);
     void OnClearClick(wxCommandEvent& event);
     void OnPreviewTimer(wxTimerEvent& event);
+    void OnShowPanel(wxShowEvent& event);
     void UpdatePreviewBitmap(const wxString& filename);
     void ShowPreviewFrame(size_t index);
 

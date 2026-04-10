@@ -65,25 +65,32 @@ PicturesPanel::PicturesPanel(wxWindow* parent, const nlohmann::json& metadata)
     // Pause the preview timer when the panel is hidden (user switches to a
     // different effect) and resume when it's shown again. The effect panels
     // are cached by EffectPanelManager so the timer would otherwise keep
-    // decoding / rescaling frames for a hidden widget.
-    Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
-        if (e.IsShown()) {
-            if (_previewFrames.size() > 1) {
-                size_t idx = _currentPreviewFrame < _previewFrameTimes.size() ? _currentPreviewFrame : 0;
-                long interval = (_previewFrameTimes[idx] > 0) ? _previewFrameTimes[idx] : 50;
-                _previewTimer.Start(interval);
-            }
-        } else {
-            _previewTimer.Stop();
-        }
-        e.Skip();
-    });
+    // decoding / rescaling frames for a hidden widget. Bound as a member
+    // function (not a lambda) so the destructor can Unbind it — otherwise
+    // a wxEVT_SHOW dispatched from the Win32 HWND teardown after
+    // ~PicturesPanel has already destroyed _previewFrames / _previewTimer
+    // would access destroyed members and crash on exit.
+    Bind(wxEVT_SHOW, &PicturesPanel::OnShowPanel, this);
 
     ValidateWindow();
 }
 
 PicturesPanel::~PicturesPanel() {
+    Unbind(wxEVT_SHOW, &PicturesPanel::OnShowPanel, this);
     _previewTimer.Stop();
+}
+
+void PicturesPanel::OnShowPanel(wxShowEvent& event) {
+    if (event.IsShown()) {
+        if (_previewFrames.size() > 1) {
+            size_t idx = _currentPreviewFrame < _previewFrameTimes.size() ? _currentPreviewFrame : 0;
+            long interval = (_previewFrameTimes[idx] > 0) ? _previewFrameTimes[idx] : 50;
+            _previewTimer.Start(interval);
+        }
+    } else {
+        _previewTimer.Stop();
+    }
+    event.Skip();
 }
 
 wxWindow* PicturesPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,

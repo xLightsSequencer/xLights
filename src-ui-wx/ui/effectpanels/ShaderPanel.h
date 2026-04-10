@@ -63,6 +63,7 @@ private:
     void OnDownloadClicked(wxCommandEvent& event);
     void OnFilePickerChanged(wxFileDirPickerEvent& event);
     void OnPreviewTimer(wxTimerEvent& event);
+    void OnShowPanel(wxShowEvent& event);
 
     // Internal helpers
     void ApplyShaderConfig(bool resetParams);

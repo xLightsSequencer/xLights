@@ -78,6 +78,7 @@ private:
     void OnMatchVideoDurationClick(wxCommandEvent& event);
     void OnVideoDetails(wxCommandEvent& event);
     void OnPreviewTimer(wxTimerEvent& event);
+    void OnShowPanel(wxShowEvent& event);
     void AddVideoTime(std::string fn, unsigned long ms);
     void UpdatePreview();
     void ShowPreviewFrame(size_t index);
