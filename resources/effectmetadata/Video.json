@@ -2,6 +2,15 @@
     "effectName": "Video",
     "properties": [
         {
+            "id": "SynchroniseWithAudio",
+            "label": "Sync to audio file",
+            "description": "When enabled, uses the sequence audio file as the video source and synchronises video playback to the audio timeline position. The picked video file, Start Time, Duration Treatment, and Speed are all overridden by the audio file's properties when this is on.",
+            "tooltip": "Use sequence audio file as the video source and synchronise to the audio timeline.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
             "id": "Video_FilenameBlock",
             "label": "",
             "description": "Video file selection: Select / Clear buttons, animated preview thumbnail, filename label, computed video duration, and a 'Match Effect To Video Duration' button.",
@@ -19,6 +28,14 @@
             "divisor": 100,
             "min": 0,
             "max": 20
+        },
+        {
+            "id": "Video_DurationRow",
+            "label": "",
+            "description": "Read-only display of the picked video's total duration plus a 'Match Effect To Video Duration' button that resizes the effect on the timeline to match.",
+            "type": "string",
+            "controlType": "custom",
+            "default": ""
         },
         {
             "id": "Video_DurationTreatment",
@@ -52,14 +69,6 @@
             "id": "Video_AspectRatio",
             "label": "Maintain Aspect Ratio",
             "description": "When enabled, the video is scaled to fit within the buffer while preserving its original aspect ratio, adding black bars if needed.",
-            "type": "bool",
-            "controlType": "checkbox",
-            "default": false
-        },
-        {
-            "id": "SynchroniseWithAudio",
-            "label": "Use sequence audio file as video file and synchronise",
-            "description": "When enabled, uses the sequence audio file as the video source and synchronises video playback to the audio timeline position.",
             "type": "bool",
             "controlType": "checkbox",
             "default": false
@@ -142,6 +151,11 @@
         {
             "type": "section",
             "columns": 1,
+            "properties": ["Video_DurationRow"]
+        },
+        {
+            "type": "section",
+            "columns": 1,
             "properties": ["Video_TransparentBlackRow"]
         }
     ],
@@ -154,18 +168,6 @@
             "disable": [
                 "Video_Starttime",
                 "Video_DurationTreatment"
-            ]
-        },
-        {
-            "when": {
-                "property": "Video_DurationTreatment",
-                "oneOf": [
-                    "Manual",
-                    "Manual and Loop"
-                ]
-            },
-            "enable": [
-                "Video_Speed"
             ]
         }
     ]

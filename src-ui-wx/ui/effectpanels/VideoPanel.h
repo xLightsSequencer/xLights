@@ -69,6 +69,7 @@ protected:
 
 private:
     wxWindow* BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer);
+    wxWindow* BuildDurationRow(wxWindow* parentWin, wxSizer* sizer);
     wxWindow* BuildTransparentBlackRow(wxWindow* parentWin, wxSizer* sizer);
 
     void OnSelectClick(wxCommandEvent& event);

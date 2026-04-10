@@ -63,9 +63,16 @@ VideoPanel::VideoPanel(wxWindow* parent, const nlohmann::json& metadata)
 
     // Sync-with-audio and DurationTreatment changes both feed ValidateWindow
     // — the JSON visibility rules cover most of it but the file picker enable
-    // state lives outside the framework's properties_ map.
+    // state and the Speed slider enable (compound: needs sync==off AND
+    // treatment==Manual) live outside the framework's properties_ map.
     if (_syncWithAudioCheck) {
         _syncWithAudioCheck->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
+            ValidateWindow();
+            e.Skip();
+        });
+    }
+    if (_durationTreatmentChoice) {
+        _durationTreatmentChoice->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) {
             ValidateWindow();
             e.Skip();
         });
@@ -89,6 +96,9 @@ wxWindow* VideoPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
     if (id == "Video_FilenameBlock") {
         return BuildFilenameBlock(parentWin, sizer);
     }
+    if (id == "Video_DurationRow") {
+        return BuildDurationRow(parentWin, sizer);
+    }
     if (id == "Video_TransparentBlackRow") {
         return BuildTransparentBlackRow(parentWin, sizer);
     }
@@ -96,17 +106,17 @@ wxWindow* VideoPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
 }
 
 wxWindow* VideoPanel::BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer) {
-    // Layout:
-    //   [Select] [x]   [animated preview bitmap                      ]
+    // Layout (just the file selection block — Duration display + Match
+    // button live in their own custom row below Start Time, which keeps
+    // the two duration controls visually grouped):
+    //   [Select] [x]   [animated preview bitmap]
     //   filename label (full width, ellipsized)
-    //   Duration: <readonly>          [Match Effect To Video Duration]
     //
     // The hidden xlVideoFilePickerCtrl below holds the actual path so the
     // legacy E_FILEPICKERCTRL_Video_Filename serialization key is preserved.
     auto* outer = new wxFlexGridSizer(0, 1, 0, 0);
     outer->AddGrowableCol(0);
 
-    // Top row: Select+Clear buttons + animated preview bitmap.
     auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
     topRow->AddGrowableCol(1);
 
@@ -132,21 +142,6 @@ wxWindow* VideoPanel::BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer) {
                                        wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
     outer->Add(_filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
 
-    // Duration display + match button row.
-    auto* durRow = new wxFlexGridSizer(0, 3, 0, 0);
-    durRow->AddGrowableCol(1);
-    auto* durLabel = new wxStaticText(parentWin, wxID_ANY, "Duration");
-    durRow->Add(durLabel, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    _durationDisplay = new wxTextCtrl(parentWin, wxID_ANY, "0:00:00.000",
-                                       wxDefaultPosition, wxDefaultSize,
-                                       wxTE_READONLY | wxTE_RIGHT, wxDefaultValidator,
-                                       _T("ID_TEXTCTRL_Duration"));
-    _durationDisplay->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT));
-    durRow->Add(_durationDisplay, 1, wxALL | wxEXPAND, 2);
-    _matchDurationButton = new wxButton(parentWin, wxNewId(), "Match Effect To Video Duration");
-    durRow->Add(_matchDurationButton, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    outer->Add(durRow, 0, wxALL | wxEXPAND, 0);
-
     // Hidden file picker — kept as a child of the panel so
     // GetEffectStringFromWindow finds it under the legacy name and writes
     // E_FILEPICKERCTRL_Video_Filename.
@@ -162,10 +157,42 @@ wxWindow* VideoPanel::BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer) {
 
     _selectButton->Bind(wxEVT_BUTTON, &VideoPanel::OnSelectClick, this);
     _clearButton->Bind(wxEVT_BUTTON, &VideoPanel::OnClearClick, this);
-    _matchDurationButton->Bind(wxEVT_BUTTON, &VideoPanel::OnMatchVideoDurationClick, this);
     _hiddenFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &VideoPanel::OnFilePickerChanged, this);
 
     return _selectButton;
+}
+
+wxWindow* VideoPanel::BuildDurationRow(wxWindow* parentWin, wxSizer* sizer) {
+    // Two stacked sub-rows so the Match button doesn't force the panel
+    // to be wider than the longest label otherwise needs:
+    //   Duration  [readonly_short_text]
+    //   [    Match Effect To Video Duration    ]
+    auto* outer = new wxFlexGridSizer(0, 1, 0, 0);
+    outer->AddGrowableCol(0);
+
+    auto* row = new wxFlexGridSizer(0, 3, 0, 0);
+    row->AddGrowableCol(2);
+    auto* durLabel = new wxStaticText(parentWin, wxID_ANY, "Duration");
+    row->Add(durLabel, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    // Fixed compact width so the duration text doesn't stretch the panel
+    // — 0:00:00.000 fits in roughly 60 dialog units.
+    _durationDisplay = new wxTextCtrl(parentWin, wxID_ANY, "0:00:00.000",
+                                       wxDefaultPosition,
+                                       wxDLG_UNIT(parentWin, wxSize(60, -1)),
+                                       wxTE_READONLY | wxTE_RIGHT, wxDefaultValidator,
+                                       _T("ID_TEXTCTRL_Duration"));
+    _durationDisplay->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT));
+    row->Add(_durationDisplay, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    row->Add(-1, -1, 1, 0, 0);  // expanding spacer fills the rest of the row
+    outer->Add(row, 0, wxALL | wxEXPAND, 0);
+
+    _matchDurationButton = new wxButton(parentWin, wxNewId(), "Match Effect To Video Duration");
+    outer->Add(_matchDurationButton, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+    sizer->Add(outer, 1, wxALL | wxEXPAND, 0);
+
+    _matchDurationButton->Bind(wxEVT_BUTTON, &VideoPanel::OnMatchVideoDurationClick, this);
+    return _matchDurationButton;
 }
 
 wxWindow* VideoPanel::BuildTransparentBlackRow(wxWindow* parentWin, wxSizer* sizer) {
@@ -291,9 +318,40 @@ void VideoPanel::ValidateWindow() {
     JsonEffectPanel::ValidateWindow();
 
     bool sync = _syncWithAudioCheck && _syncWithAudioCheck->IsChecked();
+
+    // When sync is on the picked video file is ignored (the audio file is
+    // used as the video source), and the duration is dictated by the audio
+    // timeline — so the file picker, preview, duration display, and match
+    // button all become irrelevant. Disable them so the user can't pretend
+    // to set values that the renderer will silently throw away.
     if (_hiddenFilePicker) _hiddenFilePicker->Enable(!sync);
     if (_selectButton) _selectButton->Enable(!sync);
     if (_clearButton) _clearButton->Enable(!sync);
+    if (_previewBitmap) _previewBitmap->Enable(!sync);
+    if (_filenameLabel) _filenameLabel->Enable(!sync);
+    if (_durationDisplay) _durationDisplay->Enable(!sync);
+    if (_matchDurationButton) _matchDurationButton->Enable(!sync);
+
+    // The Speed slider is only meaningful when DurationTreatment is one of
+    // the Manual modes AND sync is off (sync forces treatment to "Normal"
+    // at render time regardless of what the user selected). Handled here
+    // because the JSON visibility-rule system can't express the AND of
+    // two predicates without losing the inverse-on-not-met behavior.
+    bool manualMode = false;
+    if (_durationTreatmentChoice) {
+        wxString treatment = _durationTreatmentChoice->GetStringSelection();
+        manualMode = (treatment == "Manual" || treatment == "Manual and Loop");
+    }
+    bool speedEnabled = !sync && manualMode;
+    if (auto* speedSlider = wxWindow::FindWindowByName("IDD_SLIDER_Video_Speed", this)) {
+        speedSlider->Enable(speedEnabled);
+    }
+    if (auto* speedText = wxWindow::FindWindowByName("ID_TEXTCTRL_Video_Speed", this)) {
+        speedText->Enable(speedEnabled);
+    }
+    if (auto* speedVC = wxWindow::FindWindowByName("ID_VALUECURVE_Video_Speed", this)) {
+        speedVC->Enable(speedEnabled);
+    }
 
     // Background color hint based on file path validity (matches legacy red /
     // yellow tinting). The hidden picker is invisible so the color affects
