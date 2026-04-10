@@ -28,6 +28,30 @@
 
 #include "Parallel.h"
 
+std::string MeteorsEffect::sTypeDefault = "Rainbow";
+std::string MeteorsEffect::sEffectDefault = "Down";
+int MeteorsEffect::sCountDefault = 10;
+int MeteorsEffect::sCountMin = 1;
+int MeteorsEffect::sCountMax = 100;
+int MeteorsEffect::sLengthDefault = 25;
+int MeteorsEffect::sLengthMin = 1;
+int MeteorsEffect::sLengthMax = 100;
+int MeteorsEffect::sSwirlDefault = 0;
+int MeteorsEffect::sSwirlMin = 0;
+int MeteorsEffect::sSwirlMax = 20;
+int MeteorsEffect::sSpeedDefault = 10;
+int MeteorsEffect::sSpeedMin = 0;
+int MeteorsEffect::sSpeedMax = 50;
+int MeteorsEffect::sWarmupFramesDefault = 0;
+int MeteorsEffect::sXOffsetDefault = 0;
+int MeteorsEffect::sXOffsetMin = -100;
+int MeteorsEffect::sXOffsetMax = 100;
+int MeteorsEffect::sYOffsetDefault = 0;
+int MeteorsEffect::sYOffsetMin = -100;
+int MeteorsEffect::sYOffsetMax = 100;
+bool MeteorsEffect::sUseMusicDefault = false;
+bool MeteorsEffect::sFadeWithDistanceDefault = false;
+
 MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64)
 {
     //ctor
@@ -38,11 +62,38 @@ MeteorsEffect::~MeteorsEffect()
     //dtor
 }
 
+void MeteorsEffect::OnMetadataLoaded()
+{
+    sTypeDefault = GetStringDefault("Meteors_Type", sTypeDefault);
+    sEffectDefault = GetStringDefault("Meteors_Effect", sEffectDefault);
+    sCountDefault = GetIntDefault("Meteors_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Meteors_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Meteors_Count", sCountMax);
+    sLengthDefault = GetIntDefault("Meteors_Length", sLengthDefault);
+    sLengthMin = (int)GetMinFromMetadata("Meteors_Length", sLengthMin);
+    sLengthMax = (int)GetMaxFromMetadata("Meteors_Length", sLengthMax);
+    sSwirlDefault = GetIntDefault("Meteors_Swirl_Intensity", sSwirlDefault);
+    sSwirlMin = (int)GetMinFromMetadata("Meteors_Swirl_Intensity", sSwirlMin);
+    sSwirlMax = (int)GetMaxFromMetadata("Meteors_Swirl_Intensity", sSwirlMax);
+    sSpeedDefault = GetIntDefault("Meteors_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Meteors_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Meteors_Speed", sSpeedMax);
+    sWarmupFramesDefault = GetIntDefault("Meteors_WamupFrames", sWarmupFramesDefault);
+    sXOffsetDefault = GetIntDefault("Meteors_XOffset", sXOffsetDefault);
+    sXOffsetMin = (int)GetMinFromMetadata("Meteors_XOffset", sXOffsetMin);
+    sXOffsetMax = (int)GetMaxFromMetadata("Meteors_XOffset", sXOffsetMax);
+    sYOffsetDefault = GetIntDefault("Meteors_YOffset", sYOffsetDefault);
+    sYOffsetMin = (int)GetMinFromMetadata("Meteors_YOffset", sYOffsetMin);
+    sYOffsetMax = (int)GetMaxFromMetadata("Meteors_YOffset", sYOffsetMax);
+    sUseMusicDefault = GetBoolDefault("Meteors_UseMusic", sUseMusicDefault);
+    sFadeWithDistanceDefault = GetBoolDefault("FadeWithDistance", sFadeWithDistanceDefault);
+}
+
 std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr && settings.GetBool("E_CHECKBOX_Meteors_UseMusic", false)) {
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Meteors_UseMusic", sUseMusicDefault)) {
         res.push_back(std::format("    WARN: Meteors effect cant follow music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
@@ -146,20 +197,20 @@ float MeteorsEffect::calcEffectStateOffset(int mSpeed, RenderBuffer& buffer) {
 void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Count = GetValueCurveInt("Meteors_Count", 10, SettingsMap, oset, METEORS_COUNT_MIN, METEORS_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Count = GetValueCurveInt("Meteors_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    int Length = GetValueCurveInt("Meteors_Length", 25, SettingsMap, oset, METEORS_LENGTH_MIN, METEORS_LENGTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int SwirlIntensity = GetValueCurveInt("Meteors_Swirl_Intensity", 0, SettingsMap, oset, METEORS_SWIRL_MIN, METEORS_SWIRL_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int mSpeed = GetValueCurveInt("Meteors_Speed", 10, SettingsMap, oset, METEORS_SPEED_MIN, METEORS_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Length = GetValueCurveInt("Meteors_Length", sLengthDefault, SettingsMap, oset, sLengthMin, sLengthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int SwirlIntensity = GetValueCurveInt("Meteors_Swirl_Intensity", sSwirlDefault, SettingsMap, oset, sSwirlMin, sSwirlMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int mSpeed = GetValueCurveInt("Meteors_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    int MeteorsEffect = GetMeteorEffect(SettingsMap["CHOICE_Meteors_Effect"]);
-    int ColorScheme = GetMeteorColorScheme(SettingsMap["CHOICE_Meteors_Type"]);
-    int xoffset = GetValueCurveInt("Meteors_XOffset", 0, SettingsMap, oset, METEORS_XOFFSET_MIN, METEORS_XOFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yoffset = GetValueCurveInt("Meteors_YOffset", 0, SettingsMap, oset, METEORS_YOFFSET_MIN, METEORS_YOFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool fadeWithDistance = SettingsMap.GetBool("CHECKBOX_FadeWithDistance", false);
-    int warmupFrames = SettingsMap.GetInt("SLIDER_Meteors_WamupFrames", 0);
+    int MeteorsEffect = GetMeteorEffect(SettingsMap.Get("CHOICE_Meteors_Effect", sEffectDefault));
+    int ColorScheme = GetMeteorColorScheme(SettingsMap.Get("CHOICE_Meteors_Type", sTypeDefault));
+    int xoffset = GetValueCurveInt("Meteors_XOffset", sXOffsetDefault, SettingsMap, oset, sXOffsetMin, sXOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yoffset = GetValueCurveInt("Meteors_YOffset", sYOffsetDefault, SettingsMap, oset, sYOffsetMin, sYOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool fadeWithDistance = SettingsMap.GetBool("CHECKBOX_FadeWithDistance", sFadeWithDistanceDefault);
+    int warmupFrames = SettingsMap.GetInt("SLIDER_Meteors_WamupFrames", sWarmupFramesDefault);
 
-    if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false)) {
+    if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", sUseMusicDefault)) {
         float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
             auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");

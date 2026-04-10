@@ -20,6 +20,17 @@
 #include "../../include/snowflakes-48.xpm"
 #include "../../include/snowflakes-64.xpm"
 
+// Fallback defaults (replaced from Snowflakes.json in OnMetadataLoaded).
+int SnowflakesEffect::sCountDefault = 5;
+int SnowflakesEffect::sCountMin = 1;
+int SnowflakesEffect::sCountMax = 100;
+int SnowflakesEffect::sTypeDefault = 1;
+int SnowflakesEffect::sSpeedDefault = 10;
+int SnowflakesEffect::sSpeedMin = 0;
+int SnowflakesEffect::sSpeedMax = 50;
+std::string SnowflakesEffect::sFallingDefault = "Driving";
+int SnowflakesEffect::sWarmupFramesDefault = 0;
+
 SnowflakesEffect::SnowflakesEffect(int id) : RenderableEffect(id, "Snowflakes", snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48, snowflakes_64)
 {
     tooltip = "Snow Flakes";
@@ -28,6 +39,19 @@ SnowflakesEffect::SnowflakesEffect(int id) : RenderableEffect(id, "Snowflakes", 
 SnowflakesEffect::~SnowflakesEffect()
 {
     //dtor
+}
+
+void SnowflakesEffect::OnMetadataLoaded()
+{
+    sCountDefault = GetIntDefault("Snowflakes_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Snowflakes_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Snowflakes_Count", sCountMax);
+    sTypeDefault = GetIntDefault("Snowflakes_Type", sTypeDefault);
+    sSpeedDefault = GetIntDefault("Snowflakes_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Snowflakes_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Snowflakes_Speed", sSpeedMax);
+    sFallingDefault = GetStringDefault("Falling", sFallingDefault);
+    sWarmupFramesDefault = GetIntDefault("Snowflakes_WarmupFrames", sWarmupFramesDefault);
 }
 
 int static possible_downward_moves(RenderBuffer &buffer, int x, int y)
@@ -226,13 +250,13 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
 void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Count = GetValueCurveInt("Snowflakes_Count", 5, SettingsMap, oset, SNOWFLAKES_COUNT_MIN, SNOWFLAKES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int SnowflakeType = SettingsMap.GetInt("SLIDER_Snowflakes_Type", 1);
-    int sSpeed = GetValueCurveInt("Snowflakes_Speed", 10, SettingsMap, oset, SNOWFLAKES_SPEED_MIN, SNOWFLAKES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int warmupFrames = SettingsMap.GetInt("SLIDER_Snowflakes_WarmupFrames", 0);
+    int Count = GetValueCurveInt("Snowflakes_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int SnowflakeType = SettingsMap.GetInt("SLIDER_Snowflakes_Type", sTypeDefault);
+    int sSpeed = GetValueCurveInt("Snowflakes_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int warmupFrames = SettingsMap.GetInt("SLIDER_Snowflakes_WarmupFrames", sWarmupFramesDefault);
 
     bool wrapx = false; // set to true if you want snowflakes to draw wrapped around when near edges in the accumulate effect.
-    std::string falling = SettingsMap.Get("CHOICE_Falling", "Driving");
+    std::string falling = SettingsMap.Get("CHOICE_Falling", sFallingDefault);
 
     const xlColor c1(0, 1, 0);
     const xlColor c2(0, 0, 1);

@@ -30,6 +30,22 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     weak-link FoundationModels and ImagePlayground frameworks so the binary
                                     loads on older macOS, gate Color Palette to macOS 26+ (FoundationModels)
                                     and Image Generation to macOS 15.4+ (ImagePlayground.ImageCreator)
+    -enh (dkulp)                Wave effect "Number of Waves" slider is now a proper float cycles slider (0.5 .. 10.0)
+                                    instead of a confusing integer degrees slider (180 .. 3600). Existing sequences
+                                    are migrated automatically on first load.
+    -bug (dkulp)                Fix several pre-existing effect default mismatches exposed during the JSON
+                                    migration: Fan/Galaxy/Shockwave Blend_Edges now honor their JSON "true" default
+                                    for newly-created effects, Shape StartSize matches JSON (1 instead of 5),
+                                    Faces FaceDefinition fallback is now consistently "Default" across CheckEffectSettings
+                                    and Render, Metal Spirals now matches CPU Spirals default for Rotation/Thickness.
+    -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
+                                    Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
+    -bug (dkulp)                Fix Circles effect Collide checkbox removal causing silent behavior change in old sequences.
+                                    Sequences with Collide=1 are now migrated to Bounce=1 to preserve their non-wrapping render.
+    -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
+                                    using stale defaults of 0 for Start/End Radius/Width).
+    -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
+    -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
     -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
                                     instead of wxSmith-generated C++ code. All 54 "standard" effect panels
                                     migrated (Moving Head's 2345-line visual designer remains wxSmith-based);
@@ -39,14 +55,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     settings now serialize as E_SLIDER_* instead of E_TEXTCTRL_*. Render code reads
                                     both forms via GetValueCurveInt fallback so behavior is unchanged, but tools that
                                     parse sequence XML directly should accept either prefix.
-    -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
-                                    Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
-    -bug (dkulp)                Fix Circles effect Collide checkbox removal causing silent behavior change in old sequences.
-                                    Sequences with Collide=1 are now migrated to Bounce=1 to preserve their non-wrapping render.
-    -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
-                                    using stale defaults of 0 for Start/End Radius/Width).
-    -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
-    -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
+    -change (dkulp)             Effect default / min / max / divisor values are now read from the JSON metadata at
+                                    startup instead of from #define constants in each effect. The JSON is the
+                                    source of truth — adjusting a slider's default or range in resources/effectmetadata/
+                                    now actually changes the effect's render behavior. ~45 effects migrated.
 2026.05  April 9, 2026
 =======
 2026.05  April ??, 2026

@@ -12,27 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define SPIROGRAPH_ANIMATE_MIN -50
-#define SPIROGRAPH_ANIMATE_MAX 50
-
-#define SPIROGRAPH_LENGTH_MIN 0
-#define SPIROGRAPH_LENGTH_MAX 50
-
-#define SPIROGRAPH_WIDTH_MIN 1
-#define SPIROGRAPH_WIDTH_MAX 50
-
-#define SPIROGRAPH_R_MIN 1
-#define SPIROGRAPH_R_MAX 100
-
-#define SPIROGRAPH_r_MIN 1
-#define SPIROGRAPH_r_MAX 100
-
-#define SPIROGRAPH_SPEED_MIN 0
-#define SPIROGRAPH_SPEED_MAX 50
-
-#define SPIROGRAPH_d_MIN 1
-#define SPIROGRAPH_d_MAX 100
-
 class SpirographEffect : public RenderableEffect
 {
 public:
@@ -48,43 +27,29 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Spirograph_Animate")
-            return SPIROGRAPH_ANIMATE_MIN;
-        if (name == "E_VALUECURVE_Spirograph_Length")
-            return SPIROGRAPH_LENGTH_MIN;
-        if (name == "E_VALUECURVE_Spirograph_Width")
-            return SPIROGRAPH_WIDTH_MIN;
-        if (name == "E_VALUECURVE_Spirograph_R")
-            return SPIROGRAPH_R_MIN;
-        if (name == "E_VALUECURVE_Spirograph_r")
-            return SPIROGRAPH_r_MIN;
-        if (name == "E_VALUECURVE_Spirograph_Speed")
-            return SPIROGRAPH_SPEED_MIN;
-        if (name == "E_VALUECURVE_Spirograph_d")
-            return SPIROGRAPH_d_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Spirograph_Animate")
-            return SPIROGRAPH_ANIMATE_MAX;
-        if (name == "E_VALUECURVE_Spirograph_Length")
-            return SPIROGRAPH_LENGTH_MAX;
-        if (name == "E_VALUECURVE_Spirograph_Width")
-            return SPIROGRAPH_WIDTH_MAX;
-        if (name == "E_VALUECURVE_Spirograph_R")
-            return SPIROGRAPH_R_MAX;
-        if (name == "E_VALUECURVE_Spirograph_r")
-            return SPIROGRAPH_r_MAX;
-        if (name == "E_VALUECURVE_Spirograph_Speed")
-            return SPIROGRAPH_SPEED_MAX;
-        if (name == "E_VALUECURVE_Spirograph_d")
-            return SPIROGRAPH_d_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Spirograph.json by OnMetadataLoaded().
+    static int sRDefault;
+    static int sRMin;
+    static int sRMax;
+    static int srDefault;
+    static int srMin;
+    static int srMax;
+    static int sdDefault;
+    static int sdMin;
+    static int sdMax;
+    static int sAnimateDefault;
+    static int sAnimateMin;
+    static int sAnimateMax;
+    static int sSpeedDefault;
+    static int sSpeedMin;
+    static int sSpeedMax;
+    static int sLengthDefault;
+    static int sLengthMin;
+    static int sLengthMax;
+    static int sWidthDefault;
+    static int sWidthMin;
+    static int sWidthMax;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 };

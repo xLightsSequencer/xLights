@@ -205,36 +205,36 @@ void MorphPanel::ApplyStartLimits() {
     auto setLimits = [](BulkEditValueCurveButton* b, int lo, int hi) {
         if (b) b->GetValue()->SetLimits(lo, hi);
     };
-    setLimits(_vcStartX1, MORPH_X_MIN, MORPH_X_MAX);
-    setLimits(_vcStartX2, MORPH_X_MIN, MORPH_X_MAX);
-    setLimits(_vcEndX1,   MORPH_X_MIN, MORPH_X_MAX);
-    setLimits(_vcEndX2,   MORPH_X_MIN, MORPH_X_MAX);
-    setLimits(_vcStartY1, MORPH_Y_MIN, MORPH_Y_MAX);
-    setLimits(_vcStartY2, MORPH_Y_MIN, MORPH_Y_MAX);
-    setLimits(_vcEndY1,   MORPH_Y_MIN, MORPH_Y_MAX);
-    setLimits(_vcEndY2,   MORPH_Y_MIN, MORPH_Y_MAX);
+    setLimits(_vcStartX1, MorphEffect::sXMin, MorphEffect::sXMax);
+    setLimits(_vcStartX2, MorphEffect::sXMin, MorphEffect::sXMax);
+    setLimits(_vcEndX1,   MorphEffect::sXMin, MorphEffect::sXMax);
+    setLimits(_vcEndX2,   MorphEffect::sXMin, MorphEffect::sXMax);
+    setLimits(_vcStartY1, MorphEffect::sYMin, MorphEffect::sYMax);
+    setLimits(_vcStartY2, MorphEffect::sYMin, MorphEffect::sYMax);
+    setLimits(_vcEndY1,   MorphEffect::sYMin, MorphEffect::sYMax);
+    setLimits(_vcEndY2,   MorphEffect::sYMin, MorphEffect::sYMax);
 
     setLimits(dynamic_cast<BulkEditValueCurveButton*>(
         wxWindow::FindWindowByName("ID_VALUECURVE_MorphStartLength", this)),
-        MORPH_STARTLENGTH_MIN, MORPH_STARTLENGTH_MAX);
+        MorphEffect::sStartLengthMin, MorphEffect::sStartLengthMax);
     setLimits(dynamic_cast<BulkEditValueCurveButton*>(
         wxWindow::FindWindowByName("ID_VALUECURVE_MorphEndLength", this)),
-        MORPH_ENDLENGTH_MIN, MORPH_ENDLENGTH_MAX);
+        MorphEffect::sEndLengthMin, MorphEffect::sEndLengthMax);
     setLimits(dynamic_cast<BulkEditValueCurveButton*>(
         wxWindow::FindWindowByName("ID_VALUECURVE_MorphDuration", this)),
-        MORPH_DURATION_MIN, MORPH_DURATION_MAX);
+        MorphEffect::sDurationMin, MorphEffect::sDurationMax);
     setLimits(dynamic_cast<BulkEditValueCurveButton*>(
         wxWindow::FindWindowByName("ID_VALUECURVE_MorphAccel", this)),
-        MORPH_ACCEL_MIN, MORPH_ACCEL_MAX);
+        MorphEffect::sAccelMin, MorphEffect::sAccelMax);
     setLimits(dynamic_cast<BulkEditValueCurveButton*>(
         wxWindow::FindWindowByName("ID_VALUECURVE_Morph_Repeat_Count", this)),
-        MORPH_REPEAT_MIN, MORPH_REPEAT_MAX);
+        MorphEffect::sRepeatCountMin, MorphEffect::sRepeatCountMax);
     setLimits(dynamic_cast<BulkEditValueCurveButton*>(
         wxWindow::FindWindowByName("ID_VALUECURVE_Morph_Repeat_Skip", this)),
-        MORPH_REPEATSKIP_MIN, MORPH_REPEATSKIP_MAX);
+        MorphEffect::sRepeatSkipMin, MorphEffect::sRepeatSkipMax);
     setLimits(dynamic_cast<BulkEditValueCurveButton*>(
         wxWindow::FindWindowByName("ID_VALUECURVE_Morph_Stagger", this)),
-        MORPH_STAGGER_MIN, MORPH_STAGGER_MAX);
+        MorphEffect::sStaggerMin, MorphEffect::sStaggerMax);
 }
 
 void MorphPanel::OnQuickSetSelect(wxCommandEvent& event) {

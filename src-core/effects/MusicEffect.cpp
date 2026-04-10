@@ -29,12 +29,43 @@
 
 //#define wrdebug(...)
 
+int MusicEffect::sBarsDefault = 20;
+std::string MusicEffect::sTypeDefault = "Morph";
+int MusicEffect::sSensitivityDefault = 50;
+bool MusicEffect::sScaleDefault = false;
+std::string MusicEffect::sScalingDefault = "None";
+int MusicEffect::sOffsetDefault = 0;
+int MusicEffect::sOffsetMin = 0;
+int MusicEffect::sOffsetMax = 100;
+int MusicEffect::sStartNoteDefault = 60;
+int MusicEffect::sEndNoteDefault = 80;
+std::string MusicEffect::sColourDefault = "Distinct";
+bool MusicEffect::sFadeDefault = false;
+bool MusicEffect::sLogarithmicXDefault = false;
+
 MusicEffect::MusicEffect(int id) : RenderableEffect(id, "Music Effect", music_16, music_24, music_32, music_48, music_64)
 {
 }
 
 MusicEffect::~MusicEffect()
 {
+}
+
+void MusicEffect::OnMetadataLoaded()
+{
+    sBarsDefault = GetIntDefault("Music_Bars", sBarsDefault);
+    sTypeDefault = GetStringDefault("Music_Type", sTypeDefault);
+    sSensitivityDefault = GetIntDefault("Music_Sensitivity", sSensitivityDefault);
+    sScaleDefault = GetBoolDefault("Music_Scale", sScaleDefault);
+    sScalingDefault = GetStringDefault("Music_Scaling", sScalingDefault);
+    sOffsetDefault = GetIntDefault("Music_Offset", sOffsetDefault);
+    sOffsetMin = (int)GetMinFromMetadata("Music_Offset", sOffsetMin);
+    sOffsetMax = (int)GetMaxFromMetadata("Music_Offset", sOffsetMax);
+    sStartNoteDefault = GetIntDefault("Music_StartNote", sStartNoteDefault);
+    sEndNoteDefault = GetIntDefault("Music_EndNote", sEndNoteDefault);
+    sColourDefault = GetStringDefault("Music_Colour", sColourDefault);
+    sFadeDefault = GetBoolDefault("Music_Fade", sFadeDefault);
+    sLogarithmicXDefault = GetBoolDefault("Music_LogarithmicX", sLogarithmicXDefault);
 }
 
 std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -83,17 +114,17 @@ void MusicEffect::adjustSettings(const std::string& version, Effect* effect, boo
 void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-        SettingsMap.GetInt("SLIDER_Music_Bars", 20),
-        SettingsMap.Get("CHOICE_Music_Type", "Morph"),
-        SettingsMap.GetInt("SLIDER_Music_Sensitivity", 50),
-        SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
-        std::string(SettingsMap.Get("CHOICE_Music_Scaling", "None")),
-        GetValueCurveInt("Music_Offset", 0, SettingsMap, oset, MUSIC_OFFSET_MIN, MUSIC_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetInt("SLIDER_Music_StartNote", 60),
-        SettingsMap.GetInt("SLIDER_Music_EndNote", 80),
-        SettingsMap.Get("CHOICE_Music_Colour", "Distinct"),
-        SettingsMap.GetBool("CHECKBOX_Music_Fade", false),
-        SettingsMap.GetBool("CHECKBOX_Music_LogarithmicX", false)
+        SettingsMap.GetInt("SLIDER_Music_Bars", sBarsDefault),
+        SettingsMap.Get("CHOICE_Music_Type", sTypeDefault),
+        SettingsMap.GetInt("SLIDER_Music_Sensitivity", sSensitivityDefault),
+        SettingsMap.GetBool("CHECKBOX_Music_Scale", sScaleDefault),
+        std::string(SettingsMap.Get("CHOICE_Music_Scaling", sScalingDefault)),
+        GetValueCurveInt("Music_Offset", sOffsetDefault, SettingsMap, oset, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+        SettingsMap.GetInt("SLIDER_Music_StartNote", sStartNoteDefault),
+        SettingsMap.GetInt("SLIDER_Music_EndNote", sEndNoteDefault),
+        SettingsMap.Get("CHOICE_Music_Colour", sColourDefault),
+        SettingsMap.GetBool("CHECKBOX_Music_Fade", sFadeDefault),
+        SettingsMap.GetBool("CHECKBOX_Music_LogarithmicX", sLogarithmicXDefault)
     );
 }
 

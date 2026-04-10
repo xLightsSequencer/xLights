@@ -76,12 +76,12 @@ void MetalColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap
     }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool horizFade       = SettingsMap.GetBool("CHECKBOX_ColorWash_HFade");
-    bool vertFade        = SettingsMap.GetBool("CHECKBOX_ColorWash_VFade");
-    bool reverseFades    = SettingsMap.GetBool("CHECKBOX_ColorWash_ReverseFades");
-    bool shimmer         = SettingsMap.GetBool("CHECKBOX_ColorWash_Shimmer");
-    bool circularPalette = SettingsMap.GetBool("CHECKBOX_ColorWash_CircularPalette");
+    float cycles = GetValueCurveDouble("ColorWash_Cycles", sCyclesDefault, SettingsMap, oset, sCyclesMin, sCyclesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sCyclesDivisor);
+    bool horizFade       = SettingsMap.GetBool("CHECKBOX_ColorWash_HFade", sHFadeDefault);
+    bool vertFade        = SettingsMap.GetBool("CHECKBOX_ColorWash_VFade", sVFadeDefault);
+    bool reverseFades    = SettingsMap.GetBool("CHECKBOX_ColorWash_ReverseFades", sReverseFadesDefault);
+    bool shimmer         = SettingsMap.GetBool("CHECKBOX_ColorWash_Shimmer", sShimmerDefault);
+    bool circularPalette = SettingsMap.GetBool("CHECKBOX_ColorWash_CircularPalette", sCircularPaletteDefault);
 
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
     xlColor color;

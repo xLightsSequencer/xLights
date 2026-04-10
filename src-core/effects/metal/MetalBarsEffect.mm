@@ -76,10 +76,10 @@ void MetalBarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     }
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int paletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, BARCYCLES_MIN, BARCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
+    int paletteRepeat = GetValueCurveInt("Bars_BarCount", sBarCountDefault, SettingsMap, offset, sBarCountMin, sBarCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double cycles = GetValueCurveDouble("Bars_Cycles", sCyclesDefault, SettingsMap, offset, sCyclesMin, sCyclesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sCyclesDivisor);
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
-    double center = GetValueCurveDouble("Bars_Center", 0, SettingsMap, position, BARCENTER_MIN, BARCENTER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double center = GetValueCurveDouble("Bars_Center", sCenterDefault, SettingsMap, position, sCenterMin, sCenterMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     const std::string &dirStr = SettingsMap["CHOICE_Bars_Direction"];
     int direction = 0;
@@ -101,10 +101,10 @@ void MetalBarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         return;
     }
 
-    bool highlight               = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
-    bool useFirstColorForHighlight = highlight && SettingsMap.GetBool("CHECKBOX_Bars_UseFirstColorForHighlight", false);
-    bool show3D                  = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);
-    bool gradient                = SettingsMap.GetBool("CHECKBOX_Bars_Gradient", false);
+    bool highlight               = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", sHighlightDefault);
+    bool useFirstColorForHighlight = highlight && SettingsMap.GetBool("CHECKBOX_Bars_UseFirstColorForHighlight", sUseFirstColorForHighlightDefault);
+    bool show3D                  = SettingsMap.GetBool("CHECKBOX_Bars_3D", s3DDefault);
+    bool gradient                = SettingsMap.GetBool("CHECKBOX_Bars_Gradient", sGradientDefault);
 
     size_t colorcnt = buffer.GetColorCount();
     if (colorcnt == 0) colorcnt = 1;

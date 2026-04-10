@@ -13,33 +13,6 @@
 #include "RenderableEffect.h"
 #include "UtilFunctions.h"
 
-#define MORPH_X_MIN 0
-#define MORPH_X_MAX 100
-
-#define MORPH_Y_MIN 0
-#define MORPH_Y_MAX 100
-
-#define MORPH_STARTLENGTH_MIN 0
-#define MORPH_STARTLENGTH_MAX 100
-
-#define MORPH_ENDLENGTH_MIN 0
-#define MORPH_ENDLENGTH_MAX 100
-
-#define MORPH_DURATION_MIN 0
-#define MORPH_DURATION_MAX 100
-
-#define MORPH_ACCEL_MIN -10
-#define MORPH_ACCEL_MAX 10
-
-#define MORPH_REPEAT_MIN 0
-#define MORPH_REPEAT_MAX 250
-
-#define MORPH_REPEATSKIP_MIN 1
-#define MORPH_REPEATSKIP_MAX 100
-
-#define MORPH_STAGGER_MIN -100
-#define MORPH_STAGGER_MAX 100
-
 class MorphEffect : public RenderableEffect
 {
 public:
@@ -54,50 +27,45 @@ public:
     }
     virtual bool PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (StartsWith(name, "E_VALUECURVE_Morph_Start_X") || StartsWith(name, "E_VALUECURVE_Morph_End_X"))
-            return MORPH_X_MIN;
-        if (StartsWith(name, "E_VALUECURVE_Morph_Start_Y") || StartsWith(name, "E_VALUECURVE_Morph_End_Y"))
-            return MORPH_Y_MIN;
-        if (name == "E_VALUECURVE_MorphStartLength")
-            return MORPH_STARTLENGTH_MIN;
-        if (name == "E_VALUECURVE_MorphEndLength")
-            return MORPH_ENDLENGTH_MIN;
-        if (name == "E_VALUECURVE_MorphDuration")
-            return MORPH_DURATION_MIN;
-        if (name == "E_VALUECURVE_MorphAccel")
-            return MORPH_ACCEL_MIN;
-        if (name == "E_VALUECURVE_Morph_Repeat_Count")
-            return MORPH_REPEAT_MIN;
-        if (name == "E_VALUECURVE_Morph_Repeat_Skip")
-            return MORPH_REPEATSKIP_MIN;
-        if (name == "E_VALUECURVE_Morph_Stagger")
-            return MORPH_STAGGER_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
+    // Cached from Morph.json by OnMetadataLoaded().
+    static int sStartX1Default;
+    static int sStartY1Default;
+    static int sStartX2Default;
+    static int sStartY2Default;
+    static int sEndX1Default;
+    static int sEndY1Default;
+    static int sEndX2Default;
+    static int sEndY2Default;
+    static int sXMin;
+    static int sXMax;
+    static int sYMin;
+    static int sYMax;
+    static int sStartLengthDefault;
+    static int sStartLengthMin;
+    static int sStartLengthMax;
+    static int sEndLengthDefault;
+    static int sEndLengthMin;
+    static int sEndLengthMax;
+    static int sDurationDefault;
+    static int sDurationMin;
+    static int sDurationMax;
+    static int sAccelDefault;
+    static int sAccelMin;
+    static int sAccelMax;
+    static int sRepeatCountDefault;
+    static int sRepeatCountMin;
+    static int sRepeatCountMax;
+    static int sRepeatSkipDefault;
+    static int sRepeatSkipMin;
+    static int sRepeatSkipMax;
+    static int sStaggerDefault;
+    static int sStaggerMin;
+    static int sStaggerMax;
+    static bool sStartLinkDefault;
+    static bool sEndLinkDefault;
+    static bool sShowHeadAtStartDefault;
+    static bool sAutoRepeatDefault;
 
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (StartsWith(name, "E_VALUECURVE_Morph_Start_X") || StartsWith(name, "E_VALUECURVE_Morph_End_X"))
-            return MORPH_X_MAX;
-        if (StartsWith(name, "E_VALUECURVE_Morph_Start_Y") || StartsWith(name, "E_VALUECURVE_Morph_End_Y"))
-            return MORPH_Y_MAX;
-        if (name == "E_VALUECURVE_MorphStartLength")
-            return MORPH_STARTLENGTH_MAX;
-        if (name == "E_VALUECURVE_MorphEndLength")
-            return MORPH_ENDLENGTH_MAX;
-        if (name == "E_VALUECURVE_MorphDuration")
-            return MORPH_DURATION_MAX;
-        if (name == "E_VALUECURVE_MorphAccel")
-            return MORPH_ACCEL_MAX;
-        if (name == "E_VALUECURVE_Morph_Repeat_Count")
-            return MORPH_REPEAT_MAX;
-        if (name == "E_VALUECURVE_Morph_Repeat_Skip")
-            return MORPH_REPEATSKIP_MAX;
-        if (name == "E_VALUECURVE_Morph_Stagger")
-            return MORPH_STAGGER_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-
+protected:
+    virtual void OnMetadataLoaded() override;
 };

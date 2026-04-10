@@ -597,6 +597,20 @@ public:
     }
 };
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Guitar.json values).
+std::string GuitarEffect::sTypeDefault = "Guitar";
+std::string GuitarEffect::sMIDITrackDefault = "";
+std::string GuitarEffect::sStringAppearanceDefault = "On";
+int GuitarEffect::sMaxFretsDefault = 19;
+int GuitarEffect::sMaxFretsMin = 8;
+int GuitarEffect::sMaxFretsMax = 30;
+double GuitarEffect::sBaseWaveFactorDefault = 1.0;
+double GuitarEffect::sStringWaveFactorDefault = 0.0;
+bool GuitarEffect::sFadeDefault = false;
+bool GuitarEffect::sCollapseDefault = false;
+bool GuitarEffect::sShowStringsDefault = false;
+bool GuitarEffect::sVaryWaveLengthOnFretDefault = true;
+
 GuitarEffect::GuitarEffect(int id) :
     RenderableEffect(id, "Guitar", Guitar_16_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm)
 {
@@ -606,6 +620,22 @@ GuitarEffect::GuitarEffect(int id) :
 GuitarEffect::~GuitarEffect()
 {
     //dtor
+}
+
+void GuitarEffect::OnMetadataLoaded()
+{
+    sTypeDefault = GetStringDefault("Guitar_Type", sTypeDefault);
+    sMIDITrackDefault = GetStringDefault("Guitar_MIDITrack_APPLYLAST", sMIDITrackDefault);
+    sStringAppearanceDefault = GetStringDefault("StringAppearance", sStringAppearanceDefault);
+    sMaxFretsDefault = GetIntDefault("MaxFrets", sMaxFretsDefault);
+    sMaxFretsMin = (int)GetMinFromMetadata("MaxFrets", sMaxFretsMin);
+    sMaxFretsMax = (int)GetMaxFromMetadata("MaxFrets", sMaxFretsMax);
+    sBaseWaveFactorDefault = GetDoubleDefault("BaseWaveFactor", sBaseWaveFactorDefault);
+    sStringWaveFactorDefault = GetDoubleDefault("StringWaveFactor", sStringWaveFactorDefault);
+    sFadeDefault = GetBoolDefault("Fade", sFadeDefault);
+    sCollapseDefault = GetBoolDefault("Collapse", sCollapseDefault);
+    sShowStringsDefault = GetBoolDefault("ShowStrings", sShowStringsDefault);
+    sVaryWaveLengthOnFretDefault = GetBoolDefault("VaryWaveLengthOnFret", sVaryWaveLengthOnFretDefault);
 }
 
 std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -647,20 +677,20 @@ void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, E
 void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     RenderGuitar(buffer,
                  effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-                 std::string(SettingsMap.Get("CHOICE_Guitar_Type", "Guitar")),
-                 std::string(SettingsMap.Get("CHOICE_Guitar_MIDITrack_APPLYLAST", "")),
-                 std::string(SettingsMap.Get("CHOICE_StringAppearance", "On")),
-                 SettingsMap.GetInt("SLIDER_MaxFrets", 19),
-                 SettingsMap.GetBool("CHECKBOX_ShowStrings", false),
-                 SettingsMap.GetBool("CHECKBOX_Fade", false),
-                 SettingsMap.GetBool("CHECKBOX_Collapse", false),
-                 SettingsMap.GetDouble("TEXTCTRL_StringWaveFactor", 0.0),
-                 SettingsMap.GetDouble("TEXTCTRL_BaseWaveFactor", 1.0),
-                 SettingsMap.GetBool("CHECKBOX_VaryWaveLengthOnFret", true));
+                 std::string(SettingsMap.Get("CHOICE_Guitar_Type", sTypeDefault)),
+                 std::string(SettingsMap.Get("CHOICE_Guitar_MIDITrack_APPLYLAST", sMIDITrackDefault)),
+                 std::string(SettingsMap.Get("CHOICE_StringAppearance", sStringAppearanceDefault)),
+                 SettingsMap.GetInt("SLIDER_MaxFrets", sMaxFretsDefault),
+                 SettingsMap.GetBool("CHECKBOX_ShowStrings", sShowStringsDefault),
+                 SettingsMap.GetBool("CHECKBOX_Fade", sFadeDefault),
+                 SettingsMap.GetBool("CHECKBOX_Collapse", sCollapseDefault),
+                 SettingsMap.GetDouble("TEXTCTRL_StringWaveFactor", sStringWaveFactorDefault),
+                 SettingsMap.GetDouble("TEXTCTRL_BaseWaveFactor", sBaseWaveFactorDefault),
+                 SettingsMap.GetBool("CHECKBOX_VaryWaveLengthOnFret", sVaryWaveLengthOnFretDefault));
 }
 
 bool GuitarEffect::needToAdjustSettings(const std::string& version) {
-    return IsVersionOlder("2026.06", version) || RenderableEffect::needToAdjustSettings(version);
+    return IsVersionOlder("2026.05.2", version) || RenderableEffect::needToAdjustSettings(version);
 }
 
 void GuitarEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
@@ -670,7 +700,7 @@ void GuitarEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
     SettingsMap& settings = effect->GetSettings();
 
-    if (IsVersionOlder("2026.06", version)) {
+    if (IsVersionOlder("2026.05.2", version)) {
         // The wave factor sliders previously stored an int 1..100 in E_SLIDER_*
         // (the renderer divided by 10). The JSON-driven panel now stores a float
         // 0.1..10.0 directly in E_TEXTCTRL_*. Migrate the legacy keys forward so

@@ -18,17 +18,16 @@ class SketchEffectSketch;
 class SketchEffect : public RenderableEffect
 {
 public:
-    static const int DrawPercentageMin = 0;
-    static const int DrawPercentageDef = 40;
-    static const int DrawPercentageMax = 100;
-
-    static const int ThicknessMin = 1;
-    static const int ThicknessDef = 1;
-    static const int ThicknessMax = 25;
-
-    static const int MotionPercentageMin = 1;
-    static const int MotionPercentageDef = 100;
-    static const int MotionPercentageMax = 100;
+    static int sDrawPercentageDefault;
+    static int sDrawPercentageMin;
+    static int sDrawPercentageMax;
+    static int sThicknessDefault;
+    static int sThicknessMin;
+    static int sThicknessMax;
+    static int sMotionPercentageDefault;
+    static int sMotionPercentageMin;
+    static int sMotionPercentageMax;
+    static bool sMotionEnabledDefault;
 
     SketchEffect( int id );
     virtual ~SketchEffect();
@@ -45,10 +44,8 @@ public:
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override;
-    virtual double GetSettingVCMax(const std::string& name) const override;
-
 protected:
+    virtual void OnMetadataLoaded() override;
     void renderSketch(const SketchEffectSketch& sketch,
                       RenderBuffer& buffer, double progress,
                       double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage,

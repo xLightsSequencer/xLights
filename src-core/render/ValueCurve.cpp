@@ -800,48 +800,43 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
 
     float newrange = newmax - newmin;
     float oldrange = _max - _min;
-    float mindiff = newmin - _min;
-
-    if (newrange < oldrange)
-    {
-        // this is suspicious ... generally ranges increase with versions not decrease so I am going to ignore this request
-        assert(false);
-        // continue otherwise it doesnt stop it happening in future
-        // return;
-    }
+    // Rescale a real-value parameter from the current [_min, _max] range
+    // into [newmin, newmax]:
+    //   new = (old - _min) * newrange / oldrange + newmin
+    // The previous formula ((old * newrange / oldrange) + (newmin - _min))
+    // was only correct when _min == 0, per the original author's comment.
+    // Shrinking ranges (newrange < oldrange) are also valid — the rescale
+    // is linear in both directions.
 
     float min, max;
     GetRangeParm(1, _type, min, max);
     if (min == MINVOID) {
-        _parameter1 = (_parameter1 * newrange / oldrange + mindiff); // / divisor; //MoC - this is only right if _min was 0
+        _parameter1 = (_parameter1 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(2, _type, min, max);
     if (min == MINVOID) {
-        _parameter2 = (_parameter2 * newrange / oldrange + mindiff); // / divisor;
+        _parameter2 = (_parameter2 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(3, _type, min, max);
     if (min == MINVOID) {
-        _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
+        _parameter3 = (_parameter3 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(4, _type, min, max);
     if (min == MINVOID) {
-        _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
+        _parameter4 = (_parameter4 - _min) * newrange / oldrange + newmin;
     }
 
-    // now handle custom
+    // Custom curve points: rescale y values the same way.
     if (_type == "Custom")
     {
         assert(_min != MINVOIDF);
         assert(_max != MAXVOIDF);
-        //old max of 10, 1.0 = 10 
-        //new max of 20, 0.5 = 10 
-        //y = y * 0.5 or 10/20 i.e. old range/new range
         for (auto& it : _values)
         {
-            it.y = it.y * oldrange / newrange + mindiff;
+            it.y = (it.y - _min) * newrange / oldrange + newmin;
         }
     }
 }

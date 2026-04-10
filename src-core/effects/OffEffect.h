@@ -25,6 +25,8 @@ class OffEffect : public RenderableEffect
         virtual bool needToAdjustSettings(const std::string& version) override;
         virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 
+        static std::string sStyleDefault;
+
     protected:
-    private:
+        virtual void OnMetadataLoaded() override;
 };

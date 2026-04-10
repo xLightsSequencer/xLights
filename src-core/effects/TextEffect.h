@@ -37,7 +37,17 @@ public:
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
+    // Cached from Text.json by OnMetadataLoaded().
+    static int sSpeedDefault;
+    static int sXStartDefault;
+    static int sYStartDefault;
+    static int sXEndDefault;
+    static int sYEndDefault;
+    static bool sPixelOffsetsDefault;
+    static bool sColorPerWordDefault;
+
 protected:
+    virtual void OnMetadataLoaded() override;
 private:
     void FormatCountdown(int Countdown, int state, std::string& Line, RenderBuffer& buffer, std::string& msg, std::string Line_orig) const;
     std::vector<std::string> WordSplit(const std::string& text) const;

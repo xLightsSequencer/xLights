@@ -18,9 +18,6 @@
 
 class MusicEvent;
 
-#define MUSIC_OFFSET_MIN 0
-#define MUSIC_OFFSET_MAX 100
-
 class MusicEffect : public RenderableEffect
 {
 public:
@@ -34,20 +31,23 @@ public:
     // Currently not possible but I think changes could be made to make it support partial
     // virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Music_Offset")
-            return MUSIC_OFFSET_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Music_Offset")
-            return MUSIC_OFFSET_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Music.json by OnMetadataLoaded().
+    static int sBarsDefault;
+    static std::string sTypeDefault;
+    static int sSensitivityDefault;
+    static bool sScaleDefault;
+    static std::string sScalingDefault;
+    static int sOffsetDefault;
+    static int sOffsetMin;
+    static int sOffsetMax;
+    static int sStartNoteDefault;
+    static int sEndNoteDefault;
+    static std::string sColourDefault;
+    static bool sFadeDefault;
+    static bool sLogarithmicXDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     void CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity, bool logarithmicX);
     int DecodeType(const std::string& type);
     int DecodeColourTreatment(const std::string& colourtreatment);

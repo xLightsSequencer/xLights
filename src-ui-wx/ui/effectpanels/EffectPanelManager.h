@@ -23,12 +23,17 @@ class xlEffectPanel;
 class wxWindow;
 class Model;
 class SequenceElements;
+class EffectManager;
+class RenderableEffect;
 
 class EffectPanelManager {
 public:
     using PanelFactory = std::function<xlEffectPanel*(wxWindow*)>;
 
-    EffectPanelManager();
+    // effectManager must outlive this EffectPanelManager. Metadata-driven
+    // panels read their JSON descriptors directly from the effects rather
+    // than re-parsing the file on disk.
+    explicit EffectPanelManager(EffectManager* effectManager);
     ~EffectPanelManager();
 
     xlEffectPanel* GetPanel(int effectId, wxWindow* parent);
@@ -56,16 +61,15 @@ private:
         RegisterPanel(effectId, name, [](wxWindow* p) -> xlEffectPanel* { return new PanelT(p); });
     }
 
-    void RegisterJson(int effectId, const std::string& name, const std::string& jsonBaseName);
+    void RegisterJson(int effectId, const std::string& name);
 
     // Register a JsonEffectPanel subclass that takes (wxWindow*, nlohmann::json) constructor
     template<typename PanelT>
-    void RegisterJsonSubclass(int effectId, const std::string& name, const std::string& jsonBaseName) {
-        RegisterPanel(effectId, name, [jsonBaseName](wxWindow* p) -> xlEffectPanel* {
-            std::string metaDir = EffectPanelManager::GetMetadataDirectory();
-            if (metaDir.empty()) return nullptr;
-            auto metadata = JsonEffectPanel::LoadMetadata(metaDir + "/" + jsonBaseName + ".json");
-            if (metadata.empty()) return nullptr;
+    void RegisterJsonSubclass(int effectId, const std::string& name) {
+        EffectManager* em = effectManager_;
+        RegisterPanel(effectId, name, [em, name](wxWindow* p) -> xlEffectPanel* {
+            const nlohmann::json& metadata = GetEffectMetadataFor(em, name);
+            if (metadata.is_null() || metadata.empty()) return nullptr;
             return new PanelT(p, metadata);
         });
     }
@@ -74,6 +78,10 @@ public:
     static std::string GetMetadataDirectory();
 
 private:
+    // Looks up the effect by name in the EffectManager and returns its cached
+    // JSON metadata. Returns a reference to a static empty json on miss so
+    // callers can check is_null()/empty().
+    static const nlohmann::json& GetEffectMetadataFor(EffectManager* em, const std::string& effectName);
 
     struct PanelInfo {
         PanelFactory factory;
@@ -81,6 +89,7 @@ private:
         xlEffectPanel* panel = nullptr;
     };
 
+    EffectManager* effectManager_ = nullptr;
     std::vector<PanelInfo> panels;
     std::map<std::string, int> panelsByName;
 };

@@ -12,15 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define BUTTERFLY_SPEED_MIN 0
-#define BUTTERFLY_SPEED_MAX 100
-
-#define BUTTERFLY_SKIP_MIN 2
-#define BUTTERFLY_SKIP_MAX 10
-
-#define BUTTERFLY_CHUNKS_MIN 1
-#define BUTTERFLY_CHUNKS_MAX 10
-
 class ButterflyEffect : public RenderableEffect
 {
 public:
@@ -40,26 +31,19 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Butterfly_Speed")
-            return BUTTERFLY_SPEED_MIN;
-        if (name == "E_VALUECURVE_Butterfly_Skip")
-            return BUTTERFLY_SKIP_MIN;
-        if (name == "E_VALUECURVE_Butterfly_Chunks")
-            return BUTTERFLY_CHUNKS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Butterfly_Speed")
-            return BUTTERFLY_SPEED_MAX;
-        if (name == "E_VALUECURVE_Butterfly_Skip")
-            return BUTTERFLY_SKIP_MAX;
-        if (name == "E_VALUECURVE_Butterfly_Chunks")
-            return BUTTERFLY_CHUNKS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static std::string sColorsDefault;
+    static int sStyleDefault;
+    static int sChunksDefault;
+    static int sChunksMin;
+    static int sChunksMax;
+    static int sSkipDefault;
+    static int sSkipMin;
+    static int sSkipMax;
+    static int sSpeedDefault;
+    static int sSpeedMin;
+    static int sSpeedMax;
+    static std::string sDirectionDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 };

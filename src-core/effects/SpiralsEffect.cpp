@@ -24,6 +24,26 @@
 
 #define MAX_ISPC_SPIRALS_COLORS 8
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Spirals.json values).
+int SpiralsEffect::sCountDefault = 1;
+int SpiralsEffect::sCountMin = 1;
+int SpiralsEffect::sCountMax = 5;
+double SpiralsEffect::sMovementDefault = 1.0;
+double SpiralsEffect::sMovementMin = -200;
+double SpiralsEffect::sMovementMax = 200;
+int SpiralsEffect::sMovementDivisor = 10;
+double SpiralsEffect::sRotationDefault = 2.0;
+double SpiralsEffect::sRotationMin = -300;
+double SpiralsEffect::sRotationMax = 300;
+int SpiralsEffect::sRotationDivisor = 10;
+int SpiralsEffect::sThicknessDefault = 50;
+int SpiralsEffect::sThicknessMin = 0;
+int SpiralsEffect::sThicknessMax = 100;
+bool SpiralsEffect::sBlendDefault = false;
+bool SpiralsEffect::s3DDefault = false;
+bool SpiralsEffect::sGrowDefault = false;
+bool SpiralsEffect::sShrinkDefault = false;
+
 SpiralsEffect::SpiralsEffect(int id) : RenderableEffect(id, "Spirals", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64)
 {
     //ctor
@@ -33,6 +53,29 @@ SpiralsEffect::~SpiralsEffect()
 {
     //dtor
 }
+
+void SpiralsEffect::OnMetadataLoaded()
+{
+    sCountDefault = GetIntDefault("Spirals_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Spirals_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Spirals_Count", sCountMax);
+    sMovementDefault = GetDoubleDefault("Spirals_Movement", sMovementDefault);
+    sMovementMin = GetMinFromMetadata("Spirals_Movement", sMovementMin);
+    sMovementMax = GetMaxFromMetadata("Spirals_Movement", sMovementMax);
+    sMovementDivisor = GetDivisorFromMetadata("Spirals_Movement", sMovementDivisor);
+    sRotationDefault = GetDoubleDefault("Spirals_Rotation", sRotationDefault);
+    sRotationMin = GetMinFromMetadata("Spirals_Rotation", sRotationMin);
+    sRotationMax = GetMaxFromMetadata("Spirals_Rotation", sRotationMax);
+    sRotationDivisor = GetDivisorFromMetadata("Spirals_Rotation", sRotationDivisor);
+    sThicknessDefault = GetIntDefault("Spirals_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Spirals_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Spirals_Thickness", sThicknessMax);
+    sBlendDefault = GetBoolDefault("Spirals_Blend", sBlendDefault);
+    s3DDefault = GetBoolDefault("Spirals_3D", s3DDefault);
+    sGrowDefault = GetBoolDefault("Spirals_Grow", sGrowDefault);
+    sShrinkDefault = GetBoolDefault("Spirals_Shrink", sShrinkDefault);
+}
+
 bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap) const
 {
     // The blend setting is incompatible with linear colour curves
@@ -41,18 +84,18 @@ bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap) co
 
 void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_MOVEMENT_DIVISOR);
-    float Rotation = GetValueCurveDouble("Spirals_Rotation", 2.0, SettingsMap, offset, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_ROTATION_DIVISOR);
+    int PaletteRepeat = GetValueCurveInt("Spirals_Count", sCountDefault, SettingsMap, offset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float Movement = GetValueCurveDouble("Spirals_Movement", sMovementDefault, SettingsMap, offset, sMovementMin, sMovementMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sMovementDivisor);
+    float Rotation = GetValueCurveDouble("Spirals_Rotation", sRotationDefault, SettingsMap, offset, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRotationDivisor);
     // This is because spirals uses the slider while most others use the TextCtrl
     if (SettingsMap.Contains("VALUECURVE_Spirals_Rotation") && Contains(SettingsMap["VALUECURVE_Spirals_Rotation"], "Active=TRUE")) {
         Rotation *= 10;
     }
-    int Thickness = GetValueCurveInt("Spirals_Thickness", 50, SettingsMap, offset, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool Blend = SettingsMap.GetBool("CHECKBOX_Spirals_Blend");
-    bool Show3D = SettingsMap.GetBool("CHECKBOX_Spirals_3D");
-    bool grow = SettingsMap.GetBool("CHECKBOX_Spirals_Grow");
-    bool shrink = SettingsMap.GetBool("CHECKBOX_Spirals_Shrink");
+    int Thickness = GetValueCurveInt("Spirals_Thickness", sThicknessDefault, SettingsMap, offset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool Blend = SettingsMap.GetBool("CHECKBOX_Spirals_Blend", sBlendDefault);
+    bool Show3D = SettingsMap.GetBool("CHECKBOX_Spirals_3D", s3DDefault);
+    bool grow = SettingsMap.GetBool("CHECKBOX_Spirals_Grow", sGrowDefault);
+    bool shrink = SettingsMap.GetBool("CHECKBOX_Spirals_Shrink", sShrinkDefault);
 
     if (PaletteRepeat == 0) {
         PaletteRepeat = 1;

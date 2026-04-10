@@ -48,6 +48,49 @@
 
 #define REPEATTRIGGER 20
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with
+// Shape.json values).
+int ShapeEffect::sStartSizeDefault = 1;
+int ShapeEffect::sStartSizeMin = 0;
+int ShapeEffect::sStartSizeMax = 100;
+int ShapeEffect::sThicknessDefault = 1;
+int ShapeEffect::sThicknessMin = 1;
+int ShapeEffect::sThicknessMax = 100;
+int ShapeEffect::sCountDefault = 5;
+int ShapeEffect::sCountMin = 1;
+int ShapeEffect::sCountMax = 100;
+bool ShapeEffect::sRandomInitialDefault = true;
+int ShapeEffect::sVelocityDefault = 0;
+int ShapeEffect::sVelocityMin = 0;
+int ShapeEffect::sVelocityMax = 20;
+int ShapeEffect::sDirectionDefault = 90;
+int ShapeEffect::sDirectionMin = 0;
+int ShapeEffect::sDirectionMax = 359;
+int ShapeEffect::sLifetimeDefault = 5;
+int ShapeEffect::sLifetimeMin = 1;
+int ShapeEffect::sLifetimeMax = 100;
+int ShapeEffect::sGrowthDefault = 10;
+int ShapeEffect::sGrowthMin = -100;
+int ShapeEffect::sGrowthMax = 100;
+int ShapeEffect::sCentreXDefault = 50;
+int ShapeEffect::sCentreXMin = 0;
+int ShapeEffect::sCentreXMax = 100;
+int ShapeEffect::sCentreYDefault = 50;
+int ShapeEffect::sCentreYMin = 0;
+int ShapeEffect::sCentreYMax = 100;
+int ShapeEffect::sPointsDefault = 5;
+int ShapeEffect::sRotationDefault = 0;
+int ShapeEffect::sRotationMin = 0;
+int ShapeEffect::sRotationMax = 360;
+bool ShapeEffect::sRandomLocationDefault = true;
+bool ShapeEffect::sRandomMovementDefault = false;
+bool ShapeEffect::sFadeAwayDefault = true;
+bool ShapeEffect::sHoldColourDefault = true;
+bool ShapeEffect::sUseMusicDefault = false;
+int ShapeEffect::sSensitivityDefault = 50;
+bool ShapeEffect::sFireTimingDefault = false;
+bool ShapeEffect::sFilterRegDefault = false;
+
 ShapeEffect::ShapeEffect(int id) : RenderableEffect(id, "Shape", shape_16, shape_24, shape_32, shape_48, shape_64)
 {
     //ctor
@@ -56,6 +99,50 @@ ShapeEffect::ShapeEffect(int id) : RenderableEffect(id, "Shape", shape_16, shape
 ShapeEffect::~ShapeEffect()
 {
     //dtor
+}
+
+void ShapeEffect::OnMetadataLoaded()
+{
+    sStartSizeDefault = GetIntDefault("Shape_StartSize", sStartSizeDefault);
+    sStartSizeMin = (int)GetMinFromMetadata("Shape_StartSize", sStartSizeMin);
+    sStartSizeMax = (int)GetMaxFromMetadata("Shape_StartSize", sStartSizeMax);
+    sThicknessDefault = GetIntDefault("Shape_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Shape_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Shape_Thickness", sThicknessMax);
+    sCountDefault = GetIntDefault("Shape_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Shape_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Shape_Count", sCountMax);
+    sRandomInitialDefault = GetBoolDefault("Shape_RandomInitial", sRandomInitialDefault);
+    sVelocityDefault = GetIntDefault("Shapes_Velocity", sVelocityDefault);
+    sVelocityMin = (int)GetMinFromMetadata("Shapes_Velocity", sVelocityMin);
+    sVelocityMax = (int)GetMaxFromMetadata("Shapes_Velocity", sVelocityMax);
+    sDirectionDefault = GetIntDefault("Shapes_Direction", sDirectionDefault);
+    sDirectionMin = (int)GetMinFromMetadata("Shapes_Direction", sDirectionMin);
+    sDirectionMax = (int)GetMaxFromMetadata("Shapes_Direction", sDirectionMax);
+    sLifetimeDefault = GetIntDefault("Shape_Lifetime", sLifetimeDefault);
+    sLifetimeMin = (int)GetMinFromMetadata("Shape_Lifetime", sLifetimeMin);
+    sLifetimeMax = (int)GetMaxFromMetadata("Shape_Lifetime", sLifetimeMax);
+    sGrowthDefault = GetIntDefault("Shape_Growth", sGrowthDefault);
+    sGrowthMin = (int)GetMinFromMetadata("Shape_Growth", sGrowthMin);
+    sGrowthMax = (int)GetMaxFromMetadata("Shape_Growth", sGrowthMax);
+    sCentreXDefault = GetIntDefault("Shape_CentreX", sCentreXDefault);
+    sCentreXMin = (int)GetMinFromMetadata("Shape_CentreX", sCentreXMin);
+    sCentreXMax = (int)GetMaxFromMetadata("Shape_CentreX", sCentreXMax);
+    sCentreYDefault = GetIntDefault("Shape_CentreY", sCentreYDefault);
+    sCentreYMin = (int)GetMinFromMetadata("Shape_CentreY", sCentreYMin);
+    sCentreYMax = (int)GetMaxFromMetadata("Shape_CentreY", sCentreYMax);
+    sPointsDefault = GetIntDefault("Shape_Points", sPointsDefault);
+    sRotationDefault = GetIntDefault("Shape_Rotation", sRotationDefault);
+    sRotationMin = (int)GetMinFromMetadata("Shape_Rotation", sRotationMin);
+    sRotationMax = (int)GetMaxFromMetadata("Shape_Rotation", sRotationMax);
+    sRandomLocationDefault = GetBoolDefault("Shape_RandomLocation", sRandomLocationDefault);
+    sRandomMovementDefault = GetBoolDefault("Shapes_RandomMovement", sRandomMovementDefault);
+    sFadeAwayDefault = GetBoolDefault("Shape_FadeAway", sFadeAwayDefault);
+    sHoldColourDefault = GetBoolDefault("Shape_HoldColour", sHoldColourDefault);
+    sUseMusicDefault = GetBoolDefault("Shape_UseMusic", sUseMusicDefault);
+    sSensitivityDefault = GetIntDefault("Shape_Sensitivity", sSensitivityDefault);
+    sFireTimingDefault = GetBoolDefault("Shape_FireTiming", sFireTimingDefault);
+    sFilterRegDefault = GetBoolDefault("Shape_FilterReg", sFilterRegDefault);
 }
 
 std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -302,8 +389,8 @@ public:
     {
         if (randomMovement)
         {
-            speed = rand01() * (SHAPE_VELOCITY_MAX - SHAPE_VELOCITY_MIN) - SHAPE_VELOCITY_MIN;
-            angle = rand01() * (SHAPE_DIRECTION_MAX - SHAPE_DIRECTION_MIN) - SHAPE_VELOCITY_MIN;
+            speed = rand01() * (ShapeEffect::sVelocityMax - ShapeEffect::sVelocityMin) - ShapeEffect::sVelocityMin;
+            angle = rand01() * (ShapeEffect::sDirectionMax - ShapeEffect::sDirectionMin) - ShapeEffect::sVelocityMin;
         }
         _shapes.push_back(new ShapeData(centre, size, oset, color, shape, angle, speed, holdColour, colourIndex));
     }
@@ -406,36 +493,36 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 	float oset = buffer.GetEffectTimeIntervalPosition();
 
 	std::string Object_To_DrawStr = SettingsMap["CHOICE_Shape_ObjectToDraw"];
-    int thickness = GetValueCurveInt("Shape_Thickness", 1, SettingsMap, oset, SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int points = SettingsMap.GetInt("SLIDER_Shape_Points", 5);
-    bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", true);
-    bool fadeAway = SettingsMap.GetBool("CHECKBOX_Shape_FadeAway", true);
-    bool startRandomly = SettingsMap.GetBool("CHECKBOX_Shape_RandomInitial", true);
-    bool holdColour = SettingsMap.GetBool("CHECKBOX_Shape_HoldColour", true);
-    int xc = GetValueCurveInt("Shape_CentreX", 50, SettingsMap, oset, SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
-    int yc = GetValueCurveInt("Shape_CentreY", 50, SettingsMap, oset, SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
-    int lifetime = GetValueCurveInt("Shape_Lifetime", 5, SettingsMap, oset, SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int growth = GetValueCurveInt("Shape_Growth", 10, SettingsMap, oset, SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int count = GetValueCurveInt("Shape_Count", 5, SettingsMap, oset, SHAPE_COUNT_MIN, SHAPE_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int startSize = GetValueCurveInt("Shape_StartSize", 5, SettingsMap, oset, SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int thickness = GetValueCurveInt("Shape_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int points = SettingsMap.GetInt("SLIDER_Shape_Points", sPointsDefault);
+    bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", sRandomLocationDefault);
+    bool fadeAway = SettingsMap.GetBool("CHECKBOX_Shape_FadeAway", sFadeAwayDefault);
+    bool startRandomly = SettingsMap.GetBool("CHECKBOX_Shape_RandomInitial", sRandomInitialDefault);
+    bool holdColour = SettingsMap.GetBool("CHECKBOX_Shape_HoldColour", sHoldColourDefault);
+    int xc = GetValueCurveInt("Shape_CentreX", sCentreXDefault, SettingsMap, oset, sCentreXMin, sCentreXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
+    int yc = GetValueCurveInt("Shape_CentreY", sCentreYDefault, SettingsMap, oset, sCentreYMin, sCentreYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
+    int lifetime = GetValueCurveInt("Shape_Lifetime", sLifetimeDefault, SettingsMap, oset, sLifetimeMin, sLifetimeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int growth = GetValueCurveInt("Shape_Growth", sGrowthDefault, SettingsMap, oset, sGrowthMin, sGrowthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int count = GetValueCurveInt("Shape_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int startSize = GetValueCurveInt("Shape_StartSize", sStartSizeDefault, SettingsMap, oset, sStartSizeMin, sStartSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int emoji = SettingsMap.GetInt("SPINCTRL_Shape_Char", 127876);
     int emojiTone = 0;
     std::string font = SettingsMap["FONTPICKER_Shape_Font"];
     std::string svgFilename = SettingsMap["FILEPICKERCTRL_SVG"];
-    int direction = GetValueCurveInt("Shapes_Direction", 90, SettingsMap, oset, SHAPE_DIRECTION_MIN, SHAPE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int velocity = GetValueCurveInt("Shapes_Velocity", 0, SettingsMap, oset, SHAPE_VELOCITY_MIN, SHAPE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool randomMovement = SettingsMap.GetBool("CHECKBOX_Shapes_RandomMovement", false);
-    bool useRegex = SettingsMap.GetBool("CHECKBOX_Shape_FilterReg", false);
+    int direction = GetValueCurveInt("Shapes_Direction", sDirectionDefault, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int velocity = GetValueCurveInt("Shapes_Velocity", sVelocityDefault, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool randomMovement = SettingsMap.GetBool("CHECKBOX_Shapes_RandomMovement", sRandomMovementDefault);
+    bool useRegex = SettingsMap.GetBool("CHECKBOX_Shape_FilterReg", sFilterRegDefault);
     std::string filterLabel = SettingsMap.Get("TEXTCTRL_Shape_FilterLabel", "");
 
-    int rotation = GetValueCurveInt("Shape_Rotation", 0, SettingsMap, oset, SHAPE_ROTATION_MIN, SHAPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int rotation = GetValueCurveInt("Shape_Rotation", sRotationDefault, SettingsMap, oset, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     int Object_To_Draw = DecodeShape(Object_To_DrawStr);
 
     float f = 0.0;
-    bool useMusic = SettingsMap.GetBool("CHECKBOX_Shape_UseMusic", false);
-    float sensitivity = (float)SettingsMap.GetInt("SLIDER_Shape_Sensitivity", 50) / 100.0;
-    bool useTiming = SettingsMap.GetBool("CHECKBOX_Shape_FireTiming", false);
+    bool useMusic = SettingsMap.GetBool("CHECKBOX_Shape_UseMusic", sUseMusicDefault);
+    float sensitivity = (float)SettingsMap.GetInt("SLIDER_Shape_Sensitivity", sSensitivityDefault) / 100.0;
+    bool useTiming = SettingsMap.GetBool("CHECKBOX_Shape_FireTiming", sFireTimingDefault);
     std::string timing = SettingsMap.Get("CHOICE_Shape_FireTimingTrack", "");
     if (timing == "") useTiming = false;
     if (useMusic) {

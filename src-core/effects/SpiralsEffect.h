@@ -12,20 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define SPIRALS_COUNT_MIN 1
-#define SPIRALS_COUNT_MAX 5
-
-#define SPIRALS_MOVEMENT_MIN -200
-#define SPIRALS_MOVEMENT_MAX 200
-#define SPIRALS_MOVEMENT_DIVISOR 10
-
-#define SPIRALS_ROTATION_MIN -300
-#define SPIRALS_ROTATION_MAX 300
-#define SPIRALS_ROTATION_DIVISOR 10
-
-#define SPIRALS_THICKNESS_MIN 0
-#define SPIRALS_THICKNESS_MAX 100
-
 class SpiralsEffect : public RenderableEffect
 {
 public:
@@ -38,40 +24,27 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Spirals_Count")
-            return SPIRALS_COUNT_MIN;
-        if (name == "E_VALUECURVE_Spirals_Movement")
-            return SPIRALS_MOVEMENT_MIN;
-        if (name == "E_VALUECURVE_Spirals_Rotation")
-            return SPIRALS_ROTATION_MIN;
-        if (name == "E_VALUECURVE_Spirals_Thickness")
-            return SPIRALS_THICKNESS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Spirals_Count")
-            return SPIRALS_COUNT_MAX;
-        if (name == "E_VALUECURVE_Spirals_Movement")
-            return SPIRALS_MOVEMENT_MAX;
-        if (name == "E_VALUECURVE_Spirals_Rotation")
-            return SPIRALS_ROTATION_MAX;
-        if (name == "E_VALUECURVE_Spirals_Thickness")
-            return SPIRALS_THICKNESS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-
-    virtual int GetSettingVCDivisor(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Spirals_Movement")
-            return SPIRALS_MOVEMENT_DIVISOR;
-        if (name == "E_VALUECURVE_Spirals_Rotation")
-            return SPIRALS_ROTATION_DIVISOR;
-        return RenderableEffect::GetSettingVCDivisor(name);
-    }
+    // Cached from Spirals.json by OnMetadataLoaded(). Exposed as statics so
+    // the Metal subclass can read them via unqualified name.
+    static int sCountDefault;
+    static int sCountMin;
+    static int sCountMax;
+    static double sMovementDefault;
+    static double sMovementMin;
+    static double sMovementMax;
+    static int sMovementDivisor;
+    static double sRotationDefault;
+    static double sRotationMin;
+    static double sRotationMax;
+    static int sRotationDivisor;
+    static int sThicknessDefault;
+    static int sThicknessMin;
+    static int sThicknessMax;
+    static bool sBlendDefault;
+    static bool s3DDefault;
+    static bool sGrowDefault;
+    static bool sShrinkDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 };

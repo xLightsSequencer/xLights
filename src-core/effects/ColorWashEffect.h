@@ -12,9 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define COLOURWASH_CYCLES_MIN 0.1f
-#define COLOURWASH_CYCLES_MAX 20.0f
-
 class ColorWashEffect : public RenderableEffect
 {
 public:
@@ -28,17 +25,19 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_ColorWash_Cycles")
-            return COLOURWASH_CYCLES_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_ColorWash_Cycles")
-            return COLOURWASH_CYCLES_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from ColorWash.json at startup. Cycles uses divisor=10, so the
+    // stored VC form is Min=1|Max=200 with the effect's divisor dividing the
+    // raw ticks to produce 0.1..20 cycles.
+    static double sCyclesDefault;
+    static double sCyclesMin;
+    static double sCyclesMax;
+    static int sCyclesDivisor;
+    static bool sVFadeDefault;
+    static bool sHFadeDefault;
+    static bool sReverseFadesDefault;
+    static bool sShimmerDefault;
+    static bool sCircularPaletteDefault;
 
+protected:
+    virtual void OnMetadataLoaded() override;
 };

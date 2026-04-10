@@ -26,6 +26,38 @@
 #include "../../include/fireworks-48.xpm"
 #include "../../include/fireworks-64.xpm"
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Fireworks.json values).
+int FireworksEffect::sExplosionsDefault = 16;
+int FireworksEffect::sExplosionsMin = 1;
+int FireworksEffect::sExplosionsMax = 50;
+int FireworksEffect::sCountDefault = 50;
+int FireworksEffect::sCountMin = 1;
+int FireworksEffect::sCountMax = 100;
+double FireworksEffect::sVelocityDefault = 2.0;
+double FireworksEffect::sVelocityMin = 1;
+double FireworksEffect::sVelocityMax = 10;
+int FireworksEffect::sXVelocityDefault = 0;
+int FireworksEffect::sXVelocityMin = -100;
+int FireworksEffect::sXVelocityMax = 100;
+int FireworksEffect::sYVelocityDefault = 0;
+int FireworksEffect::sYVelocityMin = -100;
+int FireworksEffect::sYVelocityMax = 100;
+int FireworksEffect::sXLocationDefault = -1;
+int FireworksEffect::sXLocationMin = -1;
+int FireworksEffect::sXLocationMax = 100;
+int FireworksEffect::sYLocationDefault = -1;
+int FireworksEffect::sYLocationMin = -1;
+int FireworksEffect::sYLocationMax = 100;
+bool FireworksEffect::sHoldColourDefault = true;
+bool FireworksEffect::sGravityDefault = true;
+int FireworksEffect::sFadeDefault = 50;
+int FireworksEffect::sFadeMin = 1;
+int FireworksEffect::sFadeMax = 100;
+bool FireworksEffect::sUseMusicDefault = false;
+int FireworksEffect::sSensitivityDefault = 50;
+bool FireworksEffect::sFireTimingDefault = false;
+std::string FireworksEffect::sFireTimingTrackDefault = "";
+
 FireworksEffect::FireworksEffect(int id) : RenderableEffect(id, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_64)
 {
     //ctor
@@ -36,14 +68,48 @@ FireworksEffect::~FireworksEffect()
     //dtor
 }
 
+void FireworksEffect::OnMetadataLoaded()
+{
+    sExplosionsDefault = GetIntDefault("Fireworks_Explosions", sExplosionsDefault);
+    sExplosionsMin = (int)GetMinFromMetadata("Fireworks_Explosions", sExplosionsMin);
+    sExplosionsMax = (int)GetMaxFromMetadata("Fireworks_Explosions", sExplosionsMax);
+    sCountDefault = GetIntDefault("Fireworks_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Fireworks_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Fireworks_Count", sCountMax);
+    sVelocityDefault = GetDoubleDefault("Fireworks_Velocity", sVelocityDefault);
+    sVelocityMin = GetMinFromMetadata("Fireworks_Velocity", sVelocityMin);
+    sVelocityMax = GetMaxFromMetadata("Fireworks_Velocity", sVelocityMax);
+    sXVelocityDefault = GetIntDefault("Fireworks_XVelocity", sXVelocityDefault);
+    sXVelocityMin = (int)GetMinFromMetadata("Fireworks_XVelocity", sXVelocityMin);
+    sXVelocityMax = (int)GetMaxFromMetadata("Fireworks_XVelocity", sXVelocityMax);
+    sYVelocityDefault = GetIntDefault("Fireworks_YVelocity", sYVelocityDefault);
+    sYVelocityMin = (int)GetMinFromMetadata("Fireworks_YVelocity", sYVelocityMin);
+    sYVelocityMax = (int)GetMaxFromMetadata("Fireworks_YVelocity", sYVelocityMax);
+    sXLocationDefault = GetIntDefault("Fireworks_XLocation", sXLocationDefault);
+    sXLocationMin = (int)GetMinFromMetadata("Fireworks_XLocation", sXLocationMin);
+    sXLocationMax = (int)GetMaxFromMetadata("Fireworks_XLocation", sXLocationMax);
+    sYLocationDefault = GetIntDefault("Fireworks_YLocation", sYLocationDefault);
+    sYLocationMin = (int)GetMinFromMetadata("Fireworks_YLocation", sYLocationMin);
+    sYLocationMax = (int)GetMaxFromMetadata("Fireworks_YLocation", sYLocationMax);
+    sHoldColourDefault = GetBoolDefault("Fireworks_HoldColour", sHoldColourDefault);
+    sGravityDefault = GetBoolDefault("Fireworks_Gravity", sGravityDefault);
+    sFadeDefault = GetIntDefault("Fireworks_Fade", sFadeDefault);
+    sFadeMin = (int)GetMinFromMetadata("Fireworks_Fade", sFadeMin);
+    sFadeMax = (int)GetMaxFromMetadata("Fireworks_Fade", sFadeMax);
+    sUseMusicDefault = GetBoolDefault("Fireworks_UseMusic", sUseMusicDefault);
+    sSensitivityDefault = GetIntDefault("Fireworks_Sensitivity", sSensitivityDefault);
+    sFireTimingDefault = GetBoolDefault("FIRETIMING", sFireTimingDefault);
+    sFireTimingTrackDefault = GetStringDefault("FIRETIMINGTRACK", sFireTimingTrackDefault);
+}
+
 std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false)) {
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", sUseMusicDefault)) {
         res.push_back(std::format("    ERR: Fireworks effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
-    if (settings.GetBool("E_CHECKBOX_FIRETIMING", false) && settings.Get("E_CHOICE_FIRETIMINGTRACK","") == "") {
+    if (settings.GetBool("E_CHECKBOX_FIRETIMING", sFireTimingDefault) && settings.Get("E_CHOICE_FIRETIMINGTRACK", sFireTimingTrackDefault) == "") {
         res.push_back(std::format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
@@ -254,22 +320,22 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, i
 void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
-    int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
-    int particleCount = GetValueCurveInt("Fireworks_Count", 50, SettingsMap, offset, FIREWORKSCOUNT_MIN, FIREWORKSCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float particleVelocity = GetValueCurveDouble("Fireworks_Velocity", 2.0, SettingsMap, offset, FIREWORKSVELOCITY_MIN, FIREWORKSVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int fade = GetValueCurveInt("Fireworks_Fade", 50, SettingsMap, offset, FIREWORKSFADE_MIN, FIREWORKSFADE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int xVelocity = GetValueCurveInt("Fireworks_XVelocity", 0, SettingsMap, offset, FIREWORKSXVELOCITY_MIN, FIREWORKSXVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yVelocity = GetValueCurveInt("Fireworks_YVelocity", 0, SettingsMap, offset, FIREWORKSYVELOCITY_MIN, FIREWORKSYVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int xLocation = GetValueCurveInt("Fireworks_XLocation", -1, SettingsMap, offset, FIREWORKSXLOCATION_MIN, FIREWORKSXLOCATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yLocation = GetValueCurveInt("Fireworks_YLocation", -1, SettingsMap, offset, FIREWORKSYLOCATION_MIN, FIREWORKSYLOCATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool gravity = SettingsMap.GetBool("CHECKBOX_Fireworks_Gravity", true);
-    bool holdColour = SettingsMap.GetBool("CHECKBOX_Fireworks_HoldColour", true);
+    int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", sExplosionsDefault);
+    int particleCount = GetValueCurveInt("Fireworks_Count", sCountDefault, SettingsMap, offset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float particleVelocity = GetValueCurveDouble("Fireworks_Velocity", sVelocityDefault, SettingsMap, offset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int fade = GetValueCurveInt("Fireworks_Fade", sFadeDefault, SettingsMap, offset, sFadeMin, sFadeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xVelocity = GetValueCurveInt("Fireworks_XVelocity", sXVelocityDefault, SettingsMap, offset, sXVelocityMin, sXVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yVelocity = GetValueCurveInt("Fireworks_YVelocity", sYVelocityDefault, SettingsMap, offset, sYVelocityMin, sYVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xLocation = GetValueCurveInt("Fireworks_XLocation", sXLocationDefault, SettingsMap, offset, sXLocationMin, sXLocationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yLocation = GetValueCurveInt("Fireworks_YLocation", sYLocationDefault, SettingsMap, offset, sYLocationMin, sYLocationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool gravity = SettingsMap.GetBool("CHECKBOX_Fireworks_Gravity", sGravityDefault);
+    bool holdColour = SettingsMap.GetBool("CHECKBOX_Fireworks_HoldColour", sHoldColourDefault);
 
     float f = 0.0;
-    bool useMusic = SettingsMap.GetBool("CHECKBOX_Fireworks_UseMusic", false);
-    float sensitivity = static_cast<float>(SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50)) / 100.0;
-    bool useTiming = SettingsMap.GetBool("CHECKBOX_FIRETIMING", false);
-    std::string timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", "");
+    bool useMusic = SettingsMap.GetBool("CHECKBOX_Fireworks_UseMusic", sUseMusicDefault);
+    float sensitivity = static_cast<float>(SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", sSensitivityDefault)) / 100.0;
+    bool useTiming = SettingsMap.GetBool("CHECKBOX_FIRETIMING", sFireTimingDefault);
+    std::string timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", sFireTimingTrackDefault);
     if (timing == "")
     {
         useTiming = false;

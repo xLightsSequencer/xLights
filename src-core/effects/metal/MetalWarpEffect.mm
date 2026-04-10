@@ -146,7 +146,7 @@ static inline double interpolate( double x, double loIn, double loOut, double hi
 
 void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
+    std::string warpType = SettingsMap.Get("CHOICE_Warp_Type", sTypeDefault);
     WarpEffect::WarpType Style = mapWarpType(warpType);
 
     //currently just  Styles 1-5 are GPU enabled, if smaller buffer, overhead of prep for GPU will be higher than benefit
@@ -161,10 +161,10 @@ void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     wdata.height = buffer.BufferHt;
     
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);
-    std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment_APPLYLAST", "constant");
-    float xPercentage = GetValueCurveInt("Warp_X", 50, SettingsMap, progress, 0, 100,
+    std::string warpTreatment = SettingsMap.Get("CHOICE_Warp_Treatment_APPLYLAST", sTreatmentDefault);
+    float xPercentage = GetValueCurveInt("Warp_X", sXDefault, SettingsMap, progress, sXMin, sXMax,
                                        buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float yPercentage = GetValueCurveInt("Warp_Y", 50, SettingsMap, progress, 0, 100,
+    float yPercentage = GetValueCurveInt("Warp_Y", sYDefault, SettingsMap, progress, sYMin, sYMax,
                                        buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     float x = 0.01 * xPercentage;
     float y = 0.01 * yPercentage;
@@ -172,8 +172,8 @@ void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     wdata.xPos = std::round((float)buffer.BufferWi - 1) * x;
     wdata.yPos = std::round((float)buffer.BufferHt - 1) * y;
     wdata.progress = progress;
-    wdata.speed = SettingsMap.GetFloat("TEXTCTRL_Warp_Speed", 20.0);
-    wdata.frequency = SettingsMap.GetFloat("TEXTCTRL_Warp_Frequency", 20.0);
+    wdata.speed = SettingsMap.GetFloat("TEXTCTRL_Warp_Speed", (float)sSpeedDefault);
+    wdata.frequency = SettingsMap.GetFloat("TEXTCTRL_Warp_Frequency", (float)sFrequencyDefault);
     wdata.direction = warpTreatment == "out";
     
     //adjust params based on type (if needed)
@@ -188,7 +188,7 @@ void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             break;
         case WarpEffect::WarpType::SINGLE_WATER_DROP:
             {
-                float cycleCount = SettingsMap.GetFloat("TEXTCTRL_Warp_Cycle_Count", 1.0);
+                float cycleCount = SettingsMap.GetFloat("TEXTCTRL_Warp_Cycle_Count", (float)sCycleCountDefault);
                 float intervalLen = 1.f / cycleCount;
                 float scaledProgress = progress / intervalLen;
                 float intervalProgress, intervalIndex;
@@ -199,7 +199,7 @@ void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             break;
         default:
             if (warpTreatment == "constant") {
-                float cycleCount = SettingsMap.GetFloat("TEXTCTRL_Warp_Cycle_Count", 1.0);
+                float cycleCount = SettingsMap.GetFloat("TEXTCTRL_Warp_Cycle_Count", (float)sCycleCountDefault);
                 float intervalLen = 1.f / (2 * cycleCount );
                 float scaledProgress = progress / intervalLen;
                 float intervalProgress, intervalIndex;

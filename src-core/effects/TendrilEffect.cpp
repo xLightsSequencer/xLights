@@ -344,6 +344,33 @@ void Tendril::Draw(RenderBuffer& buffer, xlColor colour, int thickness)
     }
 }
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Tendril.json values).
+std::string TendrilEffect::sMovementDefault = "Circle";
+int TendrilEffect::sTuneMovementDefault = 10;
+int TendrilEffect::sTuneMovementMin = 0;
+int TendrilEffect::sTuneMovementMax = 20;
+int TendrilEffect::sThicknessDefault = 3;
+int TendrilEffect::sThicknessMin = 1;
+int TendrilEffect::sThicknessMax = 20;
+int TendrilEffect::sFrictionDefault = 10;
+int TendrilEffect::sDampeningDefault = 10;
+int TendrilEffect::sTensionDefault = 20;
+int TendrilEffect::sTrailsDefault = 1;
+int TendrilEffect::sLengthDefault = 60;
+int TendrilEffect::sSpeedDefault = 10;
+int TendrilEffect::sXOffsetDefault = 0;
+int TendrilEffect::sXOffsetMin = -100;
+int TendrilEffect::sXOffsetMax = 100;
+int TendrilEffect::sYOffsetDefault = 0;
+int TendrilEffect::sYOffsetMin = -100;
+int TendrilEffect::sYOffsetMax = 100;
+int TendrilEffect::sManualXDefault = 0;
+int TendrilEffect::sManualXMin = 0;
+int TendrilEffect::sManualXMax = 100;
+int TendrilEffect::sManualYDefault = 0;
+int TendrilEffect::sManualYMin = 0;
+int TendrilEffect::sManualYMax = 100;
+
 TendrilEffect::TendrilEffect(int id) : RenderableEffect(id, "Tendril", tendril_16, tendril_24, tendril_32, tendril_48, tendril_64)
 {
 }
@@ -352,23 +379,52 @@ TendrilEffect::~TendrilEffect()
 {
 }
 
+void TendrilEffect::OnMetadataLoaded()
+{
+    sMovementDefault = GetStringDefault("Tendril_Movement", sMovementDefault);
+    sTuneMovementDefault = GetIntDefault("Tendril_TuneMovement", sTuneMovementDefault);
+    sTuneMovementMin = (int)GetMinFromMetadata("Tendril_TuneMovement", sTuneMovementMin);
+    sTuneMovementMax = (int)GetMaxFromMetadata("Tendril_TuneMovement", sTuneMovementMax);
+    sThicknessDefault = GetIntDefault("Tendril_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Tendril_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Tendril_Thickness", sThicknessMax);
+    sFrictionDefault = GetIntDefault("Tendril_Friction", sFrictionDefault);
+    sDampeningDefault = GetIntDefault("Tendril_Dampening", sDampeningDefault);
+    sTensionDefault = GetIntDefault("Tendril_Tension", sTensionDefault);
+    sTrailsDefault = GetIntDefault("Tendril_Trails", sTrailsDefault);
+    sLengthDefault = GetIntDefault("Tendril_Length", sLengthDefault);
+    sSpeedDefault = GetIntDefault("Tendril_Speed", sSpeedDefault);
+    sXOffsetDefault = GetIntDefault("Tendril_XOffset", sXOffsetDefault);
+    sXOffsetMin = (int)GetMinFromMetadata("Tendril_XOffset", sXOffsetMin);
+    sXOffsetMax = (int)GetMaxFromMetadata("Tendril_XOffset", sXOffsetMax);
+    sYOffsetDefault = GetIntDefault("Tendril_YOffset", sYOffsetDefault);
+    sYOffsetMin = (int)GetMinFromMetadata("Tendril_YOffset", sYOffsetMin);
+    sYOffsetMax = (int)GetMaxFromMetadata("Tendril_YOffset", sYOffsetMax);
+    sManualXDefault = GetIntDefault("Tendril_ManualX", sManualXDefault);
+    sManualXMin = (int)GetMinFromMetadata("Tendril_ManualX", sManualXMin);
+    sManualXMax = (int)GetMaxFromMetadata("Tendril_ManualX", sManualXMax);
+    sManualYDefault = GetIntDefault("Tendril_ManualY", sManualYDefault);
+    sManualYMin = (int)GetMinFromMetadata("Tendril_ManualY", sManualYMin);
+    sManualYMax = (int)GetMaxFromMetadata("Tendril_ManualY", sManualYMax);
+}
+
 void TendrilEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-           SettingsMap.Get("CHOICE_Tendril_Movement", "Circle"),
-           GetValueCurveInt("Tendril_TuneMovement", 10, SettingsMap, oset, TENDRIL_MOVEMENT_MIN, TENDRIL_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", 10),
-           GetValueCurveInt("Tendril_Thickness", 3, SettingsMap, oset, TENDRIL_THICKNESS_MIN, TENDRIL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetFloat("TEXTCTRL_Tendril_Friction", 10) / 20 * 0.2 + 0.4,   // 0.4->0.6 but on screen 0-20: def 0.5
-           SettingsMap.GetFloat("TEXTCTRL_Tendril_Dampening", 10) / 20 * 0.5,        // 0->0.5 but on screen 0-20: def 0.25
-           SettingsMap.GetFloat("TEXTCTRL_Tendril_Tension", 20) / 39 * 0.039 + 0.96, // 0.960->0.999 but on screen 0->39: def 0.980
-           SettingsMap.GetInt("TEXTCTRL_Tendril_Trails", 1),
-           SettingsMap.GetInt("TEXTCTRL_Tendril_Length", 60),
-           GetValueCurveInt("Tendril_XOffset", 0, SettingsMap, oset, TENDRIL_OFFSETX_MIN, TENDRIL_OFFSETX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Tendril_YOffset", 0, SettingsMap, oset, TENDRIL_OFFSETY_MIN, TENDRIL_OFFSETY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Tendril_ManualX", 0, SettingsMap, oset, TENDRIL_MANUALX_MIN, TENDRIL_MANUALX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Tendril_ManualY", 0, SettingsMap, oset, TENDRIL_MANUALY_MIN, TENDRIL_MANUALY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
+           SettingsMap.Get("CHOICE_Tendril_Movement", sMovementDefault),
+           GetValueCurveInt("Tendril_TuneMovement", sTuneMovementDefault, SettingsMap, oset, sTuneMovementMin, sTuneMovementMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", sSpeedDefault),
+           GetValueCurveInt("Tendril_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetFloat("TEXTCTRL_Tendril_Friction", sFrictionDefault) / 20 * 0.2 + 0.4,   // 0.4->0.6 but on screen 0-20: def 0.5
+           SettingsMap.GetFloat("TEXTCTRL_Tendril_Dampening", sDampeningDefault) / 20 * 0.5,        // 0->0.5 but on screen 0-20: def 0.25
+           SettingsMap.GetFloat("TEXTCTRL_Tendril_Tension", sTensionDefault) / 39 * 0.039 + 0.96, // 0.960->0.999 but on screen 0->39: def 0.980
+           SettingsMap.GetInt("TEXTCTRL_Tendril_Trails", sTrailsDefault),
+           SettingsMap.GetInt("TEXTCTRL_Tendril_Length", sLengthDefault),
+           GetValueCurveInt("Tendril_XOffset", sXOffsetDefault, SettingsMap, oset, sXOffsetMin, sXOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Tendril_YOffset", sYOffsetDefault, SettingsMap, oset, sYOffsetMin, sYOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Tendril_ManualX", sManualXDefault, SettingsMap, oset, sManualXMin, sManualXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Tendril_ManualY", sManualYDefault, SettingsMap, oset, sManualYMin, sManualYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
 }
 
 class TendrilRenderCache : public EffectRenderCache

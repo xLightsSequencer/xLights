@@ -65,6 +65,18 @@ public:
     }
 };
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Faces.json values).
+std::string FacesEffect::sFaceDefinitionDefault = "Default";
+std::string FacesEffect::sEyesDefault = "Auto";
+std::string FacesEffect::sEyeBlinkFrequencyDefault = "Normal";
+std::string FacesEffect::sEyeBlinkDurationDefault = "Normal";
+bool FacesEffect::sOutlineDefault = false;
+bool FacesEffect::sSuppressShimmerDefault = false;
+std::string FacesEffect::sUseStateDefault = "";
+bool FacesEffect::sSuppressWhenNotSingingDefault = false;
+int FacesEffect::sLeadFramesDefault = 0;
+bool FacesEffect::sFadeDefault = false;
+
 FacesEffect::FacesEffect(int id) :
     RenderableEffect(id, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces) {
     //ctor
@@ -74,10 +86,24 @@ FacesEffect::~FacesEffect() {
     //dtor
 }
 
+void FacesEffect::OnMetadataLoaded()
+{
+    sFaceDefinitionDefault = GetStringDefault("Faces_FaceDefinition", sFaceDefinitionDefault);
+    sEyesDefault = GetStringDefault("Faces_Eyes", sEyesDefault);
+    sEyeBlinkFrequencyDefault = GetStringDefault("Faces_EyeBlinkFrequency", sEyeBlinkFrequencyDefault);
+    sEyeBlinkDurationDefault = GetStringDefault("Faces_EyeBlinkDuration", sEyeBlinkDurationDefault);
+    sOutlineDefault = GetBoolDefault("Faces_Outline", sOutlineDefault);
+    sSuppressShimmerDefault = GetBoolDefault("Faces_SuppressShimmer", sSuppressShimmerDefault);
+    sUseStateDefault = GetStringDefault("Faces_UseState", sUseStateDefault);
+    sSuppressWhenNotSingingDefault = GetBoolDefault("Faces_SuppressWhenNotSinging", sSuppressWhenNotSingingDefault);
+    sLeadFramesDefault = GetIntDefault("Faces_LeadFrames", sLeadFramesDefault);
+    sFadeDefault = GetBoolDefault("Faces_Fade", sFadeDefault);
+}
+
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+    std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault);
     if (definition == "Default" && !model->GetFaceInfo().empty() && model->GetFaceInfo().begin()->first != "") {
         definition = model->GetFaceInfo().begin()->first;
     }
@@ -333,35 +359,35 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     //
     //wxStopWatch sw;
     uint8_t alpha = 255;
-    if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
+    if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", sSuppressWhenNotSingingDefault)) {
         if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {
-            alpha = CalculateAlpha(effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(), SettingsMap.GetInt("SPINCTRL_Faces_LeadFrames", 0), SettingsMap.GetBool("CHECKBOX_Faces_Fade", false), SettingsMap["CHOICE_Faces_TimingTrack"], buffer);
+            alpha = CalculateAlpha(effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(), SettingsMap.GetInt("SPINCTRL_Faces_LeadFrames", sLeadFramesDefault), SettingsMap.GetBool("CHECKBOX_Faces_Fade", sFadeDefault), SettingsMap["CHOICE_Faces_TimingTrack"], buffer);
         }
     }
 
-    if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
+    if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault) == XLIGHTS_PGOFACES_FILE) {
         RenderCoroFacesFromPGO(buffer,
                                SettingsMap["CHOICE_Faces_Phoneme"],
-                               SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
-                               SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", "Normal"),
-                               SettingsMap.Get("CHOICE_Faces_EyeBlinkDuration", "Normal"),
-                               SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
-                               alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
+                               SettingsMap.Get("CHOICE_Faces_Eyes", sEyesDefault),
+                               SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", sEyeBlinkFrequencyDefault),
+                               SettingsMap.Get("CHOICE_Faces_EyeBlinkDuration", sEyeBlinkDurationDefault),
+                               SettingsMap.GetBool("CHECKBOX_Faces_Outline", sOutlineDefault),
+                               alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", sSuppressShimmerDefault));
     } else {
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-                    SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default"),
+                    SettingsMap.Get("CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault),
                     SettingsMap["CHOICE_Faces_Phoneme"],
                     SettingsMap["CHOICE_Faces_TimingTrack"],
-                    SettingsMap["CHOICE_Faces_Eyes"],
-                    SettingsMap["CHOICE_Faces_EyeBlinkFrequency"],
-                    SettingsMap["CHOICE_Faces_EyeBlinkDuration"],
-                    SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
+                    SettingsMap.Get("CHOICE_Faces_Eyes", sEyesDefault),
+                    SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", sEyeBlinkFrequencyDefault),
+                    SettingsMap.Get("CHOICE_Faces_EyeBlinkDuration", sEyeBlinkDurationDefault),
+                    SettingsMap.GetBool("CHECKBOX_Faces_Outline", sOutlineDefault),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
                     alpha,
-                    SettingsMap.Get("CHOICE_Faces_UseState", ""),
-                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
+                    SettingsMap.Get("CHOICE_Faces_UseState", sUseStateDefault),
+                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", sSuppressShimmerDefault));
     }
 
     //if (sw.TimeInMicro() > 2000) {

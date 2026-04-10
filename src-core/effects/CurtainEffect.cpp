@@ -20,6 +20,17 @@
 #include "../../include/curtain-48.xpm"
 #include "../../include/curtain-64.xpm"
 
+int CurtainEffect::sSwagDefault = 3;
+int CurtainEffect::sSwagMin = 0;
+int CurtainEffect::sSwagMax = 10;
+double CurtainEffect::sSpeedDefault = 1.0;
+double CurtainEffect::sSpeedMin = 0;
+double CurtainEffect::sSpeedMax = 100;
+int CurtainEffect::sSpeedDivisor = 10;
+std::string CurtainEffect::sEdgeDefault = "left";
+std::string CurtainEffect::sEffectDefault = "open";
+bool CurtainEffect::sRepeatDefault = false;
+
 CurtainEffect::CurtainEffect(int i) : RenderableEffect(i, "Curtain", curtain_16, curtain_24, curtain_32, curtain_48, curtain_64)
 {
     //ctor
@@ -28,6 +39,20 @@ CurtainEffect::CurtainEffect(int i) : RenderableEffect(i, "Curtain", curtain_16,
 CurtainEffect::~CurtainEffect()
 {
     //dtor
+}
+
+void CurtainEffect::OnMetadataLoaded()
+{
+    sSwagDefault = GetIntDefault("Curtain_Swag", sSwagDefault);
+    sSwagMin = (int)GetMinFromMetadata("Curtain_Swag", sSwagMin);
+    sSwagMax = (int)GetMaxFromMetadata("Curtain_Swag", sSwagMax);
+    sSpeedDefault = GetDoubleDefault("Curtain_Speed", sSpeedDefault);
+    sSpeedMin = GetMinFromMetadata("Curtain_Speed", sSpeedMin);
+    sSpeedMax = GetMaxFromMetadata("Curtain_Speed", sSpeedMax);
+    sSpeedDivisor = GetDivisorFromMetadata("Curtain_Speed", sSpeedDivisor);
+    sEdgeDefault = GetStringDefault("Curtain_Edge", sEdgeDefault);
+    sEffectDefault = GetStringDefault("Curtain_Effect", sEffectDefault);
+    sRepeatDefault = GetBoolDefault("Curtain_Repeat", sRepeatDefault);
 }
 static inline int GetCurtainEdge(const std::string &edge) {
     if ("left" == edge) {
@@ -79,12 +104,12 @@ public:
 void CurtainEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int swag = GetValueCurveInt("Curtain_Swag", 3, SettingsMap, oset, CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float curtainSpeed = GetValueCurveDouble("Curtain_Speed", 1.0, SettingsMap, oset, CURTAIN_SPEED_MIN, CURTAIN_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int swag = GetValueCurveInt("Curtain_Swag", sSwagDefault, SettingsMap, oset, sSwagMin, sSwagMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float curtainSpeed = GetValueCurveDouble("Curtain_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sSpeedDivisor);
 
-    bool repeat = SettingsMap.GetBool("CHECKBOX_Curtain_Repeat", false);
-    int edge = GetCurtainEdge(SettingsMap["CHOICE_Curtain_Edge"]);
-    int effect = GetCurtainEffect(SettingsMap["CHOICE_Curtain_Effect"]);
+    bool repeat = SettingsMap.GetBool("CHECKBOX_Curtain_Repeat", sRepeatDefault);
+    int edge = GetCurtainEdge(SettingsMap.Get("CHOICE_Curtain_Edge", sEdgeDefault));
+    int effect = GetCurtainEffect(SettingsMap.Get("CHOICE_Curtain_Effect", sEffectDefault));
 
     std::vector<int> SwagArray;
     int swaglen = buffer.BufferHt > 1 ? swag * buffer.BufferWi / 40 : 0;

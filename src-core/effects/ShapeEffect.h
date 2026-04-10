@@ -16,36 +16,6 @@
 #include "../render/TextDrawingContext.h"
 #include "../utils/xlPoint.h"
 
-#define SHAPE_THICKNESS_MIN 1
-#define SHAPE_THICKNESS_MAX 100
-
-#define SHAPE_STARTSIZE_MIN 0
-#define SHAPE_STARTSIZE_MAX 100
-
-#define SHAPE_CENTREX_MIN 0
-#define SHAPE_CENTREX_MAX 100
-
-#define SHAPE_CENTREY_MIN 0 
-#define SHAPE_CENTREY_MAX 100
-
-#define SHAPE_LIFETIME_MIN 1
-#define SHAPE_LIFETIME_MAX 100
-
-#define SHAPE_GROWTH_MIN -100
-#define SHAPE_GROWTH_MAX 100
-
-#define SHAPE_COUNT_MIN 1
-#define SHAPE_COUNT_MAX 100
-
-#define SHAPE_ROTATION_MIN 0
-#define SHAPE_ROTATION_MAX 360
-
-#define SHAPE_VELOCITY_MIN 0
-#define SHAPE_VELOCITY_MAX 20
-
-#define SHAPE_DIRECTION_MIN 0
-#define SHAPE_DIRECTION_MAX 359
-
 class ShapeRenderCache;
 
 class ShapeEffect : public RenderableEffect
@@ -74,57 +44,49 @@ public:
         return false;
     };
 #endif
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Shape_Thickness")
-            return SHAPE_THICKNESS_MIN;
-        if (name == "E_VALUECURVE_Shape_StartSize")
-            return SHAPE_STARTSIZE_MIN;
-        if (name == "E_VALUECURVE_Shape_CentreX")
-            return SHAPE_CENTREX_MIN;
-        if (name == "E_VALUECURVE_Shape_CentreY")
-            return SHAPE_CENTREY_MIN;
-        if (name == "E_VALUECURVE_Shape_Lifetime")
-            return SHAPE_LIFETIME_MIN;
-        if (name == "E_VALUECURVE_Shape_Growth")
-            return SHAPE_GROWTH_MIN;
-        if (name == "E_VALUECURVE_Shape_Count")
-            return SHAPE_COUNT_MIN;
-        if (name == "E_VALUECURVE_Shape_Rotation")
-            return SHAPE_ROTATION_MIN;
-        if (name == "E_VALUECURVE_Shapes_Velocity")
-            return SHAPE_VELOCITY_MIN;
-        if (name == "E_VALUECURVE_Shapes_Direction")
-            return SHAPE_DIRECTION_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Shape_Thickness")
-            return SHAPE_THICKNESS_MAX;
-        if (name == "E_VALUECURVE_Shape_StartSize")
-            return SHAPE_STARTSIZE_MAX;
-        if (name == "E_VALUECURVE_Shape_CentreX")
-            return SHAPE_CENTREX_MAX;
-        if (name == "E_VALUECURVE_Shape_CentreY")
-            return SHAPE_CENTREY_MAX;
-        if (name == "E_VALUECURVE_Shape_Lifetime")
-            return SHAPE_LIFETIME_MAX;
-        if (name == "E_VALUECURVE_Shape_Growth")
-            return SHAPE_GROWTH_MAX;
-        if (name == "E_VALUECURVE_Shape_Count")
-            return SHAPE_COUNT_MAX;
-        if (name == "E_VALUECURVE_Shape_Rotation")
-            return SHAPE_ROTATION_MAX;
-        if (name == "E_VALUECURVE_Shapes_Velocity")
-            return SHAPE_VELOCITY_MAX;
-        if (name == "E_VALUECURVE_Shapes_Direction")
-            return SHAPE_DIRECTION_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static int sStartSizeDefault;
+    static int sStartSizeMin;
+    static int sStartSizeMax;
+    static int sThicknessDefault;
+    static int sThicknessMin;
+    static int sThicknessMax;
+    static int sCountDefault;
+    static int sCountMin;
+    static int sCountMax;
+    static bool sRandomInitialDefault;
+    static int sVelocityDefault;
+    static int sVelocityMin;
+    static int sVelocityMax;
+    static int sDirectionDefault;
+    static int sDirectionMin;
+    static int sDirectionMax;
+    static int sLifetimeDefault;
+    static int sLifetimeMin;
+    static int sLifetimeMax;
+    static int sGrowthDefault;
+    static int sGrowthMin;
+    static int sGrowthMax;
+    static int sCentreXDefault;
+    static int sCentreXMin;
+    static int sCentreXMax;
+    static int sCentreYDefault;
+    static int sCentreYMin;
+    static int sCentreYMax;
+    static int sPointsDefault;
+    static int sRotationDefault;
+    static int sRotationMin;
+    static int sRotationMax;
+    static bool sRandomLocationDefault;
+    static bool sRandomMovementDefault;
+    static bool sFadeAwayDefault;
+    static bool sHoldColourDefault;
+    static bool sUseMusicDefault;
+    static int sSensitivityDefault;
+    static bool sFireTimingDefault;
+    static bool sFilterRegDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 private:
     static int DecodeShape(const std::string& shape);
     void Drawcircle(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;

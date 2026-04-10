@@ -12,36 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define GALAXY_CENTREX_MIN 0
-#define GALAXY_CENTREX_MAX 100
-
-#define GALAXY_CENTREY_MIN 0
-#define GALAXY_CENTREY_MAX 100
-
-#define GALAXY_STARTRADIUS_MIN 0
-#define GALAXY_STARTRADIUS_MAX 250
-
-#define GALAXY_ENDRADIUS_MIN 0
-#define GALAXY_ENDRADIUS_MAX 250
-
-#define GALAXY_STARTANGLE_MIN 0
-#define GALAXY_STARTANGLE_MAX 360
-
-#define GALAXY_REVOLUTIONS_MIN 0
-#define GALAXY_REVOLUTIONS_MAX 3600
-
-#define GALAXY_STARTWIDTH_MIN 0
-#define GALAXY_STARTWIDTH_MAX 255
-
-#define GALAXY_ENDWIDTH_MIN 0
-#define GALAXY_ENDWIDTH_MAX 255
-
-#define GALAXY_DURATION_MIN 0
-#define GALAXY_DURATION_MAX 100
-
-#define GALAXY_ACCEL_MIN -10
-#define GALAXY_ACCEL_MAX 10
-
 class GalaxyEffect : public RenderableEffect
 {
 public:
@@ -62,56 +32,47 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Galaxy_CenterX")
-            return GALAXY_CENTREX_MIN;
-        if (name == "E_VALUECURVE_Galaxy_CenterY")
-            return GALAXY_CENTREY_MIN;
-        if (name == "E_VALUECURVE_Galaxy_Start_Radius")
-            return GALAXY_STARTRADIUS_MIN;
-        if (name == "E_VALUECURVE_Galaxy_End_Radius")
-            return GALAXY_ENDRADIUS_MIN;
-        if (name == "E_VALUECURVE_Galaxy_Start_Angle")
-            return GALAXY_STARTANGLE_MIN;
-        if (name == "E_VALUECURVE_Galaxy_Revolutions")
-            return GALAXY_REVOLUTIONS_MIN;
-        if (name == "E_VALUECURVE_Galaxy_Start_Width")
-            return GALAXY_STARTWIDTH_MIN;
-        if (name == "E_VALUECURVE_Galaxy_End_Width")
-            return GALAXY_ENDWIDTH_MIN;
-        if (name == "E_VALUECURVE_Galaxy_Duration")
-            return GALAXY_DURATION_MIN;
-        if (name == "E_VALUECURVE_Galaxy_Accel")
-            return GALAXY_ACCEL_MIN;
-
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Galaxy_CenterX")
-            return GALAXY_CENTREX_MAX;
-        if (name == "E_VALUECURVE_Galaxy_CenterY")
-            return GALAXY_CENTREY_MAX;
-        if (name == "E_VALUECURVE_Galaxy_Start_Radius")
-            return GALAXY_STARTRADIUS_MAX;
-        if (name == "E_VALUECURVE_Galaxy_End_Radius")
-            return GALAXY_ENDRADIUS_MAX;
-        if (name == "E_VALUECURVE_Galaxy_Start_Angle")
-            return GALAXY_STARTANGLE_MAX;
-        if (name == "E_VALUECURVE_Galaxy_Revolutions")
-            return GALAXY_REVOLUTIONS_MAX;
-        if (name == "E_VALUECURVE_Galaxy_Start_Width")
-            return GALAXY_STARTWIDTH_MAX;
-        if (name == "E_VALUECURVE_Galaxy_End_Width")
-            return GALAXY_ENDWIDTH_MAX;
-        if (name == "E_VALUECURVE_Galaxy_Duration")
-            return GALAXY_DURATION_MAX;
-        if (name == "E_VALUECURVE_Galaxy_Accel")
-            return GALAXY_ACCEL_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Galaxy.json by OnMetadataLoaded().
+    static int sCenterXDefault;
+    static int sCenterXMin;
+    static int sCenterXMax;
+    static int sCenterYDefault;
+    static int sCenterYMin;
+    static int sCenterYMax;
+    static int sStartRadiusDefault;
+    static int sStartRadiusMin;
+    static int sStartRadiusMax;
+    static int sEndRadiusDefault;
+    static int sEndRadiusMin;
+    static int sEndRadiusMax;
+    static int sStartAngleDefault;
+    static int sStartAngleMin;
+    static int sStartAngleMax;
+    // Galaxy_Revolutions is stored pre-divisor (raw int) in both the VC and
+    // Render path. JSON lists the default as the post-divisor float (e.g., 4.0),
+    // so OnMetadataLoaded multiplies by the divisor to get the pre-divisor tick
+    // count for sRevolutionsDefault.
+    static int sRevolutionsDefault;
+    static int sRevolutionsMin;
+    static int sRevolutionsMax;
+    static int sRevolutionsDivisor;
+    static int sStartWidthDefault;
+    static int sStartWidthMin;
+    static int sStartWidthMax;
+    static int sEndWidthDefault;
+    static int sEndWidthMin;
+    static int sEndWidthMax;
+    static int sDurationDefault;
+    static int sDurationMin;
+    static int sDurationMax;
+    static int sAccelDefault;
+    static int sAccelMin;
+    static int sAccelMax;
+    static bool sReverseDefault;
+    static bool sBlendEdgesDefault;
+    static bool sInwardDefault;
+    static bool sScaleDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 };
