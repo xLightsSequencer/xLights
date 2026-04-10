@@ -9,476 +9,406 @@
  **************************************************************/
 
 #include "VideoPanel.h"
-#include "effects/VideoEffect.h"
-#include "EffectPanelUtils.h"
-#include "UtilFunctions.h"
-#include "utils/ExternalHooks.h"
-#include "../../xLightsMain.h"
-#include "../../xLightsApp.h"
-#include "ui/shared/utils/wxUtilities.h"
-#include "render/SequenceMedia.h"
-#include "render/SequenceElements.h"
-#include "ui/media/ManageMediaPanel.h"
-#include "utils/xlImage.h"
 
-#include <wx/statbmp.h>
 #include <wx/artprov.h>
-
-//(*InternalHeaders(VideoPanel)
-#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/filepicker.h>
-#include <wx/image.h>
-#include <wx/intl.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/statbmp.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-//*)
 
-//(*IdInit(VideoPanel)
-const long VideoPanel::ID_FILEPICKERCTRL_Video_Filename = wxNewId();
-const long VideoPanel::ID_STATICTEXT_Video_Starttime = wxNewId();
-const long VideoPanel::IDD_SLIDER_Video_Starttime = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Video_Starttime = wxNewId();
-const long VideoPanel::ID_STATICTEXT1 = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Duration = wxNewId();
-const long VideoPanel::ID_BUTTON1 = wxNewId();
-const long VideoPanel::ID_STATICTEXT_Video_DurationTreatment = wxNewId();
-const long VideoPanel::ID_CHOICE_Video_DurationTreatment = wxNewId();
-const long VideoPanel::ID_STATICTEXT2 = wxNewId();
-const long VideoPanel::IDD_SLIDER_Video_Speed = wxNewId();
-const long VideoPanel::ID_VALUECURVE_Video_Speed = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Video_Speed = wxNewId();
-const long VideoPanel::ID_CHECKBOX_Video_AspectRatio = wxNewId();
-const long VideoPanel::ID_CHECKBOX_SynchroniseWithAudio = wxNewId();
-const long VideoPanel::ID_STATICTEXT_Video_CropLeft = wxNewId();
-const long VideoPanel::IDD_SLIDER_Video_CropLeft = wxNewId();
-const long VideoPanel::ID_VALUECURVE_Video_CropLeft = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Video_CropLeft = wxNewId();
-const long VideoPanel::ID_STATICTEXT_Video_CropRight = wxNewId();
-const long VideoPanel::IDD_SLIDER_Video_CropRight = wxNewId();
-const long VideoPanel::ID_VALUECURVE_Video_CropRight = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Video_CropRight = wxNewId();
-const long VideoPanel::ID_STATICTEXT_Video_CropTop = wxNewId();
-const long VideoPanel::IDD_SLIDER_Video_CropTop = wxNewId();
-const long VideoPanel::ID_VALUECURVE_Video_CropTop = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Video_CropTop = wxNewId();
-const long VideoPanel::ID_STATICTEXT_Video_CropBottom = wxNewId();
-const long VideoPanel::IDD_SLIDER_Video_CropBottom = wxNewId();
-const long VideoPanel::ID_VALUECURVE_Video_CropBottom = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Video_CropBottom = wxNewId();
-const long VideoPanel::ID_CHECKBOX_Video_TransparentBlack = wxNewId();
-const long VideoPanel::IDD_SLIDER_Video_TransparentBlack = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_Video_TransparentBlack = wxNewId();
-const long VideoPanel::ID_STATICTEXT3 = wxNewId();
-const long VideoPanel::IDD_SLIDER_SampleSpacing = wxNewId();
-const long VideoPanel::ID_TEXTCTRL_SampleSpacing = wxNewId();
-//*)
+#include "ui/shared/controls/BulkEditControls.h"
+#include "ui/shared/utils/wxUtilities.h"
+#include "ui/media/ManageMediaPanel.h"
+#include "render/SequenceMedia.h"
+#include "render/SequenceElements.h"
+#include "utils/ExternalHooks.h"
+#include "utils/xlImage.h"
+#include "UtilFunctions.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
+#include "effects/VideoEffect.h"
 
 wxDEFINE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 
-BEGIN_EVENT_TABLE(VideoPanel,wxPanel)
-	//(*EventTable(VideoPanel)
-	//*)
-    EVT_COMMAND(wxID_ANY, EVT_VIDEODETAILS, VideoPanel::SetVideoDetails)
-END_EVENT_TABLE()
+VideoPanel::VideoPanel(wxWindow* parent, const nlohmann::json& metadata)
+    : JsonEffectPanel(parent, metadata, /*deferBuild*/ true) {
+    BuildFromJson(metadata);
 
-VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel()
-{
-	//(*Initialize(VideoPanel)
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxFlexGridSizer* FlexGridSizer12;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer42;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer9;
+    // Cache pointers to framework-built controls.
+    _startTimeSlider = dynamic_cast<wxSlider*>(
+        wxWindow::FindWindowByName("IDD_SLIDER_Video_Starttime", this));
+    _startTimeText = dynamic_cast<wxTextCtrl*>(
+        wxWindow::FindWindowByName("ID_TEXTCTRL_Video_Starttime", this));
+    _durationTreatmentChoice = dynamic_cast<wxChoice*>(
+        wxWindow::FindWindowByName("ID_CHOICE_Video_DurationTreatment", this));
+    _syncWithAudioCheck = dynamic_cast<wxCheckBox*>(
+        wxWindow::FindWindowByName("ID_CHECKBOX_SynchroniseWithAudio", this));
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer42->AddGrowableCol(0);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
-	FilePicker_Video_Filename = new xlVideoFilePickerCtrl(this, ID_FILEPICKERCTRL_Video_Filename, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Video_Filename"));
-	FlexGridSizer1->Add(FilePicker_Video_Filename, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(FlexGridSizer1, 1, wxEXPAND, 2);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer2->AddGrowableCol(1);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT_Video_Starttime, _("Start Time"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_Starttime"));
-	FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Video_Starttime = new BulkEditSliderF2(this, IDD_SLIDER_Video_Starttime, 0, 0, 20, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_Starttime"));
-	FlexGridSizer2->Add(Slider_Video_Starttime, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Video_Starttime = new BulkEditTextCtrlF2(this, ID_TEXTCTRL_Video_Starttime, _("0.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Starttime"));
-	FlexGridSizer2->Add(TextCtrl_Video_Starttime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(FlexGridSizer2, 1, wxEXPAND, 2);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer5->AddGrowableCol(1);
-	StaticText6 = new wxStaticText(this, ID_STATICTEXT1, _("Duration"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer5->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	TextCtrl2 = new wxTextCtrl(this, ID_TEXTCTRL_Duration, _("0:00:00.000"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Duration"));
-	TextCtrl2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT));
-	FlexGridSizer5->Add(TextCtrl2, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_MatchVideoDuration = new wxButton(this, ID_BUTTON1, _("Match Effect To Video Duration"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer5->Add(Button_MatchVideoDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Video_DurationTreatment, _("Duration Treatment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_DurationTreatment"));
-	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Choice_Video_DurationTreatment = new BulkEditChoice(this, ID_CHOICE_Video_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Video_DurationTreatment"));
-	Choice_Video_DurationTreatment->SetSelection( Choice_Video_DurationTreatment->Append(_("Normal")) );
-	Choice_Video_DurationTreatment->Append(_("Normal No Blue"));
-	Choice_Video_DurationTreatment->Append(_("Loop"));
-	Choice_Video_DurationTreatment->Append(_("Slow/Accelerate"));
-	Choice_Video_DurationTreatment->Append(_("Manual"));
-	Choice_Video_DurationTreatment->Append(_("Manual and Loop"));
-	FlexGridSizer5->Add(Choice_Video_DurationTreatment, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer8 = new wxFlexGridSizer(0, 4, 0, 0);
-	FlexGridSizer8->AddGrowableCol(1);
-	StaticText7 = new wxStaticText(this, ID_STATICTEXT2, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Video_Speed = new BulkEditSliderF2(this, IDD_SLIDER_Video_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_Speed"));
-	FlexGridSizer8->Add(Slider_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Video_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_Speed, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_Speed"));
-	FlexGridSizer8->Add(BitmapButton_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Video_Speed = new BulkEditTextCtrlF2(this, ID_TEXTCTRL_Video_Speed, _("1.00"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Speed"));
-	FlexGridSizer8->Add(TextCtrl_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer4->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
-	CheckBox_Video_AspectRatio = new BulkEditCheckBox(this, ID_CHECKBOX_Video_AspectRatio, _("Maintain Aspect Ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_AspectRatio"));
-	CheckBox_Video_AspectRatio->SetValue(false);
-	FlexGridSizer4->Add(CheckBox_Video_AspectRatio, 1, wxALL|wxEXPAND, 2);
-	CheckBox_SynchroniseWithAudio = new BulkEditCheckBox(this, ID_CHECKBOX_SynchroniseWithAudio, _("Use sequence audio file as video file and synchronise"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SynchroniseWithAudio"));
-	CheckBox_SynchroniseWithAudio->SetValue(false);
-	FlexGridSizer4->Add(CheckBox_SynchroniseWithAudio, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer6->AddGrowableCol(1);
-	StaticText2 = new wxStaticText(this, ID_STATICTEXT_Video_CropLeft, _("Crop Left"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropLeft"));
-	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer9->AddGrowableCol(0);
-	Slider_Video_CropLeft = new BulkEditSlider(this, IDD_SLIDER_Video_CropLeft, 0, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropLeft"));
-	FlexGridSizer9->Add(Slider_Video_CropLeft, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropLeftVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropLeft, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropLeft"));
-	FlexGridSizer9->Add(BitmapButton_Video_CropLeftVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Video_CropLeft = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropLeft, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropLeft"));
-	FlexGridSizer6->Add(TextCtrl_Video_CropLeft, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText3 = new wxStaticText(this, ID_STATICTEXT_Video_CropRight, _("Crop Right"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropRight"));
-	FlexGridSizer6->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer10->AddGrowableCol(0);
-	Slider_Video_CropRight = new BulkEditSlider(this, IDD_SLIDER_Video_CropRight, 100, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropRight"));
-	FlexGridSizer10->Add(Slider_Video_CropRight, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropRightVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropRight, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropRight"));
-	FlexGridSizer10->Add(BitmapButton_Video_CropRightVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Video_CropRight = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropRight, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropRight"));
-	FlexGridSizer6->Add(TextCtrl_Video_CropRight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText4 = new wxStaticText(this, ID_STATICTEXT_Video_CropTop, _("Crop Top"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropTop"));
-	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer11->AddGrowableCol(0);
-	Slider_Video_CropTop = new BulkEditSlider(this, IDD_SLIDER_Video_CropTop, 100, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropTop"));
-	FlexGridSizer11->Add(Slider_Video_CropTop, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropTopVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropTop, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropTop"));
-	FlexGridSizer11->Add(BitmapButton_Video_CropTopVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Video_CropTop = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropTop, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropTop"));
-	FlexGridSizer6->Add(TextCtrl_Video_CropTop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText5 = new wxStaticText(this, ID_STATICTEXT_Video_CropBottom, _("Crop Bottom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Video_CropBottom"));
-	FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_LEFT, 2);
-	FlexGridSizer12 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer12->AddGrowableCol(0);
-	Slider_Video_CropBottom = new BulkEditSlider(this, IDD_SLIDER_Video_CropBottom, 0, 0, 100, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_CropBottom"));
-	FlexGridSizer12->Add(Slider_Video_CropBottom, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Video_CropBottomVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_CropBottom, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Video_CropBottom"));
-	FlexGridSizer12->Add(BitmapButton_Video_CropBottomVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Video_CropBottom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropBottom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropBottom"));
-	FlexGridSizer6->Add(TextCtrl_Video_CropBottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer7->AddGrowableCol(1);
-	CheckBox_TransparentBlack = new BulkEditCheckBox(this, ID_CHECKBOX_Video_TransparentBlack, _("Transparent Black"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_TransparentBlack"));
-	CheckBox_TransparentBlack->SetValue(false);
-	FlexGridSizer7->Add(CheckBox_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider1 = new BulkEditSlider(this, IDD_SLIDER_Video_TransparentBlack, 0, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Video_TransparentBlack"));
-	FlexGridSizer7->Add(Slider1, 1, wxALL|wxEXPAND, 5);
-	TextCtrl1 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_TransparentBlack, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_TransparentBlack"));
-	FlexGridSizer7->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText9 = new wxStaticText(this, ID_STATICTEXT3, _("Sample spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-	FlexGridSizer7->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_SampleSpacing = new BulkEditSlider(this, IDD_SLIDER_SampleSpacing, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_SampleSpacing"));
-	Slider_SampleSpacing->SetToolTip(_("Use 0 to scale image. >0 to sample image."));
-	FlexGridSizer7->Add(Slider_SampleSpacing, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_SampleSpacing = new BulkEditTextCtrl(this, ID_TEXTCTRL_SampleSpacing, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_SampleSpacing"));
-	TextCtrl_SampleSpacing->SetMaxLength(3);
-	TextCtrl_SampleSpacing->SetToolTip(_("Use 0 to scale image. >0 to sample image."));
-	FlexGridSizer7->Add(TextCtrl_SampleSpacing, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 2);
-	FlexGridSizer42->Add(FlexGridSizer3, 1, wxEXPAND, 2);
-	SetSizer(FlexGridSizer42);
-	FlexGridSizer42->Fit(this);
-	FlexGridSizer42->SetSizeHints(this);
-
-	Connect(ID_FILEPICKERCTRL_Video_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&VideoPanel::OnFilePicker_Video_FilenameFileChanged);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnButton_MatchVideoDurationClick);
-	Connect(ID_CHOICE_Video_DurationTreatment,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VideoPanel::OnChoice_Video_DurationTreatmentSelect);
-	Connect(ID_VALUECURVE_Video_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
-	Connect(ID_CHECKBOX_SynchroniseWithAudio,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&VideoPanel::OnCheckBox_SynchroniseWithAudioClick);
-	Connect(ID_VALUECURVE_Video_CropLeft,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
-	Connect(ID_VALUECURVE_Video_CropRight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
-	Connect(ID_VALUECURVE_Video_CropTop,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
-	Connect(ID_VALUECURVE_Video_CropBottom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnVCButtonClick);
-	//*)
-
-    SetName("ID_PANEL_Video");
-
-    // Hide the original file picker - we replace it with Select/x buttons + preview
-    FilePicker_Video_Filename->Hide();
-    auto* fpSizer = FilePicker_Video_Filename->GetContainingSizer();
-
-    // Build top section: buttons left, preview right (like PicturesPanel)
-    auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
-    topRow->AddGrowableCol(1);
-
-    auto* buttonSizer = new wxFlexGridSizer(0, 1, 0, 0);
-    // Select + x on one row
-    auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
-    _selectButton = new wxButton(this, wxID_ANY, "Select...");
-    selectRow->Add(_selectButton, 1, wxRIGHT, 2);
-    wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
-    _clearButton = new wxBitmapButton(this, wxID_ANY, clearBmp, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-    selectRow->Add(_clearButton, 0, 0, 0);
-    buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
-    topRow->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-    _previewBitmap = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
-    _previewBitmap->SetMinSize(wxDLG_UNIT(this, wxSize(0, 50)));
-    topRow->Add(_previewBitmap, 1, wxALL | wxEXPAND, 5);
-
-    FlexGridSizer42->Insert(0, topRow, 1, wxALL | wxEXPAND, 0);
-
-    _filenameLabel = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                                       wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
-    FlexGridSizer42->Insert(1, _filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
-
-    // Hide the old file picker sizer row
-    if (fpSizer) {
-        // Remove the original file picker from its sizer
-        fpSizer->Hide(FilePicker_Video_Filename);
+    // Bulk-edit isn't useful for the per-effect Start Time slider — its max
+    // is computed per video. Match the legacy behavior of disabling bulk edit
+    // on it explicitly.
+    if (auto* bes = dynamic_cast<BulkEditSlider*>(_startTimeSlider)) {
+        bes->SetSupportsBulkEdit(false);
+    }
+    if (auto* bet = dynamic_cast<BulkEditTextCtrl*>(_startTimeText)) {
+        bet->SetSupportsBulkEdit(false);
     }
 
-    // Bind Select/Clear button events
-    _selectButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        xLightsFrame* xl = nullptr;
-        for (wxWindow* w = GetParent(); w; w = w->GetParent()) {
-            xl = dynamic_cast<xLightsFrame*>(w);
-            if (xl) break;
-        }
-        if (!xl) return;
-        SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
-        SequenceElements& elements = xl->GetSequenceElements();
-        std::string currentPath = FilePicker_Video_Filename->GetFileName().GetFullPath().ToStdString();
-        SelectMediaDialog dlg(this, &media, &elements,
-                              xl->GetShowDirectory(), xl, MediaType::Video, currentPath);
-        if (dlg.ShowModal() != wxID_OK) return;
-        std::string selected = dlg.GetSelectedPath();
-        if (selected.empty()) return;
-        FilePicker_Video_Filename->SetFileName(wxFileName(selected));
-        UpdatePreview();
-        FireChangeEvent();
-    });
-    _clearButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        FilePicker_Video_Filename->SetFileName(wxFileName());
-        UpdatePreview();
-        FireChangeEvent();
-    });
+    // Sync-with-audio and DurationTreatment changes both feed ValidateWindow
+    // — the JSON visibility rules cover most of it but the file picker enable
+    // state and the Speed slider enable (compound: needs sync==off AND
+    // treatment==Manual) live outside the framework's properties_ map.
+    if (_syncWithAudioCheck) {
+        _syncWithAudioCheck->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
+            ValidateWindow();
+            e.Skip();
+        });
+    }
+    if (_durationTreatmentChoice) {
+        _durationTreatmentChoice->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) {
+            ValidateWindow();
+            e.Skip();
+        });
+    }
+
+    Bind(EVT_VIDEODETAILS, &VideoPanel::OnVideoDetails, this);
 
     _previewTimer.SetOwner(this);
     Bind(wxEVT_TIMER, &VideoPanel::OnPreviewTimer, this, _previewTimer.GetId());
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VideoPanel::OnVCChanged, 0, this);
-    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&VideoPanel::OnValidateWindow, 0, this);
+    // Pause the preview timer when the panel is hidden (user switches to a
+    // different effect) and resume when it's shown again. The effect panels
+    // are cached by EffectPanelManager so the timer would otherwise keep
+    // decoding / rescaling frames for a hidden widget. Bound as a member
+    // function (not a lambda) so the destructor can Unbind it — otherwise
+    // a wxEVT_SHOW dispatched from the Win32 HWND teardown after
+    // ~VideoPanel has already destroyed _previewFrames / _previewTimer
+    // would access destroyed members and crash on exit.
+    Bind(wxEVT_SHOW, &VideoPanel::OnShowPanel, this);
 
-    BitmapButton_Video_Speed->GetValue()->SetLimits(VIDEO_SPEED_MIN, VIDEO_SPEED_MAX);
-    BitmapButton_Video_Speed->GetValue()->SetDivisor(VIDEO_SPEED_DIVISOR);
-	BitmapButton_Video_CropLeftVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
-	BitmapButton_Video_CropRightVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
-	BitmapButton_Video_CropTopVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
-	BitmapButton_Video_CropBottomVC->GetValue()->SetLimits(VIDEO_CROP_MIN, VIDEO_CROP_MAX);
-
-    Slider_Video_Starttime->SetSupportsBulkEdit(false);
-    TextCtrl_Video_Starttime->SetSupportsBulkEdit(false);
-    TextCtrl_Video_Starttime->SetValue("0.00");
-	CheckBox_Video_AspectRatio->SetValue(false);
-
-	ValidateWindow();
+    ValidateWindow();
 }
 
-VideoPanel::~VideoPanel()
-{
+VideoPanel::~VideoPanel() {
+    Unbind(wxEVT_SHOW, &VideoPanel::OnShowPanel, this);
     _previewTimer.Stop();
-	//(*Destroy(VideoPanel)
-	//*)
 }
 
-void VideoPanel::AddVideoTime(std::string fn, unsigned long ms) {
-    std::unique_lock<std::mutex> locker(lock);
-
-	wxFileName file = FilePicker_Video_Filename->GetFileName();
-	std::string current = file.GetFullPath().ToStdString();
-	if (current != fn)	//prevent event looping when selecting different video effects
-		return;
-
-    videoTimeCache[fn] = ms;
-
-	// If it is not correct then set it
-	if ((unsigned long)Slider_Video_Starttime->GetMax() != ms)
-	{
-		Slider_Video_Starttime->SetMax(ms / 10);
-	}
-
-    TextCtrl2->SetValue(FORMATTIME(ms));
-}
-
-void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event) {
-    std::unique_lock<std::mutex> locker(lock);
-    wxFileName fn = FilePicker_Video_Filename->GetFileName();
-    ObtainAccessToURL(fn.GetFullPath().ToStdString());
-    int i = videoTimeCache[fn.GetFullPath().ToStdString()];
-    if (i > 0) {
-        Slider_Video_Starttime->SetMax(i);
-        TextCtrl2->SetValue(FORMATTIME(i));
+void VideoPanel::OnShowPanel(wxShowEvent& event) {
+    if (event.IsShown()) {
+        if (_previewFrames.size() > 1) {
+            size_t idx = _currentPreviewFrame < _previewFrameTimes.size() ? _currentPreviewFrame : 0;
+            long interval = (_previewFrameTimes[idx] > 0) ? _previewFrameTimes[idx] : 50;
+            _previewTimer.Start(interval);
+        }
     } else {
-        // we don't know the duration yet, set max long enough to
-        // allow the start time of the effect to fit in util the
-        // real max can be calculated
-        Slider_Video_Starttime->SetMax(99999);
-        TextCtrl2->SetValue(FORMATTIME(0));
+        _previewTimer.Stop();
+    }
+    event.Skip();
+}
+
+wxWindow* VideoPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                           const nlohmann::json& prop, int cols) {
+    std::string id = prop.value("id", "");
+    if (id == "Video_FilenameBlock") {
+        return BuildFilenameBlock(parentWin, sizer);
+    }
+    if (id == "Video_DurationRow") {
+        return BuildDurationRow(parentWin, sizer);
+    }
+    if (id == "Video_TransparentBlackRow") {
+        return BuildTransparentBlackRow(parentWin, sizer);
+    }
+    return nullptr;
+}
+
+wxWindow* VideoPanel::BuildFilenameBlock(wxWindow* parentWin, wxSizer* sizer) {
+    // Layout (just the file selection block — Duration display + Match
+    // button live in their own custom row below Start Time, which keeps
+    // the two duration controls visually grouped):
+    //   [Select] [x]   [animated preview bitmap]
+    //   filename label (full width, ellipsized)
+    //
+    // The hidden xlVideoFilePickerCtrl below holds the actual path so the
+    // legacy E_FILEPICKERCTRL_Video_Filename serialization key is preserved.
+    auto* outer = new wxFlexGridSizer(0, 1, 0, 0);
+    outer->AddGrowableCol(0);
+
+    auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
+    topRow->AddGrowableCol(1);
+
+    auto* buttonSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    auto* selectRow = new wxBoxSizer(wxHORIZONTAL);
+    _selectButton = new wxButton(parentWin, wxNewId(), "Select...");
+    selectRow->Add(_selectButton, 1, wxRIGHT, 2);
+    wxBitmap clearBmp = wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON);
+    _clearButton = new wxBitmapButton(parentWin, wxNewId(), clearBmp,
+                                       wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    selectRow->Add(_clearButton, 0, 0, 0);
+    buttonSizer->Add(selectRow, 0, wxALL | wxEXPAND, 5);
+    topRow->Add(buttonSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+
+    _previewBitmap = new wxStaticBitmap(parentWin, wxID_ANY, wxNullBitmap);
+    _previewBitmap->SetMinSize(wxDLG_UNIT(parentWin, wxSize(0, 50)));
+    topRow->Add(_previewBitmap, 1, wxALL | wxEXPAND, 5);
+
+    outer->Add(topRow, 1, wxALL | wxEXPAND, 0);
+
+    _filenameLabel = new wxStaticText(parentWin, wxID_ANY, wxEmptyString,
+                                       wxDefaultPosition, wxDefaultSize,
+                                       wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_MIDDLE);
+    outer->Add(_filenameLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
+
+    // Hidden file picker — kept as a child of the panel so
+    // GetEffectStringFromWindow finds it under the legacy name and writes
+    // E_FILEPICKERCTRL_Video_Filename.
+    _hiddenFilePicker = new xlVideoFilePickerCtrl(parentWin, wxNewId(), wxEmptyString,
+                                                   wxEmptyString, wxEmptyString,
+                                                   wxDefaultPosition, wxDefaultSize,
+                                                   wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
+                                                   wxDefaultValidator,
+                                                   _T("ID_FILEPICKERCTRL_Video_Filename"));
+    _hiddenFilePicker->Hide();
+
+    sizer->Add(outer, 1, wxALL | wxEXPAND, 0);
+
+    _selectButton->Bind(wxEVT_BUTTON, &VideoPanel::OnSelectClick, this);
+    _clearButton->Bind(wxEVT_BUTTON, &VideoPanel::OnClearClick, this);
+    _hiddenFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &VideoPanel::OnFilePickerChanged, this);
+
+    return _selectButton;
+}
+
+wxWindow* VideoPanel::BuildDurationRow(wxWindow* parentWin, wxSizer* sizer) {
+    // Two stacked sub-rows so the Match button doesn't force the panel
+    // to be wider than the longest label otherwise needs:
+    //   Duration  [readonly_short_text]
+    //   [    Match Effect To Video Duration    ]
+    auto* outer = new wxFlexGridSizer(0, 1, 0, 0);
+    outer->AddGrowableCol(0);
+
+    auto* row = new wxFlexGridSizer(0, 3, 0, 0);
+    row->AddGrowableCol(2);
+    auto* durLabel = new wxStaticText(parentWin, wxID_ANY, "Duration");
+    row->Add(durLabel, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    // Fixed compact width so the duration text doesn't stretch the panel
+    // — 0:00:00.000 fits in roughly 60 dialog units.
+    _durationDisplay = new wxTextCtrl(parentWin, wxID_ANY, "0:00:00.000",
+                                       wxDefaultPosition,
+                                       wxDLG_UNIT(parentWin, wxSize(60, -1)),
+                                       wxTE_READONLY | wxTE_RIGHT, wxDefaultValidator,
+                                       _T("ID_TEXTCTRL_Duration"));
+    _durationDisplay->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT));
+    row->Add(_durationDisplay, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    row->Add(-1, -1, 1, 0, 0);  // expanding spacer fills the rest of the row
+    outer->Add(row, 0, wxALL | wxEXPAND, 0);
+
+    _matchDurationButton = new wxButton(parentWin, wxNewId(), "Match Effect To Video Duration");
+    outer->Add(_matchDurationButton, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+    sizer->Add(outer, 1, wxALL | wxEXPAND, 0);
+
+    _matchDurationButton->Bind(wxEVT_BUTTON, &VideoPanel::OnMatchVideoDurationClick, this);
+    return _matchDurationButton;
+}
+
+wxWindow* VideoPanel::BuildTransparentBlackRow(wxWindow* parentWin, wxSizer* sizer) {
+    // Same Faces TransparentBlack pattern: checkbox + slider + text on a
+    // single visually-linked row, preserving the legacy IDs so old sequences
+    // round-trip via E_CHECKBOX_Video_TransparentBlack /
+    // E_TEXTCTRL_Video_TransparentBlack.
+    auto* row = new wxFlexGridSizer(0, 3, 0, 0);
+    row->AddGrowableCol(1);
+
+    _transparentBlackCheck = new BulkEditCheckBox(parentWin, wxNewId(), "Transparent Black",
+                                                    wxDefaultPosition, wxDefaultSize, 0,
+                                                    wxDefaultValidator,
+                                                    _T("ID_CHECKBOX_Video_TransparentBlack"));
+    _transparentBlackCheck->SetValue(false);
+    row->Add(_transparentBlackCheck, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+
+    _transparentBlackSlider = new BulkEditSlider(parentWin, wxNewId(), 0, 0, 300,
+                                                   wxDefaultPosition, wxDefaultSize, 0,
+                                                   wxDefaultValidator,
+                                                   _T("IDD_SLIDER_Video_TransparentBlack"));
+    row->Add(_transparentBlackSlider, 1, wxALL | wxEXPAND, 5);
+
+    _transparentBlackText = new BulkEditTextCtrl(parentWin, wxNewId(), _T("0"),
+                                                   wxDefaultPosition,
+                                                   wxDLG_UNIT(parentWin, wxSize(40, -1)),
+                                                   wxTE_RIGHT, wxDefaultValidator,
+                                                   _T("ID_TEXTCTRL_Video_TransparentBlack"));
+    row->Add(_transparentBlackText, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+
+    sizer->Add(row, 1, wxALL | wxEXPAND, 0);
+    return _transparentBlackCheck;
+}
+
+void VideoPanel::OnSelectClick(wxCommandEvent& /*event*/) {
+    xLightsFrame* xl = nullptr;
+    for (wxWindow* w = GetParent(); w; w = w->GetParent()) {
+        xl = dynamic_cast<xLightsFrame*>(w);
+        if (xl) break;
+    }
+    if (!xl || !_hiddenFilePicker) return;
+
+    SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
+    SequenceElements& elements = xl->GetSequenceElements();
+    std::string currentPath = _hiddenFilePicker->GetFileName().GetFullPath().ToStdString();
+    SelectMediaDialog dlg(this, &media, &elements,
+                          xl->GetShowDirectory(), xl, MediaType::Video, currentPath);
+    if (dlg.ShowModal() != wxID_OK) return;
+    std::string selected = dlg.GetSelectedPath();
+    if (selected.empty()) return;
+
+    _hiddenFilePicker->SetFileName(wxFileName(selected));
+    // Manually fire the file picker change to trigger probe + preview update.
+    wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
+                              _hiddenFilePicker->GetId(), selected);
+    _hiddenFilePicker->ProcessWindowEvent(evt);
+    FireChangeEvent();
+}
+
+void VideoPanel::OnClearClick(wxCommandEvent& /*event*/) {
+    if (!_hiddenFilePicker) return;
+    _hiddenFilePicker->SetFileName(wxFileName());
+    UpdatePreview();
+    FireChangeEvent();
+}
+
+void VideoPanel::OnFilePickerChanged(wxFileDirPickerEvent& event) {
+    std::unique_lock<std::mutex> locker(_videoTimeLock);
+    if (_hiddenFilePicker == nullptr) return;
+    wxFileName fn = _hiddenFilePicker->GetFileName();
+    ObtainAccessToURL(fn.GetFullPath().ToStdString());
+    auto cacheIt = _videoTimeCache.find(fn.GetFullPath().ToStdString());
+    if (cacheIt != _videoTimeCache.end() && cacheIt->second > 0) {
+        if (_startTimeSlider) _startTimeSlider->SetMax(cacheIt->second / 10);
+        if (_durationDisplay) _durationDisplay->SetValue(FORMATTIME(cacheIt->second));
+    } else {
+        // Probe hasn't happened yet — give the slider enough headroom for
+        // the user to set a sensible start time before the real max comes in.
+        if (_startTimeSlider) _startTimeSlider->SetMax(99999);
+        if (_durationDisplay) _durationDisplay->SetValue(FORMATTIME(0));
     }
     locker.unlock();
     UpdatePreview();
+    event.Skip();
 }
 
-void VideoPanel::OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event)
-{
-    ValidateWindow();
-}
-
-void VideoPanel::SetVideoDetails(wxCommandEvent& event)
-{
-    AddVideoTime(event.GetString().ToStdString(), event.GetInt());
-}
-
-void VideoPanel::ValidateWindow()
-{
-    if (CheckBox_SynchroniseWithAudio->GetValue())
-    {
-        Slider_Video_Starttime->Enable(false);
-        TextCtrl_Video_Starttime->Enable(false);
-        Choice_Video_DurationTreatment->Enable(false);
-        FilePicker_Video_Filename->Enable(false);
-    }
-    else
-    {
-        Slider_Video_Starttime->Enable(true);
-        TextCtrl_Video_Starttime->Enable(true);
-        Choice_Video_DurationTreatment->Enable(true);
-        FilePicker_Video_Filename->Enable(true);
-    }
-
-    if (Choice_Video_DurationTreatment->GetStringSelection() == "Manual" ||
-        Choice_Video_DurationTreatment->GetStringSelection() == "Manual and Loop")
-    {
-        Slider_Video_Speed->Enable();
-        TextCtrl_Video_Speed->Enable();
-        BitmapButton_Video_Speed->Enable();
-    }
-    else
-    {
-        Slider_Video_Speed->Disable();
-        TextCtrl_Video_Speed->Disable();
-        BitmapButton_Video_Speed->Disable();
-    }
-
-	auto file = FilePicker_Video_Filename->GetFileName().GetFullPath();
-	bool fileExists = file.empty() || FileExists(file);
-	if (!fileExists) {
-		auto* xl = (xLightsFrame*)xLightsApp::GetFrame();
-		if (xl) {
-			fileExists = xl->GetSequenceElements().GetSequenceMedia().HasMedia(file.ToStdString());
-		}
-	}
-	if (!file.empty() && !fileExists) {
-		FilePicker_Video_Filename->SetBackgroundColour(*wxRED);
-		SetToolTip("File " + file + " does not exist.");
-	} else if (!file.empty() && !IsXmlSafe(file)) {
-		FilePicker_Video_Filename->SetBackgroundColour(*wxYELLOW);
-		SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-	} else {
-		FilePicker_Video_Filename->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-		SetToolTip(file);
-	}
-}
-
-void VideoPanel::OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event)
-{
-    ValidateWindow();
-}
-
-void VideoPanel::SetDefaultParameters()
-{
-    FilePicker_Video_Filename->SetFileName(wxFileName());
-    SetSliderValue(Slider_Video_Starttime, 0);
-    SetSliderValue(Slider_Video_CropBottom, 0);
-    SetSliderValue(Slider_Video_CropLeft, 0);
-    SetSliderValue(Slider_Video_CropRight, 100);
-    SetSliderValue(Slider_Video_CropTop, 100);
-    BitmapButton_Video_CropLeftVC->SetActive(false);
-    BitmapButton_Video_CropRightVC->SetActive(false);
-    BitmapButton_Video_CropTopVC->SetActive(false);
-    BitmapButton_Video_CropBottomVC->SetActive(false);
-    BitmapButton_Video_Speed->SetActive(false);
-    SetCheckBoxValue(CheckBox_Video_AspectRatio, false);
-    SetChoiceValue(Choice_Video_DurationTreatment, "Normal");
-
-    SetCheckBoxValue(CheckBox_TransparentBlack, false);
-    SetSliderValue(Slider1, 0);
-}
-
-void VideoPanel::OnButton_MatchVideoDurationClick(wxCommandEvent& event)
-{
-    // This can't actually be done here ... we need to grab the video duration then send it in a message to the frame window who can then apply it to the currently selected video effect
-    wxCommandEvent e(EVT_SET_EFFECT_DURATION);
-    wxFileName fn = FilePicker_Video_Filename->GetFileName();
+void VideoPanel::OnMatchVideoDurationClick(wxCommandEvent& /*event*/) {
+    // Has to be dispatched up to xLightsFrame — the panel can't change its
+    // own effect's duration directly.
+    if (!_hiddenFilePicker) return;
+    wxFileName fn = _hiddenFilePicker->GetFileName();
     ObtainAccessToURL(fn.GetFullPath().ToStdString());
-    auto duration = videoTimeCache[fn.GetFullPath().ToStdString()];
+
+    unsigned long duration = 0;
+    {
+        std::unique_lock<std::mutex> locker(_videoTimeLock);
+        auto it = _videoTimeCache.find(fn.GetFullPath().ToStdString());
+        if (it != _videoTimeCache.end()) {
+            duration = it->second;
+        }
+    }
     if (duration > 0) {
+        wxCommandEvent e(EVT_SET_EFFECT_DURATION);
         e.SetString("Video");
         e.SetInt(duration);
         wxPostEvent(wxTheApp->GetTopWindow(), e);
     }
 }
 
-void VideoPanel::UpdatePreview()
-{
+void VideoPanel::OnVideoDetails(wxCommandEvent& event) {
+    AddVideoTime(event.GetString().ToStdString(), event.GetInt());
+}
+
+void VideoPanel::AddVideoTime(std::string fn, unsigned long ms) {
+    std::unique_lock<std::mutex> locker(_videoTimeLock);
+    if (!_hiddenFilePicker) return;
+    wxFileName file = _hiddenFilePicker->GetFileName();
+    std::string current = file.GetFullPath().ToStdString();
+    // Prevent event looping when switching between video effects rapidly.
+    if (current != fn) return;
+
+    _videoTimeCache[fn] = ms;
+
+    if (_startTimeSlider && (unsigned long)_startTimeSlider->GetMax() != ms) {
+        _startTimeSlider->SetMax(ms / 10);
+    }
+    if (_durationDisplay) _durationDisplay->SetValue(FORMATTIME(ms));
+}
+
+void VideoPanel::ValidateWindow() {
+    JsonEffectPanel::ValidateWindow();
+
+    bool sync = _syncWithAudioCheck && _syncWithAudioCheck->IsChecked();
+
+    // When sync is on the picked video file is ignored (the audio file is
+    // used as the video source), and the duration is dictated by the audio
+    // timeline — so the file picker, preview, duration display, and match
+    // button all become irrelevant. Disable them so the user can't pretend
+    // to set values that the renderer will silently throw away.
+    if (_hiddenFilePicker) _hiddenFilePicker->Enable(!sync);
+    if (_selectButton) _selectButton->Enable(!sync);
+    if (_clearButton) _clearButton->Enable(!sync);
+    if (_previewBitmap) _previewBitmap->Enable(!sync);
+    if (_filenameLabel) _filenameLabel->Enable(!sync);
+    if (_durationDisplay) _durationDisplay->Enable(!sync);
+    if (_matchDurationButton) _matchDurationButton->Enable(!sync);
+
+    // The Speed slider is only meaningful when DurationTreatment is one of
+    // the Manual modes AND sync is off (sync forces treatment to "Normal"
+    // at render time regardless of what the user selected). Handled here
+    // because the JSON visibility-rule system can't express the AND of
+    // two predicates without losing the inverse-on-not-met behavior.
+    bool manualMode = false;
+    if (_durationTreatmentChoice) {
+        wxString treatment = _durationTreatmentChoice->GetStringSelection();
+        manualMode = (treatment == "Manual" || treatment == "Manual and Loop");
+    }
+    bool speedEnabled = !sync && manualMode;
+    if (auto* speedSlider = wxWindow::FindWindowByName("IDD_SLIDER_Video_Speed", this)) {
+        speedSlider->Enable(speedEnabled);
+    }
+    if (auto* speedText = wxWindow::FindWindowByName("ID_TEXTCTRL_Video_Speed", this)) {
+        speedText->Enable(speedEnabled);
+    }
+    if (auto* speedVC = wxWindow::FindWindowByName("ID_VALUECURVE_Video_Speed", this)) {
+        speedVC->Enable(speedEnabled);
+    }
+
+    // Background color hint based on file path validity (matches legacy red /
+    // yellow tinting). The hidden picker is invisible so the color affects
+    // nothing visually, but the tooltip propagates which is the part the user
+    // actually sees on hover.
+    if (_hiddenFilePicker) {
+        wxString file = _hiddenFilePicker->GetFileName().GetFullPath();
+        bool fileExists = file.empty() || FileExists(file);
+        if (!fileExists) {
+            auto* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
+            if (xl) {
+                fileExists = xl->GetSequenceElements().GetSequenceMedia().HasMedia(file.ToStdString());
+            }
+        }
+        if (!file.empty() && !fileExists) {
+            SetToolTip("File " + file + " does not exist.");
+        } else if (!file.empty() && !IsXmlSafe(file)) {
+            SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+        } else {
+            SetToolTip(file);
+        }
+    }
+}
+
+void VideoPanel::UpdatePreview() {
     _previewTimer.Stop();
     _previewFrames.clear();
     _previewFrameTimes.clear();
@@ -486,7 +416,7 @@ void VideoPanel::UpdatePreview()
 
     if (!_previewBitmap) return;
 
-    wxFileName fn = FilePicker_Video_Filename->GetFileName();
+    wxFileName fn = _hiddenFilePicker ? _hiddenFilePicker->GetFileName() : wxFileName();
     std::string file = fn.GetFullPath().ToStdString();
     if (_filenameLabel) _filenameLabel->SetLabel(file);
     if (file.empty()) {
@@ -494,15 +424,13 @@ void VideoPanel::UpdatePreview()
         return;
     }
 
-    // Look up video through SequenceMedia (handles relative paths)
+    // Look up video through SequenceMedia (handles relative paths).
     SequenceMedia* media = nullptr;
-    wxWindow* w = GetParent();
-    while (w) {
+    for (wxWindow* w = GetParent(); w; w = w->GetParent()) {
         if (auto* xl = dynamic_cast<xLightsFrame*>(w)) {
             media = &xl->GetSequenceElements().GetSequenceMedia();
             break;
         }
-        w = w->GetParent();
     }
     if (!media) return;
 
@@ -521,19 +449,16 @@ void VideoPanel::UpdatePreview()
         _previewFrames.push_back(entry->GetPreviewFrame(i));
         _previewFrameTimes.push_back(entry->GetPreviewFrameTime(i));
     }
-
     if (_previewFrames.empty()) return;
 
     ShowPreviewFrame(0);
-
     if (_previewFrames.size() > 1) {
         long interval = (_previewFrameTimes[0] > 0) ? _previewFrameTimes[0] : 50;
         _previewTimer.Start(interval);
     }
 }
 
-void VideoPanel::OnPreviewTimer(wxTimerEvent& event)
-{
+void VideoPanel::OnPreviewTimer(wxTimerEvent& /*event*/) {
     if (_previewFrames.empty()) {
         _previewTimer.Stop();
         return;
@@ -547,8 +472,7 @@ void VideoPanel::OnPreviewTimer(wxTimerEvent& event)
     _previewTimer.Start(interval);
 }
 
-void VideoPanel::ShowPreviewFrame(size_t index)
-{
+void VideoPanel::ShowPreviewFrame(size_t index) {
     if (index >= _previewFrames.size() || !_previewFrames[index] || !_previewFrames[index]->IsOk()) return;
 
     const auto& img = _previewFrames[index];

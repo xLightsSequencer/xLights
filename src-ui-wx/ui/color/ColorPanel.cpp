@@ -8,97 +8,51 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#define ZERO 0
-
-#include "xLightsMain.h"
 #include "ui/color/ColorPanel.h"
-#include "render/ColorCurve.h"
-#include "ui/color/wxColorCurveRenderer.h"
-#include "ui/shared/utils/wxUtilities.h"
-#include "ui/effectpanels/EffectPanelUtils.h"
-#include "UtilFunctions.h"
-#include "ui/color/wxColorCurveButton.h"
-#include "xLightsApp.h"
-#include "utils/ExternalHooks.h"
-#include "ui/sequencer/MainSequencer.h"
-#include "ai/AIColorPaletteDialog.h"
-
-//(*InternalHeaders(ColorPanel)
-#include <wx/bitmap.h>
-#include <wx/image.h>
-#include <wx/intl.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-//*)
 
 #include <wx/artprov.h>
-#include <wx/dnd.h>
-#include <wx/valnum.h>
-#include <wx/wfstream.h>
-#include <wx/txtstrm.h>
-#include <wx/odcombo.h>
+#include <wx/bitmap.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/clrpicker.h>
 #include <wx/config.h>
-#include <wx/filename.h>
-#include <wx/stdpaths.h>
+#include <wx/file.h>
+#include <wx/image.h>
+#include <wx/menu.h>
+#include <wx/odcombo.h>
 #include <wx/regex.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/stdpaths.h>
+#include <wx/textctrl.h>
+#include <wx/textdlg.h>
+#include <wx/textfile.h>
+#include <wx/tokenzr.h>
+#include <wx/txtstrm.h>
+#include <wx/wfstream.h>
 
-#include <log.h>
+#include <spdlog/spdlog.h>
+
+#include "ui/color/wxColorCurveButton.h"
+#include "ui/color/wxColorCurveRenderer.h"
+#include "ai/AIColorPaletteDialog.h"
+#include "ui/effectpanels/EffectPanelManager.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
+#include "ui/shared/utils/xlLockButton.h"
 #include "ui/shared/utils/wxUtilities.h"
-
+#include "ui/sequencer/MainSequencer.h"
+#include "render/ColorCurve.h"
+#include "utils/Color.h"
+#include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
+#include "UtilFunctions.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
 #define PALETTE_SIZE 8
-
-//(*IdInit(ColorPanel)
-const wxWindowID ColorPanel::ID_BITMAPBUTTON_ReverseColours = wxNewId();
-const wxWindowID ColorPanel::ID_BITMAPBUTTON_LeftShiftColours = wxNewId();
-const wxWindowID ColorPanel::ID_BITMAPBUTTON_RightShiftColours = wxNewId();
-const wxWindowID ColorPanel::ID_CUSTOM1 = wxNewId();
-const wxWindowID ColorPanel::ID_BUTTON1 = wxNewId();
-const wxWindowID ColorPanel::ID_CHECKBOX_ResetColorPanel = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT1 = wxNewId();
-const wxWindowID ColorPanel::ID_SLIDER_ChromaSensitivity = wxNewId();
-const wxWindowID ColorPanel::ID_COLOURPICKERCTRL_ChromaColour = wxNewId();
-const wxWindowID ColorPanel::ID_CHECKBOX_Chroma = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT_SparkleFrequency = wxNewId();
-const wxWindowID ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
-const wxWindowID ColorPanel::ID_VALUECURVE_SparkleFrequency = wxNewId();
-const wxWindowID ColorPanel::IDD_TEXTCTRL_SparkleFrequency = wxNewId();
-const wxWindowID ColorPanel::ID_BITMAPBUTTON_SLIDER_SparkleFrequency = wxNewId();
-const wxWindowID ColorPanel::ID_CHECKBOX_MusicSparkles = wxNewId();
-const wxWindowID ColorPanel::ID_COLOURPICKERCTRL_SparklesColour = wxNewId();
-const wxWindowID ColorPanel::ID_BITMAPBUTTON_MusicSparkles = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT_Brightness = wxNewId();
-const wxWindowID ColorPanel::ID_SLIDER_Brightness = wxNewId();
-const wxWindowID ColorPanel::ID_VALUECURVE_Brightness = wxNewId();
-const wxWindowID ColorPanel::IDD_TEXTCTRL_Brightness = wxNewId();
-const wxWindowID ColorPanel::ID_BITMAPBUTTON_SLIDER_Brightness = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT_Contrast = wxNewId();
-const wxWindowID ColorPanel::ID_SLIDER_Contrast = wxNewId();
-const wxWindowID ColorPanel::IDD_TEXTCTRL_Contrast = wxNewId();
-const wxWindowID ColorPanel::ID_BITMAPBUTTON_SLIDER_Contrast = wxNewId();
-const wxWindowID ColorPanel::ID_CHECKBOXBRIGHTNESSLEVEL = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT4 = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT_Color_HueAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_SLIDER_Color_HueAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_VALUECURVE_Color_HueAdjust = wxNewId();
-const wxWindowID ColorPanel::IDD_TEXTCTRL_Color_HueAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT_Color_SaturationAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_SLIDER_Color_SaturationAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_VALUECURVE_Color_SaturationAdjust = wxNewId();
-const wxWindowID ColorPanel::IDD_TEXTCTRL_Color_SaturationAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_STATICTEXT_Color_ValueAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_SLIDER_Color_ValueAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_VALUECURVE_Color_ValueAdjust = wxNewId();
-const wxWindowID ColorPanel::IDD_TEXTCTRL_Color_ValueAdjust = wxNewId();
-const wxWindowID ColorPanel::ID_SCROLLED_ColorScroll = wxNewId();
-const wxWindowID ColorPanel::ID_PANEL1 = wxNewId();
-//*)
-const wxWindowID ColorPanel::ID_MNU_UPDATE = wxNewId();
-const wxWindowID ColorPanel::ID_MNU_SAVE = wxNewId();
-const wxWindowID ColorPanel::ID_MNU_SAVE_AS = wxNewId();
-const wxWindowID ColorPanel::ID_MNU_DELETE = wxNewId();
-const wxWindowID ColorPanel::ID_MNU_IMPORT = wxNewId();
-const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 
 // Standard sizes
 #define SWATCH_WIDTH_STANDARD 11
@@ -112,65 +66,58 @@ const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 #define PALETTE_BUTTON_SIZE_LARGE 32
 #define PALETTE_CC_SIZE_LARGE 18
 
+const wxWindowID ColorPanel::ID_MNU_UPDATE = wxNewId();
+const wxWindowID ColorPanel::ID_MNU_SAVE = wxNewId();
+const wxWindowID ColorPanel::ID_MNU_SAVE_AS = wxNewId();
+const wxWindowID ColorPanel::ID_MNU_DELETE = wxNewId();
+const wxWindowID ColorPanel::ID_MNU_IMPORT = wxNewId();
+const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
+
 static bool IsLargePalette() {
     return wxConfigBase::Get()->Read("PaletteSize", "Normal") == "Large";
 }
 
-class ColourList : public wxOwnerDrawnComboBox
-{
+class ColourList : public wxOwnerDrawnComboBox {
 public:
-    ColourList(wxWindow *parent, wxWindowID id,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize,
-        long style = 0,
-        const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = "ColourList") : wxOwnerDrawnComboBox(parent, id, wxEmptyString, pos, size, 0, nullptr, style | wxCB_READONLY | wxCC_STD_BUTTON | wxODCB_STD_CONTROL_PAINT, validator, name)
-    {
-
-    }
+    ColourList(wxWindow* parent, wxWindowID id,
+               const wxPoint& pos = wxDefaultPosition,
+               const wxSize& size = wxDefaultSize,
+               long style = 0,
+               const wxValidator& validator = wxDefaultValidator,
+               const wxString& name = "ColourList") :
+        wxOwnerDrawnComboBox(parent, id, wxEmptyString, pos, size, 0, nullptr,
+                             style | wxCB_READONLY | wxCC_STD_BUTTON | wxODCB_STD_CONTROL_PAINT, validator, name) {}
 
     int GetSwatchWidth() const {
         return IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
     }
 
-    virtual wxCoord OnMeasureItem(size_t item) const override
-    {
+    virtual wxCoord OnMeasureItem(size_t item) const override {
         return IsLargePalette() ? SWATCH_HEIGHT_LARGE : SWATCH_HEIGHT_STANDARD;
     }
 
-    virtual wxCoord OnMeasureItemWidth(size_t item) const override
-    {
+    virtual wxCoord OnMeasureItemWidth(size_t item) const override {
         int swatchWidth = IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
         return PALETTE_SIZE * swatchWidth - 1;
     }
 
-    virtual void OnDrawItem(wxDC &dc, const wxRect &rect, int item, int flags) const override
-    {
-        if (item == wxNOT_FOUND)
-            return;
+    virtual void OnDrawItem(wxDC& dc, const wxRect& rect, int item, int flags) const override {
+        if (item == wxNOT_FOUND) return;
 
         wxString s = GetString(item);
-
-        if (s == "")
-        {
+        if (s == "") {
             GetVListBoxComboPopup()->UnsetToolTip();
-        }
-        else
-        {
+        } else {
             wxArrayString as = wxSplit(s, ',');
-
             int i = 0;
             int swatchWidth = GetSwatchWidth();
 
-            for (auto it = as.begin(); it != as.end() && i < PALETTE_SIZE; ++it)
-            {
-                if (it->Contains("Active"))
-                {
+            for (auto it = as.begin(); it != as.end() && i < PALETTE_SIZE; ++it) {
+                if (it->Contains("Active")) {
                     ColorCurve cc(it->ToStdString());
-                    dc.DrawBitmap(wxColorCurveRenderer::GetColorCurveImage(cc, swatchWidth - 1, rect.GetHeight() - 1, false), i * swatchWidth, rect.GetTop());
-                }
-                else
-                {
+                    dc.DrawBitmap(wxColorCurveRenderer::GetColorCurveImage(cc, swatchWidth - 1, rect.GetHeight() - 1, false),
+                                  i * swatchWidth, rect.GetTop());
+                } else {
                     xlColor c;
                     c.SetFromString(it->ToStdString());
                     wxPen p(xlColorToWxColour(c));
@@ -182,8 +129,7 @@ public:
                 i++;
             }
 
-            if (flags & wxODCB_PAINTING_SELECTED)
-            {
+            if (flags & wxODCB_PAINTING_SELECTED) {
                 wxString file = as.back();
                 GetVListBoxComboPopup()->SetToolTip(file);
             }
@@ -191,19 +137,15 @@ public:
     }
 };
 
-class ColourText2DropTarget : public wxTextDropTarget
-{
+class ColourText2DropTarget : public wxTextDropTarget {
 public:
-    ColourText2DropTarget(BulkEditColourPickerCtrl* owner) { _owner = owner; };
-
+    ColourText2DropTarget(BulkEditColourPickerCtrl* owner) { _owner = owner; }
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
     virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
-
     BulkEditColourPickerCtrl* _owner;
 };
 
-wxDragResult ColourText2DropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
-{
+wxDragResult ColourText2DropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def) {
     if (_owner->IsEnabled()) {
         _owner->SetFocus();
         return wxDragCopy;
@@ -211,378 +153,355 @@ wxDragResult ColourText2DropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResul
     return wxDragNone;
 }
 
-bool ColourText2DropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
-{
+bool ColourText2DropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data) {
     if (data == "") return false;
-
     if (!_owner->IsEnabled()) return false;
-
     if (ColorCurve::IsColorCurve(data)) {
         wxMessageBox("You cannot drag a colour curve onto this colour picker.");
-    }
-    else {
+    } else {
         _owner->SetColour(data);
     }
     return true;
 }
 
-class ColourTextDropTarget : public wxTextDropTarget
-{
+class ColourTextDropTarget : public wxTextDropTarget {
 public:
-    ColourTextDropTarget(ColorCurveButton* owner) { _owner = owner; };
-
+    ColourTextDropTarget(ColorCurveButton* owner) { _owner = owner; }
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
     virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
-
     ColorCurveButton* _owner;
 };
 
-wxDragResult ColourTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
-{
-    if (_owner->IsEnabled())
-    {
+wxDragResult ColourTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def) {
+    if (_owner->IsEnabled()) {
         _owner->SetFocus();
         return wxDragCopy;
     }
     return wxDragNone;
 }
 
-bool ColourTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
-{
+bool ColourTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data) {
     if (data == "") return false;
-
     if (!_owner->IsEnabled()) return false;
-
-    if (ColorCurve::IsColorCurve(data))
-    {
+    if (ColorCurve::IsColorCurve(data)) {
         _owner->SetValue(data);
         _owner->SetActive(true);
-    }
-    else
-    {
+    } else {
         _owner->SetColor(data, false);
     }
     _owner->NotifyChange();
-
     return true;
 }
 
-BEGIN_EVENT_TABLE(ColorPanel,wxPanel)
-	//(*EventTable(ColorPanel)
-	//*)
-END_EVENT_TABLE()
+namespace {
+nlohmann::json LoadColorMetadata() {
+    std::string metaDir = EffectPanelManager::GetMetadataDirectory();
+    if (metaDir.empty()) return {};
+    return JsonEffectPanel::LoadMetadata(metaDir + "/shared/Color.json");
+}
+} // namespace
 
-ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel()
-{
-    _supportslinear = false;
-    _supportsradial = false;
-
-	//(*Initialize(ColorPanel)
-	wxBoxSizer* BoxSizer1;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxFlexGridSizer* FlexGridSizer12;
-	wxFlexGridSizer* FlexGridSizer13;
-	wxFlexGridSizer* FlexGridSizer14;
-	wxFlexGridSizer* FlexGridSizer15;
-	wxFlexGridSizer* FlexGridSizer16;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer9;
-
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(0);
-	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-	ColorScrollWindow = new wxScrolledWindow(Panel_Sizer, ID_SCROLLED_ColorScroll, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_ColorScroll"));
-	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer5->AddGrowableCol(0);
-	FlexGridSizer9 = new wxFlexGridSizer(0, 4, 0, 0);
-	FlexGridSizer9->AddGrowableCol(0);
-	FlexGridSizer9->AddGrowableCol(1);
-	FlexGridSizer9->AddGrowableCol(2);
-	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10 = new wxFlexGridSizer(0, 0, 0, 0);
-	FlexGridSizer10->AddGrowableCol(0);
-	FlexGridSizer_Palette = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer10->Add(FlexGridSizer_Palette, 1, wxALL, 2);
-	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxALIGN_RIGHT, 2);
-	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer11->AddGrowableCol(1);
-	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
-	BitmapButton_ReverseColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_ReverseColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_reverse_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_ReverseColours"));
-	BoxSizer1->Add(BitmapButton_ReverseColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_LeftShiftColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_LeftShiftColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_left_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_LeftShiftColours"));
-	BoxSizer1->Add(BitmapButton_LeftShiftColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_RightShiftColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_RightShiftColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_right_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RightShiftColours"));
-	BoxSizer1->Add(BitmapButton_RightShiftColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer11->Add(BoxSizer1, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
-	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
-	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL, 2);
-	Button_MenuPalette = new wxButton(ColorScrollWindow, ID_BUTTON1, _T("☰"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(18,-1)), 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	Button_MenuPalette->SetMinSize(wxDLG_UNIT(ColorScrollWindow,wxSize(18,-1)));
-	Button_MenuPalette->SetMaxSize(wxDLG_UNIT(ColorScrollWindow,wxSize(18,-1)));
-	FlexGridSizer11->Add(Button_MenuPalette, 1, wxALL|wxALIGN_TOP, 5);
-	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
-	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
-	CheckBox_ResetColorPanel = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_ResetColorPanel, _("Reset panel when changing effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ResetColorPanel"));
-	CheckBox_ResetColorPanel->SetValue(true);
-	FlexGridSizer16->Add(CheckBox_ResetColorPanel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer4->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
-	FlexGridSizer2->AddGrowableCol(1);
-	StaticText5 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT1, _("Chroma Key"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_ChromaSensitivity = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_ChromaSensitivity, 1, 1, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ChromaSensitivity"));
-	FlexGridSizer2->Add(Slider_ChromaSensitivity, 1, wxALL|wxEXPAND, 2);
-	ColourPickerCtrl_ChromaColour = new BulkEditColourPickerCtrl(ColorScrollWindow, ID_COLOURPICKERCTRL_ChromaColour, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_ChromaColour"));
-	FlexGridSizer2->Add(ColourPickerCtrl_ChromaColour, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_EnableChromakey = new BulkEditCheckBox(ColorScrollWindow, ID_CHECKBOX_Chroma, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Chroma"));
-	CheckBox_EnableChromakey->SetValue(false);
-	FlexGridSizer2->Add(CheckBox_EnableChromakey, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText22 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_SparkleFrequency, _("Sparkles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_SparkleFrequency"));
-	FlexGridSizer2->Add(StaticText22, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer8->AddGrowableCol(0);
-	Slider_SparkleFrequency = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_SparkleFrequency, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_SparkleFrequency"));
-	FlexGridSizer8->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_SparkleFrequencyVC = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_SparkleFrequency, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_SparkleFrequency"));
-	FlexGridSizer8->Add(BitmapButton_SparkleFrequencyVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
-	txtCtrlSparkleFreq = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_SparkleFrequency, _T("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_SparkleFrequency"));
-	FlexGridSizer2->Add(txtCtrlSparkleFreq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_SparkleFrequency = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
-	BitmapButton_SparkleFrequency->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer2->Add(BitmapButton_SparkleFrequency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	CheckBox_MusicSparkles = new BulkEditCheckBox(ColorScrollWindow, ID_CHECKBOX_MusicSparkles, _("Sparkles reflect music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MusicSparkles"));
-	CheckBox_MusicSparkles->SetValue(false);
-	FlexGridSizer2->Add(CheckBox_MusicSparkles, 1, wxALL|wxEXPAND, 2);
-	ColourPickerCtrl_SparklesColour = new BulkEditColourPickerCtrl(ColorScrollWindow, ID_COLOURPICKERCTRL_SparklesColour, wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_SparklesColour"));
-	FlexGridSizer2->Add(ColourPickerCtrl_SparklesColour, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_MusicSparkles = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_MusicSparkles, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_MusicSparkles"));
-	BitmapButton_MusicSparkles->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer2->Add(BitmapButton_MusicSparkles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	StaticText126 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_Brightness, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Brightness"));
-	FlexGridSizer2->Add(StaticText126, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer7->AddGrowableCol(0);
-	Slider_Brightness = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Brightness, 100, 0, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
-	FlexGridSizer7->Add(Slider_Brightness, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_VCBrightness = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Brightness, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Brightness"));
-	FlexGridSizer7->Add(BitmapButton_VCBrightness, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer2->Add(FlexGridSizer7, 1, wxEXPAND, 0);
-	txtCtlBrightness = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Brightness, _T("100"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Brightness"));
-	FlexGridSizer2->Add(txtCtlBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Brightness = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Brightness, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Brightness"));
-	BitmapButton_Brightness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer2->Add(BitmapButton_Brightness, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	StaticText127 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_Contrast, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Contrast"));
-	FlexGridSizer2->Add(StaticText127, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Contrast = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Contrast, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Contrast"));
-	FlexGridSizer2->Add(Slider_Contrast, 1, wxALL|wxEXPAND, 0);
-	txtCtlContrast = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Contrast, _T("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Contrast"));
-	FlexGridSizer2->Add(txtCtlContrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Contrast = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Contrast, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
-	BitmapButton_Contrast->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-	FlexGridSizer2->Add(BitmapButton_Contrast, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	CheckBoxBrightnessLevel = new BulkEditCheckBox(ColorScrollWindow, ID_CHECKBOXBRIGHTNESSLEVEL, _("Brightness Level"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXBRIGHTNESSLEVEL"));
-	CheckBoxBrightnessLevel->SetValue(false);
-	FlexGridSizer2->Add(CheckBoxBrightnessLevel, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer12->AddGrowableCol(1);
-	StaticText4 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT4, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	StaticText1 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_Color_HueAdjust, _("Hue"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Color_HueAdjust"));
-	FlexGridSizer12->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer13 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer13->AddGrowableCol(0);
-	Slider_Color_HueAdjust = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Color_HueAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_HueAdjust"));
-	FlexGridSizer13->Add(Slider_Color_HueAdjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Color_HueAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_HueAdjust, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_HueAdjust"));
-	FlexGridSizer13->Add(BitmapButton_Color_HueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 0);
-	TextCtrl_Color_HueAdjust = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_HueAdjust, _T("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_HueAdjust"));
-	TextCtrl_Color_HueAdjust->SetMaxLength(4);
-	FlexGridSizer12->Add(TextCtrl_Color_HueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText2 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_Color_SaturationAdjust, _("Saturation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Color_SaturationAdjust"));
-	FlexGridSizer12->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer15 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer15->AddGrowableCol(0);
-	Slider_Color_SaturationAdjust = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Color_SaturationAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_SaturationAdjust"));
-	FlexGridSizer15->Add(Slider_Color_SaturationAdjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Color_SaturationAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_SaturationAdjust, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_SaturationAdjust"));
-	FlexGridSizer15->Add(BitmapButton_Color_SaturationAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer12->Add(FlexGridSizer15, 1, wxALL|wxEXPAND, 0);
-	TextCtrl_Color_SaturationAdjust = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_SaturationAdjust, _T("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_SaturationAdjust"));
-	TextCtrl_Color_SaturationAdjust->SetMaxLength(4);
-	FlexGridSizer12->Add(TextCtrl_Color_SaturationAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText3 = new wxStaticText(ColorScrollWindow, ID_STATICTEXT_Color_ValueAdjust, _("Value"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Color_ValueAdjust"));
-	FlexGridSizer12->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer14 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer14->AddGrowableCol(0);
-	Slider_Color_ValueAdjust = new BulkEditSlider(ColorScrollWindow, ID_SLIDER_Color_ValueAdjust, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_ValueAdjust"));
-	FlexGridSizer14->Add(Slider_Color_ValueAdjust, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Color_ValueAdjust = new BulkEditValueCurveButton(ColorScrollWindow, ID_VALUECURVE_Color_ValueAdjust, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_ValueAdjust"));
-	FlexGridSizer14->Add(BitmapButton_Color_ValueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer12->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 0);
-	TextCtrl_Color_ValueAdjust = new BulkEditTextCtrl(ColorScrollWindow, IDD_TEXTCTRL_Color_ValueAdjust, _T("0"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_ValueAdjust"));
-	TextCtrl_Color_ValueAdjust->SetMaxLength(4);
-	FlexGridSizer12->Add(TextCtrl_Color_ValueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer4->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 2);
-	ColorScrollWindow->SetSizer(FlexGridSizer4);
-	FlexGridSizer3->Add(ColorScrollWindow, 1, wxALL|wxEXPAND, 0);
-	Panel_Sizer->SetSizer(FlexGridSizer3);
-	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 0);
-	SetSizer(FlexGridSizer1);
-
-	Connect(ID_BITMAPBUTTON_ReverseColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ReverseColoursClick);
-	Connect(ID_BITMAPBUTTON_LeftShiftColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursLeftClick);
-	Connect(ID_BITMAPBUTTON_RightShiftColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursRightClick);
-	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_MenuPaletteClick);
-	Connect(ID_CHECKBOX_ResetColorPanel, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCheckBox_ResetColorPanelClick);
-	Connect(ID_CHECKBOX_Chroma, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCheckBox_EnableChromakeyClick);
-	Connect(ID_VALUECURVE_SparkleFrequency, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_MusicSparkles, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
-	Connect(ID_VALUECURVE_Brightness, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Brightness, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Contrast, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
-	Connect(ID_VALUECURVE_Color_HueAdjust, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
-	Connect(ID_VALUECURVE_Color_SaturationAdjust, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
-	Connect(ID_VALUECURVE_Color_ValueAdjust, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
-	Connect(wxEVT_SIZE, (wxObjectEventFunction)&ColorPanel::OnResize);
-	//*)
+ColorPanel::ColorPanel(wxWindow* parent, wxWindowID /*id*/,
+                       const wxPoint& /*pos*/, const wxSize& /*size*/) :
+    JsonEffectPanel(parent, LoadColorMetadata(), /*deferBuild*/ true) {
+    BuildFromJson(metadata_);
 
     SetName("Color");
 
-    Button_MenuPalette->SetLabel(L"\u2630"); // ☰
-    
-    Connect(wxID_ANY, wxEVT_COMBOBOX_DROPDOWN, (wxObjectEventFunction)&ColorPanel::OnColourChoiceDropDown, 0, this);
-    Connect(wxID_ANY, wxEVT_COMBOBOX, (wxObjectEventFunction)&ColorPanel::OnColourChoiceSelect, 0, this);
-
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnVCChanged, 0, this);
-
-    BitmapButton_VCBrightness->GetValue()->SetLimits(COLORPANEL_BRIGHTNESS_MIN, COLORPANEL_BRIGHTNESS_MAX);
-    BitmapButton_SparkleFrequencyVC->GetValue()->SetLimits(COLORPANEL_SPARKLE_MIN, COLORPANEL_SPARKLE_MAX);
-    BitmapButton_Color_HueAdjust->GetValue()->SetLimits(COLORPANEL_HUE_MIN, COLORPANEL_HUE_MAX);
-    BitmapButton_Color_SaturationAdjust->GetValue()->SetLimits(COLORPANEL_SATURATION_MIN, COLORPANEL_SATURATION_MAX);
-    BitmapButton_Color_ValueAdjust->GetValue()->SetLimits(COLORPANEL_VALUE_MIN, COLORPANEL_VALUE_MAX);
-
-    ColourPickerCtrl_ChromaColour->SetDropTarget(new ColourText2DropTarget(ColourPickerCtrl_ChromaColour));
-    ColourPickerCtrl_SparklesColour->SetDropTarget(new ColourText2DropTarget(ColourPickerCtrl_SparklesColour));
-
-    FlexGridSizer_Palette->SetCols(PALETTE_SIZE);
-    for (int x = 0; x < PALETTE_SIZE; x++) {
-        FlexGridSizer_Palette->AddGrowableCol(x);
-        wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (x + 1));
-        long id2 = wxNewId();
-        wxCheckBox *cb = new wxCheckBox(ColorScrollWindow, id2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, ids);
-        cb->SetValue(x < 2);
-        FlexGridSizer_Palette->Add(cb, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-        checkBoxes.push_back(cb);
-        Connect(id2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
-    }
-    for (int x = 0; x < PALETTE_SIZE; x++) {
-        wxString ids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
-        long id2 = wxNewId();
-        int btnSize = IsLargePalette() ? PALETTE_BUTTON_SIZE_LARGE : PALETTE_BUTTON_SIZE_STANDARD;
-        ColorCurveButton* bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, FromDIP(wxSize(btnSize, btnSize)), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
-        bb->SetDropTarget(new ColourTextDropTarget(bb));
-        FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
-        buttons.push_back(bb);
-        Connect(wxID_ANY, EVT_CC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnCCChanged, 0, this);
-    }
-    for (int x = 0; x < PALETTE_SIZE; x++) {
-        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (x + 1));
-        long id2 = wxNewId();
-        wxBitmapButton *bb = new xlLockButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_PADLOCK_OPEN", wxART_BUTTON),
-                                                wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
-        FlexGridSizer_Palette->Add(bb, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-        Connect(id2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
-    }
-    for (int x = 0; x < PALETTE_SIZE; x++) {
-        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
-        long id2 = wxNewId();
-        int ccSize = IsLargePalette() ? PALETTE_CC_SIZE_LARGE : PALETTE_CC_SIZE_STANDARD;
-        wxBitmapButton* bb = new xlSizedBitmapButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON), wxDefaultPosition,
-                                                     wxSize(ccSize, ccSize), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
-        bb->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-        FlexGridSizer_Palette->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
-        Connect(id2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCCButtonClick);
-    }
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
+    // Restore the 'Reset panel when changing effects' preference.
+    wxConfigBase* config = wxConfigBase::Get();
+    bool reset = true;
+    if (config) config->Read("xLightsResetColorPanel", &reset, true);
+    if (_resetColorPanelCheck) _resetColorPanelCheck->SetValue(reset);
 
     _lastShowDir = xLightsFrame::CurrentDir;
 
-    //SetDefaultPallette will call LoadAllPalettes in this case
+    // SetDefaultPalette also calls LoadAllPalettes the first time.
     SetDefaultPalette();
-
-    wxConfigBase* config = wxConfigBase::Get();
-    bool reset;
-    config->Read("xLightsResetColorPanel", &reset, true);
-    CheckBox_ResetColorPanel->SetValue(reset);
 
     ValidateWindow();
     SetMinSize(wxSize(50, 50));
 }
-#ifdef __XLIGHTS_HAS_TOUCHBARS__
-ColorPanelTouchBar* ColorPanel::SetupTouchBar(xlTouchBarSupport &tbs) {
-    if (touchBar == nullptr && tbs.HasTouchBar()) {
-        touchBar = std::unique_ptr<ColorPanelTouchBar>(new ColorPanelTouchBar(
-            [this](int idx, wxColor c) {
-                this->SetButtonColor(idx, wxColourToXlColor(c), false);
-            },
-            [this](int v) {
-                this->BitmapButton_SparkleFrequencyVC->SetValue(wxString::Format("%d", v));
-                BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(0.0f, 200.0f);
-                Slider_SparkleFrequency->SetValue(v);
-                txtCtrlSparkleFreq->SetValue(wxString::Format("%d", v));
-            }, tbs));
-    }
-    return touchBar.get();
+
+wxWindow* ColorPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+                                           const nlohmann::json& prop, int /*cols*/) {
+    std::string id = prop.value("id", "");
+    if (id == "PaletteHeaderRow") return BuildPaletteHeaderRow(parentWin, sizer);
+    if (id == "ResetPanelRow") return BuildResetPanelRow(parentWin, sizer);
+    if (id == "ChromaKeyRow") return BuildChromaKeyRow(parentWin, sizer);
+    if (id == "SparklesRow") return BuildSparklesRow(parentWin, sizer);
+    if (id == "BrightnessLevelRow") return BuildBrightnessLevelRow(parentWin, sizer);
+    return nullptr;
 }
 
-void ColorPanel::UpdateTouchBarSlider(wxScrollEvent& event) {
-    if (touchBar != nullptr) {
-        touchBar->SetSparkles(event.GetPosition());
-    }
-    Slider_SparkleFrequency->OnSlider_SliderUpdated(event);
-}
-#endif
+wxWindow* ColorPanel::BuildPaletteHeaderRow(wxWindow* parentWin, wxSizer* sizer) {
+    // Top row: [palette grid][reverse/shift buttons column][colour list + menu].
+    // Matches the legacy layout: the palette swatches are leftmost, the
+    // reverse/shift vertical button stack sits to the immediate right, and
+    // the recent-palettes dropdown + menu button end the row.
+    auto* row = new wxFlexGridSizer(0, 3, 0, 0);
+    row->AddGrowableCol(2);
 
-void ColorPanel::LoadAllPalettes()
-{
+    // Vertical stack of reverse / left-shift / right-shift buttons. Built
+    // first so the pointers are ready when the row is assembled below.
+    auto* btnCol = new wxBoxSizer(wxVERTICAL);
+    _reverseColoursButton = new xlSizedBitmapButton(
+        parentWin, wxNewId(),
+        wxArtProvider::GetBitmapBundle("xlART_colorpanel_reverse_xpm", wxART_BUTTON),
+        wxDefaultPosition, wxSize(26, 16),
+        wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+        _T("ID_BITMAPBUTTON_ReverseColours"));
+    btnCol->Add(_reverseColoursButton, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
+    _reverseColoursButton->Bind(wxEVT_BUTTON, &ColorPanel::OnBitmapButton_ReverseColoursClick, this);
+
+    _leftShiftColoursButton = new xlSizedBitmapButton(
+        parentWin, wxNewId(),
+        wxArtProvider::GetBitmapBundle("xlART_colorpanel_left_shift_xpm", wxART_BUTTON),
+        wxDefaultPosition, wxSize(26, 16), wxBU_AUTODRAW, wxDefaultValidator,
+        _T("ID_BITMAPBUTTON_LeftShiftColours"));
+    btnCol->Add(_leftShiftColoursButton, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
+    _leftShiftColoursButton->Bind(wxEVT_BUTTON, &ColorPanel::OnBitmapButton_ShiftColoursLeftClick, this);
+
+    _rightShiftColoursButton = new xlSizedBitmapButton(
+        parentWin, wxNewId(),
+        wxArtProvider::GetBitmapBundle("xlART_colorpanel_right_shift_xpm", wxART_BUTTON),
+        wxDefaultPosition, wxSize(26, 16), wxBU_AUTODRAW, wxDefaultValidator,
+        _T("ID_BITMAPBUTTON_RightShiftColours"));
+    btnCol->Add(_rightShiftColoursButton, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
+    _rightShiftColoursButton->Bind(wxEVT_BUTTON, &ColorPanel::OnBitmapButton_ShiftColoursRightClick, this);
+
+    // Column 1: 4-row palette grid (8 checkboxes, 8 color-curve buttons, 8 lock buttons, 8 cc activation buttons).
+    _paletteGridSizer = new wxFlexGridSizer(0, PALETTE_SIZE, 0, 0);
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        _paletteGridSizer->AddGrowableCol(x);
+    }
+    // Row 1: enable checkboxes
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", x + 1);
+        auto* cb = new wxCheckBox(parentWin, wxNewId(), wxEmptyString,
+                                   wxDefaultPosition, wxDefaultSize, wxNO_BORDER,
+                                   wxDefaultValidator, ids);
+        cb->SetValue(x < 2);
+        _paletteGridSizer->Add(cb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        checkBoxes.push_back(cb);
+        cb->Bind(wxEVT_CHECKBOX, &ColorPanel::OnCheckBox_PaletteClick, this);
+    }
+    // Row 2: ColorCurveButtons
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BUTTON_Palette%d", x + 1);
+        int btnSize = IsLargePalette() ? PALETTE_BUTTON_SIZE_LARGE : PALETTE_BUTTON_SIZE_STANDARD;
+        auto* bb = new ColorCurveButton(parentWin, wxNewId(), wxNullBitmap,
+                                         wxDefaultPosition, FromDIP(wxSize(btnSize, btnSize)),
+                                         wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        bb->SetDropTarget(new ColourTextDropTarget(bb));
+        _paletteGridSizer->Add(bb, 0, wxALIGN_LEFT | wxALIGN_TOP, 0);
+        buttons.push_back(bb);
+    }
+    Connect(wxID_ANY, EVT_CC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnCCChanged, 0, this);
+    // Row 3: lock buttons
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", x + 1);
+        auto* bb = new xlLockButton(parentWin, wxNewId(),
+                                     wxArtProvider::GetBitmapBundle("xlART_PADLOCK_OPEN", wxART_BUTTON),
+                                     wxDefaultPosition, wxDefaultSize,
+                                     wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        _paletteGridSizer->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        bb->Bind(wxEVT_BUTTON, &ColorPanel::OnLockButtonClick, this);
+    }
+    // Row 4: color-curve activation buttons
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", x + 1);
+        int ccSize = IsLargePalette() ? PALETTE_CC_SIZE_LARGE : PALETTE_CC_SIZE_STANDARD;
+        auto* bb = new xlSizedBitmapButton(parentWin, wxNewId(),
+                                            wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON),
+                                            wxDefaultPosition, wxSize(ccSize, ccSize),
+                                            wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        bb->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+        _paletteGridSizer->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        bb->Bind(wxEVT_BUTTON, &ColorPanel::OnCCButtonClick, this);
+    }
+    row->Add(_paletteGridSizer, 0, wxALL | wxALIGN_TOP, 2);
+
+    // Column 2: the reverse / shift vertical button stack (built above).
+    row->Add(btnCol, 0, wxALL | wxALIGN_TOP, 2);
+
+    // Column 3: ColourList dropdown + menu button
+    auto* menuCol = new wxBoxSizer(wxHORIZONTAL);
+    _colourList = new ColourList(parentWin, wxNewId(), wxDefaultPosition, wxDefaultSize,
+                                  0, wxDefaultValidator, _T("ID_CUSTOM1"));
+    menuCol->Add(_colourList, 1, wxALL, 2);
+    _colourList->Bind(wxEVT_COMBOBOX_DROPDOWN, &ColorPanel::OnColourChoiceDropDown, this);
+    _colourList->Bind(wxEVT_COMBOBOX, &ColorPanel::OnColourChoiceSelect, this);
+
+    _menuPaletteButton = new wxButton(parentWin, wxNewId(), L"\u2630",
+                                       wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(18, -1)),
+                                       0, wxDefaultValidator, _T("ID_BUTTON1"));
+    _menuPaletteButton->SetMinSize(wxDLG_UNIT(parentWin, wxSize(18, -1)));
+    _menuPaletteButton->SetMaxSize(wxDLG_UNIT(parentWin, wxSize(18, -1)));
+    menuCol->Add(_menuPaletteButton, 0, wxALL | wxALIGN_TOP, 5);
+    _menuPaletteButton->Bind(wxEVT_BUTTON, &ColorPanel::OnBitmapButton_MenuPaletteClick, this);
+
+    row->Add(menuCol, 0, wxALL | wxALIGN_LEFT, 2);
+
+    sizer->Add(row, 1, wxALL | wxEXPAND, 2);
+    return _paletteGridSizer->GetContainingWindow();
+}
+
+wxWindow* ColorPanel::BuildResetPanelRow(wxWindow* parentWin, wxSizer* sizer) {
+    _resetColorPanelCheck = new wxCheckBox(parentWin, wxNewId(),
+                                            "Reset panel when changing effects",
+                                            wxDefaultPosition, wxDefaultSize, 0,
+                                            wxDefaultValidator,
+                                            _T("IDD_CHECKBOX_ResetColorPanel"));
+    _resetColorPanelCheck->SetValue(true);
+    sizer->Add(_resetColorPanelCheck, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    _resetColorPanelCheck->Bind(wxEVT_CHECKBOX, &ColorPanel::OnCheckBox_ResetColorPanelClick, this);
+    return _resetColorPanelCheck;
+}
+
+wxWindow* ColorPanel::BuildChromaKeyRow(wxWindow* parentWin, wxSizer* sizer) {
+    auto* row = new wxFlexGridSizer(0, 4, 0, 0);
+    row->AddGrowableCol(1);
+
+    auto* label = new wxStaticText(parentWin, wxID_ANY, "Chroma Key");
+    row->Add(label, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+    _chromaSensitivity = new BulkEditSlider(parentWin, wxNewId(), 1, 1, 255,
+                                             wxDefaultPosition, wxDefaultSize, 0,
+                                             wxDefaultValidator,
+                                             _T("ID_SLIDER_ChromaSensitivity"));
+    row->Add(_chromaSensitivity, 1, wxALL | wxEXPAND, 2);
+
+    _chromaColour = new BulkEditColourPickerCtrl(parentWin, wxNewId(), wxColour(0, 0, 0),
+                                                  wxDefaultPosition, wxDefaultSize, 0,
+                                                  wxDefaultValidator,
+                                                  _T("ID_COLOURPICKERCTRL_ChromaColour"));
+    _chromaColour->SetDropTarget(new ColourText2DropTarget(_chromaColour));
+    row->Add(_chromaColour, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+
+    _enableChromaCheck = new BulkEditCheckBox(parentWin, wxNewId(), wxEmptyString,
+                                               wxDefaultPosition, wxDefaultSize, 0,
+                                               wxDefaultValidator,
+                                               _T("ID_CHECKBOX_Chroma"));
+    _enableChromaCheck->SetValue(false);
+    row->Add(_enableChromaCheck, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    _enableChromaCheck->Bind(wxEVT_CHECKBOX, &ColorPanel::OnCheckBox_EnableChromakeyClick, this);
+
+    sizer->Add(row, 1, wxALL | wxEXPAND, 2);
+    return _chromaSensitivity;
+}
+
+wxWindow* ColorPanel::BuildSparklesRow(wxWindow* parentWin, wxSizer* sizer) {
+    // Vertical stack of two rows:
+    //   Row 1: [label] [slider + VC] [text] [lock]       — matches the legacy
+    //                                                      standard 4-col slider layout.
+    //   Row 2: [spacer] [Sparkles reflect music checkbox + sparkles color picker + lock]
+    auto* outer = new wxBoxSizer(wxVERTICAL);
+
+    auto* topRow = new wxFlexGridSizer(0, 4, 0, 0);
+    topRow->AddGrowableCol(1);
+
+    auto* label = new wxStaticText(parentWin, wxID_ANY, "Sparkles",
+                                    wxDefaultPosition, wxDefaultSize, 0,
+                                    _T("ID_STATICTEXT_SparkleFrequency"));
+    topRow->Add(label, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+    auto* sliderSizer = new wxBoxSizer(wxHORIZONTAL);
+    _sparkleFrequency = new BulkEditSlider(parentWin, wxNewId(), 0, 0, 200,
+                                            wxDefaultPosition, wxDefaultSize, 0,
+                                            wxDefaultValidator,
+                                            _T("ID_SLIDER_SparkleFrequency"));
+    sliderSizer->Add(_sparkleFrequency, 1, wxALL | wxEXPAND, 0);
+    _sparkleFrequencyVC = new BulkEditValueCurveButton(parentWin, wxNewId(),
+                                                        GetValueCurveNotSelectedBitmap(),
+                                                        wxDefaultPosition, wxDefaultSize,
+                                                        wxBU_AUTODRAW | wxBORDER_NONE,
+                                                        wxDefaultValidator,
+                                                        _T("ID_VALUECURVE_SparkleFrequency"));
+    _sparkleFrequencyVC->GetValue()->SetLimits(COLORPANEL_SPARKLE_MIN, COLORPANEL_SPARKLE_MAX);
+    sliderSizer->Add(_sparkleFrequencyVC, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    _sparkleFrequencyVC->Bind(wxEVT_BUTTON, &ColorPanel::OnVCButtonClick, this);
+    topRow->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+    _sparkleFrequencyText = new BulkEditTextCtrl(parentWin, wxNewId(), _T("0"),
+                                                  wxDefaultPosition,
+                                                  wxDLG_UNIT(parentWin, wxSize(20, -1)), 0,
+                                                  wxDefaultValidator,
+                                                  _T("IDD_TEXTCTRL_SparkleFrequency"));
+    topRow->Add(_sparkleFrequencyText, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+
+    _sparkleFrequencyLock = new xlLockButton(parentWin, wxNewId(), wxNullBitmap,
+                                               wxDefaultPosition, wxSize(14, 14),
+                                               wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                               _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
+    _sparkleFrequencyLock->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+    topRow->Add(_sparkleFrequencyLock, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
+    _sparkleFrequencyLock->Bind(wxEVT_BUTTON, &ColorPanel::OnLockButtonClick, this);
+
+    outer->Add(topRow, 0, wxALL | wxEXPAND, 0);
+
+    // Row 2: music checkbox + sparkles color picker + lock, indented under
+    // the Sparkles label.
+    auto* musicRow = new wxBoxSizer(wxHORIZONTAL);
+    _musicSparklesCheck = new BulkEditCheckBox(parentWin, wxNewId(), "Sparkles reflect music",
+                                                wxDefaultPosition, wxDefaultSize, 0,
+                                                wxDefaultValidator,
+                                                _T("ID_CHECKBOX_MusicSparkles"));
+    _musicSparklesCheck->SetValue(false);
+    musicRow->Add(_musicSparklesCheck, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    _musicSparklesCheck->Bind(wxEVT_CHECKBOX, &ColorPanel::OnCheckBox_MusicSparklesClick, this);
+
+    _sparklesColour = new BulkEditColourPickerCtrl(parentWin, wxNewId(),
+                                                    wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT),
+                                                    wxDefaultPosition, wxDefaultSize, 0,
+                                                    wxDefaultValidator,
+                                                    _T("ID_COLOURPICKERCTRL_SparklesColour"));
+    _sparklesColour->SetDropTarget(new ColourText2DropTarget(_sparklesColour));
+    musicRow->Add(_sparklesColour, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+
+    _musicSparklesLock = new xlLockButton(parentWin, wxNewId(), wxNullBitmap,
+                                           wxDefaultPosition, wxSize(14, 14),
+                                           wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                           _T("ID_BITMAPBUTTON_MusicSparkles"));
+    _musicSparklesLock->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+    musicRow->Add(_musicSparklesLock, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
+    _musicSparklesLock->Bind(wxEVT_BUTTON, &ColorPanel::OnLockButtonClick, this);
+
+    outer->Add(musicRow, 0, wxLEFT | wxEXPAND, 8);
+
+    sizer->Add(outer, 1, wxALL | wxEXPAND, 2);
+    return _sparkleFrequency;
+}
+
+wxWindow* ColorPanel::BuildBrightnessLevelRow(wxWindow* parentWin, wxSizer* sizer) {
+    // Legacy serializes this key as "CHECKBOXBRIGHTNESSLEVEL" (no underscore
+    // between CHECKBOX and BRIGHTNESSLEVEL). The framework's standard
+    // checkbox row would produce "ID_CHECKBOX_BRIGHTNESSLEVEL" which maps to
+    // "E_CHECKBOX_BRIGHTNESSLEVEL" — but the render engine reads the no-
+    // underscore form. Build manually with the legacy name to preserve
+    // round-trip compatibility.
+    _brightnessLevelCheck = new BulkEditCheckBox(parentWin, wxNewId(), "Brightness Level",
+                                                  wxDefaultPosition, wxDefaultSize, 0,
+                                                  wxDefaultValidator,
+                                                  _T("ID_CHECKBOXBRIGHTNESSLEVEL"));
+    _brightnessLevelCheck->SetValue(false);
+    sizer->Add(_brightnessLevelCheck, 0, wxALL | wxEXPAND, 5);
+    return _brightnessLevelCheck;
+}
+
+// -------- Palette management --------
+
+void ColorPanel::LoadAllPalettes() {
     _loadedPalettes.clear();
 
     wxDir dir;
-    if (wxDir::Exists(xLightsFrame::CurrentDir))
-    {
+    if (wxDir::Exists(xLightsFrame::CurrentDir)) {
         dir.Open(xLightsFrame::CurrentDir);
         LoadPalettes(dir, false);
     }
 
     wxString d = xLightsFrame::CurrentDir + "/Palettes";
-    if (wxDir::Exists(d))
-    {
+    if (wxDir::Exists(d)) {
         dir.Open(d);
         LoadPalettes(dir, true);
     }
@@ -593,30 +512,29 @@ void ColorPanel::LoadAllPalettes()
 #else
     d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/palettes";
 #endif
-    if (wxDir::Exists(d))
-    {
+    if (wxDir::Exists(d)) {
         dir.Open(d);
         LoadPalettes(dir, true);
     }
 
-    if (BitmapButton_ColourChoice->GetCount() != 0) {
-        BitmapButton_ColourChoice->Clear();
+    if (_colourList && _colourList->GetCount() != 0) {
+        _colourList->Clear();
     }
-    BitmapButton_ColourChoice->AppendString("");
-    for(auto it=  _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
-    {
-        BitmapButton_ColourChoice->AppendString(*it);
+    if (_colourList) {
+        _colourList->AppendString("");
+        for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+            _colourList->AppendString(*it);
+        }
     }
     FireChangeEvent();
 }
 
-void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
-{
+void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs) {
     static wxRegEx cregex("^\\$[^:]*: rgba\\(([^)]*)\\)");
 
     wxArrayString files;
     GetAllFilesInDir(directory.GetName(), files, "*.xpalette");
-    for (auto &filename : files) {
+    for (auto& filename : files) {
         if (FileExists(filename)) {
             wxFileName fn(filename);
             wxFileInputStream input(fn.GetFullPath());
@@ -628,10 +546,7 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
                 bool found = false;
                 for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
                     wxString p(*it);
-                    if (p.BeforeLast(',') == scomp) {
-                        found = true;
-                        break;
-                    }
+                    if (p.BeforeLast(',') == scomp) { found = true; break; }
                 }
                 if (!found) {
                     _loadedPalettes.push_back(s.ToStdString() + fn.GetFullName().ToStdString());
@@ -642,7 +557,7 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
 
     files.clear();
     GetAllFilesInDir(directory.GetNameWithSep(), files, "*.scss");
-    for (auto &filename : files) {
+    for (auto& filename : files) {
         if (FileExists(filename)) {
             wxFileName fn(filename);
             wxFileInputStream input(fn.GetFullPath());
@@ -657,65 +572,17 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
                         wxArrayString comp = wxSplit(rgb, ',');
                         if (comp.size() == 4) {
                             pal += wxString::Format("#%2x%2x%2x,",
-                                wxAtoi(comp[0]),
-                                wxAtoi(comp[1]),
-                                wxAtoi(comp[2])
-                            );
+                                                     wxAtoi(comp[0]), wxAtoi(comp[1]), wxAtoi(comp[2]));
                             cols++;
                         }
                     }
                 }
                 if (cols > 0) {
-                    while (cols < 8) {
-                        pal += "#FFFFFF,";
-                        cols++;
-                    }
+                    while (cols < 8) { pal += "#FFFFFF,"; cols++; }
                     bool found = false;
                     for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
                         wxString p(*it);
-                        if (p.BeforeLast(',') == pal) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
-                    }
-                }
-            }
-        }
-    }
-    files.clear();
-    GetAllFilesInDir(directory.GetNameWithSep(), files, "*.svg");
-    for (auto &filename : files) {
-        if (FileExists(filename)) {
-            wxFileName fn(filename);
-            pugi::xml_document svg;
-            svg.load_file(filename.mb_str());
-
-            if (svg.document_element()) {
-                wxString pal;
-                int cols = 0;
-                for (pugi::xml_node n = svg.document_element().first_child(); n; n = n.next_sibling()) {
-                    if (std::string_view(n.name()) == "rect") {
-                        if (n.attribute("fill")) {
-                            pal += wxString(n.attribute("fill").as_string()) + ",";
-                            cols++;
-                        }
-                    }
-                }
-                if (cols > 0) {
-                    while (cols < 8) {
-                        pal += "#FFFFFF,";
-                        cols++;
-                    }
-                    bool found = false;
-                    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
-                        wxString p(*it);
-                        if (p.BeforeLast(',') == pal) {
-                            found = true;
-                            break;
-                        }
+                        if (p.BeforeLast(',') == pal) { found = true; break; }
                     }
                     if (!found) {
                         _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
@@ -726,85 +593,78 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
     }
 
     if (subdirs) {
-        wxString filename;
-        bool cont = directory.GetFirst(&filename, "*", wxDIR_DIRS);
+        wxString subdir;
+        bool cont = directory.GetFirst(&subdir, wxEmptyString, wxDIR_DIRS);
         while (cont) {
-            wxDir dir(directory.GetNameWithSep() + filename);
-            LoadPalettes(dir, subdirs);
-            cont = directory.GetNext(&filename);
+            wxDir sub;
+            if (sub.Open(directory.GetNameWithSep() + subdir)) {
+                LoadPalettes(sub, true);
+            }
+            cont = directory.GetNext(&subdir);
         }
+    }
+}
+
+void ColorPanel::SetDefaultPalette() {
+    if (buttons.size() < 8) return;
+    SetButtonColor(buttons[0], "#FFFFFF");
+    SetButtonColor(buttons[1], "#FF0000");
+    SetButtonColor(buttons[2], "#00FF00");
+    SetButtonColor(buttons[3], "#0000FF");
+    SetButtonColor(buttons[4], "#FFFF00");
+    SetButtonColor(buttons[5], "#000000");
+    SetButtonColor(buttons[6], "#00FFFF");
+    SetButtonColor(buttons[7], "#FF00FF");
+
+    if (_colourList && _colourList->GetCount() < 2) {
+        LoadAllPalettes();
     }
     FireChangeEvent();
+    ValidateWindow();
 }
 
-ColorPanel::~ColorPanel()
-{
-	//(*Destroy(ColorPanel)
-	//*)
+wxColour ColorPanel::GetPaletteColor(int idx) const {
+    if (idx < (int)buttons.size()) {
+        return buttons[idx]->GetBackgroundColour();
+    }
+    return *wxBLACK;
 }
 
+wxCheckBox* ColorPanel::GetPaletteCheckbox(int idx) {
+    if (idx < (int)checkBoxes.size()) return checkBoxes[idx];
+    return checkBoxes[0];
+}
 
-void ColorPanel::SetColorCount(int count)
-{
-    // Disabling this as we dont really want to limit the colours to from left to right ... but it would be clearer
-#if 0
-    if (count == -1)
-    {
-        for (int i = 0; i < PALETTE_SIZE; i++)
-        {
-            wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (i + 1));
-            wxWindow* CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Enable();
-            ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
-            CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Enable();
-            ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (i + 1));
-            CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Enable();
+wxButton* ColorPanel::GetPaletteButton(int idx) {
+    if (idx < (int)buttons.size()) return buttons[idx];
+    return buttons[0];
+}
+
+std::string ColorPanel::GetCurrentPalette() const {
+    std::string res;
+    for (size_t i = 0; i < PALETTE_SIZE; i++) {
+        wxString ids = wxString::Format("ID_BUTTON_Palette%d", (int)i + 1);
+        auto* btn = (ColorCurveButton*)wxWindow::FindWindowByName(ids, const_cast<ColorPanel*>(this));
+        if (btn && btn->GetValue()->IsActive()) {
+            res += btn->GetValue()->Serialise() + ",";
+        } else {
+            wxColor color = GetPaletteColor(i);
+            color.Set(color.Red(), color.Green(), color.Blue(), wxALPHA_OPAQUE);
+            res += color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString() + ",";
         }
     }
-    else
-    {
-        for (int i = 0; i < count; i++)
-        {
-            wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (i + 1));
-            wxWindow* CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Enable();
-            ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
-            CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Enable();
-            ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (i + 1));
-            CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Enable();
-        }
-        for (int i = count; i < PALETTE_SIZE; i++)
-        {
-            wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (i + 1));
-            wxWindow* CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Disable();
-            ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
-            CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Disable();
-            ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (i + 1));
-            CtrlWin = wxWindow::FindWindowByName(ids, this);
-            CtrlWin->Disable();
-        }
-    }
-#endif
+    return res;
 }
-void ColorPanel::SetButtonColor(int btn, const xlColor &v, bool notify) {
+
+void ColorPanel::SetButtonColor(int btn, const xlColor& v, bool notify) {
     SetButtonColor(buttons[btn], v, notify);
 }
 
-void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr, bool notify)
-{
-    if (cstr.find("Active") != std::string::npos)
-    {
+void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr, bool notify) {
+    if (cstr.find("Active") != std::string::npos) {
         btn->GetValue()->Deserialise(cstr);
         btn->UpdateState(notify);
-    }
-    else
-    {
+    } else {
         btn->SetActive(false, false);
         btn->SetColor(cstr, notify);
         btn->SetDefaultCC(cstr);
@@ -823,321 +683,270 @@ void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr, 
     ValidateWindow();
 }
 
+// -------- Color string builders (render-time) --------
+
 wxString ColorPanel::GetRandomColorString() {
     wxString AttrName;
     wxString ret;
-    // get palette
     wxColour color;
-    for (int i=0; i < PALETTE_SIZE; i++) {
+    for (int i = 0; i < PALETTE_SIZE; i++) {
         color = GetPaletteColor(i);
-        AttrName.Printf("C_BUTTON_Palette%d=", (i+1));
+        AttrName.Printf("C_BUTTON_Palette%d=", i + 1);
         ret += AttrName + color.GetAsString(wxC2S_HTML_SYNTAX) + ",";
 
-        wxString v = (!EffectPanelUtils::IsLocked(GetPaletteButton(i)->GetName().ToStdString())? rand() % 2: GetPaletteCheckbox(i)->GetValue()) ? "1" : "0";
-        AttrName.Printf("C_CHECKBOX_Palette%d=", (i+1));
+        wxString v = (!EffectPanelUtils::IsLocked(GetPaletteButton(i)->GetName().ToStdString())
+                      ? rand() % 2 : GetPaletteCheckbox(i)->GetValue()) ? "1" : "0";
+        AttrName.Printf("C_CHECKBOX_Palette%d=", i + 1);
         ret += AttrName + v + ",";
     }
-    //TODO: randomize
-    if (Slider_SparkleFrequency->GetValue() != 0) {
-        ret+= wxString::Format("C_SLIDER_SparkleFrequency=%d,",Slider_SparkleFrequency->GetValue());
+    if (_sparkleFrequency && _sparkleFrequency->GetValue() != 0) {
+        ret += wxString::Format("C_SLIDER_SparkleFrequency=%d,", _sparkleFrequency->GetValue());
     }
-    if (CheckBox_MusicSparkles->GetValue())
-    {
-        ret += wxString::Format("C_CHECKBOX_MusicSparkles=%d,", CheckBox_MusicSparkles->GetValue());
+    if (_musicSparklesCheck && _musicSparklesCheck->GetValue()) {
+        ret += wxString::Format("C_CHECKBOX_MusicSparkles=%d,", _musicSparklesCheck->GetValue());
     }
-    if (CheckBoxBrightnessLevel->GetValue())
-	{
-		ret += wxString::Format("C_CHECKBOXBRIGHTNESSLEVEL=%d,", CheckBoxBrightnessLevel->GetValue());
-	}
-    if (Slider_Brightness->GetValue() != 100) {
-        ret+= wxString::Format("C_SLIDER_Brightness=%d,",Slider_Brightness->GetValue());
+    if (_brightnessLevelCheck && _brightnessLevelCheck->GetValue()) {
+        ret += wxString::Format("C_CHECKBOXBRIGHTNESSLEVEL=%d,", _brightnessLevelCheck->GetValue());
     }
-    if (Slider_Contrast->GetValue() != 0) {
-        ret+= wxString::Format("C_SLIDER_Contrast=%d,",Slider_Contrast->GetValue());
+    // Emit C_SLIDER_* (not C_TEXTCTRL_*): PixelBuffer reads SLIDER_Brightness /
+    // SLIDER_Contrast / SLIDER_Color_HueAdjust etc., and Effect::CopySettingsMap's
+    // palette filter only keeps keys whose name[2] is S / C / V, so TEXTCTRL
+    // entries would be dropped from the palette map before reaching the renderer.
+    auto sliderValue = [this](const char* propId) -> long {
+        auto* p = GetPropertyInfo(propId);
+        if (p == nullptr) return 0;
+        if (p->slider) return p->slider->GetValue();
+        return 0;
+    };
+    long brightness = sliderValue("Brightness");
+    if (brightness != 100) ret += wxString::Format("C_SLIDER_Brightness=%ld,", brightness);
+    long contrast = sliderValue("Contrast");
+    if (contrast != 0) ret += wxString::Format("C_SLIDER_Contrast=%ld,", contrast);
+    auto appendHSV = [&](const char* propId, const char* key) {
+        long v = sliderValue(propId);
+        if (v != 0) ret += wxString::Format("%s=%ld,", key, v);
+    };
+    appendHSV("Color_HueAdjust", "C_SLIDER_Color_HueAdjust");
+    appendHSV("Color_SaturationAdjust", "C_SLIDER_Color_SaturationAdjust");
+    appendHSV("Color_ValueAdjust", "C_SLIDER_Color_ValueAdjust");
+    if (_chromaSensitivity && _chromaSensitivity->GetValue() != 1) {
+        ret += wxString::Format("C_SLIDER_ChromaSensitivity=%d,", _chromaSensitivity->GetValue());
     }
-    if (Slider_Color_HueAdjust->GetValue() != 0) {
-        ret += wxString::Format("C_SLIDER_Color_HueAdjust=%d,", Slider_Color_HueAdjust->GetValue());
+    if (_enableChromaCheck && _enableChromaCheck->GetValue()) {
+        ret += "C_CHECKBOX_Chroma=1,";
     }
-    if (Slider_Color_SaturationAdjust->GetValue() != 0) {
-        ret += wxString::Format("C_SLIDER_Color_SaturationAdjust=%d,", Slider_Color_SaturationAdjust->GetValue());
+    if (_chromaColour && _chromaColour->GetColour() != *wxBLACK) {
+        ret += "C_COLOURPICKERCTRL_ChromaColour=" + _chromaColour->GetStringValue() + ",";
     }
-    if (Slider_Color_ValueAdjust->GetValue() != 0) {
-        ret += wxString::Format("C_SLIDER_Color_ValueAdjust=%d,", Slider_Color_ValueAdjust->GetValue());
-    }
-    if (Slider_ChromaSensitivity->GetValue() != 1) {
-        ret += wxString::Format("C_SLIDER_ChromaSensitivity=%d,", Slider_ChromaSensitivity->GetValue());
-    }
-    if (CheckBox_EnableChromakey->GetValue()) {
-        ret += wxString::Format("C_CHECKBOX_Chroma=1,");
-    }
-    if (ColourPickerCtrl_ChromaColour->GetColour() != *wxBLACK) {
-        ret += "C_COLOURPICKERCTRL_ChromaColour=" + ColourPickerCtrl_ChromaColour->GetStringValue() + ",";
-    }
-    if (ColourPickerCtrl_SparklesColour->GetColour() != *wxWHITE) {
-        ret += "C_COLOURPICKERCTRL_SparklesColour=" + ColourPickerCtrl_SparklesColour->GetStringValue() + ",";
+    if (_sparklesColour && _sparklesColour->GetColour() != *wxWHITE) {
+        ret += "C_COLOURPICKERCTRL_SparklesColour=" + _sparklesColour->GetStringValue() + ",";
     }
     return ret;
 }
 
-std::string ColorPanel::GetCurrentPalette() const
-{
-    std::string res;
-    for (size_t i = 0; i < PALETTE_SIZE; i++)
-    {
-        wxString ids = wxString::Format("ID_BUTTON_Palette%d", ((int)i + 1));
-        ColorCurveButton* btn = (ColorCurveButton*)wxWindow::FindWindowByName(ids, this);
-        if (btn->GetValue()->IsActive())
-        {
-            res += btn->GetValue()->Serialise() + ",";
-        }
-        else
-        {
-            wxColor color = GetPaletteColor(i);
-            color.Set(color.Red(), color.Green(), color.Blue(), wxALPHA_OPAQUE);
-            res += color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString() + ",";
-        }
-    }
-
-    return res;
-}
-
-wxString ColorPanel::GetColorString(bool colourOnly)
-{
+wxString ColorPanel::GetColorString(bool colourOnly) {
     wxString s, AttrName;
-    wxColour color;
-    for (int i=0; i < PALETTE_SIZE; i++)
-    {
-        wxString ids = wxString::Format("ID_BUTTON_Palette%d", (i + 1));
-        ColorCurveButton* btn = (ColorCurveButton*)wxWindow::FindWindowByName(ids, this);
-        if (btn->GetValue()->IsActive())
-        {
-            AttrName.Printf("C_BUTTON_Palette%d=", (i + 1));
+    for (int i = 0; i < PALETTE_SIZE; i++) {
+        auto* btn = buttons[i];
+        if (btn->GetValue()->IsActive()) {
+            AttrName.Printf("C_BUTTON_Palette%d=", i + 1);
             s += AttrName + btn->GetValue()->Serialise() + ",";
-        }
-        else
-        {
-            color = GetPaletteColor(i);
-            AttrName.Printf("C_BUTTON_Palette%d=", (i + 1));
+        } else {
+            wxColour color = GetPaletteColor(i);
+            AttrName.Printf("C_BUTTON_Palette%d=", i + 1);
             s += AttrName + color.GetAsString(wxC2S_HTML_SYNTAX) + ",";
         }
-
         if (checkBoxes[i]->IsChecked()) {
-            AttrName.Printf("C_CHECKBOX_Palette%d=1,",(i+1));
+            AttrName.Printf("C_CHECKBOX_Palette%d=1,", i + 1);
             s += AttrName;
         }
     }
 
-    if (colourOnly)
-    {
-        return s;
-    }
+    if (colourOnly) return s;
 
-    if (BitmapButton_SparkleFrequencyVC->GetValue()->IsActive())
-    {
-        wxString sparkleVC = wxString(BitmapButton_SparkleFrequencyVC->GetValue()->Serialise().c_str());
+    // Sparkles (manual because compound custom row)
+    if (_sparkleFrequencyVC && _sparkleFrequencyVC->GetValue()->IsActive()) {
         s += "C_VALUECURVE_SparkleFrequency=";
-        s += sparkleVC;
+        s += wxString(_sparkleFrequencyVC->GetValue()->Serialise().c_str());
         s += ",";
+    } else if (_sparkleFrequency && _sparkleFrequency->GetValue() != 0) {
+        s += wxString::Format("C_SLIDER_SparkleFrequency=%d,", _sparkleFrequency->GetValue());
     }
-    else
-    {
-        if (Slider_SparkleFrequency->GetValue() != 0) {
-            s += wxString::Format("C_SLIDER_SparkleFrequency=%d,", Slider_SparkleFrequency->GetValue());
-        }
+    if (_musicSparklesCheck && _musicSparklesCheck->GetValue()) {
+        s += wxString::Format("C_CHECKBOX_MusicSparkles=%d,", _musicSparklesCheck->GetValue());
     }
-    if (CheckBox_MusicSparkles->GetValue())
-    {
-        s += wxString::Format("C_CHECKBOX_MusicSparkles=%d,", CheckBox_MusicSparkles->GetValue());
-    }
-    if (CheckBoxBrightnessLevel->GetValue()) {
-        s += wxString::Format("C_CHECKBOXBRIGHTNESSLEVEL=%d,", CheckBoxBrightnessLevel->GetValue());
-    }
-    if (BitmapButton_VCBrightness->GetValue()->IsActive())
-    {
-        wxString brightnessVC = wxString(BitmapButton_VCBrightness->GetValue()->Serialise().c_str());
-        s += "C_VALUECURVE_Brightness=";
-        s += brightnessVC;
-        s += ",";
-    }
-    else
-    {
-        if (Slider_Brightness->GetValue() != 100) {
-            s += wxString::Format("C_SLIDER_Brightness=%d,", Slider_Brightness->GetValue());
-        }
+    if (_brightnessLevelCheck && _brightnessLevelCheck->GetValue()) {
+        s += wxString::Format("C_CHECKBOXBRIGHTNESSLEVEL=%d,", _brightnessLevelCheck->GetValue());
     }
 
-    if (BitmapButton_Color_HueAdjust->GetValue()->IsActive())
-    {
-        wxString hueVC = wxString(BitmapButton_Color_HueAdjust->GetValue()->Serialise().c_str());
-        s += "C_VALUECURVE_Color_HueAdjust=";
-        s += hueVC;
-        s += ",";
+    // Framework-built sliders (Brightness / Contrast / HSV). Use the
+    // framework's filtered effect string but with the C_ prefix swap.
+    wxString frameworkSettings = JsonEffectPanel::GetEffectString();
+    frameworkSettings.Replace(",E_", ",C_");
+    if (frameworkSettings.StartsWith("E_")) {
+        frameworkSettings = "C_" + frameworkSettings.Mid(2);
     }
-    else
-    {
-        if (Slider_Color_HueAdjust->GetValue() != 0) {
-            s += wxString::Format("C_SLIDER_Color_HueAdjust=%d,", Slider_Color_HueAdjust->GetValue());
-        }
-    }
-    if (BitmapButton_Color_SaturationAdjust->GetValue()->IsActive())
-    {
-        wxString satVC = wxString(BitmapButton_Color_SaturationAdjust->GetValue()->Serialise().c_str());
-        s += "C_VALUECURVE_Color_SaturationAdjust=";
-        s += satVC;
-        s += ",";
-    }
-    else
-    {
-        if (Slider_Color_SaturationAdjust->GetValue() != 0) {
-            s += wxString::Format("C_SLIDER_Color_SaturationAdjust=%d,", Slider_Color_SaturationAdjust->GetValue());
-        }
-    }
-    if (BitmapButton_Color_ValueAdjust->GetValue()->IsActive())
-    {
-        wxString valueVC = wxString(BitmapButton_Color_ValueAdjust->GetValue()->Serialise().c_str());
-        s += "C_VALUECURVE_Color_ValueAdjust=";
-        s += valueVC;
-        s += ",";
-    }
-    else
-    {
-        if (Slider_Color_ValueAdjust->GetValue() != 0) {
-            s += wxString::Format("C_SLIDER_Color_ValueAdjust=%d,", Slider_Color_ValueAdjust->GetValue());
-        }
+    if (!frameworkSettings.empty()) {
+        s += frameworkSettings;
+        if (!s.EndsWith(",")) s += ",";
     }
 
-    if (Slider_Contrast->GetValue() != 0) {
-        s+= wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
+    // Chroma key (manual)
+    if (_enableChromaCheck && _enableChromaCheck->GetValue()) {
+        if (_chromaSensitivity && _chromaSensitivity->GetValue() != 1) {
+            s += wxString::Format("C_SLIDER_ChromaSensitivity=%d,", _chromaSensitivity->GetValue());
+        }
+        if (_chromaColour && _chromaColour->GetColour() != *wxBLACK) {
+            s += "C_COLOURPICKERCTRL_ChromaColour=" + _chromaColour->GetStringValue() + ",";
+        }
+        s += "C_CHECKBOX_Chroma=1,";
     }
 
-    if (CheckBox_EnableChromakey->GetValue()) {
-        if (Slider_ChromaSensitivity->GetValue() != 1) {
-            s += wxString::Format("C_SLIDER_ChromaSensitivity=%d,", Slider_ChromaSensitivity->GetValue());
-        }
-
-        if (ColourPickerCtrl_ChromaColour->GetColour() != *wxBLACK) {
-            s += "C_COLOURPICKERCTRL_ChromaColour=" + ColourPickerCtrl_ChromaColour->GetStringValue() + ",";
-        }
-
-        s += wxString::Format("C_CHECKBOX_Chroma=1", Slider_ChromaSensitivity->GetValue());
-    }
-
-    if (ColourPickerCtrl_SparklesColour->GetColour() != *wxWHITE) {
-        s += "C_COLOURPICKERCTRL_SparklesColour=" + ColourPickerCtrl_SparklesColour->GetStringValue() + ",";
+    if (_sparklesColour && _sparklesColour->GetColour() != *wxWHITE) {
+        s += "C_COLOURPICKERCTRL_SparklesColour=" + _sparklesColour->GetStringValue() + ",";
     }
 
     return s;
 }
 
-wxColour ColorPanel::GetPaletteColor(int idx) const
-{
-    if (idx < (int)buttons.size()) {
-        return buttons[idx]->GetBackgroundColour();
-    }
-    return *wxBLACK;
-}
+// -------- Reset / validate --------
 
-wxCheckBox* ColorPanel::GetPaletteCheckbox(int idx)
-{
-    if (idx < (int)checkBoxes.size()) {
-        return checkBoxes[idx];
-    }
-    return checkBoxes[0]; //0;
-}
-
-wxButton* ColorPanel::GetPaletteButton(int idx)
-{
-    if (idx < (int)buttons.size()) {
-        return buttons[idx];
-    }
-    return buttons[0]; //0;
-}
-
-void ColorPanel::SetDefaultSettings(bool optionbased)
-{
-    if (!optionbased)
-    {
+void ColorPanel::SetDefaultSettings(bool optionbased) {
+    if (!optionbased) {
         for (const auto& it : checkBoxes) {
             it->SetValue(false);
         }
     }
 
-    if (!optionbased || CheckBox_ResetColorPanel->GetValue())
-    {
-        BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(COLORPANEL_SPARKLE_MIN, COLORPANEL_SPARKLE_MAX);
-        BitmapButton_SparkleFrequencyVC->UpdateState();
-        //Slider_SparkleFrequency->SetValue(0);
-        txtCtrlSparkleFreq->SetValue("0");
+    if (!optionbased || (_resetColorPanelCheck && _resetColorPanelCheck->GetValue())) {
+        if (_sparkleFrequencyVC) {
+            _sparkleFrequencyVC->GetValue()->SetDefault(COLORPANEL_SPARKLE_MIN, COLORPANEL_SPARKLE_MAX);
+            _sparkleFrequencyVC->UpdateState();
+        }
+        if (_sparkleFrequencyText) _sparkleFrequencyText->SetValue("0");
+        if (_sparkleFrequency) _sparkleFrequency->SetValue(0);
 
-        CheckBox_MusicSparkles->SetValue(false);
-        CheckBoxBrightnessLevel->SetValue(false);
+        if (_musicSparklesCheck) _musicSparklesCheck->SetValue(false);
+        if (_brightnessLevelCheck) _brightnessLevelCheck->SetValue(false);
 
-        BitmapButton_VCBrightness->GetValue()->SetDefault(COLORPANEL_BRIGHTNESS_MIN, COLORPANEL_BRIGHTNESS_MAX);
-        BitmapButton_VCBrightness->UpdateState();
-        //Slider_Brightness->SetValue(100);
-        txtCtlBrightness->SetValue("100");
+        if (_chromaSensitivity) _chromaSensitivity->SetValue(1);
+        if (_chromaColour) _chromaColour->SetColour(*wxBLACK);
+        if (_enableChromaCheck) _enableChromaCheck->SetValue(false);
+        if (_sparklesColour) _sparklesColour->SetColour(*wxWHITE);
 
-        Slider_ChromaSensitivity->SetValue(1);
-        ColourPickerCtrl_ChromaColour->SetColour(*wxBLACK);
-        CheckBox_EnableChromakey->SetValue(false);
-        ColourPickerCtrl_SparklesColour->SetColour(*wxWHITE);
-
-        //Slider_Contrast->SetValue(0);
-        txtCtlContrast->SetValue("0");
-
-        //Slider_Color_HueAdjust->SetValue(0);
-        TextCtrl_Color_HueAdjust->SetValue("0");
-
-        //Slider_Color_SaturationAdjust->SetValue(0);
-        TextCtrl_Color_SaturationAdjust->SetValue("0");
-
-        //Slider_Color_ValueAdjust->SetValue(0);
-        TextCtrl_Color_ValueAdjust->SetValue("0");
-
-        BitmapButton_Color_HueAdjust->GetValue()->SetDefault(COLORPANEL_HUE_MIN, COLORPANEL_HUE_MAX);
-        BitmapButton_Color_HueAdjust->UpdateState();
-        BitmapButton_Color_SaturationAdjust->GetValue()->SetDefault(COLORPANEL_SATURATION_MIN, COLORPANEL_SATURATION_MAX);
-        BitmapButton_Color_SaturationAdjust->UpdateState();
-        BitmapButton_Color_ValueAdjust->GetValue()->SetDefault(COLORPANEL_VALUE_MIN, COLORPANEL_VALUE_MAX);
-        BitmapButton_Color_ValueAdjust->UpdateState();
+        // Framework-built slider defaults
+        JsonEffectPanel::SetDefaultParameters();
 
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
-        touchBar->SetSparkles(0);
+        if (touchBar) touchBar->SetSparkles(0);
 #endif
     }
     FireChangeEvent();
     ValidateWindow();
 }
 
-void ColorPanel::SetDefaultPalette()
-{
-    SetButtonColor(buttons[0],"#FFFFFF");
-    SetButtonColor(buttons[1],"#FF0000");
-    SetButtonColor(buttons[2],"#00FF00");
-    SetButtonColor(buttons[3],"#0000FF");
-    SetButtonColor(buttons[4],"#FFFF00");
-    SetButtonColor(buttons[5],"#000000");
-    SetButtonColor(buttons[6],"#00FFFF");
-    SetButtonColor(buttons[7],"#FF00FF");
+void ColorPanel::ValidateWindow() {
+    JsonEffectPanel::ValidateWindow();
 
-    if (BitmapButton_ColourChoice->GetCount() < 2)
-    {
-        LoadAllPalettes();
+    // Update the color-curve activation button bitmaps to reflect current
+    // time-curve state on each palette color-curve button.
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        if (x >= (int)buttons.size()) break;
+        auto* ccb = buttons[x];
+        wxString tsids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", x + 1);
+        auto* ts = (wxBitmapButton*)wxWindow::FindWindowByName(tsids, this);
+        if (ts == nullptr) continue;
+
+        if (ccb->GetValue()->IsActive()) {
+            if (!_supportslinear && !_supportsradial) {
+                ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_timelocked_xpm", wxART_BUTTON));
+            } else {
+                switch (ccb->GetValue()->GetTimeCurve()) {
+                case TC_TIME:      ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_time_xpm", wxART_BUTTON)); break;
+                case TC_LEFT:      ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_left_xpm", wxART_BUTTON)); break;
+                case TC_RIGHT:     ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_right_xpm", wxART_BUTTON)); break;
+                case TC_UP:        ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_up_xpm", wxART_BUTTON)); break;
+                case TC_DOWN:      ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_down_xpm", wxART_BUTTON)); break;
+                case TC_RADIALOUT: ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_radialout_xpm", wxART_BUTTON)); break;
+                case TC_RADIALIN:  ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_radialin_xpm", wxART_BUTTON)); break;
+                case TC_CW:        ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_cw_xpm", wxART_BUTTON)); break;
+                case TC_CCW:       ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_ccw_xpm", wxART_BUTTON)); break;
+                }
+            }
+        } else {
+            ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON));
+        }
+    }
+
+    if (_enableChromaCheck && _enableChromaCheck->GetValue()) {
+        if (_chromaSensitivity) _chromaSensitivity->Enable();
+        if (_chromaColour) _chromaColour->Enable();
+    } else {
+        if (_chromaSensitivity) _chromaSensitivity->Enable(false);
+        if (_chromaColour) _chromaColour->Enable(false);
+    }
+}
+
+void ColorPanel::SetColorCount(int /*count*/) {
+    // Legacy behavior was #if 0'd out — no-op. Preserved for API stability.
+}
+
+void ColorPanel::SetSupports(bool linear, bool radial) {
+    _supportslinear = linear;
+    _supportsradial = radial;
+    for (int i = 0; i < PALETTE_SIZE && i < (int)buttons.size(); ++i) {
+        buttons[i]->GetValue()->SetValidTimeCurve(linear, radial);
     }
     FireChangeEvent();
     ValidateWindow();
 }
 
+void ColorPanel::RefreshPaletteSize() {
+    int btnSize = IsLargePalette() ? PALETTE_BUTTON_SIZE_LARGE : PALETTE_BUTTON_SIZE_STANDARD;
+    for (auto* btn : buttons) {
+        btn->SetSize(FromDIP(wxSize(btnSize, btnSize)));
+        btn->SetMinSize(FromDIP(wxSize(btnSize, btnSize)));
+    }
 
-void ColorPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)
-{
-    FireChangeEvent();
-    PaletteChanged=true;
+    int ccSize = IsLargePalette() ? PALETTE_CC_SIZE_LARGE : PALETTE_CC_SIZE_STANDARD;
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", x + 1);
+        auto* ccBtn = (wxBitmapButton*)wxWindow::FindWindowByName(ids, this);
+        if (ccBtn) {
+            ccBtn->SetSize(wxSize(ccSize, ccSize));
+            ccBtn->SetMinSize(wxSize(ccSize, ccSize));
+        }
+    }
+
+    int swatchWidth = IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
+    int dropdownWidth = PALETTE_SIZE * swatchWidth + 20;
+
+    if (_colourList) {
+        _colourList->Dismiss();
+        _colourList->Clear();
+        _colourList->AppendString("");
+        for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+            _colourList->AppendString(*it);
+        }
+        _colourList->SetMinSize(wxSize(dropdownWidth, -1));
+        _colourList->SetSize(wxSize(dropdownWidth, -1));
+        _colourList->SetPopupMinWidth(dropdownWidth);
+        _colourList->SetSelection(0);
+    }
+
+    if (_paletteGridSizer) _paletteGridSizer->Layout();
+    Layout();
 }
 
-void ColorPanel::OnCCChanged(wxCommandEvent& event)
-{
-    ColorCurveButton* w = (ColorCurveButton*)event.GetEventObject();
+// -------- Handlers --------
+
+void ColorPanel::OnCheckBox_PaletteClick(wxCommandEvent& /*event*/) {
+    FireChangeEvent();
+    PaletteChanged = true;
+}
+
+void ColorPanel::OnCCChanged(wxCommandEvent& event) {
+    auto* w = (ColorCurveButton*)event.GetEventObject();
     lastColors[w->GetId()] = w->GetColor();
 
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
@@ -1149,10 +958,7 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
     }
 #endif
 
-    // only where a new colour has been added or a colour curve changed or exported we need to do this
-    // This is signified by the event int being non zero
-    if (event.GetInt() != 0)
-    {
+    if (event.GetInt() != 0) {
         wxCommandEvent e(EVT_COLOUR_CHANGED);
         e.SetInt(-1);
         wxPostEvent(xLightsApp::GetFrame(), e);
@@ -1163,33 +969,13 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void ColorPanel::OnResize(wxSizeEvent& event)
-{
-    wxSize s = GetSize();
-    Panel_Sizer->SetSize(s);
-    Panel_Sizer->SetMinSize(s);
-    Panel_Sizer->SetMaxSize(s);
-    Panel_Sizer->Refresh();
-
-    ColorScrollWindow->SetSize(s);
-    ColorScrollWindow->SetMinSize(s);
-    ColorScrollWindow->SetMaxSize(s);
-
-    ColorScrollWindow->FitInside();
-    ColorScrollWindow->SetScrollRate(5, 5);
-    ColorScrollWindow->Refresh();
-}
-
-void ColorPanel::UpdateColor()
-{
+void ColorPanel::UpdateColor() {
     int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
     if (alleffects > 1) {
         if (!xLightsApp::GetFrame()->IsSuppressColorWarn()) {
-            if (wxMessageBox("Are you sure you want to change the colours on all selected effects?", "Update all", wxYES_NO | wxCENTRE, this) == wxNO)
-                return;
+            if (wxMessageBox("Are you sure you want to change the colours on all selected effects?", "Update all", wxYES_NO | wxCENTRE, this) == wxNO) return;
         }
     }
-
     wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
     wxPostEvent(GetParent(), eventEffectUpdated);
     FireChangeEvent();
@@ -1197,83 +983,24 @@ void ColorPanel::UpdateColor()
     ValidateWindow();
 }
 
-void ColorPanel::OnCheckBox_MusicSparklesClick(wxCommandEvent& event)
-{
+void ColorPanel::OnCheckBox_MusicSparklesClick(wxCommandEvent& /*event*/) {
     FireChangeEvent();
     ValidateWindow();
 }
 
-void ColorPanel::ValidateWindow()
-{
-    for (int x = 0; x < PALETTE_SIZE; x++) {
-        wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
-        ColorCurveButton* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
-        wxString tsids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
-        wxBitmapButton* ts = (wxBitmapButton*)wxWindow::FindWindowByName(tsids, this);
-
-        if (ccb->GetValue()->IsActive())
-        {
-            if (!_supportslinear && !_supportsradial)
-            {
-                ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_timelocked_xpm", wxART_BUTTON));
-            }
-            else
-            {
-                switch (ccb->GetValue()->GetTimeCurve())
-                {
-                case TC_TIME:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_time_xpm", wxART_BUTTON));
-                    break;
-                case TC_LEFT:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_left_xpm", wxART_BUTTON));
-                    break;
-                case TC_RIGHT:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_right_xpm", wxART_BUTTON));
-                    break;
-                case TC_UP:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_up_xpm", wxART_BUTTON));
-                    break;
-                case TC_DOWN:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_down_xpm", wxART_BUTTON));
-                    break;
-                case TC_RADIALOUT:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_radialout_xpm", wxART_BUTTON));
-                    break;
-                case TC_RADIALIN:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_radialin_xpm", wxART_BUTTON));
-                    break;
-                case TC_CW:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_cw_xpm", wxART_BUTTON));
-                    break;
-                case TC_CCW:
-                    ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_ccw_xpm", wxART_BUTTON));
-                    break;
-                }
-            }
-        }
-        else
-        {
-            // it should already be this
-            ts->SetBitmap(wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON));
-        }
-    }
-
-    if (CheckBox_EnableChromakey->GetValue())
-    {
-        Slider_ChromaSensitivity->Enable();
-        ColourPickerCtrl_ChromaColour->Enable();
-    }
-    else
-    {
-        Slider_ChromaSensitivity->Enable(false);
-        ColourPickerCtrl_ChromaColour->Enable(false);
+void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& /*event*/) {
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config && _resetColorPanelCheck) {
+        config->Write("xLightsResetColorPanel", _resetColorPanelCheck->IsChecked());
     }
 }
 
-void ColorPanel::OnColourChoiceDropDown(wxCommandEvent& WXUNUSED(event))
-{
-    if (_lastShowDir != xLightsFrame::CurrentDir)
-    {
+void ColorPanel::OnCheckBox_EnableChromakeyClick(wxCommandEvent& /*event*/) {
+    ValidateWindow();
+}
+
+void ColorPanel::OnColourChoiceDropDown(wxCommandEvent& /*event*/) {
+    if (_lastShowDir != xLightsFrame::CurrentDir) {
         _lastShowDir = xLightsFrame::CurrentDir;
         LoadAllPalettes();
         ValidateWindow();
@@ -1281,389 +1008,39 @@ void ColorPanel::OnColourChoiceDropDown(wxCommandEvent& WXUNUSED(event))
     }
 }
 
-bool ColorPanel::ValidateAndFormatPaletteString(wxString& input, wxString& errorMsg) {
-    input = input.Trim().Trim(false);
-    input.Replace(" ", "");
-    input = input.Upper();
-
-    wxArrayString colors = wxSplit(input, ',');
-
-    size_t nonEmptyCount = 0;
-    for (const wxString& color : colors) {
-        if (!color.IsEmpty()) {
-            nonEmptyCount++;
-        }
-    }
-
-    if (nonEmptyCount < 1 || nonEmptyCount > 8) {
-        return false;
-    }
-
-    for (const wxString& color : colors) {
-        if (color.IsEmpty()) {
-            continue;
-        }
-
-        if (color.length() != 7 || color[0] != '#') {
-            return false;
-        }
-        for (size_t i = 1; i < color.length(); ++i) {
-            wxChar c = color[i];
-            if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'))) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-void ColorPanel::LoadColorsToButtons(const wxString& colorString) {
-    wxArrayString colors = wxSplit(colorString, ',');
-    size_t buttonIndex = 0;
-
-    for (const wxString& color : colors) {
-        if (color.IsEmpty()) {
-            buttonIndex++;
-            continue;
-        }
-
-        if (buttonIndex < 8) {
-            std::string colorStr = color.ToStdString();
-            SetButtonColor(buttons[buttonIndex], colorStr);
-            buttonIndex++;
-        }
-    }
-}
-
-void ColorPanel::GeneratePalette() {
-    AIColorPaletteDialog dlg(this);
-    if (dlg.ShowModal() == wxID_OK) {
-        int idx = 0;
-        for (auto &color : dlg.GetColorStrings()) {
-            if (idx < 8) {
-                std::string colorStr = color.ToStdString();
-                SetButtonColor(buttons[idx], colorStr);
-            }
-            idx++;
-        }
-        FireChangeEvent();
-        ValidateWindow();
-    }
-}
-
-void ColorPanel::ImportPalette() {
-    wxString lastInput = "";
-    bool validInput = false;
-
-    while (!validInput) {
-        wxTextEntryDialog dialog(this,
-                                 wxString::Format("Import Palette Text String (e.g. #000000,#454545,#565657) %s",
-                                                  lastInput.IsEmpty() ? "" : "\nInvalid input: Please correct your entry."),
-                                 "Palette Text String");
-        dialog.SetValue(lastInput);
-
-        if (dialog.ShowModal() == wxID_CANCEL) {
-            return;
-        }
-
-        lastInput = dialog.GetValue();
-        wxString errorMsg;
-
-        if (ValidateAndFormatPaletteString(lastInput, errorMsg)) {
-            validInput = true;
-        }
-    }
-
-    LoadColorsToButtons(lastInput);
-    wxLogMessage("Processed palette: %s", lastInput);
-
-    FireChangeEvent();
-
-    ValidateWindow();
-}
-
-void ColorPanel::SavePalette(bool saveAs)
-{
-    // Double check that this has not been saved before
-    if (BitmapButton_ColourChoice->GetCount() == 1) {
-        LoadAllPalettes();
-        ValidateWindow();
-    }
-
-    if (!wxDir::Exists(xLightsFrame::CurrentDir + "/Palettes")) {
-        wxDir::Make(xLightsFrame::CurrentDir + "/Palettes");
-    }
-
-    int i = 1;
-    wxString fn = "PAL001.xpalette";
-    if (saveAs) {
-        wxTextEntryDialog dialog(this, "Set Palette Name", "Set Palette Name");
-        if (dialog.ShowModal() == wxID_OK) {
-            fn = wxString::Format("%s.xpalette", RemoveNonAlphanumeric(dialog.GetValue()));
-            if (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
-                wxString msg = fn + " File Already Exists. Override?";
-                if (wxMessageBox(msg, "Override", wxYES_NO, this) != wxYES) {
-                    return;
-                }
-            }
-        }
-    } else {
-        while (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
-            i++;
-            fn = wxString::Format("PAL%03d.xpalette", i);
-        }
-    }
-
-    wxFile f;
-    f.Create(xLightsFrame::CurrentDir + "/Palettes/" + fn);
-
-    if (f.IsOpened()) {
-        std::string pal = GetCurrentPalette();
-
-        f.Write(wxString(pal.c_str()));
-        f.Close();
-
-        _loadedPalettes.push_back(pal);
-    } else {
-        spdlog::error("Unable to create file {}.", fn.ToStdString());
-    }
-
-    LoadAllPalettes();
-
-    ValidateWindow();
-}
-
-void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event)
-{
+void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event) {
     long sel = event.GetInt();
-    wxString s = BitmapButton_ColourChoice->GetString(sel);
-
+    if (!_colourList) return;
+    wxString s = _colourList->GetString(sel);
     if (s != "") {
         wxArrayString as = wxSplit(s, ',');
-
-        for (size_t i = 0; i < std::min(as.size(), buttons.size()); i++)
-        {
-            if (as[i].Contains("Active"))
-            {
+        for (size_t i = 0; i < std::min(as.size(), buttons.size()); i++) {
+            if (as[i].Contains("Active")) {
                 buttons[i]->GetValue()->Deserialise(as[i].ToStdString());
                 buttons[i]->SetActive(true);
                 buttons[i]->Refresh();
-            }
-            else
-            {
+            } else {
                 buttons[i]->SetColor(as[i].ToStdString());
                 buttons[i]->Refresh();
             }
         }
     }
-
-    BitmapButton_ColourChoice->SetSelection(0);
+    _colourList->SetSelection(0);
     FireChangeEvent();
     ValidateWindow();
 }
 
-wxString ColorPanel::FindPaletteFile(const wxString& filename, const wxString& palette) const
-{
-    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename)) {
-        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename);
-        if (input.IsOk()) {
-            wxTextInputStream text(input);
-            wxString s = text.ReadLine();
-            if (s == palette) {
-                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename;
-            }
-        }
-    }
-
-    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes"  + wxFileName::GetPathSeparator() + filename)) {
-        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename);
-        if (input.IsOk()) {
-            wxTextInputStream text(input);
-            wxString s = text.ReadLine();
-            if (s == palette) {
-                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename;
-            }
-        }
-    }
-
-    return "";
-}
-
-void ColorPanel::DeletePalette()
-{
-    std::string pal = GetCurrentPalette();
-
-    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
-    {
-        wxString ss(it->c_str());
-        if (ss.BeforeLast(',') + "," == pal)
-        {
-            // found it
-            wxString filename = FindPaletteFile(ss.AfterLast(','), pal);
-            if (filename != "")
-            {
-                ::wxRemoveFile(filename);
-            }
-        }
-    }
-    LoadAllPalettes();
-    ValidateWindow();
-}
-
-void ColorPanel::OnBitmapButton_ReverseColoursClick(wxCommandEvent& event)
-{
-    std::string pal = GetCurrentPalette();
-
-    wxArrayString as = wxSplit(pal, ',');
-
-    for (size_t i = 0; i < PALETTE_SIZE; ++i)
-    {
-        if (as[i].Contains("Active"))
-        {
-            buttons[PALETTE_SIZE - i - 1]->GetValue()->Deserialise(as[i].ToStdString());
-            buttons[PALETTE_SIZE - i - 1]->SetActive(true);
-            buttons[PALETTE_SIZE - i - 1]->Refresh();
-        }
-        else
-        {
-            buttons[PALETTE_SIZE - i - 1]->SetColor(as[i].ToStdString());
-            buttons[PALETTE_SIZE - i - 1]->Refresh();
-        }
-    }
-    FireChangeEvent();
-    ValidateWindow();
-}
-
-void ColorPanel::OnBitmapButton_ShiftColoursLeftClick(wxCommandEvent& event)
-{
-    std::string pal = GetCurrentPalette();
-
-    wxArrayString as = wxSplit(pal, ',');
-
-    bool zeroActive = as[0].Contains("Active");
-    std::string zeroItem = as[0].ToStdString();
-
-    for (size_t i = 0; i < PALETTE_SIZE - 1; ++i)
-    {
-        if (as[i + 1].Contains("Active"))
-        {
-            buttons[i]->GetValue()->Deserialise(as[i + 1].ToStdString());
-            buttons[i]->SetActive(true);
-            buttons[i]->Refresh();
-        }
-        else
-        {
-            buttons[i]->SetColor(as[i + 1].ToStdString());
-            buttons[i]->Refresh();
-        }
-    }
-    if (zeroActive)
-    {
-        buttons[PALETTE_SIZE - 1]->GetValue()->Deserialise(zeroItem);
-        buttons[PALETTE_SIZE - 1]->SetActive(true);
-        buttons[PALETTE_SIZE - 1]->Refresh();
-    }
-    else
-    {
-        buttons[PALETTE_SIZE - 1]->SetColor(zeroItem);
-        buttons[PALETTE_SIZE - 1]->Refresh();
-    }
-    FireChangeEvent();
-    ValidateWindow();
-}
-
-void ColorPanel::OnBitmapButton_ShiftColoursRightClick(wxCommandEvent& event)
-{
-    std::string pal = GetCurrentPalette();
-
-    wxArrayString as = wxSplit(pal, ',');
-
-    bool lastActive = as[PALETTE_SIZE - 1].Contains("Active");
-    std::string lastItem = as[PALETTE_SIZE - 1].ToStdString();
-
-    for (size_t i = PALETTE_SIZE - 1; i > 0; --i)
-    {
-        if (as[i - 1].Contains("Active"))
-        {
-            buttons[i]->GetValue()->Deserialise(as[i - 1].ToStdString());
-            buttons[i]->SetActive(true);
-            buttons[i]->Refresh();
-        }
-        else
-        {
-            buttons[i]->SetColor(as[i - 1].ToStdString());
-            buttons[i]->Refresh();
-        }
-    }
-    if (lastActive)
-    {
-        buttons[0]->GetValue()->Deserialise(lastItem);
-        buttons[0]->SetActive(true);
-        buttons[0]->Refresh();
-    }
-    else
-    {
-        buttons[0]->SetColor(lastItem);
-        buttons[0]->Refresh();
-    }
-    FireChangeEvent();
-    ValidateWindow();
-}
-
-void ColorPanel::OnCCButtonClick(wxCommandEvent& event)
-{
-    wxBitmapButton* bb = static_cast<wxBitmapButton*>(event.GetEventObject());
-    int id = wxAtoi(bb->GetName().Right(1));
-    wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", id);
-    ColorCurveButton* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
-
-    if (ccb->GetValue()->IsActive())
-    {
-        ccb->GetValue()->NextTimeCurve(_supportslinear, _supportsradial);
-    }
-
-    FireChangeEvent();
-    ValidateWindow();
-}
-
-void ColorPanel::SetSupports(bool linear, bool radial)
-{
-    _supportslinear = linear;
-    _supportsradial = radial;
-
-    for (size_t i = 0; i < PALETTE_SIZE; ++i)
-    {
-        wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", (int)(i + 1));  // 64bit version on Windows gets a debug alert without the (int) cast
-        ColorCurveButton* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
-        ccb->GetValue()->SetValidTimeCurve(linear, radial);
-    }
-
-    FireChangeEvent();
-    ValidateWindow();
-}
-
-void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& event)
-{
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("xLightsResetColorPanel", CheckBox_ResetColorPanel->IsChecked());
-}
-
-void ColorPanel::OnCheckBox_EnableChromakeyClick(wxCommandEvent& event)
-{
-    ValidateWindow();
-}
+// -------- Palette menu actions --------
 
 wxString ColorPanel::RemoveNonAlphanumeric(wxString const& str) const {
     wxString result;
     for (wxString::const_iterator it = str.begin(); it != str.end(); ++it) {
-        if (wxIsalnum(*it)) {
-            result.Append(*it);
-        }
+        if (wxIsalnum(*it)) result.Append(*it);
     }
     return result;
 }
 
-void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& event) {
+void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& /*event*/) {
     wxMenu mnuLayer;
     wxMenuItem* updateItem = mnuLayer.Append(ID_MNU_UPDATE, "Update Palette");
     wxMenuItem* saveItem = mnuLayer.Append(ID_MNU_SAVE, "Save Palette");
@@ -1673,16 +1050,13 @@ void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& event) {
     if (xLightsApp::GetFrame()->GetAIService(aiType::COLORPALETTES) != nullptr) {
         mnuLayer.Append(ID_MNU_GENERATE, "Generate Palette");
     }
-    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ColorPanel::OnListPopup, nullptr, this);
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED,
+                     (wxObjectEventFunction)&ColorPanel::OnListPopup, nullptr, this);
 
     const int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
-    if (alleffects == 0) {
-        updateItem->Enable(false);
-    }
-    
+    if (alleffects == 0) updateItem->Enable(false);
     deleteItem->Enable(false);
-    
-    // only enable save if this palette was not loaded from disk or has been saved to disk
+
     wxString pal = wxString(GetCurrentPalette()).BeforeLast(',');
     for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
         wxString ss(it->c_str());
@@ -1699,59 +1073,275 @@ void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& event) {
     PopupMenu(&mnuLayer);
 }
 
-void ColorPanel::OnListPopup(wxCommandEvent &event)
-{
-    if (event.GetId() == ID_MNU_SAVE) {
-        SavePalette(false);
-    } else if (event.GetId() == ID_MNU_SAVE_AS) {
-        SavePalette(true);
-    } else if (event.GetId() == ID_MNU_DELETE) {
-        DeletePalette();
-    } else if (event.GetId() == ID_MNU_IMPORT) {
-        ImportPalette();
-    } else if (event.GetId() == ID_MNU_GENERATE) {
-        GeneratePalette();
-    } else if (event.GetId() == ID_MNU_UPDATE) {
-        UpdateColor();
+void ColorPanel::OnListPopup(wxCommandEvent& event) {
+    if (event.GetId() == ID_MNU_SAVE) SavePalette(false);
+    else if (event.GetId() == ID_MNU_SAVE_AS) SavePalette(true);
+    else if (event.GetId() == ID_MNU_DELETE) DeletePalette();
+    else if (event.GetId() == ID_MNU_IMPORT) ImportPalette();
+    else if (event.GetId() == ID_MNU_GENERATE) GeneratePalette();
+    else if (event.GetId() == ID_MNU_UPDATE) UpdateColor();
+}
+
+bool ColorPanel::ValidateAndFormatPaletteString(wxString& input, wxString& /*errorMsg*/) {
+    input = input.Trim().Trim(false);
+    input.Replace(" ", "");
+    input = input.Upper();
+
+    wxArrayString colors = wxSplit(input, ',');
+    size_t nonEmptyCount = 0;
+    for (const wxString& color : colors) {
+        if (!color.IsEmpty()) nonEmptyCount++;
+    }
+    if (nonEmptyCount < 1 || nonEmptyCount > 8) return false;
+
+    for (const wxString& color : colors) {
+        if (color.IsEmpty()) continue;
+        if (color.length() != 7 || color[0] != '#') return false;
+        for (size_t i = 1; i < color.length(); ++i) {
+            wxChar c = color[i];
+            if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'))) return false;
+        }
+    }
+    return true;
+}
+
+void ColorPanel::LoadColorsToButtons(const wxString& colorString) {
+    wxArrayString colors = wxSplit(colorString, ',');
+    size_t buttonIndex = 0;
+    for (const wxString& color : colors) {
+        if (color.IsEmpty()) { buttonIndex++; continue; }
+        if (buttonIndex < 8) {
+            std::string colorStr = color.ToStdString();
+            SetButtonColor(buttons[buttonIndex], colorStr);
+            buttonIndex++;
+        }
     }
 }
 
-void ColorPanel::RefreshPaletteSize() {
-    int btnSize = IsLargePalette() ? PALETTE_BUTTON_SIZE_LARGE : PALETTE_BUTTON_SIZE_STANDARD;
-    for (auto btn : buttons) {
-        btn->SetSize(FromDIP(wxSize(btnSize, btnSize)));
-        btn->SetMinSize(FromDIP(wxSize(btnSize, btnSize)));
+void ColorPanel::GeneratePalette() {
+    AIColorPaletteDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK) {
+        int idx = 0;
+        for (auto& color : dlg.GetColorStrings()) {
+            if (idx < 8) {
+                SetButtonColor(buttons[idx], color.ToStdString());
+            }
+            idx++;
+        }
+        FireChangeEvent();
+        ValidateWindow();
+    }
+}
+
+void ColorPanel::ImportPalette() {
+    wxString lastInput = "";
+    bool validInput = false;
+    while (!validInput) {
+        wxTextEntryDialog dialog(this,
+                                 wxString::Format("Import Palette Text String (e.g. #000000,#454545,#565657) %s",
+                                                  lastInput.IsEmpty() ? "" : "\nInvalid input: Please correct your entry."),
+                                 "Palette Text String");
+        dialog.SetValue(lastInput);
+        if (dialog.ShowModal() == wxID_CANCEL) return;
+        lastInput = dialog.GetValue();
+        wxString errorMsg;
+        if (ValidateAndFormatPaletteString(lastInput, errorMsg)) validInput = true;
+    }
+    LoadColorsToButtons(lastInput);
+    wxLogMessage("Processed palette: %s", lastInput);
+    FireChangeEvent();
+    ValidateWindow();
+}
+
+void ColorPanel::SavePalette(bool saveAs) {
+    if (_colourList && _colourList->GetCount() == 1) {
+        LoadAllPalettes();
+        ValidateWindow();
+    }
+    if (!wxDir::Exists(xLightsFrame::CurrentDir + "/Palettes")) {
+        wxDir::Make(xLightsFrame::CurrentDir + "/Palettes");
     }
 
-    int ccSize = IsLargePalette() ? PALETTE_CC_SIZE_LARGE : PALETTE_CC_SIZE_STANDARD;
-    for (int x = 0; x < PALETTE_SIZE; x++) {
-        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
-        wxBitmapButton* ccBtn = (wxBitmapButton*)wxWindow::FindWindowByName(ids, this);
-        if (ccBtn) {
-            ccBtn->SetSize(wxSize(ccSize, ccSize));
-            ccBtn->SetMinSize(wxSize(ccSize, ccSize));
+    int i = 1;
+    wxString fn = "PAL001.xpalette";
+    if (saveAs) {
+        wxTextEntryDialog dialog(this, "Set Palette Name", "Set Palette Name");
+        if (dialog.ShowModal() == wxID_OK) {
+            fn = wxString::Format("%s.xpalette", RemoveNonAlphanumeric(dialog.GetValue()));
+            if (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
+                wxString msg = fn + " File Already Exists. Override?";
+                if (wxMessageBox(msg, "Override", wxYES_NO, this) != wxYES) return;
+            }
+        }
+    } else {
+        while (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
+            i++;
+            fn = wxString::Format("PAL%03d.xpalette", i);
         }
     }
 
-    int swatchWidth = IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
-    int dropdownWidth = PALETTE_SIZE * swatchWidth + 20;
-
-    BitmapButton_ColourChoice->Dismiss();
-    BitmapButton_ColourChoice->Clear();
-    BitmapButton_ColourChoice->AppendString("");
-    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
-        BitmapButton_ColourChoice->AppendString(*it);
+    wxFile f;
+    f.Create(xLightsFrame::CurrentDir + "/Palettes/" + fn);
+    if (f.IsOpened()) {
+        std::string pal = GetCurrentPalette();
+        f.Write(wxString(pal.c_str()));
+        f.Close();
+        _loadedPalettes.push_back(pal);
+    } else {
+        spdlog::error("Unable to create file {}.", fn.ToStdString());
     }
-
-    BitmapButton_ColourChoice->SetMinSize(wxSize(dropdownWidth, -1));
-    BitmapButton_ColourChoice->SetSize(wxSize(dropdownWidth, -1));
-    BitmapButton_ColourChoice->SetPopupMinWidth(dropdownWidth);
-    BitmapButton_ColourChoice->SetSelection(0);
-
-    FlexGridSizer_Palette->Layout();
-    if (BitmapButton_ColourChoice->GetContainingSizer()) {
-        BitmapButton_ColourChoice->GetContainingSizer()->Layout();
-    }
-    ColorScrollWindow->FitInside();
-    ColorScrollWindow->Layout();
+    LoadAllPalettes();
+    ValidateWindow();
 }
+
+wxString ColorPanel::FindPaletteFile(const wxString& filename, const wxString& palette) const {
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename)) {
+        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename);
+        if (input.IsOk()) {
+            wxTextInputStream text(input);
+            wxString s = text.ReadLine();
+            if (s == palette) {
+                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + filename;
+            }
+        }
+    }
+    if (FileExists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename)) {
+        wxFileInputStream input(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename);
+        if (input.IsOk()) {
+            wxTextInputStream text(input);
+            wxString s = text.ReadLine();
+            if (s == palette) {
+                return xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "Palettes" + wxFileName::GetPathSeparator() + filename;
+            }
+        }
+    }
+    return "";
+}
+
+void ColorPanel::DeletePalette() {
+    std::string pal = GetCurrentPalette();
+    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+        wxString ss(it->c_str());
+        if (ss.BeforeLast(',') + "," == pal) {
+            wxString filename = FindPaletteFile(ss.AfterLast(','), pal);
+            if (filename != "") {
+                ::wxRemoveFile(filename);
+            }
+        }
+    }
+    LoadAllPalettes();
+    ValidateWindow();
+}
+
+void ColorPanel::OnBitmapButton_ReverseColoursClick(wxCommandEvent& /*event*/) {
+    std::string pal = GetCurrentPalette();
+    wxArrayString as = wxSplit(pal, ',');
+    for (size_t i = 0; i < PALETTE_SIZE; ++i) {
+        if (as[i].Contains("Active")) {
+            buttons[PALETTE_SIZE - i - 1]->GetValue()->Deserialise(as[i].ToStdString());
+            buttons[PALETTE_SIZE - i - 1]->SetActive(true);
+            buttons[PALETTE_SIZE - i - 1]->Refresh();
+        } else {
+            buttons[PALETTE_SIZE - i - 1]->SetColor(as[i].ToStdString());
+            buttons[PALETTE_SIZE - i - 1]->Refresh();
+        }
+    }
+    FireChangeEvent();
+    ValidateWindow();
+}
+
+void ColorPanel::OnBitmapButton_ShiftColoursLeftClick(wxCommandEvent& /*event*/) {
+    std::string pal = GetCurrentPalette();
+    wxArrayString as = wxSplit(pal, ',');
+    bool zeroActive = as[0].Contains("Active");
+    std::string zeroItem = as[0].ToStdString();
+
+    for (size_t i = 0; i < PALETTE_SIZE - 1; ++i) {
+        if (as[i + 1].Contains("Active")) {
+            buttons[i]->GetValue()->Deserialise(as[i + 1].ToStdString());
+            buttons[i]->SetActive(true);
+            buttons[i]->Refresh();
+        } else {
+            buttons[i]->SetColor(as[i + 1].ToStdString());
+            buttons[i]->Refresh();
+        }
+    }
+    if (zeroActive) {
+        buttons[PALETTE_SIZE - 1]->GetValue()->Deserialise(zeroItem);
+        buttons[PALETTE_SIZE - 1]->SetActive(true);
+        buttons[PALETTE_SIZE - 1]->Refresh();
+    } else {
+        buttons[PALETTE_SIZE - 1]->SetColor(zeroItem);
+        buttons[PALETTE_SIZE - 1]->Refresh();
+    }
+    FireChangeEvent();
+    ValidateWindow();
+}
+
+void ColorPanel::OnBitmapButton_ShiftColoursRightClick(wxCommandEvent& /*event*/) {
+    std::string pal = GetCurrentPalette();
+    wxArrayString as = wxSplit(pal, ',');
+    bool lastActive = as[PALETTE_SIZE - 1].Contains("Active");
+    std::string lastItem = as[PALETTE_SIZE - 1].ToStdString();
+
+    for (size_t i = PALETTE_SIZE - 1; i > 0; --i) {
+        if (as[i - 1].Contains("Active")) {
+            buttons[i]->GetValue()->Deserialise(as[i - 1].ToStdString());
+            buttons[i]->SetActive(true);
+            buttons[i]->Refresh();
+        } else {
+            buttons[i]->SetColor(as[i - 1].ToStdString());
+            buttons[i]->Refresh();
+        }
+    }
+    if (lastActive) {
+        buttons[0]->GetValue()->Deserialise(lastItem);
+        buttons[0]->SetActive(true);
+        buttons[0]->Refresh();
+    } else {
+        buttons[0]->SetColor(lastItem);
+        buttons[0]->Refresh();
+    }
+    FireChangeEvent();
+    ValidateWindow();
+}
+
+void ColorPanel::OnCCButtonClick(wxCommandEvent& event) {
+    auto* bb = static_cast<wxBitmapButton*>(event.GetEventObject());
+    int id = wxAtoi(bb->GetName().Right(1));
+    wxString ccbids = wxString::Format("ID_BUTTON_Palette%d", id);
+    auto* ccb = (ColorCurveButton*)wxWindow::FindWindowByName(ccbids, this);
+    if (ccb && ccb->GetValue()->IsActive()) {
+        ccb->GetValue()->NextTimeCurve(_supportslinear, _supportsradial);
+    }
+    FireChangeEvent();
+    ValidateWindow();
+}
+
+#ifdef __XLIGHTS_HAS_TOUCHBARS__
+ColorPanelTouchBar* ColorPanel::SetupTouchBar(xlTouchBarSupport& tbs) {
+    if (touchBar == nullptr && tbs.HasTouchBar()) {
+        touchBar = std::unique_ptr<ColorPanelTouchBar>(new ColorPanelTouchBar(
+            [this](int idx, wxColor c) {
+                this->SetButtonColor(idx, wxColourToXlColor(c), false);
+            },
+            [this](int v) {
+                if (_sparkleFrequencyVC) {
+                    _sparkleFrequencyVC->SetValue(wxString::Format("%d", v));
+                    _sparkleFrequencyVC->GetValue()->SetDefault(0.0f, 200.0f);
+                }
+                if (_sparkleFrequency) _sparkleFrequency->SetValue(v);
+                if (_sparkleFrequencyText) _sparkleFrequencyText->SetValue(wxString::Format("%d", v));
+            },
+            tbs));
+    }
+    return touchBar.get();
+}
+
+void ColorPanel::UpdateTouchBarSlider(wxScrollEvent& event) {
+    if (touchBar != nullptr) {
+        touchBar->SetSparkles(event.GetPosition());
+    }
+    if (_sparkleFrequency) _sparkleFrequency->OnSlider_SliderUpdated(event);
+}
+#endif

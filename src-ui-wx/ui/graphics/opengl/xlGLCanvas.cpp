@@ -487,6 +487,17 @@ wxImage* xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 
 void xlGLCanvas::SetCurrentGLContext()
 {
+#ifdef __WXGTK__
+    // On Linux/GLX we only need a realized X window (valid XID), not a visible one.
+    // A hidden-but-realized canvas still has a valid drawable for glXMakeCurrent.
+    if (GetXWindow() == 0) {
+        return;
+    }
+#else
+    if (!IsShownOnScreen()) {
+        return;
+    }
+#endif
     static bool errorDisplayed = false;
     glGetError();
     if (m_context == nullptr) {
@@ -504,6 +515,15 @@ void xlGLCanvas::SetCurrentGLContext()
 }
 
 void xlGLCanvas::CreateGLContext() {
+#ifdef __WXGTK__
+    if (GetXWindow() == 0) {
+        return;
+    }
+#else
+    if (!IsShownOnScreen()) {
+        return;
+    }
+#endif
     if (m_context == nullptr) {
         wxGLContext *base = m_sharedContext;
         //trying to detect OGL versions and stuff can result in unwanted logs

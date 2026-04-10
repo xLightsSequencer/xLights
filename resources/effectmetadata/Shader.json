@@ -2,13 +2,13 @@
     "effectName": "Shader",
     "properties": [
         {
-            "id": "IFS",
-            "label": "Shader File",
-            "type": "file",
-            "controlType": "filepicker",
+            "id": "Shader_FilenameBlock",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
             "default": "",
-            "fileFilter": "*.fs",
-            "description": "Path to the ISF-format fragment shader (.fs) file that defines the visual effect. The shader runs on the GPU to generate the pixel output."
+            "fullWidth": true,
+            "description": "Custom block with Select/Clear/Download buttons, animated shader preview, and filename label. The shader file path is serialized as E_0FILEPICKERCTRL_IFS via a hidden file picker; the leading 0 forces it to be processed first at load time so the shader config is known before dynamic uniform settings are applied."
         },
         {
             "id": "Shader_LeadIn",
@@ -22,16 +22,13 @@
             "description": "Number of frames to pre-render before the effect starts, allowing time-based shaders to reach a desired visual state at the beginning of the effect."
         },
         {
-            "id": "Shader_Speed",
-            "label": "Time Speed",
-            "type": "float",
-            "controlType": "slider",
-            "default": 1.0,
-            "min": -1000,
-            "max": 1000,
-            "divisor": 100,
-            "valueCurve": true,
-            "description": "Multiplier for the time value passed to the shader. Values above 1 speed up the animation, values below 1 slow it down, and negative values run the shader time in reverse."
+            "id": "Shader_SpeedRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "fullWidth": true,
+            "description": "Custom Time Speed slider row. Built as a BulkEditSliderF2 with the slider as the serialized control (E_SLIDER_Shader_Speed, divisor 100) and a buddy text control, matching the legacy naming so old sequences continue to deserialize."
         },
         {
             "id": "Shader_Offset_X",
@@ -40,10 +37,10 @@
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
             "default": 0,
-            "valueCurve": true,
             "min": -100,
             "max": 100,
-            "description": "Horizontal offset of the shader viewport as a percentage. Shifts the visible portion of the shader output left or right."
+            "valueCurve": true,
+            "description": "Horizontal offset of the shader viewport as a percentage. Only active for shaders that consume iResolution / coordinate uniforms."
         },
         {
             "id": "Shader_Offset_Y",
@@ -52,10 +49,10 @@
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
             "default": 0,
-            "valueCurve": true,
             "min": -100,
             "max": 100,
-            "description": "Vertical offset of the shader viewport as a percentage. Shifts the visible portion of the shader output up or down."
+            "valueCurve": true,
+            "description": "Vertical offset of the shader viewport as a percentage. Only active for shaders that consume iResolution / coordinate uniforms."
         },
         {
             "id": "Shader_Zoom",
@@ -64,10 +61,19 @@
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
             "default": 0,
-            "valueCurve": true,
             "min": -100,
             "max": 100,
-            "description": "Zoom level for the shader output. Positive values zoom in (up to 10x), negative values zoom out, and zero shows the shader at its native scale."
+            "valueCurve": true,
+            "description": "Zoom level for the shader output. Positive values zoom in, negative values zoom out, and zero shows the shader at its native scale. Only active for shaders that consume iResolution / coordinate uniforms."
+        },
+        {
+            "id": "Shader_DynamicParams",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "default": "",
+            "fullWidth": true,
+            "description": "Container for per-shader dynamic uniform controls. The subclass parses the loaded shader's uniform declarations and builds sliders, checkboxes, choices, and point controls here; this sizer is wiped and rebuilt whenever the shader file changes."
         }
     ]
 }

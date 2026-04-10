@@ -487,7 +487,7 @@
             "type": "tabs",
             "tabs": [
                 {
-                    "label": "1",
+                    "label": "Top",
                     "properties": [
                         "X1",
                         "Y1",
@@ -499,7 +499,7 @@
                     ]
                 },
                 {
-                    "label": "2",
+                    "label": "Lef",
                     "properties": [
                         "Enabled2",
                         "X2",
@@ -512,7 +512,7 @@
                     ]
                 },
                 {
-                    "label": "3",
+                    "label": "Bot",
                     "properties": [
                         "Enabled3",
                         "X3",
@@ -525,7 +525,7 @@
                     ]
                 },
                 {
-                    "label": "4",
+                    "label": "Rig",
                     "properties": [
                         "Enabled4",
                         "X4",
@@ -537,8 +537,30 @@
                         "FlowMusic4"
                     ]
                 }
-            ],
-            "settingKey": "E_NOTEBOOK1"
+            ]
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Enabled2", "equals": true },
+            "enable": [
+                "X2", "Y2", "Direction2", "Velocity2", "Flow2",
+                "Liquid_SourceSize2", "FlowMusic2"
+            ]
+        },
+        {
+            "when": { "property": "Enabled3", "equals": true },
+            "enable": [
+                "X3", "Y3", "Direction3", "Velocity3", "Flow3",
+                "Liquid_SourceSize3", "FlowMusic3"
+            ]
+        },
+        {
+            "when": { "property": "Enabled4", "equals": true },
+            "enable": [
+                "X4", "Y4", "Direction4", "Velocity4", "Flow4",
+                "Liquid_SourceSize4", "FlowMusic4"
+            ]
         }
     ]
 }

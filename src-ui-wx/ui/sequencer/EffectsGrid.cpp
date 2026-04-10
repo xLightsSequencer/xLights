@@ -4046,9 +4046,11 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
 
             xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
+            int min_source_row = -1;
             for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize(); row++) {
                 EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
                 if (mSequenceElements->GetEffectLayer(row)->GetTaggedEffectCount() > 0) {
+                    if (min_source_row == -1) min_source_row = row;
                     EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - move_offset);
                     int num_effects = mSequenceElements->GetEffectLayer(row)->GetEffectCount();
                     for (int i = 0; i < num_effects; ++i) {
@@ -4078,7 +4080,8 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
             mCellRangeSelected = false;
             mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
             RaiseSelectedEffectChanged(mSelectedEffect, false, false);
-            MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() - 1);
+            if (min_source_row != -1)
+                MakeRowVisible(min_source_row - first_model_row - move_offset);
             sendRenderDirtyEvent();
             Draw();
         }
@@ -4195,9 +4198,11 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
 
             xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
+            int max_source_row = -1;
             for (int row = last_row; row > first_model_row; row--) {
                 EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
                 if (mSequenceElements->GetEffectLayer(row - 1)->GetTaggedEffectCount() > 0) {
+                    if (max_source_row == -1) max_source_row = row - 1;
                     EffectLayer* el2 = mSequenceElements->GetEffectLayer(row - 1 + move_offset);
                     int num_effects = mSequenceElements->GetEffectLayer(row - 1)->GetEffectCount();
                     for (int i = 0; i < num_effects; ++i) {
@@ -4228,7 +4233,10 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
             mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
             RaiseSelectedEffectChanged(mSelectedEffect, false, false);
             sendRenderDirtyEvent();
-            MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() + 1);
+            if (max_source_row != -1) {
+                MakeRowVisible((max_source_row - first_model_row) + move_offset + 1);
+                MakeRowVisible((max_source_row - first_model_row) + move_offset);
+            }
             Draw();
         }
     }

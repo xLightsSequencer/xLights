@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
 
 #include "SingleStrandEffect.h"
@@ -36,13 +37,20 @@ std::vector<std::string> SingleStrandEffect::GetSettingOptions(const std::string
     // JSON_*_names blobs in FX.h contain quoted, comma-separated names with
     // no embedded commas. We pass trim=true defensively in case future entries
     // pick up incidental whitespace.
+    //
+    // The dropdown is sorted alphabetically before return so users can find
+    // entries quickly. The render-side DecodeMode/DecodePalette in FX.cpp
+    // parses the same source independently in its original (WLED) order, so
+    // the FX number mapping is unaffected by sorting here.
     if (setting == "SingleStrand_FX") {
         std::string names(JSON_mode_names);
         Replace(names, "\n", "");
         Replace(names, "\"", "");
         Replace(names, "[", "");
         Replace(names, "]", "");
-        return Split(names, ',', true);
+        auto result = Split(names, ',', true);
+        std::sort(result.begin(), result.end());
+        return result;
     }
     if (setting == "SingleStrand_FX_Palette") {
         std::string names(JSON_palette_names);
@@ -50,7 +58,9 @@ std::vector<std::string> SingleStrandEffect::GetSettingOptions(const std::string
         std::erase(names, '"');
         std::erase(names, '[');
         std::erase(names, ']');
-        return Split(names, ',', true);
+        auto result = Split(names, ',', true);
+        std::sort(result.begin(), result.end());
+        return result;
     }
     return {};
 }

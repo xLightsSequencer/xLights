@@ -1,0 +1,156 @@
+{
+    "effectName": "Timing",
+    "prefix": "T_",
+    "scrollable": true,
+    "properties": [
+        {
+            "id": "ResetPanelRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "UI-only 'Reset panel when changing effects' checkbox, NOT serialized. Persisted to wxConfig under xLightsResetTimingPanel by the subclass. Controls whether SetDefaultControls clears user values when the selected effect changes."
+        },
+        {
+            "id": "SuppressEffectUntil",
+            "label": "Suppress Effect Until Frame",
+            "type": "int",
+            "controlType": "spin",
+            "min": 0,
+            "max": 999999,
+            "default": 0,
+            "suppressIfDefault": true,
+            "description": "Frame number before which the effect renders as black / invisible. Used to hold the layer off until a specific frame inside the effect's timespan."
+        },
+        {
+            "id": "FreezeEffectAtFrame",
+            "label": "Freeze Effect At Frame",
+            "type": "int",
+            "controlType": "spin",
+            "min": 0,
+            "max": 999999,
+            "default": 999999,
+            "suppressIfDefault": true,
+            "description": "Frame number at which the effect stops advancing. The last-rendered frame is held for the remainder of the effect's timespan. Default 999999 means 'never freeze'."
+        },
+        {
+            "id": "LayerMorphRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Custom compound row: Morph checkbox + Effect Layer Mix slider + lock button, matching the legacy layout. The Morph checkbox is backed by E_CHECKBOX_LayerMorph and the slider by E_SLIDER_EffectLayerMix (both legacy names preserved)."
+        },
+        {
+            "id": "LayerMethodRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Custom row: Layer Method choice + '?' help button. Serialized as T_CHOICE_LayerMethod."
+        },
+        {
+            "id": "CanvasRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Custom row: Canvas checkbox + 'Layers ...' button. When Canvas is enabled and a layer range is available the button becomes usable and opens the LayerSelectDialog; the selected layer list is persisted as T_LayersSelected by the subclass."
+        },
+        {
+            "id": "In_Transition_Header",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Compound header row built by the subclass: [In_Transition_Type choice] + 'Time (s)' label + [Fadein BulkEditComboBox]. Matches the legacy single-line layout and keeps In_Transition_Type / Fadein addressable via the window walk under their legacy ID_CHOICE_In_Transition_Type / ID_TEXTCTRL_Fadein names. Suppress-if-default for these two controls is handled explicitly in TimingPanel::GetTimingString."
+        },
+        {
+            "id": "In_Transition_Adjust",
+            "label": "Adjustment",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 100,
+            "default": 50,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "Generic tuning parameter passed to the selected in-transition (0-100). Meaning depends on the transition."
+        },
+        {
+            "id": "In_Transition_Reverse",
+            "label": "Reverse",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "suppressIfDefault": true,
+            "description": "Reverses the direction / polarity of the in-transition. Ignored by transitions that are inherently non-directional."
+        },
+        {
+            "id": "Out_Transition_Header",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Compound header row built by the subclass: [Out_Transition_Type choice] + 'Time (s)' label + [Fadeout BulkEditComboBox]. Same single-line pattern as In_Transition_Header."
+        },
+        {
+            "id": "Out_Transition_Adjust",
+            "label": "Adjustment",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 100,
+            "default": 50,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "Generic tuning parameter passed to the selected out-transition (0-100)."
+        },
+        {
+            "id": "Out_Transition_Reverse",
+            "label": "Reverse",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "suppressIfDefault": true,
+            "description": "Reverses the direction / polarity of the out-transition."
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "persistSelection": false,
+            "tabs": [
+                {
+                    "label": "In Transition",
+                    "properties": [
+                        "In_Transition_Header",
+                        "In_Transition_Adjust",
+                        "In_Transition_Reverse"
+                    ]
+                },
+                {
+                    "label": "Out Transition",
+                    "properties": [
+                        "Out_Transition_Header",
+                        "Out_Transition_Adjust",
+                        "Out_Transition_Reverse"
+                    ]
+                }
+            ]
+        }
+    ],
+    "notes": [
+        "A UI-only 'Reset panel when changing effects' checkbox exists in the legacy panel but is NOT serialized with the T_ prefix — it's persisted in wxConfig as xLightsResetTimingPanel. The JSON-built panel adds it as a subclass custom, not a framework-built control.",
+        "LayerMethod and EffectLayerMix are *also* surfaced in the Buffer panel and serialized as B_CHOICE_LayerMethod / B_SLIDER_EffectLayerMix. When both T_ and B_ copies exist on the same effect, the T_ copy is the authoritative value.",
+        "In_Transition_Adjust and Reverse are enabled only when Fadein > 0 AND the transition type supports adjustment/reverse; this compound condition is implemented in TimingPanel::ValidateWindow (it can't be expressed with the current JSON visibilityRules schema).",
+        "Canvas mode requires a separate LayerSelectDialog invoked from the 'Layers ...' button; the selected source layers are persisted as T_LayersSelected by the subclass, not in the framework properties_ map.",
+        "Fade in/out times are specified in seconds in the UI but stored as string and converted to integer step counts at render time using the sequence's frameTimeInMs."
+    ]
+}

@@ -1,0 +1,305 @@
+{
+    "effectName": "Buffer",
+    "prefix": "B_",
+    "properties": [
+        {
+            "id": "ResetPanelRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "UI-only 'Reset panel when changing effects' checkbox, NOT serialized. Persisted to wxConfig under xLightsResetBufferPanel by the subclass."
+        },
+        {
+            "id": "BufferStyle",
+            "label": "Render Style",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Default",
+                "Per Preview",
+                "As Pixel"
+            ],
+            "default": "Default",
+            "expandToFill": true,
+            "suppressIfDefault": true,
+            "description": "How the model's node layout is projected into a 2D pixel buffer. Populated dynamically from the model's supported styles."
+        },
+        {
+            "id": "BufferStagger",
+            "label": "Buffer Stagger",
+            "type": "int",
+            "controlType": "spin",
+            "min": -100,
+            "max": 0,
+            "default": 0,
+            "suppressIfDefault": true,
+            "description": "Percent offset applied to effect start time across nodes for a cascading appearance."
+        },
+        {
+            "id": "PerPreviewCamera",
+            "label": "Camera",
+            "type": "enum",
+            "controlType": "choice",
+            "options": ["2D"],
+            "default": "2D",
+            "expandToFill": true,
+            "suppressIfDefault": true,
+            "description": "Camera to project the model through when BufferStyle is 'Per Preview'. Populated at runtime from 3D cameras in the preview setup."
+        },
+        {
+            "id": "BufferTransform",
+            "label": "Transformation",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "None",
+                "Rotate CC 90",
+                "Rotate CW 90",
+                "Rotate 180",
+                "Flip Vertical",
+                "Flip Horizontal",
+                "Rotate CC 90 Flip Horizontal",
+                "Rotate CW 90 Flip Horizontal"
+            ],
+            "default": "None",
+            "suppressIfDefault": true,
+            "description": "Fixed geometric transform applied to the buffer coordinate system before the effect renders."
+        },
+        {
+            "id": "Blur",
+            "label": "Blur",
+            "type": "int",
+            "controlType": "slider",
+            "min": 1,
+            "max": 15,
+            "default": 1,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Gaussian blur radius applied to the rendered buffer."
+        },
+        {
+            "id": "OverlayBkg",
+            "label": "",
+            "checkboxLabel": "Persistent",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "When enabled, the buffer is not cleared between frames — each frame composites onto the previous one."
+        },
+        {
+            "id": "SubBuffer",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "growable": true,
+            "default": "",
+            "description": "Interactive sub-buffer rectangle picker (SubBufferPanel widget). Serialized as B_CUSTOM_SubBuffer. Built by the subclass because the widget instance is reused for live preview. 'growable: true' makes its tab-page row stretch to fill remaining vertical space, matching the legacy BufferPanel layout where the preview absorbed all available height."
+        },
+        {
+            "id": "RotoZoomPreset",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "fullWidth": true,
+            "default": "",
+            "description": "Roto-Zoom preset dropdown: 'None - Reset', '1 Rev CW', '1 Rev CCW', 'Explode', 'Collapse', 'Explode + Spin CW', 'Shake', 'Spin CW Accelerate'. NOT serialized — applies preset values to other sliders and resets selection. UI-only."
+        },
+        {
+            "id": "Rotation",
+            "label": "Z Rotation",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 100,
+            "default": 0,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Static Z-axis rotation as a 0-100 percentage of a full turn (RZ_ROTATION_MAX). 100 = 360 degrees."
+        },
+        {
+            "id": "Rotations",
+            "label": "Rotations",
+            "type": "float",
+            "controlType": "slider",
+            "min": 0,
+            "max": 200,
+            "default": 0,
+            "divisor": 10,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Number of full Z-axis rotations over the effect duration. Stored as int; the engine divides by 10."
+        },
+        {
+            "id": "PivotPointX",
+            "label": "Pivot Point X",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 100,
+            "default": 50,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "X coordinate of the Z-rotation pivot as a percentage of buffer width."
+        },
+        {
+            "id": "PivotPointY",
+            "label": "Pivot Point Y",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 100,
+            "default": 50,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Y coordinate of the Z-rotation pivot as a percentage of buffer height."
+        },
+        {
+            "id": "Zoom",
+            "label": "Zoom",
+            "type": "float",
+            "controlType": "slider",
+            "min": 0,
+            "max": 30,
+            "default": 1.0,
+            "divisor": 10,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Buffer zoom factor. Stored with divisor 10; 10 = 1.0x (no zoom), max 30 = 3.0x."
+        },
+        {
+            "id": "ZoomQuality",
+            "label": "Zoom Quality",
+            "type": "int",
+            "controlType": "slider",
+            "min": 1,
+            "max": 10,
+            "default": 1,
+            "suppressIfDefault": true,
+            "lockable": true,
+            "description": "Number of interpolation samples used when zooming."
+        },
+        {
+            "id": "XRotation",
+            "label": "X Rotation",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 360,
+            "default": 0,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "Fixed rotation around the X axis in degrees."
+        },
+        {
+            "id": "XPivot",
+            "label": "X Pivot",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 100,
+            "default": 50,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "Pivot coordinate for X-axis rotation."
+        },
+        {
+            "id": "YRotation",
+            "label": "Y Rotation",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 360,
+            "default": 0,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "Fixed rotation around the Y axis in degrees."
+        },
+        {
+            "id": "YPivot",
+            "label": "Y Pivot",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 100,
+            "default": 50,
+            "valueCurve": true,
+            "suppressIfDefault": true,
+            "description": "Pivot coordinate for Y-axis rotation."
+        },
+        {
+            "id": "RZ_RotationOrder",
+            "label": "Application Order",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "X-Y-Z",
+                "X-Z-Y",
+                "Y-X-Z",
+                "Y-Z-X",
+                "Z-X-Y",
+                "Z-Y-X"
+            ],
+            "default": "X-Y-Z",
+            "suppressIfDefault": true,
+            "description": "Order in which X, Y, and Z rotations compose when any 3D rotation is non-zero."
+        }
+    ],
+    "groups": [
+        {
+            "type": "tabs",
+            "persistSelection": false,
+            "scrollable": true,
+            "tabs": [
+                {
+                    "label": "Buffer",
+                    "properties": [
+                        "BufferStyle",
+                        "BufferStagger",
+                        "PerPreviewCamera",
+                        "BufferTransform",
+                        "Blur",
+                        "OverlayBkg",
+                        "SubBuffer"
+                    ]
+                },
+                {
+                    "label": "Roto-Zoom",
+                    "properties": [
+                        "RotoZoomPreset",
+                        "Rotation",
+                        "Rotations",
+                        "PivotPointX",
+                        "PivotPointY",
+                        "Zoom",
+                        "ZoomQuality",
+                        "XRotation",
+                        "XPivot",
+                        "YRotation",
+                        "YPivot",
+                        "RZ_RotationOrder"
+                    ]
+                }
+            ]
+        }
+    ],
+    "notes": [
+        "BufferStyle is populated dynamically from the model's GetBufferStyles() via BufferPanel::UpdateBufferStyles; the JSON options list is just a fallback for when no model is selected.",
+        "PerPreviewCamera is populated from xLightsFrame::viewpoint_mgr when BufferStyle is 'Per Preview' or 'Per Model Per Preview'; disabled otherwise. Repopulation happens in BufferPanel::UpdateCamera.",
+        "BufferStagger is only meaningful for stacked ModelGroup buffer styles ('Horizontal Stack' / 'Vertical Stack'); ValidateWindow disables it for other styles.",
+        "Z Rotation is 0-100 (percentage of turn) while X/Y Rotation are 0-360 degrees — this asymmetry is intentional and preserved from the legacy panel.",
+        "SLIDER_Zoom and SLIDER_Rotations are stored with divisor 10: the UI shows 1.0x / 0.0 rotations while the int value is 10 / 0.",
+        "The Roto-Zoom preset dropdown is NOT serialized — selecting an entry writes preset values into the other Roto-Zoom sliders and VCs, then resets itself to blank. Handled as a subclass custom.",
+        "SubBufferPanel is a live-preview rectangle editor; serialized as B_CUSTOM_SubBuffer with a compact 'x1 y1 x2 y2' string."
+    ]
+}

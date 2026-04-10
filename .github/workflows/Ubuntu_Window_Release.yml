@@ -11,7 +11,7 @@ jobs:
 
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'true'
 
@@ -33,6 +33,7 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
            allowUpdates: true
+           draft: true
            artifacts: "/tmp/AppImage/*.AppImage"
            body: ${{ steps.release_notes.outputs.notes }}
            token: ${{ secrets.GITHUB_TOKEN }}
@@ -42,12 +43,12 @@ jobs:
 
    steps:
     - name: Checkout xLights
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
           submodules: 'true'
 
     - name: Setup msbuild
-      uses: microsoft/setup-msbuild@v1
+      uses: microsoft/setup-msbuild@v3
 
     - name: install ISPC
       uses: ispc/install-ispc-action@main
@@ -74,12 +75,22 @@ jobs:
     - uses: ncipollo/release-action@v1
       with:
            allowUpdates: true
+           draft: true
            omitBodyDuringUpdate: true
            artifacts: 'build_scripts\msw\output\*'
            token: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: vedantmgoyal9/winget-releaser@main
-      with:
-            identifier: xLightsSequencer.xLights
-            installers-regex: '\.exe$' # Only .exe files
-            token: ${{ secrets.WINGET_TOKEN }}
+  publish-release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Publish draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${GITHUB_REF_NAME}" --draft=false --repo "${GITHUB_REPOSITORY}"
+
+      - uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: xLightsSequencer.xLights
+          installers-regex: '\.exe$' # Only .exe files
+          token: ${{ secrets.WINGET_TOKEN }}
