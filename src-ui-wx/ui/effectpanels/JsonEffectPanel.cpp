@@ -97,6 +97,10 @@ wxSize JsonEffectPanel::DoGetBestClientSize() const {
 }
 
 void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
+    if (metadata.is_null() || !metadata.is_object()) {
+        spdlog::warn("JsonEffectPanel: BuildFromJson called with null/invalid metadata - panel will be empty");
+        return;
+    }
     std::string effectName = metadata.value("effectName", "Unknown");
 
     // Collect property ids that are owned by groups (tabs, xyCenter, section).
@@ -173,10 +177,12 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     bool hasGroups = !groupsByFirstIndex.empty();
     bool hasSeparator = false;
     bool hasFullWidthCustom = false;
-    for (const auto& prop : metadata["properties"]) {
-        if (prop.value("separator", false)) { hasSeparator = true; }
-        if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false)) {
-            hasFullWidthCustom = true;
+    if (metadata.contains("properties")) {
+        for (const auto& prop : metadata["properties"]) {
+            if (prop.value("separator", false)) { hasSeparator = true; }
+            if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false)) {
+                hasFullWidthCustom = true;
+            }
         }
     }
     bool needsOuter = hasXY || hasGroups || hasSeparator || !descText.empty() || hasFullWidthCustom;
@@ -236,7 +242,7 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
         if (group.value("type", "") != "tabs") return false;
         if (!group.contains("tabs")) return false;
         std::map<std::string, nlohmann::json> propLookup;
-        for (const auto& p : metadata["properties"]) {
+        for (const auto& p : metadata.value("properties", nlohmann::json::array())) {
             propLookup[p.value("id", "")] = p;
         }
         for (const auto& tab : group["tabs"]) {
@@ -251,7 +257,7 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     };
 
     int propIndex = 0;
-    for (const auto& prop : metadata["properties"]) {
+    for (const auto& prop : metadata.value("properties", nlohmann::json::array())) {
         // Insert any tabs/section that anchors at this position before
         // emitting the next flat property.
         auto groupIt = groupsByFirstIndex.find(propIndex);
