@@ -578,12 +578,14 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
     auto& mgr = GLContextManager::Instance();
     mgr.DoneCurrent(cache->contextHandle);
-#if defined(__APPLE__)
-    // macOS: return context to pool after each frame (original behavior)
+#if !defined(_WIN32)
+    // macOS/Linux: return context to pool after each frame so other shader
+    // effects can acquire it.  On Linux kMaxPoolSize=1 so the same context
+    // is always returned, keeping GL resources (FBOs, textures) intact.
     mgr.ReleaseContext(cache->contextHandle);
     cache->contextHandle = nullptr;
 #endif
-    // Windows/Linux: keep context cached for reuse across frames
+    // Windows: keep context cached for reuse (pool can grow, no contention)
 }
 
 void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)

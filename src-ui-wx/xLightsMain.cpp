@@ -693,14 +693,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         glParams.metalDeviceRegistryID = GetMetalComputeDeviceRegistryID();
 #endif
 #else
-        // Linux: provide callbacks that activate/deactivate the shader panel's GL context
-        glParams.activateMainContext = [this]() {
-            auto* p = dynamic_cast<ShaderPanel*>(effectPanelManager.GetPanel(EffectManager::eff_SHADER, nullptr));
-            if (p && p->GetPreview()) p->GetPreview()->SetCurrentGLContext();
-        };
-        glParams.deactivateMainContext = []() {
-            // No explicit deactivation needed on Linux
-        };
+        // Linux: GLContextManager creates its own pure GLX+Pbuffer contexts,
+        // completely independent of the wx canvas hierarchy.
+        // No callbacks needed.
 #endif
         GLContextManager::Instance().Initialize(glParams);
     }
