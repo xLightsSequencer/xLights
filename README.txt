@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
+    -bug (dkulp)                Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view
     -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
                                     in a mov container, bit-exact and decoded natively by AVFoundation,
                                     replaces the deprecated uncompressed AVI export for pixel-perfect

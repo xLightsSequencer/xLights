@@ -1066,6 +1066,18 @@ double ModelPreview::calcPixelSize(double i) {
     return d;
 }
 
+double ModelPreview::getViewScale() const {
+    if (allowSelected) {
+        if (!is3d) {
+            return camera2d->GetZoom() * currentScale2d;
+        } else {
+            float zoom = camera3d->GetZoom();
+            return zoom > 0.0f ? 1.0 / zoom : 1.0;
+        }
+    }
+    return 1.0;
+}
+
 bool ModelPreview::GetActive() const
 {
     return mPreviewPane->GetActive();
@@ -1222,6 +1234,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         currentContext->SetViewport(0, mWindowHeight, mWindowWidth, 0, false);
         currentContext->SetCamera(ViewMatrix);
         currentContext->PushMatrix();
+        currentScale2d = scale2d;
         currentPixelScaleFactor = 1.0;
         if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
             && ((size_t)virtualWidth != mWindowWidth || (size_t)virtualHeight != mWindowHeight)) {
