@@ -66,6 +66,23 @@ ShaderPanel::ShaderPanel(wxWindow* parent, const nlohmann::json& metadata) :
     _previewTimer.SetOwner(this);
     Bind(wxEVT_TIMER, &ShaderPanel::OnPreviewTimer, this, _previewTimer.GetId());
 
+    // Pause the preview timer when the panel is hidden (user switches to a
+    // different effect) and resume when it's shown again. The effect panels
+    // are cached by EffectPanelManager so the timer would otherwise keep
+    // decoding / rescaling frames for a hidden widget.
+    Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
+        if (e.IsShown()) {
+            if (_previewFrames.size() > 1) {
+                size_t idx = _currentPreviewFrame < _previewFrameTimes.size() ? _currentPreviewFrame : 0;
+                long interval = (_previewFrameTimes[idx] > 0) ? _previewFrameTimes[idx] : 50;
+                _previewTimer.Start(interval);
+            }
+        } else {
+            _previewTimer.Stop();
+        }
+        e.Skip();
+    });
+
 #ifndef __WXOSX__
     // Hidden Linux GL canvas used as a context provider for the shader renderer.
     // Created off-screen (not added to any sizer) — xLightsMain activates its
