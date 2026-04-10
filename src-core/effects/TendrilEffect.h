@@ -16,24 +16,6 @@
 #include <list>
 #include "../utils/xlPoint.h"
 
-#define TENDRIL_MOVEMENT_MIN 0
-#define TENDRIL_MOVEMENT_MAX 20
-
-#define TENDRIL_THICKNESS_MIN 1
-#define TENDRIL_THICKNESS_MAX 20
-
-#define TENDRIL_MANUALX_MIN 0
-#define TENDRIL_MANUALX_MAX 100
-
-#define TENDRIL_MANUALY_MIN 0
-#define TENDRIL_MANUALY_MAX 100
-
-#define TENDRIL_OFFSETX_MIN -100
-#define TENDRIL_OFFSETX_MAX 100
-
-#define TENDRIL_OFFSETY_MIN -100
-#define TENDRIL_OFFSETY_MAX 100
-
 class TendrilNode
 {
     public:
@@ -97,41 +79,35 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Tendril_TuneMovement")
-            return TENDRIL_MOVEMENT_MIN;
-        if (name == "E_VALUECURVE_Tendril_Thickness")
-            return TENDRIL_THICKNESS_MIN;
-        if (name == "E_VALUECURVE_Tendril_ManualX")
-            return TENDRIL_MANUALX_MIN;
-        if (name == "E_VALUECURVE_Tendril_ManualY")
-            return TENDRIL_MANUALY_MIN;
-        if (name == "E_VALUECURVE_Tendril_XOffset")
-            return TENDRIL_OFFSETX_MIN;
-        if (name == "E_VALUECURVE_Tendril_YOffset")
-            return TENDRIL_OFFSETY_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Tendril_TuneMovement")
-            return TENDRIL_MOVEMENT_MAX;
-        if (name == "E_VALUECURVE_Tendril_Thickness")
-            return TENDRIL_THICKNESS_MAX;
-        if (name == "E_VALUECURVE_Tendril_ManualX")
-            return TENDRIL_MANUALX_MAX;
-        if (name == "E_VALUECURVE_Tendril_ManualY")
-            return TENDRIL_MANUALY_MAX;
-        if (name == "E_VALUECURVE_Tendril_XOffset")
-            return TENDRIL_OFFSETX_MAX;
-        if (name == "E_VALUECURVE_Tendril_YOffset")
-            return TENDRIL_OFFSETY_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Tendril.json by OnMetadataLoaded().
+    static std::string sMovementDefault;
+    static int sTuneMovementDefault;
+    static int sTuneMovementMin;
+    static int sTuneMovementMax;
+    static int sThicknessDefault;
+    static int sThicknessMin;
+    static int sThicknessMax;
+    static int sFrictionDefault;
+    static int sDampeningDefault;
+    static int sTensionDefault;
+    static int sTrailsDefault;
+    static int sLengthDefault;
+    static int sSpeedDefault;
+    static int sXOffsetDefault;
+    static int sXOffsetMin;
+    static int sXOffsetMax;
+    static int sYOffsetDefault;
+    static int sYOffsetMin;
+    static int sYOffsetMax;
+    static int sManualXDefault;
+    static int sManualXMin;
+    static int sManualXMax;
+    static int sManualYDefault;
+    static int sManualYMin;
+    static int sManualYMax;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     int EncodeMovement(std::string movement);
     void Render(RenderBuffer& buffer,
                 const std::string& movement, int tunemovement, int movementSpeed, int thickness,

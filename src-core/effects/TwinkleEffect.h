@@ -12,12 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define TWINKLE_COUNT_MIN 2
-#define TWINKLE_COUNT_MAX 100
-
-#define TWINKLE_STEPS_MIN 2
-#define TWINKLE_STEPS_MAX 100
-
 class TwinkleEffect : public RenderableEffect
 {
 public:
@@ -27,22 +21,23 @@ public:
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Twinkle_Count")
-            return TWINKLE_COUNT_MIN;
-        if (name == "E_VALUECURVE_Twinkle_Steps")
-            return TWINKLE_STEPS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Twinkle_Count")
-            return TWINKLE_COUNT_MAX;
-        if (name == "E_VALUECURVE_Twinkle_Steps")
-            return TWINKLE_STEPS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+
+    // Cached from Twinkle.json by OnMetadataLoaded().
+    static int sCountDefault;
+    static int sCountMin;
+    static int sCountMax;
+    static int sStepsDefault;
+    // Twinkle_Steps slider goes 2..400 but the VC is clamped to 2..100 via the
+    // JSON `vcMax` field. sStepsVCMin/Max are the bounds passed to
+    // GetValueCurveInt at render time (so existing VC data in [2, 100]
+    // stays compatible). The base class GetSettingVCMin/Max also honors
+    // vcMin/vcMax so UpgradeValueCurve gets the same answer.
+    static int sStepsVCMin;
+    static int sStepsVCMax;
+    static bool sStrobeDefault;
+    static bool sReRandomDefault;
+    static std::string sStyleDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 };

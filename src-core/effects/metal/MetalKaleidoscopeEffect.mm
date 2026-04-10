@@ -102,7 +102,7 @@ MetalKaleidoscopeEffect::~MetalKaleidoscopeEffect() {
 }
 
 void MetalKaleidoscopeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    std::string type = SettingsMap.Get("CHOICE_Kaleidoscope_Type", "Triangle");
+    std::string type = SettingsMap.Get("CHOICE_Kaleidoscope_Type", sTypeDefault);
 
     // Only GPU-accelerate the "new" types — Square 2, 6-Fold, 8-Fold, 12-Fold, Radial
     if (type != "Square 2" && type != "6-Fold" && type != "8-Fold" && type != "12-Fold" && type != "Radial") {
@@ -118,12 +118,12 @@ void MetalKaleidoscopeEffect::Render(Effect *effect, const SettingsMap &Settings
 
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
-    int xCentreP = GetValueCurveInt("Kaleidoscope_X", 50, SettingsMap, progress, KALEIDOSCOPE_X_MIN, KALEIDOSCOPE_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yCentreP = GetValueCurveInt("Kaleidoscope_Y", 50, SettingsMap, progress, KALEIDOSCOPE_Y_MIN, KALEIDOSCOPE_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xCentreP = GetValueCurveInt("Kaleidoscope_X", sXDefault, SettingsMap, progress, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yCentreP = GetValueCurveInt("Kaleidoscope_Y", sYDefault, SettingsMap, progress, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int xCentre  = xCentreP * buffer.BufferWi / 100;
     int yCentre  = yCentreP * buffer.BufferHt / 100;
-    int size     = GetValueCurveInt("Kaleidoscope_Size", 5, SettingsMap, progress, KALEIDOSCOPE_SIZE_MIN, KALEIDOSCOPE_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int rotation = GetValueCurveInt("Kaleidoscope_Rotation", 0, SettingsMap, progress, KALEIDOSCOPE_ROTATION_MIN, KALEIDOSCOPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int size     = GetValueCurveInt("Kaleidoscope_Size", sSizeDefault, SettingsMap, progress, sSizeMin, sSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int rotation = GetValueCurveInt("Kaleidoscope_Rotation", sRotationDefault, SettingsMap, progress, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     double rotRad = toRadiansLocal((double)rotation);
 

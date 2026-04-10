@@ -13,12 +13,6 @@
 #include "RenderableEffect.h"
 #include "../render/RenderBuffer.h"
 
-#define LINES_SPEED_MIN 1
-#define LINES_SPEED_MAX 10
-
-#define LINES_THICKNESS_MIN 1
-#define LINES_THICKNESS_MAX 10
-
 class LinesEffect : public RenderableEffect
 {
 public:
@@ -27,22 +21,19 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     void Render(RenderBuffer& buffer,
                 int objects, int segments, int thickness, int speed, int trails, bool fadeTrails);
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Lines_Speed")
-            return LINES_SPEED_MIN;
-        if (name == "E_VALUECURVE_Lines_Thickness")
-            return LINES_THICKNESS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
 
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Lines_Speed")
-            return LINES_SPEED_MAX;
-        if (name == "E_VALUECURVE_Lines_Thickness")
-            return LINES_THICKNESS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Lines.json by OnMetadataLoaded().
+    static int sObjectsDefault;
+    static int sSegmentsDefault;
+    static int sThicknessDefault;
+    static int sThicknessMin;
+    static int sThicknessMax;
+    static int sSpeedDefault;
+    static int sSpeedMin;
+    static int sSpeedMax;
+    static int sTrailsDefault;
+    static bool sFadeTrailsDefault;
 
+protected:
+    virtual void OnMetadataLoaded() override;
 };

@@ -94,9 +94,9 @@ void MetalPlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, R
     }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    float Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 1);
-    float Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
-    float PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset, PLASMA_SPEED_MIN, PLASMA_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float Style = SettingsMap.GetInt("SLIDER_Plasma_Style", sStyleDefault);
+    float Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", sLineDensityDefault);
+    float PlasmaSpeed = GetValueCurveInt("Plasma_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     const float state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
     const float Speed_plasma = (101.0f - PlasmaSpeed) * 3.0f; // we want a large number to divide by
     const float time = (state + 1.0) / Speed_plasma;

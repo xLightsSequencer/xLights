@@ -22,6 +22,29 @@
 #include "../../include/spirograph-48.xpm"
 #include "../../include/spirograph-64.xpm"
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Spirograph.json values).
+int SpirographEffect::sRDefault = 20;
+int SpirographEffect::sRMin = 1;
+int SpirographEffect::sRMax = 100;
+int SpirographEffect::srDefault = 10;
+int SpirographEffect::srMin = 1;
+int SpirographEffect::srMax = 100;
+int SpirographEffect::sdDefault = 30;
+int SpirographEffect::sdMin = 1;
+int SpirographEffect::sdMax = 100;
+int SpirographEffect::sAnimateDefault = 0;
+int SpirographEffect::sAnimateMin = -50;
+int SpirographEffect::sAnimateMax = 50;
+int SpirographEffect::sSpeedDefault = 10;
+int SpirographEffect::sSpeedMin = 0;
+int SpirographEffect::sSpeedMax = 50;
+int SpirographEffect::sLengthDefault = 20;
+int SpirographEffect::sLengthMin = 0;
+int SpirographEffect::sLengthMax = 50;
+int SpirographEffect::sWidthDefault = 1;
+int SpirographEffect::sWidthMin = 1;
+int SpirographEffect::sWidthMax = 50;
+
 SpirographEffect::SpirographEffect(int id) : RenderableEffect(id, "Spirograph", spirograph_16, spirograph_24, spirograph_32, spirograph_48, spirograph_64)
 {
     //ctor
@@ -31,17 +54,43 @@ SpirographEffect::~SpirographEffect()
 {
     //dtor
 }
+
+void SpirographEffect::OnMetadataLoaded()
+{
+    sRDefault = GetIntDefault("Spirograph_R", sRDefault);
+    sRMin = (int)GetMinFromMetadata("Spirograph_R", sRMin);
+    sRMax = (int)GetMaxFromMetadata("Spirograph_R", sRMax);
+    srDefault = GetIntDefault("Spirograph_r", srDefault);
+    srMin = (int)GetMinFromMetadata("Spirograph_r", srMin);
+    srMax = (int)GetMaxFromMetadata("Spirograph_r", srMax);
+    sdDefault = GetIntDefault("Spirograph_d", sdDefault);
+    sdMin = (int)GetMinFromMetadata("Spirograph_d", sdMin);
+    sdMax = (int)GetMaxFromMetadata("Spirograph_d", sdMax);
+    sAnimateDefault = GetIntDefault("Spirograph_Animate", sAnimateDefault);
+    sAnimateMin = (int)GetMinFromMetadata("Spirograph_Animate", sAnimateMin);
+    sAnimateMax = (int)GetMaxFromMetadata("Spirograph_Animate", sAnimateMax);
+    sSpeedDefault = GetIntDefault("Spirograph_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Spirograph_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Spirograph_Speed", sSpeedMax);
+    sLengthDefault = GetIntDefault("Spirograph_Length", sLengthDefault);
+    sLengthMin = (int)GetMinFromMetadata("Spirograph_Length", sLengthMin);
+    sLengthMax = (int)GetMaxFromMetadata("Spirograph_Length", sLengthMax);
+    sWidthDefault = GetIntDefault("Spirograph_Width", sWidthDefault);
+    sWidthMin = (int)GetMinFromMetadata("Spirograph_Width", sWidthMin);
+    sWidthMax = (int)GetMaxFromMetadata("Spirograph_Width", sWidthMax);
+}
+
 void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int int_R = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset, SPIROGRAPH_R_MIN, SPIROGRAPH_R_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int int_r = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset, SPIROGRAPH_r_MIN, SPIROGRAPH_r_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int int_d = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset, SPIROGRAPH_d_MIN, SPIROGRAPH_d_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset, SPIROGRAPH_ANIMATE_MIN, SPIROGRAPH_ANIMATE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int sspeed = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset, SPIROGRAPH_SPEED_MIN, SPIROGRAPH_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int length = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset, SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int width = GetValueCurveInt("Spirograph_Width", 1, SettingsMap, oset, SPIROGRAPH_WIDTH_MIN, SPIROGRAPH_WIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int int_R = GetValueCurveInt("Spirograph_R", sRDefault, SettingsMap, oset, sRMin, sRMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int int_r = GetValueCurveInt("Spirograph_r", srDefault, SettingsMap, oset, srMin, srMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int int_d = GetValueCurveInt("Spirograph_d", sdDefault, SettingsMap, oset, sdMin, sdMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Animate = GetValueCurveInt("Spirograph_Animate", sAnimateDefault, SettingsMap, oset, sAnimateMin, sAnimateMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int sspeed = GetValueCurveInt("Spirograph_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int length = GetValueCurveInt("Spirograph_Length", sLengthDefault, SettingsMap, oset, sLengthMin, sLengthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int width = GetValueCurveInt("Spirograph_Width", sWidthDefault, SettingsMap, oset, sWidthMin, sWidthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     int d_mod;
     HSVValue hsv, hsv0, hsv1;

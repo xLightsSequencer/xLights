@@ -64,6 +64,15 @@ constexpr int TEXT_ALIGN_RIGHT = 0x0200;
 constexpr int TEXT_ALIGN_BOTTOM = 0x0400;
 constexpr int TEXT_ALIGN_CENTER_VERTICAL = 0x0800;
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Text.json values).
+int TextEffect::sSpeedDefault = 10;
+int TextEffect::sXStartDefault = 0;
+int TextEffect::sYStartDefault = 0;
+int TextEffect::sXEndDefault = 0;
+int TextEffect::sYEndDefault = 0;
+bool TextEffect::sPixelOffsetsDefault = false;
+bool TextEffect::sColorPerWordDefault = false;
+
 TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64), font_mgr(FontManager::instance())
 {
     //ctor
@@ -72,6 +81,17 @@ TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, 
 TextEffect::~TextEffect()
 {
     //dtor
+}
+
+void TextEffect::OnMetadataLoaded()
+{
+    sSpeedDefault = GetIntDefault("Text_Speed", sSpeedDefault);
+    sXStartDefault = GetIntDefault("Text_XStart", sXStartDefault);
+    sYStartDefault = GetIntDefault("Text_YStart", sYStartDefault);
+    sXEndDefault = GetIntDefault("Text_XEnd", sXEndDefault);
+    sYEndDefault = GetIntDefault("Text_YEnd", sYEndDefault);
+    sPixelOffsetsDefault = GetBoolDefault("Text_PixelOffsets", sPixelOffsetsDefault);
+    sColorPerWordDefault = GetBoolDefault("Text_Color_PerWord", sColorPerWordDefault);
 }
 
 std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -350,12 +370,12 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     if (!text.empty()) {
 
-        int starty = std::strtol(SettingsMap.Get("SLIDER_Text_YStart", "0").c_str(), nullptr, 10);
-        int startx = std::strtol(SettingsMap.Get("SLIDER_Text_XStart", "0").c_str(), nullptr, 10);
-        int endy = std::strtol(SettingsMap.Get("SLIDER_Text_YEnd", "0").c_str(), nullptr, 10);
-        int endx = std::strtol(SettingsMap.Get("SLIDER_Text_XEnd", "0").c_str(), nullptr, 10);
-        bool pixelOffsets = std::strtol(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0").c_str(), nullptr, 10);
-        bool perWord = std::strtol(SettingsMap.Get("CHECKBOX_Text_Color_PerWord", "0").c_str(), nullptr, 10);
+        int starty = SettingsMap.GetInt("SLIDER_Text_YStart", sYStartDefault);
+        int startx = SettingsMap.GetInt("SLIDER_Text_XStart", sXStartDefault);
+        int endy = SettingsMap.GetInt("SLIDER_Text_YEnd", sYEndDefault);
+        int endx = SettingsMap.GetInt("SLIDER_Text_XEnd", sXEndDefault);
+        bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Text_PixelOffsets", sPixelOffsetsDefault);
+        bool perWord = SettingsMap.GetBool("CHECKBOX_Text_Color_PerWord", sColorPerWordDefault);
 
         const CachedRGBAImage* i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
@@ -366,7 +386,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                        std::strtol(SettingsMap["CHECKBOX_TextNoRepeat"].c_str(), nullptr, 10),
                        TextEffectsIndex(SettingsMap["CHOICE_Text_Effect"]),
                        TextCountDownIndex(SettingsMap["CHOICE_Text_Count"]),
-                       std::strtol(SettingsMap.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10),
+                       SettingsMap.GetInt("TEXTCTRL_Text_Speed", sSpeedDefault),
                        startx, starty, endx, endy, pixelOffsets, perWord);
 
         if (i == nullptr) {
@@ -1337,7 +1357,7 @@ std::string TextEffect::FlipWord(const SettingsMap& settings, const std::string&
 
     if (words.size() > 1) {
         // we need to adjust the text
-        int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10); // 0 to 50
+        int tspeed = settings.GetInt("TEXTCTRL_Text_Speed", sSpeedDefault); // 0 to 50
 
         // zero means just show the first word ... never advance
         // one means go through words once
@@ -1364,12 +1384,12 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int num_colors = buffer.palette.Size();
     buffer.palette.GetColor(0, c);
 
-    int starty = std::strtol(settings.Get("SLIDER_Text_YStart", "0").c_str(), nullptr, 10);
-    int startx = std::strtol(settings.Get("SLIDER_Text_XStart", "0").c_str(), nullptr, 10);
-    int endy = std::strtol(settings.Get("SLIDER_Text_YEnd", "0").c_str(), nullptr, 10);
-    int endx = std::strtol(settings.Get("SLIDER_Text_XEnd", "0").c_str(), nullptr, 10);
-    bool pixelOffsets = std::strtol(settings.Get("CHECKBOX_Text_PixelOffsets", "0").c_str(), nullptr, 10);
-    bool perWord = std::strtol(settings.Get("CHECKBOX_Text_Color_PerWord", "0").c_str(), nullptr, 10);
+    int starty = settings.GetInt("SLIDER_Text_YStart", sYStartDefault);
+    int startx = settings.GetInt("SLIDER_Text_XStart", sXStartDefault);
+    int endy = settings.GetInt("SLIDER_Text_YEnd", sYEndDefault);
+    int endx = settings.GetInt("SLIDER_Text_XEnd", sXEndDefault);
+    bool pixelOffsets = settings.GetBool("CHECKBOX_Text_PixelOffsets", sPixelOffsetsDefault);
+    bool perWord = settings.GetBool("CHECKBOX_Text_Color_PerWord", sColorPerWordDefault);
 
     int OffsetLeft = startx * buffer.BufferWi / 100;
     int OffsetTop = -starty * buffer.BufferHt / 100;
@@ -1459,7 +1479,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     std::string msg = text;
     int Countdown = TextCountDownIndex(settings["CHOICE_Text_Count"]);
     if (Countdown > 0) {
-        int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10);
+        int tspeed = settings.GetInt("TEXTCTRL_Text_Speed", sSpeedDefault);
         int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
         std::string Line = text;
         FormatCountdown(Countdown, state, Line, buffer, msg, text);
@@ -1607,7 +1627,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
     int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90) const
 {
-    int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10);
+    int tspeed = settings.GetInt("TEXTCTRL_Text_Speed", sSpeedDefault);
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
     int txtwidth = text_len;

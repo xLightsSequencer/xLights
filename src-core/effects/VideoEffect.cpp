@@ -41,12 +41,49 @@
 
 #include <log.h>
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Video.json values).
+double VideoEffect::sSpeedDefault = 1.0;
+double VideoEffect::sSpeedMin = -1000;
+double VideoEffect::sSpeedMax = 1000;
+int VideoEffect::sSpeedDivisor = 100;
+int VideoEffect::sCropMin = 0;
+int VideoEffect::sCropMax = 100;
+int VideoEffect::sCropLeftDefault = 0;
+int VideoEffect::sCropRightDefault = 100;
+int VideoEffect::sCropTopDefault = 100;
+int VideoEffect::sCropBottomDefault = 0;
+double VideoEffect::sStartTimeDefault = 0.0;
+int VideoEffect::sSampleSpacingDefault = 0;
+bool VideoEffect::sSyncAudioDefault = false;
+bool VideoEffect::sAspectRatioDefault = false;
+std::string VideoEffect::sDurationTreatmentDefault = "Normal";
+
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
 }
 
 VideoEffect::~VideoEffect()
 {
+}
+
+void VideoEffect::OnMetadataLoaded()
+{
+    sSpeedDefault = GetDoubleDefault("Video_Speed", sSpeedDefault);
+    sSpeedMin = GetMinFromMetadata("Video_Speed", sSpeedMin);
+    sSpeedMax = GetMaxFromMetadata("Video_Speed", sSpeedMax);
+    sSpeedDivisor = GetDivisorFromMetadata("Video_Speed", sSpeedDivisor);
+    // All crop sliders share the same min/max range in Video.json.
+    sCropMin = (int)GetMinFromMetadata("Video_CropLeft", sCropMin);
+    sCropMax = (int)GetMaxFromMetadata("Video_CropLeft", sCropMax);
+    sCropLeftDefault = GetIntDefault("Video_CropLeft", sCropLeftDefault);
+    sCropRightDefault = GetIntDefault("Video_CropRight", sCropRightDefault);
+    sCropTopDefault = GetIntDefault("Video_CropTop", sCropTopDefault);
+    sCropBottomDefault = GetIntDefault("Video_CropBottom", sCropBottomDefault);
+    sStartTimeDefault = GetDoubleDefault("Video_Starttime", sStartTimeDefault);
+    sSampleSpacingDefault = GetIntDefault("SampleSpacing", sSampleSpacingDefault);
+    sSyncAudioDefault = GetBoolDefault("SynchroniseWithAudio", sSyncAudioDefault);
+    sAspectRatioDefault = GetBoolDefault("Video_AspectRatio", sAspectRatioDefault);
+    sDurationTreatmentDefault = GetStringDefault("Video_DurationTreatment", sDurationTreatmentDefault);
 }
 
 std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -81,8 +118,8 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
             if (videoreader == nullptr || videoreader->GetLengthMS() == 0) {
                 res.push_back(std::format("    ERR: Video effect video file '{}' could not be understood. Format may not be supported. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else if (videoreader != nullptr) {
-                double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
-                std::string treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
+                double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", sStartTimeDefault);
+                std::string treatment = settings.Get("E_CHOICE_Video_DurationTreatment", sDurationTreatmentDefault);
 
                 if (treatment == "Normal") {
                     int videoduration = videoreader->GetLengthMS() - starttime;
@@ -207,25 +244,25 @@ void VideoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
 {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
-    int cl = GetValueCurveInt("Video_CropLeft", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int cr = GetValueCurveInt("Video_CropRight", 100, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int ct = GetValueCurveInt("Video_CropTop", 100, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int cb = GetValueCurveInt("Video_CropBottom", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int cl = GetValueCurveInt("Video_CropLeft", sCropLeftDefault, SettingsMap, offset, sCropMin, sCropMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int cr = GetValueCurveInt("Video_CropRight", sCropRightDefault, SettingsMap, offset, sCropMin, sCropMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int ct = GetValueCurveInt("Video_CropTop", sCropTopDefault, SettingsMap, offset, sCropMin, sCropMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int cb = GetValueCurveInt("Video_CropBottom", sCropBottomDefault, SettingsMap, offset, sCropMin, sCropMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     Render(buffer,
            SettingsMap["FILEPICKERCTRL_Video_Filename"],
-           SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
+           SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", sStartTimeDefault),
            std::min(cl, cr),
            std::max(cl, cr),
            std::max(ct, cb),
            std::min(ct, cb),
-           SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
-           SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
-           SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
+           SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", sAspectRatioDefault),
+           SettingsMap.Get("CHOICE_Video_DurationTreatment", sDurationTreatmentDefault),
+           SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", sSyncAudioDefault),
            SettingsMap.GetBool("CHECKBOX_Video_TransparentBlack", false),
            SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0),
-           GetValueCurveDouble("Video_Speed", 1.0, SettingsMap, offset, VIDEO_SPEED_MIN, VIDEO_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), VIDEO_SPEED_DIVISOR),
-           SettingsMap.GetInt("TEXTCTRL_SampleSpacing", 0));
+           GetValueCurveDouble("Video_Speed", sSpeedDefault, SettingsMap, offset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sSpeedDivisor),
+           SettingsMap.GetInt("TEXTCTRL_SampleSpacing", sSampleSpacingDefault));
 }
 
 class VideoRenderCache : public EffectRenderCache {

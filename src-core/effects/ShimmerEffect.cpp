@@ -16,6 +16,15 @@
 
 #include "../../include/shimmer.xpm"
 
+int ShimmerEffect::sDutyFactorDefault = 50;
+int ShimmerEffect::sDutyFactorMin = 1;
+int ShimmerEffect::sDutyFactorMax = 100;
+double ShimmerEffect::sCyclesDefault = 1.0;
+double ShimmerEffect::sCyclesMin = 0;
+double ShimmerEffect::sCyclesMax = 6000;
+int ShimmerEffect::sCyclesDivisor = 10;
+bool ShimmerEffect::sUseAllColorsDefault = false;
+
 ShimmerEffect::ShimmerEffect(int id) : RenderableEffect(id, "Shimmer", shimmer, shimmer, shimmer, shimmer, shimmer)
 {
     //ctor
@@ -26,12 +35,29 @@ ShimmerEffect::~ShimmerEffect()
     //dtor
 }
 
+void ShimmerEffect::OnMetadataLoaded()
+{
+    sDutyFactorDefault = GetIntDefault("Shimmer_Duty_Factor", sDutyFactorDefault);
+    sDutyFactorMin = (int)GetMinFromMetadata("Shimmer_Duty_Factor", sDutyFactorMin);
+    sDutyFactorMax = (int)GetMaxFromMetadata("Shimmer_Duty_Factor", sDutyFactorMax);
+    sCyclesDefault = GetDoubleDefault("Shimmer_Cycles", sCyclesDefault);
+    sCyclesMin = GetMinFromMetadata("Shimmer_Cycles", sCyclesMin);
+    sCyclesMax = GetMaxFromMetadata("Shimmer_Cycles", sCyclesMax);
+    sCyclesDivisor = GetDivisorFromMetadata("Shimmer_Cycles", sCyclesDivisor);
+    sUseAllColorsDefault = GetBoolDefault("Shimmer_Use_All_Colors", sUseAllColorsDefault);
+}
+
 void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    // Defaults were cached from Shimmer.json in OnMetadataLoaded().
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", 50, SettingsMap, oset, SHIMMER_DUTYFACTOR_MIN, SHIMMER_DUTYFACTOR_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", false);
-    double cycles = GetValueCurveDouble("Shimmer_Cycles", 1.0, SettingsMap, oset, SHIMMER_CYCLES_MIN, SHIMMER_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
+    int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", sDutyFactorDefault, SettingsMap, oset,
+                                       sDutyFactorMin, sDutyFactorMax,
+                                       buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", sUseAllColorsDefault);
+    double cycles = GetValueCurveDouble("Shimmer_Cycles", sCyclesDefault, SettingsMap, oset,
+                                        sCyclesMin, sCyclesMax,
+                                        buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sCyclesDivisor);
     bool pre2017_7 = SettingsMap.GetBool("CHECKBOX_PRE_2017_7", false);
     int colorcnt = buffer.GetColorCount();
 

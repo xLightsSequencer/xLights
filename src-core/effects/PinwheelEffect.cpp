@@ -25,6 +25,32 @@
 
 #include "ispc/PinwheelFunctions.ispc.h"
 
+int PinwheelEffect::sArmsDefault = 3;
+int PinwheelEffect::sArmSizeDefault = 100;
+int PinwheelEffect::sArmSizeMin = 0;
+int PinwheelEffect::sArmSizeMax = 400;
+int PinwheelEffect::sTwistDefault = 0;
+int PinwheelEffect::sTwistMin = -360;
+int PinwheelEffect::sTwistMax = 360;
+int PinwheelEffect::sThicknessDefault = 0;
+int PinwheelEffect::sThicknessMin = 0;
+int PinwheelEffect::sThicknessMax = 100;
+int PinwheelEffect::sSpeedDefault = 10;
+int PinwheelEffect::sSpeedMin = 0;
+int PinwheelEffect::sSpeedMax = 50;
+int PinwheelEffect::sOffsetDefault = 0;
+int PinwheelEffect::sOffsetMin = 0;
+int PinwheelEffect::sOffsetMax = 360;
+std::string PinwheelEffect::sStyleDefault = "Old Render Method";
+bool PinwheelEffect::sRotationDefault = true;
+std::string PinwheelEffect::s3DDefault = "None";
+int PinwheelEffect::sXCDefault = 0;
+int PinwheelEffect::sXCMin = -100;
+int PinwheelEffect::sXCMax = 100;
+int PinwheelEffect::sYCDefault = 0;
+int PinwheelEffect::sYCMin = -100;
+int PinwheelEffect::sYCMax = 100;
+
 PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64)
 {
     //ctor
@@ -33,6 +59,35 @@ PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwhe
 PinwheelEffect::~PinwheelEffect()
 {
     //dtor
+}
+
+void PinwheelEffect::OnMetadataLoaded()
+{
+    sArmsDefault = GetIntDefault("Pinwheel_Arms", sArmsDefault);
+    sArmSizeDefault = GetIntDefault("Pinwheel_ArmSize", sArmSizeDefault);
+    sArmSizeMin = (int)GetMinFromMetadata("Pinwheel_ArmSize", sArmSizeMin);
+    sArmSizeMax = (int)GetMaxFromMetadata("Pinwheel_ArmSize", sArmSizeMax);
+    sTwistDefault = GetIntDefault("Pinwheel_Twist", sTwistDefault);
+    sTwistMin = (int)GetMinFromMetadata("Pinwheel_Twist", sTwistMin);
+    sTwistMax = (int)GetMaxFromMetadata("Pinwheel_Twist", sTwistMax);
+    sThicknessDefault = GetIntDefault("Pinwheel_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Pinwheel_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Pinwheel_Thickness", sThicknessMax);
+    sSpeedDefault = GetIntDefault("Pinwheel_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Pinwheel_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Pinwheel_Speed", sSpeedMax);
+    sOffsetDefault = GetIntDefault("Pinwheel_Offset", sOffsetDefault);
+    sOffsetMin = (int)GetMinFromMetadata("Pinwheel_Offset", sOffsetMin);
+    sOffsetMax = (int)GetMaxFromMetadata("Pinwheel_Offset", sOffsetMax);
+    sStyleDefault = GetStringDefault("Pinwheel_Style", sStyleDefault);
+    sRotationDefault = GetBoolDefault("Pinwheel_Rotation", sRotationDefault);
+    s3DDefault = GetStringDefault("Pinwheel_3D", s3DDefault);
+    sXCDefault = GetIntDefault("PinwheelXC", sXCDefault);
+    sXCMin = (int)GetMinFromMetadata("PinwheelXC", sXCMin);
+    sXCMax = (int)GetMaxFromMetadata("PinwheelXC", sXCMax);
+    sYCDefault = GetIntDefault("PinwheelYC", sYCDefault);
+    sYCMin = (int)GetMinFromMetadata("PinwheelYC", sYCMin);
+    sYCMax = (int)GetMaxFromMetadata("PinwheelYC", sYCMax);
 }
 PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string& pinwheel_3d) {
     if (pinwheel_3d == "3D") {
@@ -55,21 +110,21 @@ void PinwheelEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rend
 }
 void PinwheelEffect::RenderNewMethod(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    
-    int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", 3);
+
+    int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", sArmsDefault);
     PinwheelData data(pinwheel_arms);
-    
-    data.pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    data.pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation", true);
+
+    data.pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", sTwistDefault, SettingsMap, oset, sTwistMin, sTwistMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    data.pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation", sRotationDefault);
     const std::string& pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
-    data.xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset, PINWHEEL_X_MIN, PINWHEEL_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    data.yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    data.poffset = GetValueCurveInt("Pinwheel_Offset", 0, SettingsMap, oset, PINWHEEL_OFFSET_MIN, PINWHEEL_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    
-    data.pos = (float)((buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs) / (float)PINWHEEL_SPEED_MAX;
+    data.xc_adj = GetValueCurveInt("PinwheelXC", sXCDefault, SettingsMap, oset, sXCMin, sXCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    data.yc_adj = GetValueCurveInt("PinwheelYC", sYCDefault, SettingsMap, oset, sYCMin, sYCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", sArmSizeDefault, SettingsMap, oset, sArmSizeMin, sArmSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pspeed = GetValueCurveInt("Pinwheel_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    data.poffset = GetValueCurveInt("Pinwheel_Offset", sOffsetDefault, SettingsMap, oset, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+    data.pos = (float)((buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs) / (float)sSpeedMax;
     data.degrees_per_arm = 1;
     if (pinwheel_arms > 0) data.degrees_per_arm = 360 / pinwheel_arms;
     float armsize = (pinwheel_armsize / 100.0);
@@ -175,19 +230,19 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
 }
 void PinwheelEffect::RenderOldMethod(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    
-    int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", 3);
-    int pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation", true);
+
+    int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", sArmsDefault);
+    int pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", sTwistDefault, SettingsMap, oset, sTwistMin, sTwistMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation", sRotationDefault);
     const std::string& pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
-    int xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset, PINWHEEL_X_MIN, PINWHEEL_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int poffset = GetValueCurveInt("Pinwheel_Offset", 0, SettingsMap, oset, PINWHEEL_OFFSET_MIN, PINWHEEL_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    
-    double pos = (double)((buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs) / (double)PINWHEEL_SPEED_MAX;
+    int xc_adj = GetValueCurveInt("PinwheelXC", sXCDefault, SettingsMap, oset, sXCMin, sXCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yc_adj = GetValueCurveInt("PinwheelYC", sYCDefault, SettingsMap, oset, sYCMin, sYCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", sArmSizeDefault, SettingsMap, oset, sArmSizeMin, sArmSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int pspeed = GetValueCurveInt("Pinwheel_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int poffset = GetValueCurveInt("Pinwheel_Offset", sOffsetDefault, SettingsMap, oset, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+    double pos = (double)((buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs) / (double)sSpeedMax;
     int degrees_per_arm = 1;
     if (pinwheel_arms > 0) degrees_per_arm = 360 / pinwheel_arms;
     float armsize = (pinwheel_armsize / 100.0);

@@ -82,7 +82,11 @@ public:
 
 
     public:
-        EffectManager();
+        // metadataDir is the absolute path to resources/effectmetadata. The
+        // UI layer passes this in because resource location is a UI concern.
+        // If empty, effects are created without metadata (their legacy
+        // hard-coded defaults still apply).
+        explicit EffectManager(std::string metadataDir = "");
         virtual ~EffectManager();
 
 
@@ -110,8 +114,13 @@ public:
     protected:
         RenderableEffect *createEffect(RGB_EFFECTS_e eff);
         void add(RenderableEffect *eff);
+        // Loads the JSON metadata file for the given effect (if present) and
+        // attaches it via SetMetadata(). Silently no-ops if mMetadataDir is
+        // empty or the file does not exist.
+        void loadMetadataInto(RenderableEffect *eff);
     private:
 
+        std::string mMetadataDir;
         mutable std::map<std::string, RenderableEffect *> effectsByName;
         std::vector<RenderableEffect *> effects;
 };

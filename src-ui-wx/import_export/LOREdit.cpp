@@ -262,17 +262,18 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString style = parms[0];
         wxString chunks = parms[1];
         wxString vcChunks;
-        chunks = RescaleWithRangeI(chunks, "E_VALUECURVE_Butterfly_Chunks", 1, 10, 1, 10, vcChunks, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX);
+        // VC bounds come from the effect's statics populated via Butterfly.json at startup.
+        chunks = RescaleWithRangeI(chunks, "E_VALUECURVE_Butterfly_Chunks", 1, 10, 1, 10, vcChunks, ButterflyEffect::sChunksMin, ButterflyEffect::sChunksMax);
         wxString skip = parms[2];
         wxString vcSkip;
-        skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip, BUTTERFLY_SKIP_MIN, BUTTERFLY_SKIP_MAX);
+        skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip, ButterflyEffect::sSkipMin, ButterflyEffect::sSkipMax);
         wxString direction = parms[3];
         wxString hue = parms[4];
         wxString vcHue;
         hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
         wxString speed = parms[5];
         wxString vcSpeed;
-        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX);
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, ButterflyEffect::sSpeedMin, ButterflyEffect::sSpeedMax);
         wxString colours = parms[6];
 
         if (style == "linear") {
@@ -340,16 +341,16 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         // 1, left_to_right, 20, 50, 0, False, none, 12
         wxString repeat = parms[0];
         wxString vcRepeat;
-        repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Spirals_Count", 1, 5, 1, 5, vcRepeat, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
+        repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Spirals_Count", 1, 5, 1, 5, vcRepeat, SpiralsEffect::sCountMin, SpiralsEffect::sCountMax);
         wxString direction = parms[1];
         wxString rotation = parms[2];
         rotation = wxString::Format("%.2f", wxAtof(rotation) / 60.0);
         wxString vcRotation;
-        rotation = RescaleWithRangeF(rotation, "E_VALUECURVE_Spirals_Rotation", 0, 50, 0, 50, vcRotation, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
+        rotation = RescaleWithRangeF(rotation, "E_VALUECURVE_Spirals_Rotation", 0, 50, 0, 50, vcRotation, SpiralsEffect::sRotationMin, SpiralsEffect::sRotationMax);
         rotation = wxString::Format("%d", (int)(wxAtof(rotation) * 10.0));
         wxString thickness = parms[3];
         wxString vcThickness;
-        thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 100, vcThickness, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
+        thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 100, vcThickness, SpiralsEffect::sThicknessMin, SpiralsEffect::sThicknessMax);
         // wxString thicknessChange = parms[4]; //unused
         wxString blend = parms[5];
         wxString show3d = parms[6];
@@ -357,10 +358,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
         wxString vcSpeed;
         if (direction == "right_to_left") {
-            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -50, vcSpeed, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -50, vcSpeed, SpiralsEffect::sMovementMin, SpiralsEffect::sMovementMax);
         }
         else {
-            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, 50, vcSpeed, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, 50, vcSpeed, SpiralsEffect::sMovementMin, SpiralsEffect::sMovementMax);
         }
 
         settings += ",E_SLIDER_Spirals_Count=" + repeat;
@@ -395,16 +396,17 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString direction = parms[0];
         wxString repeat = parms[1];
         wxString vcRepeat;
-        repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Bars_BarCount", 1, 5, 1, 5, vcRepeat, BARCOUNT_MIN, BARCOUNT_MAX);
+        // VC bounds come from the effect's statics populated via Bars.json at startup.
+        repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Bars_BarCount", 1, 5, 1, 5, vcRepeat, BarsEffect::sBarCountMin, BarsEffect::sBarCountMax);
         wxString highlight = parms[2];
         wxString show3d = parms[3];
         wxString speed = parms[4];
         speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
         wxString vcSpeed;
-        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BARCYCLES_MIN, BARCYCLES_MAX);
+        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BarsEffect::sCyclesMin, BarsEffect::sCyclesMax);
         wxString centre = parms[5];
         wxString vcCentre;
-        centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BARCENTER_MIN, BARCENTER_MAX);
+        centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BarsEffect::sCenterMin, BarsEffect::sCenterMax);
 
         settings += ",E_SLIDER_Bars_BarCount=" + repeat;
         settings += vcRepeat;
@@ -471,11 +473,15 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString movement = parms[1];
         wxString swag = parms[2];
         wxString vcSwag;
-        swag = RescaleWithRangeF(swag, "E_VALUECURVE_Curtain_Swag", 0, 10, 0, 10, vcSwag, CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX);
+        swag = RescaleWithRangeF(swag, "E_VALUECURVE_Curtain_Swag", 0, 10, 0, 10, vcSwag, CurtainEffect::sSwagMin, CurtainEffect::sSwagMax);
         wxString repeat = parms[3];
         wxString speed = parms[4];
         wxString vcSpeed;
-        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Curtain_Speed", 0, 50, 0, 10, vcSpeed, CURTAIN_SPEED_MIN, CURTAIN_SPEED_MAX);
+        // Curtain_Speed's pre-migration range was (0, 10) post-divisor. Write the VC in
+        // that legacy form — UpgradeValueCurve rescales it to the new (0, 100) pre-divisor
+        // form on the first sequence load. Keeping the literal here avoids a second rescale
+        // (post-divisor slider vs pre-divisor VC) in the import path.
+        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Curtain_Speed", 0, 50, 0, 10, vcSpeed, 0, 10);
 
         settings += ",E_CHOICE_Curtain_Edge=" + edge;
         movement.Replace("_", " ");
@@ -502,10 +508,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         //50,0
         wxString height = parms[0];
         wxString vcHeight;
-        height = RescaleWithRangeI(height, "E_VALUECURVE_Fire_Height", 10, 100, 0, 100, vcHeight, FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX);
+        height = RescaleWithRangeI(height, "E_VALUECURVE_Fire_Height", 10, 100, 0, 100, vcHeight, FireEffect::sHeightMin, FireEffect::sHeightMax);
         wxString hueShift = parms[1];
         wxString vcHueShift;
-        hueShift = RescaleWithRangeI(hueShift, "E_VALUECURVE_Fire_HueShift", 0, 359, 0, 100, vcHueShift, FIRE_HUE_MIN, FIRE_HUE_MAX);
+        hueShift = RescaleWithRangeI(hueShift, "E_VALUECURVE_Fire_HueShift", 0, 359, 0, 100, vcHueShift, FireEffect::sHueShiftMin, FireEffect::sHueShiftMax);
 
         settings += ",E_SLIDER_Fire_Height=" + height;
         settings += vcHeight;
@@ -537,11 +543,14 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         type = RescaleWithRangeI(type, "IGNORE", 0, 4, 0, 4, vcCrap, -1, -1);
         wxString spacing = parms[1];
         wxString vcSpacing;
-        spacing = RescaleWithRangeI(spacing, "E_VALUECURVE_Garlands_Spacing", 0, 100, 1, 100, vcSpacing, GARLANDS_SPACING_MIN, GARLANDS_SPACING_MAX);
+        spacing = RescaleWithRangeI(spacing, "E_VALUECURVE_Garlands_Spacing", 0, 100, 1, 100, vcSpacing, GarlandsEffect::sSpacingMin, GarlandsEffect::sSpacingMax);
         wxString repeat = parms[2];
         wxString speed = parms[3];
         wxString vcSpeed;
-        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Garlands_Cycles", 0, 50, 0, 20, vcSpeed, GARLANDS_CYCLES_MIN, GARLANDS_CYCLES_MAX);
+        // Garlands_Cycles pre-migration range was (0, 20) post-divisor. Write the VC in
+        // that legacy form — UpgradeValueCurve rescales it to the new (0, 200) pre-divisor
+        // form with divisor 10 on the first sequence load.
+        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Garlands_Cycles", 0, 50, 0, 20, vcSpeed, 0, 20);
         wxString fill = parms[4];
 
         settings += ",E_SLIDER_Garlands_Type=" + type;
@@ -581,22 +590,22 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString size = parms[2];
         wxString speed = parms[4];
         wxString vcSpacing;
-        spacing = RescaleWithRangeI(spacing, "E_SLIDER_Marquee_Skip_Size", 1, 20, 1, 20, vcSpacing, MARQUEE_SKIP_SIZE_MIN, MARQUEE_SKIP_SIZE_MAX);
+        spacing = RescaleWithRangeI(spacing, "E_SLIDER_Marquee_Skip_Size", 1, 20, 1, 20, vcSpacing, MarqueeEffect::sSkipSizeMin, MarqueeEffect::sSkipSizeMax);
         settings += ",E_SLIDER_Marquee_Skip_Size=" + spacing;
         settings += vcSpacing;
 
         wxString vcBandSize;
-        filledspace = RescaleWithRangeI(filledspace, "E_SLIDER_Marquee_Band_Size", 1, 100, 1, 100, vcBandSize, MARQUEE_BAND_SIZE_MIN, MARQUEE_BAND_SIZE_MAX);
+        filledspace = RescaleWithRangeI(filledspace, "E_SLIDER_Marquee_Band_Size", 1, 100, 1, 100, vcBandSize, MarqueeEffect::sBandSizeMin, MarqueeEffect::sBandSizeMax);
         settings += ",E_SLIDER_Marquee_Band_Size=" + filledspace;
         settings += vcBandSize;
 
         wxString vcSize;
-        size = RescaleWithRangeI(size, "E_SLIDER_Marquee_Thickness", 1, 20, 1, 20, vcSize, MARQUEE_THICKNESS_MIN, MARQUEE_THICKNESS_MAX);
+        size = RescaleWithRangeI(size, "E_SLIDER_Marquee_Thickness", 1, 20, 1, 20, vcSize, MarqueeEffect::sThicknessMin, MarqueeEffect::sThicknessMax);
         settings += ",E_SLIDER_Marquee_Thickness=" + size;
         settings += vcSize;
 
         wxString vcSpeed;
-        speed = RescaleWithRangeI(speed, "E_SLIDER_Marquee_Speed", 1, 50, 1, 50, vcSpeed, MARQUEE_SPEED_MIN, MARQUEE_SPEED_MAX);
+        speed = RescaleWithRangeI(speed, "E_SLIDER_Marquee_Speed", 1, 50, 1, 50, vcSpeed, MarqueeEffect::sSpeedMin, MarqueeEffect::sSpeedMax);
         settings += ",E_SLIDER_Marquee_Speed=" + speed;
         settings += vcSpeed;
     }
@@ -605,17 +614,17 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString colourScheme = parms[0];
         wxString count = parms[1];
         wxString vcCount;
-        count = RescaleWithRangeI(count, "E_VALUECURVE_Meteors_Count", 1, 100, 1, 100, vcCount, METEORS_COUNT_MIN, METEORS_COUNT_MAX);
+        count = RescaleWithRangeI(count, "E_VALUECURVE_Meteors_Count", 1, 100, 1, 100, vcCount, MeteorsEffect::sCountMin, MeteorsEffect::sCountMax);
         wxString length = parms[2];
         wxString vcLength;
-        length = RescaleWithRangeI(length, "E_VALUECURVE_Meteors_Length", 1, 100, 1, 100, vcLength, METEORS_LENGTH_MIN, METEORS_LENGTH_MAX);
+        length = RescaleWithRangeI(length, "E_VALUECURVE_Meteors_Length", 1, 100, 1, 100, vcLength, MeteorsEffect::sLengthMin, MeteorsEffect::sLengthMax);
         wxString effect = parms[3];
         wxString swirl = parms[4];
         wxString vcSwirl;
-        swirl = RescaleWithRangeI(swirl, "E_VALUECURVE_Meteors_Swirl_Intensity", 0, 20, 0, 20, vcSwirl, METEORS_SWIRL_MIN, METEORS_SWIRL_MAX);
+        swirl = RescaleWithRangeI(swirl, "E_VALUECURVE_Meteors_Swirl_Intensity", 0, 20, 0, 20, vcSwirl, MeteorsEffect::sSwirlMin, MeteorsEffect::sSwirlMax);
         wxString speed = parms[5];
         wxString vcSpeed;
-        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Meteors_Speed", 1, 50, 1, 50, vcSpeed, METEORS_SPEED_MIN, METEORS_SPEED_MAX);
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Meteors_Speed", 1, 50, 1, 50, vcSpeed, MeteorsEffect::sSpeedMin, MeteorsEffect::sSpeedMax);
 
         settings += ",E_CHOICE_Meteors_Type=" + colourScheme.Lower();
         settings += ",E_SLIDER_Meteors_Count=" + count;
@@ -760,11 +769,11 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
         wxString armwidth = parms[3];
         wxString vcArmWidth;
-        armwidth = RescaleWithRangeI(armwidth, "E_VALUECURVE_Pinwheel_Thickness", 0, 100, 0, 100, vcArmWidth, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
+        armwidth = RescaleWithRangeI(armwidth, "E_VALUECURVE_Pinwheel_Thickness", 0, 100, 0, 100, vcArmWidth, PinwheelEffect::sThicknessMin, PinwheelEffect::sThicknessMax);
         // wxString innerRadius = parms[4]; // not used
         wxString bend = parms[5];
         wxString vcBend;
-        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", 0, 50, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
+        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", 0, 50, -360, 360, vcBend, PinwheelEffect::sTwistMin, PinwheelEffect::sTwistMax);
         // wxString curvature = parms[6]; // not used
         wxString speed = parms[7];
         wxString vcSpeed;
@@ -773,26 +782,26 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         if (wxAtoi(speed) < 0)
         {
             ccw = true;
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, 0, 100, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, 0, 100, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
             speed = wxString::Format("%d", 50 - wxAtoi(speed)).ToStdString();
         }
         else             {
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, -50, 50, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, -50, 50, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
         }
         wxASSERT(wxAtoi(speed) >= 0);
 
         wxString length = parms[8];
         wxString vcLength;
-        length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX);
+        length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PinwheelEffect::sArmSizeMin, PinwheelEffect::sArmSizeMax);
 
         // wxString height = parms[9]; //unused
 
         wxString x = parms[10];
         wxString vcX;
-        x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+        x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PinwheelEffect::sXCMin, PinwheelEffect::sXCMax);
         wxString y = parms[11];
         wxString vcY;
-        y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+        y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PinwheelEffect::sYCMin, PinwheelEffect::sYCMax);
 
         settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
         settings += ",E_SLIDER_Pinwheel_Thickness=" + armwidth;
@@ -823,24 +832,24 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
         wxString width = parms[1];
         wxString vcWidth;
-        width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
+        width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth, PinwheelEffect::sThicknessMin, PinwheelEffect::sThicknessMax);
         wxString bend = parms[2];
         wxString vcBend;
-        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
+        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PinwheelEffect::sTwistMin, PinwheelEffect::sTwistMax);
         // wxString colour = parms[3]; // not used
         wxString CCW = parms[4];
         wxString speed = parms[5];
         wxString vcSpeed;
-        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
         wxString length = parms[6];
         wxString vcLength;
-        length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX);
+        length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PinwheelEffect::sArmSizeMin, PinwheelEffect::sArmSizeMax);
         wxString x = parms[7];
         wxString vcX;
-        x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+        x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PinwheelEffect::sXCMin, PinwheelEffect::sXCMax);
         wxString y = parms[8];
         wxString vcY;
-        y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+        y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PinwheelEffect::sYCMin, PinwheelEffect::sYCMax);
 
         settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
         settings += ",E_SLIDER_Pinwheel_Thickness=" + width;
@@ -867,7 +876,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         //5,1,0,12,60
         wxString count = parms[0];
         wxString vcCount;
-        count = RescaleWithRangeI(count, "E_VALUECURVE_Snowflakes_Count", 1, 20, 1, 20, vcCount, SNOWFLAKES_COUNT_MIN, SNOWFLAKES_COUNT_MAX);
+        count = RescaleWithRangeI(count, "E_VALUECURVE_Snowflakes_Count", 1, 20, 1, 20, vcCount, SnowflakesEffect::sCountMin, SnowflakesEffect::sCountMax);
         wxString type = parms[1];
         wxString vcCrap;
         type = RescaleWithRangeI(type, "IGNORE", 0, 5, 0, 5, vcCrap, -1, -1);
@@ -875,7 +884,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         direction = RescaleWithRangeI(direction, "IGNORE", -8, 8, -8, 8, vcCrap, -1, -1);
         wxString speed = parms[3];
         wxString vcSpeed;
-        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Snowflakes_Speed", 0, 50, 0, 50, vcSpeed, SNOWFLAKES_SPEED_MIN, SNOWFLAKES_SPEED_MAX);
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Snowflakes_Speed", 0, 50, 0, 50, vcSpeed, SnowflakesEffect::sSpeedMin, SnowflakesEffect::sSpeedMax);
         wxString accumulation = parms[4];
         accumulation = RescaleWithRangeI(accumulation, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
 
@@ -978,14 +987,14 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString vcCrap;
         auto type = SafeGetStringParm(parms, 0);
         auto repeatcount = SafeGetStringParm(parms, 1);    // 1-20 -> 1-30
-        repeatcount = RescaleWithRangeI(repeatcount, "IGNORE", 1, 20, 1 /*RIPPLE_CYCLES_MIN*/, RIPPLE_CYCLES_MAX, vcCrap, -1, -1); // not using min because i dont want it to scale to 0
+        repeatcount = RescaleWithRangeI(repeatcount, "IGNORE", 1, 20, 1 /*RIPPLE_CYCLES_MIN*/, RippleEffect::sCyclesMax, vcCrap, -1, -1); // not using min because i dont want it to scale to 0
         auto ringwidth = SafeGetIntParm(parms, 2);      // narrow is less
         //auto spacing = SafeGetIntParm(parms, 3);        // narrow is less
         //auto speed = SafeGetIntParm(parms, 4);          // slow is less
         auto leftright = SafeGetStringParm(parms, 5);      // left is negative ... zero centre
-        leftright = RescaleWithRangeI(leftright, "IGNORE", -50, 50, RIPPLE_XC_MIN, RIPPLE_XC_MAX, vcCrap, -1, -1);
+        leftright = RescaleWithRangeI(leftright, "IGNORE", -50, 50, RippleEffect::sXCMin, RippleEffect::sXCMax, vcCrap, -1, -1);
         auto topbottom = SafeGetStringParm(parms, 6);      // top is negative ... zero centre
-        topbottom = RescaleWithRangeI(topbottom, "IGNORE", -50, 50, RIPPLE_YC_MIN, RIPPLE_YC_MAX, vcCrap, -1, -1);
+        topbottom = RescaleWithRangeI(topbottom, "IGNORE", -50, 50, RippleEffect::sYCMin, RippleEffect::sYCMax, vcCrap, -1, -1);
         //auto highlightangle = SafeGetIntParm(parms, 7); // 0 = none
         auto inward = SafeGetBoolParm(parms, 8);
         //auto outerlimit = SafeGetIntParm(parms, 9); // 0 = small

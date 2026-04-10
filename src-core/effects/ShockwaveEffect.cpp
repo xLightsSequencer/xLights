@@ -25,6 +25,30 @@
 #include "ispc/ShockwaveFunctions.ispc.h"
 #include "Parallel.h"
 
+// Fallback defaults (replaced from Shockwave.json in OnMetadataLoaded).
+int ShockwaveEffect::sCenterXDefault = 50;
+int ShockwaveEffect::sCenterXMin = 0;
+int ShockwaveEffect::sCenterXMax = 100;
+int ShockwaveEffect::sCenterYDefault = 50;
+int ShockwaveEffect::sCenterYMin = 0;
+int ShockwaveEffect::sCenterYMax = 100;
+int ShockwaveEffect::sStartRadiusDefault = 1;
+int ShockwaveEffect::sStartRadiusMin = 0;
+int ShockwaveEffect::sStartRadiusMax = 750;
+int ShockwaveEffect::sEndRadiusDefault = 10;
+int ShockwaveEffect::sEndRadiusMin = 0;
+int ShockwaveEffect::sEndRadiusMax = 750;
+int ShockwaveEffect::sStartWidthDefault = 5;
+int ShockwaveEffect::sStartWidthMin = 0;
+int ShockwaveEffect::sStartWidthMax = 255;
+int ShockwaveEffect::sEndWidthDefault = 10;
+int ShockwaveEffect::sEndWidthMin = 0;
+int ShockwaveEffect::sEndWidthMax = 255;
+int ShockwaveEffect::sAccelDefault = 0;
+int ShockwaveEffect::sCyclesDefault = 1;
+bool ShockwaveEffect::sScaleDefault = true;
+bool ShockwaveEffect::sBlendEdgesDefault = true;
+
 ShockwaveEffect::ShockwaveEffect(int id) :
     RenderableEffect(id, "Shockwave", shockwave_16, shockwave_24, shockwave_32, shockwave_48, shockwave_64)
 {
@@ -36,10 +60,36 @@ ShockwaveEffect::~ShockwaveEffect()
     // dtor
 }
 
+void ShockwaveEffect::OnMetadataLoaded()
+{
+    sCenterXDefault = GetIntDefault("Shockwave_CenterX", sCenterXDefault);
+    sCenterXMin = (int)GetMinFromMetadata("Shockwave_CenterX", sCenterXMin);
+    sCenterXMax = (int)GetMaxFromMetadata("Shockwave_CenterX", sCenterXMax);
+    sCenterYDefault = GetIntDefault("Shockwave_CenterY", sCenterYDefault);
+    sCenterYMin = (int)GetMinFromMetadata("Shockwave_CenterY", sCenterYMin);
+    sCenterYMax = (int)GetMaxFromMetadata("Shockwave_CenterY", sCenterYMax);
+    sStartRadiusDefault = GetIntDefault("Shockwave_Start_Radius", sStartRadiusDefault);
+    sStartRadiusMin = (int)GetMinFromMetadata("Shockwave_Start_Radius", sStartRadiusMin);
+    sStartRadiusMax = (int)GetMaxFromMetadata("Shockwave_Start_Radius", sStartRadiusMax);
+    sEndRadiusDefault = GetIntDefault("Shockwave_End_Radius", sEndRadiusDefault);
+    sEndRadiusMin = (int)GetMinFromMetadata("Shockwave_End_Radius", sEndRadiusMin);
+    sEndRadiusMax = (int)GetMaxFromMetadata("Shockwave_End_Radius", sEndRadiusMax);
+    sStartWidthDefault = GetIntDefault("Shockwave_Start_Width", sStartWidthDefault);
+    sStartWidthMin = (int)GetMinFromMetadata("Shockwave_Start_Width", sStartWidthMin);
+    sStartWidthMax = (int)GetMaxFromMetadata("Shockwave_Start_Width", sStartWidthMax);
+    sEndWidthDefault = GetIntDefault("Shockwave_End_Width", sEndWidthDefault);
+    sEndWidthMin = (int)GetMinFromMetadata("Shockwave_End_Width", sEndWidthMin);
+    sEndWidthMax = (int)GetMaxFromMetadata("Shockwave_End_Width", sEndWidthMax);
+    sAccelDefault = GetIntDefault("Shockwave_Accel", sAccelDefault);
+    sCyclesDefault = GetIntDefault("Shockwave_Cycles", sCyclesDefault);
+    sScaleDefault = GetBoolDefault("Shockwave_Scale", sScaleDefault);
+    sBlendEdgesDefault = GetBoolDefault("Shockwave_Blend_Edges", sBlendEdgesDefault);
+}
+
 int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
                                           xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps)
 {
-    int cycles = e->GetSettings().GetInt("E_SLIDER_Shockwave_Cycles", 1);
+    int cycles = e->GetSettings().GetInt("E_SLIDER_Shockwave_Cycles", sCyclesDefault);
     int totalsize = x2 - x1;
     double x_size = totalsize / (double)cycles;
     x_size = std::max(x_size, 0.01);
@@ -71,17 +121,17 @@ void ShockwaveEffect::adjustSettings(const std::string& version, Effect* effect,
 
 void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", 1);
+    int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
     double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
-    int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos, SHOCKWAVE_X_MIN, SHOCKWAVE_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int center_y = GetValueCurveInt("Shockwave_CenterY", 50, SettingsMap, eff_pos, SHOCKWAVE_Y_MIN, SHOCKWAVE_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_radius = GetValueCurveInt("Shockwave_Start_Radius", 1, SettingsMap, eff_pos, SHOCKWAVE_STARTRADIUS_MIN, SHOCKWAVE_STARTRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_radius = GetValueCurveInt("Shockwave_End_Radius", 10, SettingsMap, eff_pos, SHOCKWAVE_ENDRADIUS_MIN, SHOCKWAVE_ENDRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_width = GetValueCurveInt("Shockwave_Start_Width", 5, SettingsMap, eff_pos, SHOCKWAVE_STARTWIDTH_MIN, SHOCKWAVE_STARTWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_width = GetValueCurveInt("Shockwave_End_Width", 10, SettingsMap, eff_pos, SHOCKWAVE_ENDWIDTH_MIN, SHOCKWAVE_ENDWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", 0);
-    bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges");
-    bool scale = SettingsMap.GetBool("CHECKBOX_Shockwave_Scale", true);
+    int center_x = GetValueCurveInt("Shockwave_CenterX", sCenterXDefault, SettingsMap, eff_pos, sCenterXMin, sCenterXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int center_y = GetValueCurveInt("Shockwave_CenterY", sCenterYDefault, SettingsMap, eff_pos, sCenterYMin, sCenterYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_radius = GetValueCurveInt("Shockwave_Start_Radius", sStartRadiusDefault, SettingsMap, eff_pos, sStartRadiusMin, sStartRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_radius = GetValueCurveInt("Shockwave_End_Radius", sEndRadiusDefault, SettingsMap, eff_pos, sEndRadiusMin, sEndRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_width = GetValueCurveInt("Shockwave_Start_Width", sStartWidthDefault, SettingsMap, eff_pos, sStartWidthMin, sStartWidthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_width = GetValueCurveInt("Shockwave_End_Width", sEndWidthDefault, SettingsMap, eff_pos, sEndWidthMin, sEndWidthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", sAccelDefault);
+    bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges", sBlendEdgesDefault);
+    bool scale = SettingsMap.GetBool("CHECKBOX_Shockwave_Scale", sScaleDefault);
 
     int num_colors = buffer.palette.Size();
     if (num_colors == 0)

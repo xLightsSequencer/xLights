@@ -80,6 +80,23 @@ namespace
     }
 }
 
+int LightningEffect::sNumberBoltsDefault = 10;
+int LightningEffect::sNumberBoltsMin = 1;
+int LightningEffect::sNumberBoltsMax = 50;
+int LightningEffect::sNumberSegmentsDefault = 5;
+int LightningEffect::sNumberSegmentsMin = 1;
+int LightningEffect::sNumberSegmentsMax = 20;
+bool LightningEffect::sForkedLightningDefault = false;
+int LightningEffect::sTopXDefault = 0;
+int LightningEffect::sTopXMin = -50;
+int LightningEffect::sTopXMax = 50;
+int LightningEffect::sTopYDefault = 0;
+int LightningEffect::sTopYMin = 0;
+int LightningEffect::sTopYMax = 100;
+int LightningEffect::sBotXDefault = 0;
+int LightningEffect::sWidthDefault = 1;
+std::string LightningEffect::sDirectionDefault = "Up";
+
 LightningEffect::LightningEffect(int id) : RenderableEffect(id, "Lightning", lightning_16, lightning_24, lightning_32, lightning_48, lightning_64)
 {
     //ctor
@@ -90,19 +107,39 @@ LightningEffect::~LightningEffect()
     //dtor
 }
 
+void LightningEffect::OnMetadataLoaded()
+{
+    sNumberBoltsDefault = GetIntDefault("Number_Bolts", sNumberBoltsDefault);
+    sNumberBoltsMin = (int)GetMinFromMetadata("Number_Bolts", sNumberBoltsMin);
+    sNumberBoltsMax = (int)GetMaxFromMetadata("Number_Bolts", sNumberBoltsMax);
+    sNumberSegmentsDefault = GetIntDefault("Number_Segments", sNumberSegmentsDefault);
+    sNumberSegmentsMin = (int)GetMinFromMetadata("Number_Segments", sNumberSegmentsMin);
+    sNumberSegmentsMax = (int)GetMaxFromMetadata("Number_Segments", sNumberSegmentsMax);
+    sForkedLightningDefault = GetBoolDefault("ForkedLightning", sForkedLightningDefault);
+    sTopXDefault = GetIntDefault("Lightning_TopX", sTopXDefault);
+    sTopXMin = (int)GetMinFromMetadata("Lightning_TopX", sTopXMin);
+    sTopXMax = (int)GetMaxFromMetadata("Lightning_TopX", sTopXMax);
+    sTopYDefault = GetIntDefault("Lightning_TopY", sTopYDefault);
+    sTopYMin = (int)GetMinFromMetadata("Lightning_TopY", sTopYMin);
+    sTopYMax = (int)GetMaxFromMetadata("Lightning_TopY", sTopYMax);
+    sBotXDefault = GetIntDefault("Lightning_BOTX", sBotXDefault);
+    sWidthDefault = GetIntDefault("Lightning_WIDTH", sWidthDefault);
+    sDirectionDefault = GetStringDefault("Lightning_Direction", sDirectionDefault);
+}
+
 void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Number_Bolts = GetValueCurveInt("Number_Bolts", 10, SettingsMap, oset, LIGHTNING_BOLTS_MIN, LIGHTNING_BOLTS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Number_Segments = GetValueCurveInt("Number_Segments", 5, SettingsMap, oset, LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool ForkedLightning = SettingsMap.GetBool("CHECKBOX_ForkedLightning", false);
-    int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset, LIGHTNING_TOPX_MIN, LIGHTNING_TOPX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset, LIGHTNING_TOPY_MIN, LIGHTNING_TOPY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", 0);
-    int width = SettingsMap.GetInt("SLIDER_Lightning_WIDTH", 1);
+    int Number_Bolts = GetValueCurveInt("Number_Bolts", sNumberBoltsDefault, SettingsMap, oset, sNumberBoltsMin, sNumberBoltsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Number_Segments = GetValueCurveInt("Number_Segments", sNumberSegmentsDefault, SettingsMap, oset, sNumberSegmentsMin, sNumberSegmentsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool ForkedLightning = SettingsMap.GetBool("CHECKBOX_ForkedLightning", sForkedLightningDefault);
+    int topX = GetValueCurveInt("Lightning_TopX", sTopXDefault, SettingsMap, oset, sTopXMin, sTopXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int topY = GetValueCurveInt("Lightning_TopY", sTopYDefault, SettingsMap, oset, sTopYMin, sTopYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", sBotXDefault);
+    int width = SettingsMap.GetInt("SLIDER_Lightning_WIDTH", sWidthDefault);
     int DIRECTION = GetLightningDirection(SettingsMap["CHOICE_Lightning_Direction"]);
 
-    Number_Bolts = std::clamp(Number_Bolts, LIGHTNING_BOLTS_MIN, LIGHTNING_BOLTS_MAX);
-    Number_Segments = std::clamp(Number_Segments, LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX);
+    Number_Bolts = std::clamp(Number_Bolts, sNumberBoltsMin, sNumberBoltsMax);
+    Number_Segments = std::clamp(Number_Segments, sNumberSegmentsMin, sNumberSegmentsMax);
     width = std::clamp(width, 1, 7);
 
     int curState = (buffer.curPeriod - buffer.curEffStartPer);

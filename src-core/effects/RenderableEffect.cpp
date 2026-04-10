@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 #include <format>
+#include <nlohmann/json.hpp>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -38,6 +39,227 @@ RenderableEffect::RenderableEffect(int i, std::string n,
 RenderableEffect::~RenderableEffect()
 {
     //dtor
+}
+
+void RenderableEffect::SetMetadata(nlohmann::json md)
+{
+    mMetadata = std::move(md);
+    // Give subclasses a chance to cache defaults/min/max into plain member
+    // variables so Render() never has to touch the JSON.
+    OnMetadataLoaded();
+}
+
+const nlohmann::json& RenderableEffect::GetMetadata() const
+{
+    return mMetadata;
+}
+
+bool RenderableEffect::HasMetadata() const
+{
+    return !mMetadata.is_null() && !mMetadata.empty();
+}
+
+const nlohmann::json* RenderableEffect::GetPropertyMetadata(const std::string& propId) const
+{
+    if (!HasMetadata()) {
+        return nullptr;
+    }
+    auto propsIt = mMetadata.find("properties");
+    if (propsIt == mMetadata.end() || !propsIt->is_array()) {
+        return nullptr;
+    }
+    for (const auto& prop : *propsIt) {
+        auto idIt = prop.find("id");
+        if (idIt != prop.end() && idIt->is_string() && idIt->get<std::string>() == propId) {
+            return &prop;
+        }
+    }
+    return nullptr;
+}
+
+int RenderableEffect::GetIntDefault(const std::string& propId, int fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("default");
+    if (it == prop->end() || !it->is_number()) {
+        return fallback;
+    }
+    return it->get<int>();
+}
+
+double RenderableEffect::GetDoubleDefault(const std::string& propId, double fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("default");
+    if (it == prop->end() || !it->is_number()) {
+        return fallback;
+    }
+    return it->get<double>();
+}
+
+bool RenderableEffect::GetBoolDefault(const std::string& propId, bool fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("default");
+    if (it == prop->end() || !it->is_boolean()) {
+        return fallback;
+    }
+    return it->get<bool>();
+}
+
+std::string RenderableEffect::GetStringDefault(const std::string& propId, const std::string& fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("default");
+    if (it == prop->end() || !it->is_string()) {
+        return fallback;
+    }
+    return it->get<std::string>();
+}
+
+double RenderableEffect::GetMinFromMetadata(const std::string& propId, double fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("min");
+    if (it == prop->end() || !it->is_number()) {
+        return fallback;
+    }
+    return it->get<double>();
+}
+
+double RenderableEffect::GetMaxFromMetadata(const std::string& propId, double fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("max");
+    if (it == prop->end() || !it->is_number()) {
+        return fallback;
+    }
+    return it->get<double>();
+}
+
+int RenderableEffect::GetDivisorFromMetadata(const std::string& propId, int fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("divisor");
+    if (it == prop->end() || !it->is_number()) {
+        return fallback;
+    }
+    return it->get<int>();
+}
+
+double RenderableEffect::GetVCMinFromMetadata(const std::string& propId, double fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("vcMin");
+    if (it != prop->end() && it->is_number()) {
+        return it->get<double>();
+    }
+    it = prop->find("min");
+    if (it != prop->end() && it->is_number()) {
+        return it->get<double>();
+    }
+    return fallback;
+}
+
+double RenderableEffect::GetVCMaxFromMetadata(const std::string& propId, double fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("vcMax");
+    if (it != prop->end() && it->is_number()) {
+        return it->get<double>();
+    }
+    it = prop->find("max");
+    if (it != prop->end() && it->is_number()) {
+        return it->get<double>();
+    }
+    return fallback;
+}
+
+// Strips the "E_VALUECURVE_" prefix (used by UpgradeValueCurve to identify the
+// value-curve setting key) and looks up the matching property in metadata.
+// Returns nullptr if the prefix is absent or the property is not described.
+static const nlohmann::json* LookupVCProperty(const RenderableEffect* eff, const std::string& name)
+{
+    constexpr std::string_view kPrefix = "E_VALUECURVE_";
+    if (name.size() <= kPrefix.size() || name.compare(0, kPrefix.size(), kPrefix) != 0) {
+        return nullptr;
+    }
+    return eff->GetPropertyMetadata(name.substr(kPrefix.size()));
+}
+
+double RenderableEffect::GetSettingVCMin(const std::string& name) const
+{
+    const nlohmann::json* prop = LookupVCProperty(this, name);
+    if (prop != nullptr) {
+        // Prefer vcMin — a property can expose a narrower VC range than its
+        // slider range (see Twinkle_Steps: slider 2..400, VC 2..100).
+        auto it = prop->find("vcMin");
+        if (it != prop->end() && it->is_number()) {
+            return it->get<double>();
+        }
+        it = prop->find("min");
+        if (it != prop->end() && it->is_number()) {
+            return it->get<double>();
+        }
+    }
+    assert(false);
+    return 0.0;
+}
+
+double RenderableEffect::GetSettingVCMax(const std::string& name) const
+{
+    const nlohmann::json* prop = LookupVCProperty(this, name);
+    if (prop != nullptr) {
+        auto it = prop->find("vcMax");
+        if (it != prop->end() && it->is_number()) {
+            return it->get<double>();
+        }
+        it = prop->find("max");
+        if (it != prop->end() && it->is_number()) {
+            return it->get<double>();
+        }
+    }
+    assert(false);
+    return 100.0;
+}
+
+int RenderableEffect::GetSettingVCDivisor(const std::string& name) const
+{
+    const nlohmann::json* prop = LookupVCProperty(this, name);
+    if (prop != nullptr) {
+        auto it = prop->find("divisor");
+        if (it != prop->end() && it->is_number()) {
+            return it->get<int>();
+        }
+    }
+    return 1;
 }
 
 int RenderableEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,

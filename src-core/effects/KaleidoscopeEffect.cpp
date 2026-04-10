@@ -35,12 +35,44 @@
 #define KALE_ISPC_STYLE_12FOLD   3
 #define KALE_ISPC_STYLE_RADIAL   4
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Kaleidoscope.json values).
+std::string KaleidoscopeEffect::sTypeDefault = "Triangle";
+int KaleidoscopeEffect::sXDefault = 50;
+int KaleidoscopeEffect::sXMin = 0;
+int KaleidoscopeEffect::sXMax = 100;
+int KaleidoscopeEffect::sYDefault = 50;
+int KaleidoscopeEffect::sYMin = 0;
+int KaleidoscopeEffect::sYMax = 100;
+int KaleidoscopeEffect::sSizeDefault = 5;
+int KaleidoscopeEffect::sSizeMin = 2;
+int KaleidoscopeEffect::sSizeMax = 100;
+int KaleidoscopeEffect::sRotationDefault = 0;
+int KaleidoscopeEffect::sRotationMin = 0;
+int KaleidoscopeEffect::sRotationMax = 359;
+
 KaleidoscopeEffect::KaleidoscopeEffect(int i) : RenderableEffect(i, "Kaleidoscope", kaleidoscope_16, kaleidoscope_24, kaleidoscope_32, kaleidoscope_48, kaleidoscope_64)
 {
 }
 
 KaleidoscopeEffect::~KaleidoscopeEffect()
 {
+}
+
+void KaleidoscopeEffect::OnMetadataLoaded()
+{
+    sTypeDefault = GetStringDefault("Kaleidoscope_Type", sTypeDefault);
+    sXDefault = GetIntDefault("Kaleidoscope_X", sXDefault);
+    sXMin = (int)GetMinFromMetadata("Kaleidoscope_X", sXMin);
+    sXMax = (int)GetMaxFromMetadata("Kaleidoscope_X", sXMax);
+    sYDefault = GetIntDefault("Kaleidoscope_Y", sYDefault);
+    sYMin = (int)GetMinFromMetadata("Kaleidoscope_Y", sYMin);
+    sYMax = (int)GetMaxFromMetadata("Kaleidoscope_Y", sYMax);
+    sSizeDefault = GetIntDefault("Kaleidoscope_Size", sSizeDefault);
+    sSizeMin = (int)GetMinFromMetadata("Kaleidoscope_Size", sSizeMin);
+    sSizeMax = (int)GetMaxFromMetadata("Kaleidoscope_Size", sSizeMax);
+    sRotationDefault = GetIntDefault("Kaleidoscope_Rotation", sRotationDefault);
+    sRotationMin = (int)GetMinFromMetadata("Kaleidoscope_Rotation", sRotationMin);
+    sRotationMax = (int)GetMaxFromMetadata("Kaleidoscope_Rotation", sRotationMax);
 }
 
 std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -562,11 +594,11 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
     //
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
-    std::string type = SettingsMap.Get("CHOICE_Kaleidoscope_Type", "Triangle");
-    int xCentre = GetValueCurveInt("Kaleidoscope_X", 50, SettingsMap, progress, KALEIDOSCOPE_X_MIN, KALEIDOSCOPE_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
-    int yCentre = GetValueCurveInt("Kaleidoscope_Y", 50, SettingsMap, progress, KALEIDOSCOPE_Y_MIN, KALEIDOSCOPE_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
-    int size = GetValueCurveInt("Kaleidoscope_Size", 5, SettingsMap, progress, KALEIDOSCOPE_SIZE_MIN, KALEIDOSCOPE_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int rotation = GetValueCurveInt("Kaleidoscope_Rotation", 0, SettingsMap, progress, KALEIDOSCOPE_ROTATION_MIN, KALEIDOSCOPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    std::string type = SettingsMap.Get("CHOICE_Kaleidoscope_Type", sTypeDefault);
+    int xCentre = GetValueCurveInt("Kaleidoscope_X", sXDefault, SettingsMap, progress, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
+    int yCentre = GetValueCurveInt("Kaleidoscope_Y", sYDefault, SettingsMap, progress, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
+    int size = GetValueCurveInt("Kaleidoscope_Size", sSizeDefault, SettingsMap, progress, sSizeMin, sSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int rotation = GetValueCurveInt("Kaleidoscope_Rotation", sRotationDefault, SettingsMap, progress, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
 
     if (type == "Square 2" || type == "6-Fold" || type == "8-Fold" || type == "12-Fold" || type == "Radial") {

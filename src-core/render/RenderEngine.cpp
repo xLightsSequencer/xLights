@@ -92,6 +92,7 @@ public:
     int layer;
     int period;
     Effect *effect;
+    SequenceElements *seqElements{ nullptr }; // non-owning; must outlive the RenderEvent (guaranteed by RenderEngine::Render() caller)
     SettingsMap *settingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
@@ -241,8 +242,9 @@ public:
 
 class RenderJob: public Job, public NextRenderer, public IRenderJobStatus {
 public:
-    RenderJob(ModelElement *row, SequenceData &data, RenderContext *ctx, RenderEngine *engine)
+    RenderJob(ModelElement *row, SequenceData &data, RenderContext *ctx, RenderEngine *engine, SequenceElements *seqElements = nullptr)
         : Job(), NextRenderer(), rowToRender(row), _ctx(ctx), _engine(engine), seqData(&data),
+            _seqElements(seqElements),
             supportsModelBlending(false), statusMap(nullptr), m_logger(spdlog::get("render")),
             currentFrame(0), abort(false)
     {
@@ -333,6 +335,7 @@ public:
         }
         startFrame = 0;
         renderEvent.buffer = mainBuffer;
+        renderEvent.seqElements = _seqElements;
     }
 
     virtual ~RenderJob() {
@@ -1056,6 +1059,7 @@ private:
     RenderContext *_ctx;
     RenderEngine *_engine;
     SequenceData *seqData;
+    SequenceElements *_seqElements;
     std::vector<bool> rangeRestriction;
     bool supportsModelBlending;
     RenderEvent renderEvent;
@@ -1109,7 +1113,7 @@ void RenderEngine::RenderEffectOnMainThread(RenderEvent *ev) {
     std::unique_lock<std::mutex> lock(ev->mutex);
 
     // validate that the effect still exists as this could be being processed after the effect was deleted
-    SequenceElements& seqElements = _ctx.GetSequenceElements();
+    SequenceElements& seqElements = ev->seqElements ? *ev->seqElements : _ctx.GetSequenceElements();
     if (seqElements.IsValidEffect(ev->effect)) {
         ev->returnVal = RenderEffectFromMap(ev->suppress, ev->effect,
             ev->layer,
@@ -1117,7 +1121,8 @@ void RenderEngine::RenderEffectOnMainThread(RenderEvent *ev) {
             *ev->settingsMap,
             *ev->buffer, *ev->ResetEffectState, false, ev) ? 1 : 0;
     } else {
-        assert(false);
+        // Effect was deleted before the main-thread render event was processed — skip it.
+        ev->returnVal = 0;
     }
     ev->signal.notify_all();
 }
@@ -1347,7 +1352,7 @@ void RenderEngine::Render(SequenceElements& seqElements,
                 bool hasEffects = HasEffects(me);
                 bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
                 if (hasEffects || (isRestricted && clear)) {
-                    RenderJob *job = new RenderJob(me, seqData, &_ctx, this);
+                    RenderJob *job = new RenderJob(me, seqData, &_ctx, this, &seqElements);
 
                     if (job == nullptr) {
                         logger_render->critical("xLightsFrame::Render job is nullptr ... this is going to crash.");
@@ -1778,7 +1783,7 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                     if (period % 10 == 0) {
                         std::this_thread::yield();
 
-                        SequenceElements& seqElements = _ctx.GetSequenceElements();
+                        SequenceElements& seqElements = event->seqElements ? *event->seqElements : _ctx.GetSequenceElements();
                         if (!seqElements.IsValidEffect(event->effect)) {
                             logger_render->error("In RenderEffectFromMap after Yield() call: effect is no longer valid (expected during abort/delete).");
                         }

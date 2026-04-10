@@ -76,16 +76,16 @@ void MetalCirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int number      = GetValueCurveInt("Circles_Count", 3, SettingsMap, oset, CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset, CIRCLES_SPEED_MIN, CIRCLES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int radius      = GetValueCurveInt("Circles_Size",  5, SettingsMap, oset, CIRCLES_SIZE_MIN,  CIRCLES_SIZE_MAX,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int number      = GetValueCurveInt("Circles_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int circleSpeed = GetValueCurveInt("Circles_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int radius      = GetValueCurveInt("Circles_Size",  sSizeDefault, SettingsMap, oset, sSizeMin,  sSizeMax,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    bool plasma   = SettingsMap.GetBool("CHECKBOX_Circles_Plasma",    false);
-    bool radial   = SettingsMap.GetBool("CHECKBOX_Circles_Radial",    false);
-    bool radial3D = SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D", false);
-    bool fade     = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", false);
-    bool bubbles  = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles",   false);
-    bool bounce   = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",    false);
+    bool plasma   = SettingsMap.GetBool("CHECKBOX_Circles_Plasma",    sPlasmaDefault);
+    bool radial   = SettingsMap.GetBool("CHECKBOX_Circles_Radial",    sRadialDefault);
+    bool radial3D = SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D", sRadial3DDefault);
+    bool fade     = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", sLinearFadeDefault);
+    bool bubbles  = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles",   sBubblesDefault);
+    bool bounce   = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",    sBounceDefault);
 
     // Bubbles uses DrawCircle(filled=false) — outline only, not easily GPU-invertible
     if (bubbles) {
@@ -128,8 +128,8 @@ void MetalCirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
         // Pure math — no cache needed
         int start_x = buffer.BufferWi / 2;
         int start_y = buffer.BufferHt / 2;
-        start_x += (int)(GetValueCurveInt("Circles_XC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_x);
-        start_y += (int)(GetValueCurveInt("Circles_YC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_y);
+        start_x += (int)(GetValueCurveInt("Circles_XC", sXCDefault, SettingsMap, oset, sPosMin, sPosMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(sPosMax) * start_x);
+        start_y += (int)(GetValueCurveInt("Circles_YC", sYCDefault, SettingsMap, oset, sPosMin, sPosMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(sPosMax) * start_y);
 
         int effectState = (buffer.curPeriod - buffer.curEffStartPer) * circleSpeed * buffer.frameTimeInMs / 50;
         int barht   = buffer.BufferHt / (radius + 1);

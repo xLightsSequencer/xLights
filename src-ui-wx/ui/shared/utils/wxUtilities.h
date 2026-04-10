@@ -108,6 +108,12 @@ AnimatedImageData LoadGIFAnimationDataWx(const std::string& filename);
 
 std::string GetResourcesDirectory();
 
+// Returns the absolute path to the resources/effectmetadata directory (where
+// per-effect JSON descriptors live). Caches the result on first call. Returns
+// an empty string if the directory cannot be located. Handles platform-specific
+// dev-build fallbacks so the tree is found when running out of build output.
+std::string GetEffectMetadataDirectory();
+
 void SaveWindowPosition(const std::string& tag, wxWindow* window);
 void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position);
 void SaveInt(const std::string& tag, int value);

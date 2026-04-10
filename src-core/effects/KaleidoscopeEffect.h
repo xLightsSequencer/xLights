@@ -15,18 +15,6 @@
 #include "RenderableEffect.h"
 #include "../utils/xlPoint.h"
 
-#define KALEIDOSCOPE_X_MIN 0
-#define KALEIDOSCOPE_X_MAX 100
-
-#define KALEIDOSCOPE_Y_MIN 0
-#define KALEIDOSCOPE_Y_MAX 100
-
-#define KALEIDOSCOPE_SIZE_MIN 2
-#define KALEIDOSCOPE_SIZE_MAX 100
-
-#define KALEIDOSCOPE_ROTATION_MIN 0
-#define KALEIDOSCOPE_ROTATION_MAX 359
-
 struct KaleidoscopeEdge
 {
     xlPoint _p1;
@@ -59,33 +47,23 @@ class KaleidoscopeEffect : public RenderableEffect
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return false; }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
-        virtual double GetSettingVCMin(const std::string& name) const override
-        {
-            if (name == "E_VALUECURVE_Kaleidoscope_X")
-                return KALEIDOSCOPE_X_MIN;
-            if (name == "E_VALUECURVE_Kaleidoscope_Y")
-                return KALEIDOSCOPE_Y_MIN;
-            if (name == "E_VALUECURVE_Kaleidoscope_Size")
-                return KALEIDOSCOPE_SIZE_MIN;
-            if (name == "E_VALUECURVE_Kaleidoscope_Rotation")
-                return KALEIDOSCOPE_ROTATION_MIN;
-            return RenderableEffect::GetSettingVCMin(name);
-        }
-
-        virtual double GetSettingVCMax(const std::string& name) const override
-        {
-            if (name == "E_VALUECURVE_Kaleidoscope_X")
-                return KALEIDOSCOPE_X_MAX;
-            if (name == "E_VALUECURVE_Kaleidoscope_Y")
-                return KALEIDOSCOPE_Y_MAX;
-            if (name == "E_VALUECURVE_Kaleidoscope_Size")
-                return KALEIDOSCOPE_SIZE_MAX;
-            if (name == "E_VALUECURVE_Kaleidoscope_Rotation")
-                return KALEIDOSCOPE_ROTATION_MAX;
-            return RenderableEffect::GetSettingVCMax(name);
-        }
+        // Cached from Kaleidoscope.json by OnMetadataLoaded().
+        static std::string sTypeDefault;
+        static int sXDefault;
+        static int sXMin;
+        static int sXMax;
+        static int sYDefault;
+        static int sYMin;
+        static int sYMax;
+        static int sSizeDefault;
+        static int sSizeMin;
+        static int sSizeMax;
+        static int sRotationDefault;
+        static int sRotationMin;
+        static int sRotationMax;
 
     protected:
+        virtual void OnMetadataLoaded() override;
         bool KaleidoscopeDone(const std::vector<std::vector<bool>>& current);
         std::pair<int, int> GetSourceLocation(int x, int y, const KaleidoscopeEdge& edge, int width, int height);
         void RenderNew(const std::string& type, int xCentre, int yCentre, int size, int rotation, RenderBuffer& buffer);

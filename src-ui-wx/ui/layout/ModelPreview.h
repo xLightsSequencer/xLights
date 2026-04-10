@@ -101,6 +101,7 @@ public:
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
     double calcPixelSize(double i) override;
+    double getViewScale() const override;
 
     void SetModel(const Model* model, bool wiring = false, bool highlightFirst = false);
     void SetActiveLayoutGroup(const std::string &grp = "Default") {
@@ -242,6 +243,7 @@ private:
     static const long ID_VIEWPOINT3D;
     static const long ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE;
     double currentPixelScaleFactor = 1.0;
+    float currentScale2d = 1.0f;
 
 
     xlGraphicsContext *currentContext = nullptr;

@@ -23,6 +23,15 @@ static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
 static const std::string CHECKBOX_On_Shimmer("CHECKBOX_On_Shimmer");
 static const std::string TEXTCTRL_On_Cycles("TEXTCTRL_On_Cycles");
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with On.json values).
+int OnEffect::sStartDefault = 100;
+int OnEffect::sEndDefault = 100;
+bool OnEffect::sShimmerDefault = false;
+double OnEffect::sCyclesDefault = 1.0;
+int OnEffect::sTransparencyDefault = 0;
+int OnEffect::sTransparencyMin = 0;
+int OnEffect::sTransparencyMax = 100;
+
 OnEffect::OnEffect(int i) : RenderableEffect(i, "On", On, On, On, On, On)
 {
     //ctor
@@ -31,6 +40,17 @@ OnEffect::OnEffect(int i) : RenderableEffect(i, "On", On, On, On, On, On)
 OnEffect::~OnEffect()
 {
     //dtor
+}
+
+void OnEffect::OnMetadataLoaded()
+{
+    sStartDefault = GetIntDefault("Eff_On_Start", sStartDefault);
+    sEndDefault = GetIntDefault("Eff_On_End", sEndDefault);
+    sShimmerDefault = GetBoolDefault("On_Shimmer", sShimmerDefault);
+    sCyclesDefault = GetDoubleDefault("On_Cycles", sCyclesDefault);
+    sTransparencyDefault = GetIntDefault("On_Transparency", sTransparencyDefault);
+    sTransparencyMin = (int)GetMinFromMetadata("On_Transparency", sTransparencyMin);
+    sTransparencyMax = (int)GetMaxFromMetadata("On_Transparency", sTransparencyMax);
 }
 
 void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
@@ -112,10 +132,12 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
 }
 
 void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
-    int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100);
-    bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, 0) > 0;
-    float cycles = SettingsMap.GetDouble(TEXTCTRL_On_Cycles, 1.0);
+    // Defaults were cached from On.json in OnMetadataLoaded() — Render must
+    // never touch the JSON.
+    int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, sStartDefault);
+    int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, sEndDefault);
+    bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, sShimmerDefault ? 1 : 0) > 0;
+    float cycles = SettingsMap.GetDouble(TEXTCTRL_On_Cycles, sCyclesDefault);
     
     int cidx = 0;
     if (shimmer) {
@@ -145,7 +167,9 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         color = hsv;
     }
 
-    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust, ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int transparency = GetValueCurveInt("On_Transparency", sTransparencyDefault, SettingsMap, adjust,
+                                        sTransparencyMin, sTransparencyMax,
+                                        buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     if (transparency) {
         transparency *= 255;
         transparency /= 100;

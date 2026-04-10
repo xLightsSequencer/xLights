@@ -22,6 +22,44 @@
 #include <format>
 
 
+int MorphEffect::sStartX1Default = 0;
+int MorphEffect::sStartY1Default = 0;
+int MorphEffect::sStartX2Default = 100;
+int MorphEffect::sStartY2Default = 0;
+int MorphEffect::sEndX1Default = 0;
+int MorphEffect::sEndY1Default = 100;
+int MorphEffect::sEndX2Default = 100;
+int MorphEffect::sEndY2Default = 100;
+int MorphEffect::sXMin = 0;
+int MorphEffect::sXMax = 100;
+int MorphEffect::sYMin = 0;
+int MorphEffect::sYMax = 100;
+int MorphEffect::sStartLengthDefault = 1;
+int MorphEffect::sStartLengthMin = 0;
+int MorphEffect::sStartLengthMax = 100;
+int MorphEffect::sEndLengthDefault = 1;
+int MorphEffect::sEndLengthMin = 0;
+int MorphEffect::sEndLengthMax = 100;
+int MorphEffect::sDurationDefault = 20;
+int MorphEffect::sDurationMin = 0;
+int MorphEffect::sDurationMax = 100;
+int MorphEffect::sAccelDefault = 0;
+int MorphEffect::sAccelMin = -10;
+int MorphEffect::sAccelMax = 10;
+int MorphEffect::sRepeatCountDefault = 0;
+int MorphEffect::sRepeatCountMin = 0;
+int MorphEffect::sRepeatCountMax = 250;
+int MorphEffect::sRepeatSkipDefault = 1;
+int MorphEffect::sRepeatSkipMin = 1;
+int MorphEffect::sRepeatSkipMax = 100;
+int MorphEffect::sStaggerDefault = 0;
+int MorphEffect::sStaggerMin = -100;
+int MorphEffect::sStaggerMax = 100;
+bool MorphEffect::sStartLinkDefault = false;
+bool MorphEffect::sEndLinkDefault = false;
+bool MorphEffect::sShowHeadAtStartDefault = false;
+bool MorphEffect::sAutoRepeatDefault = false;
+
 MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph_16, morph_64, morph_64, morph_64, morph_64)
 {
     //ctor
@@ -30,6 +68,48 @@ MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph_16, morph
 MorphEffect::~MorphEffect()
 {
     //dtor
+}
+
+void MorphEffect::OnMetadataLoaded()
+{
+    sStartX1Default = GetIntDefault("Morph_Start_X1", sStartX1Default);
+    sStartY1Default = GetIntDefault("Morph_Start_Y1", sStartY1Default);
+    sStartX2Default = GetIntDefault("Morph_Start_X2", sStartX2Default);
+    sStartY2Default = GetIntDefault("Morph_Start_Y2", sStartY2Default);
+    sEndX1Default = GetIntDefault("Morph_End_X1", sEndX1Default);
+    sEndY1Default = GetIntDefault("Morph_End_Y1", sEndY1Default);
+    sEndX2Default = GetIntDefault("Morph_End_X2", sEndX2Default);
+    sEndY2Default = GetIntDefault("Morph_End_Y2", sEndY2Default);
+    // All X/Y coordinate properties share the same min/max range; read from the first.
+    sXMin = (int)GetMinFromMetadata("Morph_Start_X1", sXMin);
+    sXMax = (int)GetMaxFromMetadata("Morph_Start_X1", sXMax);
+    sYMin = (int)GetMinFromMetadata("Morph_Start_Y1", sYMin);
+    sYMax = (int)GetMaxFromMetadata("Morph_Start_Y1", sYMax);
+    sStartLengthDefault = GetIntDefault("MorphStartLength", sStartLengthDefault);
+    sStartLengthMin = (int)GetMinFromMetadata("MorphStartLength", sStartLengthMin);
+    sStartLengthMax = (int)GetMaxFromMetadata("MorphStartLength", sStartLengthMax);
+    sEndLengthDefault = GetIntDefault("MorphEndLength", sEndLengthDefault);
+    sEndLengthMin = (int)GetMinFromMetadata("MorphEndLength", sEndLengthMin);
+    sEndLengthMax = (int)GetMaxFromMetadata("MorphEndLength", sEndLengthMax);
+    sDurationDefault = GetIntDefault("MorphDuration", sDurationDefault);
+    sDurationMin = (int)GetMinFromMetadata("MorphDuration", sDurationMin);
+    sDurationMax = (int)GetMaxFromMetadata("MorphDuration", sDurationMax);
+    sAccelDefault = GetIntDefault("MorphAccel", sAccelDefault);
+    sAccelMin = (int)GetMinFromMetadata("MorphAccel", sAccelMin);
+    sAccelMax = (int)GetMaxFromMetadata("MorphAccel", sAccelMax);
+    sRepeatCountDefault = GetIntDefault("Morph_Repeat_Count", sRepeatCountDefault);
+    sRepeatCountMin = (int)GetMinFromMetadata("Morph_Repeat_Count", sRepeatCountMin);
+    sRepeatCountMax = (int)GetMaxFromMetadata("Morph_Repeat_Count", sRepeatCountMax);
+    sRepeatSkipDefault = GetIntDefault("Morph_Repeat_Skip", sRepeatSkipDefault);
+    sRepeatSkipMin = (int)GetMinFromMetadata("Morph_Repeat_Skip", sRepeatSkipMin);
+    sRepeatSkipMax = (int)GetMaxFromMetadata("Morph_Repeat_Skip", sRepeatSkipMax);
+    sStaggerDefault = GetIntDefault("Morph_Stagger", sStaggerDefault);
+    sStaggerMin = (int)GetMinFromMetadata("Morph_Stagger", sStaggerMin);
+    sStaggerMax = (int)GetMaxFromMetadata("Morph_Stagger", sStaggerMax);
+    sStartLinkDefault = GetBoolDefault("Morph_Start_Link", sStartLinkDefault);
+    sEndLinkDefault = GetBoolDefault("Morph_End_Link", sEndLinkDefault);
+    sShowHeadAtStartDefault = GetBoolDefault("ShowHeadAtStart", sShowHeadAtStartDefault);
+    sAutoRepeatDefault = GetBoolDefault("Morph_AutoRepeat", sAutoRepeatDefault);
 }
 
 bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings)
@@ -73,14 +153,14 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
         settings.Get("E_VALUECURVE_MorphRepeat_Skip", "").find("Active=TRUE") != std::string::npos) {
         // we cant validate a value curve
     } else {
-        int startx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", 0) - settings.GetInt("E_SLIDER_Morph_Start_X2", 100)) * model->GetDefaultBufferWi() / 80);
-        int endx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_X1", 0) - settings.GetInt("E_SLIDER_Morph_End_X2", 100)) * model->GetDefaultBufferWi() / 80);
-        int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", 0) - settings.GetInt("E_SLIDER_Morph_Start_Y2", 0)) * model->GetDefaultBufferWi() / 80);
-        int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", 100) - settings.GetInt("E_SLIDER_Morph_End_Y2", 100)) * model->GetDefaultBufferWi() / 80);
+        int startx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", sStartX1Default) - settings.GetInt("E_SLIDER_Morph_Start_X2", sStartX2Default)) * model->GetDefaultBufferWi() / 80);
+        int endx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_X1", sEndX1Default) - settings.GetInt("E_SLIDER_Morph_End_X2", sEndX2Default)) * model->GetDefaultBufferWi() / 80);
+        int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", sStartY1Default) - settings.GetInt("E_SLIDER_Morph_Start_Y2", sStartY2Default)) * model->GetDefaultBufferWi() / 80);
+        int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", sEndY1Default) - settings.GetInt("E_SLIDER_Morph_End_Y2", sEndY2Default)) * model->GetDefaultBufferWi() / 80);
 
         int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
-        int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", 0);
-        int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", 1);
+        int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", sRepeatCountDefault);
+        int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", sRepeatSkipDefault);
         int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
 
         if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel) {
@@ -128,7 +208,7 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
     end_t = e->GetPalette()[tcole];
 }
 int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
-    int head_duration = e->GetSettings().GetInt("E_SLIDER_MorphDuration", 20);
+    int head_duration = e->GetSettings().GetInt("E_SLIDER_MorphDuration", sDurationDefault);
     xlColor start_h;
     xlColor end_h;
     xlColor start_t;
@@ -180,25 +260,25 @@ static int calcPosition(int value, int base)
 void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int start_x1 = GetValueCurveInt("Morph_Start_X1", 0, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_y1 = GetValueCurveInt("Morph_Start_Y1", 0, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_x2 = GetValueCurveInt("Morph_Start_X2", 100, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_y2 = GetValueCurveInt("Morph_Start_Y2", 0, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_x1 = GetValueCurveInt("Morph_End_X1", 0, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_y1 = GetValueCurveInt("Morph_End_Y1", 100, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_x2 = GetValueCurveInt("Morph_End_X2", 100, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_y2 = GetValueCurveInt("Morph_End_Y2", 100, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_length = GetValueCurveInt("MorphStartLength", 1, SettingsMap, eff_pos, MORPH_STARTLENGTH_MIN, MORPH_STARTLENGTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_length = GetValueCurveInt("MorphEndLength", 1, SettingsMap, eff_pos, MORPH_ENDLENGTH_MIN, MORPH_ENDLENGTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int duration = GetValueCurveInt("MorphDuration", 20, SettingsMap, eff_pos, MORPH_DURATION_MIN, MORPH_DURATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int acceleration = GetValueCurveInt("MorphAccel", 0, SettingsMap, eff_pos, MORPH_ACCEL_MIN, MORPH_ACCEL_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int repeat_count = GetValueCurveInt("Morph_Repeat_Count", 0, SettingsMap, eff_pos, MORPH_REPEAT_MIN, MORPH_REPEAT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int repeat_skip = GetValueCurveInt("Morph_Repeat_Skip", 1, SettingsMap, eff_pos, MORPH_REPEATSKIP_MIN, MORPH_REPEATSKIP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int stagger = GetValueCurveInt("Morph_Stagger", 0, SettingsMap, eff_pos, MORPH_STAGGER_MIN, MORPH_STAGGER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool start_linked = SettingsMap.GetBool("CHECKBOX_Morph_Start_Link");
-    bool end_linked = SettingsMap.GetBool("CHECKBOX_Morph_End_Link");
-    bool showEntireHeadAtStart = SettingsMap.GetBool("CHECKBOX_ShowHeadAtStart");
-    bool auto_repeat = SettingsMap.GetBool("CHECKBOX_Morph_AutoRepeat");
+    int start_x1 = GetValueCurveInt("Morph_Start_X1", sStartX1Default, SettingsMap, eff_pos, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_y1 = GetValueCurveInt("Morph_Start_Y1", sStartY1Default, SettingsMap, eff_pos, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_x2 = GetValueCurveInt("Morph_Start_X2", sStartX2Default, SettingsMap, eff_pos, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_y2 = GetValueCurveInt("Morph_Start_Y2", sStartY2Default, SettingsMap, eff_pos, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_x1 = GetValueCurveInt("Morph_End_X1", sEndX1Default, SettingsMap, eff_pos, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_y1 = GetValueCurveInt("Morph_End_Y1", sEndY1Default, SettingsMap, eff_pos, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_x2 = GetValueCurveInt("Morph_End_X2", sEndX2Default, SettingsMap, eff_pos, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_y2 = GetValueCurveInt("Morph_End_Y2", sEndY2Default, SettingsMap, eff_pos, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_length = GetValueCurveInt("MorphStartLength", sStartLengthDefault, SettingsMap, eff_pos, sStartLengthMin, sStartLengthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_length = GetValueCurveInt("MorphEndLength", sEndLengthDefault, SettingsMap, eff_pos, sEndLengthMin, sEndLengthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int duration = GetValueCurveInt("MorphDuration", sDurationDefault, SettingsMap, eff_pos, sDurationMin, sDurationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int acceleration = GetValueCurveInt("MorphAccel", sAccelDefault, SettingsMap, eff_pos, sAccelMin, sAccelMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int repeat_count = GetValueCurveInt("Morph_Repeat_Count", sRepeatCountDefault, SettingsMap, eff_pos, sRepeatCountMin, sRepeatCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int repeat_skip = GetValueCurveInt("Morph_Repeat_Skip", sRepeatSkipDefault, SettingsMap, eff_pos, sRepeatSkipMin, sRepeatSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int stagger = GetValueCurveInt("Morph_Stagger", sStaggerDefault, SettingsMap, eff_pos, sStaggerMin, sStaggerMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool start_linked = SettingsMap.GetBool("CHECKBOX_Morph_Start_Link", sStartLinkDefault);
+    bool end_linked = SettingsMap.GetBool("CHECKBOX_Morph_End_Link", sEndLinkDefault);
+    bool showEntireHeadAtStart = SettingsMap.GetBool("CHECKBOX_ShowHeadAtStart", sShowHeadAtStartDefault);
+    bool auto_repeat = SettingsMap.GetBool("CHECKBOX_Morph_AutoRepeat", sAutoRepeatDefault);
 
     double step_size = 0.1;
 

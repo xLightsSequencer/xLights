@@ -12,18 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define FILL_POSITION_MIN 0
-#define FILL_POSITION_MAX 100
-
-#define FILL_BANDSIZE_MIN 0
-#define FILL_BANDSIZE_MAX 250
-
-#define FILL_SKIPSIZE_MIN 0
-#define FILL_SKIPSIZE_MAX 250
-
-#define FILL_OFFSET_MIN 0
-#define FILL_OFFSET_MAX 100
-
 class FillEffect : public RenderableEffect
 {
 public:
@@ -38,31 +26,23 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Fill_Position")
-            return FILL_POSITION_MIN;
-        if (name == "E_VALUECURVE_Fill_Band_Size")
-            return FILL_BANDSIZE_MIN;
-        if (name == "E_VALUECURVE_Fill_Skip_Size")
-            return FILL_SKIPSIZE_MIN;
-        if (name == "E_VALUECURVE_Fill_Offset")
-            return FILL_OFFSET_MIN;
-
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Fill_Position")
-            return FILL_POSITION_MAX;
-        if (name == "E_VALUECURVE_Fill_Band_Size")
-            return FILL_BANDSIZE_MAX;
-        if (name == "E_VALUECURVE_Fill_Skip_Size")
-            return FILL_SKIPSIZE_MAX;
-        if (name == "E_VALUECURVE_Fill_Offset")
-            return FILL_OFFSET_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static int sPositionDefault;
+    static int sPositionMin;
+    static int sPositionMax;
+    static int sBandSizeDefault;
+    static int sBandSizeMin;
+    static int sBandSizeMax;
+    static int sSkipSizeDefault;
+    static int sSkipSizeMin;
+    static int sSkipSizeMax;
+    static int sOffsetDefault;
+    static int sOffsetMin;
+    static int sOffsetMax;
+    static bool sOffsetInPixelsDefault;
+    static bool sColorTimeDefault;
+    static bool sWrapDefault;
+    static std::string sDirectionDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 };

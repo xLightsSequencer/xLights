@@ -52,7 +52,7 @@
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
@@ -114,7 +114,7 @@
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />

@@ -39,7 +39,9 @@
 
 #include <log.h>
 
+#include <filesystem>
 #include <mutex>
+#include <system_error>
 
 wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
@@ -214,6 +216,37 @@ std::string GetResourcesDirectory() {
         FileUtils::SetResourcesDir(dir);
     }
     return dir;
+}
+
+std::string GetEffectMetadataDirectory() {
+    static std::string cachedDir;
+    if (!cachedDir.empty()) return cachedDir;
+
+    std::string resDir = GetResourcesDirectory();
+    std::error_code ec;
+
+    // Candidate locations to search for effectmetadata. The first existing
+    // directory wins. The fallbacks let dev builds find resources/effectmetadata
+    // in the source tree without requiring a post-build copy step.
+    std::vector<std::string> candidates;
+    candidates.push_back(resDir + "/effectmetadata");
+#ifdef _WIN32
+    // Visual Studio builds run from xLights/x64/<Config>/, so the source
+    // resources dir is three levels up.
+    candidates.push_back(resDir + "/../../../resources/effectmetadata");
+#endif
+#ifdef LINUX
+    candidates.push_back(resDir + "/../resources/effectmetadata");
+#endif
+
+    for (const auto& dir : candidates) {
+        if (std::filesystem::is_directory(std::filesystem::path(dir), ec)) {
+            cachedDir = dir;
+            return cachedDir;
+        }
+    }
+    spdlog::error("Effect metadata directory not found: {}", candidates.front());
+    return "";
 }
 
 

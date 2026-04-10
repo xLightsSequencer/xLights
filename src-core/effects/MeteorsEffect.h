@@ -12,24 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define METEORS_COUNT_MIN 1
-#define METEORS_COUNT_MAX 100
-
-#define METEORS_LENGTH_MIN 1
-#define METEORS_LENGTH_MAX 100
-
-#define METEORS_SWIRL_MIN 0
-#define METEORS_SWIRL_MAX 20
-
-#define METEORS_SPEED_MIN 0
-#define METEORS_SPEED_MAX 50
-
-#define METEORS_XOFFSET_MIN -100
-#define METEORS_XOFFSET_MAX 100
-
-#define METEORS_YOFFSET_MIN -100
-#define METEORS_YOFFSET_MAX 100
-
 class MeteorsEffect : public RenderableEffect
 {
 public:
@@ -42,39 +24,33 @@ public:
         return false;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Meteors_Count")
-            return METEORS_COUNT_MIN;
-        if (name == "E_VALUECURVE_Meteors_Length")
-            return METEORS_LENGTH_MIN;
-        if (name == "E_VALUECURVE_Meteors_Swirl_Intensity")
-            return METEORS_SWIRL_MIN;
-        if (name == "E_VALUECURVE_Meteors_Speed")
-            return METEORS_SPEED_MIN;
-        if (name == "E_VALUECURVE_Meteors_XOffset")
-            return METEORS_XOFFSET_MIN;
-        if (name == "E_VALUECURVE_Meteors_YOffset")
-            return METEORS_YOFFSET_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
+    // Cached from Meteors.json by OnMetadataLoaded().
+    static std::string sTypeDefault;
+    static std::string sEffectDefault;
+    static int sCountDefault;
+    static int sCountMin;
+    static int sCountMax;
+    static int sLengthDefault;
+    static int sLengthMin;
+    static int sLengthMax;
+    static int sSwirlDefault;
+    static int sSwirlMin;
+    static int sSwirlMax;
+    static int sSpeedDefault;
+    static int sSpeedMin;
+    static int sSpeedMax;
+    static int sWarmupFramesDefault;
+    static int sXOffsetDefault;
+    static int sXOffsetMin;
+    static int sXOffsetMax;
+    static int sYOffsetDefault;
+    static int sYOffsetMin;
+    static int sYOffsetMax;
+    static bool sUseMusicDefault;
+    static bool sFadeWithDistanceDefault;
 
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Meteors_Count")
-            return METEORS_COUNT_MAX;
-        if (name == "E_VALUECURVE_Meteors_Length")
-            return METEORS_LENGTH_MAX;
-        if (name == "E_VALUECURVE_Meteors_Swirl_Intensity")
-            return METEORS_SWIRL_MAX;
-        if (name == "E_VALUECURVE_Meteors_Speed")
-            return METEORS_SPEED_MAX;
-        if (name == "E_VALUECURVE_Meteors_XOffset")
-            return METEORS_XOFFSET_MAX;
-        if (name == "E_VALUECURVE_Meteors_YOffset")
-            return METEORS_YOFFSET_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+protected:
+    virtual void OnMetadataLoaded() override;
 
 private:
     void RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
@@ -97,6 +73,6 @@ private:
         void ExplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count, int xoffset, int yoffset);
         void ExplodeMoveMeteors(RenderBuffer& buffer, int speed, int xoffset, int yoffset, bool fadeWithDistance);
         void ExplodeRemoveMeteors(RenderBuffer& buffer);
-    
+
     float calcEffectStateOffset(int mSpeed, RenderBuffer& buffer);
 };

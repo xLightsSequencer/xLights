@@ -731,15 +731,229 @@ void* GLContextManager::GetNativeDisplay() const {
 }
 
 // =========================================================================
-// Linux — Callback-based (main thread only)
+// Linux — GLX + Pbuffer (X11/XWayland) with EGL + Pbuffer fallback (Wayland)
+//
+// Creates GL contexts entirely independent of the wx canvas hierarchy so
+// shader rendering never pollutes the state of any visible canvas.
+//
+// Strategy:
+//   1. Try GLX with a pbuffer (works on X11 and XWayland).
+//   2. If no X11 display is available (pure Wayland), fall back to EGL with
+//      a pbuffer surface using EGL_DEFAULT_DISPLAY.
 // =========================================================================
 #else
 
+#include <GL/glx.h>
+#include <GL/glxext.h>
+#include <X11/Xlib.h>
+#include <EGL/egl.h>
+#include <GL/gl.h>
+
+// One context per background render thread, plus one for the main thread.
+// Mirrors the macOS CGL pool size.
+static constexpr int kMaxPoolSize = 24;
+
 struct GLContextManager::PlatformState {
-    // No pooling needed — Linux uses main-thread-only rendering
+    // GLX path (X11 / XWayland)
+    Display*     xDisplay  = nullptr;
+    GLXFBConfig  fbConfig  = nullptr;
+
+    // EGL path (native Wayland fallback)
+    EGLDisplay   eglDisplay = EGL_NO_DISPLAY;
+    EGLConfig    eglConfig  = nullptr;
+    bool         useEGL     = false;
+
+    struct PoolEntry {
+        // GLX
+        GLXContext  glxContext = nullptr;
+        GLXPbuffer  glxPbuffer = 0;
+        // EGL
+        EGLContext  eglContext = EGL_NO_CONTEXT;
+        EGLSurface  eglSurface = EGL_NO_SURFACE;
+    };
+
+    std::list<PoolEntry>     pool;
+    int                      contextCount = 0;
+    std::mutex               poolMutex;
+    std::condition_variable  poolNotifier;
+    std::once_flag           initFlag;
+    bool                     initOk = false;
 };
 
-static constexpr intptr_t kLinuxSentinelHandle = 0x1;
+using PlatformStateLinux = GLContextManager::PlatformState;
+
+// ---- GLX path ----
+
+static bool initGLX(PlatformStateLinux* ps) {
+    ps->xDisplay = XOpenDisplay(nullptr);
+    if (!ps->xDisplay) {
+        spdlog::info("GLContextManager: no X11 display (likely pure Wayland), trying EGL");
+        return false;
+    }
+
+    int glxMaj = 0, glxMin = 0;
+    if (!glXQueryVersion(ps->xDisplay, &glxMaj, &glxMin) ||
+        glxMaj < 1 || (glxMaj == 1 && glxMin < 3)) {
+        spdlog::warn("GLContextManager: GLX 1.3+ required (got {}.{}), trying EGL", glxMaj, glxMin);
+        XCloseDisplay(ps->xDisplay);
+        ps->xDisplay = nullptr;
+        return false;
+    }
+
+    static const int fbAttribs[] = {
+        GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+        GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT,
+        GLX_RED_SIZE,      8,
+        GLX_GREEN_SIZE,    8,
+        GLX_BLUE_SIZE,     8,
+        GLX_ALPHA_SIZE,    8,
+        None
+    };
+    int nConfigs = 0;
+    GLXFBConfig* configs = glXChooseFBConfig(
+        ps->xDisplay, DefaultScreen(ps->xDisplay), fbAttribs, &nConfigs);
+    if (!configs || nConfigs == 0) {
+        spdlog::warn("GLContextManager: glXChooseFBConfig failed, trying EGL");
+        XCloseDisplay(ps->xDisplay);
+        ps->xDisplay = nullptr;
+        return false;
+    }
+    ps->fbConfig = configs[0];
+    XFree(configs);
+    return true;
+}
+
+static PlatformStateLinux::PoolEntry createGLXPoolEntry(PlatformStateLinux* ps) {
+    PlatformStateLinux::PoolEntry entry;
+
+    auto createCtxARB =
+        (GLXContext(*)(Display*, GLXFBConfig, GLXContext, Bool, const int*))
+        glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
+
+    if (createCtxARB) {
+        static const int ctx33[] = {
+            GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+            GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+            None
+        };
+        // glXCreateContextAttribsARB triggers an X11 protocol error (caught by
+        // the default handler, which calls exit()) if the driver rejects the
+        // requested profile.  Suppress it with a no-op error handler so the
+        // nullptr return value can be tested and the legacy fallback used.
+        auto prevHandler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+        entry.glxContext = createCtxARB(ps->xDisplay, ps->fbConfig, nullptr, True, ctx33);
+        XSync(ps->xDisplay, False);  // flush any pending X11 error
+        XSetErrorHandler(prevHandler);
+    }
+    if (!entry.glxContext) {
+        entry.glxContext = glXCreateNewContext(
+            ps->xDisplay, ps->fbConfig, GLX_RGBA_TYPE, nullptr, True);
+    }
+    if (!entry.glxContext) {
+        spdlog::error("GLContextManager: GLX context creation failed");
+        return {};
+    }
+
+    static const int pbAttribs[] = { GLX_PBUFFER_WIDTH, 1, GLX_PBUFFER_HEIGHT, 1, None };
+    entry.glxPbuffer = glXCreatePbuffer(ps->xDisplay, ps->fbConfig, pbAttribs);
+    if (!entry.glxPbuffer) {
+        spdlog::error("GLContextManager: glXCreatePbuffer failed");
+        glXDestroyContext(ps->xDisplay, entry.glxContext);
+        return {};
+    }
+
+    glXMakeCurrent(ps->xDisplay, entry.glxPbuffer, entry.glxContext);
+    const char* ver  = (const char*)glGetString(GL_VERSION);
+    const char* rend = (const char*)glGetString(GL_RENDERER);
+    const char* vend = (const char*)glGetString(GL_VENDOR);
+    spdlog::info("GLContextManager (GLX) - glVer: {} ({}) ({})",
+                 ver ? ver : "?", rend ? rend : "?", vend ? vend : "?");
+    glXMakeCurrent(ps->xDisplay, None, nullptr);
+    return entry;
+}
+
+// ---- EGL path (Wayland fallback) ----
+
+static bool initEGL(PlatformStateLinux* ps) {
+    ps->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (ps->eglDisplay == EGL_NO_DISPLAY) {
+        spdlog::error("GLContextManager: eglGetDisplay failed");
+        return false;
+    }
+
+    EGLint major = 0, minor = 0;
+    if (!eglInitialize(ps->eglDisplay, &major, &minor)) {
+        spdlog::error("GLContextManager: eglInitialize failed: 0x{:X}", eglGetError());
+        ps->eglDisplay = EGL_NO_DISPLAY;
+        return false;
+    }
+    spdlog::info("GLContextManager: EGL {}.{} (Wayland path)", major, minor);
+
+    eglBindAPI(EGL_OPENGL_API);
+
+    static const EGLint configAttribs[] = {
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+        EGL_SURFACE_TYPE,    EGL_PBUFFER_BIT,
+        EGL_RED_SIZE,        8,
+        EGL_GREEN_SIZE,      8,
+        EGL_BLUE_SIZE,       8,
+        EGL_ALPHA_SIZE,      8,
+        EGL_NONE
+    };
+    EGLint numConfigs = 0;
+    if (!eglChooseConfig(ps->eglDisplay, configAttribs, &ps->eglConfig, 1, &numConfigs)
+        || numConfigs == 0) {
+        spdlog::error("GLContextManager: eglChooseConfig failed: 0x{:X}", eglGetError());
+        eglTerminate(ps->eglDisplay);
+        ps->eglDisplay = EGL_NO_DISPLAY;
+        return false;
+    }
+    return true;
+}
+
+static PlatformStateLinux::PoolEntry createEGLPoolEntry(PlatformStateLinux* ps) {
+    PlatformStateLinux::PoolEntry entry;
+
+    static const EGLint ctxAttribs[] = {
+        EGL_CONTEXT_MAJOR_VERSION, 3,
+        EGL_CONTEXT_MINOR_VERSION, 3,
+        EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+        EGL_NONE
+    };
+    entry.eglContext = eglCreateContext(
+        ps->eglDisplay, ps->eglConfig, EGL_NO_CONTEXT, ctxAttribs);
+    if (entry.eglContext == EGL_NO_CONTEXT) {
+        // Fallback: no version constraints
+        static const EGLint ctxAttribsFallback[] = { EGL_NONE };
+        entry.eglContext = eglCreateContext(
+            ps->eglDisplay, ps->eglConfig, EGL_NO_CONTEXT, ctxAttribsFallback);
+    }
+    if (entry.eglContext == EGL_NO_CONTEXT) {
+        spdlog::error("GLContextManager: eglCreateContext failed: 0x{:X}", eglGetError());
+        return {};
+    }
+
+    static const EGLint pbAttribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE };
+    entry.eglSurface = eglCreatePbufferSurface(ps->eglDisplay, ps->eglConfig, pbAttribs);
+    if (entry.eglSurface == EGL_NO_SURFACE) {
+        spdlog::error("GLContextManager: eglCreatePbufferSurface failed: 0x{:X}", eglGetError());
+        eglDestroyContext(ps->eglDisplay, entry.eglContext);
+        entry.eglContext = EGL_NO_CONTEXT;
+        return {};
+    }
+
+    eglMakeCurrent(ps->eglDisplay, entry.eglSurface, entry.eglSurface, entry.eglContext);
+    const char* ver  = (const char*)glGetString(GL_VERSION);
+    const char* rend = (const char*)glGetString(GL_RENDERER);
+    const char* vend = (const char*)glGetString(GL_VENDOR);
+    spdlog::info("GLContextManager (EGL) - glVer: {} ({}) ({})",
+                 ver ? ver : "?", rend ? rend : "?", vend ? vend : "?");
+    eglMakeCurrent(ps->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    return entry;
+}
+
+// ---- Common GLContextManager methods ----
 
 GLContextManager& GLContextManager::Instance() {
     static GLContextManager instance;
@@ -758,39 +972,122 @@ void GLContextManager::Initialize(const InitParams& params) {
 }
 
 GLContextManager::ContextHandle GLContextManager::AcquireContext() {
-    // Call the UI-provided callback to activate the GL context
-    if (_params.activateMainContext) {
-        _params.activateMainContext();
+    if (!_platform) return nullptr;
+
+    std::call_once(_platform->initFlag, [this]() {
+        if (initGLX(_platform)) {
+            _platform->useEGL = false;
+            _platform->initOk = true;
+        } else if (initEGL(_platform)) {
+            _platform->useEGL = true;
+            _platform->initOk = true;
+        }
+    });
+    if (!_platform->initOk) return nullptr;
+
+    std::unique_lock<std::mutex> lock(_platform->poolMutex);
+
+    if (_platform->pool.empty() && _platform->contextCount < kMaxPoolSize) {
+        lock.unlock();
+        PlatformState::PoolEntry entry = _platform->useEGL
+            ? createEGLPoolEntry(_platform)
+            : createGLXPoolEntry(_platform);
+        lock.lock();
+        bool ok = _platform->useEGL
+            ? (entry.eglContext != EGL_NO_CONTEXT)
+            : (entry.glxContext != nullptr);
+        if (ok) {
+            _platform->pool.push_front(entry);
+            ++_platform->contextCount;
+        }
     }
-    return (ContextHandle)kLinuxSentinelHandle;
+
+    while (_platform->pool.empty()) {
+        _platform->poolNotifier.wait(lock);
+    }
+
+    auto entry = _platform->pool.front();
+    _platform->pool.pop_front();
+    return (ContextHandle)(new PlatformState::PoolEntry(entry));
 }
 
-void GLContextManager::MakeCurrent(ContextHandle /*ctx*/) {
-    // Already made current in AcquireContext
+void GLContextManager::MakeCurrent(ContextHandle ctx) {
+    auto* entry = (PlatformState::PoolEntry*)ctx;
+    if (!entry || !_platform) return;
+    if (_platform->useEGL) {
+        eglMakeCurrent(_platform->eglDisplay, entry->eglSurface, entry->eglSurface, entry->eglContext);
+    } else {
+        glXMakeCurrent(_platform->xDisplay, entry->glxPbuffer, entry->glxContext);
+    }
 }
 
 void GLContextManager::DoneCurrent(ContextHandle /*ctx*/) {
-    // No-op; deactivation happens in ReleaseContext
-}
-
-void GLContextManager::ReleaseContext(ContextHandle /*ctx*/) {
-    if (_params.deactivateMainContext) {
-        _params.deactivateMainContext();
+    // Release the context so wx canvases can bind their own contexts freely.
+    if (!_platform) return;
+    if (_platform->useEGL) {
+        eglMakeCurrent(_platform->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    } else if (_platform->xDisplay) {
+        glXMakeCurrent(_platform->xDisplay, None, nullptr);
     }
 }
 
+void GLContextManager::ReleaseContext(ContextHandle ctx) {
+    if (!_platform || !ctx) return;
+    // Callers (ShaderEffect::UnsetGLContext) must have already called DoneCurrent
+    // before ReleaseContext.  Do not call it again here to avoid a redundant
+    // glX/eglMakeCurrent(None) that could unset a context another caller set.
+    auto* entry = (PlatformState::PoolEntry*)ctx;
+    std::unique_lock<std::mutex> lock(_platform->poolMutex);
+    _platform->pool.push_front(*entry);
+    delete entry;
+    lock.unlock();
+    _platform->poolNotifier.notify_all();
+}
+
 bool GLContextManager::CanRenderOnBackgroundThread() const {
-    return false; // Linux does not support background shader rendering
+    // GLX pbuffer contexts are thread-safe (XInitThreads() is called at startup).
+    // EGL contexts are inherently thread-safe.  Both paths use an independent
+    // Display*/EGLDisplay with no ties to the wx UI thread.
+    return true;
 }
 
 void GLContextManager::Shutdown() {
+    if (!_platform) return;
+
+    {
+        std::unique_lock<std::mutex> lock(_platform->poolMutex);
+        for (auto& e : _platform->pool) {
+            if (_platform->useEGL) {
+                if (_platform->eglDisplay != EGL_NO_DISPLAY) {
+                    eglDestroySurface(_platform->eglDisplay, e.eglSurface);
+                    eglDestroyContext(_platform->eglDisplay, e.eglContext);
+                }
+            } else if (_platform->xDisplay) {
+                glXDestroyPbuffer(_platform->xDisplay, e.glxPbuffer);
+                glXDestroyContext(_platform->xDisplay, e.glxContext);
+            }
+        }
+        _platform->pool.clear();
+    }
+
+    if (_platform->useEGL && _platform->eglDisplay != EGL_NO_DISPLAY) {
+        eglTerminate(_platform->eglDisplay);
+        _platform->eglDisplay = EGL_NO_DISPLAY;
+    } else if (_platform->xDisplay) {
+        XCloseDisplay(_platform->xDisplay);
+        _platform->xDisplay = nullptr;
+    }
+
     delete _platform;
     _platform = nullptr;
     _initialized = false;
 }
 
 void* GLContextManager::GetNativeDisplay() const {
-    return nullptr; // Linux has no EGL display
+    // Returns nullptr on Linux: the EGL display is internal to this class and
+    // not intended for external texture-sharing.  Callers requiring the
+    // EGLDisplay for interop must use platform-specific APIs directly.
+    return nullptr;
 }
 
 #endif

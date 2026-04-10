@@ -12,12 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define SHIMMER_CYCLES_MIN 0
-#define SHIMMER_CYCLES_MAX 6000
-
-#define SHIMMER_DUTYFACTOR_MIN 1
-#define SHIMMER_DUTYFACTOR_MAX 100
-
 class ShimmerEffect : public RenderableEffect
 {
 public:
@@ -33,22 +27,17 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Shimmer_Cycles")
-            return SHIMMER_CYCLES_MIN;
-        if (name == "E_VALUECURVE_Shimmer_Duty_Factor")
-            return SHIMMER_DUTYFACTOR_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
+    // Cached from Shimmer.json by OnMetadataLoaded() — see feedback note on
+    // using statics so import/legacy code can read them directly.
+    static int sDutyFactorDefault;
+    static int sDutyFactorMin;
+    static int sDutyFactorMax;
+    static double sCyclesDefault;
+    static double sCyclesMin;
+    static double sCyclesMax;
+    static int sCyclesDivisor;
+    static bool sUseAllColorsDefault;
 
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Shimmer_Cycles")
-            return SHIMMER_CYCLES_MAX;
-        if (name == "E_VALUECURVE_Shimmer_Duty_Factor")
-            return SHIMMER_DUTYFACTOR_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-
+protected:
+    virtual void OnMetadataLoaded() override;
 };
