@@ -71,6 +71,7 @@ class SequencePackage {
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
         std::filesystem::path CopyMediaToTarget(const std::string& targetFolder, const std::filesystem::path& mediaToCopy);
+        std::filesystem::path FindAndCopyAudio(const std::string& targetDir);
         std::list<std::string> GetMissingMedia();
 
         void SetSequenceElements(SequenceElements *se) { sequenceElements = se; };

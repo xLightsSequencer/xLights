@@ -42,6 +42,7 @@
 #include "ui/import-export/ConvertDialog.h"
 #include "ui/media/ManageMediaPanel.h"
 #include "render/SequenceElements.h"
+#include "render/SequencePackage.h"
 #include "ui/shared/utils/wxUtilities.h"
 
 
@@ -1635,7 +1636,11 @@ void SeqSettingsDialog::MediaLoad(const wxString& filename)
 
 void SeqSettingsDialog::MediaChooser()
 {
-	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio Files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a;*.aac;*.wav;*.flac;*.wma;*.au;*.mkv;*.mov|xLights Audio Files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv;*.flac", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
+    wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString,
+        "FPP Audio Files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a;*.aac;*.wav;*.flac;*.wma;*.au;*.mkv;*.mov|"
+        "xLights Audio Files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv;*.flac|"
+        "xLights Sequence Package (*.zip;*.piz;*.xsqz)|*.zip;*.piz;*.xsqz",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
 
     std::string media_directory = media_directories.empty() ? "" : media_directories.front();
 
@@ -1643,28 +1648,50 @@ void SeqSettingsDialog::MediaChooser()
     {
         OpenDialog.SetDirectory(media_directory);
     }
-	if (!xml_file->GetMediaFile().empty())
-	{
-		OpenDialog.SetFilename(wxFileName(xml_file->GetMediaFile()).GetFullName());
-	}
-	if (!TextCtrl_Xml_Media_File->GetValue().empty())
-	{
-		OpenDialog.SetPath(TextCtrl_Xml_Media_File->GetValue());
-	}
+    if (!xml_file->GetMediaFile().empty())
+    {
+        OpenDialog.SetFilename(wxFileName(xml_file->GetMediaFile()).GetFullName());
+    }
+    if (!TextCtrl_Xml_Media_File->GetValue().empty())
+    {
+        OpenDialog.SetPath(TextCtrl_Xml_Media_File->GetValue());
+    }
     if (OpenDialog.ShowModal() == wxID_OK)
     {
         wxString fDir = OpenDialog.GetDirectory();
         wxString filename = OpenDialog.GetFilename();
 
-        ObtainAccessToURL(fDir.ToStdString());
-        ObtainAccessToURL(filename.ToStdString());
-
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
 
-        SetCursor(wxCURSOR_WAIT);
-        MediaLoad(name_and_path.GetFullPath());
-        SetCursor(wxCURSOR_DEFAULT);
+        wxString ext = name_and_path.GetExt().Lower();
+        if (ext == "zip" || ext == "piz" || ext == "xsqz") {
+            // extract audio from a sequence package
+            SetCursor(wxCURSOR_WAIT);
+            SequencePackage pkg(std::filesystem::path(name_and_path.GetFullPath().ToStdString()),
+                                xLightsParent->GetShowDirectory(),
+                                xLightsParent->GetSeqXmlFileName().ToStdString(),
+                                &xLightsParent->AllModels);
+            pkg.Extract();
+            std::filesystem::path importDir = std::filesystem::path(xLightsParent->GetShowDirectory())
+                                              / "ImportedMedia" / name_and_path.GetName().ToStdString();
+            std::filesystem::path audioFile = pkg.FindAndCopyAudio(importDir.string());
+            SetCursor(wxCURSOR_DEFAULT);
+            if (audioFile.empty()) {
+                wxMessageBox("No audio file found in the selected package.", "No Audio Found", wxICON_WARNING | wxOK);
+                return;
+            }
+            ObtainAccessToURL(audioFile.string());
+            SetCursor(wxCURSOR_WAIT);
+            MediaLoad(wxString(audioFile.string()));
+            SetCursor(wxCURSOR_DEFAULT);
+        } else {
+            ObtainAccessToURL(fDir.ToStdString());
+            ObtainAccessToURL(name_and_path.GetFullPath().ToStdString());
+            SetCursor(wxCURSOR_WAIT);
+            MediaLoad(name_and_path.GetFullPath());
+            SetCursor(wxCURSOR_DEFAULT);
+        }
     }
 }
 
