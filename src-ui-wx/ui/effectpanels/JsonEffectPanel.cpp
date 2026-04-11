@@ -28,6 +28,7 @@
 #include <wx/wfstream.h>
 
 #include "ui/shared/controls/BulkEditControls.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include "ui/shared/utils/xlLockButton.h"
 #include "ui/sequencer/TimingPanel.h"
 #include "ui/shared/utils/wxUtilities.h"
@@ -1279,6 +1280,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     } else if (controlType == "filepicker") {
         std::string wildcard = prop.value("fileFilter", "All files (*.*)|*.*");
         std::string message = prop.value("fileMessage", "Select a file");
+        std::string mediaTypeStr = prop.value("mediaType", "");
 
         // Column 1: Label
         wxWindowID labelId = wxNewId();
@@ -1296,7 +1298,31 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                                     wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
                                                     wxDefaultValidator, wxString(ctrlName));
         info.filePicker = picker;
-        sizer->Add(picker, 1, wxALL | wxEXPAND, 5);
+
+        if (!mediaTypeStr.empty()) {
+            // Media-aware variant: hide the plain file picker and overlay a
+            // MediaPickerCtrl that browses the show's media cache via
+            // SelectMediaDialog. The hidden picker is still the serialized
+            // primary control (ID_FILEPICKERCTRL_<id>) — MediaPickerCtrl's
+            // SetLinkedPicker keeps it in sync so bulk edit and setting
+            // round-trip continue to work through the existing framework.
+            MediaType mt = MediaType::BinaryFile;
+            if (mediaTypeStr == "Image") mt = MediaType::Image;
+            else if (mediaTypeStr == "SVG") mt = MediaType::SVG;
+            else if (mediaTypeStr == "Shader") mt = MediaType::Shader;
+            else if (mediaTypeStr == "TextFile") mt = MediaType::TextFile;
+            else if (mediaTypeStr == "Video") mt = MediaType::Video;
+            picker->Hide();
+            auto* mediaPicker = new MediaPickerCtrl(parentWin, wxID_ANY, mt);
+            mediaPicker->SetLinkedPicker(picker);
+            sizer->Add(mediaPicker, 1, wxALL | wxEXPAND, 5);
+            // The hidden picker still needs to be in the panel's child
+            // hierarchy so the serializer walker finds it. Add it with a
+            // zero-stretch sizer item so it takes no visible space.
+            sizer->Add(picker, 0, 0, 0);
+        } else {
+            sizer->Add(picker, 1, wxALL | wxEXPAND, 5);
+        }
 
         // Columns 3+4: spacers
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);

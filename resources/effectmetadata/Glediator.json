@@ -6,6 +6,7 @@
             "label": "Glediator File",
             "type": "file",
             "controlType": "filepicker",
+            "mediaType": "BinaryFile",
             "default": "",
             "fileFilter": "Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out|CSV files (*.csv)|*.csv",
             "fileMessage": "Select a glediator file",
