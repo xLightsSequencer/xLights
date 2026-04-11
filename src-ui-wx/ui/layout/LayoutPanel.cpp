@@ -4029,7 +4029,7 @@ void LayoutPanel::FinalizeModel()
 
         // Process additional models from multi-select download
         if (!additionalModels.empty()) {
-            float xOffset = 200.0f; // horizontal spacing between models in layout units
+            float xOffset = 200.0f;
             float currentX = firstModelPos.x + xOffset;
 
             for (const auto& modelInfo : additionalModels) {
@@ -4062,10 +4062,10 @@ void LayoutPanel::FinalizeModel()
                 extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(currentX, firstModelPos.y, firstModelPos.z));
                 extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
                 xlights->AllModels.AddModel(extraModel);
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
 
                 currentX += xOffset;
             }
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
         }
 
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
