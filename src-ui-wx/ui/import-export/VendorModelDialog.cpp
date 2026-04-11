@@ -15,6 +15,7 @@
 #include <wx/string.h>
 //*)
 
+#include <algorithm>
 #include <log.h>
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
@@ -1343,13 +1344,19 @@ std::vector<MModelWiring*> VendorModelDialog::GetSelectedWirings()
 
         std::string type = ((VendorBaseTreeItemData*)tid)->GetType();
 
+        MModelWiring* wiring = nullptr;
         if (type == "Wiring") {
-            wirings.push_back(((MWiringTreeItemData*)tid)->GetWiring());
+            wiring = ((MWiringTreeItemData*)tid)->GetWiring();
         } else if (type == "Model") {
             MModel* model = ((MModelTreeItemData*)tid)->GetModel();
             if (model->_wiring.size() == 1) {
-                wirings.push_back(model->_wiring.front());
+                wiring = model->_wiring.front();
             }
+        }
+
+        // Avoid duplicates (e.g. user selects both a Model node and its child Wiring node)
+        if (wiring != nullptr && std::find(wirings.begin(), wirings.end(), wiring) == wirings.end()) {
+            wirings.push_back(wiring);
         }
     }
 
@@ -1455,7 +1462,7 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 
     SetCursor(wxCURSOR_WAIT);
 
-    if (GetFocusedItem().IsOk())
+    if (startid.IsOk())
     {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
 
