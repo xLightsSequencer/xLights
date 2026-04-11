@@ -12,16 +12,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
-    -bug (derwin12)             Fix unintended setting of Shadow Model For (#5634)
+    -bug (derwin12)             Fix unintended setting of ShadowModelFor (#5634)
     -bug (dkulp)                Fix macOS 11/12 launch crash "Symbol not found..." due to using
                                     some stuff (like std::format) from newer C++ that is not
                                     available before macOS 13.3.   This is likely temporary
                                     and expect minimal version to bump to at least 13.3
-                                    at some point in the near future.
-    -bug (derwin12)             Fix Wave effect speed from a value curve
-    -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
-    -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero
-    -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view
+                                    at some point in the near future. (#6080)
+    -bug (derwin12)             Fix Wave effect speed from a value curve (#3346)
+    -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction (#5636)
+    -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero (#4807)
+    -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view (#5849)
+    -enh (derwin12)             Add "Small" option to Model Handle Size preference (#3583)
     -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
                                     in a mov container, bit-exact and decoded natively by AVFoundation,
                                     replaces the deprecated uncompressed AVI export for pixel-perfect
@@ -53,7 +54,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
                                     using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
-    -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
+    -bug (derwin12)             Fix crash after using Join in the SubModels dialog. (#6064)
     -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
                                     instead of wxSmith-generated C++ code. All 54 "standard" effect panels
                                     migrated (Moving Head's 2345-line visual designer remains wxSmith-based);
@@ -70,15 +71,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
                                     using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
-    -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
     -change (dkulp)             Effect default / min / max / divisor values are now read from the JSON metadata at
                                     startup instead of from #define constants in each effect. The JSON is the
                                     source of truth — adjusting a slider's default or range in resources/effectmetadata/
                                     now actually changes the effect's render behavior. ~45 effects migrated.
 
 2026.05  April 9, 2026
-=======
-2026.05  April ??, 2026
     -bug (AGFazio)              Sequencer scrolls to keep effects visible after moving them up/down with arrow keys
     -bug (AGFazio)              Multi-selected effects can now skip over other effects when moved with arrow keys, matching single-effect behavior
     -bug (derwin12)             Fix crash when adding/defining a curve on the last polyline segment

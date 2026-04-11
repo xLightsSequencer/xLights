@@ -270,10 +270,15 @@ float ModelScreenLocation::GetRectHandleWidth(float zoom, int scale) const
     // scale by 12.0 later allows the handle size to still be 6.0 when zoom is 1.0 but lets it go
     // smaller than 6.0 when zoomed in
     static float RECT_HANDLE_WIDTH = 0.5f;
-    float rs = scale;
-    rs /= 2.0;
-    rs += 1.0;
-    rs *= 12.0;
+    float rs;
+    if (scale == 3) {
+        rs = 6.0;  // Small: half of Normal
+    } else {
+        rs = scale;
+        rs /= 2.0;
+        rs += 1.0;
+        rs *= 12.0;
+    }
     return std::max(RECT_HANDLE_WIDTH, RECT_HANDLE_WIDTH * zoom * rs);
 }
 
