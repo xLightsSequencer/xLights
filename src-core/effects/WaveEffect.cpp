@@ -137,11 +137,11 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
 
 class WaveRenderCache : public EffectRenderCache {
 public:
-    WaveRenderCache() : state(0.0f) {}
-    virtual ~WaveRenderCache() {};
+    WaveRenderCache() = default;
+    ~WaveRenderCache() override = default;
 
     std::vector<int> WaveBuffer;
-    float state;
+    float state = 0.0f;
 };
 
 static inline int GetWaveType(const std::string & WaveType) {
