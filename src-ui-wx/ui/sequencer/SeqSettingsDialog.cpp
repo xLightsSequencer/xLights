@@ -1682,14 +1682,16 @@ void SeqSettingsDialog::MediaChooser()
         wxString ext = name_and_path.GetExt().Lower();
         if (ext == "zip" || ext == "piz" || ext == "xsqz") {
             // extract audio from a sequence package
+            std::filesystem::path importDir = std::filesystem::path(xLightsParent->GetShowDirectory())
+                                              / "ImportedMedia" / wxStringToFsPath(name_and_path.GetName());
+            ObtainAccessToURL(std::string(name_and_path.GetFullPath().utf8_string()));
+            ObtainAccessToURL(std::string(fsPathToWxString(importDir).utf8_string()));
             SetCursor(wxCURSOR_WAIT);
             SequencePackage pkg(wxStringToFsPath(name_and_path.GetFullPath()),
                                 xLightsParent->GetShowDirectory(),
                                 std::string(xLightsParent->GetSeqXmlFileName().utf8_string()),
                                 &xLightsParent->AllModels);
             pkg.Extract();
-            std::filesystem::path importDir = std::filesystem::path(xLightsParent->GetShowDirectory())
-                                              / "ImportedMedia" / wxStringToFsPath(name_and_path.GetName());
             std::filesystem::path audioFile = pkg.FindAndCopyAudio(std::string(fsPathToWxString(importDir).utf8_string()));
             SetCursor(wxCURSOR_DEFAULT);
             if (audioFile.empty()) {
