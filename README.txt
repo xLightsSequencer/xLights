@@ -13,7 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
-    -bug (AGFazio)                Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view
+    -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero
+    -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view
     -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
                                     in a mov container, bit-exact and decoded natively by AVFoundation,
                                     replaces the deprecated uncompressed AVI export for pixel-perfect
@@ -63,11 +64,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
     -bug (derwin12)             Fix crash after using Join in the SubModels dialog.
-
     -change (dkulp)             Effect default / min / max / divisor values are now read from the JSON metadata at
                                     startup instead of from #define constants in each effect. The JSON is the
                                     source of truth — adjusting a slider's default or range in resources/effectmetadata/
                                     now actually changes the effect's render behavior. ~45 effects migrated.
+
 2026.05  April 9, 2026
 =======
 2026.05  April ??, 2026
