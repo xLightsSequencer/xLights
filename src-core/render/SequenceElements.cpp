@@ -1194,7 +1194,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                     ModelElement* melem = dynamic_cast<ModelElement*>(elements[x]);
                     if (subModel != "") {
                         SubModelElement* selem = melem->GetSubModel(subModel);
-                        addSubModelElement(selem, mRowInformation, rowIndex, elements, nestDepth + 1);
+                        addSubModelElement(selem, mRowInformation, rowIndex, elements, nestDepth);
                     }
                     else {
                         addModelElement(melem, mRowInformation, rowIndex, elements, true, nestDepth + 1);
