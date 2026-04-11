@@ -1188,7 +1188,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             const wxString eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
             if (eff == "Moving Head") {
                 // We want new dropped moving head effects to start out empty of commands
-                ResetPanelDefaultSettings(eff.ToStdString(), nullptr, true);
+                ResetPanelDefaultSettings(eff, nullptr, true);
             }
             // Populate dynamic choices (timing tracks, effect-driven options) whenever
             // the panel switches, even when no grid effect is selected.
