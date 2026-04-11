@@ -12,7 +12,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
-    -bug (derwin12)             Fix Shadow Model For being unintentionally set (#5634)
+    -bug (derwin12)             Fix unintended setting of Shadow Model For (#5634)
     -bug (derwin12)             Fix Wave effect speed from a value curve
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
     -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero
