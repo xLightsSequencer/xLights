@@ -2259,7 +2259,10 @@ void MainSequencer::ApplySeqFilter(const wxString& filter)
 
 void MainSequencer::OnSeqFilterText(wxCommandEvent& event)
 {
-    ApplySeqFilter(_seqFilterCtrl->GetValue().Trim());
+    wxString filter = _seqFilterCtrl->GetValue();
+    filter.Trim();
+    filter.Trim(false);
+    ApplySeqFilter(filter);
 }
 
 void MainSequencer::OnSeqFilterEnter(wxCommandEvent& event)
