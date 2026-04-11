@@ -175,8 +175,9 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             int strand = (strand_base + thick) % buffer.BufferWi;
             for (int y = 0; y < buffer.BufferHt; y++) {
                 double xd = strand + SpiralState / 10.0 + y * Rotation / buffer.BufferHt;
-                int x = (int)fmod(xd, buffer.BufferWi);
-                if (x < 0) x += buffer.BufferWi;
+                double wrappedX = fmod(xd, buffer.BufferWi);
+                if (wrappedX < 0) wrappedX += buffer.BufferWi;
+                int x = (int)wrappedX;
 
                 if (isSpacial) {
                     buffer.palette.GetSpatialColor(ColorIdx, (float)thick / (float)SpiralThickness, (float)y / (float)buffer.BufferHt, color);
