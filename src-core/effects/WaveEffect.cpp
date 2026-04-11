@@ -137,10 +137,11 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
 
 class WaveRenderCache : public EffectRenderCache {
 public:
-    WaveRenderCache() {};
+    WaveRenderCache() : state(0.0f) {}
     virtual ~WaveRenderCache() {};
 
     std::vector<int> WaveBuffer;
+    float state;
 };
 
 static inline int GetWaveType(const std::string & WaveType) {
@@ -206,7 +207,12 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
-    float state = (float)(buffer.curPeriod - buffer.curEffStartPer) * wspeed * ((float)buffer.frameTimeInMs / 50.0);
+    if (buffer.needToInit) {
+        cache->state = 0.0f;
+        buffer.needToInit = false;
+    }
+    cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
+    float state = cache->state;
 
     double yc = buffer.BufferHt / 2.0;
     double r = yc;

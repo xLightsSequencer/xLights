@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
+    -bug (derwin12)             Fix Wave effect speed from a value curve
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
     -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero
     -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view
