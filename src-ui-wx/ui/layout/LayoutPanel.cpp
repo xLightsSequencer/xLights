@@ -4029,7 +4029,7 @@ void LayoutPanel::FinalizeModel()
 
         // Process additional models from multi-select download
         if (!additionalModels.empty()) {
-            float xOffset = 200.0f;
+            float xOffset = 200.0f; // horizontal spacing between models in layout units
             float currentX = firstModelPos.x + xOffset;
 
             for (const auto& modelInfo : additionalModels) {
