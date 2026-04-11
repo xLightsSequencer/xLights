@@ -417,7 +417,6 @@ void xlEffectPanel::AddChangeListeners(wxTimer *timer) {
     AddListeners(this);
 }
 void xlEffectPanel::FireChangeEvent() {
-    //static int cnt = 0;  printf("Change fired: %d\n", cnt++);
     if (changeTimer) {
         changeTimer->StartOnce(25);
     }

@@ -134,7 +134,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         sdata.colorCount     = (int)colorcnt;
         sdata.spiralState    = (float)SpiralState;
         sdata.rotation       = Rotation;
-        sdata.rotation_sign  = Rotation < 0 ? -1.0f : 1.0f;
+        sdata.rotation_sign  = Direction < 0 ? -1.0f : 1.0f;
         sdata.deltaStrands   = (float)deltaStrands;
         sdata.spiralThickness = (float)SpiralThickness;
         sdata.show3D         = Show3D ? 1 : 0;
@@ -174,8 +174,10 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         std::function<void(int)> spiralF = [&](int thick) {
             int strand = (strand_base + thick) % buffer.BufferWi;
             for (int y = 0; y < buffer.BufferHt; y++) {
-                int x = (int)((strand + SpiralState / 10.0 + y * Rotation / buffer.BufferHt)) % buffer.BufferWi;
-                if (x < 0) x += buffer.BufferWi;
+                double xd = strand + SpiralState / 10.0 + y * Rotation / buffer.BufferHt;
+                double wrappedX = fmod(xd, buffer.BufferWi);
+                if (wrappedX < 0) wrappedX += buffer.BufferWi;
+                int x = (int)wrappedX;
 
                 if (isSpacial) {
                     buffer.palette.GetSpatialColor(ColorIdx, (float)thick / (float)SpiralThickness, (float)y / (float)buffer.BufferHt, color);
@@ -187,7 +189,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 if (Show3D) {
                     double f = 1.0;
 
-                    if (Rotation < 0) {
+                    if (Direction < 0) {
                         f = double(thick + 1) / SpiralThickness;
                     } else {
                         f = double(SpiralThickness - thick) / SpiralThickness;
@@ -208,8 +210,8 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             }
         };
         
-        if ((!isSpacial && !Blend) && SpiralThickness > 2) {
-            // if we aren't blending or dealing with spacial, we can use parallel
+        if ((!isSpacial && !Blend && !Show3D) && SpiralThickness > 2) {
+            // if we aren't blending, dealing with spacial or rendering 3D, we can use parallel
             parallel_for(0, SpiralThickness, [&spiralF](int i) { spiralF(i); }, 1);
         } else {
             for (int i = 0; i < SpiralThickness; i++) {

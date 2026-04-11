@@ -371,7 +371,6 @@ ColoursPanel::ColoursPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    UpdateColourButtons(false, nullptr);
 }
 
 ColoursPanel::~ColoursPanel()

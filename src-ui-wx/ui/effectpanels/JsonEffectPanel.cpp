@@ -920,8 +920,13 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         sliderSizer->AddGrowableCol(0);
 
         if (divisor > 1) {
-            // Float slider: primary control is IDD_SLIDER (buddy), text is ID_TEXTCTRL
-            std::string sliderName = "IDD_SLIDER_" + id;
+            // Float slider: the SLIDER is the primary serialized control
+            // (ID_SLIDER_<id>) holding the raw integer value (pre-divisor),
+            // and the text is the display buddy (IDD_TEXTCTRL_<id>). This
+            // matches the legacy wxSmith panels and — critically — the
+            // render engine which reads settingsMap["SLIDER_Rotations"] and
+            // divides by the JSON divisor to get the float value.
+            std::string sliderName = "ID_SLIDER_" + id;
             wxWindowID sliderId = wxNewId();
             wxSlider* slider = nullptr;
 
@@ -947,7 +952,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                                    wxString(sliderName));
                     break;
             }
-            info.buddySlider = slider;
+            info.slider = slider;
             sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
         } else if (settingPrefix == "TEXTCTRL") {
             // Integer slider where TEXTCTRL is the primary setting key (e.g. On effect)
@@ -999,8 +1004,9 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
 
         // Column 3: Text buddy control
         if (divisor > 1) {
-            // Float text: ID_TEXTCTRL is the primary setting control
-            std::string textName = "ID_TEXTCTRL_" + id;
+            // Float text: display-only buddy (IDD_TEXTCTRL_<id>), not
+            // serialized. The slider above is the primary control.
+            std::string textName = "IDD_TEXTCTRL_" + id;
             wxWindowID textId = wxNewId();
             double defaultFloat = prop.value("default", 0.0);
             wxString defaultStr = wxString::Format("%.1f", defaultFloat);
@@ -1029,7 +1035,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                     break;
             }
             textCtrl->SetMaxLength(5);
-            info.textCtrl = textCtrl;
+            info.buddyText = textCtrl;
             sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
         } else if (settingPrefix == "TEXTCTRL") {
             // Integer slider where text is the primary setting (ID_TEXTCTRL_)
@@ -1608,11 +1614,14 @@ wxString JsonEffectPanel::GetEffectString() {
 
         bool isDefault = false;
         if (info.controlType == "slider") {
-            if (info.divisor > 1 && info.textCtrl) {
-                // Use wxAtof for locale-independent parsing (wxString::ToDouble
-                // is locale-aware and breaks for users in locales with ',' decimal).
-                double current = wxAtof(info.textCtrl->GetValue());
-                isDefault = std::abs(current - info.defaultValue.get<double>()) < 0.001;
+            if (info.divisor > 1 && info.slider) {
+                // Float slider: the primary control is info.slider holding
+                // the raw integer pre-divisor value. Compare against
+                // (default * divisor) to handle rounding.
+                int current = info.slider->GetValue();
+                int defaultScaled = static_cast<int>(
+                    info.defaultValue.get<double>() * info.divisor);
+                isDefault = current == defaultScaled;
             } else if (!info.settingPrefix.empty() && info.textCtrl) {
                 long current = 0;
                 info.textCtrl->GetValue().ToLong(&current);
@@ -1640,7 +1649,10 @@ wxString JsonEffectPanel::GetEffectString() {
             if (!info.settingPrefix.empty()) {
                 prefix = info.settingPrefix;
             } else if (info.controlType == "slider") {
-                prefix = info.divisor > 1 ? "TEXTCTRL" : "SLIDER";
+                // Both int and float sliders serialize as SLIDER_<id> —
+                // float sliders store the raw pre-divisor int value and
+                // the render engine divides by the JSON divisor.
+                prefix = "SLIDER";
             } else if (info.controlType == "checkbox") {
                 prefix = "CHECKBOX";
             } else if (info.controlType == "choice" || info.controlType == "combobox") {
@@ -1833,11 +1845,11 @@ void JsonEffectPanel::SetDefaultParameters() {
 
         if (info.controlType == "slider") {
             if (info.divisor > 1) {
-                // Float slider - set the buddy IDD_SLIDER
-                if (info.buddySlider) {
+                // Float slider - primary is info.slider, holds raw int.
+                if (info.slider) {
                     double fval = info.defaultValue.get<double>();
                     int ival = static_cast<int>(fval * info.divisor);
-                    SetSliderValue(static_cast<wxSlider*>(info.buddySlider), ival);
+                    SetSliderValue(info.slider, ival);
                 }
             } else {
                 if (info.slider) {

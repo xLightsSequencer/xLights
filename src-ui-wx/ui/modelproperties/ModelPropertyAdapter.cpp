@@ -1146,10 +1146,14 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
                     OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelChain");
         return 0;
     } else if (event.GetPropertyName() == "ShadowModelFor") {
-        if (_model.GetShadowModelFor() != OTHERMODELLIST[event.GetValue().GetInteger()]) {
-            _model.SetShadowModelFor(OTHERMODELLIST[event.GetValue().GetInteger()]);
+        int idx = event.GetValue().GetInteger();
+        if (idx >= 0 && idx < (int)OTHERMODELLIST.size()) {
+            const std::string newVal = OTHERMODELLIST[idx].ToStdString();
+            if (_model.GetShadowModelFor() != newVal) {
+                _model.SetShadowModelFor(newVal);
+            }
         }
-        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Controller");
+        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ShadowModelFor");
         return 0;
     } else if (event.GetPropertyName() == "Controller") {
         if (_model.GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()]) {

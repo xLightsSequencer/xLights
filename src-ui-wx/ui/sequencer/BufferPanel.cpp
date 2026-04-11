@@ -310,9 +310,10 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
     if (!_rotoZoomPresetChoice) return;
     wxString preset = _rotoZoomPresetChoice->GetStringSelection();
 
-    // Helper lookups into the framework-built controls. Int sliders are
-    // SLIDER-primary (info->slider + info->buddyText); float sliders with a
-    // divisor are TEXTCTRL-primary (info->buddySlider + info->textCtrl).
+    // Helper lookups into the framework-built controls. Both int and float
+    // sliders are SLIDER-primary (info->slider + info->buddyText). For float
+    // sliders the slider holds the raw integer (value * divisor) and the
+    // buddy text displays the formatted float.
     auto setIntValue = [this](const char* propId, int value) {
         auto* info = GetPropertyInfo(propId);
         if (info == nullptr) return;
@@ -323,8 +324,8 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
         auto* info = GetPropertyInfo(propId);
         if (info == nullptr) return;
         int scaled = static_cast<int>(value * info->divisor);
-        if (info->buddySlider) static_cast<wxSlider*>(info->buddySlider)->SetValue(scaled);
-        if (info->textCtrl) info->textCtrl->SetValue(wxString::Format("%.1f", value));
+        if (info->slider) info->slider->SetValue(scaled);
+        if (info->buddyText) static_cast<wxTextCtrl*>(info->buddyText)->SetValue(wxString::Format("%.1f", value));
     };
     auto vcSetRamp = [this](const char* propId, double p1, double p2, bool active = true) {
         auto* info = GetPropertyInfo(propId);
