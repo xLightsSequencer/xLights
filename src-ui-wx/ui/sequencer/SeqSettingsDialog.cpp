@@ -1664,30 +1664,45 @@ void SeqSettingsDialog::MediaChooser()
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
 
+        auto wxStringToFsPath = [](const wxString& pathStr) -> std::filesystem::path {
+#ifdef __WXMSW__
+            return std::filesystem::path(pathStr.ToStdWstring());
+#else
+            return std::filesystem::path(pathStr.utf8_string());
+#endif
+        };
+        auto fsPathToWxString = [](const std::filesystem::path& path) -> wxString {
+#ifdef __WXMSW__
+            return wxString(path.wstring());
+#else
+            return wxString::FromUTF8(path.string());
+#endif
+        };
+
         wxString ext = name_and_path.GetExt().Lower();
         if (ext == "zip" || ext == "piz" || ext == "xsqz") {
             // extract audio from a sequence package
             SetCursor(wxCURSOR_WAIT);
-            SequencePackage pkg(std::filesystem::path(name_and_path.GetFullPath().ToStdString()),
+            SequencePackage pkg(wxStringToFsPath(name_and_path.GetFullPath()),
                                 xLightsParent->GetShowDirectory(),
-                                xLightsParent->GetSeqXmlFileName().ToStdString(),
+                                std::string(xLightsParent->GetSeqXmlFileName().utf8_string()),
                                 &xLightsParent->AllModels);
             pkg.Extract();
             std::filesystem::path importDir = std::filesystem::path(xLightsParent->GetShowDirectory())
-                                              / "ImportedMedia" / name_and_path.GetName().ToStdString();
-            std::filesystem::path audioFile = pkg.FindAndCopyAudio(importDir.string());
+                                              / "ImportedMedia" / wxStringToFsPath(name_and_path.GetName());
+            std::filesystem::path audioFile = pkg.FindAndCopyAudio(std::string(fsPathToWxString(importDir).utf8_string()));
             SetCursor(wxCURSOR_DEFAULT);
             if (audioFile.empty()) {
                 wxMessageBox("No audio file found in the selected package.", "No Audio Found", wxICON_WARNING | wxOK);
                 return;
             }
-            ObtainAccessToURL(audioFile.string());
+            ObtainAccessToURL(std::string(fsPathToWxString(audioFile).utf8_string()));
             SetCursor(wxCURSOR_WAIT);
-            MediaLoad(wxString(audioFile.string()));
+            MediaLoad(fsPathToWxString(audioFile));
             SetCursor(wxCURSOR_DEFAULT);
         } else {
-            ObtainAccessToURL(fDir.ToStdString());
-            ObtainAccessToURL(name_and_path.GetFullPath().ToStdString());
+            ObtainAccessToURL(std::string(fDir.utf8_string()));
+            ObtainAccessToURL(std::string(name_and_path.GetFullPath().utf8_string()));
             SetCursor(wxCURSOR_WAIT);
             MediaLoad(name_and_path.GetFullPath());
             SetCursor(wxCURSOR_DEFAULT);
