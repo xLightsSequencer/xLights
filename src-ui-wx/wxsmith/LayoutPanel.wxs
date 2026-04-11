@@ -20,7 +20,7 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="ModelSplitter" member="yes">
-									<minsize>0</minsize>
+									<minsize>100</minsize>
 									<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 									<object class="wxPanel" name="ID_PANEL3" variable="FirstPanel" member="yes">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">

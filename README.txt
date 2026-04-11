@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
+    -bug (dkulp)                Prevent model/group list in layout from being fully hidden by the splitter
     -bug (derwin12)             Fix unintended setting of Shadow Model For (#5634)
     -bug (derwin12)             Fix Wave effect speed from a value curve
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
