@@ -582,7 +582,7 @@ std::filesystem::path SequencePackage::CopyMediaToTarget(const std::string& targ
 std::filesystem::path SequencePackage::FindAndCopyAudio(const std::string& targetDir)
 {
     static const std::vector<std::string> AUDIO_EXTS = {
-        "mp3", "ogg", "m4p", "m4a", "aac", "wav", "flac", "wma", "au"
+        "mp3", "ogg", "m4p", "m4a", "aac", "wav", "flac", "wma", "au", "mp4"
     };
 
     // Try to identify the audio filename referenced in the XSQ mediaFile element
