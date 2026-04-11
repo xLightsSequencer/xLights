@@ -45,6 +45,7 @@ const wxWindowID MainSequencer::ID_SCROLLBAR_EFFECTS_VERTICAL = wxNewId();
 const wxWindowID MainSequencer::ID_CHECKBOX1 = wxNewId();
 const wxWindowID MainSequencer::ID_SCROLLBAR_EFFECT_GRID_HORZ = wxNewId();
 //*)
+const wxWindowID MainSequencer::ID_TEXTCTRL_SEQ_FILTER = wxNewId();
 
 wxDEFINE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
@@ -313,10 +314,26 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     CheckBox_SuspendRender->SetFont(fnt);
 #endif
 
+    // Sequencer prop filter - hidden by default
+    _seqFilterCtrl = new wxSearchCtrl(this, ID_TEXTCTRL_SEQ_FILTER,
+        wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    _seqFilterCtrl->SetDescriptiveText("Filter props...");
+    _seqFilterCtrl->ShowCancelButton(true);
+    _seqFilterCtrl->Bind(wxEVT_TEXT, &MainSequencer::OnSeqFilterText, this);
+    _seqFilterCtrl->Bind(wxEVT_TEXT_ENTER, &MainSequencer::OnSeqFilterEnter, this);
+    _seqFilterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &MainSequencer::OnSeqFilterCancel, this);
+    _seqFilterCtrl->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &MainSequencer::OnSeqFilterEnter, this);
+    _seqFilterCtrl->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
+        if (e.GetKeyCode() == WXK_ESCAPE) { ShowSeqFilterPanel(false); }
+        else { e.Skip(); }
+    });
+    FlexGridSizer2->Add(_seqFilterCtrl, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 2);
+    _seqFilterCtrl->Hide();
+
     spdlog::debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
-    FlexGridSizer2->AddGrowableRow(3);
+    FlexGridSizer2->AddGrowableRow(4);
 
     FlexGridSizer2->Fit(this);
     FlexGridSizer2->SetSizeHints(this);
@@ -828,6 +845,9 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 wxCommandEvent e;
                 xLightsApp::GetFrame()->OnMenuItemSelectEffectSelected(e);
             }
+            else if (type == "FILTER_SEQUENCER") {
+                ShowSeqFilterPanel(!_seqFilterCtrl->IsShown());
+            }
             else if (type == "PERSPECTIVES_TOGGLE") {
                 wxCommandEvent e;
                 xLightsApp::GetFrame()->ShowHidePerspectivesWindow(e);
@@ -889,6 +909,15 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 
 void MainSequencer::OnCharHook(wxKeyEvent& event)
 {
+    // wxSearchCtrl on Windows contains inner children; walk ancestry to check
+    if (_seqFilterCtrl != nullptr && _seqFilterCtrl->IsShown()) {
+        wxWindow* evtWin = dynamic_cast<wxWindow*>(event.GetEventObject());
+        while (evtWin != nullptr) {
+            if (evtWin == _seqFilterCtrl) { event.Skip(); return; }
+            evtWin = evtWin->GetParent();
+        }
+    }
+
     wxChar uc = event.GetKeyCode();
 
     if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr && xLightsApp::GetFrame()->IsACActive())
@@ -1053,6 +1082,15 @@ void MainSequencer::OnKeyDown(wxKeyEvent& event)
 
 void MainSequencer::OnChar(wxKeyEvent& event)
 {
+    // wxSearchCtrl on Windows contains inner children; walk ancestry to check
+    if (_seqFilterCtrl != nullptr && _seqFilterCtrl->IsShown()) {
+        wxWindow* evtWin = dynamic_cast<wxWindow*>(event.GetEventObject());
+        while (evtWin != nullptr) {
+            if (evtWin == _seqFilterCtrl) { event.Skip(); return; }
+            evtWin = evtWin->GetParent();
+        }
+    }
+
     wxChar uc = event.GetUnicodeKey();
 
     if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr && xLightsApp::GetFrame()->IsACActive())
@@ -2166,4 +2204,70 @@ void MainSequencer::ScrollToRow(int row)
 void MainSequencer::OnCheckBox_SuspendRenderClick(wxCommandEvent& event)
 {
     ToggleRender(CheckBox_SuspendRender->IsChecked());
+}
+
+void MainSequencer::ShowSeqFilterPanel(bool show)
+{
+    if (_seqFilterCtrl == nullptr) return;
+    if (show) {
+        _seqFilterCtrl->Show();
+        GetSizer()->Layout();
+        _seqFilterCtrl->SetFocus();
+        _seqFilterCtrl->SelectAll();
+    } else {
+        _seqFilterCtrl->Hide();
+        _seqFilterCtrl->SetValue("");
+        GetSizer()->Layout();
+        ApplySeqFilter("");
+        PanelEffectGrid->SetFocus();
+    }
+}
+
+void MainSequencer::ApplySeqFilter(const wxString& filter)
+{
+    if (mSequenceElements == nullptr) return;
+
+    int view = mSequenceElements->GetCurrentView();
+    int count = mSequenceElements->GetElementCount(view);
+
+    if (filter.IsEmpty()) {
+        for (int i = 0; i < count; i++) {
+            Element* el = mSequenceElements->GetElement(i, view);
+            if (el == nullptr) continue;
+            if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+            el->SetVisible(true);
+        }
+        spdlog::debug("SeqFilter: cleared");
+    } else {
+        wxString lower = filter.Lower();
+        for (int i = 0; i < count; i++) {
+            Element* el = mSequenceElements->GetElement(i, view);
+            if (el == nullptr) continue;
+            if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+            el->SetVisible(wxString(el->GetName()).Lower().Contains(lower));
+        }
+        spdlog::debug("SeqFilter: filter='{}'", filter.ToStdString());
+    }
+
+    mSequenceElements->PopulateRowInformation();
+    mSequenceElements->SetFirstVisibleModelRow(0);
+    mSequenceElements->PopulateVisibleRowInformation();
+    UpdateEffectGridVerticalScrollBar();
+    PanelEffectGrid->ForceRefresh();
+    PanelRowHeadings->Refresh();
+}
+
+void MainSequencer::OnSeqFilterText(wxCommandEvent& event)
+{
+    ApplySeqFilter(_seqFilterCtrl->GetValue().Trim());
+}
+
+void MainSequencer::OnSeqFilterEnter(wxCommandEvent& event)
+{
+    ShowSeqFilterPanel(false);
+}
+
+void MainSequencer::OnSeqFilterCancel(wxCommandEvent& event)
+{
+    ShowSeqFilterPanel(false);
 }
