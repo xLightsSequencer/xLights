@@ -1692,7 +1692,7 @@ void SeqSettingsDialog::MediaChooser()
                                 std::string(xLightsParent->GetSeqXmlFileName().utf8_string()),
                                 &xLightsParent->AllModels);
             pkg.Extract();
-            std::filesystem::path audioFile = pkg.FindAndCopyAudio(std::string(fsPathToWxString(importDir).utf8_string()));
+            std::filesystem::path audioFile = pkg.FindAndCopyAudio(importDir);
             SetCursor(wxCURSOR_DEFAULT);
             if (audioFile.empty()) {
                 wxMessageBox("No audio file found in the selected package.", "No Audio Found", wxICON_WARNING | wxOK);
