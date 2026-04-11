@@ -388,7 +388,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	LeftPanelSizer->AddGrowableCol(0);
 	LeftPanelSizer->AddGrowableRow(0);
 	ModelSplitter = new wxSplitterWindow(LeftPanel, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
-	ModelSplitter->SetMinimumPaneSize(100);
+	ModelSplitter->SetMinimumPaneSize(250);
 	ModelSplitter->SetSashGravity(0.5);
 	FirstPanel = new wxPanel(ModelSplitter, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
