@@ -3275,7 +3275,11 @@ void xLightsFrame::ShowHideSelectEffectsWindow(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 {
-    ResetAllSequencerWindows();
+    if (Notebook1->GetSelection() == LAYOUTTAB) {
+        layoutPanel->DockAll();
+    } else {
+        ResetAllSequencerWindows();
+    }
 }
 
 void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)

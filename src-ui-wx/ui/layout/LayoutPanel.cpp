@@ -33,6 +33,7 @@
 #include <pugixml.hpp>
 #include <fstream>
 #include <format>
+#include <functional>
 #include <regex>
 #include <sstream>
 #include <wx/artprov.h>
@@ -101,6 +102,7 @@
 #include <log.h>
 
 #include <wx/cursor.h>
+#include <wx/aui/floatpane.h>
 #include "utils/CursorType.h"
 
 inline wxCursor CursorTypeToWx(CursorType ct) {
@@ -118,6 +120,133 @@ inline wxCursor CursorTypeToWx(CursorType ct) {
 }
 
 #include <set>
+
+// Custom AUI manager with two enhancements:
+// 1. Floating frames always have wxCLOSE_BOX, regardless of pane CloseButton flag
+//    (lets us suppress the AUI caption close button while keeping the OS X button).
+// 2. Center-docked panes can be dragged to float — wxAUI hardcodes an early return
+//    for center panes in OnLeftDown, which we work around by tracking the drag
+//    ourselves and calling StartPaneDrag once the threshold is exceeded.
+class LayoutAuiManager : public wxAuiManager {
+public:
+    // Called (via CallAfter) after a drag-initiated float or dock completes.
+    std::function<void()> m_onPaneStateChanged;
+
+    LayoutAuiManager(wxWindow* managed_wnd, unsigned int flags)
+        : wxAuiManager(managed_wnd, flags) {}
+
+    wxAuiFloatingFrame* CreateFloatingFrame(wxWindow* parent, const wxAuiPaneInfo& p) override {
+        return new wxAuiFloatingFrame(parent, this, p, wxID_ANY,
+            wxRESIZE_BORDER | wxSYSTEM_MENU | wxCAPTION |
+            wxFRAME_NO_TASKBAR | wxFRAME_FLOAT_ON_PARENT |
+            wxCLIP_CHILDREN | wxCLOSE_BOX);
+    }
+
+    // Track a pending center-pane drag until the system drag threshold is met.
+    bool m_pendingCenterDrag = false;
+    wxWindow* m_centerDragWindow = nullptr;
+    wxPoint m_centerDragStart;
+    wxPoint m_centerDragOffset;
+
+    void OnLeftDown(wxMouseEvent& event) {
+        wxAuiDockUIPart* part = HitTest(event.GetX(), event.GetY());
+        if (part &&
+            (part->type == wxAuiDockUIPart::typeCaption ||
+             part->type == wxAuiDockUIPart::typeGripper) &&
+            part->dock &&
+            part->dock->dock_direction == wxAUI_DOCK_CENTER &&
+            part->pane && !part->pane->IsToolbar() &&
+            (GetFlags() & wxAUI_MGR_ALLOW_FLOATING) &&
+            part->pane->IsFloatable()) {
+            m_pendingCenterDrag = true;
+            m_centerDragWindow = part->pane->window;
+            m_centerDragStart = wxPoint(event.GetX(), event.GetY());
+            m_centerDragOffset = wxPoint(event.GetX() - part->rect.x,
+                                         event.GetY() - part->rect.y);
+        }
+        event.Skip();
+    }
+
+    void OnMotion(wxMouseEvent& event) {
+        if (m_pendingCenterDrag && m_centerDragWindow) {
+            int dx = std::abs(event.GetX() - m_centerDragStart.x);
+            int dy = std::abs(event.GetY() - m_centerDragStart.y);
+            int tx = wxSystemSettings::GetMetric(wxSYS_DRAG_X, GetManagedWindow());
+            int ty = wxSystemSettings::GetMetric(wxSYS_DRAG_Y, GetManagedWindow());
+            if (dx > tx || dy > ty) {
+                m_pendingCenterDrag = false;
+                wxWindow* wnd = m_centerDragWindow;
+                wxPoint offset = m_centerDragOffset;
+                m_centerDragWindow = nullptr;
+                wxAuiPaneInfo& pane = GetPane(wnd);
+                if (pane.IsOk() && pane.IsFloatable()) {
+                    pane.Float();
+                    Update();
+                    StartPaneDrag(wnd, offset);
+                }
+                return;  // don't let wxAuiManager::OnMotion run this cycle
+            }
+        }
+
+        // Clamp sash Y to enforce minimum heights for both docked panels.
+        // Runs before wxAuiManager::OnMotion so the base class sees the clamped position.
+        if (m_action == actionResize) {
+            // m_actionPart may be null after Update(); refresh from the stored drag index.
+            wxAuiDockUIPart* part = m_actionPart;
+            if (part == nullptr && m_currentDragItem >= 0 &&
+                m_currentDragItem < static_cast<int>(m_uiParts.GetCount()))
+                part = &m_uiParts.Item(m_currentDragItem);
+
+            if (part != nullptr &&
+                part->type == wxAuiDockUIPart::typeDockSizer &&
+                part->dock != nullptr &&
+                part->dock->dock_direction == wxAUI_DOCK_TOP) {
+
+                wxAuiPaneInfo& listPane = GetPane("ModelList");
+                wxAuiPaneInfo& settingsPane = GetPane("ModelSettings");
+                if (listPane.IsOk() && settingsPane.IsOk() &&
+                    !listPane.IsFloating() && !settingsPane.IsFloating() &&
+                    listPane.IsShown() && settingsPane.IsShown()) {
+
+                    static const int kMinH = 400;
+                    const wxRect& dockRect = part->dock->rect;
+                    int containerH = GetManagedWindow()->GetClientSize().GetHeight();
+
+                    // new_size = (event.m_y - m_actionOffset.y) - dockRect.y
+                    // Enforce new_size >= kMinH  =>  event.m_y >= kMinH + m_actionOffset.y + dockRect.y
+                    // Enforce new_size <= containerH - kMinH  =>  event.m_y <= containerH - kMinH + m_actionOffset.y + dockRect.y
+                    int minY = kMinH + m_actionOffset.y + dockRect.y;
+                    int maxY = (containerH - kMinH) + m_actionOffset.y + dockRect.y;
+                    if (maxY < minY) maxY = minY;  // degenerate: window too small for both minimums
+
+                    if (event.m_y < minY) event.m_y = minY;
+                    if (event.m_y > maxY) event.m_y = maxY;
+                }
+            }
+        }
+
+        event.Skip();
+    }
+
+    void OnLeftUp(wxMouseEvent& event) {
+        m_pendingCenterDrag = false;
+        m_centerDragWindow = nullptr;
+        event.Skip();
+        // After the base-class finishes processing the mouse-up (which may have
+        // docked or floated a pane), update the splitter state.
+        if (m_onPaneStateChanged) {
+            GetManagedWindow()->CallAfter(m_onPaneStateChanged);
+        }
+    }
+
+    wxDECLARE_EVENT_TABLE();
+};
+
+wxBEGIN_EVENT_TABLE(LayoutAuiManager, wxAuiManager)
+    EVT_LEFT_DOWN(LayoutAuiManager::OnLeftDown)
+    EVT_MOTION(LayoutAuiManager::OnMotion)
+    EVT_LEFT_UP(LayoutAuiManager::OnLeftUp)
+wxEND_EVENT_TABLE()
 
 #define MODELCOLNAME "Model/Group"
 #define STARTCHANCOLNAME "Start Chan"
@@ -634,12 +763,106 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         SplitterWindow2->SetSashGravity(0.0);
         SplitterWindow2->SetSashPosition(sp);
     }
-    if (msp != -1) {
-        ModelSplitter->SetSashGravity(0.0);
-        ModelSplitter->SetSashPosition(msp);
-    } else {
-        ModelSplitter->SetSashPosition(200);
+    // Replace ModelSplitter with an AUI-managed container.
+    wxSizer* lps = LeftPanel->GetSizer();
+
+    // Detach the old toolbar row from LeftPanelSizer — controls move to the preview.
+    {
+        wxSizer* fgs3 = CheckBox_3D->GetContainingSizer();
+        if (fgs3) {
+            fgs3->Detach(CheckBox_3D);
+            fgs3->Detach(CheckBoxOverlap);
+            lps->Detach(fgs3);
+            delete fgs3;
+        }
+        lps->Detach(ButtonSavePreview);
     }
+
+    ModelPanelContainer = new wxPanel(LeftPanel, wxID_ANY);
+    lps->Replace(ModelSplitter, ModelPanelContainer);
+    lps->Layout();
+
+    FirstPanel->Reparent(ModelPanelContainer);
+    propertyEditor->Reparent(ModelPanelContainer);
+    ModelGroupWindow->Reparent(ModelPanelContainer);
+
+    ModelSplitter->Destroy();
+    ModelSplitter = nullptr;
+
+    layout_mgr = new LayoutAuiManager(ModelPanelContainer, wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_DEFAULT);
+    static_cast<LayoutAuiManager*>(layout_mgr)->m_onPaneStateChanged = [this]() {
+        UpdateLayoutSplitter();
+    };
+    ModelPanelContainer->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
+
+    FirstPanel->SetMinSize(wxSize(0, 400));
+    int listHeight = (msp > 0) ? msp : 200;
+    layout_mgr->AddPane(FirstPanel, wxAuiPaneInfo()
+        .Name("ModelList")
+        .Caption("Groups/Models List")
+        .CaptionVisible(true)
+        .CloseButton(false)
+        .Floatable(true)
+        .Dockable(true)
+        .Top().Layer(0).Row(0)
+        .BestSize(-1, listHeight)
+        .FloatingSize(600, 1000)
+        .MinSize(0, 400));
+
+    propertyEditor->SetMinSize(wxSize(0, 400));
+    layout_mgr->AddPane(propertyEditor, wxAuiPaneInfo()
+        .Name("ModelSettings")
+        .Caption("Groups/Models Settings")
+        .CaptionVisible(true)
+        .CloseButton(false)
+        .Floatable(true)
+        .Dockable(true)
+        .Center()
+        .FloatingSize(600, 1000)
+        .MinSize(0, 400));
+
+    layout_mgr->AddPane(ModelGroupWindow, wxAuiPaneInfo()
+        .Name("ModelGroupSettings")
+        .Caption("Model Group Settings")
+        .CaptionVisible(false)
+        .CloseButton(false)
+        .Floatable(true)
+        .Dockable(true)
+        .Center()
+        .FloatingSize(600, 1000)
+        .MinSize(-1, 50)
+        .Hide());
+
+    wxString auiPerspective = config->Read("LayoutAUIPerspective2", wxEmptyString);
+    if (!auiPerspective.empty()) {
+        layout_mgr->LoadPerspective(auiPerspective);
+    }
+    // Always reapply settings that LoadPerspective overwrites via SafeSet()
+    layout_mgr->GetPane("ModelList").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models List");
+    layout_mgr->GetPane("ModelSettings").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models Settings");
+    layout_mgr->Update();
+    // Floating panes should only be visible on the Layout tab; hide them at
+    // startup so they don't appear over other tabs before the user navigates here.
+    HideFloatingPanes();
+    // Enable splitter auto-collapse / expand logic now that AUI is fully set up.
+    _auiInitialized = true;
+    UpdateLayoutSplitter();
+
+    // Move 3D / Overlap / Save controls to a bar at the bottom-center of the
+    // layout preview canvas, below the GL canvas.
+    wxPanel* layoutControlsBar = new wxPanel(PreviewGLPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE);
+    CheckBox_3D->Reparent(layoutControlsBar);
+    CheckBoxOverlap->Reparent(layoutControlsBar);
+    ButtonSavePreview->Reparent(layoutControlsBar);
+    {
+        wxBoxSizer* lcbSizer = new wxBoxSizer(wxHORIZONTAL);
+        lcbSizer->Add(CheckBox_3D, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+        lcbSizer->Add(CheckBoxOverlap, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+        lcbSizer->Add(ButtonSavePreview, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+        layoutControlsBar->SetSizer(lcbSizer);
+    }
+    PreviewGLPanel->GetSizer()->Add(layoutControlsBar, 0, wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 3);
+    PreviewGLPanel->Layout();
 
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
@@ -843,9 +1066,12 @@ void LayoutPanel::SaveModelsListColumns()
 
 LayoutPanel::~LayoutPanel()
 {
-    if (ModelGroupWindow != nullptr) {
+    if (layout_mgr != nullptr) {
         wxConfigBase* config = wxConfigBase::Get();
-        config->Write("LayoutModelSplitterSash", ModelSplitter->GetSashPosition());
+        config->Write("LayoutAUIPerspective2", layout_mgr->SavePerspective());
+        layout_mgr->UnInit();
+        delete layout_mgr;
+        layout_mgr = nullptr;
     }
 
     SaveModelsListColumns();
@@ -8709,16 +8935,121 @@ void LayoutPanel::RenameCurrentPreview()
                                                   OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RenameCurrentPreview");
 }
 
+void LayoutPanel::DockAll() {
+    if (layout_mgr == nullptr) return;
+    int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
+    wxAuiPaneInfoArray& panes = layout_mgr->GetAllPanes();
+    bool update = false;
+    for (size_t i = 0; i < panes.GetCount(); i++) {
+        if (panes[i].IsFloating() && panes[i].IsShown()) {
+            if (panes[i].name == "ModelList") {
+                panes[i].Top().Dock().BestSize(-1, halfHeight);
+            } else {
+                panes[i].Center().Dock();
+            }
+            update = true;
+        }
+    }
+    if (update) layout_mgr->Update();
+}
+
+void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
+    event.Veto();
+    wxAuiPaneInfo* pane = event.GetPane();
+    wxString name = pane->name;
+    CallAfter([this, name]() {
+        if (layout_mgr == nullptr) return;
+        wxAuiPaneInfo& p = layout_mgr->GetPane(name);
+        if (!p.IsOk()) return;
+        int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
+        if (name == "ModelList") {
+            p.Top().Dock().BestSize(-1, halfHeight);
+        } else {
+            p.Center().Dock();
+        }
+        layout_mgr->Update();
+        UpdateLayoutSplitter();
+    });
+}
+
+void LayoutPanel::HideFloatingPanes() {
+    if (layout_mgr == nullptr) return;
+    wxAuiPaneInfoArray& panes = layout_mgr->GetAllPanes();
+    bool hasFloating = false;
+    for (size_t i = 0; i < panes.GetCount(); i++) {
+        if (panes[i].IsFloating() && panes[i].IsShown()) {
+            hasFloating = true;
+            break;
+        }
+    }
+    if (!hasFloating) return;
+    _savedFloatingPerspective = layout_mgr->SavePerspective();
+    for (size_t i = 0; i < panes.GetCount(); i++) {
+        if (panes[i].IsFloating() && panes[i].IsShown()) {
+            panes[i].Hide();
+        }
+    }
+    layout_mgr->Update();
+}
+
+void LayoutPanel::RestoreFloatingPanes() {
+    if (layout_mgr == nullptr || _savedFloatingPerspective.empty()) return;
+    layout_mgr->LoadPerspective(_savedFloatingPerspective);
+    // Reapply settings that LoadPerspective overwrites via SafeSet()
+    layout_mgr->GetPane("ModelList").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models List");
+    layout_mgr->GetPane("ModelSettings").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models Settings");
+    layout_mgr->Update();
+    _savedFloatingPerspective.clear();
+    UpdateLayoutSplitter();
+}
+
+void LayoutPanel::UpdateLayoutSplitter() {
+    if (!_auiInitialized || layout_mgr == nullptr) return;
+
+    // Check if any relevant pane is docked (shown and not floating).
+    bool anyDocked = false;
+    for (const char* nm : {"ModelList", "ModelSettings", "ModelGroupSettings"}) {
+        wxAuiPaneInfo& p = layout_mgr->GetPane(nm);
+        if (p.IsOk() && p.IsShown() && !p.IsFloating()) {
+            anyDocked = true;
+            break;
+        }
+    }
+
+    if (!anyDocked) {
+        // All panes are floating or hidden — collapse the left panel so the
+        // preview canvas expands to fill the full available width.
+        if (SplitterWindow2->IsSplit()) {
+            _savedSashPos = SplitterWindow2->GetSashPosition();
+            SplitterWindow2->SetMinimumPaneSize(0);
+            SplitterWindow2->Unsplit(LeftPanel);
+        }
+    } else {
+        // At least one pane is docked — ensure the split is present and the
+        // left panel is at least 600px wide.
+        if (!SplitterWindow2->IsSplit()) {
+            int pos = (_savedSashPos >= 600) ? _savedSashPos : 600;
+            SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel, pos);
+        } else {
+            int sash = SplitterWindow2->GetSashPosition();
+            if (sash < 600) {
+                SplitterWindow2->SetSashPosition(600);
+            }
+        }
+        SplitterWindow2->SetMinimumPaneSize(600);
+    }
+}
+
 void LayoutPanel::ShowPropGrid(bool show) {
-    if( !mPropGridActive && show ) {
-        ModelSplitter->ReplaceWindow(ModelGroupWindow, propertyEditor);
-        ModelGroupWindow->Hide();
-        propertyEditor->Show();
+    if (!mPropGridActive && show) {
+        layout_mgr->GetPane("ModelGroupSettings").Hide();
+        layout_mgr->GetPane("ModelSettings").Show();
+        layout_mgr->Update();
         mPropGridActive = true;
-    } else if( mPropGridActive && !show) {
-        ModelSplitter->ReplaceWindow(propertyEditor, ModelGroupWindow);
-        propertyEditor->Hide();
-        ModelGroupWindow->Show();
+    } else if (mPropGridActive && !show) {
+        layout_mgr->GetPane("ModelSettings").Hide();
+        layout_mgr->GetPane("ModelGroupSettings").Show();
+        layout_mgr->Update();
         mPropGridActive = false;
     }
 }

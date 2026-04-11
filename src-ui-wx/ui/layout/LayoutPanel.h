@@ -35,6 +35,7 @@ class wxStaticText;
 
 #include "ui/setup/ControllerConnectionDialog.h"
 #include "ui/shared/utils/xlPropertyGrid.h"
+#include <wx/aui/aui.h>
 
 #include <memory>
 #include <sstream>
@@ -133,6 +134,12 @@ class LayoutPanel: public wxPanel
 
 		wxScrolledWindow* ViewObjectWindow = nullptr;
 		wxScrolledWindow* ModelGroupWindow = nullptr;
+        wxPanel* ModelPanelContainer = nullptr;
+        wxAuiManager* layout_mgr = nullptr;
+        wxString _savedFloatingPerspective;
+        int _savedSashPos = -1;
+        bool _auiInitialized = false;
+        void UpdateLayoutSplitter();
 		wxTreeListCtrl* TreeListViewModels = nullptr;
         wxDataViewModel* TreeListMiewInternalModel = nullptr;
         bool ctrlFPressed = false;
@@ -297,6 +304,10 @@ class LayoutPanel: public wxPanel
         void OnPropertyGridContextMenu(wxCommandEvent& event);
         void OnModelFilterTextChanged(wxCommandEvent& event);
         void OnModelFilterCancelBtn(wxCommandEvent& event);
+        void DockAll();
+        void HideFloatingPanes();
+        void RestoreFloatingPanes();
+        void OnLayoutPaneClose(wxAuiManagerEvent& event);
 
 		DECLARE_EVENT_TABLE()
 
