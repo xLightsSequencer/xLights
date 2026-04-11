@@ -12,12 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define PICTURES_XC_MIN -100
-#define PICTURES_XC_MAX 100
-
-#define PICTURES_YC_MIN -100
-#define PICTURES_YC_MAX 100
-
 #include <string>
 
 class PicturesEffect : public RenderableEffect
@@ -43,23 +37,32 @@ class PicturesEffect : public RenderableEffect
         static bool IsPictureFile(std::string filename);
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
-    
-        virtual double GetSettingVCMin(const std::string& name) const override {
-            if (name == "E_VALUECURVE_PicturesXC")
-                return PICTURES_XC_MIN;
-            if (name == "E_VALUECURVE_PicturesYC")
-                return PICTURES_YC_MIN;
-            return RenderableEffect::GetSettingVCMin(name);
-        }
+        // Cached from Pictures.json by OnMetadataLoaded(). The TransparentBlack
+        // row and filename are controlType "custom" in the JSON so they are not
+        // migrated here — Render() still reads literal defaults for those.
+        static std::string sDirectionDefault;
+        static double sSpeedDefault;
+        static double sFrameRateAdjDefault;
+        static bool sPixelOffsetsDefault;
+        static std::string sScalingDefault;
+        static bool sShimmerDefault;
+        static bool sLoopGIFDefault;
+        static bool sSuppressGIFBackgroundDefault;
+        static int sXCDefault;
+        static int sXCMin;
+        static int sXCMax;
+        static bool sWrapXDefault;
+        static int sYCDefault;
+        static int sYCMin;
+        static int sYCMax;
+        static int sEndXCDefault;
+        static int sEndYCDefault;
+        static int sStartScaleDefault;
+        static int sEndScaleDefault;
 
-        virtual double GetSettingVCMax(const std::string& name) const override {
-            if (name == "E_VALUECURVE_PicturesXC")
-                return PICTURES_XC_MAX;
-            if (name == "E_VALUECURVE_PicturesYC")
-                return PICTURES_YC_MAX;
-            return RenderableEffect::GetSettingVCMax(name);
-        }
-    
+    protected:
+        virtual void OnMetadataLoaded() override;
+
     private:
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel);
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel);

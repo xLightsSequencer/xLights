@@ -12,9 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define PLASMA_SPEED_MIN 0
-#define PLASMA_SPEED_MAX 100
-
 class PlasmaEffect : public RenderableEffect
 {
 public:
@@ -30,19 +27,16 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Plasma_Speed")
-            return PLASMA_SPEED_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Plasma_Speed")
-            return PLASMA_SPEED_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-
     static int GetPlasmaColorScheme(const std::string &ColorSchemeStr);
 
+    // Cached from Plasma.json by OnMetadataLoaded().
+    static std::string sColorDefault;
+    static int sStyleDefault;
+    static int sLineDensityDefault;
+    static int sSpeedDefault;
+    static int sSpeedMin;
+    static int sSpeedMax;
+
+protected:
+    virtual void OnMetadataLoaded() override;
 };

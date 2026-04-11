@@ -18,6 +18,8 @@
 
 #include "../../include/Off.xpm"
 
+std::string OffEffect::sStyleDefault = "Black";
+
 OffEffect::OffEffect(int i) : RenderableEffect(i, "Off", Off, Off, Off, Off, Off)
 {
     //ctor
@@ -28,6 +30,11 @@ OffEffect::~OffEffect()
     //dtor
 }
 
+void OffEffect::OnMetadataLoaded()
+{
+    sStyleDefault = GetStringDefault("Off_Style", sStyleDefault);
+}
+
 std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -35,10 +42,10 @@ std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& setting
     // if persistent is on then canvas/off transparent cant be checked
     if (settings.Get("B_CHECKBOX_OverlayBkg", "0") == "0") {
         if (settings.Get("T_CHECKBOX_Canvas", "0") == "1" &&
-            settings.Get("E_CHOICE_Off_Style", "Black") == "Black") {
+            settings.Get("E_CHOICE_Off_Style", sStyleDefault) == "Black") {
             res.push_back(std::format("    WARN: Canvas mode enabled on a off effect but effect is not transparent. This does nothing and slows down rendering. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (settings.Get("T_CHECKBOX_Canvas", "0") == "0" &&
-            settings.Get("E_CHOICE_Off_Style", "Black") != "Black") {
+            settings.Get("E_CHOICE_Off_Style", sStyleDefault) != "Black") {
             res.push_back(std::format("    WARN: Canvas mode not enabled on a off effect and effect is transparent. This does not do anything useful. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
@@ -73,7 +80,7 @@ void OffEffect::adjustSettings(const std::string& version, Effect* effect, bool 
 
 void OffEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
-    std::string style = settings.Get("CHOICE_Off_Style", "Black");
+    std::string style = settings.Get("CHOICE_Off_Style", sStyleDefault);
     if (style == "Transparent") {
         // dont change any pixels at all if we are transparent
         return;

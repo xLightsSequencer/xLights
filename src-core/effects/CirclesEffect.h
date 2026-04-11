@@ -107,18 +107,6 @@ public:
     MetaBall *metaballs;
 };
 
-#define CIRCLES_COUNT_MIN 1
-#define CIRCLES_COUNT_MAX 10
-
-#define CIRCLES_SIZE_MIN 1
-#define CIRCLES_SIZE_MAX 20
-
-#define CIRCLES_SPEED_MIN 1
-#define CIRCLES_SPEED_MAX 30
-
-#define CIRCLES_POS_MIN -50
-#define CIRCLES_POS_MAX 50
-
 class CirclesEffect : public RenderableEffect
 {
 public:
@@ -132,36 +120,29 @@ public:
         return false;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Circles_Count")
-            return CIRCLES_COUNT_MIN;
-        if (name == "E_VALUECURVE_Circles_Size")
-            return CIRCLES_SIZE_MIN;
-        if (name == "E_VALUECURVE_Circles_Speed")
-            return CIRCLES_SPEED_MIN;
-        if (name == "E_VALUECURVE_Circles_XC")
-            return CIRCLES_POS_MIN;
-        if (name == "E_VALUECURVE_Circles_YC")
-            return CIRCLES_POS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Circles_Count")
-            return CIRCLES_COUNT_MAX;
-        if (name == "E_VALUECURVE_Circles_Size")
-            return CIRCLES_SIZE_MAX;
-        if (name == "E_VALUECURVE_Circles_Speed")
-            return CIRCLES_SPEED_MAX;
-        if (name == "E_VALUECURVE_Circles_XC")
-            return CIRCLES_POS_MAX;
-        if (name == "E_VALUECURVE_Circles_YC")
-            return CIRCLES_POS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static int sCountDefault;
+    static int sCountMin;
+    static int sCountMax;
+    static int sSizeDefault;
+    static int sSizeMin;
+    static int sSizeMax;
+    static int sSpeedDefault;
+    static int sSpeedMin;
+    static int sSpeedMax;
+    static int sXCDefault;
+    static int sYCDefault;
+    static int sPosMin;
+    static int sPosMax;
+    static bool sBounceDefault;
+    static bool sRadialDefault;
+    static bool sPlasmaDefault;
+    static bool sRadial3DDefault;
+    static bool sBubblesDefault;
+    static bool sLinearFadeDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
+
     // Update ball positions in cache (without drawing). Returns the cache.
     // After this call, cache->balls or cache->metaballs have updated positions.
     CirclesRenderCache* UpdateCacheState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer);

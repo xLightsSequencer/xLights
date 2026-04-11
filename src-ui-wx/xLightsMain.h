@@ -76,6 +76,7 @@
 #include "render/SequenceData.h"
 #include "effects/EffectManager.h"
 #include "ui/effectpanels/EffectPanelManager.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "models/ModelManager.h"
 #include "models/ViewObjectManager.h"
 #include "ui/shared/utils/xLightsTimer.h"
@@ -1122,8 +1123,8 @@ public:
     unsigned int mLastAutosaveCount = 0;
     wxDateTime starttime;
     ModelPreview* modelPreview = nullptr;
-    EffectManager effectManager;
-    EffectPanelManager effectPanelManager;
+    EffectManager effectManager{GetEffectMetadataDirectory()};
+    EffectPanelManager effectPanelManager{&effectManager};
     int effGridPrevX;
     int effGridPrevY;
     bool _backupSubfolders = true;

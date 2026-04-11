@@ -235,11 +235,15 @@ wxWindow* ShaderPanel::BuildSpeedRow(wxWindow* parentWin, wxSizer* sizer, int co
 
 wxWindow* ShaderPanel::BuildDynamicParams(wxWindow* parentWin, wxSizer* sizer, int cols) {
     // Container for dynamic shader uniforms. Filled by BuildDynamicUI() on
-    // shader load and wiped on shader change.
+    // shader load and wiped on shader change. Return parentWin so the
+    // framework sees a non-null result and doesn't emit a spurious warning
+    // about CreateCustomControl returning null — the row has no single
+    // primary control to anchor a tooltip, but this property has no JSON
+    // tooltip so parentWin is an inert fallback.
     _dynamicSizer = new wxFlexGridSizer(0, 3, 0, 0);
     _dynamicSizer->AddGrowableCol(1);
     sizer->Add(_dynamicSizer, 1, wxALL | wxEXPAND, 2);
-    return nullptr; // no single wxWindow to return; sizer has no placeholder
+    return parentWin;
 }
 
 void ShaderPanel::OnSelectClicked(wxCommandEvent& /*event*/) {

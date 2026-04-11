@@ -25,11 +25,76 @@
 #include "../../include/singleStrand-16.xpm"
 #include "../../include/singleStrand-64.xpm"
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with
+// SingleStrand.json values). Chase_Rotations + Chase_Offset use divisor=10.
+double SingleStrandEffect::sRotationsDefault = 1.0;
+double SingleStrandEffect::sRotationsMin = 1;
+double SingleStrandEffect::sRotationsMax = 500;
+int SingleStrandEffect::sRotationsDivisor = 10;
+int SingleStrandEffect::sChasesDefault = 1;
+int SingleStrandEffect::sChasesMin = 1;
+int SingleStrandEffect::sChasesMax = 20;
+int SingleStrandEffect::sColourMixDefault = 10;
+int SingleStrandEffect::sColourMixMin = 1;
+int SingleStrandEffect::sColourMixMax = 100;
+double SingleStrandEffect::sOffsetDefault = 0.0;
+double SingleStrandEffect::sOffsetMin = -5000;
+double SingleStrandEffect::sOffsetMax = 5000;
+int SingleStrandEffect::sOffsetDivisor = 10;
+int SingleStrandEffect::sFXIntensityDefault = 128;
+int SingleStrandEffect::sFXIntensityMin = 0;
+int SingleStrandEffect::sFXIntensityMax = 255;
+int SingleStrandEffect::sFXSpeedDefault = 128;
+int SingleStrandEffect::sFXSpeedMin = 0;
+int SingleStrandEffect::sFXSpeedMax = 255;
+std::string SingleStrandEffect::sColorsDefault = "Palette";
+std::string SingleStrandEffect::sChaseTypeDefault = "Left-Right";
+std::string SingleStrandEffect::sFadeTypeDefault = "None";
+bool SingleStrandEffect::sGroupAllDefault = false;
+int SingleStrandEffect::sSkipsBandSizeDefault = 1;
+int SingleStrandEffect::sSkipsSkipSizeDefault = 1;
+int SingleStrandEffect::sSkipsStartPosDefault = 1;
+int SingleStrandEffect::sSkipsAdvanceDefault = 0;
+
 SingleStrandEffect::SingleStrandEffect(int id)
     : RenderableEffect(id, "SingleStrand", singleStrand_16, singleStrand_64, singleStrand_64, singleStrand_64, singleStrand_64)
 {
     //ctor
     tooltip = "Single Strand";
+}
+
+void SingleStrandEffect::OnMetadataLoaded()
+{
+    sRotationsDefault = GetDoubleDefault("Chase_Rotations", sRotationsDefault);
+    sRotationsMin = GetMinFromMetadata("Chase_Rotations", sRotationsMin);
+    sRotationsMax = GetMaxFromMetadata("Chase_Rotations", sRotationsMax);
+    sRotationsDivisor = GetDivisorFromMetadata("Chase_Rotations", sRotationsDivisor);
+    sChasesDefault = GetIntDefault("Number_Chases", sChasesDefault);
+    sChasesMin = (int)GetMinFromMetadata("Number_Chases", sChasesMin);
+    sChasesMax = (int)GetMaxFromMetadata("Number_Chases", sChasesMax);
+    sColourMixDefault = GetIntDefault("Color_Mix1", sColourMixDefault);
+    sColourMixMin = (int)GetMinFromMetadata("Color_Mix1", sColourMixMin);
+    sColourMixMax = (int)GetMaxFromMetadata("Color_Mix1", sColourMixMax);
+    sOffsetDefault = GetDoubleDefault("Chase_Offset", sOffsetDefault);
+    sOffsetMin = GetMinFromMetadata("Chase_Offset", sOffsetMin);
+    sOffsetMax = GetMaxFromMetadata("Chase_Offset", sOffsetMax);
+    sOffsetDivisor = GetDivisorFromMetadata("Chase_Offset", sOffsetDivisor);
+    sFXIntensityDefault = GetIntDefault("FX_Intensity", sFXIntensityDefault);
+    sFXIntensityMin = (int)GetMinFromMetadata("FX_Intensity", sFXIntensityMin);
+    sFXIntensityMax = (int)GetMaxFromMetadata("FX_Intensity", sFXIntensityMax);
+    sFXSpeedDefault = GetIntDefault("FX_Speed", sFXSpeedDefault);
+    sFXSpeedMin = (int)GetMinFromMetadata("FX_Speed", sFXSpeedMin);
+    sFXSpeedMax = (int)GetMaxFromMetadata("FX_Speed", sFXSpeedMax);
+    sColorsDefault = GetStringDefault("SingleStrand_Colors", sColorsDefault);
+    sChaseTypeDefault = GetStringDefault("Chase_Type1", sChaseTypeDefault);
+    sFadeTypeDefault = GetStringDefault("Fade_Type", sFadeTypeDefault);
+    sGroupAllDefault = GetBoolDefault("Chase_Group_All", sGroupAllDefault);
+    sSkipsBandSizeDefault = GetIntDefault("Skips_BandSize", sSkipsBandSizeDefault);
+    sSkipsSkipSizeDefault = GetIntDefault("Skips_SkipSize", sSkipsSkipSizeDefault);
+    sSkipsStartPosDefault = GetIntDefault("Skips_StartPos", sSkipsStartPosDefault);
+    sSkipsAdvanceDefault = GetIntDefault("Skips_Advance", sSkipsAdvanceDefault);
+    // SingleStrand_FX / SingleStrand_FX_Palette defaults mismatch
+    // (JSON="" vs C++="Blink"/"Default") — left as legacy literals.
 }
 
 std::vector<std::string> SingleStrandEffect::GetSettingOptions(const std::string& setting) const {
@@ -175,26 +240,28 @@ void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
         RenderSingleStrandSkips(buffer, effect,
-                                SettingsMap.GetInt("SLIDER_Skips_BandSize", 1),
-                                SettingsMap.GetInt("SLIDER_Skips_SkipSize", 1),
-                                SettingsMap.GetInt("SLIDER_Skips_StartPos", 1),
+                                SettingsMap.GetInt("SLIDER_Skips_BandSize", sSkipsBandSizeDefault),
+                                SettingsMap.GetInt("SLIDER_Skips_SkipSize", sSkipsSkipSizeDefault),
+                                SettingsMap.GetInt("SLIDER_Skips_StartPos", sSkipsStartPosDefault),
                                 SettingsMap["CHOICE_Skips_Direction"],
-                                SettingsMap.GetInt("SLIDER_Skips_Advance", 0));
+                                SettingsMap.GetInt("SLIDER_Skips_Advance", sSkipsAdvanceDefault));
     } else if ("FX" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
         RenderSingleStrandFX(buffer, effect,
-                             GetValueCurveInt("FX_Intensity", 128, SettingsMap, eff_pos, SINGLESTRAND_FXINTENSITY_MIN, SINGLESTRAND_FXINTENSITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                             GetValueCurveInt("FX_Speed", 128, SettingsMap, eff_pos, SINGLESTRAND_FXSPEED_MIN, SINGLESTRAND_FXSPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                             GetValueCurveInt("FX_Intensity", sFXIntensityDefault, SettingsMap, eff_pos, sFXIntensityMin, sFXIntensityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                             GetValueCurveInt("FX_Speed", sFXSpeedDefault, SettingsMap, eff_pos, sFXSpeedMin, sFXSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                             // SingleStrand_FX / SingleStrand_FX_Palette defaults mismatch
+                             // (JSON="" vs C++="Blink"/"Default") — kept as legacy literals.
                              SettingsMap.Get("CHOICE_SingleStrand_FX", "Blink"), SettingsMap.Get("CHOICE_SingleStrand_FX_Palette", "Default"));
     } else {
-        RenderSingleStrandChase(buffer, effect, 
-                                SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
-                                GetValueCurveInt("Number_Chases", 1, SettingsMap, eff_pos, SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                                GetValueCurveInt("Color_Mix1", 10, SettingsMap, eff_pos, SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                                SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
-                                SettingsMap.Get("CHOICE_Fade_Type", "None"),
-                                SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
-                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_ROTATIONS_DIVISOR),
-                                GetValueCurveDouble("Chase_Offset", 0.0, SettingsMap, eff_pos, SINGLESTRAND_OFFSET_MIN, SINGLESTRAND_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_OFFSET_DIVISOR));
+        RenderSingleStrandChase(buffer, effect,
+                                SettingsMap.Get("CHOICE_SingleStrand_Colors", sColorsDefault),
+                                GetValueCurveInt("Number_Chases", sChasesDefault, SettingsMap, eff_pos, sChasesMin, sChasesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                                GetValueCurveInt("Color_Mix1", sColourMixDefault, SettingsMap, eff_pos, sColourMixMin, sColourMixMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                                SettingsMap.Get("CHOICE_Chase_Type1", sChaseTypeDefault),
+                                SettingsMap.Get("CHOICE_Fade_Type", sFadeTypeDefault),
+                                SettingsMap.GetBool("CHECKBOX_Chase_Group_All", sGroupAllDefault),
+                                GetValueCurveDouble("Chase_Rotations", sRotationsDefault, SettingsMap, eff_pos, sRotationsMin, sRotationsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRotationsDivisor),
+                                GetValueCurveDouble("Chase_Offset", sOffsetDefault, SettingsMap, eff_pos, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sOffsetDivisor));
     }
 }
 

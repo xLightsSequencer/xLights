@@ -25,6 +25,13 @@
 #include "ispc/PlasmaFunctions.ispc.h"
 
 
+std::string PlasmaEffect::sColorDefault = "Normal";
+int PlasmaEffect::sStyleDefault = 1;
+int PlasmaEffect::sLineDensityDefault = 1;
+int PlasmaEffect::sSpeedDefault = 10;
+int PlasmaEffect::sSpeedMin = 0;
+int PlasmaEffect::sSpeedMax = 100;
+
 PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma", plasma_16, plasma_24, plasma_32, plasma_48, plasma_64)
 {
     //ctor
@@ -33,6 +40,16 @@ PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma", plasma_16, p
 PlasmaEffect::~PlasmaEffect()
 {
     //dtor
+}
+
+void PlasmaEffect::OnMetadataLoaded()
+{
+    sColorDefault = GetStringDefault("Plasma_Color", sColorDefault);
+    sStyleDefault = GetIntDefault("Plasma_Style", sStyleDefault);
+    sLineDensityDefault = GetIntDefault("Plasma_Line_Density", sLineDensityDefault);
+    sSpeedDefault = GetIntDefault("Plasma_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Plasma_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Plasma_Speed", sSpeedMax);
 }
 #define PLASMA_NORMAL_COLORS    0
 #define PLASMA_PRESET1          1
@@ -56,9 +73,9 @@ int PlasmaEffect::GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
 void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 1);
-    int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
-    int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset, PLASMA_SPEED_MIN, PLASMA_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", sStyleDefault);
+    int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", sLineDensityDefault);
+    int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     const int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
 
     const int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N

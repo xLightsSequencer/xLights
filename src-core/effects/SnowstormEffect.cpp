@@ -21,12 +21,24 @@
 #include "../../include/snowstorm-48.xpm"
 #include "../../include/snowstorm-64.xpm"
 
+// Fallback defaults (replaced from Snowstorm.json in OnMetadataLoaded).
+int SnowstormEffect::sCountDefault = 50;
+int SnowstormEffect::sLengthDefault = 50;
+int SnowstormEffect::sSpeedDefault = 10;
+
 SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm", snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_64)
 {
     tooltip = "Snow Storm";
 }
 
 SnowstormEffect::~SnowstormEffect() {}
+
+void SnowstormEffect::OnMetadataLoaded()
+{
+    sCountDefault = GetIntDefault("Snowstorm_Count", sCountDefault);
+    sLengthDefault = GetIntDefault("Snowstorm_Length", sLengthDefault);
+    sSpeedDefault = GetIntDefault("Snowstorm_Speed", sSpeedDefault);
+}
 
 class SnowstormClass
 {
@@ -122,9 +134,9 @@ public:
 
 void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
-    int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", 50);
-    int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", 50);
-    int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", 10);
+    int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", sCountDefault);
+    int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", sLengthDefault);
+    int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", sSpeedDefault);
 
     float progress = buffer.GetEffectTimeIntervalPosition();
     HSVValue hsv0;

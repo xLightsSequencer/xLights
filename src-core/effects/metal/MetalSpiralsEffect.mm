@@ -76,17 +76,17 @@ void MetalSpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     }
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_MOVEMENT_DIVISOR);
-    float Rotation = GetValueCurveDouble("Spirals_Rotation", 0.0, SettingsMap, offset, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_ROTATION_DIVISOR);
+    int PaletteRepeat = GetValueCurveInt("Spirals_Count", sCountDefault, SettingsMap, offset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float Movement = GetValueCurveDouble("Spirals_Movement", sMovementDefault, SettingsMap, offset, sMovementMin, sMovementMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sMovementDivisor);
+    float Rotation = GetValueCurveDouble("Spirals_Rotation", sRotationDefault, SettingsMap, offset, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRotationDivisor);
     if (SettingsMap.Contains("VALUECURVE_Spirals_Rotation") && std::string(SettingsMap["VALUECURVE_Spirals_Rotation"]).find("Active=TRUE") != std::string::npos) {
         Rotation *= 10;
     }
-    int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool Blend   = SettingsMap.GetBool("CHECKBOX_Spirals_Blend");
-    bool Show3D  = SettingsMap.GetBool("CHECKBOX_Spirals_3D");
-    bool grow    = SettingsMap.GetBool("CHECKBOX_Spirals_Grow");
-    bool shrink  = SettingsMap.GetBool("CHECKBOX_Spirals_Shrink");
+    int Thickness = GetValueCurveInt("Spirals_Thickness", sThicknessDefault, SettingsMap, offset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool Blend   = SettingsMap.GetBool("CHECKBOX_Spirals_Blend", sBlendDefault);
+    bool Show3D  = SettingsMap.GetBool("CHECKBOX_Spirals_3D", s3DDefault);
+    bool grow    = SettingsMap.GetBool("CHECKBOX_Spirals_Grow", sGrowDefault);
+    bool shrink  = SettingsMap.GetBool("CHECKBOX_Spirals_Shrink", sShrinkDefault);
 
     // Fall back to CPU for spatial colors or blend mode
     size_t colorcnt = buffer.GetColorCount();

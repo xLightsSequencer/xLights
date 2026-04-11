@@ -14,9 +14,6 @@
 
 #include <list>
 
-#define Guitar_SCALE_MIN 0
-#define Guitar_SCALE_MAX 100
-
 class GuitarTiming;
 class NoteTiming;
 
@@ -45,6 +42,23 @@ public:
     }
     // Currently not possible but I think changes could be made to make it support partial
     // virtual bool CanRenderPartialTimeInterval() const override { return true; }
+
+    // Cached from Guitar.json by OnMetadataLoaded().
+    static std::string sTypeDefault;
+    static std::string sMIDITrackDefault;
+    static std::string sStringAppearanceDefault;
+    static int sMaxFretsDefault;
+    static int sMaxFretsMin;
+    static int sMaxFretsMax;
+    static double sBaseWaveFactorDefault;
+    static double sStringWaveFactorDefault;
+    static bool sFadeDefault;
+    static bool sCollapseDefault;
+    static bool sShowStringsDefault;
+    static bool sVaryWaveLengthOnFretDefault;
+
+protected:
+    virtual void OnMetadataLoaded() override;
 
 private:
     void RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret);

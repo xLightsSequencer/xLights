@@ -20,34 +20,6 @@
 class b2World;
 class b2ParticleSystem;
 
-#define LIQUID_LIFETIME_MIN 0
-#define LIQUID_LIFETIME_MAX 1000
-
-#define LIQUID_DIRECTION_MIN 0
-#define LIQUID_DIRECTION_MAX 360
-
-#define LIQUID_FLOW_MIN 0
-#define LIQUID_FLOW_MAX 1000
-
-#define LIQUID_VELOCITY_MIN 0
-#define LIQUID_VELOCITY_MAX 1000
-
-#define LIQUID_X_MIN 0
-#define LIQUID_X_MAX 100
-
-#define LIQUID_Y_MIN 0
-#define LIQUID_Y_MAX 100
-
-#define LIQUID_SOURCESIZE_MIN 0
-#define LIQUID_SOURCESIZE_MAX 100
-
-#define LIQUID_GRAVITY_MIN -1000
-#define LIQUID_GRAVITY_MAX 1000
-#define LIQUID_GRAVITY_DIVISOR 10
-
-#define LIQUID_GRAVITYANGLE_MIN 0
-#define LIQUID_GRAVITYANGLE_MAX 360
-
 class LiquidEffect : public RenderableEffect
 {
 public:
@@ -64,60 +36,75 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_LifeTime")
-            return LIQUID_LIFETIME_MIN;
-        if (StartsWith(name, "E_VALUECURVE_Direction"))
-            return LIQUID_DIRECTION_MIN;
-        if (StartsWith(name, "E_VALUECURVE_Flow"))
-            return LIQUID_FLOW_MIN;
-        if (StartsWith(name, "E_VALUECURVE_Velocity"))
-            return LIQUID_VELOCITY_MIN;
-        if (StartsWith(name, "E_VALUECURVE_X"))
-            return LIQUID_X_MIN;
-        if (StartsWith(name, "E_VALUECURVE_Y"))
-            return LIQUID_Y_MIN;
-        if (StartsWith(name, "E_VALUECURVE_Liquid_SourceSize"))
-            return LIQUID_SOURCESIZE_MIN;
-        if (name == "E_VALUECURVE_Liquid_Gravity")
-            return LIQUID_GRAVITY_MIN;
-        if (name == "E_VALUECURVE_Liquid_GravityAngle")
-            return LIQUID_GRAVITYANGLE_MIN;
-
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_LifeTime")
-            return LIQUID_LIFETIME_MAX;
-        if (StartsWith(name, "E_VALUECURVE_Direction"))
-            return LIQUID_DIRECTION_MAX;
-        if (StartsWith(name, "E_VALUECURVE_Flow"))
-            return LIQUID_FLOW_MAX;
-        if (StartsWith(name, "E_VALUECURVE_Velocity"))
-            return LIQUID_VELOCITY_MAX;
-        if (StartsWith(name, "E_VALUECURVE_X"))
-            return LIQUID_X_MAX;
-        if (StartsWith(name, "E_VALUECURVE_Y"))
-            return LIQUID_Y_MAX;
-        if (StartsWith(name, "E_VALUECURVE_Liquid_SourceSize"))
-            return LIQUID_SOURCESIZE_MAX;
-        if (name == "E_VALUECURVE_Liquid_Gravity")
-            return LIQUID_GRAVITY_MAX;
-        if (name == "E_VALUECURVE_Liquid_GravityAngle")
-            return LIQUID_GRAVITYANGLE_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-    virtual int GetSettingVCDivisor(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Liquid_Gravity")
-            return LIQUID_GRAVITY_DIVISOR;
-        return RenderableEffect::GetSettingVCDivisor(name);
-    }
+    // Cached from Liquid.json by OnMetadataLoaded().
+    static bool sTopBarrierDefault;
+    static bool sBottomBarrierDefault;
+    static bool sLeftBarrierDefault;
+    static bool sRightBarrierDefault;
+    static bool sHoldColorDefault;
+    static bool sMixColorsDefault;
+    static std::string sParticleTypeDefault;
+    static int sLifeTimeDefault;
+    static int sLifeTimeMin;
+    static int sLifeTimeMax;
+    static int sSizeDefault;
+    static int sWarmUpFramesDefault;
+    static int sDespeckleDefault;
+    static double sGravityDefault;
+    static double sGravityMin;
+    static double sGravityMax;
+    static int sGravityDivisor;
+    static int sGravityAngleDefault;
+    static int sGravityAngleMin;
+    static int sGravityAngleMax;
+    static int sX1Default;
+    static int sY1Default;
+    static int sDirection1Default;
+    static int sVelocity1Default;
+    static int sFlow1Default;
+    static int sSourceSize1Default;
+    static bool sFlowMusic1Default;
+    static bool sEnabled2Default;
+    static int sX2Default;
+    static int sY2Default;
+    static int sDirection2Default;
+    static int sVelocity2Default;
+    static int sFlow2Default;
+    static int sSourceSize2Default;
+    static bool sFlowMusic2Default;
+    static bool sEnabled3Default;
+    static int sX3Default;
+    static int sY3Default;
+    static int sDirection3Default;
+    static int sVelocity3Default;
+    static int sFlow3Default;
+    static int sSourceSize3Default;
+    static bool sFlowMusic3Default;
+    static bool sEnabled4Default;
+    static int sX4Default;
+    static int sY4Default;
+    static int sDirection4Default;
+    static int sVelocity4Default;
+    static int sFlow4Default;
+    static int sSourceSize4Default;
+    static bool sFlowMusic4Default;
+    // Shared range values for X/Y/Direction/Velocity/Flow/SourceSize (all sources share the same).
+    static int sXMin;
+    static int sXMax;
+    static int sYMin;
+    static int sYMax;
+    static int sDirectionMin;
+    static int sDirectionMax;
+    static int sVelocityMin;
+    static int sVelocityMax;
+    static int sFlowMin;
+    static int sFlowMax;
+    static int sSourceSizeMin;
+    static int sSourceSizeMax;
 
 protected:
+    virtual void OnMetadataLoaded() override;
+
     void Render(RenderBuffer& buffer,
                 bool top, bool bottom, bool left, bool right,
                 int lifetime, bool holdcolor, bool mixcolors, int size, int warmUpFrames,

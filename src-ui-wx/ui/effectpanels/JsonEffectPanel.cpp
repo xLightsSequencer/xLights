@@ -195,7 +195,13 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     bool scrollable = metadata.value("scrollable", false);
     if (scrollable) {
         auto* scrollWin = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition,
-                                                wxDefaultSize, wxVSCROLL | wxHSCROLL);
+                                                wxDefaultSize, wxVSCROLL | wxHSCROLL,
+                                                _T("ID_PANEL_JsonScroll"));
+        // The ID_PANEL_ name prefix matters: GetEffectStringFromWindow only
+        // recurses into wxNotebooks and windows whose name begins with
+        // "ID_PANEL_". Without this, every framework-built control parented
+        // to the scroll window is invisible to the serializer and the panel
+        // silently produces no settings.
         scrollWin->SetScrollRate(5, 5);
         // Cap the scroll window's min size to a small value so it doesn't
         // propagate the content's natural size up to the panel. Without this,

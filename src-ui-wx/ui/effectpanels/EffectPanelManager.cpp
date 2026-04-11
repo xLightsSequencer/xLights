@@ -14,8 +14,6 @@
 #include "assist/AssistPanel.h"
 
 #include <wx/debug.h>
-#include <filesystem>
-#include <fstream>
 #include <vector>
 #include <spdlog/spdlog.h>
 
@@ -42,10 +40,24 @@
 #include "WavePanel.h"
 
 #include "effects/EffectManager.h"
+#include "effects/RenderableEffect.h"
 #include "ui/shared/utils/wxUtilities.h"
 
-EffectPanelManager::EffectPanelManager() {
+EffectPanelManager::EffectPanelManager(EffectManager* em)
+    : effectManager_(em)
+{
     RegisterPanels();
+}
+
+const nlohmann::json& EffectPanelManager::GetEffectMetadataFor(EffectManager* em, const std::string& effectName) {
+    static const nlohmann::json empty;
+    if (em == nullptr) return empty;
+    RenderableEffect* eff = em->GetEffect(effectName);
+    if (eff == nullptr) {
+        spdlog::error("EffectPanelManager: no effect named '{}' in EffectManager", effectName);
+        return empty;
+    }
+    return eff->GetMetadata();
 }
 
 EffectPanelManager::~EffectPanelManager() {
@@ -62,49 +74,20 @@ void EffectPanelManager::RegisterPanel(int effectId, const std::string& name, Pa
 }
 
 std::string EffectPanelManager::GetMetadataDirectory() {
-    static std::string cachedDir;
-    if (!cachedDir.empty()) return cachedDir;
-
-    std::string resDir = GetResourcesDirectory();
-    std::error_code ec;
-
-    // Candidate locations to search for effectmetadata. The first existing directory wins.
-    // The fallbacks let dev builds find resources/effectmetadata in the source tree
-    // without requiring a post-build copy step.
-    std::vector<std::string> candidates;
-    candidates.push_back(resDir + "/effectmetadata");
-#ifdef _WIN32
-    // Visual Studio builds run from xLights/x64/<Config>/, so the source resources
-    // dir is three levels up.
-    candidates.push_back(resDir + "/../../../resources/effectmetadata");
-#endif
-#ifdef LINUX
-    candidates.push_back(resDir + "/../resources/effectmetadata");
-#endif
-
-    for (const auto& dir : candidates) {
-        if (std::filesystem::is_directory(std::filesystem::path(dir), ec)) {
-            cachedDir = dir;
-            return cachedDir;
-        }
-    }
-    spdlog::error("Effect metadata directory not found: {}", candidates.front());
-    return "";
+    // Implementation lives in wxUtilities so EffectManager init (which runs
+    // before EffectPanelManager is constructed) can reuse it without pulling
+    // in the panel manager header.
+    return ::GetEffectMetadataDirectory();
 }
 
-void EffectPanelManager::RegisterJson(int effectId, const std::string& name, const std::string& jsonBaseName) {
-    // Capture jsonBaseName by value; JSON is loaded lazily when the panel is first created.
-    // This avoids depending on GetResourcesDirectory() at registration time.
-    RegisterPanel(effectId, name, [jsonBaseName](wxWindow* p) -> xlEffectPanel* {
-        std::string metaDir = EffectPanelManager::GetMetadataDirectory();
-        if (metaDir.empty()) {
-            spdlog::error("JsonEffectPanel: metadata directory not found for {}", jsonBaseName);
-            return nullptr;
-        }
-        std::string path = metaDir + "/" + jsonBaseName + ".json";
-        auto metadata = JsonEffectPanel::LoadMetadata(path);
-        if (metadata.empty()) {
-            spdlog::error("JsonEffectPanel: failed to load {}", path);
+void EffectPanelManager::RegisterJson(int effectId, const std::string& name) {
+    // Panel is constructed lazily. When requested, we look up the effect in the
+    // EffectManager and hand it the JSON metadata the manager loaded at startup.
+    EffectManager* em = effectManager_;
+    RegisterPanel(effectId, name, [em, name](wxWindow* p) -> xlEffectPanel* {
+        const nlohmann::json& metadata = GetEffectMetadataFor(em, name);
+        if (metadata.is_null() || metadata.empty()) {
+            spdlog::error("JsonEffectPanel: no metadata loaded for effect '{}'", name);
             return nullptr;
         }
         return new JsonEffectPanel(p, metadata);
@@ -114,62 +97,68 @@ void EffectPanelManager::RegisterJson(int effectId, const std::string& name, con
 void EffectPanelManager::RegisterPanels() {
     using E = EffectManager::RGB_EFFECTS_e;
 
-    RegisterJson(E::eff_OFF, "Off", "Off");
-    RegisterJson(E::eff_ON, "On", "On");
-    RegisterJsonSubclass<AdjustPanel>(E::eff_ADJUST, "Adjust", "Adjust");
-    RegisterJson(E::eff_BARS, "Bars", "Bars");
-    RegisterJson(E::eff_BUTTERFLY, "Butterfly", "Butterfly");
-    RegisterJson(E::eff_CANDLE, "Candle", "Candle");
-    RegisterJson(E::eff_CIRCLES, "Circles", "Circles");
-    RegisterJson(E::eff_COLORWASH, "Color Wash", "ColorWash");
-    RegisterJson(E::eff_CURTAIN, "Curtain", "Curtain");
-    RegisterJsonSubclass<DMXPanel>(E::eff_DMX, "DMX", "DMX");
-    RegisterJsonSubclass<DuplicatePanel>(E::eff_DUPLICATE, "Duplicate", "Duplicate");
-    RegisterJsonSubclass<FacesPanel>(E::eff_FACES, "Faces", "Faces");
-    RegisterJson(E::eff_FAN, "Fan", "Fan");
-    RegisterJson(E::eff_FILL, "Fill", "Fill");
-    RegisterJson(E::eff_FIRE, "Fire", "Fire");
-    RegisterJson(E::eff_FIREWORKS, "Fireworks", "Fireworks");
-    RegisterJson(E::eff_GALAXY, "Galaxy", "Galaxy");
-    RegisterJson(E::eff_GARLANDS, "Garlands", "Garlands");
-    RegisterJson(E::eff_GLEDIATOR, "Glediator", "Glediator");
-    RegisterJson(E::eff_GUITAR, "Guitar", "Guitar");
-    RegisterJson(E::eff_KALEIDOSCOPE, "Kaleidoscope", "Kaleidoscope");
-    RegisterJson(E::eff_LIFE, "Life", "Life");
-    RegisterJson(E::eff_LIGHTNING, "Lightning", "Lightning");
-    RegisterJson(E::eff_LINES, "Lines", "Lines");
-    RegisterJson(E::eff_LIQUID, "Liquid", "Liquid");
-    RegisterJson(E::eff_MARQUEE, "Marquee", "Marquee");
-    RegisterJson(E::eff_METEORS, "Meteors", "Meteors");
-    RegisterJsonSubclass<MorphPanel>(E::eff_MORPH, "Morph", "Morph");
+    // Panels get their JSON metadata from the effect they represent — the
+    // EffectManager loaded and attached it at startup, so we never re-parse
+    // the file here. The name passed to Register*Json must match the
+    // effect's Name() so the EffectManager lookup resolves it.
+    RegisterJson(E::eff_OFF, "Off");
+    RegisterJson(E::eff_ON, "On");
+    RegisterJsonSubclass<AdjustPanel>(E::eff_ADJUST, "Adjust");
+    RegisterJson(E::eff_BARS, "Bars");
+    RegisterJson(E::eff_BUTTERFLY, "Butterfly");
+    RegisterJson(E::eff_CANDLE, "Candle");
+    RegisterJson(E::eff_CIRCLES, "Circles");
+    RegisterJson(E::eff_COLORWASH, "Color Wash");
+    RegisterJson(E::eff_CURTAIN, "Curtain");
+    RegisterJsonSubclass<DMXPanel>(E::eff_DMX, "DMX");
+    RegisterJsonSubclass<DuplicatePanel>(E::eff_DUPLICATE, "Duplicate");
+    RegisterJsonSubclass<FacesPanel>(E::eff_FACES, "Faces");
+    RegisterJson(E::eff_FAN, "Fan");
+    RegisterJson(E::eff_FILL, "Fill");
+    RegisterJson(E::eff_FIRE, "Fire");
+    RegisterJson(E::eff_FIREWORKS, "Fireworks");
+    RegisterJson(E::eff_GALAXY, "Galaxy");
+    RegisterJson(E::eff_GARLANDS, "Garlands");
+    RegisterJson(E::eff_GLEDIATOR, "Glediator");
+    RegisterJson(E::eff_GUITAR, "Guitar");
+    RegisterJson(E::eff_KALEIDOSCOPE, "Kaleidoscope");
+    RegisterJson(E::eff_LIFE, "Life");
+    RegisterJson(E::eff_LIGHTNING, "Lightning");
+    RegisterJson(E::eff_LINES, "Lines");
+    RegisterJson(E::eff_LIQUID, "Liquid");
+    RegisterJson(E::eff_MARQUEE, "Marquee");
+    RegisterJson(E::eff_METEORS, "Meteors");
+    RegisterJsonSubclass<MorphPanel>(E::eff_MORPH, "Morph");
     Register<MovingHeadPanel>(E::eff_MOVINGHEAD, "Moving Head");
-    RegisterJsonSubclass<MusicPanel>(E::eff_MUSIC, "Music", "Music");
-    RegisterJsonSubclass<PianoPanel>(E::eff_PIANO, "Piano", "Piano");
-    RegisterJsonSubclass<PicturesPanel>(E::eff_PICTURES, "Pictures", "Pictures");
-    RegisterJson(E::eff_PINWHEEL, "Pinwheel", "Pinwheel");
-    RegisterJson(E::eff_PLASMA, "Plasma", "Plasma");
-    RegisterJsonSubclass<RipplePanel>(E::eff_RIPPLE, "Ripple", "Ripple");
-    RegisterJsonSubclass<ServoPanel>(E::eff_SERVO, "Servo", "Servo");
-    RegisterJsonSubclass<ShaderPanel>(E::eff_SHADER, "Shader", "Shader");
-    RegisterJsonSubclass<ShapePanel>(E::eff_SHAPE, "Shape", "Shape");
-    RegisterJson(E::eff_SHIMMER, "Shimmer", "Shimmer");
-    RegisterJson(E::eff_SHOCKWAVE, "Shockwave", "Shockwave");
-    RegisterJson(E::eff_SINGLESTRAND, "SingleStrand", "SingleStrand");
-    RegisterJsonSubclass<SketchPanel>(E::eff_SKETCH, "Sketch", "Sketch");
-    RegisterJsonSubclass<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes", "Snowflakes");
-    RegisterJson(E::eff_SNOWSTORM, "Snowstorm", "Snowstorm");
-    RegisterJson(E::eff_SPIRALS, "Spirals", "Spirals");
-    RegisterJson(E::eff_SPIROGRAPH, "Spirograph", "Spirograph");
-    RegisterJsonSubclass<StatePanel>(E::eff_STATE, "State", "State");
-    RegisterJson(E::eff_STROBE, "Strobe", "Strobe");
-    RegisterJson(E::eff_TENDRIL, "Tendril", "Tendril");
-    RegisterJsonSubclass<TextPanel>(E::eff_TEXT, "Text", "Text");
-    RegisterJson(E::eff_TREE, "Tree", "Tree");
-    RegisterJson(E::eff_TWINKLE, "Twinkle", "Twinkle");
-    RegisterJsonSubclass<VideoPanel>(E::eff_VIDEO, "Video", "Video");
-    RegisterJsonSubclass<VUMeterPanel>(E::eff_VUMETER, "VU Meter", "VUMeter");
-    RegisterJsonSubclass<WarpPanel>(E::eff_WARP, "Warp", "Warp");
-    RegisterJsonSubclass<WavePanel>(E::eff_WAVE, "Wave", "Wave");
+    // Must match MusicEffect::Name() exactly — the registration name is used
+    // to look the effect up in the EffectManager to fetch its cached metadata.
+    RegisterJsonSubclass<MusicPanel>(E::eff_MUSIC, "Music Effect");
+    RegisterJsonSubclass<PianoPanel>(E::eff_PIANO, "Piano");
+    RegisterJsonSubclass<PicturesPanel>(E::eff_PICTURES, "Pictures");
+    RegisterJson(E::eff_PINWHEEL, "Pinwheel");
+    RegisterJson(E::eff_PLASMA, "Plasma");
+    RegisterJsonSubclass<RipplePanel>(E::eff_RIPPLE, "Ripple");
+    RegisterJsonSubclass<ServoPanel>(E::eff_SERVO, "Servo");
+    RegisterJsonSubclass<ShaderPanel>(E::eff_SHADER, "Shader");
+    RegisterJsonSubclass<ShapePanel>(E::eff_SHAPE, "Shape");
+    RegisterJson(E::eff_SHIMMER, "Shimmer");
+    RegisterJson(E::eff_SHOCKWAVE, "Shockwave");
+    RegisterJson(E::eff_SINGLESTRAND, "SingleStrand");
+    RegisterJsonSubclass<SketchPanel>(E::eff_SKETCH, "Sketch");
+    RegisterJsonSubclass<SnowflakesPanel>(E::eff_SNOWFLAKES, "Snowflakes");
+    RegisterJson(E::eff_SNOWSTORM, "Snowstorm");
+    RegisterJson(E::eff_SPIRALS, "Spirals");
+    RegisterJson(E::eff_SPIROGRAPH, "Spirograph");
+    RegisterJsonSubclass<StatePanel>(E::eff_STATE, "State");
+    RegisterJson(E::eff_STROBE, "Strobe");
+    RegisterJson(E::eff_TENDRIL, "Tendril");
+    RegisterJsonSubclass<TextPanel>(E::eff_TEXT, "Text");
+    RegisterJson(E::eff_TREE, "Tree");
+    RegisterJson(E::eff_TWINKLE, "Twinkle");
+    RegisterJsonSubclass<VideoPanel>(E::eff_VIDEO, "Video");
+    RegisterJsonSubclass<VUMeterPanel>(E::eff_VUMETER, "VU Meter");
+    RegisterJsonSubclass<WarpPanel>(E::eff_WARP, "Warp");
+    RegisterJsonSubclass<WavePanel>(E::eff_WAVE, "Wave");
 }
 
 xlEffectPanel* EffectPanelManager::GetPanel(int effectId, wxWindow* parent) {

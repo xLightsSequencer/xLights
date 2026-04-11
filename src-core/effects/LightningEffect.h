@@ -14,18 +14,6 @@
 
 class xlColor;
 
-#define LIGHTNING_TOPX_MIN -50
-#define LIGHTNING_TOPX_MAX 50
-
-#define LIGHTNING_TOPY_MIN 0
-#define LIGHTNING_TOPY_MAX 100
-
-#define LIGHTNING_BOLTS_MIN 1
-#define LIGHTNING_BOLTS_MAX 50
-
-#define LIGHTNING_SEGMENTS_MIN 1
-#define LIGHTNING_SEGMENTS_MAX 20
-
 class LightningEffect : public RenderableEffect
 {
 public:
@@ -41,34 +29,28 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Lightning_TopX")
-            return LIGHTNING_TOPX_MIN;
-        if (name == "E_VALUECURVE_Lightning_TopY")
-            return LIGHTNING_TOPY_MIN;
-        if (name == "E_VALUECURVE_Number_Bolts")
-            return LIGHTNING_BOLTS_MIN;
-        if (name == "E_VALUECURVE_Number_Segments")
-            return LIGHTNING_SEGMENTS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Lightning_TopX")
-            return LIGHTNING_TOPX_MAX;
-        if (name == "E_VALUECURVE_Lightning_TopY")
-            return LIGHTNING_TOPY_MAX;
-        if (name == "E_VALUECURVE_Number_Bolts")
-            return LIGHTNING_BOLTS_MAX;
-        if (name == "E_VALUECURVE_Number_Segments")
-            return LIGHTNING_SEGMENTS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-
     virtual bool needToAdjustSettings(const std::string& version) override;
 
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 
+    // Cached from Lightning.json by OnMetadataLoaded().
+    static int sNumberBoltsDefault;
+    static int sNumberBoltsMin;
+    static int sNumberBoltsMax;
+    static int sNumberSegmentsDefault;
+    static int sNumberSegmentsMin;
+    static int sNumberSegmentsMax;
+    static bool sForkedLightningDefault;
+    static int sTopXDefault;
+    static int sTopXMin;
+    static int sTopXMax;
+    static int sTopYDefault;
+    static int sTopYMin;
+    static int sTopYMax;
+    static int sBotXDefault;
+    static int sWidthDefault;
+    static std::string sDirectionDefault;
+
+protected:
+    virtual void OnMetadataLoaded() override;
 };

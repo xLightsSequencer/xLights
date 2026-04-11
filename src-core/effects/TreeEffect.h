@@ -21,5 +21,11 @@ class TreeEffect : public RenderableEffect
         virtual bool AppropriateOnNodes() const override { return false; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
+        // Cached from Tree.json by OnMetadataLoaded().
+        static int sBranchesDefault;
+        static int sSpeedDefault;
+        static bool sShowLightsDefault;
+
     protected:
+        virtual void OnMetadataLoaded() override;
 };

@@ -142,6 +142,10 @@ size_t CSVReader::GetFrameCount() const
     return _lines.size();
 }
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Glediator.json values).
+std::string GlediatorEffect::sFilenameDefault = "";
+std::string GlediatorEffect::sDurationTreatmentDefault = "Normal";
+
 GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", glediator_16, glediator_64, glediator_64, glediator_64, glediator_64)
 {
     //ctor
@@ -150,6 +154,12 @@ GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", gle
 GlediatorEffect::~GlediatorEffect()
 {
     //dtor
+}
+
+void GlediatorEffect::OnMetadataLoaded()
+{
+    sFilenameDefault = GetStringDefault("Glediator_Filename", sFilenameDefault);
+    sDurationTreatmentDefault = GetStringDefault("Glediator_DurationTreatment", sDurationTreatmentDefault);
 }
 
 std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)

@@ -23,6 +23,13 @@
 
 #include <format>
 
+std::string AdjustEffect::sActionDefault = "None";
+int AdjustEffect::sValue1Default = 0;
+int AdjustEffect::sValue2Default = 0;
+int AdjustEffect::sNthChannelDefault = 1;
+int AdjustEffect::sStartingAtDefault = 1;
+int AdjustEffect::sCountDefault = 0;
+
 AdjustEffect::AdjustEffect(int id) :
     RenderableEffect(id, "Adjust", adjust16_xpm, adjust24_xpm, adjust32_xpm, adjust48_xpm, adjust64_xpm)
 {
@@ -32,6 +39,16 @@ AdjustEffect::AdjustEffect(int id) :
 AdjustEffect::~AdjustEffect()
 {
     //dtor
+}
+
+void AdjustEffect::OnMetadataLoaded()
+{
+    sActionDefault = GetStringDefault("Action", sActionDefault);
+    sValue1Default = GetIntDefault("Value1", sValue1Default);
+    sValue2Default = GetIntDefault("Value2", sValue2Default);
+    sNthChannelDefault = GetIntDefault("NthChannel", sNthChannelDefault);
+    sStartingAtDefault = GetIntDefault("StartingAt", sStartingAtDefault);
+    sCountDefault = GetIntDefault("Count", sCountDefault);
 }
 
 std::list<std::string> AdjustEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -140,12 +157,12 @@ void AdjustEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         string_type = model_info->GetStringType();
     }
 
-    auto action = SettingsMap.Get("CHOICE_Action", "None");
-    auto value1 = SettingsMap.GetInt("SPINCTRL_Value1", 0);
-    auto value2 = SettingsMap.GetInt("SPINCTRL_Value2", 0);
-    auto nth = SettingsMap.GetInt("SPINCTRL_NthChannel", 1);
-    auto starting = SettingsMap.GetInt("SPINCTRL_StartingAt", 1);
-    auto count = SettingsMap.GetInt("SPINCTRL_Count", 0);
+    auto action = SettingsMap.Get("CHOICE_Action", sActionDefault);
+    auto value1 = SettingsMap.GetInt("SPINCTRL_Value1", sValue1Default);
+    auto value2 = SettingsMap.GetInt("SPINCTRL_Value2", sValue2Default);
+    auto nth = SettingsMap.GetInt("SPINCTRL_NthChannel", sNthChannelDefault);
+    auto starting = SettingsMap.GetInt("SPINCTRL_StartingAt", sStartingAtDefault);
+    auto count = SettingsMap.GetInt("SPINCTRL_Count", sCountDefault);
 
     AdjustChannels(StartsWith(string_type, "Single Color"), num_channels, buffer, action, value1, value2, nth, starting, count);
 }

@@ -21,6 +21,10 @@
 #include "../../include/life-64.xpm"
 #include "UtilFunctions.h"
 
+int LifeEffect::sCountDefault = 50;
+int LifeEffect::sSeedDefault = 0;
+int LifeEffect::sSpeedDefault = 10;
+
 LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life", life_16, life_24, life_32, life_48, life_48)
 {
     //ctor
@@ -29,6 +33,13 @@ LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life", life_16, life_24, 
 LifeEffect::~LifeEffect()
 {
     //dtor
+}
+
+void LifeEffect::OnMetadataLoaded()
+{
+    sCountDefault = GetIntDefault("Life_Count", sCountDefault);
+    sSeedDefault = GetIntDefault("Life_Seed", sSeedDefault);
+    sSpeedDefault = GetIntDefault("Life_Speed", sSpeedDefault);
 }
 
 static size_t Life_CountNeighbors(RenderBuffer& buffer, int x0, int y0)
@@ -63,9 +74,9 @@ public:
 
 void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    int Count = SettingsMap.GetInt("SLIDER_Life_Count", 50);
-    int Type = SettingsMap.GetInt("SLIDER_Life_Seed", 0);
-    int lspeed = SettingsMap.GetInt("SLIDER_Life_Speed", 10);
+    int Count = SettingsMap.GetInt("SLIDER_Life_Count", sCountDefault);
+    int Type = SettingsMap.GetInt("SLIDER_Life_Seed", sSeedDefault);
+    int lspeed = SettingsMap.GetInt("SLIDER_Life_Speed", sSpeedDefault);
 
     LifeRenderCache* cache = (LifeRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {

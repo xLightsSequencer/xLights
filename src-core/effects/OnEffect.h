@@ -12,9 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define ON_TRANSPARENCY_MIN 0
-#define ON_TRANSPARENCY_MAX 100
-
 class OnEffect : public RenderableEffect
 {
 public:
@@ -39,17 +36,20 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_On_Transparency")
-            return ON_TRANSPARENCY_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_On_Transparency")
-            return ON_TRANSPARENCY_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from On.json by OnMetadataLoaded(). Exposed as statics so any
+    // cold-path code (imports, Metal subclass, tests) can read them without
+    // needing a pointer to the singleton effect instance.
+    static int sStartDefault;
+    static int sEndDefault;
+    static bool sShimmerDefault;
+    static double sCyclesDefault;
+    static int sTransparencyDefault;
+    static int sTransparencyMin;
+    static int sTransparencyMax;
 
+protected:
+    // Pull defaults and value curve bounds out of On.json once at startup so
+    // Render() never touches the metadata. Min/max for VC upgrade still come
+    // from the base class's JSON-backed GetSettingVCMin/Max (cold path).
+    virtual void OnMetadataLoaded() override;
 };

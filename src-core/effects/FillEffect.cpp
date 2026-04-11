@@ -21,6 +21,23 @@
 #include "../../include/fill-16.xpm"
 #include "../../include/fill-64.xpm"
 
+int FillEffect::sPositionDefault = 100;
+int FillEffect::sPositionMin = 0;
+int FillEffect::sPositionMax = 100;
+int FillEffect::sBandSizeDefault = 0;
+int FillEffect::sBandSizeMin = 0;
+int FillEffect::sBandSizeMax = 250;
+int FillEffect::sSkipSizeDefault = 0;
+int FillEffect::sSkipSizeMin = 0;
+int FillEffect::sSkipSizeMax = 250;
+int FillEffect::sOffsetDefault = 0;
+int FillEffect::sOffsetMin = 0;
+int FillEffect::sOffsetMax = 100;
+bool FillEffect::sOffsetInPixelsDefault = true;
+bool FillEffect::sColorTimeDefault = false;
+bool FillEffect::sWrapDefault = true;
+std::string FillEffect::sDirectionDefault = "Up";
+
 FillEffect::FillEffect(int i) : RenderableEffect(i, "Fill", fill_16, fill_64, fill_64, fill_64, fill_64)
 {
     //ctor
@@ -29,6 +46,26 @@ FillEffect::FillEffect(int i) : RenderableEffect(i, "Fill", fill_16, fill_64, fi
 FillEffect::~FillEffect()
 {
     //dtor
+}
+
+void FillEffect::OnMetadataLoaded()
+{
+    sPositionDefault = GetIntDefault("Fill_Position", sPositionDefault);
+    sPositionMin = (int)GetMinFromMetadata("Fill_Position", sPositionMin);
+    sPositionMax = (int)GetMaxFromMetadata("Fill_Position", sPositionMax);
+    sBandSizeDefault = GetIntDefault("Fill_Band_Size", sBandSizeDefault);
+    sBandSizeMin = (int)GetMinFromMetadata("Fill_Band_Size", sBandSizeMin);
+    sBandSizeMax = (int)GetMaxFromMetadata("Fill_Band_Size", sBandSizeMax);
+    sSkipSizeDefault = GetIntDefault("Fill_Skip_Size", sSkipSizeDefault);
+    sSkipSizeMin = (int)GetMinFromMetadata("Fill_Skip_Size", sSkipSizeMin);
+    sSkipSizeMax = (int)GetMaxFromMetadata("Fill_Skip_Size", sSkipSizeMax);
+    sOffsetDefault = GetIntDefault("Fill_Offset", sOffsetDefault);
+    sOffsetMin = (int)GetMinFromMetadata("Fill_Offset", sOffsetMin);
+    sOffsetMax = (int)GetMaxFromMetadata("Fill_Offset", sOffsetMax);
+    sOffsetInPixelsDefault = GetBoolDefault("Fill_Offset_In_Pixels", sOffsetInPixelsDefault);
+    sColorTimeDefault = GetBoolDefault("Fill_Color_Time", sColorTimeDefault);
+    sWrapDefault = GetBoolDefault("Fill_Wrap", sWrapDefault);
+    sDirectionDefault = GetStringDefault("Fill_Direction", sDirectionDefault);
 }
 
 std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -135,15 +172,15 @@ static inline int GetDirection(const std::string & DirectionString) {
 void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int position = GetValueCurveInt("Fill_Position", 100, SettingsMap, eff_pos, FILL_POSITION_MIN, FILL_POSITION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int position = GetValueCurveInt("Fill_Position", sPositionDefault, SettingsMap, eff_pos, sPositionMin, sPositionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double pos_pct = static_cast<double>(position) / 100.0;
-    int Direction = GetDirection(SettingsMap["CHOICE_Fill_Direction"]);
-    int BandSize = GetValueCurveInt("Fill_Band_Size", 0, SettingsMap, eff_pos, FILL_BANDSIZE_MIN, FILL_BANDSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int SkipSize = GetValueCurveInt("Fill_Skip_Size", 0, SettingsMap, eff_pos, FILL_SKIPSIZE_MIN, FILL_SKIPSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int offset = GetValueCurveInt("Fill_Offset", 0, SettingsMap, eff_pos, FILL_OFFSET_MIN, FILL_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int offset_in_pixels = SettingsMap.GetBool("CHECKBOX_Fill_Offset_In_Pixels", true);
-    int color_by_time = SettingsMap.GetBool("CHECKBOX_Fill_Color_Time", false);
-    int wrap = SettingsMap.GetBool("CHECKBOX_Fill_Wrap", true);
+    int Direction = GetDirection(SettingsMap.Get("CHOICE_Fill_Direction", sDirectionDefault));
+    int BandSize = GetValueCurveInt("Fill_Band_Size", sBandSizeDefault, SettingsMap, eff_pos, sBandSizeMin, sBandSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int SkipSize = GetValueCurveInt("Fill_Skip_Size", sSkipSizeDefault, SettingsMap, eff_pos, sSkipSizeMin, sSkipSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int offset = GetValueCurveInt("Fill_Offset", sOffsetDefault, SettingsMap, eff_pos, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int offset_in_pixels = SettingsMap.GetBool("CHECKBOX_Fill_Offset_In_Pixels", sOffsetInPixelsDefault);
+    int color_by_time = SettingsMap.GetBool("CHECKBOX_Fill_Color_Time", sColorTimeDefault);
+    int wrap = SettingsMap.GetBool("CHECKBOX_Fill_Wrap", sWrapDefault);
 
     switch (Direction)
     {

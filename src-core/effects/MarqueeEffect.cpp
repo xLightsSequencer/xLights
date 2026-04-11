@@ -20,6 +20,41 @@
 #include "../../include/marquee-48.xpm"
 #include "../../include/marquee-64.xpm"
 
+int MarqueeEffect::sBandSizeDefault = 3;
+int MarqueeEffect::sBandSizeMin = 1;
+int MarqueeEffect::sBandSizeMax = 100;
+int MarqueeEffect::sSkipSizeDefault = 0;
+int MarqueeEffect::sSkipSizeMin = 0;
+int MarqueeEffect::sSkipSizeMax = 100;
+int MarqueeEffect::sThicknessDefault = 1;
+int MarqueeEffect::sThicknessMin = 1;
+int MarqueeEffect::sThicknessMax = 100;
+int MarqueeEffect::sStaggerDefault = 0;
+int MarqueeEffect::sStaggerMin = 0;
+int MarqueeEffect::sStaggerMax = 50;
+int MarqueeEffect::sSpeedDefault = 3;
+int MarqueeEffect::sSpeedMin = 0;
+int MarqueeEffect::sSpeedMax = 50;
+int MarqueeEffect::sStartDefault = 0;
+int MarqueeEffect::sStartMin = 0;
+int MarqueeEffect::sStartMax = 100;
+bool MarqueeEffect::sReverseDefault = false;
+int MarqueeEffect::sScaleXDefault = 100;
+int MarqueeEffect::sScaleXMin = 1;
+int MarqueeEffect::sScaleXMax = 100;
+int MarqueeEffect::sScaleYDefault = 100;
+int MarqueeEffect::sScaleYMin = 1;
+int MarqueeEffect::sScaleYMax = 100;
+bool MarqueeEffect::sPixelOffsetsDefault = false;
+int MarqueeEffect::sXCDefault = 0;
+int MarqueeEffect::sXCMin = -100;
+int MarqueeEffect::sXCMax = 100;
+bool MarqueeEffect::sWrapXDefault = false;
+int MarqueeEffect::sYCDefault = 0;
+int MarqueeEffect::sYCMin = -100;
+int MarqueeEffect::sYCMax = 100;
+bool MarqueeEffect::sWrapYDefault = false;
+
 MarqueeEffect::MarqueeEffect(int id) : RenderableEffect(id, "Marquee", marquee_16, marquee_24, marquee_32, marquee_48, marquee_64)
 {
     //ctor
@@ -28,6 +63,44 @@ MarqueeEffect::MarqueeEffect(int id) : RenderableEffect(id, "Marquee", marquee_1
 MarqueeEffect::~MarqueeEffect()
 {
     //dtor
+}
+
+void MarqueeEffect::OnMetadataLoaded()
+{
+    sBandSizeDefault = GetIntDefault("Marquee_Band_Size", sBandSizeDefault);
+    sBandSizeMin = (int)GetMinFromMetadata("Marquee_Band_Size", sBandSizeMin);
+    sBandSizeMax = (int)GetMaxFromMetadata("Marquee_Band_Size", sBandSizeMax);
+    sSkipSizeDefault = GetIntDefault("Marquee_Skip_Size", sSkipSizeDefault);
+    sSkipSizeMin = (int)GetMinFromMetadata("Marquee_Skip_Size", sSkipSizeMin);
+    sSkipSizeMax = (int)GetMaxFromMetadata("Marquee_Skip_Size", sSkipSizeMax);
+    sThicknessDefault = GetIntDefault("Marquee_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Marquee_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Marquee_Thickness", sThicknessMax);
+    sStaggerDefault = GetIntDefault("Marquee_Stagger", sStaggerDefault);
+    sStaggerMin = (int)GetMinFromMetadata("Marquee_Stagger", sStaggerMin);
+    sStaggerMax = (int)GetMaxFromMetadata("Marquee_Stagger", sStaggerMax);
+    sSpeedDefault = GetIntDefault("Marquee_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Marquee_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Marquee_Speed", sSpeedMax);
+    sStartDefault = GetIntDefault("Marquee_Start", sStartDefault);
+    sStartMin = (int)GetMinFromMetadata("Marquee_Start", sStartMin);
+    sStartMax = (int)GetMaxFromMetadata("Marquee_Start", sStartMax);
+    sReverseDefault = GetBoolDefault("Marquee_Reverse", sReverseDefault);
+    sScaleXDefault = GetIntDefault("Marquee_ScaleX", sScaleXDefault);
+    sScaleXMin = (int)GetMinFromMetadata("Marquee_ScaleX", sScaleXMin);
+    sScaleXMax = (int)GetMaxFromMetadata("Marquee_ScaleX", sScaleXMax);
+    sScaleYDefault = GetIntDefault("Marquee_ScaleY", sScaleYDefault);
+    sScaleYMin = (int)GetMinFromMetadata("Marquee_ScaleY", sScaleYMin);
+    sScaleYMax = (int)GetMaxFromMetadata("Marquee_ScaleY", sScaleYMax);
+    sPixelOffsetsDefault = GetBoolDefault("Marquee_PixelOffsets", sPixelOffsetsDefault);
+    sXCDefault = GetIntDefault("MarqueeXC", sXCDefault);
+    sXCMin = (int)GetMinFromMetadata("MarqueeXC", sXCMin);
+    sXCMax = (int)GetMaxFromMetadata("MarqueeXC", sXCMax);
+    sWrapXDefault = GetBoolDefault("Marquee_WrapX", sWrapXDefault);
+    sYCDefault = GetIntDefault("MarqueeYC", sYCDefault);
+    sYCMin = (int)GetMinFromMetadata("MarqueeYC", sYCMin);
+    sYCMax = (int)GetMaxFromMetadata("MarqueeYC", sYCMax);
+    sWrapYDefault = GetBoolDefault("Marquee_WrapY", sWrapYDefault);
 }
 
 static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int color_size, int shift)
@@ -62,21 +135,21 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int BandSize = GetValueCurveInt("Marquee_Band_Size", 3, SettingsMap, oset, MARQUEE_BAND_SIZE_MIN, MARQUEE_BAND_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int SkipSize = GetValueCurveInt("Marquee_Skip_Size", 0, SettingsMap, oset, MARQUEE_SKIP_SIZE_MIN, MARQUEE_SKIP_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Thickness = GetValueCurveInt("Marquee_Thickness", 1, SettingsMap, oset, MARQUEE_THICKNESS_MIN, MARQUEE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int stagger = GetValueCurveInt("Marquee_Stagger", 0, SettingsMap, oset, MARQUEE_STAGGER_MIN, MARQUEE_STAGGER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int mSpeed = GetValueCurveInt("Marquee_Speed", 3, SettingsMap, oset, MARQUEE_SPEED_MIN, MARQUEE_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int mStart = GetValueCurveInt("Marquee_Start", 0, SettingsMap, oset, MARQUEE_START_MIN, MARQUEE_START_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int x_scale = GetValueCurveInt("Marquee_ScaleX", 100, SettingsMap, oset, MARQUEE_SCALEX_MIN, MARQUEE_SCALEX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int y_scale = GetValueCurveInt("Marquee_ScaleY", 100, SettingsMap, oset, MARQUEE_SCALEY_MIN, MARQUEE_SCALEY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int xc_adj = GetValueCurveInt("MarqueeXC", 0, SettingsMap, oset, MARQUEE_XC_MIN, MARQUEE_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yc_adj = GetValueCurveInt("MarqueeYC", 0, SettingsMap, oset, MARQUEE_YC_MIN, MARQUEE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int BandSize = GetValueCurveInt("Marquee_Band_Size", sBandSizeDefault, SettingsMap, oset, sBandSizeMin, sBandSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int SkipSize = GetValueCurveInt("Marquee_Skip_Size", sSkipSizeDefault, SettingsMap, oset, sSkipSizeMin, sSkipSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Thickness = GetValueCurveInt("Marquee_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int stagger = GetValueCurveInt("Marquee_Stagger", sStaggerDefault, SettingsMap, oset, sStaggerMin, sStaggerMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int mSpeed = GetValueCurveInt("Marquee_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int mStart = GetValueCurveInt("Marquee_Start", sStartDefault, SettingsMap, oset, sStartMin, sStartMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int x_scale = GetValueCurveInt("Marquee_ScaleX", sScaleXDefault, SettingsMap, oset, sScaleXMin, sScaleXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int y_scale = GetValueCurveInt("Marquee_ScaleY", sScaleYDefault, SettingsMap, oset, sScaleYMin, sScaleYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xc_adj = GetValueCurveInt("MarqueeXC", sXCDefault, SettingsMap, oset, sXCMin, sXCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yc_adj = GetValueCurveInt("MarqueeYC", sYCDefault, SettingsMap, oset, sYCMin, sYCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Marquee_Reverse");
-    bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Marquee_PixelOffsets");
-    bool wrap_x = SettingsMap.GetBool("CHECKBOX_Marquee_WrapX");
-    bool wrap_y = SettingsMap.GetBool("CHECKBOX_Marquee_WrapY");
+    bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Marquee_Reverse", sReverseDefault);
+    bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Marquee_PixelOffsets", sPixelOffsetsDefault);
+    bool wrap_x = SettingsMap.GetBool("CHECKBOX_Marquee_WrapX", sWrapXDefault);
+    bool wrap_y = SettingsMap.GetBool("CHECKBOX_Marquee_WrapY", sWrapYDefault);
 
     size_t colorcnt = buffer.GetColorCount();
     int color_size = BandSize +  SkipSize;

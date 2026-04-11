@@ -28,7 +28,11 @@ class StateEffect : public RenderableEffect
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
         std::list<std::string> GetStatesUsed(const SettingsMap& SettingsMap);
+
+        // Cached from State.json by OnMetadataLoaded().
+        static int sFadeTimeDefault;
     protected:
+        virtual void OnMetadataLoaded() override;
     private:
         void RenderState(RenderBuffer &buffer, SequenceElements *elements, const std::string &faceDefintion,
                          const std::string& Phoneme, const std::string& track, const std::string& mode, const std::string& colourmode, int fadeTime);

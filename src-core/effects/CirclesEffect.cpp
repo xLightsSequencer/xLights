@@ -33,6 +33,26 @@
 #define CIRCLES_MODE_REGULAR    3
 #define CIRCLES_MODE_FADING     4
 
+int CirclesEffect::sCountDefault = 3;
+int CirclesEffect::sCountMin = 1;
+int CirclesEffect::sCountMax = 10;
+int CirclesEffect::sSizeDefault = 5;
+int CirclesEffect::sSizeMin = 1;
+int CirclesEffect::sSizeMax = 20;
+int CirclesEffect::sSpeedDefault = 10;
+int CirclesEffect::sSpeedMin = 1;
+int CirclesEffect::sSpeedMax = 30;
+int CirclesEffect::sXCDefault = 0;
+int CirclesEffect::sYCDefault = 0;
+int CirclesEffect::sPosMin = -50;
+int CirclesEffect::sPosMax = 50;
+bool CirclesEffect::sBounceDefault = false;
+bool CirclesEffect::sRadialDefault = false;
+bool CirclesEffect::sPlasmaDefault = false;
+bool CirclesEffect::sRadial3DDefault = false;
+bool CirclesEffect::sBubblesDefault = false;
+bool CirclesEffect::sLinearFadeDefault = false;
+
 CirclesEffect::CirclesEffect(int i) : RenderableEffect(i, "Circles", circles_16, circles_24, circles_32, circles_48, circles_64)
 {
     //ctor
@@ -43,9 +63,33 @@ CirclesEffect::~CirclesEffect()
     //dtor
 }
 
+void CirclesEffect::OnMetadataLoaded()
+{
+    sCountDefault = GetIntDefault("Circles_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Circles_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Circles_Count", sCountMax);
+    sSizeDefault = GetIntDefault("Circles_Size", sSizeDefault);
+    sSizeMin = (int)GetMinFromMetadata("Circles_Size", sSizeMin);
+    sSizeMax = (int)GetMaxFromMetadata("Circles_Size", sSizeMax);
+    sSpeedDefault = GetIntDefault("Circles_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Circles_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Circles_Speed", sSpeedMax);
+    sXCDefault = GetIntDefault("Circles_XC", sXCDefault);
+    sYCDefault = GetIntDefault("Circles_YC", sYCDefault);
+    // XC and YC share the same ±50 range in Circles.json — take it from XC.
+    sPosMin = (int)GetMinFromMetadata("Circles_XC", sPosMin);
+    sPosMax = (int)GetMaxFromMetadata("Circles_XC", sPosMax);
+    sBounceDefault = GetBoolDefault("Circles_Bounce", sBounceDefault);
+    sRadialDefault = GetBoolDefault("Circles_Radial", sRadialDefault);
+    sPlasmaDefault = GetBoolDefault("Circles_Plasma", sPlasmaDefault);
+    sRadial3DDefault = GetBoolDefault("Circles_Radial_3D", sRadial3DDefault);
+    sBubblesDefault = GetBoolDefault("Circles_Bubbles", sBubblesDefault);
+    sLinearFadeDefault = GetBoolDefault("Circles_Linear_Fade", sLinearFadeDefault);
+}
+
 bool CirclesEffect::needToAdjustSettings(const std::string& version)
 {
-    return IsVersionOlder("2026.06", version) || RenderableEffect::needToAdjustSettings(version);
+    return IsVersionOlder("2026.05.2", version) || RenderableEffect::needToAdjustSettings(version);
 }
 
 void CirclesEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
@@ -56,7 +100,7 @@ void CirclesEffect::adjustSettings(const std::string& version, Effect* effect, b
 
     SettingsMap& settings = effect->GetSettings();
 
-    if (IsVersionOlder("2026.06", version)) {
+    if (IsVersionOlder("2026.05.2", version)) {
         // The Collide checkbox was removed when migrating to the JSON-driven panel.
         // Old behavior was: wrap = !(bounce || collide). New behavior: wrap = !bounce.
         // Promote any old Collide=1 to Bounce=1 so existing sequences keep their
@@ -71,13 +115,13 @@ void CirclesEffect::adjustSettings(const std::string& version, Effect* effect, b
 CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int number = GetValueCurveInt("Circles_Count", 3, SettingsMap, oset, CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset, CIRCLES_SPEED_MIN, CIRCLES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int radius = GetValueCurveInt("Circles_Size", 5, SettingsMap, oset, CIRCLES_SIZE_MIN, CIRCLES_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int number = GetValueCurveInt("Circles_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int circleSpeed = GetValueCurveInt("Circles_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int radius = GetValueCurveInt("Circles_Size", sSizeDefault, SettingsMap, oset, sSizeMin, sSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    bool plasma  = SettingsMap.GetBool("CHECKBOX_Circles_Plasma",  false);
-    bool bubbles = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles", false);
-    bool bounce  = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",  false);
+    bool plasma  = SettingsMap.GetBool("CHECKBOX_Circles_Plasma",  sPlasmaDefault);
+    bool bubbles = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles", sBubblesDefault);
+    bool bounce  = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",  sBounceDefault);
 
     int start_x = buffer.BufferWi / 2;
     int start_y = buffer.BufferHt / 2;
@@ -175,16 +219,16 @@ void CirclesEffect::RenderPixels(const SettingsMap& SettingsMap, RenderBuffer& b
 void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int number = GetValueCurveInt("Circles_Count", 3, SettingsMap, oset, CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset, CIRCLES_SPEED_MIN, CIRCLES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int radius = GetValueCurveInt("Circles_Size", 5, SettingsMap, oset, CIRCLES_SIZE_MIN, CIRCLES_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int number = GetValueCurveInt("Circles_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int circleSpeed = GetValueCurveInt("Circles_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int radius = GetValueCurveInt("Circles_Size", sSizeDefault, SettingsMap, oset, sSizeMin, sSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    bool plasma   = SettingsMap.GetBool("CHECKBOX_Circles_Plasma",    false);
-    bool radial   = SettingsMap.GetBool("CHECKBOX_Circles_Radial",    false);
-    bool radial_3D= SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D", false);
-    bool fade     = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", false);
-    bool bubbles  = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles",   false);
-    bool bounce   = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",    false);
+    bool plasma   = SettingsMap.GetBool("CHECKBOX_Circles_Plasma",    sPlasmaDefault);
+    bool radial   = SettingsMap.GetBool("CHECKBOX_Circles_Radial",    sRadialDefault);
+    bool radial_3D= SettingsMap.GetBool("CHECKBOX_Circles_Radial_3D", sRadial3DDefault);
+    bool fade     = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", sLinearFadeDefault);
+    bool bubbles  = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles",   sBubblesDefault);
+    bool bounce   = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",    sBounceDefault);
 
     size_t colorCnt = buffer.GetColorCount();
 
@@ -197,8 +241,8 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
     {
         int start_x = buffer.BufferWi / 2;
         int start_y = buffer.BufferHt / 2;
-        start_x = start_x + (GetValueCurveInt("Circles_XC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_x);
-        start_y = start_y + (GetValueCurveInt("Circles_YC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_y);
+        start_x = start_x + (GetValueCurveInt("Circles_XC", sXCDefault, SettingsMap, oset, sPosMin, sPosMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(sPosMax) * start_x);
+        start_y = start_y + (GetValueCurveInt("Circles_YC", sYCDefault, SettingsMap, oset, sPosMin, sPosMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(sPosMax) * start_y);
 
 
         bool hasSpatial = false;

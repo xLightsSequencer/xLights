@@ -344,7 +344,12 @@ wxWindow* ColorPanel::BuildPaletteHeaderRow(wxWindow* parentWin, wxSizer* sizer)
     row->Add(menuCol, 0, wxALL | wxALIGN_LEFT, 2);
 
     sizer->Add(row, 1, wxALL | wxEXPAND, 2);
-    return _paletteGridSizer->GetContainingWindow();
+    // Return the reverse-colours button as the "anchor" control so the
+    // framework sees a non-null result. The JSON has no tooltip for this
+    // compound row, so the specific widget chosen here doesn't matter —
+    // only that it's non-null to satisfy the framework's CreateCustomControl
+    // contract and avoid a spurious warning.
+    return _reverseColoursButton;
 }
 
 wxWindow* ColorPanel::BuildResetPanelRow(wxWindow* parentWin, wxSizer* sizer) {
@@ -997,6 +1002,8 @@ void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& /*event*/) {
 
 void ColorPanel::OnCheckBox_EnableChromakeyClick(wxCommandEvent& /*event*/) {
     ValidateWindow();
+    // Chroma key is serialized, so a toggle must trigger a save.
+    FireChangeEvent();
 }
 
 void ColorPanel::OnColourChoiceDropDown(wxCommandEvent& /*event*/) {

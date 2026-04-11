@@ -12,24 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define SHOCKWAVE_X_MIN 0
-#define SHOCKWAVE_X_MAX 100
-
-#define SHOCKWAVE_Y_MIN 0
-#define SHOCKWAVE_Y_MAX 100
-
-#define SHOCKWAVE_STARTWIDTH_MIN 0
-#define SHOCKWAVE_STARTWIDTH_MAX 255
-
-#define SHOCKWAVE_ENDWIDTH_MIN 0
-#define SHOCKWAVE_ENDWIDTH_MAX 255
-
-#define SHOCKWAVE_STARTRADIUS_MIN 0
-#define SHOCKWAVE_STARTRADIUS_MAX 750
-
-#define SHOCKWAVE_ENDRADIUS_MIN 0
-#define SHOCKWAVE_ENDRADIUS_MAX 750
-
 class ShockwaveEffect : public RenderableEffect
 {
 public:
@@ -53,39 +35,29 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Shockwave_CenterX")
-            return SHOCKWAVE_X_MIN;
-        if (name == "E_VALUECURVE_Shockwave_CenterY")
-            return SHOCKWAVE_Y_MIN;
-        if (name == "E_VALUECURVE_Shockwave_Start_Width")
-            return SHOCKWAVE_STARTWIDTH_MIN;
-        if (name == "E_VALUECURVE_Shockwave_End_Width")
-            return SHOCKWAVE_ENDWIDTH_MIN;
-        if (name == "E_VALUECURVE_Shockwave_Start_Radius")
-            return SHOCKWAVE_STARTRADIUS_MIN;
-        if (name == "E_VALUECURVE_Shockwave_End_Radius")
-            return SHOCKWAVE_ENDRADIUS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Shockwave_CenterX")
-            return SHOCKWAVE_X_MAX;
-        if (name == "E_VALUECURVE_Shockwave_CenterY")
-            return SHOCKWAVE_Y_MAX;
-        if (name == "E_VALUECURVE_Shockwave_Start_Width")
-            return SHOCKWAVE_STARTWIDTH_MAX;
-        if (name == "E_VALUECURVE_Shockwave_End_Width")
-            return SHOCKWAVE_ENDWIDTH_MAX;
-        if (name == "E_VALUECURVE_Shockwave_Start_Radius")
-            return SHOCKWAVE_STARTRADIUS_MAX;
-        if (name == "E_VALUECURVE_Shockwave_End_Radius")
-            return SHOCKWAVE_ENDRADIUS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static int sCenterXDefault;
+    static int sCenterXMin;
+    static int sCenterXMax;
+    static int sCenterYDefault;
+    static int sCenterYMin;
+    static int sCenterYMax;
+    static int sStartRadiusDefault;
+    static int sStartRadiusMin;
+    static int sStartRadiusMax;
+    static int sEndRadiusDefault;
+    static int sEndRadiusMin;
+    static int sEndRadiusMax;
+    static int sStartWidthDefault;
+    static int sStartWidthMin;
+    static int sStartWidthMax;
+    static int sEndWidthDefault;
+    static int sEndWidthMin;
+    static int sEndWidthMax;
+    static int sAccelDefault;
+    static int sCyclesDefault;
+    static bool sScaleDefault;
+    static bool sBlendEdgesDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 };

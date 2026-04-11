@@ -12,26 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define SINGLESTRAND_ROTATIONS_MIN 1
-#define SINGLESTRAND_ROTATIONS_MAX 500
-#define SINGLESTRAND_ROTATIONS_DIVISOR 10
-
-#define SINGLESTRAND_CHASES_MIN 1
-#define SINGLESTRAND_CHASES_MAX 20
-
-#define SINGLESTRAND_COLOURMIX_MIN 1
-#define SINGLESTRAND_COLOURMIX_MAX 100
-
-#define SINGLESTRAND_OFFSET_MIN -5000
-#define SINGLESTRAND_OFFSET_MAX 5000
-#define SINGLESTRAND_OFFSET_DIVISOR 10
-
-#define SINGLESTRAND_FXINTENSITY_MIN 0
-#define SINGLESTRAND_FXINTENSITY_MAX 255
-
-#define SINGLESTRAND_FXSPEED_MIN 0
-#define SINGLESTRAND_FXSPEED_MAX 255
-
 class SingleStrandEffect : public RenderableEffect
 {
 public:
@@ -51,50 +31,37 @@ public:
 
     std::vector<std::string> GetSettingOptions(const std::string& setting) const override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Chase_Rotations")
-            return SINGLESTRAND_ROTATIONS_MIN;
-        if (name == "E_VALUECURVE_Number_Chases")
-            return SINGLESTRAND_CHASES_MIN;
-        if (name == "E_VALUECURVE_Color_Mix1")
-            return SINGLESTRAND_COLOURMIX_MIN;
-        if (name == "E_VALUECURVE_Chase_Offset")
-            return SINGLESTRAND_OFFSET_MIN;
-        if (name == "E_VALUECURVE_FX_Intensity")
-            return SINGLESTRAND_FXINTENSITY_MIN;
-        if (name == "E_VALUECURVE_FX_Speed")
-            return SINGLESTRAND_FXSPEED_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Chase_Rotations")
-            return SINGLESTRAND_ROTATIONS_MAX;
-        if (name == "E_VALUECURVE_Number_Chases")
-            return SINGLESTRAND_CHASES_MAX;
-        if (name == "E_VALUECURVE_Color_Mix1")
-            return SINGLESTRAND_COLOURMIX_MAX;
-        if (name == "E_VALUECURVE_Chase_Offset")
-            return SINGLESTRAND_OFFSET_MAX;
-        if (name == "E_VALUECURVE_FX_Intensity")
-            return SINGLESTRAND_FXINTENSITY_MAX;
-        if (name == "E_VALUECURVE_FX_Speed")
-            return SINGLESTRAND_FXSPEED_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-
-    virtual int GetSettingVCDivisor(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Chase_Rotations")
-            return SINGLESTRAND_ROTATIONS_DIVISOR;
-        if (name == "E_VALUECURVE_Chase_Offset")
-            return SINGLESTRAND_OFFSET_DIVISOR;
-        return RenderableEffect::GetSettingVCDivisor(name);
-    }
+    static double sRotationsDefault;
+    static double sRotationsMin;
+    static double sRotationsMax;
+    static int sRotationsDivisor;
+    static int sChasesDefault;
+    static int sChasesMin;
+    static int sChasesMax;
+    static int sColourMixDefault;
+    static int sColourMixMin;
+    static int sColourMixMax;
+    static double sOffsetDefault;
+    static double sOffsetMin;
+    static double sOffsetMax;
+    static int sOffsetDivisor;
+    static int sFXIntensityDefault;
+    static int sFXIntensityMin;
+    static int sFXIntensityMax;
+    static int sFXSpeedDefault;
+    static int sFXSpeedMin;
+    static int sFXSpeedMax;
+    static std::string sColorsDefault;
+    static std::string sChaseTypeDefault;
+    static std::string sFadeTypeDefault;
+    static bool sGroupAllDefault;
+    static int sSkipsBandSizeDefault;
+    static int sSkipsSkipSizeDefault;
+    static int sSkipsStartPosDefault;
+    static int sSkipsAdvanceDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
 
 private:
     void RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,

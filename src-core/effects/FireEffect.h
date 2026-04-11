@@ -12,16 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define FIRE_GROWTHCYCLES_MIN 0
-#define FIRE_GROWTHCYCLES_MAX 200
-#define FIRE_GROWTHCYCLES_DIVISOR 10
-
-#define FIRE_HEIGHT_MIN 1
-#define FIRE_HEIGHT_MAX 100
-
-#define FIRE_HUE_MIN 0
-#define FIRE_HUE_MAX 100
-
 class FireEffect : public RenderableEffect
 {
 public:
@@ -30,31 +20,22 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Fire_GrowthCycles")
-            return FIRE_GROWTHCYCLES_MIN;
-        if (name == "E_VALUECURVE_Fire_Height")
-            return FIRE_HEIGHT_MIN;
-        if (name == "E_VALUECURVE_Fire_HueShift")
-            return FIRE_HUE_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Fire_GrowthCycles")
-            return FIRE_GROWTHCYCLES_MAX;
-        if (name == "E_VALUECURVE_Fire_Height")
-            return FIRE_HEIGHT_MAX;
-        if (name == "E_VALUECURVE_Fire_HueShift")
-            return FIRE_HUE_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-    virtual int GetSettingVCDivisor(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Fire_GrowthCycles")
-            return FIRE_GROWTHCYCLES_DIVISOR;
-        return RenderableEffect::GetSettingVCDivisor(name);
-    }
+    // Cached from Fire.json by OnMetadataLoaded(). Exposed as statics so any
+    // cold-path code (imports, Metal subclass, tests) can read them without
+    // needing a pointer to the singleton effect instance.
+    static int sHeightDefault;
+    static int sHeightMin;
+    static int sHeightMax;
+    static int sHueShiftDefault;
+    static int sHueShiftMin;
+    static int sHueShiftMax;
+    static double sGrowthCyclesDefault;
+    static double sGrowthCyclesMin;
+    static double sGrowthCyclesMax;
+    static int sGrowthCyclesDivisor;
+    static bool sGrowWithMusicDefault;
+    static std::string sLocationDefault;
 
+protected:
+    virtual void OnMetadataLoaded() override;
 };

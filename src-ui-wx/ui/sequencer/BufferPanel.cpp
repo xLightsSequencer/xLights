@@ -151,18 +151,24 @@ void BufferPanel::OnResetBufferPanelClick(wxCommandEvent& /*event*/) {
     }
 }
 
-void BufferPanel::OnBufferTransformSelect(wxCommandEvent& /*event*/) {
+void BufferPanel::OnBufferTransformSelect(wxCommandEvent& event) {
     ValidateWindow();
+    // Must Skip so HandleCommandChange on the parent fires and the save
+    // timer starts — otherwise the user's choice is silently discarded.
+    event.Skip();
 }
 
 bool BufferPanel::CanRenderBufferUseCamera(const std::string& rb) {
     return rb == "Per Preview" || rb == "Per Model Per Preview";
 }
 
-void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& /*event*/) {
+void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event) {
     auto* bsInfo = GetPropertyInfo("BufferStyle");
     auto* camInfo = GetPropertyInfo("PerPreviewCamera");
-    if (!bsInfo || !camInfo || !bsInfo->choice || !camInfo->choice) return;
+    if (!bsInfo || !camInfo || !bsInfo->choice || !camInfo->choice) {
+        event.Skip();
+        return;
+    }
 
     std::string bs = bsInfo->choice->GetStringSelection().ToStdString();
     if (CanRenderBufferUseCamera(bs)) {
@@ -187,6 +193,9 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& /*event*/) {
     }
 
     ValidateWindow();
+    // Must Skip so HandleCommandChange on the parent fires and the save
+    // timer starts — otherwise the user's choice is silently discarded.
+    event.Skip();
 }
 
 void BufferPanel::UpdateBufferStyles(const Model* model) {
@@ -294,7 +303,10 @@ wxString BufferPanel::GetBufferString() {
     return s;
 }
 
-void BufferPanel::OnPresetSelect(wxCommandEvent& /*event*/) {
+void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
+    // Must Skip so HandleCommandChange on the parent panel fires and the
+    // save timer captures all the slider/VC mutations below.
+    event.Skip();
     if (!_rotoZoomPresetChoice) return;
     wxString preset = _rotoZoomPresetChoice->GetStringSelection();
 

@@ -184,7 +184,7 @@
             "type": "enum",
             "controlType": "choice",
             "options": [],
-            "default": "",
+            "default": "Blink",
             "dynamicOptions": "effect",
             "description": "Selects which WS2812FX-style animation to run, such as Blink, Breath, Color Wipe, Rainbow, Fire Flicker, and many more."
         },
@@ -194,7 +194,7 @@
             "type": "enum",
             "controlType": "choice",
             "options": [],
-            "default": "",
+            "default": "Default",
             "dynamicOptions": "effect",
             "description": "Selects the color palette mode used by the chosen FX animation, controlling how colors are applied to the effect."
         },

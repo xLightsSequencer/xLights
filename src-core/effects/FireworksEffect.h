@@ -12,27 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define FIREWORKSCOUNT_MIN 1
-#define FIREWORKSCOUNT_MAX 100
-
-#define FIREWORKSFADE_MIN 1
-#define FIREWORKSFADE_MAX 100
-
-#define FIREWORKSVELOCITY_MIN 1
-#define FIREWORKSVELOCITY_MAX 10
-
-#define FIREWORKSXVELOCITY_MIN -100
-#define FIREWORKSXVELOCITY_MAX 100
-
-#define FIREWORKSYVELOCITY_MIN -100
-#define FIREWORKSYVELOCITY_MAX 100
-
-#define FIREWORKSXLOCATION_MIN -1
-#define FIREWORKSXLOCATION_MAX 100
-
-#define FIREWORKSYLOCATION_MIN -1
-#define FIREWORKSYLOCATION_MAX 100
-
 class FireworksEffect : public RenderableEffect
 {
 public:
@@ -46,44 +25,39 @@ public:
         return false;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Fireworks_Count")
-            return FIREWORKSCOUNT_MIN;
-        if (name == "E_VALUECURVE_Fireworks_Fade")
-            return FIREWORKSFADE_MIN;
-        if (name == "E_VALUECURVE_Fireworks_Velocity")
-            return FIREWORKSVELOCITY_MIN;
-        if (name == "E_VALUECURVE_Fireworks_XVelocity")
-            return FIREWORKSXVELOCITY_MIN;
-        if (name == "E_VALUECURVE_Fireworks_YVelocity")
-            return FIREWORKSYVELOCITY_MIN;
-        if (name == "E_VALUECURVE_Fireworks_XLocation")
-            return FIREWORKSXLOCATION_MIN;
-        if (name == "E_VALUECURVE_Fireworks_YLocation")
-            return FIREWORKSYLOCATION_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Fireworks_Count")
-            return FIREWORKSCOUNT_MAX;
-        if (name == "E_VALUECURVE_Fireworks_Fade")
-            return FIREWORKSFADE_MAX;
-        if (name == "E_VALUECURVE_Fireworks_Velocity")
-            return FIREWORKSVELOCITY_MAX;
-        if (name == "E_VALUECURVE_Fireworks_XVelocity")
-            return FIREWORKSXVELOCITY_MAX;
-        if (name == "E_VALUECURVE_Fireworks_YVelocity")
-            return FIREWORKSYVELOCITY_MAX;
-        if (name == "E_VALUECURVE_Fireworks_XLocation")
-            return FIREWORKSXLOCATION_MAX;
-        if (name == "E_VALUECURVE_Fireworks_YLocation")
-            return FIREWORKSYLOCATION_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Fireworks.json by OnMetadataLoaded().
+    static int sExplosionsDefault;
+    static int sExplosionsMin;
+    static int sExplosionsMax;
+    static int sCountDefault;
+    static int sCountMin;
+    static int sCountMax;
+    static double sVelocityDefault;
+    static double sVelocityMin;
+    static double sVelocityMax;
+    static int sXVelocityDefault;
+    static int sXVelocityMin;
+    static int sXVelocityMax;
+    static int sYVelocityDefault;
+    static int sYVelocityMin;
+    static int sYVelocityMax;
+    static int sXLocationDefault;
+    static int sXLocationMin;
+    static int sXLocationMax;
+    static int sYLocationDefault;
+    static int sYLocationMin;
+    static int sYLocationMax;
+    static bool sHoldColourDefault;
+    static bool sGravityDefault;
+    static int sFadeDefault;
+    static int sFadeMin;
+    static int sFadeMax;
+    static bool sUseMusicDefault;
+    static int sSensitivityDefault;
+    static bool sFireTimingDefault;
+    static std::string sFireTimingTrackDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
 };

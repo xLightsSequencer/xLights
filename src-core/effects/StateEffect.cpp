@@ -28,6 +28,9 @@
 
 #include <log.h>
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with State.json values).
+int StateEffect::sFadeTimeDefault = 0;
+
 StateEffect::StateEffect(int id) :
     RenderableEffect(id, "State", state_16, state_64, state_64, state_64, state_64) {
     // ctor
@@ -35,6 +38,10 @@ StateEffect::StateEffect(int id) :
 
 StateEffect::~StateEffect() {
     // dtor
+}
+
+void StateEffect::OnMetadataLoaded() {
+    sFadeTimeDefault = GetIntDefault("State_Fade_Time", sFadeTimeDefault);
 }
 
 std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
@@ -116,7 +123,7 @@ void StateEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                 SettingsMap["CHOICE_State_TimingTrack"],
                 SettingsMap["CHOICE_State_Mode"],
                 SettingsMap["CHOICE_State_Color"],
-                SettingsMap.GetInt("SLIDER_State_Fade_Time", 0));
+                SettingsMap.GetInt("SLIDER_State_Fade_Time", sFadeTimeDefault));
 }
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name) {

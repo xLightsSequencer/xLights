@@ -13,13 +13,6 @@
 #include "RenderableEffect.h"
 #include "../render/RenderBuffer.h"
 
-#define VIDEO_SPEED_MIN -1000
-#define VIDEO_SPEED_MAX 1000
-#define VIDEO_SPEED_DIVISOR 100
-
-#define VIDEO_CROP_MIN 0
-#define VIDEO_CROP_MAX 100
-
 class VideoEffect : public RenderableEffect
 {
 public:
@@ -48,35 +41,29 @@ public:
     // Currently not possible but I think changes could be made to make it support partial
     // virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Video_Speed")
-            return VIDEO_SPEED_MIN;
-        if ((name == "E_VALUECURVE_Video_CropLeft") || (name == "E_VALUECURVE_Video_CropRight") || (name == "E_VALUECURVE_Video_CropTop") || (name == "E_VALUECURVE_Video_CropBottom"))
-            return VIDEO_CROP_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Video_Speed")
-            return VIDEO_SPEED_MAX;
-        if ((name == "E_VALUECURVE_Video_CropLeft") || (name == "E_VALUECURVE_Video_CropRight") || (name == "E_VALUECURVE_Video_CropTop") || (name == "E_VALUECURVE_Video_CropBottom"))
-            return VIDEO_CROP_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-    virtual int GetSettingVCDivisor(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Video_Speed")
-            return VIDEO_SPEED_DIVISOR;
-        return RenderableEffect::GetSettingVCDivisor(name);
-    }
+    // Cached from Video.json by OnMetadataLoaded(). Video_Speed uses divisor=100
+    // so min/max are pre-divisor ticks.
+    static double sSpeedDefault;
+    static double sSpeedMin;
+    static double sSpeedMax;
+    static int sSpeedDivisor;
+    static int sCropMin;
+    static int sCropMax;
+    static int sCropLeftDefault;
+    static int sCropRightDefault;
+    static int sCropTopDefault;
+    static int sCropBottomDefault;
+    static double sStartTimeDefault;
+    static int sSampleSpacingDefault;
+    static bool sSyncAudioDefault;
+    static bool sAspectRatioDefault;
+    static std::string sDurationTreatmentDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     virtual bool needToAdjustSettings(const std::string& version) override
     {
         return true;
     };
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 };
-

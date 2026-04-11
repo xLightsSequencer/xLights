@@ -12,17 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define BARCOUNT_MIN 1
-//#define BARCOUNT_MAX 50
-#define BARCOUNT_MAX 5
-
-#define BARCYCLES_MIN 0
-//#define BARCYCLES_MAX 500
-#define BARCYCLES_MAX 300
-
-#define BARCENTER_MIN -100
-#define BARCENTER_MAX 100
-
 class BarsEffect : public RenderableEffect
 {
 public:
@@ -38,27 +27,23 @@ public:
         return true;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Bars_BarCount")
-            return BARCOUNT_MIN;
-        if (name == "E_VALUECURVE_Bars_Cycles")
-            return BARCYCLES_MIN;
-        if (name == "E_VALUECURVE_Bars_Center")
-            return BARCENTER_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Bars_BarCount")
-            return BARCOUNT_MAX;
-        if (name == "E_VALUECURVE_Bars_Cycles")
-            return BARCYCLES_MAX;
-        if (name == "E_VALUECURVE_Bars_Center")
-            return BARCENTER_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static int sBarCountDefault;
+    static int sBarCountMin;
+    static int sBarCountMax;
+    static double sCyclesDefault;
+    static double sCyclesMin;
+    static double sCyclesMax;
+    static int sCyclesDivisor;
+    static std::string sDirectionDefault;
+    static double sCenterDefault;
+    static double sCenterMin;
+    static double sCenterMax;
+    static bool sHighlightDefault;
+    static bool sUseFirstColorForHighlightDefault;
+    static bool s3DDefault;
+    static bool sGradientDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     void GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, const xlColor& highlightColor, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index);
 };

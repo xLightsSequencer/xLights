@@ -12,22 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define WAVE_NUMBER_MIN 180
-#define WAVE_NUMBER_MAX 3600
-
-#define WAVE_THICKNESS_MIN 0
-#define WAVE_THICKNESS_MAX 100
-
-#define WAVE_HEIGHT_MIN 0
-#define WAVE_HEIGHT_MAX 100
-
-#define WAVE_SPEED_MIN 0
-#define WAVE_SPEED_MAX 5000
-#define WAVE_SPEED_DIVISOR 100
-
-#define WAVE_YOFFSET_MIN -250
-#define WAVE_YOFFSET_MAX 250
-
 class WaveEffect : public RenderableEffect
 {
 public:
@@ -43,44 +27,35 @@ public:
         return false;
     }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Number_Waves")
-            return WAVE_NUMBER_MIN;
-        if (name == "E_VALUECURVE_Thickness_Percentage")
-            return WAVE_THICKNESS_MIN;
-        if (name == "E_VALUECURVE_Wave_Height")
-            return WAVE_HEIGHT_MIN;
-        if (name == "E_VALUECURVE_Wave_Speed")
-            return WAVE_SPEED_MIN;
-        if (name == "E_VALUECURVE_Wave_YOffset")
-            return WAVE_YOFFSET_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Number_Waves")
-            return WAVE_NUMBER_MAX;
-        if (name == "E_VALUECURVE_Thickness_Percentage")
-            return WAVE_THICKNESS_MAX;
-        if (name == "E_VALUECURVE_Wave_Height")
-            return WAVE_HEIGHT_MAX;
-        if (name == "E_VALUECURVE_Wave_Speed")
-            return WAVE_SPEED_MAX;
-        if (name == "E_VALUECURVE_Wave_YOffset")
-            return WAVE_YOFFSET_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
-
-    virtual int GetSettingVCDivisor(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Wave_Speed")
-            return WAVE_SPEED_DIVISOR;
-        return RenderableEffect::GetSettingVCDivisor(name);
-    }
+    // Cached from Wave.json by OnMetadataLoaded().
+    static std::string sWaveTypeDefault;
+    static std::string sFillColorsDefault;
+    static bool sMirrorWaveDefault;
+    // Number_Waves is now a float "number of cycles" with divisor 360. The
+    // underlying storage stays in degrees (pre-divisor 180..3600) so old
+    // sequence value curves keep working; Render multiplies the divided
+    // float back up to get the raw degree count used by the wave math.
+    static double sNumberWavesDefault;
+    static double sNumberWavesMin;
+    static double sNumberWavesMax;
+    static int sNumberWavesDivisor;
+    static int sThicknessDefault;
+    static int sThicknessMin;
+    static int sThicknessMax;
+    static int sWaveHeightDefault;
+    static int sWaveHeightMin;
+    static int sWaveHeightMax;
+    static double sWaveSpeedDefault;
+    static double sWaveSpeedMin;
+    static double sWaveSpeedMax;
+    static int sWaveSpeedDivisor;
+    static std::string sWaveDirectionDefault;
+    static int sYOffsetDefault;
+    static int sYOffsetMin;
+    static int sYOffsetMax;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 };
