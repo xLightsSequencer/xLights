@@ -254,7 +254,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             int v1 = GetFireBuffer(x - 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
             int v2 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
             int v3 = GetFireBuffer(x + 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v4 = GetFireBuffer(x -2, y - 2, cache->FireBuffer, maxMWi, maxMHt);
+            int v4 = GetFireBuffer(x, y - 2, cache->FireBuffer, maxMWi, maxMHt);
             int n = 0;
             int sum = 0;
             if (v1 >= 0) {
