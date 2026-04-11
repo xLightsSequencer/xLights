@@ -6,7 +6,6 @@ Vixen2, Vixen 3, LSP, and HLS.
 
 Latest releases are found at www.xlights.org
 Videos tutorials are found at videos.xlights.org
-Forums are located at nutcracker123.com/forum
 Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
@@ -23,6 +22,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero (#4807)
     -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view (#5849)
     -enh (derwin12)             Add "Small" option to Model Handle Size preference (#3583)
+    -enh (derwin12)             Add Render Styles to Select Effects Window (#4848)
     -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
                                     in a mov container, bit-exact and decoded natively by AVFoundation,
                                     replaces the deprecated uncompressed AVI export for pixel-perfect
