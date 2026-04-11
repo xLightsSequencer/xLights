@@ -1316,10 +1316,12 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
             auto* mediaPicker = new MediaPickerCtrl(parentWin, wxID_ANY, mt);
             mediaPicker->SetLinkedPicker(picker);
             sizer->Add(mediaPicker, 1, wxALL | wxEXPAND, 5);
-            // The hidden picker still needs to be in the panel's child
-            // hierarchy so the serializer walker finds it. Add it with a
-            // zero-stretch sizer item so it takes no visible space.
-            sizer->Add(picker, 0, 0, 0);
+            // IMPORTANT: the hidden picker is NOT added to the sizer — if we
+            // did that, it would consume an extra grid cell and push every
+            // subsequent row's columns out by one. It still participates in
+            // the wx parent->child hierarchy (same parentWin), so the
+            // serializer walker in GetEffectStringFromWindow still finds it
+            // via parentWin->GetChildren().
         } else {
             sizer->Add(picker, 1, wxALL | wxEXPAND, 5);
         }
