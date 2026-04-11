@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -285,19 +285,19 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
     int nodeCount = Nodes.size();
 
     if (pan_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} pan motor coarse is assigned to channel {} but the model only has {} channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} pan motor coarse is assigned to channel {} but the model only has {} channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
     }
 
     if (pan_motor->GetChannelFine() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} pan motor fine is assigned to channel {} but the model only has {} channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} pan motor fine is assigned to channel {} but the model only has {} channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
     }
 
     if (tilt_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} tilt motor coarse is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} tilt motor coarse is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
     }
 
     if (tilt_motor->GetChannelFine() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} tilt motor fine is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} tilt motor fine is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
     }
 
     res.splice(res.end(), DmxModel::CheckModelSettings());

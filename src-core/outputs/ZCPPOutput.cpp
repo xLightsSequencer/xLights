@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <chrono>
 #include <fstream>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../controllers/Falcon.h"
 #include "ZCPPOutput.h"
@@ -457,7 +457,7 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
                 if (m == 48) {
                     mod = "F48";
                 } else {
-                    mod = std::format("F{}V{}", m, v);
+                    mod = fmt::format("F{}V{}", m, v);
                 }
                 controller->SetModel(mod);
             }
@@ -473,7 +473,7 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
 
             spdlog::debug("   Firmware {}", response.DiscoveryResponse.firmwareVersion);
 
-            auto ip = std::format("{}.{}.{}.{}",
+            auto ip = fmt::format("{}.{}.{}.{}",
                 (int)(uint8_t)(response.DiscoveryResponse.ipv4Address & 0xFF),
                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8),
                 (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16),
@@ -747,7 +747,7 @@ bool ZCPPOutput::Open() {
     _datagram = new sockets::UDPSocket();
     if (_datagram == nullptr || !_datagram->Open()) {
         spdlog::error("ZCPPOutput: Error opening datagram{}.",
-            _datagram != nullptr ? std::format(" ({})", _datagram->LastError()) : "");
+            _datagram != nullptr ? fmt::format(" ({})", _datagram->LastError()) : "");
         delete _datagram;
         _datagram = nullptr;
     }

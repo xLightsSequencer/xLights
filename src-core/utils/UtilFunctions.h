@@ -14,7 +14,7 @@
 #include "string_utils.h"
 
 #include <chrono>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <string>
 #include <algorithm>
 #include <map>
@@ -28,10 +28,10 @@
 #define AMPS_PER_PIXEL (0.055f)
 
 inline std::string FormatTime(uint32_t ms) {
-    return std::format("{}:{:02}.{:03}", ms / 60000, (ms % 60000) / 1000, ms % 1000);
+    return fmt::format("{}:{:02}.{:03}", ms / 60000, (ms % 60000) / 1000, ms % 1000);
 }
 inline std::string FormatTimeHMS(uint32_t ms) {
-    return std::format("{:02}:{:02}:{:02}.{:03}", ms / 3600000, (ms % 3600000) / 60000, (ms % 60000) / 1000, ms % 1000);
+    return fmt::format("{:02}:{:02}:{:02}.{:03}", ms / 3600000, (ms % 3600000) / 60000, (ms % 60000) / 1000, ms % 1000);
 }
 #define FORMATTIME(ms) FormatTime(static_cast<uint32_t>(ms)).c_str()
 #define FORMATTIME_H_M_S(ms) FormatTimeHMS(static_cast<uint32_t>(ms)).c_str()

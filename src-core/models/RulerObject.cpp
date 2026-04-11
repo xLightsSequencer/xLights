@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "RulerObject.h"
 #include "../graphics/IModelPreview.h"
 #include "../graphics/xlGraphicsContext.h"
@@ -131,25 +131,25 @@ float RulerObject::MeasureDepth(glm::vec3 p1, glm::vec3 p2)
 std::string RulerObject::MeasureLengthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return std::format("{:.2f}{}", Measure(p1,p2), GetUnitDescription());
+    return fmt::format("{:.2f}{}", Measure(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return std::format("{:.2f}{}", MeasureWidth(p1,p2), GetUnitDescription());
+    return fmt::format("{:.2f}{}", MeasureWidth(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return std::format("{:.2f}{}", MeasureHeight(p1,p2), GetUnitDescription());
+    return fmt::format("{:.2f}{}", MeasureHeight(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return std::format("{:.2f}{}", MeasureDepth(p1,p2), GetUnitDescription());
+    return fmt::format("{:.2f}{}", MeasureDepth(p1,p2), GetUnitDescription());
 }
 
 float RulerObject::Convert(const std::string& fromUnits, int toUnits, float measure) {
@@ -402,11 +402,11 @@ float RulerObject::GetPerUnit() const
 std::string RulerObject::MeasureDescription(float length)
 {
     if (__rulerObject == nullptr) return "";
-    return std::format("{:.2f}{}", Measure(length), GetUnitDescription());
+    return fmt::format("{:.2f}{}", Measure(length), GetUnitDescription());
 }
 
 std::string RulerObject::PrescaledMeasureDescription(float length)
 {
     if (__rulerObject == nullptr) return "";
-    return std::format("{:.2f}{}", length, GetUnitDescription());
+    return fmt::format("{:.2f}{}", length, GetUnitDescription());
 }

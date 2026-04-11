@@ -18,7 +18,7 @@
 #include "models/DMX/DmxMovingHeadComm.h"
 #include "models/DMX/DmxColorAbility.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "../../xLightsMain.h"
 #include "xLightsVersion.h"
 #include "../../ui/sequencer/MainSequencer.h"
@@ -2260,7 +2260,7 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
 
     // disable all fixtures
     for (int i = 1; i <= 8; ++i) {
-        wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
+        wxString checkbox_ctrl = wxString(fmt::format("IDD_CHECKBOX_MH{}", i));
         wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
         if (checkbox != nullptr) {
             checkbox->Enable(false);
@@ -2274,7 +2274,7 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
     for (const auto& it : models) {
         if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
-            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", mhead->GetFixtureVal()));
+            wxString checkbox_ctrl = wxString(fmt::format("IDD_CHECKBOX_MH{}", mhead->GetFixtureVal()));
             wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
             if (checkbox != nullptr) {
                 checkbox->Enable(true);
@@ -2298,7 +2298,7 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
         wxStaticText* text = (wxStaticText*)(FindWindowByName("ID_STATICTEXT_Fixtures"));
         if (text != nullptr) { text->Hide(); }
         for (int i = 1; i <= 8; ++i) {
-            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
+            wxString checkbox_ctrl = wxString(fmt::format("IDD_CHECKBOX_MH{}", i));
             wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
             if (checkbox != nullptr) {
                 checkbox->Hide();
@@ -2324,7 +2324,7 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
         wxStaticText* text = (wxStaticText*)(FindWindowByName("ID_STATICTEXT_Fixtures"));
         if (text != nullptr) { text->Show(); }
         for (int i = 1; i <= 8; ++i) {
-            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
+            wxString checkbox_ctrl = wxString(fmt::format("IDD_CHECKBOX_MH{}", i));
             wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
             if (checkbox != nullptr) {
                 checkbox->Show();

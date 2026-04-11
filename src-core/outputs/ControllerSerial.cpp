@@ -32,7 +32,7 @@
 #include "../models/ModelManager.h"
 
 #include <cassert>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <log.h>
 
@@ -457,7 +457,7 @@ void ControllerSerial::Convert(pugi::xml_node node, std::string showDir) {
 
 std::string ControllerSerial::GetChannelMapping(int32_t ch) const
 {
-    return std::format("Channel {} maps to ...\nType: {}\nName: {}\nComPort: {}\nChannel: {}\n{}",
+    return fmt::format("Channel {} maps to ...\nType: {}\nName: {}\nComPort: {}\nChannel: {}\n{}",
         ch,
         GetProtocol(),
         GetName(),
@@ -485,7 +485,7 @@ Output::PINGSTATE ControllerSerial::Ping()
 
 std::string ControllerSerial::GetExport() const {
 
-    return std::format("{},{},{},{},{},,{},{},\"{}\",{},{},{},{},{},{},{},,{}",
+    return fmt::format("{},{},{},{},{},,{},{},\"{}\",{},{},{},{},{},{},{},,{}",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),

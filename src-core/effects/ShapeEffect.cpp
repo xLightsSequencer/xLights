@@ -15,7 +15,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <map>
 #include "TextEffect.h" // FontMapLock
 
@@ -152,7 +152,7 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Shape_UseMusic", false)) {
-        res.push_back(std::format("    WARN: Shape effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Shape effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     std::string object = settings["E_CHOICE_Shape_ObjectToDraw"];
@@ -160,16 +160,16 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
 
         if (svgFilename.empty()) {
-            res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto svgEntry = mm.GetSVG(svgFilename);
             if (svgEntry->GetSVGContent().empty()) {
-                res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
-                        res.push_back(std::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }

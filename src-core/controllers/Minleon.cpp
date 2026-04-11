@@ -29,7 +29,7 @@
 #include "UtilFunctions.h"
 #include "../utils/string_utils.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <log.h>
 
 #pragma region MinleonString Handling
@@ -163,9 +163,9 @@ std::string Minleon::BuildStringPort(MinleonString* string) const {
 
     int start = 25 + string->_port * 3;
 
-    return std::format("&L{:03d}={}{}&I{:03d}={}&I{:03d}={}",
+    return fmt::format("&L{:03d}={}{}&I{:03d}={}&I{:03d}={}",
         start, string->_tees,
-        (string->_reverse ? std::format("&H{:03d}=0", start) : std::string("")),
+        (string->_reverse ? fmt::format("&H{:03d}=0", start) : std::string("")),
         start + 1, string->_nodes,
         start + 2, string->_startChannel
     );
@@ -368,7 +368,7 @@ void Minleon::UploadNDBPro(bool reboot)
     _conv = ConvForProtocol(_chip, _conv);
 
     // univ and universe is present because different firmwares use different names
-    std::string data = std::format("{{\"chip\":\"{}\",\"conv\":\"{}\",\"t0h\":\"{}\",\"t1h\":\"{}\",\"tbit\":\"{}\",\"trst\":\"{}\",\"proto\":\"{}\",\"univ\":\"{}\",\"universe\":\"{}\",\"ports\":[",
+    std::string data = fmt::format("{{\"chip\":\"{}\",\"conv\":\"{}\",\"t0h\":\"{}\",\"t1h\":\"{}\",\"tbit\":\"{}\",\"trst\":\"{}\",\"proto\":\"{}\",\"univ\":\"{}\",\"universe\":\"{}\",\"ports\":[",
         EncodeStringPortProtocol(_chip),
         _conv,
         _t0h, _t1h, _tbit, _tres,
@@ -381,7 +381,7 @@ void Minleon::UploadNDBPro(bool reboot)
         } else {
             first = false;
         }
-        data += std::format("{{\"p\":{},\"ts\":\"{}\",\"l\":\"{}\",\"rev\":\"{}\",\"ss\":\"{}\"}}",
+        data += fmt::format("{{\"p\":{},\"ts\":\"{}\",\"l\":\"{}\",\"rev\":\"{}\",\"ss\":\"{}\"}}",
                                  it->_port,
                                  it->_tees,
                                  it->_nodes,
@@ -430,9 +430,9 @@ void Minleon::UploadNDB(bool reboot)
 
     int i = 14;
     for (const auto& it : _stringPorts) {
-        parms[std::format("I{:03d}", i++)] = std::to_string(it->_tees);
-        parms[std::format("I{:03d}", i++)] = std::to_string(it->_nodes);
-        parms[std::format("I{:03d}", i++)] = std::to_string(it->_startChannel);
+        parms[fmt::format("I{:03d}", i++)] = std::to_string(it->_tees);
+        parms[fmt::format("I{:03d}", i++)] = std::to_string(it->_nodes);
+        parms[fmt::format("I{:03d}", i++)] = std::to_string(it->_startChannel);
     }
     parms["op"] = "Save";
 
@@ -516,11 +516,11 @@ void Minleon::UploadNDPPlus(bool reboot)
     int i = 25;
     for (const auto& it : _stringPorts) {
         if (it->_reverse) {
-            parms[std::format("H{:03d}", i)] = "0";
+            parms[fmt::format("H{:03d}", i)] = "0";
         }
-        parms[std::format("L{:03d}", i++)] = std::to_string(it->_tees);
-        parms[std::format("I{:03d}", i++)] = std::to_string(it->_nodes);
-        parms[std::format("I{:03d}", i++)] = std::to_string(it->_startChannel);
+        parms[fmt::format("L{:03d}", i++)] = std::to_string(it->_tees);
+        parms[fmt::format("I{:03d}", i++)] = std::to_string(it->_nodes);
+        parms[fmt::format("I{:03d}", i++)] = std::to_string(it->_startChannel);
     }
     parms["op"] = "Save";
 
@@ -804,7 +804,7 @@ Minleon::~Minleon() {
 
 std::string Minleon::ParseNDBHTML(const std::string& html, uint8_t index)
 {
-    auto tag = std::format("I{:03d}", index);
+    auto tag = fmt::format("I{:03d}", index);
     std::regex extractTagValue("name=\"I" + tag + "\"value=\"([^\"]*)\"");
     std::smatch etm;
     if (std::regex_search(html, etm, extractTagValue)) {
@@ -882,7 +882,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
             maxPorts = 8;
         }
         if (neededports > maxPorts) {
-            check += std::format("Needed ports {} but maximum possible ports is only {}.\n", neededports, maxPorts);
+            check += fmt::format("Needed ports {} but maximum possible ports is only {}.\n", neededports, maxPorts);
             success = false;
         }
 
@@ -938,7 +938,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                         it->_startChannel = vs->_startChannel - controller->GetStartChannel() + 1;
 
                         if (vs->Channels() / 3 > maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2)) {
-                            check += std::format("Port {} has {} pixels but can only support {}.\n", it->_port + 1, vs->Channels() / 3, maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2));
+                            check += fmt::format("Port {} has {} pixels but can only support {}.\n", it->_port + 1, vs->Channels() / 3, maxpixelsfor16ports * (maxPorts == 16 ? 1 : 2));
                             success = false;
                         }
                     }

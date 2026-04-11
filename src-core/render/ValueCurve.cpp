@@ -32,9 +32,15 @@ AudioManager* ValueCurve::__audioManager = nullptr;
 SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
 static std::string fmt2f(float v) {
+    // Note: deliberately using snprintf rather than std::to_chars. The floating-point
+    // overloads of std::to_chars are only available in Apple's libc++ starting with
+    // macOS 13.3; xLights supports macOS 11, so using them causes a dyld "Symbol not
+    // found" crash at launch on older systems.
     char buf[32];
-    auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), v, std::chars_format::fixed, 2);
-    return std::string(buf, ptr);
+    int n = std::snprintf(buf, sizeof(buf), "%.2f", v);
+    if (n < 0) return {};
+    if (static_cast<size_t>(n) >= sizeof(buf)) n = sizeof(buf) - 1;
+    return std::string(buf, n);
 }
 
 float ValueCurve::SafeParameter(size_t p, float v)

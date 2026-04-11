@@ -19,7 +19,7 @@
 
 #include <algorithm>
 #include <string_view>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 namespace XmlSerialize {
 
@@ -254,7 +254,7 @@ void DeserializeStateInfo(pugi::xml_node f, FaceStateData & stateInfo) {
                     if (sPos == 0 && sPos + 1 < endPos) {
                         std::string numStr = key.substr(sPos + 1, endPos - sPos - 1);
                         int num = (int)std::strtol(numStr.c_str(), nullptr, 10);
-                        storedKey = std::format("s{:03d}{}", num, (dashPos != std::string::npos ? key.substr(dashPos) : ""));
+                        storedKey = fmt::format("s{:03d}{}", num, (dashPos != std::string::npos ? key.substr(dashPos) : ""));
                     }
                 }
                 stateInfo[name][storedKey] = value;
@@ -367,7 +367,7 @@ std::optional<SubModelImportData> ParseSubModelNode(pugi::xml_node node) {
     // Load strands/lines
     int lineNum = 0;
     while (true) {
-        std::string lineAttr = std::format("line{}", lineNum);
+        std::string lineAttr = fmt::format("line{}", lineNum);
         pugi::xml_attribute attr = node.attribute(lineAttr);
         if (attr.empty()) break;
         sm.strands.push_back(attr.as_string());

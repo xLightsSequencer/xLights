@@ -12,7 +12,7 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "render/ValueCurve.h"
 #include "../render/Effect.h"
@@ -122,7 +122,7 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
         if (!numWaves.empty()) {
             long degrees = std::strtol(numWaves.c_str(), nullptr, 10);
             settings.erase("E_SLIDER_Number_Waves");
-            settings["E_TEXTCTRL_Number_Waves"] = std::format("{:.2f}", degrees / 360.0);
+            settings["E_TEXTCTRL_Number_Waves"] = fmt::format("{:.2f}", degrees / 360.0);
         }
     }
 }

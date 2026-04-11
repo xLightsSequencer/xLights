@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "MultiPointModel.h"
 #include "xLightsVersion.h"
@@ -220,9 +220,9 @@ void MultiPointModel::NormalizePointData()
 
     std::string point_data = "";
     for (int i = 0; i < screenLocation.num_points; ++i) {
-        point_data += std::format("{:f},", screenLocation.mPos[i].x);
-        point_data += std::format("{:f},", screenLocation.mPos[i].y);
-        point_data += std::format("{:f}", screenLocation.mPos[i].z);
+        point_data += fmt::format("{:f},", screenLocation.mPos[i].x);
+        point_data += fmt::format("{:f},", screenLocation.mPos[i].y);
+        point_data += fmt::format("{:f}", screenLocation.mPos[i].z);
         if (i != screenLocation.num_points - 1) {
             point_data += ",";
         }

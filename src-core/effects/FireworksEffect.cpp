@@ -10,7 +10,7 @@
 
 #include "FireworksEffect.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -107,10 +107,10 @@ std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& s
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", sUseMusicDefault)) {
-        res.push_back(std::format("    ERR: Fireworks effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Fireworks effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     if (settings.GetBool("E_CHECKBOX_FIRETIMING", sFireTimingDefault) && settings.Get("E_CHOICE_FIRETIMINGTRACK", sFireTimingTrackDefault) == "") {
-        res.push_back(std::format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

@@ -6,7 +6,7 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>3</cols>
 			<growablecols>1</growablecols>
-			<growablerows>4</growablerows>
+			<growablerows>5</growablerows>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 					<label>Effect Type:</label>
@@ -20,6 +20,31 @@
 					<style>wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER</style>
 					<handler function="OnComboBox_Select_EffectSelected" entry="EVT_COMBOBOX" />
 					<handler function="OnComboBox_Select_EffectDropdown" entry="EVT_COMBOBOX_DROPDOWN" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
+					<label>Render Style:</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxComboBox" name="ID_COMBOBOX_SELECT_BUFFERSTYLE" variable="ComboBox_Select_BufferStyle" member="yes">
+					<style>wxCB_READONLY|wxTE_PROCESS_ENTER</style>
+					<content>
+						<item>Any</item>
+					</content>
+					<handler function="OnComboBox_Select_BufferStyleSelected" entry="EVT_COMBOBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

@@ -6,7 +6,7 @@
 #include <vector>
 #include <cstdlib>
 #include <cstdio>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "spdlog/spdlog.h"
 #include <argparse/argparse.hpp>
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     }
 	
 	if (program.is_used("-f")) {
-        std::string info = std::format("{{\"Name\": \"{}\", \"Version\": \"{}.{}\", \"ID\": \"{}\", \"StepTime\": {}, \"NumFrames\": {}, \"MaxChannel\": {}, \"ChannelCount\": {}",
+        std::string info = fmt::format("{{\"Name\": \"{}\", \"Version\": \"{}.{}\", \"ID\": \"{}\", \"StepTime\": {}, \"NumFrames\": {}, \"MaxChannel\": {}, \"ChannelCount\": {}",
                    src->getFilename(),
                    src->getVersionMajor(), src->getVersionMinor(),
                    src->getUniqueId(),
@@ -151,14 +151,14 @@ int main(int argc, char* argv[]) {
 
         if (src->getVersionMajor() == 2) {
             V2FSEQFile* f = (V2FSEQFile*)src.get();
-            info += std::format(", \"Compression\": \"{}\"", f->CompressionTypeString());
+            info += fmt::format(", \"Compression\": \"{}\"", f->CompressionTypeString());
             info += ", \"SparseRanges\": [";
             bool first = true;
             for (const auto& a : f->m_sparseRanges) {
                 if (!first) {
                     info += ", ";
                 }
-                info += std::format("{{\"Start\": {}, \"Length\": {}}}", a.first, a.second);
+                info += fmt::format("{{\"Start\": {}, \"Length\": {}}}", a.first, a.second);
                 first = false;
             }
             info += "]";

@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "DmxColorAbilityRGB.h"
 #include "../Model.h"
@@ -78,16 +78,16 @@ std::list<std::string> DmxColorAbilityRGB::CheckModelSettings(Model *m) const
     auto nodeCount = m->GetNodeCount();
 
     if (red_channel > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} red channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), red_channel, nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} red channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), red_channel, nodeCount));
     }
     if (green_channel > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} green channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), green_channel, nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} green channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), green_channel, nodeCount));
     }
     if (blue_channel > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} blue channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), blue_channel, nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} blue channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), blue_channel, nodeCount));
     }
     if (white_channel > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} white channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), white_channel, nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} white channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), white_channel, nodeCount));
     }
     return res;
 }

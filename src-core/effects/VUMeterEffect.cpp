@@ -10,7 +10,7 @@
 
 #include <cassert>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "VUMeterEffect.h"
 #include "UtilFunctions.h"
@@ -194,7 +194,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
          type == "Dominant Frequency Colour Gradient"
        ))
     {
-        res.push_back(std::format("    ERR: VU Meter effect '{}' is pointless if there is no music. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: VU Meter effect '{}' is pointless if there is no music. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     std::string timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
@@ -203,11 +203,11 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     {
         if (timing == "")
         {
-            res.push_back(std::format("    ERR: VU Meter effect '{}' needs a timing track. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: VU Meter effect '{}' needs a timing track. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
         else if (GetTiming(timing) == nullptr)
         {
-            res.push_back(std::format("    ERR: VU Meter effect '{}' has unknown timing track ({}). Model '{}', Start {}", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: VU Meter effect '{}' has unknown timing track ({}). Model '{}', Start {}", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -216,16 +216,16 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVGFile", "");
 
         if (svgFilename.empty()) {
-            res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto svgEntry = mm.GetSVG(svgFilename);
             if (svgEntry->GetSVGContent().empty()) {
-                res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
-                        res.push_back(std::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }

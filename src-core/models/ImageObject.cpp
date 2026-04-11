@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "ImageObject.h"
 #include "../utils/xlImage.h"
 #include "utils/FileUtils.h"
@@ -154,12 +154,12 @@ std::list<std::string> ImageObject::CheckModelSettings()
     std::list<std::string> res;
 
     if (_imageFile == "" || !FileExists(_imageFile)) {
-        res.push_back(std::format("    ERR: Image object '{}' cant find image file '{}'", GetName(), _imageFile));
+        res.push_back(fmt::format("    ERR: Image object '{}' cant find image file '{}'", GetName(), _imageFile));
     } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
-        res.push_back(std::format("    ERR: Image object '{}' cant load image file '{}'", GetName(), _imageFile));
+        res.push_back(fmt::format("    ERR: Image object '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
         if (!FileUtils::IsFileInShowDir(std::string(), _imageFile)) {
-            res.push_back(std::format("    WARN: Image object '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
+            res.push_back(fmt::format("    WARN: Image object '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }
     res.splice(res.end(), BaseObject::CheckModelSettings());

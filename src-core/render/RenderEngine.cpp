@@ -12,7 +12,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <functional>
 #include <mutex>
 #include <thread>
@@ -453,11 +453,11 @@ public:
             if (submodel >= 0) {
                 mname = "Submodel: " + subModelInfos[submodel]->element->GetName() + " ";
             }
-            return std::format("{}Effect: {} Start: {} End {}", mname, effect->GetEffectName(),
+            return fmt::format("{}Effect: {} Start: {} End {}", mname, effect->GetEffectName(),
                                FORMATTIME(effect->GetStartTimeMS()), FORMATTIME(effect->GetEndTimeMS()));
         }
         if (statusType == 13) {
-            return std::format("Waiting to start frame {}", (int)statusFrame);
+            return fmt::format("Waiting to start frame {}", (int)statusFrame);
         }
 
         return "";
@@ -475,38 +475,38 @@ public:
             return statusMsg;
         case 1:
             if (strand == -1) {
-                return std::format("Initializing effect at frame {} for {}, layer {}", frame, n, layer);
+                return fmt::format("Initializing effect at frame {} for {}, layer {}", frame, n, layer);
             } else if (node == -1) {
-                return std::format("Initializing strand effect at frame {} for {}, strand {}", frame, n, strand);
+                return fmt::format("Initializing strand effect at frame {} for {}, strand {}", frame, n, strand);
             } else {
-                return std::format("Initializing node effect at frame {} for {}, strand {}, node {}", frame, n, strand, node);
+                return fmt::format("Initializing node effect at frame {} for {}, strand {}, node {}", frame, n, strand, node);
             }
         case 2:
             if (strand == -1) {
-                return std::format("Rendering layer effect for frame {} of {}, layer {}: ", frame, n, layer) + PrintStatusMap();
+                return fmt::format("Rendering layer effect for frame {} of {}, layer {}: ", frame, n, layer) + PrintStatusMap();
             } else if (node == -1) {
-                return std::format("Rendering strand effect for frame {} of {}, strand {}: ", frame, n, strand) + PrintStatusMap();
+                return fmt::format("Rendering strand effect for frame {} of {}, strand {}: ", frame, n, strand) + PrintStatusMap();
             } else {
-                return std::format("Rendering node effect for frame {} of {}, strand {}, node {}: ", frame, n, layer, node) + PrintStatusMap();
+                return fmt::format("Rendering node effect for frame {} of {}, strand {}, node {}: ", frame, n, layer, node) + PrintStatusMap();
             }
         case 3:
             if (strand == -1) {
-                return std::format("Calculating output at frame {} for {}: ", frame, n) + PrintStatusMap();
+                return fmt::format("Calculating output at frame {} for {}: ", frame, n) + PrintStatusMap();
             } else if (node == -1) {
-                return std::format("Calculating output at frame {} for {}, strand {}: ", frame, n, strand) + PrintStatusMap();
+                return fmt::format("Calculating output at frame {} for {}, strand {}: ", frame, n, strand) + PrintStatusMap();
             } else {
-                return std::format("Calculating output at frame {} for {}, strand {}, node {}: ", frame, n, strand, node) + PrintStatusMap();
+                return fmt::format("Calculating output at frame {} for {}, strand {}, node {}: ", frame, n, strand, node) + PrintStatusMap();
             }
         case 4:
-            return std::vformat(statusMsg, std::make_format_args(name, frame));
+            return fmt::vformat(statusMsg, fmt::make_format_args(name, frame));
         case 5:
-            return std::vformat(statusMsg, std::make_format_args(name, frame, layer));
+            return fmt::vformat(statusMsg, fmt::make_format_args(name, frame, layer));
         case 8:
-            return std::vformat(statusMsg, std::make_format_args(name, frame)) + PrintStatusMap();
+            return fmt::vformat(statusMsg, fmt::make_format_args(name, frame)) + PrintStatusMap();
         case 9:
-            return std::vformat(statusMsg, std::make_format_args(name, frame, layer)) + PrintStatusMap();
+            return fmt::vformat(statusMsg, fmt::make_format_args(name, frame, layer)) + PrintStatusMap();
         case 13:
-            return std::format("Waiting to start frame {} for {}", frame, n);
+            return fmt::format("Waiting to start frame {} for {}", frame, n);
         }
         return statusMsg;
     }

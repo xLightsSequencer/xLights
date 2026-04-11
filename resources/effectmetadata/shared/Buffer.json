@@ -128,6 +128,7 @@
             "label": "Rotations",
             "type": "float",
             "controlType": "slider",
+            "settingPrefix": "SLIDER",
             "min": 0,
             "max": 200,
             "default": 0,
@@ -135,7 +136,7 @@
             "valueCurve": true,
             "suppressIfDefault": true,
             "lockable": true,
-            "description": "Number of full Z-axis rotations over the effect duration. Stored as int; the engine divides by 10."
+            "description": "Number of full Z-axis rotations over the effect duration. Stored as int; the engine divides by 10. settingPrefix:SLIDER because PixelBuffer reads SLIDER_Rotations as raw int and divides itself."
         },
         {
             "id": "PivotPointX",
@@ -168,6 +169,7 @@
             "label": "Zoom",
             "type": "float",
             "controlType": "slider",
+            "settingPrefix": "SLIDER",
             "min": 0,
             "max": 30,
             "default": 1.0,
@@ -175,7 +177,7 @@
             "valueCurve": true,
             "suppressIfDefault": true,
             "lockable": true,
-            "description": "Buffer zoom factor. Stored with divisor 10; 10 = 1.0x (no zoom), max 30 = 3.0x."
+            "description": "Buffer zoom factor. Stored with divisor 10; 10 = 1.0x (no zoom), max 30 = 3.0x. settingPrefix:SLIDER because PixelBuffer reads SLIDER_Zoom as raw int and divides itself."
         },
         {
             "id": "ZoomQuality",

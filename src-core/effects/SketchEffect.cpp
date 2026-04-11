@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../utils/nanosvg_xl.h"
 
@@ -194,7 +194,7 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
         std::string filename = settings.Get("E_FILEPICKER_SketchBackground", "");
         if (filename.empty()) {
             // this is only a warning as it does not affect rendering
-            res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto imgEntry = mm.GetImage(filename);
@@ -202,11 +202,11 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
 
             if (!imgEntry->IsOk()) {
                 // this is only a warning as it does not affect rendering
-                res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!imgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), filename)) {
-                        res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }

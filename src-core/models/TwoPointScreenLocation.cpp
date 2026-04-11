@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <cassert>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "TwoPointScreenLocation.h"
 
 
@@ -823,7 +823,7 @@ CursorType TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y,
 std::string TwoPointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
-    return std::format("Length {}", RulerObject::MeasureLengthDescription(origin, point2));
+    return fmt::format("Length {}", RulerObject::MeasureLengthDescription(origin, point2));
 }
 
 void TwoPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {

@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <algorithm>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <filesystem>
 
 #include "MeshObject.h"
@@ -94,10 +94,10 @@ std::list<std::string> MeshObject::CheckModelSettings()
     std::list<std::string> res;
 
     if (_objFile == "" || !FileExists(_objFile)) {
-        res.push_back(std::format("    ERR: Mesh object '{}' cant find obj file '{}'", GetName(), _objFile));
+        res.push_back(fmt::format("    ERR: Mesh object '{}' cant find obj file '{}'", GetName(), _objFile));
     } else {
         if (!FileUtils::IsFileInShowDir(std::string(), _objFile)) {
-            res.push_back(std::format("    WARN: Mesh object '{}' obj file '{}' not under show/media/resource directories.", GetName(), _objFile));
+            res.push_back(fmt::format("    WARN: Mesh object '{}' obj file '{}' not under show/media/resource directories.", GetName(), _objFile));
         }
 
         std::filesystem::path objPath(_objFile);
@@ -109,7 +109,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
         if (mtfs.empty() || xlMesh::InvalidMaterialsList(mtfs)) {
             mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
             if (!mtfs.empty()) {
-                res.push_back(std::format("    WARN: Mesh object '{}' obj file '{}' has a space in the mesh file name : {}.", GetName(), _objFile, mtfs.front()));
+                res.push_back(fmt::format("    WARN: Mesh object '{}' obj file '{}' has a space in the mesh file name : {}.", GetName(), _objFile, mtfs.front()));
             }
         }
 
@@ -121,12 +121,12 @@ std::list<std::string> MeshObject::CheckModelSettings()
                     auto mtf2 = (std::filesystem::path(objDir) / objStem / mtf).string();
                     if (!FileExists(mtf2)) {
                         // still not there so report the warning
-                        res.push_back(std::format("    WARN: Mesh object '{}' is missing material file '{}'.", GetName(), mtf));
+                        res.push_back(fmt::format("    WARN: Mesh object '{}' is missing material file '{}'.", GetName(), mtf));
                     }
                 }
             }
         } else {
-            res.push_back(std::format("    WARN: Mesh object '{}' does not have a material file '{}'.", GetName(), _objFile));
+            res.push_back(fmt::format("    WARN: Mesh object '{}' does not have a material file '{}'.", GetName(), _objFile));
         }
 
         std::string base_path = objDir;
@@ -146,7 +146,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
                     if (!FileExists(texPath2)) {
                         std::string texPath3 = (std::filesystem::path(objDir) / objStem / texName).string();
                         if (!FileExists(texPath3)) {
-                            res.push_back(std::format("    ERR: Mesh object '{}' cant find texture file '{}'", GetName(), texPath));
+                            res.push_back(fmt::format("    ERR: Mesh object '{}' cant find texture file '{}'", GetName(), texPath));
                         }
                     }
                 }
