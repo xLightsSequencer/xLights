@@ -403,6 +403,7 @@ void SelectPanel::OnComboBox_Select_EffectDropdown(wxCommandEvent& event)
 
 void SelectPanel::OnComboBox_Select_BufferStyleSelected(wxCommandEvent& event)
 {
+    populateModelsList(ComboBox_Select_Effect->GetValue().ToStdString());
     populateEffectsList();
 }
 
