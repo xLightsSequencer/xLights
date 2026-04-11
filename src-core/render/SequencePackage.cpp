@@ -579,7 +579,7 @@ std::filesystem::path SequencePackage::CopyMediaToTarget(const std::string& targ
     return targetFile;
 }
 
-std::filesystem::path SequencePackage::FindAndCopyAudio(const std::string& targetDir)
+std::filesystem::path SequencePackage::FindAndCopyAudio(const std::filesystem::path& targetDir)
 {
     static const std::vector<std::string> AUDIO_EXTS = {
         "mp3", "ogg", "m4p", "m4a", "aac", "wav", "flac", "wma", "au", "mp4"
@@ -633,5 +633,5 @@ std::filesystem::path SequencePackage::FindAndCopyAudio(const std::string& targe
         return std::filesystem::path();
     }
 
-    return CopyMediaToTarget(targetDir, audioFile);
+    return CopyMediaToTarget(targetDir.string(), audioFile);
 }
