@@ -3868,6 +3868,16 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
         model->SetStartChannel("1");
         model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights->AllModels, cancelled);
 
+        if (!cancelled && model != nullptr) {
+            // Reset controller name to NO_CONTROLLER so ReworkStartChannel auto-assigns
+            // a correct start channel. Downloaded/imported xmodel files store vendor-specific
+            // channel assignments that are not appropriate for the user's setup.
+            // The deserialized model object has _controllerName="" (C++ default), not
+            // NO_CONTROLLER, which causes ReworkStartChannel to treat it as a fixed reference
+            // point rather than auto-assigning it, leaving it stuck at channel 1.
+            model->SetControllerName(NO_CONTROLLER, true);
+        }
+
         if (!cancelled)
             return model;
     }

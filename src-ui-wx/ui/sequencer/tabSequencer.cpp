@@ -1181,13 +1181,18 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         // Dont change page if it is already on correct page
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
             EffectsPanel1->SetEffectType(pageIndex);
-            ResetPanelDefaultSettings(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection(), nullptr, true);
+            wxString effectName = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
+            ResetPanelDefaultSettings(effectName, nullptr, true);
+            EffectsPanel1->SetEffectPanelStatus(nullptr, effectName, 0, 0);
         } else {
-            const std::string eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
+            const wxString eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
             if (eff == "Moving Head") {
                 // We want new dropped moving head effects to start out empty of commands
                 ResetPanelDefaultSettings(eff, nullptr, true);
             }
+            // Populate dynamic choices (timing tracks, effect-driven options) whenever
+            // the panel switches, even when no grid effect is selected.
+            EffectsPanel1->SetEffectPanelStatus(nullptr, eff, 0, 0);
             event.updateUI = false;
         }
     }
