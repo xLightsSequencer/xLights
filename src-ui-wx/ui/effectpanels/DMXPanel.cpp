@@ -22,7 +22,7 @@
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "effects/DMXEffect.h"
 #include "render/Effect.h"
@@ -81,7 +81,7 @@ void DMXPanel::BuildChannelPage(wxWindow* pagePanel, int startChannel) {
     grid->AddGrowableCol(1);
 
     for (int ch = startChannel; ch < startChannel + 16; ++ch) {
-        std::string chNum = std::format("{}", ch);
+        std::string chNum = fmt::format("{}", ch);
 
         // Label
         auto* label = new wxStaticText(pagePanel, wxNewId(),
@@ -392,24 +392,24 @@ void DMXPanel::OnSaveAsStateClick(wxCommandEvent& /*event*/) {
 
     for (uint32_t i = 0; i < DMX_CHANNELS; ++i) {
         if (i < maxChannels) {
-            attributes[std::format("s{}-Name", i + 1)] = stateName;
+            attributes[fmt::format("s{}-Name", i + 1)] = stateName;
 
             auto* label = dynamic_cast<wxStaticText*>(
                 wxWindow::FindWindowByName(wxString::Format("ID_STATICTEXT_DMX%d", i + 1), this));
             std::string l = label ? label->GetLabelText().ToStdString() : "";
             if (StartsWith(l, "Channel")) {
-                l = std::format("Node {}", i + 1);
+                l = fmt::format("Node {}", i + 1);
             }
-            attributes[std::format("s{}", i + 1)] = l;
+            attributes[fmt::format("s{}", i + 1)] = l;
 
             auto* slider = dynamic_cast<wxSlider*>(
                 wxWindow::FindWindowByName(wxString::Format("ID_SLIDER_DMX%d", i + 1), this));
             int v = slider ? slider->GetValue() : 0;
-            attributes[std::format("s{}-Color", i + 1)] = std::format("#{:02x}{:02x}{:02x}", v, v, v);
+            attributes[fmt::format("s{}-Color", i + 1)] = fmt::format("#{:02x}{:02x}{:02x}", v, v, v);
         } else {
-            attributes[std::format("s{}-Name", i + 1)] = "";
-            attributes[std::format("s{}", i + 1)] = "";
-            attributes[std::format("s{}-Color", i + 1)] = "";
+            attributes[fmt::format("s{}-Name", i + 1)] = "";
+            attributes[fmt::format("s{}", i + 1)] = "";
+            attributes[fmt::format("s{}-Color", i + 1)] = "";
         }
     }
 
@@ -445,10 +445,10 @@ void DMXPanel::OnLoadFromStateClick(wxCommandEvent& /*event*/) {
     }
 
     for (size_t i = 0; i < maxChannels; ++i) {
-        auto attr = std::format("s{}-Name", (int)i + 1);
+        auto attr = fmt::format("s{}-Name", (int)i + 1);
         if (states.count(attr) == 0) continue;
 
-        auto colattr = std::format("s{}-Color", (int)i + 1);
+        auto colattr = fmt::format("s{}-Color", (int)i + 1);
         xlColor dmxValue(states[colattr]);
 
         if (auto* slider = dynamic_cast<wxSlider*>(

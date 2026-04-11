@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <cassert>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../XmlSerializer/FileSerializingVisitor.h"
 
@@ -383,7 +383,7 @@ void CubeModel::DumpNodes(std::vector<std::tuple<int,int,int>> nodes, int width,
         {
             for (int x  = 0; x < width; x++)
             {
-                out += std::format("{} ", FindNodeIndex(nodes, x, y, z));
+                out += fmt::format("{} ", FindNodeIndex(nodes, x, y, z));
             }
             out += "\n";
         }
@@ -882,21 +882,21 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager, bool dark
     html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
-    html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
-    html += std::format("<tr><td>Width:</td><td>{}</td></tr>", _cubeWidth);
-    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", _cubeHeight);
-    html += std::format("<tr><td>Depth:</td><td>{}</td></tr>", _cubeDepth);
+    html += fmt::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
+    html += fmt::format("<tr><td>Width:</td><td>{}</td></tr>", _cubeWidth);
+    html += fmt::format("<tr><td>Height:</td><td>{}</td></tr>", _cubeHeight);
+    html += fmt::format("<tr><td>Depth:</td><td>{}</td></tr>", _cubeDepth);
 
     if (c != nullptr) {
-        html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
+        html += fmt::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
     }
 
     if (GetControllerProtocol() != "") {
-        html += std::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
+        html += fmt::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
         if (GetNumStrings() == 1) {
-            html += std::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort());
+            html += fmt::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort());
         } else {
-            html += std::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
+            html += fmt::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -915,7 +915,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager, bool dark
             std::string bgcolor = string % 2 == 1 ? "#ADD8E6" : "#90EE90";
             if (darkMode)
                 bgcolor = string % 2 == 1 ? "#3f7c85" : "#962B09";
-            html += std::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, nodenum, string);
+            html += fmt::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, nodenum, string);
         }
         html += "</tr>";
     }

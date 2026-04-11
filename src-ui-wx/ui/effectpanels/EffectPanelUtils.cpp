@@ -47,7 +47,7 @@
 
 #include <wx/tglbtn.h>
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 std::map<std::string, bool> EffectPanelUtils::buttonStates;
 static std::map<wxControl *, wxControl*> LINKED_CONTROLS;
@@ -498,7 +498,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
         wxString AttrName = "E_" + ChildName.Mid(3);
         if (ChildName.StartsWith("ID_SLIDER")) {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            s += AttrName+ "=" + wxString(std::format("{}", ctrl->GetValue())) + ",";
+            s += AttrName+ "=" + wxString(fmt::format("{}", ctrl->GetValue())) + ",";
         } else if (ChildName.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
             if (ctrl->GetValue()->IsActive()) {
@@ -523,7 +523,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
         } else if (ChildName.StartsWith("ID_SPINCTRL")) {
             wxSpinCtrl* ctrl = (wxSpinCtrl*)ChildWin;
             int i = ctrl->GetValue();
-            s += AttrName + "=" + wxString(std::format("{}", i)) + ",";
+            s += AttrName + "=" + wxString(fmt::format("{}", i)) + ",";
         } else if (ChildName.StartsWith("ID_CHOICE")) {
             wxChoice* ctrl=(wxChoice*)ChildWin;
             s += AttrName + "=" + ctrl->GetStringSelection() + ",";

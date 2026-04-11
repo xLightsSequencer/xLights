@@ -24,7 +24,7 @@
 #include "../utils/ip_utils.h"
 #include "ControllerEthernet.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <log.h>
 
@@ -214,7 +214,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
             }
 
             // multicast - universe number must be in lower 2 bytes
-            syncremoteIp = std::format("239.255.{}.{}", syncdata[45], syncdata[46]);
+            syncremoteIp = fmt::format("239.255.{}.{}", syncdata[45], syncdata[46]);
             spdlog::debug("e131 Sync sync universe changed to {} => {}:{}.", syncUniverse, syncremoteIp, E131_PORT);
         }
 
@@ -252,7 +252,7 @@ std::string E131Output::GetLongDescription() const {
 
 std::string E131Output::GetExport() const {
 
-    return std::format(",{},{},,{},{},,,,{},{}",
+    return fmt::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),
@@ -332,7 +332,7 @@ bool E131Output::Open() {
 
     if (GetResolvedIP().rfind("239.255.", 0) == 0 || _ip == "MULTICAST") {
         // multicast - universe number must be in lower 2 bytes
-        _remoteIp = std::format("239.255.{}.{}", (int)UnivHi, (int)UnivLo);
+        _remoteIp = fmt::format("239.255.{}.{}", (int)UnivHi, (int)UnivLo);
     }
     else {
         _remoteIp = GetResolvedIP();

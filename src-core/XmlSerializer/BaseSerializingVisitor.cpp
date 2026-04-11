@@ -71,7 +71,7 @@
 #include "XmlNodeKeys.h"
 
 #include <algorithm>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 // ---------------------------------------------------------------------------
 // File-local helpers
@@ -89,9 +89,15 @@ static std::string LowerStr(const std::string& s) {
 
 // static
 std::string BaseSerializingVisitor::FloatToString(float f) {
+    // Note: deliberately using snprintf rather than std::to_chars. The floating-point
+    // overloads of std::to_chars are only available in Apple's libc++ starting with
+    // macOS 13.3; xLights supports macOS 11, so using them causes a dyld "Symbol not
+    // found" crash at launch on older systems.
     char buf[32];
-    auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::general, 6);
-    return std::string(buf, ptr);
+    int n = std::snprintf(buf, sizeof(buf), "%.6g", f);
+    if (n < 0) return {};
+    if (static_cast<size_t>(n) >= sizeof(buf)) n = sizeof(buf) - 1;
+    return std::string(buf, n);
 }
 
 // static
@@ -196,7 +202,7 @@ void BaseSerializingVisitor::AddSuperStrings(const Model& model, AttrCollector& 
     int num_colors = model.GetNumSuperStringColours();
     if (num_colors == 0) return;
     for (int i = 0; i < num_colors; ++i) {
-        std::string key = std::format("SuperStringColour{}", i);
+        std::string key = fmt::format("SuperStringColour{}", i);
         attrs.Add(key, model.GetSuperStringColour(i));
     }
 }

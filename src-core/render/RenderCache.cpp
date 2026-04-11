@@ -18,7 +18,7 @@
 #include <cassert>
 #include <cstdio>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <functional>
 #include <thread>
 #include "xLightsVersion.h"
@@ -578,7 +578,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     Replace(elname, "?", "_");
     Replace(elname, "*", "_");
     Replace(elname, "$", "_");
-    std::string file = std::format("{}_{}_{}_{}.cache",
+    std::string file = fmt::format("{}_{}_{}_{}.cache",
             effect->GetEffectName(), elname,
             effect->GetParentEffectLayer()->GetLayerNumber(),
             effect->GetStartTimeMS());

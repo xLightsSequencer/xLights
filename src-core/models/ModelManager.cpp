@@ -11,7 +11,7 @@
 #include <cassert>
 #include <chrono>
 #include <cmath>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <thread>
 
 #include <pugixml.hpp>
@@ -537,7 +537,7 @@ void ModelManager::AddModelGroups(pugi::xml_node n, const std::string& mname, bo
     std::string nn = mgname;
     int i = 1;
     while (models.find(nn) != models.end()) {
-        nn = std::format("{}_{}", mgname, i++);
+        nn = fmt::format("{}_{}", mgname, i++);
     }
 
     // Create a temporary document with a copy of the node and modified attributes
@@ -802,9 +802,9 @@ bool ModelManager::ReworkStartChannel() const
             {
                 std::string cc;
                 if (IsPixelProtocol(itm.second->GetControllerProtocol())) {
-                    cc = std::format("{}:{:02d}:{:02d}", itm.second->GetControllerProtocol(), itm.second->GetControllerPort(), itm.second->GetSortableSmartRemote());
+                    cc = fmt::format("{}:{:02d}:{:02d}", itm.second->GetControllerProtocol(), itm.second->GetControllerPort(), itm.second->GetSortableSmartRemote());
                 } else {
-                    cc = std::format("{}{}:{:02d}", serialPrefix, itm.second->GetControllerProtocol(), itm.second->GetControllerPort());
+                    cc = fmt::format("{}{}:{:02d}", serialPrefix, itm.second->GetControllerProtocol(), itm.second->GetControllerPort());
                 }
                 std::transform(cc.begin(), cc.end(), cc.begin(), ::tolower);
                 if (cmodels.find(cc) == cmodels.end()) {
@@ -1405,7 +1405,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         m->SetDropPattern("3,4,5,4");
         model = m;
     } else {
-        DisplayError(std::format("'{}' is not a valid model type for a model", type));
+        DisplayError(fmt::format("'{}' is not a valid model type for a model", type));
         return nullptr;
     }
 
@@ -1951,7 +1951,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
             auto curr = GetModel(name);
             if (curr != nullptr && !curr->IsFromBase()) {
                 if (auto* ui = GetUICallbacks()) {
-                    if (ui->PromptYesNo(std::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                    if (ui->PromptYesNo(fmt::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
                                         "Model clash")) {
                         curr->SetFromBase(true);
                     }
@@ -1966,7 +1966,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 auto curr = GetModel(name);
                 if (curr != nullptr && !curr->IsFromBase()) {
                     if (auto* ui = GetUICallbacks()) {
-                        if (ui->PromptYesNo(std::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                        if (ui->PromptYesNo(fmt::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
                                             "Model group clash")) {
                             curr->SetFromBase(true);
                         }

@@ -31,7 +31,7 @@
 #include <curl/curl.h>
 #include <thread>
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #pragma region Output Classes
 class AlphaPixOutput
@@ -145,10 +145,10 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         }
 
         if (_modelnum == 48) {
-            _model = std::format("AlphaPix Flex v{}", _revision);
+            _model = fmt::format("AlphaPix Flex v{}", _revision);
         }
         else { 
-            _model = std::format("AlphaPix {} v{}", _modelnum, _revision);
+            _model = fmt::format("AlphaPix {} v{}", _modelnum, _revision);
         }
 
         if(_connected)
@@ -224,13 +224,13 @@ AlphaPixOutput* AlphaPix::ExtractOutputData(std::string const& page, int port) {
 
     AlphaPixOutput* output = new AlphaPixOutput(port);
 
-    output->universe = ExtractIntFromPage(page, std::format("SU{}", port), "input", 1);
-    output->startChannel = ExtractIntFromPage(page, std::format("SC{}", port), "input", 1);
-    output->pixels = ExtractIntFromPage(page, std::format("PC{}", port), "input", 1);
-    output->nullPixel = ExtractIntFromPage(page, std::format("NP{}", port), "input", 0);
-    output->zigZag = ExtractIntFromPage(page, std::format("RA{}", port), "input", 0);
-    output->brightness = ExtractIntFromPage(page, std::format("LM{}", port), "input", 100);
-    output->reverse = ExtractIntFromPage(page, std::format("RV{}", port), "checkbox", 0);
+    output->universe = ExtractIntFromPage(page, fmt::format("SU{}", port), "input", 1);
+    output->startChannel = ExtractIntFromPage(page, fmt::format("SC{}", port), "input", 1);
+    output->pixels = ExtractIntFromPage(page, fmt::format("PC{}", port), "input", 1);
+    output->nullPixel = ExtractIntFromPage(page, fmt::format("NP{}", port), "input", 0);
+    output->zigZag = ExtractIntFromPage(page, fmt::format("RA{}", port), "input", 0);
+    output->brightness = ExtractIntFromPage(page, fmt::format("LM{}", port), "input", 100);
+    output->reverse = ExtractIntFromPage(page, fmt::format("RV{}", port), "checkbox", 0);
 
     return output;
 }
@@ -238,13 +238,13 @@ AlphaPixOutput* AlphaPix::ExtractOutputData(std::string const& page, int port) {
 AlphaPixOutput* AlphaPix::ExtractOutputDataV2(std::string const& page, int port) {
 
     AlphaPixOutput* output = new AlphaPixOutput(port);
-    output->universe = ExtractIntFromPage(page, std::format("U{:02d}", port), "input", 1);
-    output->startChannel = ExtractIntFromPage(page, std::format("C{:02d}", port), "input", 1);
-    output->pixels = ExtractIntFromPage(page, std::format("P{:02d}", port), "input", 1);
-    output->nullPixel = ExtractIntFromPage(page, std::format("N{:02d}", port), "input", 0);
-    output->zigZag = ExtractIntFromPage(page, std::format("R{:02d}", port), "input", 0);
-    output->brightness = ExtractIntFromPage(page, std::format("L{:02d}", port), "input", 100);
-    output->reverse = ExtractIntFromPage(page, std::format("V{:02d}", port), "checkbox", 0);
+    output->universe = ExtractIntFromPage(page, fmt::format("U{:02d}", port), "input", 1);
+    output->startChannel = ExtractIntFromPage(page, fmt::format("C{:02d}", port), "input", 1);
+    output->pixels = ExtractIntFromPage(page, fmt::format("P{:02d}", port), "input", 1);
+    output->nullPixel = ExtractIntFromPage(page, fmt::format("N{:02d}", port), "input", 0);
+    output->zigZag = ExtractIntFromPage(page, fmt::format("R{:02d}", port), "input", 0);
+    output->brightness = ExtractIntFromPage(page, fmt::format("L{:02d}", port), "input", 100);
+    output->reverse = ExtractIntFromPage(page, fmt::format("V{:02d}", port), "checkbox", 0);
 
     return output;
 }
@@ -256,8 +256,8 @@ AlphaPixSerial* AlphaPix::ExtractSerialData(std::string const& page, int port) {
         serial->universe = ExtractDMXUniverse(page, "DMX512");
     }
     else {
-        serial->enabled = ExtractDMXEnabled(page, std::format("Rever{}", port));
-        serial->universe = ExtractDMXUniverse(page, std::format("DMX512_{}", port));
+        serial->enabled = ExtractDMXEnabled(page, fmt::format("Rever{}", port));
+        serial->universe = ExtractDMXUniverse(page, fmt::format("DMX512_{}", port));
     }
     return serial;
 }
@@ -299,8 +299,8 @@ int AlphaPix::ExtractColorType(std::string const& page) {
 }
 
 int AlphaPix::ExtractSingleColor(std::string const& page, const int output) {
-    const int start = page.find(std::format("Output {}:", output));
-    const int colorOrder = ExtractIntFromPage(page, std::format("{}_RGB", output), "select", 0, start);
+    const int start = page.find(fmt::format("Output {}:", output));
+    const int colorOrder = ExtractIntFromPage(page, fmt::format("{}_RGB", output), "select", 0, start);
     return colorOrder;
 }
 
@@ -498,10 +498,10 @@ std::string AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
 
     std::string reverseAdd;
     if (po->reverse) {
-        reverseAdd = std::format("&RV{}=1", po->output);
+        reverseAdd = fmt::format("&RV{}=1", po->output);
     }
 
-    return std::format("SU{}={}&SC{}={}&PC{}={}&NP{}={}&RA{}={}&LM{}={}{}",
+    return fmt::format("SU{}={}&SC{}={}&PC{}={}&NP{}={}&RA{}={}&LM{}={}{}",
         po->output, po->universe,
         po->output, po->startChannel,
         po->output, po->pixels,
@@ -517,10 +517,10 @@ std::string AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const {
 
     std::string reverseAdd;
     if (po->reverse) {
-        reverseAdd = std::format("&V{:02d}=1", po->output);
+        reverseAdd = fmt::format("&V{:02d}=1", po->output);
     }
 
-    return std::format("U{:02d}={}&C{:02d}={}&P{:02d}={}&N{:02d}={}&R{:02d}={}&L{:02d}={}{}",
+    return fmt::format("U{:02d}={}&C{:02d}={}&P{:02d}={}&N{:02d}={}&R{:02d}={}&L{:02d}={}{}",
         po->output, po->universe,
         po->output, po->startChannel,
         po->output, po->pixels,
@@ -701,14 +701,14 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         serial->Dump();
         if (serial->upload) {
             if (_modelnum == 4) {
-                const std::string serialRequest = std::format("Rever5=1&DMX512={}", serial->universe);
+                const std::string serialRequest = fmt::format("Rever5=1&DMX512={}", serial->universe);
                 const std::string res = APPutURL(GetDMXURL(), serialRequest);
                 if (res.empty())
                     worked = false;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
             else {
-                const std::string serialRequest = std::format("Rever{}=1&DMX512_{}={}",
+                const std::string serialRequest = fmt::format("Rever{}=1&DMX512_{}={}",
                     serial->output, serial->output, serial->universe);
                 const std::string res = APPutURL(GetDMXURL(serial->output), serialRequest);
                 if (res.empty())
@@ -722,7 +722,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     ui->UpdateProgress(progressTk,50, "Uploading Protocol Type.");
     const int newProtocol = EncodeStringPortProtocol(pixelType);
     if (newProtocol != -1 && controllerData.protocol != newProtocol) {
-        const std::string res = APPutURL(GetProtocolURL(), std::format("IC={}", newProtocol));
+        const std::string res = APPutURL(GetProtocolURL(), fmt::format("IC={}", newProtocol));
         if (res.empty())
             worked = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -736,7 +736,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         colorOrder.erase(std::unique(colorOrder.begin(), colorOrder.end()), colorOrder.end());
         if (colorOrder.size() == 1) {
             //all the same color order, "simple mode" will do
-            const std::string res = APPutURL(GetColorOrderURL(), std::format("RGBORD=0&RGBS={}", colorOrder[0]));
+            const std::string res = APPutURL(GetColorOrderURL(), fmt::format("RGBORD=0&RGBS={}", colorOrder[0]));
             if (res.empty())
                 worked = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -752,7 +752,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             for (const auto& pixelPort : _pixelOutputs) {
                 if (colorRequestString != "")
                     colorRequestString += "&";
-                colorRequestString += std::format("{}_RGB={}",
+                colorRequestString += fmt::format("{}_RGB={}",
                     pixelPort->output, pixelPort->colorOrder);
             }
 

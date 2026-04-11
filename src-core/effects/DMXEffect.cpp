@@ -12,7 +12,7 @@
 #include "render/ValueCurve.h"
 
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
@@ -40,8 +40,8 @@ void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<s
     SettingsMap &settings = effect->GetSettings();
     SettingsMap const oldSettings = settings;
     for (auto const& [fromi, toi, scale, offset, inv] : dmxmappings) {
-        auto const froms = std::format("{}", fromi);
-        auto const tos = std::format("{}", toi);
+        auto const froms = fmt::format("{}", fromi);
+        auto const tos = fmt::format("{}", toi);
         auto const slider = oldSettings.Get("E_SLIDER_DMX" + froms, "NOTTHERE");
         auto const vc = oldSettings.Get("E_VALUECURVE_DMX" + froms, "NOTTHERE");
         auto invert_chbx = oldSettings.Get("E_CHECKBOX_INVDMX" + froms, "NOTTHERE");
@@ -81,7 +81,7 @@ void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<s
 bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer)
 {
     if( num_channels >= chan ) {
-        std::string const name = std::format("DMX{}", chan);
+        std::string const name = fmt::format("DMX{}", chan);
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
         if (SettingsMap.GetBool("CHECKBOX_INV" + name, false))
@@ -116,7 +116,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
     color = xlBLACK;
     int const base_chan = ((node - 1) * 3 + 1);
     if( num_channels >= base_chan || buffer.BufferWi < node) {
-        std::string name = std::format("DMX{}", base_chan);
+        std::string name = fmt::format("DMX{}", base_chan);
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
         if (SettingsMap.GetBool("CHECKBOX_INV" + name, false)) {
@@ -125,7 +125,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
 
         SetColorBasedOnStringType(value, 1, color, string_type);
         if( num_channels >= base_chan + 1 ) {
-            name = std::format("DMX{}", base_chan+1);
+            name = fmt::format("DMX{}", base_chan+1);
             value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
             if (SettingsMap.GetBool("CHECKBOX_INV" + name, false)) {
@@ -134,7 +134,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
 
             SetColorBasedOnStringType(value, 2, color, string_type);
             if( num_channels >= base_chan + 2 ) {
-                name = std::format("DMX{}", base_chan + 2);
+                name = fmt::format("DMX{}", base_chan + 2);
                 value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
                 if (SettingsMap.GetBool("CHECKBOX_INV" + name, false)) {

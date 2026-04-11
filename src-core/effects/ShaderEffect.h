@@ -15,7 +15,7 @@
 #include "RenderableEffect.h"
 #include "UtilFunctions.h"
 #include "../utils/xlPoint.h"
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <map>
 #include <string>
 
@@ -131,19 +131,19 @@ struct ShaderParm
         switch (ctrl)
         {
         case ShaderCtrlType::SHADER_CTRL_CHECKBOX:
-            return std::format("ID_CHECKBOX_SHADERXYZZY_{}", _name);
+            return fmt::format("ID_CHECKBOX_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_SLIDER:
-            return std::format("ID_SLIDER_SHADERXYZZY_{}", _name);
+            return fmt::format("ID_SLIDER_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_TEXTCTRL:
-            return std::format("IDD_TEXTCTRL_SHADERXYZZY_{}", _name);
+            return fmt::format("IDD_TEXTCTRL_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_STATIC:
-            return std::format("ID_STATICTEXT_SHADERXYZZY_{}", _name);
+            return fmt::format("ID_STATICTEXT_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_VALUECURVE:
-            return std::format("ID_VALUECURVE_SHADERXYZZY_{}", _name);
+            return fmt::format("ID_VALUECURVE_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_CHOICE:
-            return std::format("ID_CHOICE_SHADERXYZZY_{}", _name);
+            return fmt::format("ID_CHOICE_SHADERXYZZY_{}", _name);
         case ShaderCtrlType::SHADER_CTRL_TIMING:
-            return std::format("ID_CHOICE_SHADERXYZZY_{}", _name);
+            return fmt::format("ID_CHOICE_SHADERXYZZY_{}", _name);
         }
         assert(false);
         return "NONAME";

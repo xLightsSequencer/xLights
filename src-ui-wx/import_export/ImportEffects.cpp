@@ -454,7 +454,7 @@ void MapXLightsEffects(Element* target,
                        const std::map<std::string, std::string>& mappingModelType)
 {
     if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-        auto const strandName = std::format("Strand {}", ((StrandElement*)target)->GetStrand() + 1);
+        auto const strandName = fmt::format("Strand {}", ((StrandElement*)target)->GetStrand() + 1);
         spdlog::debug("Mapping xLights effect from {} to {}{}.", name, target->GetFullName(), strandName);
     } else {
         spdlog::debug("Mapping xLights effect from {} to {}.", name, target->GetFullName());
@@ -931,24 +931,24 @@ void MapHLSChannelInformation(xLightsFrame* xlights, EffectLayer* layer, pugi::x
 
 std::string FindHLSStrandName(const std::string& ccrName, int node, const std::vector<std::string>& channelNames)
 {
-    std::string r = ccrName + std::format("P{:03d}", node);
+    std::string r = ccrName + fmt::format("P{:03d}", node);
     if (std::find(channelNames.begin(), channelNames.end(), r) == channelNames.end()) {
-        r = ccrName + std::format("P{:04d}", node);
+        r = ccrName + fmt::format("P{:04d}", node);
     } else {
         return r;
     }
     if (std::find(channelNames.begin(), channelNames.end(), r) == channelNames.end()) {
-        r = ccrName + std::format("P{:02d}", node);
+        r = ccrName + fmt::format("P{:02d}", node);
     } else {
         return r;
     }
     if (std::find(channelNames.begin(), channelNames.end(), r) == channelNames.end()) {
-        r = ccrName + std::format("_{:04d}", node);
+        r = ccrName + fmt::format("_{:04d}", node);
     } else {
         return r;
     }
     if (std::find(channelNames.begin(), channelNames.end(), r) == channelNames.end()) {
-        r = ccrName + std::format("_{:03d}", node);
+        r = ccrName + fmt::format("_{:03d}", node);
     } else {
         return r;
     }

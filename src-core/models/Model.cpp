@@ -11,7 +11,7 @@
 #include <cassert>
 #include <chrono>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <string_view>
 #include <regex>
 #include <pugixml.hpp>
@@ -1070,7 +1070,7 @@ std::string Model::GetControllerConnectionString() const
 {
     if (GetControllerProtocol() == "")
         return "";
-    std::string ret = std::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
+    std::string ret = fmt::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
 
     ret += GetControllerConnectionAttributeString();
     return ret;
@@ -1080,12 +1080,12 @@ std::string Model::GetControllerConnectionRangeString() const
 {
     if (GetControllerProtocol() == "")
         return "";
-    std::string ret = std::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
+    std::string ret = fmt::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
     if (GetControllerPort(1) == 0) {
         ret = GetControllerProtocol();
     }
     if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
-        ret = std::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
+        ret = fmt::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
     }
 
     ret += GetControllerConnectionAttributeString();
@@ -1097,7 +1097,7 @@ std::string Model::GetControllerConnectionPortRangeString() const
 {
     std::string ret = std::to_string(GetControllerPort(1));
     if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
-        ret = std::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
+        ret = fmt::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
     }
     return ret;
 }
@@ -1214,7 +1214,7 @@ std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
 
     int i = 2;
     for (;;) {
-        auto name = std::format("{}_{}", suggested, i++);
+        auto name = fmt::format("{}_{}", suggested, i++);
         if (GetSubModel(name) == nullptr)
             return name;
     }
@@ -1377,7 +1377,7 @@ std::string Model::GetControllerPortSortString() const
     auto port = GetControllerPort();
     auto sc = GetFirstChannel(); // we assume within a port models are in channel order
 
-    return std::format("{}:{:08d}:{:08d}", controller, port, sc);
+    return fmt::format("{}:{:08d}:{:08d}", controller, port, sc);
 }
 
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
@@ -1386,15 +1386,15 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     if (!IsValidStartChannelString()) {
         return "(1)";
     } else if (s[0] == '>') {
-        return s + std::format(" ({})", GetFirstChannel() + 1);
+        return s + fmt::format(" ({})", GetFirstChannel() + 1);
     } else if (s[0] == '@') {
         if (_hasIndivChans) {
             return s;
         } else {
-            return s + std::format(" ({})", GetFirstChannel() + 1);
+            return s + fmt::format(" ({})", GetFirstChannel() + 1);
         };
     } else if (s[0] == '!') {
-        return s + std::format(" ({})", GetFirstChannel() + 1);
+        return s + fmt::format(" ({})", GetFirstChannel() + 1);
     } else if (s[0] == '#') {
         return GetFirstChannelInStartChannelFormat(outputManager);
     } else {
@@ -2526,14 +2526,14 @@ std::string Model::GetNodeXY(int nodeinx)
         return "";
     if (GetCoordCount(nodeinx) > 1) // show count and first + last coordinates
         if (IsCustom())
-            return std::format("{}: {}# @{}{}-{}{}", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return fmt::format("{}: {}# @{}{}-{}{}", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
         else
-            return std::format("{}: {}# @({},{})=({},{})", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return fmt::format("{}: {}# @({},{})=({},{})", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
     else                                                                                                                                                                                                                                                                                         // just show singleton
         if (IsCustom())
-            return std::format("{}: @{}{}", GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY);
+            return fmt::format("{}: @{}{}", GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY);
         else
-            return std::format("{}: @({},{})", GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY);
+            return fmt::format("{}: @({},{})", GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY);
 }
 
 // extract first (X,Y) from string formatted above:
@@ -2789,7 +2789,7 @@ void Model::ImportSuperStringColours(pugi::xml_node root)
     bool found = true;
     int index = 0;
     while (found) {
-        auto an = std::format("SuperStringColour{}", index);
+        auto an = fmt::format("SuperStringColour{}", index);
         auto attr = root.attribute(an);
         if (!attr.empty()) {
             superStringColours.push_back(xlColor(std::string(attr.as_string())));
@@ -2853,19 +2853,19 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode
     html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
-    html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
-    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
+    html += fmt::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
+    html += fmt::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
 
     if (c != nullptr) {
-        html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
+        html += fmt::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
     }
 
     if (GetControllerProtocol() != "") {
-        html += std::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
+        html += fmt::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
         if (GetNumStrings() == 1) {
-            html += std::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort(1));
+            html += fmt::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort(1));
         } else {
-            html += std::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(1), GetControllerPort(GetNumPhysicalStrings()));
+            html += fmt::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(1), GetControllerPort(GetNumPhysicalStrings()));
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -2890,7 +2890,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode
                 while (n > NodesPerString()) {
                     n -= NodesPerString();
                 }
-                html += std::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, n, s);
+                html += fmt::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, n, s);
             }
         }
         html += "</tr>";
@@ -3875,7 +3875,7 @@ std::string Model::CreateBufferAsSubmodel() const
     child.append_attribute("type") = "ranges";
 
     for (int x = 0; x < (int)nodearray.size(); ++x) {
-        child.append_attribute(std::format("line{}", x)) = NodeUtils::CompressNodes(Join(nodearray[x], ","));
+        child.append_attribute(fmt::format("line{}", x)) = NodeUtils::CompressNodes(Join(nodearray[x], ","));
     }
 
     // Save just the node (not the xml declaration) to a string
@@ -3898,10 +3898,10 @@ std::list<std::string> Model::CheckModelSettings()
                 maxBrightness = std::max(maxBrightness, (int)std::strtol(it.second["brightness"].c_str(), nullptr, 10));
             }
             if (maxGamma == 0.0) {
-                res.push_back(std::format("    ERR: Model {} has a dimming curve gamma of 0.0 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+                res.push_back(fmt::format("    ERR: Model {} has a dimming curve gamma of 0.0 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
             }
             if (maxBrightness == -100) {
-                res.push_back(std::format("    ERR: Model {} has a dimming curve brightness of -100 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+                res.push_back(fmt::format("    ERR: Model {} has a dimming curve brightness of -100 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
             }
         }
     }

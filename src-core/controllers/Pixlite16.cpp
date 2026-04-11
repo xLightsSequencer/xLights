@@ -30,7 +30,7 @@
 
 #include <cassert>
 #include <chrono>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <thread>
 
 #define PIXLITE_PORT 49150
@@ -1032,7 +1032,7 @@ bool Pixlite16::GetConfig(const std::string& localIp, std::string ip, const std:
                         }
 
                         if (connected) {
-                            std::string const rcvIP = std::format("{}.{}.{}.{}", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
+                            std::string const rcvIP = fmt::format("{}.{}.{}.{}", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
 
                             spdlog::debug("Found PixLite/PixCon controller on {}.", rcvIP);
                             spdlog::debug("    Model {} {:.1f}.", _config._modelName, (float)_config._hwRevision / 10.0);
@@ -1095,7 +1095,7 @@ bool Pixlite16::GetMK3Config()
             nlohmann::json jsonVal = nlohmann::json::parse(_mk3Ver);
 
             if (!jsonVal.is_null()) {
-                _mk3APIVersion = jsonVal["result"]["apiVer"][0]["maj"].get<std::string>() + "." + std::format("{}", jsonVal["result"]["apiVer"][0]["min"][1].get<int>());
+                _mk3APIVersion = jsonVal["result"]["apiVer"][0]["maj"].get<std::string>() + "." + fmt::format("{}", jsonVal["result"]["apiVer"][0]["min"][1].get<int>());
                 _config._modelName = jsonVal["result"]["prodName"].get<std::string>();
                 _config._firmwareVersion = jsonVal["result"]["fwVer"].get<std::string>();
                 _config._nickname = jsonVal["result"]["nickname"].get<std::string>();
@@ -1213,7 +1213,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
             }
 
             if (connected) {
-                auto const rcvIP = std::format("{}.{}.{}.{}", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
+                auto const rcvIP = fmt::format("{}.{}.{}.{}", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
 
                 spdlog::debug("Found PixLite/PixCon controller on {}.",rcvIP);
                 spdlog::debug("    Model {} {:.1f}.", it._modelName, (float)it._hwRevision / 10.0);
@@ -1222,7 +1222,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                 spdlog::debug("    Brand {}.", it._brand);
 
                 auto eth = new ControllerEthernet(discovery.GetOutputManager(), false);
-                eth->SetIP(std::format("{}.{}.{}.{}", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]));
+                eth->SetIP(fmt::format("{}.{}.{}.{}", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]));
                 eth->SetProtocol(OUTPUT_E131);
                 eth->SetName(it._nickname);
                 eth->EnsureUniqueId();
@@ -1360,15 +1360,15 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     }
     pp = pp <= _config._numOutputs / 2 ? _config._numOutputs / 2 : _config._numOutputs;
 
-    request += std::format("\"dev\": {{\"nickname\":\"{}\"}},", _config._nickname); // escape curly braces with double curly braces
+    request += fmt::format("\"dev\": {{\"nickname\":\"{}\"}},", _config._nickname); // escape curly braces with double curly braces
 
     request += "\"pix\":{";
-    request += std::format("\"dataSrc\":\"{}\",", _config._protocol == 0 ? "sACN" : "Art-Net");
-    request += std::format("\"pixType\":\"{}\",", Upper(_config._protocolName));
+    request += fmt::format("\"dataSrc\":\"{}\",", _config._protocol == 0 ? "sACN" : "Art-Net");
+    request += fmt::format("\"pixType\":\"{}\",", Upper(_config._protocolName));
     if (Mk3FrequencyForProtocol(_config._protocolName) != 0) {
-        request += std::format("\"freq\":{},", Mk3FrequencyForProtocol(_config._protocolName));
+        request += fmt::format("\"freq\":{},", Mk3FrequencyForProtocol(_config._protocolName));
     }
-    request += std::format("\"expand\":{},", expanded ? "true" : "false");
+    request += fmt::format("\"expand\":{},", expanded ? "true" : "false");
     request += "\"inFormat\":\"8Bit\",\"pixsSpanUni\":true},";
 
     // pix port
@@ -1376,7 +1376,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"pixCount\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("{}", _config._outputPixels[i]);
+        request += fmt::format("{}", _config._outputPixels[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1384,7 +1384,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     request += "],";
     request += "\"startUni\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("{}", _config._outputUniverse[i]);
+        request += fmt::format("{}", _config._outputUniverse[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1393,7 +1393,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"startCh\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("{}", _config._outputStartChannel[i]);
+        request += fmt::format("{}", _config._outputStartChannel[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1402,7 +1402,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"nullPix\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("{}", _config._outputNullPixels[i]);
+        request += fmt::format("{}", _config._outputNullPixels[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1415,7 +1415,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
             request += "1";
         }
         else {
-            request += std::format("{}", _config._outputZigZag[i]);
+            request += fmt::format("{}", _config._outputZigZag[i]);
         }
         if (i != pp - 1) {
             request += ",";
@@ -1425,7 +1425,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"group\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("{}", _config._outputGrouping[i]);
+        request += fmt::format("{}", _config._outputGrouping[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1434,7 +1434,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"reverse\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("{}", _config._outputReverse[i] ? "true" : "false");
+        request += fmt::format("{}", _config._outputReverse[i] ? "true" : "false");
         if (i != pp - 1) {
             request += ",";
         }
@@ -1443,7 +1443,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     
     request += "\"colorOrder\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("\"{}\"", DecodeColourOrder(_config._outputColourOrder[i]));
+        request += fmt::format("\"{}\"", DecodeColourOrder(_config._outputColourOrder[i]));
         if (i != pp - 1) {
             request += ",";
         }
@@ -1452,7 +1452,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"intensity\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += std::format("{}", _config._outputBrightness[i]);
+        request += fmt::format("{}", _config._outputBrightness[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1498,7 +1498,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     if (!alloff) {
         request += ",\"uni\":[";
         for (uint8_t i = 0; i < _config._dmxUniverse.size(); ++i) {
-            request += std::format("{}", _config._dmxUniverse[i]);
+            request += fmt::format("{}", _config._dmxUniverse[i]);
             if (i != _config._dmxUniverse.size() - 1) {
                 request += ",";
             }
@@ -1752,7 +1752,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 UDControllerPort* port = cud.GetControllerPixelPort(pp);
 
                 if (port->Pixels() > maxPixels) {
-                    check += std::format("ERR: String port {} has more pixels than this controller supports ({} when maximum is {}).\n", pp, port->Pixels(), maxPixels);
+                    check += fmt::format("ERR: String port {} has more pixels than this controller supports ({} when maximum is {}).\n", pp, port->Pixels(), maxPixels);
                     success = false;
                 }
 
@@ -1776,7 +1776,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
                 port->CreateVirtualStrings(true);
                 if (port->GetVirtualStringCount() > 1) {
-                    check += std::format("WARN: String port {} has model settings that can't be uploaded.\n", pp);
+                    check += fmt::format("WARN: String port {} has model settings that can't be uploaded.\n", pp);
                 }
             }
         }

@@ -11,7 +11,7 @@
 #include "FireEffect.h"
 #include "render/ValueCurve.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -72,7 +72,7 @@ std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settin
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fire_GrowWithMusic", sGrowWithMusicDefault)) {
-        res.push_back(std::format("    WARN: Fire effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Fire effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

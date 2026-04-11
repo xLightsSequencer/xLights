@@ -34,7 +34,7 @@
 #include <log.h>
 #include <thread>
 #include <algorithm>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #pragma region V4
 
@@ -142,7 +142,7 @@ int Falcon::CallFalconV4API(const std::string& type, const std::string& method, 
         p = "{}";
     }
 
-    std::string const send = std::format("{{\"T\":\"{}\",\"M\":\"{}\",\"B\":{},\"E\":{},\"I\":{},\"P\":{}}}", type, method, inbatch, expected, index, p);
+    std::string const send = fmt::format("{{\"T\":\"{}\",\"M\":\"{}\",\"B\":{},\"E\":{},\"I\":{},\"P\":{}}}", type, method, inbatch, expected, index, p);
 
     std::string res = SendToFalconV4(send);
 
@@ -797,7 +797,7 @@ int Falcon::V4_GetRebootSecs() {
 }
 
 void Falcon::V4_WaitForReboot(const std::string& name, UICallbacks* ui) {
-    auto progressTk = ui->BeginProgress(std::format("Rebooting controller '{}' ...", name), 100);
+    auto progressTk = ui->BeginProgress(fmt::format("Rebooting controller '{}' ...", name), 100);
 
     for (int i = 0; i < 100; i++) {
         ui->UpdateProgress(progressTk, i);
@@ -886,7 +886,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, UICallbacks* ui) {
         auto outputs = controller->GetOutputs();
 
         if (outputs.size() > 192) {
-            ui->ShowMessage(std::format("Attempt to upload {} universes to falcon v4 controller but only 192 are supported.", outputs.size()), "Error");
+            ui->ShowMessage(fmt::format("Attempt to upload {} universes to falcon v4 controller but only 192 are supported.", outputs.size()), "Error");
             return false;
         }
 
@@ -1032,7 +1032,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
         if (it.port < caps->GetMaxPixelPort()) {
             if (it.smartRemote > smartRemotes[it.port]) {
                 if ((it.smartRemote > 0 && smartRemotes[it.port] <= 0) || (it.smartRemote == 0 && smartRemotes[it.port] > 0)) {
-                    error = std::format("Port {} has an invalid smart remote configuration.", it.port + 1);
+                    error = fmt::format("Port {} has an invalid smart remote configuration.", it.port + 1);
                     return false;
                 } else {
                     smartRemotes[it.port] = it.smartRemote;
@@ -1043,7 +1043,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             if (protocols[b] == -1 || protocols[b] == it.protocol) {
                 protocols[b] = it.protocol;
             } else {
-                error = std::format("Port {} has an invalid protocol configuration.", it.port + 1);
+                error = fmt::format("Port {} has an invalid protocol configuration.", it.port + 1);
                 return false;
             }
         }
@@ -1061,7 +1061,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 for (const auto& it : pp->GetVirtualStrings()) {
                     if (it->_smartRemote > smartRemotes[p]) {
                         if ((it->_smartRemote > 0 && smartRemotes[p] == 0) || (it->_smartRemote == 0 && smartRemotes[p] > 0)) {
-                            error = std::format("Port {} has an invalid smart remote configuration.", p + 1);
+                            error = fmt::format("Port {} has an invalid smart remote configuration.", p + 1);
                             return false;
                         } else {
                             smartRemotes[p] = it->_smartRemote;
@@ -1077,7 +1077,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     if (protocols[b] == -1 || protocols[b] == protocol) {
                         protocols[b] = protocol;
                     } else {
-                        error = std::format("Port {} has an invalid protocol configuration.", p + 1);
+                        error = fmt::format("Port {} has an invalid protocol configuration.", p + 1);
                         return false;
                     }
                 }
@@ -1116,7 +1116,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             int const bank = p / 16;
             int maxPixels = V4_GetMaxPortPixels(_v4status["B"].get<int>(), protocols[bank]);
             if (pp->Pixels() > maxPixels) {
-                error = std::format("Port {} has too many pixels on it for the nominated board configuration/pixel type.", p + 1);
+                error = fmt::format("Port {} has too many pixels on it for the nominated board configuration/pixel type.", p + 1);
                 return false;
             }
 
@@ -1135,7 +1135,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.string = s++;
                         str.smartRemote = sr;
                         if (sr != 0 && !V4_IsPortSmartRemoteEnabled(_v4status["B"].get<int>(), p)) {
-                            error = std::format("Port {} does not support smart remotes.", p + 1);
+                            error = fmt::format("Port {} does not support smart remotes.", p + 1);
                             return false;
                         }
                         str.name = SafeDescription(it->_description);
@@ -1166,7 +1166,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.port = p;
                     str.string = 0;
                     str.smartRemote = sr;
-                    str.name = std::format("Port {}", p + 1);
+                    str.name = fmt::format("Port {}", p + 1);
                     str.blank = false;
                     str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, 0, defaultGamma, falconStrings);
                     str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, 0, defaultBrightness, falconStrings);
@@ -1197,7 +1197,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.port = p;
                     str.string = 0;
                     str.smartRemote = sr;
-                    str.name = std::format("Port {}", p + 1);
+                    str.name = fmt::format("Port {}", p + 1);
                     str.blank = false;
                     str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, sr, defaultGamma, falconStrings);
                     str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
@@ -1220,7 +1220,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 str.port = p;
                 str.string = 0;
                 str.smartRemote = sr;
-                str.name = std::format("Port {}", p + 1);
+                str.name = fmt::format("Port {}", p + 1);
                 str.blank = false;
                 str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, sr, defaultGamma, falconStrings);
                 str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
@@ -1604,7 +1604,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
 }
 
 std::string Falcon::BuildStringPort(FalconString* string) const {
-    return std::format("&p{}={}&x{}={}&t{}={}&u{}={}&s{}={}&c{}={}&y{}={}&b{}={}&n{}={}&G{}={}&o{}={}&d{}={}&g{}={}&w{}={}&z{}={}",
+    return fmt::format("&p{}={}&x{}={}&t{}={}&u{}={}&s{}={}&c{}={}&y{}={}&b{}={}&n{}={}&G{}={}&o{}={}&d{}={}&g{}={}&w{}={}&z{}={}",
                        string->index, string->port,
                        string->index, string->virtualStringIndex,
                        string->index, string->protocol,
@@ -1888,10 +1888,10 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
         m = 1;
     }
 
-    std::string base = std::format("m={}&S={}", m, S);
+    std::string base = fmt::format("m={}&S={}", m, S);
 
     if (SupportsVariableExpansions()) {
-        base += std::format("&k0={}&k1={}&k2={}", maxMain, maxDaughter1, maxDaughter2);
+        base += fmt::format("&k0={}&k1={}&k2={}", maxMain, maxDaughter1, maxDaughter2);
     }
 
 #define PACKETSIZE 40
@@ -1909,24 +1909,24 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
 
 std::string Falcon::GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, UICallbacks* ui) {
     if (output > caps->GetMaxSerialPort()) {
-        ui->ShowMessage(std::format("Falcon {} only supports {} outputs. Attempt to upload to output {}.", GetModel(), caps->GetMaxSerialPort(), output), "Error");
+        ui->ShowMessage(fmt::format("Falcon {} only supports {} outputs. Attempt to upload to output {}.", GetModel(), caps->GetMaxSerialPort(), output), "Error");
         return "";
     }
 
     if (_usingAbsolute) {
-        return std::format("t{}={}&s{}={}",
+        return fmt::format("t{}={}&s{}={}",
                            output - 1, protocol,
                            output - 1, portstart);
     } else {
         int32_t sc;
         auto o = outputManager->GetOutput(portstart, sc);
         if (o != nullptr) {
-            return std::format("t{}={}&u{}={}&s{}={}",
+            return fmt::format("t{}={}&u{}={}&s{}={}",
                                output - 1, protocol,
                                output - 1, o->GetUniverse(),
                                output - 1, (int)sc);
         } else {
-            ui->ShowMessage(std::format("Error uploading serial output to falcon. {} does not map to a universe.", portstart), "Error");
+            ui->ShowMessage(fmt::format("Error uploading serial output to falcon. {} does not map to a universe.", portstart), "Error");
         }
     }
 
@@ -2230,7 +2230,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
             } else if (nodeName == "p") {
                 p = (int)std::strtol(nodeContent.c_str(), nullptr, 10);
                 DecodeModelVersion(p, _modelnum, _versionnum);
-                _model = std::format("F{}v{}", _modelnum, _versionnum);
+                _model = fmt::format("F{}v{}", _modelnum, _versionnum);
                 if (_model == "F48v3"){ _model = "F48";}
             }
             _status[nodeName] = nodeContent;
@@ -2240,7 +2240,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
             // this is going to need special handling
             if (V4_GetStatus(_v4status)) {
                 _modelnum = _v4status["BR"].get<int>();
-                _model = std::format("F{}v{}", _modelnum, _versionnum);
+                _model = fmt::format("F{}v{}", _modelnum, _versionnum);
             }
         } else {
             if (_versionnum == 0 || _modelnum == 0 || _firmwareVersion == "") {
@@ -2549,11 +2549,11 @@ bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
 
         _usingAbsolute = true;
 
-        request = std::format("c=64&d={}", ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1);
+        request = fmt::format("c=64&d={}", ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1);
         std::string response = PutURL("/index.htm", request);
 
         if ((cm & 0xFE) != 64) {
-            auto progressTk = ui->BeginProgress(std::format("Rebooting controller '{}' ...", controller->GetName()), 100);
+            auto progressTk = ui->BeginProgress(fmt::format("Rebooting controller '{}' ...", controller->GetName()), 100);
 
             for (int i = 0; i < 100; i++) {
                 ui->UpdateProgress(progressTk, i);
@@ -2565,7 +2565,7 @@ bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
         return (response != "");
     } else {
         if (outputs.size() > 96) {
-            ui->ShowMessage(std::format("Attempt to upload {} universes to falcon controller but only 96 are supported.", outputs.size()), "Error");
+            ui->ShowMessage(fmt::format("Attempt to upload {} universes to falcon controller but only 96 are supported.", outputs.size()), "Error");
             return false;
         }
 
@@ -2574,7 +2574,7 @@ bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
             request = "c=0";
             std::string response = PutURL("/index.htm", request);
 
-            auto progressTk = ui->BeginProgress(std::format("Rebooting controller '{}' ...", controller->GetName()), 100);
+            auto progressTk = ui->BeginProgress(fmt::format("Rebooting controller '{}' ...", controller->GetName()), 100);
 
             for (int i = 0; i < 100; i++) {
                 ui->UpdateProgress(progressTk, i);
@@ -2590,7 +2590,7 @@ bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
             } else if (it->GetType() == OUTPUT_ARTNET) {
                 t = 1;
             }
-            request += std::format("&u{}={}&s{}={}&c{}={}&t{}={}",
+            request += fmt::format("&u{}={}&s{}={}&c{}={}&t{}={}",
                                    output, it->GetUniverse(),
                                    output, (int)it->GetChannels(),
                                    output, (int)it->GetStartChannel(),
@@ -2598,7 +2598,7 @@ bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
             output++;
         }
 
-        request = std::format("z={}&a={}", output, (_usingAbsolute ? 0 : 1)) + request;
+        request = fmt::format("z={}&a={}", output, (_usingAbsolute ? 0 : 1)) + request;
         std::string response = PutURL("/E131.htm", request);
         return (response != "");
     }
@@ -2980,7 +2980,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
         if (maxDaughter1 > 0) {
             if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2) {
-                ui->ShowMessage(std::format("Falcon Outputs Upload: {} V2 Controller only supports 340/340 pixel split with expansion board. ({}/{})",
+                ui->ShowMessage(fmt::format("Falcon Outputs Upload: {} V2 Controller only supports 340/340 pixel split with expansion board. ({}/{})",
                                        _ip, maxMain, maxDaughter1), "Error");
                 success = false;
             }
@@ -2989,7 +2989,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             maxDaughter1 = maxPixels / 2;
 
             if (maxDaughter2 > 0) {
-                ui->ShowMessage(std::format("Falcon Outputs Upload: {} V2 Controller only supports one expansion board.",
+                ui->ShowMessage(fmt::format("Falcon Outputs Upload: {} V2 Controller only supports one expansion board.",
                                        _ip), "Error");
                 success = false;
                 maxDaughter2 = 0;
@@ -3023,11 +3023,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             success = false;
             check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + std::to_string(maxPixels) + "\n";
             if (largestDaughter2Port >= 0) {
-                check += std::format("       Bank 1 Port {}={}, Bank 2 Port {}={}, Bank 3 Port {}={}\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1, largestDaughter2Port, maxDaughter2);
+                check += fmt::format("       Bank 1 Port {}={}, Bank 2 Port {}={}, Bank 3 Port {}={}\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1, largestDaughter2Port, maxDaughter2);
             } else if (largestDaughter1Port >= 0) {
-                check += std::format("       Bank 1 Port {}={}, Bank 2 Port {}={}\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1);
+                check += fmt::format("       Bank 1 Port {}={}, Bank 2 Port {}={}\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1);
             } else {
-                check += std::format("       Bank 1 Port {}={}\n", largestMainPort, maxMain);
+                check += fmt::format("       Bank 1 Port {}={}\n", largestMainPort, maxMain);
             }
 
             spdlog::warn("ERROR: Total pixels exceeded maximum allowed on a pixel port: {}", maxPixels);
@@ -3091,7 +3091,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
             if (smartRemoteFound && nonSmartRemoteFound) {
                 success = false;
-                check += std::format("ERROR: Ports {}-{} have a mix of models using smart and non-smart remotes. This is not supported.\n", i, i + 3);
+                check += fmt::format("ERROR: Ports {}-{} have a mix of models using smart and non-smart remotes. This is not supported.\n", i, i + 3);
                 spdlog::error("Ports {}-{} have a mix of models using smart and non-smart remotes. This is not supported.", i, i + 3);
             }
         }

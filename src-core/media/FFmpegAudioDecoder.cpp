@@ -14,7 +14,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>

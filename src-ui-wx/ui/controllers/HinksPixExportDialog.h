@@ -23,6 +23,7 @@
 #include <fstream>
 
 #include <nlohmann/json.hpp>
+#include <spdlog/fmt/fmt.h>
 #include "render/FSEQFile.h"
 
 class ModelManager;
@@ -67,7 +68,7 @@ struct PlayListItem {
     [[nodiscard]] std::string asString() const
     {
         // switch to std::format if gcc supports it
-        return std::format("{{\"H\":\"{}\",\"A\":\"{}\",\"D\":2}}", HSEQ, AU);//D is a delay, maybe set to zero?
+        return fmt::format("{{\"H\":\"{}\",\"A\":\"{}\",\"D\":2}}", HSEQ, AU);//D is a delay, maybe set to zero?
     }
 };
 
@@ -173,7 +174,7 @@ struct ScheduleItem {
     [[nodiscard]] std::string asString() const
     {
         // Q is repeat count, 0 = infinite, 1 is "play once" in HSA
-        return std::format("{{\"S\":\"{:02d}{:02d}\",\"E\":\"{:02d}{:02d}\",\"P\":\"{}.ply\",\"Q\":{}}}", StartHour, StartMin, EndHour, EndMin, Playlist, Repeat);
+        return fmt::format("{{\"S\":\"{:02d}{:02d}\",\"E\":\"{:02d}{:02d}\",\"P\":\"{}.ply\",\"Q\":{}}}", StartHour, StartMin, EndHour, EndMin, Playlist, Repeat);
     }
 
     [[nodiscard]] static bool isValidRange(int val, int start, int end)

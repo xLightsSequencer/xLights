@@ -11,7 +11,7 @@
 #include <cassert>
 
 #include <algorithm>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "SequenceElements.h"
 #include "pugixml.hpp"
@@ -859,7 +859,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 loaded += LoadEffects(effectLayer, elemType, effectLayerNode, effectStrings, colorPalettes, importing);
                                 if (count) {
                                     if (renderContext) {
-                                        renderContext->SetLoadingStatusText(std::format("Effects Loaded: {}%.", loaded * 100 / count));
+                                        renderContext->SetLoadingStatusText(fmt::format("Effects Loaded: {}%.", loaded * 100 / count));
                                     }
                                 }
                             } else {

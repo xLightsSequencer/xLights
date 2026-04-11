@@ -18,7 +18,7 @@
 #include "UtilFunctions.h"
 #include "../utils/ip_utils.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <log.h>
 
@@ -152,7 +152,7 @@ std::string xxxEthernetOutput::GetLongDescription() const {
 
 std::string xxxEthernetOutput::GetExport() const {
 
-    return std::format(",{},{},,{},{},,,,{},{}",
+    return fmt::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

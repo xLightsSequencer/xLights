@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <fstream>
 #include <sstream>
 #include <string_view>
@@ -477,7 +477,7 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
 
 std::string SequenceFile::GetSequenceDurationString() const
 {
-    return std::format("{:.3f}", seq_duration);
+    return fmt::format("{:.3f}", seq_duration);
 }
 
 void SequenceFile::SetSequenceDurationMS(int length)
@@ -487,7 +487,7 @@ void SequenceFile::SetSequenceDurationMS(int length)
 
 void SequenceFile::SetSequenceDuration(double length)
 {
-    SetSequenceDuration(std::format("{:.3f}", length));
+    SetSequenceDuration(fmt::format("{:.3f}", length));
 }
 
 void SequenceFile::SetSequenceDuration(const std::string& length)
@@ -887,7 +887,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
             std::string lower = line;
             std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
             if (lower != "lipsync version 1") {
-                DisplayError(std::format("Invalid papagayo file @line {} (header '{}')", linenum, line));
+                DisplayError(fmt::format("Invalid papagayo file @line {} (header '{}')", linenum, line));
                 return;
             }
         }
@@ -899,7 +899,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
         int samppersec = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
         if (samppersec < 1) {
-            DisplayError(std::format("Invalid file @line {} ('{}' samples per sec)", linenum, line));
+            DisplayError(fmt::format("Invalid file @line {} ('{}' samples per sec)", linenum, line));
         }
         int ms = 1000 / samppersec;
 
@@ -916,14 +916,14 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
         int numsamp = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
         if (numsamp < 1) {
-            DisplayError(std::format("Invalid file @line {} ('{}' song samples)", linenum, line));
+            DisplayError(fmt::format("Invalid file @line {} ('{}' song samples)", linenum, line));
         }
 
         line = nextLine();
         int numvoices = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
         if (numvoices < 1) {
-            DisplayError(std::format("Invalid file @line {} ('{}' voices)", linenum, line));
+            DisplayError(fmt::format("Invalid file @line {} ('{}' voices)", linenum, line));
         }
         spdlog::info("    Voices {}", numvoices);
 
@@ -936,19 +936,19 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
             std::string voicename = nextLine();
             linenum++;
             if (voicename.empty()) {
-                DisplayError(std::format("Missing voice# {} of {}", v, numvoices));
+                DisplayError(fmt::format("Missing voice# {} of {}", v, numvoices));
                 return;
             }
 
             nextLine(); //all phrases for voice, "|" delimiter
             linenum++;
-            std::string desc = std::format("voice# {} '{}' @line {}", v, voicename, linenum);
+            std::string desc = fmt::format("voice# {} '{}' @line {}", v, voicename, linenum);
 
             line = RemoveTabs(nextLine(), 1);
             int numphrases = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
             linenum++;
             if (numphrases < 0) {
-                DisplayError(std::format("Invalid file @line {} ('{}' phrases for {})", linenum, line, desc));
+                DisplayError(fmt::format("Invalid file @line {} ('{}' phrases for {})", linenum, line, desc));
             }
 
             Element* element = xLightsParent->AddTimingElement(name);
@@ -961,7 +961,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                 std::string label = RemoveTabs(nextLine(), 2);
                 linenum++;
                 if (label.empty()) {
-                    DisplayError(std::format("Missing phrase# {} of {} for {}", p, numphrases, desc));
+                    DisplayError(fmt::format("Missing phrase# {} of {} for {}", p, numphrases, desc));
                     return;
                 }
 
@@ -972,7 +972,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                 line = RemoveTabs(nextLine(), 2);
                 int end = IsAllDigits(line) ? (offset + std::strtol(line.c_str(), nullptr, 10)) * ms : 0;
                 linenum++;
-                desc = std::format("voice# {}, phrase {} '{}', start frame {} end frame {} @line {}", v, p, label, start, end, linenum);
+                desc = fmt::format("voice# {}, phrase {} '{}', start frame {} end frame {} @line {}", v, p, label, start, end, linenum);
 
                 el1->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
 
@@ -980,7 +980,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                 int numwords = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
                 linenum++;
                 if (numwords < 0) {
-                    DisplayError(std::format("Invalid file @line {} ('{}' words for {})", linenum, line, desc));
+                    DisplayError(fmt::format("Invalid file @line {} ('{}' words for {})", linenum, line, desc));
                 }
 
                 for (int w = 1; w <= numwords; ++w)
@@ -990,7 +990,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                     auto space1 = line.find(' ');
                     label = line.substr(0, space1);
                     if (label.empty()) {
-                        DisplayError(std::format("Missing word# {} of {} for {}", w, numwords, desc));
+                        DisplayError(fmt::format("Missing word# {} of {} for {}", w, numwords, desc));
                         return;
                     }
 
@@ -1003,7 +1003,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                     ss = line.substr(space2 + 1, space3 - space2 - 1);
                     end = IsAllDigits(ss) ? (offset + std::strtol(ss.c_str(), nullptr, 10)) * ms : 0;
                     linenum++;
-                    desc = std::format("voice# {}, phrase# {}, word {} '{}', start frame {} end frame {} @line {}", v, p, w, label, start, end, linenum);
+                    desc = fmt::format("voice# {}, phrase# {}, word {} '{}', start frame {} end frame {} @line {}", v, p, w, label, start, end, linenum);
 
                     el2->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
 
@@ -1011,7 +1011,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                     int numphonemes = IsAllDigits(ss) ? std::strtol(ss.c_str(), nullptr, 10) : -1;
                     linenum++;
                     if (numphonemes < 0) {
-                        DisplayError(std::format("Invalid file @line {} ('{}' phonemes for {})", linenum, line, desc));
+                        DisplayError(fmt::format("Invalid file @line {} ('{}' phonemes for {})", linenum, line, desc));
                     }
 
                     int outerend = end;
@@ -1030,7 +1030,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                         }
                         label = (space4 != std::string::npos) ? line.substr(space4 + 1) : "";
                         if (label.empty()) {
-                            DisplayError(std::format("Missing phoneme# {} of {} for {}", ph, numphonemes, desc));
+                            DisplayError(fmt::format("Missing phoneme# {} of {} for {}", ph, numphonemes, desc));
                             return;
                         }
                         start = end;

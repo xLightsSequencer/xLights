@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -1756,16 +1756,16 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
     if (object == "SVG") {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "");
         if (svgFilename.empty()) {
-            res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto svgEntry = mm.GetSVG(svgFilename);
             if (svgEntry->GetSVGContent().empty()) {
-                res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
-                        res.push_back(std::format("    WARN: Ripple effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: Ripple effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }

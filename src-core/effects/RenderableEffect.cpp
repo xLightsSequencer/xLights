@@ -11,7 +11,7 @@
 #include "RenderableEffect.h"
 
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <nlohmann/json.hpp>
 
 #include "../render/Effect.h"
@@ -324,7 +324,7 @@ std::list<std::string> RenderableEffect::CheckEffectSettings(const SettingsMap& 
 {
     std::list<std::string> res;
     if (settings.Get("B_CHOICE_BufferStyle", "").starts_with("** ")) {
-        res.push_back(std::format("    WARN: Effect using legacy buffer format '{}' which will be removed in the future. Model '{}', Start {}",
+        res.push_back(fmt::format("    WARN: Effect using legacy buffer format '{}' which will be removed in the future. Model '{}', Start {}",
                                   settings.Get("B_CHOICE_BufferStyle", ""), model->GetFullName(),
                                   FORMATTIME(eff->GetStartTimeMS())));
     }

@@ -14,7 +14,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
@@ -169,17 +169,17 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
     std::string GledFilename = settings.Get("E_FILEPICKERCTRL_Glediator_Filename", "");
 
     if (GledFilename.empty()) {
-        res.push_back(std::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
         auto entry = mm.GetBinaryFile(GledFilename, "glediator");
         entry->MarkIsUsed();
 
         if (!entry->isLoaded()) {
-            res.push_back(std::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (!entry->IsEmbedded()) {
             if (!FileUtils::IsFileInShowDir(std::string(), GledFilename)) {
-                res.push_back(std::format("    WARN: Glediator effect file '{}' not under show directory. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    WARN: Glediator effect file '{}' not under show directory. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }

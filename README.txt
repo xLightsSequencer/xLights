@@ -13,6 +13,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
     -bug (derwin12)             Fix unintended setting of Shadow Model For (#5634)
+    -bug (dkulp)                Fix macOS 11/12 launch crash "Symbol not found..." due to using
+                                    some stuff (like std::format) from newer C++ that is not
+                                    available before macOS 13.3.   This is likely temporary
+                                    and expect minimal version to bump to at least 13.3
+                                    at some point in the near future.
     -bug (derwin12)             Fix Wave effect speed from a value curve
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction
     -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero

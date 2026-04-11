@@ -25,7 +25,7 @@
 #include "models/Model.h"
 
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <string>
 #include <list>
 
@@ -644,14 +644,14 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
 
     if (settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "") == "")
     {
-        res.push_back(std::format("    ERR: Guitar effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Guitar effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     else
     {
         std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar", 100, 6);
         if (timings.size() == 0)
         {
-            res.push_back(std::format("    ERR: Guitar effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Guitar effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
 
         while (timings.size() > 0)
@@ -708,14 +708,14 @@ void GuitarEffect::adjustSettings(const std::string& version, Effect* effect, bo
         if (!settings.Contains("E_TEXTCTRL_BaseWaveFactor") &&
              settings.Contains("E_SLIDER_BaseWaveFactor")) {
             int v = settings.GetInt("E_SLIDER_BaseWaveFactor", 10);
-            settings["E_TEXTCTRL_BaseWaveFactor"] = std::format("{:.1f}", v / 10.0);
+            settings["E_TEXTCTRL_BaseWaveFactor"] = fmt::format("{:.1f}", v / 10.0);
         }
         settings.erase("E_SLIDER_BaseWaveFactor");
 
         if (!settings.Contains("E_TEXTCTRL_StringWaveFactor") &&
              settings.Contains("E_SLIDER_StringWaveFactor")) {
             int v = settings.GetInt("E_SLIDER_StringWaveFactor", 0);
-            settings["E_TEXTCTRL_StringWaveFactor"] = std::format("{:.1f}", v / 10.0);
+            settings["E_TEXTCTRL_StringWaveFactor"] = fmt::format("{:.1f}", v / 10.0);
         }
         settings.erase("E_SLIDER_StringWaveFactor");
     }

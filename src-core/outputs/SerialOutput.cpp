@@ -205,7 +205,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
             portlen = sizeof(portname);
         }
         if (err && (err != ERROR_NO_MORE_ITEMS)) {
-            res.push_back(std::format("Error {} (can't get serial comm ports from registry)", err));
+            res.push_back(fmt::format("Error {} (can't get serial comm ports from registry)", err));
         }
         if (hkey) RegCloseKey(hkey);
     }
@@ -327,7 +327,7 @@ bool SerialOutput::Open() {
             }
 
             if (OutputManager::IsInteractive()) {
-                std::string msg = std::format(
+                std::string msg = fmt::format(
                     "Error occurred while connecting to {} network on {} (Available Ports {}) \n\n"
                     "Things to check:\n"
                     "1. Are all required cables plugged in?\n"

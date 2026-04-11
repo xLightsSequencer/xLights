@@ -12,7 +12,7 @@
 #include "NullOutput.h"
 #include "../models/OutputModelManager.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 
 #pragma region Constructors and Destructors
@@ -47,6 +47,6 @@ std::string NullOutput::GetLongDescription() const {
 }
 
 std::string NullOutput::GetSortName() const {
-    return std::format("NULL{:02d}", _nullNumber);
+    return fmt::format("NULL{:02d}", _nullNumber);
 }
 #pragma endregion
