@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <cassert>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "BoxedScreenLocation.h"
 
 
@@ -629,12 +629,12 @@ std::string BoxedScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
     if (supportsZScaling) {
-        return std::format("Width {} Height {} Depth {}",
+        return fmt::format("Width {} Height {} Depth {}",
             RulerObject::MeasureDescription(GetMWidth()),
             RulerObject::MeasureDescription(GetMHeight()),
             RulerObject::MeasureDescription(GetMDepth()));
     }
-    return std::format("Width {} Height {}",
+    return fmt::format("Width {} Height {}",
         RulerObject::MeasureDescription(GetMWidth()),
         RulerObject::MeasureDescription(GetMHeight()));
 }

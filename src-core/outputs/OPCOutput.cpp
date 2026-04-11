@@ -121,7 +121,7 @@ void OPCOutput::SetChannels(int32_t channels)
 
 std::string OPCOutput::GetExport() const {
 
-    return std::format(",{},{},,{},{},,,,{},{}",
+    return fmt::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

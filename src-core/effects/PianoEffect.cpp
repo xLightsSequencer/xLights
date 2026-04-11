@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <vector>
 
 #include "../../include/piano-16.xpm"
@@ -67,11 +67,11 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "") == "") {
-        res.push_back(std::format("    ERR: Piano effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Piano effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         std::map<int, std::list<std::pair<float, float>>> timings = LoadTimingTrack(settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), 50, false);
         if (timings.size() == 0) {
-            res.push_back(std::format("    ERR: Piano effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Piano effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 

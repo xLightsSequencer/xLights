@@ -604,7 +604,7 @@ void xlGLCanvas::CreateGLContext() {
             const GLubyte* str = glGetString(GL_VERSION);
             const GLubyte* rend = glGetString(GL_RENDERER);
             const GLubyte* vend = glGetString(GL_VENDOR);
-            std::string configs = std::format("{} - glVer:  {}  ({})({})",
+            std::string configs = fmt::format("{} - glVer:  {}  ({})({})",
                 GetName().ToStdString(),
                 (const char*)str,
                 (const char*)rend,

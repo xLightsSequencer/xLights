@@ -21,7 +21,7 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <semaphore>
 #include <sstream>
 
@@ -250,17 +250,17 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
     std::string ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
 
     if (ifsFilename.empty()) {
-        res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
         auto entry = mm.GetShader(ifsFilename);
         entry->MarkIsUsed();
 
         if (entry->GetShaderSource().empty()) {
-            res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (!entry->IsEmbedded()) {
             if (!FileUtils::IsFileInShowDir(std::string(), ifsFilename)) {
-                res.push_back(std::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }
@@ -1260,25 +1260,25 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
         const std::string& name = p._name;
         switch (p._type) {
         case ShaderParmType::SHADER_PARM_FLOAT: {
-            prependText += std::format("uniform float {};\n", name);
+            prependText += fmt::format("uniform float {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_BOOL:
         case ShaderParmType::SHADER_PARM_EVENT: {
-            prependText += std::format("uniform bool {};\n", name);
+            prependText += fmt::format("uniform bool {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_LONG:
         case ShaderParmType::SHADER_PARM_LONGCHOICE: {
-            prependText += std::format("uniform int {};\n", name);
+            prependText += fmt::format("uniform int {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_POINT2D: {
-            prependText += std::format("uniform vec2 {};\n", name);
+            prependText += fmt::format("uniform vec2 {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_COLOUR: {
-            prependText += std::format("uniform vec4 {};\n", name);
+            prependText += fmt::format("uniform vec4 {};\n", name);
             break;
         }
         default: {

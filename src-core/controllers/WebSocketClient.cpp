@@ -11,7 +11,7 @@
 #include "WebSocketClient.h"
 #include <chrono>
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <thread>
 
 #include <log.h>
@@ -35,7 +35,7 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
     spdlog::debug("    Connected.");
 
     if (url == "") url = "/";
-    const std::string line = std::format("GET {} HTTP/1.1\r\nHost: {}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Version: 13\r\nOrigin:http://{}/\r\n\r\n", url, ip, ip);
+    const std::string line = fmt::format("GET {} HTTP/1.1\r\nHost: {}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Version: 13\r\nOrigin:http://{}/\r\n\r\n", url, ip, ip);
     _socket.Write(reinterpret_cast<const uint8_t*>(line.c_str()), line.size());
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     const std::string answer = ReadSocket();

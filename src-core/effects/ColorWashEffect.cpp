@@ -19,7 +19,7 @@
 #include "ispc/ColorWashFunctions.ispc.h"
 #include "Parallel.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");

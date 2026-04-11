@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "OffEffect.h"
 #include "../render/Effect.h"
@@ -43,10 +43,10 @@ std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& setting
     if (settings.Get("B_CHECKBOX_OverlayBkg", "0") == "0") {
         if (settings.Get("T_CHECKBOX_Canvas", "0") == "1" &&
             settings.Get("E_CHOICE_Off_Style", sStyleDefault) == "Black") {
-            res.push_back(std::format("    WARN: Canvas mode enabled on a off effect but effect is not transparent. This does nothing and slows down rendering. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Canvas mode enabled on a off effect but effect is not transparent. This does nothing and slows down rendering. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (settings.Get("T_CHECKBOX_Canvas", "0") == "0" &&
             settings.Get("E_CHOICE_Off_Style", sStyleDefault) != "Black") {
-            res.push_back(std::format("    WARN: Canvas mode not enabled on a off effect and effect is transparent. This does not do anything useful. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Canvas mode not enabled on a off effect and effect is transparent. This does not do anything useful. Effect: Off, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 

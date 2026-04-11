@@ -16,7 +16,7 @@
 #include "../models/Model.h"
 #include "UtilFunctions.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../../include/fill-16.xpm"
 #include "../../include/fill-64.xpm"
@@ -73,7 +73,7 @@ std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settin
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_VALUECURVE_Fill_Position", "").find("Active=FALSE") != std::string::npos) {
-        res.push_back(std::format("    WARN: Fill effect without a position value curve. Was that intentional? Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Fill effect without a position value curve. Was that intentional? Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

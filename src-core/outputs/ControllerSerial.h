@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <list>
 #include <string>
 
@@ -124,7 +124,7 @@ public:
     }
     virtual std::string GetFPPProxy() const override;
 
-    virtual std::string GetColumn2Label() const override { return std::format("{}:{}", _port, _speed); }
+    virtual std::string GetColumn2Label() const override { return fmt::format("{}:{}", _port, _speed); }
     virtual std::string GetProtocol() const override { return _type; }
 
     virtual Output::PINGSTATE Ping() override;

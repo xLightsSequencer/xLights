@@ -442,7 +442,7 @@ void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, pugi::x
     bool found = true;
     int index = 0;
     while (found) {
-        auto an = std::format("SuperStringColour{}", index);
+        auto an = fmt::format("SuperStringColour{}", index);
         if (!node.attribute(an).empty()) {
             model->AddSuperStringColour(xlColor(std::string(node.attribute(an).as_string())));
         } else {
@@ -992,9 +992,9 @@ void XmlDeserializingModelFactory::DeserializeBeamAbility(DmxModel* model, pugi:
 void XmlDeserializingModelFactory::DeserializePresetAbility(DmxModel* model, pugi::xml_node node) {
     DmxPresetAbility* preset_ability = model->GetPresetAbility();
     for (int i = 0; i < DmxPresetAbility::MAX_PRESETS; ++i) {
-        auto dmxChanKey = std::format("DmxPresetChannel{}", i);
-        auto dmxValueKey = std::format("DmxPresetValue{}", i);
-        auto descKey = std::format("DmxPresetDesc{}", i);
+        auto dmxChanKey = fmt::format("DmxPresetChannel{}", i);
+        auto dmxValueKey = fmt::format("DmxPresetValue{}", i);
+        auto descKey = fmt::format("DmxPresetDesc{}", i);
         if (node.attribute(dmxChanKey).empty() || node.attribute(dmxValueKey).empty()) {
             break;
         }
@@ -1045,8 +1045,8 @@ void XmlDeserializingModelFactory::DeserializeColorWheelAttributes(DmxColorAbili
     ability->SetWheelDelay(node.attribute("DmxColorWheelDelay").as_int(0));
     ability->ClearColors();
     for (int i = 0; i< DmxColorAbilityWheel::MAX_COLORS; ++i) {
-        auto dmxkey = std::format("DmxColorWheelDMX{}", i);
-        auto colorkey = std::format("DmxColorWheelColor{}", i);
+        auto dmxkey = fmt::format("DmxColorWheelDMX{}", i);
+        auto colorkey = fmt::format("DmxColorWheelColor{}", i);
         if ( node.attribute(dmxkey).empty() || node.attribute(colorkey).empty() ) {
             break;
         }

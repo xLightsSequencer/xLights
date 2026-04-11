@@ -19,7 +19,7 @@
 #include "../../include/morph-64.xpm"
 #include "UtilFunctions.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 
 int MorphEffect::sStartX1Default = 0;
@@ -164,7 +164,7 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
         int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
 
         if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel) {
-            res.push_back(std::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 

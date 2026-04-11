@@ -18,7 +18,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <fstream>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <mutex>
 #include <array>
 #include <sstream>
@@ -103,20 +103,20 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     std::string lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
 
     if (text == "" && textFilename == "" && lyricTrack == "") {
-        res.push_back(std::format("    ERR: Text effect has no actual text. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Text effect has no actual text. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else if (textFilename != "") {
         auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
         auto entry = mm.GetTextFile(textFilename);
         entry->MarkIsUsed();
         if (entry->GetContent().empty() && !entry->IsEmbedded()) {
-            res.push_back(std::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (!entry->IsEmbedded() && !FileUtils::IsFileInShowDir(std::string(), textFilename)) {
-            res.push_back(std::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
     if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        res.push_back(std::format("    WARN: Text effect generally does not work well on a model group. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Text effect generally does not work well on a model group. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }
@@ -1067,7 +1067,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, std::string& Line, Re
                 }
                 seconds = (GetCache(buffer, id)->timer_countdown - buffer.curPeriod) / framesPerSec;
                 if (seconds < 0) seconds = 0;
-                msg = std::format("{}", seconds);
+                msg = fmt::format("{}", seconds);
             }
             break;
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
@@ -1112,12 +1112,12 @@ void TextEffect::FormatCountdown(int Countdown, int state, std::string& Line, Re
             if (seconds < 0)
                 seconds = 0;
 
-            std::string tempSeconds = std::format("{}", seconds);
+            std::string tempSeconds = fmt::format("{}", seconds);
 
             if (tempSeconds.size() == 1)
                 tempSeconds = "0" + tempSeconds;
 
-            msg = prepend + ' ' + std::format("{}", minutes) + " : " + tempSeconds + append;
+            msg = prepend + ' ' + fmt::format("{}", minutes) + " : " + tempSeconds + append;
             }
            break;
 
@@ -1240,11 +1240,11 @@ void TextEffect::FormatCountdown(int Countdown, int state, std::string& Line, Re
             minutes = (longsecs / 60) % 60;
             seconds = longsecs % 60;
             if (Countdown == COUNTDOWN_D_H_M_S)
-                msg = std::format("{}d {}h {}m {}s", days, hours, minutes, seconds);
+                msg = fmt::format("{}d {}h {}m {}s", days, hours, minutes, seconds);
             else if (Countdown == COUNTDOWN_H_M_S)
-                msg = std::format("{} : {} : {}", hours, minutes, seconds);
+                msg = fmt::format("{} : {} : {}", hours, minutes, seconds);
             else if (Countdown == COUNTDOWN_S)
-                msg = std::format("{}", 60 * 60 * hours + 60 * minutes + seconds);
+                msg = fmt::format("{}", 60 * 60 * hours + 60 * minutes + seconds);
             else if (Countdown == COUNTDOWN_FREEFMT)
                 //            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
                 if (fmt == "" || (EndsWith(fmt, "%") && !EndsWith(fmt, "%%")))
@@ -1265,12 +1265,12 @@ void TextEffect::FormatCountdown(int Countdown, int state, std::string& Line, Re
                         if (fmt[i] == '%' && i + 1 < fmt.length()) {
                             i++;
                             switch (fmt[i]) {
-                                case 'H': result += std::format("{:02}", totalHours); break;
-                                case 'M': result += std::format("{:02}", fmtMinutes); break;
-                                case 'S': result += std::format("{:02}", fmtSeconds); break;
+                                case 'H': result += fmt::format("{:02}", totalHours); break;
+                                case 'M': result += fmt::format("{:02}", fmtMinutes); break;
+                                case 'S': result += fmt::format("{:02}", fmtSeconds); break;
                                 case 'l': result += "000"; break; // no sub-second precision in countdown
-                                case 'D': result += std::format("{}", fmtDays); break;
-                                case 'E': result += std::format("{}", fmtWeeks); break;
+                                case 'D': result += fmt::format("{}", fmtDays); break;
+                                case 'E': result += fmt::format("{}", fmtWeeks); break;
                                 case '%': result += '%'; break;
                                 default: result += '%'; result += fmt[i]; break;
                             }
@@ -1282,9 +1282,9 @@ void TextEffect::FormatCountdown(int Countdown, int state, std::string& Line, Re
                 }
             else //if (Countdown == COUNTDOWN_M_or_S)
                 if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
-                    msg = std::format("{}", 60 * 60 * hours + 60 * minutes + seconds);
+                    msg = fmt::format("{}", 60 * 60 * hours + 60 * minutes + seconds);
                 else //COUNTDOWN_M_or_S: show minutes
-                    msg = std::format("{} m", 60 * hours + minutes);
+                    msg = fmt::format("{} m", 60 * hours + minutes);
         }
             break;
         default:

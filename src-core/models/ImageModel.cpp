@@ -10,7 +10,7 @@
 
 #include <cassert>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "ImageModel.h"
 #include "../utils/xlImage.h"
@@ -418,12 +418,12 @@ std::list<std::string> ImageModel::CheckModelSettings()
     std::list<std::string> res;
 
     if (_imageFile == "" || !FileExists(_imageFile)) {
-        res.push_back(std::format("    ERR: Image model '{}' cant find image file '{}'", GetName(), _imageFile));
+        res.push_back(fmt::format("    ERR: Image model '{}' cant find image file '{}'", GetName(), _imageFile));
     } else if (xlImage testImg; !testImg.LoadFromFile(_imageFile)) {
-        res.push_back(std::format("    ERR: Image model '{}' cant load image file '{}'", GetName(), _imageFile));
+        res.push_back(fmt::format("    ERR: Image model '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
         if (!FileUtils::IsFileInShowDir(std::string(), _imageFile)) {
-            res.push_back(std::format("    WARN: Image model '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
+            res.push_back(fmt::format("    WARN: Image model '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }
     res.splice(res.end(), Model::CheckModelSettings());

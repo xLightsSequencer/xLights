@@ -10,7 +10,7 @@
 
 #include <cassert>
 #include <cmath>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "PolyPointScreenLocation.h"
 
 
@@ -1696,7 +1696,7 @@ std::string PolyPointScreenLocation::GetDimension(float factor) const
         len += RulerObject::Measure(last, mPos[i].AsVector());
         last = mPos[i].AsVector();
     }
-    return std::format("Length {}", RulerObject::PrescaledMeasureDescription(len));
+    return fmt::format("Length {}", RulerObject::PrescaledMeasureDescription(len));
 }
 
 void PolyPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
@@ -2045,9 +2045,9 @@ std::string PolyPointScreenLocation::GetPointDataAsString() const
 {
     std::string point_data = "";
     for (int i = 0; i < num_points; ++i) {
-        point_data += std::format("{:f},", mPos[i].x);
-        point_data += std::format("{:f},", mPos[i].y);
-        point_data += std::format("{:f}", mPos[i].z);
+        point_data += fmt::format("{:f},", mPos[i].x);
+        point_data += fmt::format("{:f},", mPos[i].y);
+        point_data += fmt::format("{:f}", mPos[i].z);
         if (i != num_points - 1) {
             point_data += ",";
         }
@@ -2082,7 +2082,7 @@ std::string PolyPointScreenLocation::GetCurveDataAsString() const
     std::string cpoint_data = "";
     for (int i = 0; i < num_points; ++i) {
         if (mPos[i].has_curve) {
-            cpoint_data += std::format("{},{:f},{:f},{:f},{:f},{:f},{:f},", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
+            cpoint_data += fmt::format("{},{:f},{:f},{:f},{:f},{:f},{:f},", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
                                        mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y(), mPos[i].curve->get_cp1z());
         }
     }

@@ -27,7 +27,7 @@
 
 #include <cassert>
 #include <chrono>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <thread>
 
 #include <log.h>
@@ -157,13 +157,13 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
 
                 if (newPort->protocol != protocol) {
                     spdlog::warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
-                    ui->ShowMessage(std::format("All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->ShowMessage(fmt::format("All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
                     ui->EndProgress(progressTk);
                     return false;
                 }
                 if (newPort->pixels != port->Pixels()) {
                     spdlog::warn("SanDevices Outputs Upload: All The Pixel Lengths must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
-                    ui->ShowMessage(std::format("All The Pixel Lengths must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->ShowMessage(fmt::format("All The Pixel Lengths must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
                     ui->EndProgress(progressTk);
                     return false;
                 }
@@ -261,7 +261,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
             if (cud.HasPixelPort(outputNumber) || cud.HasSerialPort(outputNumber)) {
                 if (cud.HasPixelPort(outputNumber) && cud.HasSerialPort(outputNumber)) {
                     spdlog::warn("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port {}-1 to {}-4", i, i);
-                    ui->ShowMessage(std::format("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->ShowMessage(fmt::format("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port {}-1 to {}-4", i, i), "Error");
                     ui->EndProgress(progressTk);
                     return false;
                 }
@@ -275,7 +275,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
                 if (newPort->getProtocol() != firstPort->getProtocol()) {
                     delete newPort;
                     spdlog::warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
-                    ui->ShowMessage(std::format("All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
+                    ui->ShowMessage(fmt::format("All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i), "Error");
                     ui->EndProgress(progressTk);
                     return false;
                 }
@@ -368,7 +368,7 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
         // extract the universes
-        const int univers = ExtractIntFromPage(page, std::format("{:c}", fieldStart++), "input", 1, start);
+        const int univers = ExtractIntFromPage(page, fmt::format("{:c}", fieldStart++), "input", 1, start);
         _universes.push_back(univers);
     }
 
@@ -394,7 +394,7 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
     const int start = p.find(" Universe");
     for (int i = 0; i < 12; i++) {
         // extract the universes
-        const int univers = ExtractIntFromPage(page, std::format("{:c}", fieldStart++), "input", 1, start);
+        const int univers = ExtractIntFromPage(page, fmt::format("{:c}", fieldStart++), "input", 1, start);
         _universes.push_back(univers);
     }
 
@@ -432,7 +432,7 @@ std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
 
     if (res.empty()) {
         spdlog::error("Unable to connect to SanDevices {} '{}'.", _ip, url);
-        DisplayError(std::format("Unable to connect to SanDevices {}.", _ip));
+        DisplayError(fmt::format("Unable to connect to SanDevices {}.", _ip));
     } else if (logresult) {
         spdlog::debug("Response from SanDevices '{}'.", res);
     }
@@ -534,7 +534,7 @@ SanDevicesProtocol* SanDevices::ExtractProtocalDataV5(const std::string& page, i
     const std::string p(page);
     int start = p.find("Output Group Configuration:");
 
-    const std::string tofind = "<td>" + std::format("{}-1 thru {}-4", group, group) + "</td>";
+    const std::string tofind = "<td>" + fmt::format("{}-1 thru {}-4", group, group) + "</td>";
 
     start = p.find(tofind, start);
 
@@ -553,7 +553,7 @@ SanDevicesOutput* SanDevices::ExtractOutputDataV5(const std::string& page, int g
     std::string tofind;
 
     if (IsE682()) {
-        tofind = "<td>" + std::format("{}-{}", group, port) + "</td>";
+        tofind = "<td>" + fmt::format("{}-{}", group, port) + "</td>";
     }
     else {
         tofind = "<td>" + std::to_string(group) + "</td>";
@@ -592,7 +592,7 @@ SanDevicesOutputV4* SanDevices::ExtractOutputDataV4(const std::string& page, int
     std::string tofind;
 
     if (IsE682()) {
-        tofind = "<td>" + std::format("{}-1 to {}-4", group, group) + "</td>";
+        tofind = "<td>" + fmt::format("{}-1 to {}-4", group, group) + "</td>";
     }
     else {
         tofind = "<td>" + std::to_string(group) + "</td>";
@@ -816,7 +816,7 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
     // extract null pixels
     std::string null;
     if (outputData->nullPixel != 0) { // Only Add to Request if it currently exists
-        null = std::format("&H={}", outputData->nullPixel);
+        null = fmt::format("&H={}", outputData->nullPixel);
     }
     // extract chase
     std::string chase;
@@ -827,13 +827,13 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
     }
     std::string colorOrder;
     if (!outputData->serial) {
-        colorOrder = std::format("&E={:c}", outputData->colorOrder);
+        colorOrder = fmt::format("&E={:c}", outputData->colorOrder);
     }
 
     const int controlPort = EncodeControllerPortV5(outputData->group, outputData->output);
 
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    const std::string request = std::format("/%c?A=%d%s&Z=%c&G=%d%s%s&B=%i%s&I=%i&J=%i&D=%c",
+    const std::string request = fmt::format("/%c?A=%d%s&Z=%c&G=%d%s%s&B=%i%s&I=%i&J=%i&D=%c",
         controlPort + 'J',
         outputData->pixels,
         colorOrder,
@@ -853,7 +853,7 @@ std::string SanDevices::GenerateProtocolURLV5(SanDevicesProtocol* protocolData) 
 
     //K?E=A&K=A
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    const std::string request = std::format("/%c?E=%c&K=%c",
+    const std::string request = fmt::format("/%c?E=%c&K=%c",
         protocolData->getGroup() + 'J',
         protocolData->getProtocol(),
         protocolData->getTiming());
@@ -864,7 +864,7 @@ std::string SanDevices::GenerateOutputURLV4(SanDevicesOutputV4* outputData) {
 
     std::string output;
     if (outputData->outputSize != 0) {
-        output = std::format("A={}&", outputData->outputSize);
+        output = fmt::format("A={}&", outputData->outputSize);
     }
 
     // extract reverse
@@ -909,7 +909,7 @@ std::string SanDevices::GenerateOutputURLV4(SanDevicesOutputV4* outputData) {
 
     //e682 v4
     //http://192.168.1.206/4?A=2&B=B&C=100&D=1&E=0&F=A&G=1&L=0&M=0&N=0&O=0&P=0
-    const std::string request = std::format("/%d?%sB=%c&C=%d&D=%i&E=%i&F=%c&G=%d%s&L=%i%s",
+    const std::string request = fmt::format("/%d?%sB=%c&C=%d&D=%i&E=%i&F=%c&G=%d%s&L=%i%s",
         outputData->group + 3,
         output,
         outputData->protocol,
@@ -1127,7 +1127,7 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
     }
 
     if (_connected) {
-        _model = std::format("E{}", static_cast<int>(_sdmodel));
+        _model = fmt::format("E{}", static_cast<int>(_sdmodel));
     }
 }
 
@@ -1170,7 +1170,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     std::list<Output*> outputs = controller->GetOutputs();
 
     if (outputs.size() > 12) {
-        ui->ShowMessage(std::format("Attempt to upload {} universes to SanDevices controller but only 12 are supported.", outputs.size()), "Error");
+        ui->ShowMessage(fmt::format("Attempt to upload {} universes to SanDevices controller but only 12 are supported.", outputs.size()), "Error");
         return false;
     }
 
@@ -1194,7 +1194,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     }
 
     if ((t == 2 || t == 0) && outputs.size() > 7) {
-        ui->ShowMessage(std::format("Attempt to upload {} universes to SanDevices controller but only 7 are supported in Multicast/Artnet Mode.", outputs.size()), "Error");
+        ui->ShowMessage(fmt::format("Attempt to upload {} universes to SanDevices controller but only 7 are supported in Multicast/Artnet Mode.", outputs.size()), "Error");
         return false;
     }
 
@@ -1222,14 +1222,14 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
         //I=+++++++++++++++++
         t += 65; //convert int to char
         const std::string currentReceiveMode = ExtractFromPage(page, "E", "select");
-        const std::string newReceiveMode = std::format("{:c}", t);
+        const std::string newReceiveMode = fmt::format("{:c}", t);
         if (currentReceiveMode == newReceiveMode) {
             upload = false;
         }
-        request += std::format("&E={:c}", t);
+        request += fmt::format("&E={:c}", t);
     }
     else {
-        request += std::format("&E={}", t);
+        request += fmt::format("&E={}", t);
     }
     request += "&F=" + ExtractFromPage(page, "F", "input");
 
@@ -1272,18 +1272,18 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
         }
         if (IsFirmware5()) {
             if (it->GetChannels() != 510 && it->GetChannels() != 512) {
-                ui->ShowMessage(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()), "Error");
+                ui->ShowMessage(fmt::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()), "Error");
                 return false;
             }
-            requestUnvSize += std::format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
+            requestUnvSize += fmt::format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
         }
         else {
             if (it->GetChannels() != 510) {
-                ui->ShowMessage(std::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510 is supported in Firmware 4.", it->GetChannels()), "Error");
+                ui->ShowMessage(fmt::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510 is supported in Firmware 4.", it->GetChannels()), "Error");
                 return false;
             }
         }
-        request += std::format("%c=%i", output++, it->GetUniverse());
+        request += fmt::format("%c=%i", output++, it->GetUniverse());
     }
 
     if (0 == t) { //multicast

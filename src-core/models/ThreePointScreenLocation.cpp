@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include "ThreePointScreenLocation.h"
 
 
@@ -65,7 +65,7 @@ std::string ThreePointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
     float width = RulerObject::Measure(origin, point2);
-    return std::format("Length {} Height {}",
+    return fmt::format("Length {} Height {}",
         RulerObject::MeasureLengthDescription(origin, point2),
         RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor));
 }

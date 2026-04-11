@@ -34,7 +34,7 @@
 #endif
 #include "../utils/ip_utils.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <log.h>
 
@@ -599,26 +599,26 @@ bool ControllerEthernet::SupportsDefaultGamma() const
 std::string ControllerEthernet::GetChannelMapping(int32_t ch) const
 {
 
-    std::string res = std::format("Channel {} maps to ...\nType: {}\nName: {}\nIP: {}\n", ch, GetProtocol(), GetName(), GetIP());
+    std::string res = fmt::format("Channel {} maps to ...\nType: {}\nName: {}\nIP: {}\n", ch, GetProtocol(), GetName(), GetIP());
 
     int32_t sc;
     auto o = GetOutput(ch, sc);
 
     if (o == nullptr) {
-        res += std::format("Channel: INVALID {}\n", ch);
+        res += fmt::format("Channel: INVALID {}\n", ch);
     }
     else {
         if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_xxxETHERNET) {
-            res += std::format("Universe: {}\nChannel: {}\n", o->GetUniverseString(), sc);
+            res += fmt::format("Universe: {}\nChannel: {}\n", o->GetUniverseString(), sc);
         }
         else if (o->GetType() == OUTPUT_KINET) {
-            res += std::format("Port: {}\nChannel: {}\n", o->GetUniverseString(), sc);
+            res += fmt::format("Port: {}\nChannel: {}\n", o->GetUniverseString(), sc);
         }
         else if (o->GetType() == OUTPUT_OPC) {
-            res += std::format("Channel: {}\nMessage Offset: {}\n", o->GetUniverseString(), sc);
+            res += fmt::format("Channel: {}\nMessage Offset: {}\n", o->GetUniverseString(), sc);
         }
         else {
-            res += std::format("Channel: {}\n", sc);
+            res += fmt::format("Channel: {}\n", sc);
         }
     }
 
@@ -713,7 +713,7 @@ void ControllerEthernet::SetExpanded(bool expanded)
 
 std::string ControllerEthernet::GetExport() const {
 
-    return std::format("{},{},{},{},{},{},,,\"{}\",{},{},{},{},{},{},{},{},{}",
+    return fmt::format("{},{},{},{},{},{},,,\"{}\",{},{},{},{},{},{},{},{},{}",
                             GetName(),
                             GetStartChannel(),
                             GetEndChannel(),

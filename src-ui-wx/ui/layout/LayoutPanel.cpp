@@ -34,6 +34,7 @@
 #include <fstream>
 #include <format>
 #include <functional>
+#include <spdlog/fmt/fmt.h>
 #include <regex>
 #include <sstream>
 #include <wx/artprov.h>
@@ -7646,7 +7647,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     nz == z)
                                 {
                                     nx += 40;
-                                    SetXmlNodeAttribute(nd, "WorldPosX", std::format("{:6.4f}", (float)nx));
+                                    SetXmlNodeAttribute(nd, "WorldPosX", fmt::format("{:6.4f}", (float)nx));
                                     moved = true;
                                     break;
                                 }

@@ -14,7 +14,7 @@
 
 #include <pugixml.hpp>
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <vector>
 
 #include "CustomModel.h"
@@ -668,7 +668,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
 
     // check for no nodes
     if (GetNodeCount() == 0) {
-        res.push_back(std::format("    ERR: Custom model '{}' has no nodes defined.", GetName()));
+        res.push_back(fmt::format("    ERR: Custom model '{}' has no nodes defined.", GetName()));
     }
 
     auto* uiCallbacks = GetModelManager().GetUICallbacks();
@@ -676,7 +676,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
         if (_customWidth > PERFORMANCE_IMPACT_SIZE || _customHeight > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
             float pop = ((float)GetNodeCount() * 100) / (float)(_customWidth * _customHeight);
             if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
-                res.push_back(std::format("    WARN: Custom model '{}' dimensions are really large ({} x {} x {} : Nodes {} => {:.2f}%). This may impact xLights render performance.", GetName(), _customWidth, _customHeight, _depth, GetNodeCount(), pop));
+                res.push_back(fmt::format("    WARN: Custom model '{}' dimensions are really large ({} x {} x {} : Nodes {} => {:.2f}%). This may impact xLights render performance.", GetName(), _customWidth, _customHeight, _depth, GetNodeCount(), pop));
             }
         }
     }
@@ -697,15 +697,15 @@ std::list<std::string> CustomModel::CheckModelSettings()
                 oneFound = true;
             }
             if (std::find(begin(prevStart), end(prevStart), val) != end(prevStart)) {
-                res.push_back(std::format("    ERR: Custom model '{}' String {} starts at a node {} which has already been used by another string.", GetName(), i, val));
+                res.push_back(fmt::format("    ERR: Custom model '{}' String {} starts at a node {} which has already been used by another string.", GetName(), i, val));
             }
             if (val == 0 || val > nodes) {
-                res.push_back(std::format("    ERR: Custom model '{}' String {} starts at a node {} outside the node count {} in the model.", GetName(), i+1, val, nodes));
+                res.push_back(fmt::format("    ERR: Custom model '{}' String {} starts at a node {} outside the node count {} in the model.", GetName(), i+1, val, nodes));
             }
             prevStart.push_back(val);
         }
         if (!oneFound)             {
-            res.push_back(std::format("    ERR: Custom model '{}' Multiple strings but none starting at node 1.", GetName()));
+            res.push_back(fmt::format("    ERR: Custom model '{}' Multiple strings but none starting at node 1.", GetName()));
         }
     }
 
@@ -720,7 +720,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     //spdlog::debug("    CheckSequence: Checking custom model {} nodes", maxn);
     int* chs = (int*)malloc(chssize);
     if (chs == nullptr) {
-        res.push_back(std::format("    WARN: Could not check Custom model '{}' for missing nodes. Error allocating memory for {} nodes.", GetName(), maxn));
+        res.push_back(fmt::format("    WARN: Could not check Custom model '{}' for missing nodes. Error allocating memory for {} nodes.", GetName(), maxn));
     }
     else {
         memset(chs, 0x00, chssize);
@@ -740,10 +740,10 @@ std::list<std::string> CustomModel::CheckModelSettings()
             else {
                 if (lastStart != -1) {
                     if (lastStart == ii - 1) {
-                        res.push_back(std::format("    WARN: Custom model '{}' missing node {}.", GetName(), lastStart));
+                        res.push_back(fmt::format("    WARN: Custom model '{}' missing node {}.", GetName(), lastStart));
                     }
                     else {
-                        res.push_back(std::format("    WARN: Custom model '{}' missing nodes {}-{}.", GetName(), lastStart, ii - 1));
+                        res.push_back(fmt::format("    WARN: Custom model '{}' missing nodes {}-{}.", GetName(), lastStart, ii - 1));
                     }
                     lastStart = -1;
                 }
@@ -765,7 +765,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
                 std::vector<xlPoint> pts;
                 GetNodeCoords(ii, pts);
                 if (pts.size() > 1) {
-                    res.push_back(std::format("    WARN: Custom model '{}' {} node has {} instances but multi instance nodes are rare in this model so this may be unintended.",
+                    res.push_back(fmt::format("    WARN: Custom model '{}' {} node has {} instances but multi instance nodes are rare in this model so this may be unintended.",
                         GetName(),
                         Ordinal(ii + 1),
                         (int)pts.size()));
@@ -817,21 +817,21 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager, bool da
     html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
-    html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", (int)NodeCount);
-    html += std::format("<tr><td>Width:</td><td>{}</td></tr>", BufferWi);
-    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
+    html += fmt::format("<tr><td>Total nodes:</td><td>{}</td></tr>", (int)NodeCount);
+    html += fmt::format("<tr><td>Width:</td><td>{}</td></tr>", BufferWi);
+    html += fmt::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
     if (c != nullptr)
-        html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
+        html += fmt::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
     if ("" != GetControllerProtocol())
     {
-        html += std::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
+        html += fmt::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
         if (_strings == 1)
         {
-            html += std::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort());
+            html += fmt::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort());
         }
         else
         {
-            html += std::format("<tr><td>Controller Connection:</td><td>{}-{}</td></tr>", GetControllerPort(), GetControllerPort() + _strings - 1);
+            html += fmt::format("<tr><td>Controller Connection:</td><td>{}-{}</td></tr>", GetControllerPort(), GetControllerPort() + _strings - 1);
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";

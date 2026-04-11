@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "DmxPresetAbility.h"
 
@@ -40,7 +40,7 @@ void DmxPresetAbility::SetPresetValues(xlColorVector& pixelVector) const
 
     for (auto const& pre : _presets) {
         if (pre.DMXChannel > nodeCount) {
-            res.push_back(std::format("    ERR: Model {} Fixed channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), pre.DMXChannel, nodeCount));
+            res.push_back(fmt::format("    ERR: Model {} Fixed channel refers to a channel ({}) not present on the model which only has {} channels.", m->GetName(), pre.DMXChannel, nodeCount));
         }
     }
 

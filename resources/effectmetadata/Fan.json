@@ -66,13 +66,14 @@
             "label": "Rev's",
             "type": "float",
             "controlType": "slider",
+            "settingPrefix": "SLIDER",
             "default": 2.0,
             "min": 0,
             "max": 3600,
             "divisor": 360,
             "valueCurve": true,
             "lockable": true,
-            "description": "Total number of revolutions the fan rotates over the duration of the effect."
+            "description": "Total number of revolutions the fan rotates over the duration of the effect. settingPrefix:SLIDER because FanEffect::Render calls GetValueCurveInt which reads SLIDER_<id> as a raw pre-divisor int and divides inside ValueCurve."
         },
         {
             "id": "Fan_Num_Blades",

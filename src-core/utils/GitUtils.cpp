@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <array>
 #include <regex>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #ifdef _WIN32
 #define popen _popen
@@ -130,7 +130,7 @@ bool GitUtils::AddFile(std::string const& filePath)
 	}
 	m_filesInGit.insert(filePath);
 
-	std::string cmd = std::format("cd \"{}\" && git add \"{}\"", m_folder, filePath);
+	std::string cmd = fmt::format("cd \"{}\" && git add \"{}\"", m_folder, filePath);
 	std::string output = RunGitCommand(cmd);
 	// git add produces no output on success
 	return true;
@@ -203,6 +203,6 @@ std::string GitUtils::RunGitCommand(std::string const& cmd) const
 
 std::string GitUtils::RunGitCommandInFolder(std::string const& cmd) const
 {
-	std::string fullCmd = std::format("cd \"{}\" && {}", m_folder, cmd);
+	std::string fullCmd = fmt::format("cd \"{}\" && {}", m_folder, cmd);
 	return RunGitCommand(fullCmd);
 }

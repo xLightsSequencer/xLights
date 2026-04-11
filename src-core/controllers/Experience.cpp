@@ -31,7 +31,7 @@
 
 #include <log.h>
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #pragma region Private Functions
 bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const {
@@ -180,7 +180,7 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
     } else {
         _connected = false;
         spdlog::error("Error connecting to Genius controller on {}.", _ip);
-        DisplayError(std::format("Error connecting to Genius controller on {}.", _ip));
+        DisplayError(fmt::format("Error connecting to Genius controller on {}.", _ip));
     }
 
     if (config.size() > 0) {
@@ -243,7 +243,7 @@ int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controll
         }
     } else  {
         //should never hit this
-        DisplayError(std::format(
+        DisplayError(fmt::format(
                          "Invalid Input Type For Experience Controller {}.",
                          out->GetType()));
         return startChannel;
@@ -263,7 +263,7 @@ int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controll
 bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, UICallbacks* ui) {
     ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
-        ui->ShowMessage(std::format("{} is not a Experience controller.", c->GetName()), "Error");
+        ui->ShowMessage(fmt::format("{} is not a Experience controller.", c->GetName()), "Error");
         return false;
     }
 

@@ -21,7 +21,7 @@
 #include "../../include/adjust64.xpm"
 #include "UtilFunctions.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 std::string AdjustEffect::sActionDefault = "None";
 int AdjustEffect::sValue1Default = 0;
@@ -56,7 +56,7 @@ std::list<std::string> AdjustEffect::CheckEffectSettings(const SettingsMap& sett
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0") {
-        res.push_back(std::format("    WARN: Canvas mode not enabled on a Adjust effect. Without canvas mode Adjust is unlikely to do anything useful. Effect: Adjust, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Canvas mode not enabled on a Adjust effect. Without canvas mode Adjust is unlikely to do anything useful. Effect: Adjust, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

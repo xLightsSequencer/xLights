@@ -265,7 +265,7 @@ public:
     virtual std::string GetColumn1Label() const { return GetType(); }
     virtual std::string GetColumn2Label() const { return ""; }
     virtual std::string GetColumn3Label() const { return GetUniverseString(); }
-    virtual std::string GetColumn4Label() const { return std::format("{} [{}-{}]", GetChannels(), GetStartChannel(), GetEndChannel()); }
+    virtual std::string GetColumn4Label() const { return fmt::format("{} [{}-{}]", GetChannels(), GetStartChannel(), GetEndChannel()); }
     virtual std::string GetColumn5Label() const { return GetVendor(); }
     virtual std::string GetColumn6Label() const { return GetModel(); }
     virtual std::string GetColumn7Label() const { return GetVariant(); }
