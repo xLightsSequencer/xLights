@@ -194,41 +194,17 @@ public:
             }
         }
 
-        // Clamp sash Y to enforce minimum heights for both docked panels.
-        // Runs before wxAuiManager::OnMotion so the base class sees the clamped position.
-        if (m_action == actionResize) {
-            // m_actionPart may be null after Update(); refresh from the stored drag index.
-            wxAuiDockUIPart* part = m_actionPart;
-            if (part == nullptr && m_currentDragItem >= 0 &&
-                m_currentDragItem < static_cast<int>(m_uiParts.GetCount()))
-                part = &m_uiParts.Item(m_currentDragItem);
-
-            if (part != nullptr &&
-                part->type == wxAuiDockUIPart::typeDockSizer &&
-                part->dock != nullptr &&
-                part->dock->dock_direction == wxAUI_DOCK_TOP) {
-
-                wxAuiPaneInfo& listPane = GetPane("ModelList");
-                wxAuiPaneInfo& settingsPane = GetPane("ModelSettings");
-                if (listPane.IsOk() && settingsPane.IsOk() &&
-                    !listPane.IsFloating() && !settingsPane.IsFloating() &&
-                    listPane.IsShown() && settingsPane.IsShown()) {
-
-                    const int kMinH = kPaneMinHeight;
-                    const wxRect& dockRect = part->dock->rect;
-                    int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-
-                    // new_size = (event.m_y - m_actionOffset.y) - dockRect.y
-                    // Enforce new_size >= kMinH  =>  event.m_y >= kMinH + m_actionOffset.y + dockRect.y
-                    // Enforce new_size <= containerH - kMinH  =>  event.m_y <= containerH - kMinH + m_actionOffset.y + dockRect.y
-                    int minY = kMinH + m_actionOffset.y + dockRect.y;
-                    int maxY = (containerH - kMinH) + m_actionOffset.y + dockRect.y;
-                    if (maxY < minY) maxY = minY;  // degenerate: window too small for both minimums
-
-                    if (event.m_y < minY) event.m_y = minY;
-                    if (event.m_y > maxY) event.m_y = maxY;
-                }
-            }
+        // Enforce the minimum heights for the two docked panes using the public
+        // wxAUI pane API instead of relying on wxAuiManager drag internals or
+        // mutating wxMouseEvent state.
+        static const int kMinH = 400;
+        wxAuiPaneInfo& listPane = GetPane("ModelList");
+        wxAuiPaneInfo& settingsPane = GetPane("ModelSettings");
+        if (listPane.IsOk() && settingsPane.IsOk() &&
+            !listPane.IsFloating() && !settingsPane.IsFloating() &&
+            listPane.IsShown() && settingsPane.IsShown()) {
+            listPane.MinSize(wxSize(-1, kMinH));
+            settingsPane.MinSize(wxSize(-1, kMinH));
         }
 
         event.Skip();
