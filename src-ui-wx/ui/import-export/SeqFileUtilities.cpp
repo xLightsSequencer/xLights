@@ -23,6 +23,9 @@
 #include "render/DataLayer.h"
 #include "ui/effects/EffectAssist.h"
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
+#include "effects/RenderableEffect.h"
+#include "effects/EffectManager.h"
 #include "import_export/FileConverter.h"
 #include "render/FontManager.h"
 #include "ui/layout/HousePreviewPanel.h"
@@ -33,6 +36,7 @@
 #include "ui/diagnostics/SearchPanel.h"
 #include "ui/sequencer/SelectPanel.h"
 #include "ui/sequencer/SeqSettingsDialog.h"
+#include "ui/media/ManageMediaPanel.h"
 #include "ui/media/SequenceVideoPanel.h"
 #include "ui/import-export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
@@ -714,6 +718,9 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         AddToMRU(filename);
         UpdateRecentFilesList(false);
+
+        // Missing media detection is handled by ValidateEffectAssets() which runs
+        // after sequence loading completes in tabSequencer.cpp
     }
 }
 

@@ -106,6 +106,13 @@ public:
     void ExpandGroups();
     void RequestExpandGroups();
 
+    // Resolve all missing media (images, videos, shaders, binary) by searching a user-selected directory.
+    // Returns the number of files resolved. Can be called from outside the panel (e.g., Tools menu).
+    static int ResolveAllMissingMedia(wxWindow* parent, SequenceMedia* sequenceMedia,
+                                      SequenceElements* sequenceElements,
+                                      xLightsFrame* xlFrame,
+                                      const std::string& showDirectory);
+
 private:
     void OnIdle(wxIdleEvent& event);
     void OnTreeItemSelected(wxDataViewEvent& event);

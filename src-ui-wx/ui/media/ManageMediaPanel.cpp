@@ -28,6 +28,7 @@
 #include <wx/image.h>
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
+#include <wx/progdlg.h>
 #include <wx/textdlg.h>
 #include <wx/datetime.h>
 #include <wx/config.h>
@@ -35,6 +36,11 @@
 #include <algorithm>
 
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
+#include "effects/RenderableEffect.h"
+#include "effects/EffectManager.h"
+
+#include <set>
 
 static std::string MediaTypeName(MediaType t) {
     switch (t) {
@@ -1580,6 +1586,290 @@ void ManageMediaPanel::OnBulkFindImages()
                  "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
 
     Populate();
+}
+
+int ManageMediaPanel::ResolveAllMissingMedia(wxWindow* parent, SequenceMedia* sequenceMedia,
+                                              SequenceElements* sequenceElements,
+                                              xLightsFrame* xlFrame,
+                                              const std::string& showDirectory)
+{
+    if (sequenceElements == nullptr || xlFrame == nullptr) return 0;
+
+    // Scan all effects across the entire sequence to find missing file references.
+    // We scan effect settings directly rather than relying on the SequenceMedia cache,
+    // because cache entries may not exist for files that were never rendered.
+    std::set<std::string> brokenPathSet;
+
+    auto scanLayerForBroken = [&](EffectLayer* layer) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            RenderableEffect* reff = xlFrame->GetEffectManager().GetEffect(eff->GetEffectIndex());
+            if (reff == nullptr) continue;
+            auto fileRefs = reff->GetFileReferences(nullptr, eff->GetSettings());
+            for (const auto& filePath : fileRefs) {
+                if (filePath.empty()) continue;
+                std::string resolved = FileUtils::FixFile("", filePath);
+                if (resolved.empty() || !FileExists(resolved)) {
+                    brokenPathSet.insert(filePath);
+                }
+            }
+        }
+    };
+
+    for (int i = 0; i < (int)sequenceElements->GetElementCount(); ++i) {
+        Element* e = sequenceElements->GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* model = dynamic_cast<ModelElement*>(e);
+        if (!model) continue;
+
+        for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
+            scanLayerForBroken(model->GetEffectLayer(j));
+
+        for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = model->GetSubModel(j);
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
+                scanLayerForBroken(sub->GetEffectLayer(l));
+            if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                if (strand) {
+                    for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
+                        scanLayerForBroken(strand->GetNodeLayer(k));
+                }
+            }
+        }
+    }
+
+    std::vector<std::string> brokenPaths(brokenPathSet.begin(), brokenPathSet.end());
+
+    if (brokenPaths.empty()) {
+        wxMessageBox("All media files are resolved. No missing files found.",
+                     "Resolve Missing Media", wxICON_INFORMATION | wxOK, parent);
+        return 0;
+    }
+
+    // Build list of directories to search automatically (show dir + media dirs)
+    std::vector<std::string> autoDirs;
+    if (!showDirectory.empty()) autoDirs.push_back(showDirectory);
+    if (xlFrame) {
+        for (const auto& md : xlFrame->GetMediaFolders()) {
+            if (md != showDirectory)
+                autoDirs.push_back(md);
+        }
+    }
+
+    const std::string sep(1, wxFileName::GetPathSeparator());
+    int found = 0;
+    int notFound = 0;
+    wxArrayString resolvedDetails;
+    wxArrayString unresolvedDetails;
+
+    // Normalize a name for fuzzy comparison: lowercase, strip spaces/underscores/dashes/trailing digits
+    auto normalizeName = [](const wxString& name) -> wxString {
+        wxString result;
+        wxString lower = name.Lower();
+        for (size_t i = 0; i < lower.Len(); ++i) {
+            wxChar ch = lower[i];
+            if (ch != ' ' && ch != '_' && ch != '-')
+                result += ch;
+        }
+        // Strip trailing digits
+        while (!result.IsEmpty() && wxIsdigit(result.Last()))
+            result.RemoveLast();
+        return result;
+    };
+
+    // Helper: search a list of directories for a missing file (exact + fuzzy)
+    auto searchDirsForFile = [&](const std::string& oldPath,
+                                 const std::vector<std::string>& dirs) -> wxString {
+        wxFileName fnOld(oldPath);
+        wxString nameToFind = fnOld.GetFullName();
+        if (nameToFind.IsEmpty()) return wxString();
+
+        // Exact match across all search dirs
+        for (const auto& dir : dirs) {
+            wxArrayString results;
+            wxDir::GetAllFiles(dir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
+            if (!results.IsEmpty()) return results[0];
+        }
+
+        // Fuzzy match using normalized names
+        wxString baseName = fnOld.GetName();
+        if (baseName.IsEmpty()) return wxString();
+        wxString normalizedMissing = normalizeName(baseName);
+
+        wxArrayString candidates;
+        for (const auto& dir : dirs) {
+            wxArrayString allFiles;
+            wxDir::GetAllFiles(dir, &allFiles, wxEmptyString, wxDIR_FILES | wxDIR_DIRS);
+            for (const auto& f : allFiles) {
+                wxFileName fn(f);
+                wxString normalizedCandidate = normalizeName(fn.GetName());
+                if (normalizedCandidate == normalizedMissing) {
+                    candidates.Add(f);
+                }
+            }
+        }
+
+        // Use the first fuzzy match automatically; the summary dialog will show what was matched
+        return candidates.IsEmpty() ? wxString() : candidates[0];
+    };
+
+    // Helper: update all effect references for an old path to a new path
+    auto updateEffectRefs = [&](const std::string& oldPath, const std::string& newPath) {
+        auto scanLayer = [&](EffectLayer* layer) {
+            for (int k = 0; k < layer->GetEffectCount(); ++k) {
+                Effect* eff = layer->GetEffect(k);
+                const SettingsMap& settings = eff->GetSettings();
+                std::vector<std::string> keysToUpdate;
+                for (auto it = settings.begin(); it != settings.end(); ++it) {
+                    if (it->second == oldPath)
+                        keysToUpdate.push_back(it->first);
+                }
+                for (const auto& key : keysToUpdate)
+                    eff->SetSetting(key, newPath);
+            }
+        };
+
+        for (int i = 0; i < (int)sequenceElements->GetElementCount(); ++i) {
+            Element* e = sequenceElements->GetElement(i);
+            if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+            ModelElement* model = dynamic_cast<ModelElement*>(e);
+            if (!model) continue;
+
+            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
+                scanLayer(model->GetEffectLayer(j));
+
+            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
+                SubModelElement* sub = model->GetSubModel(j);
+                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
+                    scanLayer(sub->GetEffectLayer(l));
+                if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                    StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                    if (strand) {
+                        for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
+                            scanLayer(strand->GetNodeLayer(k));
+                    }
+                }
+            }
+        }
+    };
+
+    // Phase 1: Automatically search show/media directories
+    std::vector<std::string> stillMissing;
+    if (!autoDirs.empty()) {
+        wxProgressDialog prog("Resolving Media", "Searching show and media folders...",
+                              (int)brokenPaths.size(), parent,
+                              wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+        int index = 0;
+        for (const auto& oldPath : brokenPaths) {
+            prog.Update(index++);
+            wxString foundFile = searchDirsForFile(oldPath, autoDirs);
+            if (!foundFile.IsEmpty()) {
+                std::string finalPath = foundFile.ToStdString();
+                std::string rel = xlFrame->MakeRelativePath(finalPath);
+                if (!rel.empty()) finalPath = rel;
+                if (finalPath != oldPath) {
+                    updateEffectRefs(oldPath, finalPath);
+                }
+                resolvedDetails.Add(wxFileName(oldPath).GetFullName() + " -> " + wxFileName(finalPath).GetFullName());
+                ++found;
+            } else {
+                stillMissing.push_back(oldPath);
+            }
+        }
+    } else {
+        stillMissing = brokenPaths;
+    }
+
+    // Phase 2: If files are still missing, ask user to pick an additional folder
+    if (!stillMissing.empty()) {
+        wxString msg = wxString::Format("Automatically resolved %d file(s).\n"
+                                        "%zu file(s) still missing.\n\n"
+                                        "Would you like to select another folder to search?",
+                                        found, stillMissing.size());
+        if (wxMessageBox(msg, "Resolve Missing Media", wxYES_NO | wxICON_QUESTION, parent) == wxYES) {
+            wxString defaultDir = showDirectory.empty() ? wxString() : wxString(showDirectory);
+            wxDirDialog dlg(parent, "Select folder containing missing media files", defaultDir,
+                            wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+            if (dlg.ShowModal() == wxID_OK) {
+                std::string userDir = dlg.GetPath().ToStdString();
+                ObtainAccessToURL(userDir);
+                std::vector<std::string> userDirs = { userDir };
+
+                wxProgressDialog prog2("Resolving Media", "Searching selected folder...",
+                                       (int)stillMissing.size(), parent,
+                                       wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+                int index = 0;
+                std::vector<std::string> finallyMissing;
+                for (const auto& oldPath : stillMissing) {
+                    if (!prog2.Update(index++, wxString::Format("Searching for %s...", wxFileName(oldPath).GetFullName()))) {
+                        break;
+                    }
+                    wxString foundFile = searchDirsForFile(oldPath, userDirs);
+                    if (!foundFile.IsEmpty()) {
+                        std::string finalPath = foundFile.ToStdString();
+                        std::string rel = xlFrame->MakeRelativePath(finalPath);
+                        if (!rel.empty()) finalPath = rel;
+                        if (finalPath != oldPath) {
+                            updateEffectRefs(oldPath, finalPath);
+                        }
+                        resolvedDetails.Add(wxFileName(oldPath).GetFullName() + " -> " + wxFileName(finalPath).GetFullName());
+                        ++found;
+                    } else {
+                        unresolvedDetails.Add(wxFileName(oldPath).GetFullName());
+                        ++notFound;
+                    }
+                }
+            }
+        } else {
+            for (const auto& p : stillMissing)
+                unresolvedDetails.Add(wxFileName(p).GetFullName());
+            notFound = (int)stillMissing.size();
+        }
+    }
+
+    if (found > 0 || notFound > 0) {
+        wxDialog dlg(parent, wxID_ANY, "Resolve Missing Media", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+        auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+        if (found > 0) {
+            auto* resolvedHeader = new wxStaticText(&dlg, wxID_ANY, wxString::Format("Resolved %d file(s):", found));
+            resolvedHeader->SetFont(resolvedHeader->GetFont().Bold());
+            sizer->Add(resolvedHeader, 0, wxALL, 10);
+
+            wxString resolvedText;
+            for (const auto& r : resolvedDetails)
+                resolvedText += r + "\n";
+            auto* resolvedList = new wxTextCtrl(&dlg, wxID_ANY, resolvedText, wxDefaultPosition, wxSize(500, std::min(100, (int)resolvedDetails.GetCount() * 20 + 10)),
+                                                wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+            sizer->Add(resolvedList, 1, wxLEFT | wxRIGHT | wxEXPAND, 10);
+        }
+
+        if (notFound > 0) {
+            auto* unresolvedHeader = new wxStaticText(&dlg, wxID_ANY, wxString::Format("Unresolved %d file(s):", notFound));
+            unresolvedHeader->SetFont(unresolvedHeader->GetFont().Bold());
+            sizer->Add(unresolvedHeader, 0, wxALL, 10);
+
+            wxString unresolvedText;
+            for (const auto& u : unresolvedDetails)
+                unresolvedText += u + "\n";
+            auto* unresolvedList = new wxTextCtrl(&dlg, wxID_ANY, unresolvedText, wxDefaultPosition, wxSize(500, std::min(100, (int)unresolvedDetails.GetCount() * 20 + 10)),
+                                                  wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+            sizer->Add(unresolvedList, 1, wxLEFT | wxRIGHT | wxEXPAND, 10);
+
+            auto* tipText = new wxStaticText(&dlg, wxID_ANY, "Use Tools/Check Sequence for more details.");
+            sizer->Add(tipText, 0, wxLEFT | wxRIGHT | wxBOTTOM, 10);
+        }
+
+        auto* btnSizer = dlg.CreateStdDialogButtonSizer(wxOK);
+        sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 10);
+
+        dlg.SetSizerAndFit(sizer);
+        dlg.CentreOnParent();
+        dlg.ShowModal();
+    }
+
+    return found;
 }
 
 void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)

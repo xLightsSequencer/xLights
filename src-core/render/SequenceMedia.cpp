@@ -1488,6 +1488,62 @@ std::vector<std::string> SequenceMedia::GetVideoFilePaths() const {
     return paths;
 }
 
+std::vector<std::string> SequenceMedia::GetShaderPaths() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::string> paths;
+    paths.reserve(_shaderCache.size());
+    for (const auto& p : _shaderCache) paths.push_back(p.first);
+    return paths;
+}
+
+std::vector<std::string> SequenceMedia::GetBinaryFilePaths() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::string> paths;
+    paths.reserve(_binaryCache.size());
+    for (const auto& p : _binaryCache) paths.push_back(p.first);
+    return paths;
+}
+
+std::vector<std::string> SequenceMedia::GetSVGPaths() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::string> paths;
+    paths.reserve(_svgCache.size());
+    for (const auto& p : _svgCache) paths.push_back(p.first);
+    return paths;
+}
+
+std::vector<std::string> SequenceMedia::GetTextFilePaths() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::string> paths;
+    paths.reserve(_textCache.size());
+    for (const auto& p : _textCache) paths.push_back(p.first);
+    return paths;
+}
+
+std::vector<std::string> SequenceMedia::GetAllBrokenMediaPaths() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::string> broken;
+    for (const auto& p : _imageCache) {
+        if (p.second && !p.second->IsOk()) broken.push_back(p.first);
+    }
+    for (const auto& p : _videoCache) {
+        if (p.second && !p.second->IsOk()) broken.push_back(p.first);
+    }
+    for (const auto& p : _shaderCache) {
+        if (p.second && !p.second->IsOk()) broken.push_back(p.first);
+    }
+    for (const auto& p : _binaryCache) {
+        if (p.second && !p.second->IsOk()) broken.push_back(p.first);
+    }
+    for (const auto& p : _svgCache) {
+        if (p.second && !p.second->IsOk()) broken.push_back(p.first);
+    }
+    for (const auto& p : _textCache) {
+        if (p.second && !p.second->IsOk()) broken.push_back(p.first);
+    }
+    return broken;
+}
+
 // =====================================================================
 // SequenceMedia — Generalized embed/extract
 // =====================================================================

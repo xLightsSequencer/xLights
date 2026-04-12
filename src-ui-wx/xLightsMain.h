@@ -631,6 +631,7 @@ public:
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
+    void OnMenuItem_ResolveMissingMediaSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
     void OnMenuItem_GenerateAIImage(wxCommandEvent& event);
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
@@ -803,6 +804,7 @@ public:
     static const wxWindowID ID_MENUITEM13;
     static const wxWindowID ID_MNU_CHECKSEQ;
     static const wxWindowID ID_MNU_CLEANUPFILE;
+    static const wxWindowID ID_MNU_RESOLVE_MISSING_MEDIA;
     static const wxWindowID ID_MNU_PACKAGESEQUENCE;
     static const wxWindowID ID_MNU_DOWNLOADSEQUENCES;
     static const wxWindowID ID_MENU_BATCH_RENDER;
@@ -1003,6 +1005,7 @@ public:
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItem_CleanupFileLocations;
+    wxMenuItem* MenuItem_ResolveMissingMedia;
     wxMenuItem* MenuItem_ColorReplace;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
