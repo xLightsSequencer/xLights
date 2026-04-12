@@ -34,6 +34,9 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "effects/VideoEffect.h"
+#include "media/VideoReader.h"
+#include "ui/sequencer/EffectsPanel.h"
+#include "ui/sequencer/MainSequencer.h"
 
 wxDEFINE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 
@@ -273,6 +276,13 @@ void VideoPanel::OnSelectClick(wxCommandEvent& /*event*/) {
     wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
                               _hiddenFilePicker->GetId(), ToWXString(selected));
     _hiddenFilePicker->ProcessWindowEvent(evt);
+
+    // Bulk edit: propagate to all other selected Video effects.
+    if (xl->GetMainSequencer() && xl->GetMainSequencer()->GetSelectedEffectCount("Video") > 1) {
+        std::string id = FixIdForPanel("Effect", _hiddenFilePicker->GetName().ToStdString());
+        xl->GetMainSequencer()->ApplyEffectSettingToSelected("Video", id + "_FN", selected, nullptr, "");
+    }
+
     FireChangeEvent();
 }
 
@@ -284,21 +294,47 @@ void VideoPanel::OnClearClick(wxCommandEvent& /*event*/) {
 }
 
 void VideoPanel::OnFilePickerChanged(wxFileDirPickerEvent& event) {
-    std::unique_lock<std::mutex> locker(_videoTimeLock);
     if (_hiddenFilePicker == nullptr) return;
     wxFileName fn = _hiddenFilePicker->GetFileName();
     ObtainAccessToURL(fn.GetFullPath().ToStdString());
-    auto cacheIt = _videoTimeCache.find(fn.GetFullPath().ToStdString());
-    if (cacheIt != _videoTimeCache.end() && cacheIt->second > 0) {
-        if (_startTimeSlider) _startTimeSlider->SetMax(cacheIt->second / 10);
-        if (_durationDisplay) _durationDisplay->SetValue(FORMATTIME(cacheIt->second));
+    std::string filepath = fn.GetFullPath().ToStdString();
+
+    // Check the duration cache first.
+    unsigned long durationMS = 0;
+    {
+        std::unique_lock<std::mutex> locker(_videoTimeLock);
+        auto cacheIt = _videoTimeCache.find(filepath);
+        if (cacheIt != _videoTimeCache.end())
+            durationMS = cacheIt->second;
+    }
+
+    if (durationMS == 0 && !filepath.empty()) {
+        // Cache miss: probe the video duration now via SequenceMedia so that
+        // relative paths are resolved correctly before handing off to VideoReader.
+        xLightsFrame* xl = dynamic_cast<xLightsFrame*>(xLightsApp::GetFrame());
+        if (xl) {
+            auto entry = xl->GetSequenceElements().GetSequenceMedia().GetVideo(filepath);
+            if (entry && !entry->GetResolvedPath().empty()) {
+                long len = VideoReader::GetVideoLength(entry->GetResolvedPath());
+                if (len > 0) {
+                    durationMS = (unsigned long)len;
+                    std::unique_lock<std::mutex> locker(_videoTimeLock);
+                    _videoTimeCache[filepath] = durationMS;
+                }
+            }
+        }
+    }
+
+    if (durationMS > 0) {
+        if (_startTimeSlider) _startTimeSlider->SetMax(durationMS / 10);
+        if (_durationDisplay) _durationDisplay->SetValue(FORMATTIME(durationMS));
     } else {
-        // Probe hasn't happened yet — give the slider enough headroom for
-        // the user to set a sensible start time before the real max comes in.
+        // Duration still unknown — give the slider enough headroom for the
+        // user to set a start time; the display shows 0 until we know better.
         if (_startTimeSlider) _startTimeSlider->SetMax(99999);
         if (_durationDisplay) _durationDisplay->SetValue(FORMATTIME(0));
     }
-    locker.unlock();
+
     UpdatePreview();
     event.Skip();
 }
