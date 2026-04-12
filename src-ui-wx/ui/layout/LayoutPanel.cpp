@@ -9012,7 +9012,8 @@ void LayoutPanel::RestoreFloatingPanes() {
     if (layout_mgr == nullptr || _savedFloatingPerspective.empty()) return;
     layout_mgr->LoadPerspective(_savedFloatingPerspective);
     // Reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelList").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models List");
+    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings");
+    layout_mgr->GetPane("ModelGroupSettings").CaptionVisible(false).Hide();
     layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings");
     layout_mgr->Update();
     _savedFloatingPerspective.clear();
