@@ -9,8 +9,7 @@
  **************************************************************/
 
  //(*InternalHeaders(LayoutPanel)
- #include <wx/stopwatch.h>
-#include <wx/button.h>
+ #include <wx/button.h>
  #include <wx/checkbox.h>
  #include <wx/choice.h>
  #include <wx/font.h>
@@ -448,6 +447,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel);
 	FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 1);
 	SetSizer(FlexGridSizerPreview);
+	FlexGridSizerPreview->SetSizeHints(this);
 
 	Connect(ID_NOTEBOOK_OBJECTS, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
 	Connect(ID_CHECKBOX_3D, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
