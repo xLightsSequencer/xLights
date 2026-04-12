@@ -2605,11 +2605,12 @@ bool xLightsFrame::PromptYesNoAll(const std::string& message,
 
     wxDialog dlg(const_cast<xLightsFrame*>(this), wxID_ANY, caption,
                  wxDefaultPosition, wxDefaultSize,
-                 wxDEFAULT_DIALOG_STYLE | wxCAPTION);
+                 wxDEFAULT_DIALOG_STYLE | wxCAPTION | wxRESIZE_BORDER);
 
     auto* outer = new wxBoxSizer(wxVERTICAL);
-    outer->Add(new wxStaticText(&dlg, wxID_ANY, message, wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE),
-               0, wxALL | wxEXPAND, 15);
+    auto* messageText = new wxStaticText(&dlg, wxID_ANY, message, wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
+    messageText->Wrap(500);
+    outer->Add(messageText, 0, wxALL | wxEXPAND, 15);
 
     auto* btnSizer = new wxStdDialogButtonSizer();
     auto* btnYes    = new wxButton(&dlg, wxID_YES,  "Yes");
