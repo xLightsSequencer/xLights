@@ -59,4 +59,5 @@ private:
 
     wxFilePickerCtrl* _hiddenSvgPicker = nullptr;
     MediaPickerCtrl* _svgMediaPicker = nullptr;
+    wxChoice* _audioTrackChoice = nullptr;
 };

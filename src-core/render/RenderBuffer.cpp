@@ -44,6 +44,9 @@ void RenderBuffer::SetFrameTimeInMs(int i) { frameTimeInMs = i; }
 
 AudioManager* RenderBuffer::GetMedia() const
 {
+	if (_mediaOverride != nullptr) {
+		return _mediaOverride;
+	}
 	if (renderContext == nullptr) {
 		return nullptr;
 	}

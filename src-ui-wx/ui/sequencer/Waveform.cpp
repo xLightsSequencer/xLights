@@ -58,6 +58,16 @@ const long Waveform::ID_WAVE_MNU_TREBLE = wxNewId();
 const long Waveform::ID_WAVE_MNU_CUSTOM = wxNewId();
 const long Waveform::ID_WAVE_MNU_NONVOCALS = wxNewId();
 const long Waveform::ID_WAVE_MNU_DOUBLEHEIGHT = wxNewId();
+// Reserve 32 IDs for audio track submenu items (base + 0..31)
+const long Waveform::ID_WAVE_MNU_AUDIO_TRACK_BASE = wxNewId();
+static long _audioTrackIdPool[32];
+static bool _audioTrackIdPoolInited = false;
+static void EnsureAudioTrackIds() {
+    if (!_audioTrackIdPoolInited) {
+        for (int i = 0; i < 32; i++) _audioTrackIdPool[i] = wxNewId();
+        _audioTrackIdPoolInited = true;
+    }
+}
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
@@ -192,6 +202,31 @@ void Waveform::rightClick(wxMouseEvent& event)
         mnuWave.AppendRadioItem(ID_WAVE_MNU_NONVOCALS, "Non Vocals waveform")->Check(_type == AUDIOSAMPLETYPE::NONVOCALS);
         mnuWave.AppendSeparator();
         mnuWave.AppendCheckItem(ID_WAVE_MNU_DOUBLEHEIGHT, "Double height waveform")->Check(_doubleHeight);
+
+        // Audio Track submenu
+        auto* frame = xLightsApp::GetFrame();
+        if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr &&
+            frame->CurrentSeqXmlFile->GetAltTrackCount() > 0) {
+            EnsureAudioTrackIds();
+            mnuWave.AppendSeparator();
+            wxMenu* trackMenu = new wxMenu();
+            // Main track
+            wxString mainLabel = "Main";
+            if (frame->CurrentSeqXmlFile->GetMedia() != nullptr) {
+                wxFileName fn(frame->CurrentSeqXmlFile->GetMedia()->FileName());
+                mainLabel = "Main  [" + fn.GetFullName() + "]";
+            }
+            trackMenu->AppendRadioItem(_audioTrackIdPool[0], mainLabel)->Check(_activeAudioTrackIndex == 0);
+            // Alt tracks
+            int altCount = frame->CurrentSeqXmlFile->GetAltTrackCount();
+            for (int i = 0; i < altCount && i + 1 < 32; i++) {
+                std::string dispName = frame->CurrentSeqXmlFile->GetAltTrackDisplayName(i);
+                wxFileName fn(frame->CurrentSeqXmlFile->GetAltTrack(i).path);
+                wxString label = wxString(dispName) + "  [" + fn.GetFullName() + "]";
+                trackMenu->AppendRadioItem(_audioTrackIdPool[i + 1], label)->Check(_activeAudioTrackIndex == i + 1);
+            }
+            mnuWave.AppendSubMenu(trackMenu, "Audio Track");
+        }
     }
     if (mnuWave.GetMenuItemCount() > 0) {
         mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& Waveform::OnGridPopup, nullptr, this);
@@ -232,6 +267,23 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         _type = AUDIOSAMPLETYPE::CUSTOM;
     } else if (id == ID_WAVE_MNU_DOUBLEHEIGHT) {
         _doubleHeight = !_doubleHeight;
+    } else {
+        // Check if this is an audio track selection
+        EnsureAudioTrackIds();
+        for (int i = 0; i < 32; i++) {
+            if (id == _audioTrackIdPool[i]) {
+                _activeAudioTrackIndex = i;
+                auto* frame = xLightsApp::GetFrame();
+                if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr) {
+                    wxString err;
+                    AudioManager* newMedia = (i == 0)
+                        ? frame->CurrentSeqXmlFile->GetMedia()
+                        : frame->CurrentSeqXmlFile->GetAltTrackMedia(i - 1);
+                    OpenfileMedia(newMedia, err);
+                }
+                return;
+            }
+        }
     }
 
     wxSetCursor(wxCURSOR_WAIT);

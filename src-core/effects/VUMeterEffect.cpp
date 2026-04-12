@@ -23,6 +23,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
+#include "../render/ValueCurve.h"
 #include "UtilClasses.h"
 #include "../models/Model.h"
 #include "../utils/FileUtils.h"
@@ -307,6 +308,11 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
 
 void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    // Resolve alternate audio track override
+    std::string audioTrack = SettingsMap.Get("CHOICE_VUMeter_AudioTrack", "");
+    if (audioTrack == "Main") audioTrack = "";
+    buffer._mediaOverride = audioTrack.empty() ? nullptr : ValueCurve::GetAltAudio(audioTrack);
+
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),

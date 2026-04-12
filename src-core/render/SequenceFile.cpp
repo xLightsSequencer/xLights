@@ -72,6 +72,11 @@ SequenceFile::~SequenceFile()
         delete audio;
         audio = nullptr;
     }
+    for (auto& t : alt_tracks) {
+        delete t.audio;
+        t.audio = nullptr;
+    }
+    alt_tracks.clear();
 }
 
 std::string SequenceFile::GetExt() const
@@ -219,6 +224,68 @@ void SequenceFile::ClearMediaFile()
     SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, "");
     SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, "");
     SetHeaderInfo(HEADER_INFO_TYPES::URL, "");
+}
+
+void SequenceFile::AddAltTrack(const std::string& ShowDir, const std::string& path, const std::string& shortname)
+{
+    AlternateAudioTrack t;
+    t.shortname = shortname;
+    t.path = FileUtils::FixFile(ShowDir, path);
+    if (::FileExists(t.path)) {
+        ObtainAccessToURL(t.path);
+        t.audio = new AudioManager(t.path, GetFrameMS());
+    }
+    alt_tracks.push_back(std::move(t));
+    ValueCurve::SetAltAudio(GetAltTrackDisplayName((int)alt_tracks.size() - 1), alt_tracks.back().audio);
+}
+
+void SequenceFile::RemoveAltTrack(int idx)
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return;
+    std::string displayName = GetAltTrackDisplayName(idx);
+    delete alt_tracks[idx].audio;
+    alt_tracks.erase(alt_tracks.begin() + idx);
+    // Rebuild alt audio map in ValueCurve
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+}
+
+void SequenceFile::SetAltTrackPath(const std::string& ShowDir, int idx, const std::string& path)
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return;
+    delete alt_tracks[idx].audio;
+    alt_tracks[idx].audio = nullptr;
+    alt_tracks[idx].path = FileUtils::FixFile(ShowDir, path);
+    if (::FileExists(alt_tracks[idx].path)) {
+        ObtainAccessToURL(alt_tracks[idx].path);
+        alt_tracks[idx].audio = new AudioManager(alt_tracks[idx].path, GetFrameMS());
+    }
+    // Rebuild ValueCurve alt audio map
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+}
+
+void SequenceFile::SetAltTrackShortname(int idx, const std::string& name)
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return;
+    std::string oldName = GetAltTrackDisplayName(idx);
+    alt_tracks[idx].shortname = name;
+    // Rebuild alt audio map since display name may have changed
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+}
+
+std::string SequenceFile::GetAltTrackDisplayName(int idx) const
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return "";
+    if (!alt_tracks[idx].shortname.empty()) return alt_tracks[idx].shortname;
+    return "Track" + std::to_string(idx + 1);
 }
 
 void SequenceFile::SetRenderMode(const std::string& mode)
@@ -396,6 +463,21 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
                             spdlog::error("LoadSequence: audio file does not exist.");
                         }
                     }
+                } else if (name == "altAudioTracks") {
+                    if (!ignore_audio) {
+                        for (auto track : element.children("track")) {
+                            std::string tpath = track.text().as_string("");
+                            std::string tsname = track.attribute("shortname").as_string("");
+                            AlternateAudioTrack t;
+                            t.shortname = tsname;
+                            t.path = FileUtils::FixFile(showDir, tpath);
+                            if (::FileExists(t.path)) {
+                                ObtainAccessToURL(t.path);
+                                t.audio = new AudioManager(t.path, GetFrameMS());
+                            }
+                            alt_tracks.push_back(std::move(t));
+                        }
+                    }
                 } else if (name == "sequenceDuration") {
                     SetSequenceDuration(content);
                 } else if (name == "imageDir") {
@@ -462,6 +544,12 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
         spdlog::debug("LoadSequence: audio manager creation done");
     } else {
         spdlog::info("LoadSequence: No Audio loaded.");
+    }
+
+    // Register alt audio tracks with ValueCurve
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
     }
 
     spdlog::info("LoadSequence: Sequence timing interval {}ms.", GetFrameMS());
@@ -1245,6 +1333,14 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
     head.append_child("sequenceTiming").text().set(seq_timing);
     head.append_child("sequenceType").text().set(seq_type);
     head.append_child("mediaFile").text().set(media_file);
+    if (!alt_tracks.empty()) {
+        auto altNode = head.append_child("altAudioTracks");
+        for (const auto& t : alt_tracks) {
+            auto trackNode = altNode.append_child("track");
+            trackNode.append_attribute("shortname") = t.shortname.c_str();
+            trackNode.text().set(t.path.c_str());
+        }
+    }
     head.append_child("sequenceDuration").text().set(GetSequenceDurationString());
     head.append_child("imageDir").text().set(image_dir);
 

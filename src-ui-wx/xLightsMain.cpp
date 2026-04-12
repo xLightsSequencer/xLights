@@ -2575,6 +2575,23 @@ AudioManager* xLightsFrame::GetCurrentMediaManager() const
     return CurrentSeqXmlFile->GetMedia();
 }
 
+AudioManager* xLightsFrame::GetPlaybackAudio() const
+{
+    if (CurrentSeqXmlFile == nullptr) {
+        return nullptr;
+    }
+    if (mainSequencer != nullptr) {
+        int trackIdx = mainSequencer->GetActiveAudioTrackIndex();
+        if (trackIdx > 0) {
+            AudioManager* alt = CurrentSeqXmlFile->GetAltTrackMedia(trackIdx - 1);
+            if (alt != nullptr) {
+                return alt;
+            }
+        }
+    }
+    return CurrentSeqXmlFile->GetMedia();
+}
+
 const std::string& xLightsFrame::GetHeaderInfo(HEADER_INFO_TYPES type) const
 {
     static const std::string empty;

@@ -22,6 +22,8 @@
 #include <wx/filedlg.h>
 #include <wx/treectrl.h>
 #include <wx/dir.h>
+#include <wx/listctrl.h>
+#include <wx/textdlg.h>
 
 #include <list>
 
@@ -134,6 +136,13 @@ const long SeqSettingsDialog::ID_BUTTON_import_timings = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_wizard_done = wxNewId();
 const long SeqSettingsDialog::ID_CHOICE_Models = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_models_next = wxNewId();
+
+const long SeqSettingsDialog::ID_PANEL_Audio = wxNewId();
+const long SeqSettingsDialog::ID_LISTCTRL_AudioTracks = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_AudioAdd = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_AudioRemove = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_AudioChangeFile = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_AudioEditShortname = wxNewId();
 
 
 wxDEFINE_EVENT(EVT_GRID_ROW_CLICKED, wxCommandEvent);
@@ -488,6 +497,59 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
         GetSizer()->SetSizeHints(this);
     }
 
+    // Audio Tracks tab — added programmatically (not wxSmith-generated), only in non-wizard mode
+    if (!wizard_active) {
+        PanelAudio = new wxPanel(Notebook_Seq_Settings, ID_PANEL_Audio, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+        wxFlexGridSizer* audioSizer = new wxFlexGridSizer(0, 1, 0, 0);
+        audioSizer->AddGrowableCol(0);
+        audioSizer->AddGrowableRow(0);
+
+        ListCtrl_AudioTracks = new wxListCtrl(PanelAudio, ID_LISTCTRL_AudioTracks,
+                                              wxDefaultPosition, wxDLG_UNIT(PanelAudio, wxSize(400, 120)),
+                                              wxLC_REPORT | wxLC_SINGLE_SEL | wxBORDER_SIMPLE);
+        ListCtrl_AudioTracks->AppendColumn(_("Track"), wxLIST_FORMAT_LEFT, wxDLG_UNIT(PanelAudio, wxSize(80, -1)).GetWidth());
+        ListCtrl_AudioTracks->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, wxDLG_UNIT(PanelAudio, wxSize(280, -1)).GetWidth());
+        audioSizer->Add(ListCtrl_AudioTracks, 1, wxALL | wxEXPAND, 5);
+
+        wxFlexGridSizer* audioBtnSizer = new wxFlexGridSizer(0, 4, 0, 0);
+        Button_AudioAdd = new wxButton(PanelAudio, ID_BUTTON_AudioAdd, _("Add"));
+        Button_AudioRemove = new wxButton(PanelAudio, ID_BUTTON_AudioRemove, _("Remove"));
+        Button_AudioRemove->Disable();
+        Button_AudioChangeFile = new wxButton(PanelAudio, ID_BUTTON_AudioChangeFile, _("Change File"));
+        Button_AudioChangeFile->Disable();
+        Button_AudioEditShortname = new wxButton(PanelAudio, ID_BUTTON_AudioEditShortname, _("Edit Name"));
+        Button_AudioEditShortname->Disable();
+        audioBtnSizer->Add(Button_AudioAdd, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+        audioBtnSizer->Add(Button_AudioRemove, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+        audioBtnSizer->Add(Button_AudioChangeFile, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+        audioBtnSizer->Add(Button_AudioEditShortname, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+        audioSizer->Add(audioBtnSizer, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+        PanelAudio->SetSizer(audioSizer);
+        Notebook_Seq_Settings->AddPage(PanelAudio, _("Audio Tracks"), false);
+
+        // Wire up Audio Tracks tab events
+        Button_AudioAdd->Bind(wxEVT_BUTTON, &SeqSettingsDialog::OnButton_AudioAddClick, this);
+        Button_AudioRemove->Bind(wxEVT_BUTTON, &SeqSettingsDialog::OnButton_AudioRemoveClick, this);
+        Button_AudioChangeFile->Bind(wxEVT_BUTTON, &SeqSettingsDialog::OnButton_AudioChangeFileClick, this);
+        Button_AudioEditShortname->Bind(wxEVT_BUTTON, &SeqSettingsDialog::OnButton_AudioEditShortnameClick, this);
+        ListCtrl_AudioTracks->Bind(wxEVT_LIST_ITEM_ACTIVATED, &SeqSettingsDialog::OnListCtrl_AudioTracksActivated, this);
+        ListCtrl_AudioTracks->Bind(wxEVT_LIST_ITEM_SELECTED, [this](wxListEvent& evt) {
+            long sel = ListCtrl_AudioTracks->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+            bool isAlt = (sel > 0);
+            Button_AudioRemove->Enable(isAlt);
+            Button_AudioChangeFile->Enable(isAlt);
+            Button_AudioEditShortname->Enable(sel >= 0);
+            evt.Skip();
+        });
+        ListCtrl_AudioTracks->Bind(wxEVT_LIST_ITEM_DESELECTED, [this](wxListEvent& evt) {
+            Button_AudioRemove->Disable();
+            Button_AudioChangeFile->Disable();
+            Button_AudioEditShortname->Disable();
+            evt.Skip();
+        });
+    }
+
     TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
 
     TreeCtrl_Data_Layers->AddRoot("Layers to Render");
@@ -568,6 +630,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     TreeCtrl_Data_Layers->Expand(root);
 
     RenderModeChoice->SetStringSelection(xml_file->GetRenderMode());
+    PopulateAudioTrackList();
 
     if (!defaultView.IsEmpty()) {
         if (xLightsParent->GetViewsManager()->GetViewIndex(defaultView) != -1) {
@@ -2214,4 +2277,116 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
     } else {
         wxMessageBox("Audio file created successfully, " + targetFile.GetFullPath() + " Please choose the new media file for your sequence.");
     }
+}
+
+// ---------------------------------------------------------------------------
+// Audio Tracks tab
+// ---------------------------------------------------------------------------
+
+void SeqSettingsDialog::PopulateAudioTrackList()
+{
+    if (ListCtrl_AudioTracks == nullptr) return;
+
+    ListCtrl_AudioTracks->DeleteAllItems();
+
+    // Row 0: main track (always present)
+    {
+        wxListItem item;
+        item.SetId(0);
+        item.SetText(_("Main"));
+        ListCtrl_AudioTracks->InsertItem(item);
+        std::string mainPath = xml_file->GetMedia() ? xml_file->GetMedia()->FileName() : xml_file->GetMediaFile();
+        ListCtrl_AudioTracks->SetItem(0, 1, mainPath.empty() ? _("(none)") : wxString(mainPath));
+    }
+
+    // Alt tracks
+    for (int i = 0; i < xml_file->GetAltTrackCount(); i++) {
+        const AlternateAudioTrack& t = xml_file->GetAltTrack(i);
+        wxString displayName = xml_file->GetAltTrackDisplayName(i);
+        long row = ListCtrl_AudioTracks->InsertItem(i + 1, displayName);
+        wxString pathLabel = t.path.empty() ? _("(not found)") : wxString(t.path);
+        if (t.audio == nullptr && !t.path.empty()) pathLabel = wxString("\u26A0 ") + pathLabel;
+        ListCtrl_AudioTracks->SetItem(row, 1, pathLabel);
+        ListCtrl_AudioTracks->SetItemData(row, i + 1);
+    }
+
+    Button_AudioRemove->Disable();
+    Button_AudioChangeFile->Disable();
+    Button_AudioEditShortname->Disable();
+}
+
+void SeqSettingsDialog::OnButton_AudioAddClick(wxCommandEvent& /*event*/)
+{
+    wxString filter = _("Audio Files|*.mp3;*.ogg;*.flac;*.wav;*.m4a;*.aac;*.wma;*.aiff;*.aif|All Files|*.*");
+    wxString startDir = xLightsParent ? wxString(xLightsParent->GetShowDirectory()) : wxString{};
+    wxFileDialog dlg(this, _("Choose Audio File"), startDir, wxEmptyString, filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    wxString path = dlg.GetPath();
+    ObtainAccessToURL(path.ToStdString());
+    std::string showDir = xLightsParent ? xLightsParent->GetShowDirectory() : std::string{};
+    xml_file->AddAltTrack(showDir, path.ToStdString());
+    PopulateAudioTrackList();
+}
+
+void SeqSettingsDialog::OnButton_AudioRemoveClick(wxCommandEvent& /*event*/)
+{
+    long sel = ListCtrl_AudioTracks->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if (sel <= 0) return; // row 0 is Main, not removable
+    int idx = (int)sel - 1;
+    xml_file->RemoveAltTrack(idx);
+    PopulateAudioTrackList();
+}
+
+void SeqSettingsDialog::OnButton_AudioChangeFileClick(wxCommandEvent& /*event*/)
+{
+    long sel = ListCtrl_AudioTracks->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if (sel <= 0) return;
+    int idx = (int)sel - 1;
+
+    wxString filter = _("Audio Files|*.mp3;*.ogg;*.flac;*.wav;*.m4a;*.aac;*.wma;*.aiff;*.aif|All Files|*.*");
+    wxString startDir = xLightsParent ? wxString(xLightsParent->GetShowDirectory()) : wxString{};
+    wxFileDialog dlg(this, _("Choose Audio File"), startDir, wxEmptyString, filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    wxString newPath = dlg.GetPath();
+    ObtainAccessToURL(newPath.ToStdString());
+    std::string showDir = xLightsParent ? xLightsParent->GetShowDirectory() : std::string{};
+    xml_file->SetAltTrackPath(showDir, idx, newPath.ToStdString());
+    PopulateAudioTrackList();
+}
+
+void SeqSettingsDialog::OnButton_AudioEditShortnameClick(wxCommandEvent& /*event*/)
+{
+    long sel = ListCtrl_AudioTracks->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if (sel < 0) return;
+
+    if (sel == 0) {
+        // Main track: no shortname to edit
+        wxMessageBox(_("The main track label cannot be changed."), _("Audio Tracks"), wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    int idx = (int)sel - 1;
+    wxString current = xml_file->GetAltTrack(idx).shortname;
+    wxTextEntryDialog dlg(this, _("Enter a short name for this track (leave empty for auto-name):"),
+                          _("Edit Track Name"), current);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    xml_file->SetAltTrackShortname(idx, dlg.GetValue().ToStdString());
+    PopulateAudioTrackList();
+}
+
+void SeqSettingsDialog::OnListCtrl_AudioTracksActivated(wxListEvent& event)
+{
+    // Double-click → edit shortname
+    long sel = event.GetIndex();
+    if (sel < 0) return;
+    wxCommandEvent dummy;
+    if (sel == 0) {
+        // For Main row activation, allow browsing for a new main media file
+        MediaChooser();
+        return;
+    }
+    OnButton_AudioEditShortnameClick(dummy);
 }
