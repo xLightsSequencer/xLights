@@ -204,14 +204,13 @@ public:
         // Enforce the minimum heights for the two docked panes using the public
         // wxAUI pane API instead of relying on wxAuiManager drag internals or
         // mutating wxMouseEvent state.
-        static const int kMinH = 400;
         wxAuiPaneInfo& listPane = GetPane("ModelList");
         wxAuiPaneInfo& settingsPane = GetPane("ModelSettings");
         if (listPane.IsOk() && settingsPane.IsOk() &&
             !listPane.IsFloating() && !settingsPane.IsFloating() &&
             listPane.IsShown() && settingsPane.IsShown()) {
-            listPane.MinSize(wxSize(-1, kMinH));
-            settingsPane.MinSize(wxSize(-1, kMinH));
+            listPane.MinSize(wxSize(-1, kPaneMinHeight));
+            settingsPane.MinSize(wxSize(-1, kPaneMinHeight));
         }
 
         event.Skip();
