@@ -179,6 +179,13 @@ public:
             int dy = std::abs(event.GetY() - m_centerDragStart.y);
             int tx = wxSystemSettings::GetMetric(wxSYS_DRAG_X, GetManagedWindow());
             int ty = wxSystemSettings::GetMetric(wxSYS_DRAG_Y, GetManagedWindow());
+            static const int kDefaultDragThreshold = 4;
+            if (tx < 0) {
+                tx = kDefaultDragThreshold;
+            }
+            if (ty < 0) {
+                ty = kDefaultDragThreshold;
+            }
             if (dx > tx || dy > ty) {
                 m_pendingCenterDrag = false;
                 wxWindow* wnd = m_centerDragWindow;
