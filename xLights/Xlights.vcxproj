@@ -163,7 +163,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj</AdditionalOptions>
       <ExceptionHandling>Async</ExceptionHandling>
-      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4267;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
