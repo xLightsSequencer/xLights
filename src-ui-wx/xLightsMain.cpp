@@ -9105,7 +9105,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     std::string urlVersion;
     for (int x = 0; x < (int)val.size() && downloadURL.empty(); x++) {
         if (val[x].contains("name")) {
-            std::string verName = val[x]["name"].get<std::string>();
+            std::string verName = val[x].contains("tag_name") ? val[x]["tag_name"].get<std::string>() : val[x]["name"].get<std::string>();
             if (verName != "nightly" && val[x].contains("assets")) {
                 // not a nightly, so check if it has the needed asses
                 for (int a = 0 ; a < (int)val[x]["assets"].size(); a++) {
