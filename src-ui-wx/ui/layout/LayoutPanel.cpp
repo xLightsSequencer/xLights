@@ -32,7 +32,6 @@
 #include <wx/srchctrl.h>
 #include <pugixml.hpp>
 #include <fstream>
-#include <format>
 #include <functional>
 #include <spdlog/fmt/fmt.h>
 #include <regex>
