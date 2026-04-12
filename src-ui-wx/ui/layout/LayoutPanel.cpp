@@ -211,7 +211,6 @@ public:
             listPane.IsShown() && settingsPane.IsShown()) {
             listPane.MinSize(wxSize(-1, kPaneMinHeight));
             settingsPane.MinSize(wxSize(-1, kPaneMinHeight));
-        }
 
         event.Skip();
     }
