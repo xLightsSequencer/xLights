@@ -268,10 +268,10 @@ void VideoPanel::OnSelectClick(wxCommandEvent& /*event*/) {
     std::string selected = dlg.GetSelectedPath();
     if (selected.empty()) return;
 
-    _hiddenFilePicker->SetFileName(wxFileName(selected));
+    _hiddenFilePicker->SetFileName(wxFileName(ToWXString(selected)));
     // Manually fire the file picker change to trigger probe + preview update.
     wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
-                              _hiddenFilePicker->GetId(), selected);
+                              _hiddenFilePicker->GetId(), ToWXString(selected));
     _hiddenFilePicker->ProcessWindowEvent(evt);
     FireChangeEvent();
 }

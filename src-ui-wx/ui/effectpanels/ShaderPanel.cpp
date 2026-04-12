@@ -260,9 +260,9 @@ void ShaderPanel::OnSelectClicked(wxCommandEvent& /*event*/) {
     std::string selected = dlg.GetSelectedPath();
     if (selected.empty()) return;
 
-    _hiddenFilePicker->SetFileName(wxFileName(selected));
+    _hiddenFilePicker->SetFileName(wxFileName(ToWXString(selected)));
     wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
-                             _hiddenFilePicker->GetId(), selected);
+                             _hiddenFilePicker->GetId(), ToWXString(selected));
     // Dispatch on the picker itself — OnFilePickerChanged is Bind()'d to
     // _hiddenFilePicker, so the event must be processed through the picker's
     // handler chain. Processing on `this` walks ShaderPanel's handlers then

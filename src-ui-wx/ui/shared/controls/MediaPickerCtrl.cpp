@@ -111,12 +111,12 @@ void MediaPickerCtrl::OnSelectClick(wxCommandEvent& event) {
     std::string selected = dlg.GetSelectedPath();
     if (selected.empty()) return;
 
-    _pathCtrl->SetValue(selected);
+    _pathCtrl->SetValue(ToWXString(selected));
     UpdatePreview();
 
     // Sync to linked file picker (for bulk edit framework compatibility)
     if (_linkedPicker) {
-        _linkedPicker->SetPath(selected);
+        _linkedPicker->SetPath(ToWXString(selected));
         wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _linkedPicker,
                                  _linkedPicker->GetId(), selected);
         _linkedPicker->ProcessWindowEvent(evt);
