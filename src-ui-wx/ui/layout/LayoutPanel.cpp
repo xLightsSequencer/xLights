@@ -771,10 +771,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ModelSplitter->Destroy();
     ModelSplitter = nullptr;
 
-    layout_mgr = new LayoutAuiManager(ModelPanelContainer, wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_DEFAULT);
-    static_cast<LayoutAuiManager*>(layout_mgr)->m_onPaneStateChanged = [this]() {
+    LayoutAuiManager* new_layout_mgr = new LayoutAuiManager(ModelPanelContainer, wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_DEFAULT);
+    new_layout_mgr->m_onPaneStateChanged = [this]() {
         UpdateLayoutSplitter();
     };
+    layout_mgr = new_layout_mgr;
     ModelPanelContainer->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
 
     FirstPanel->SetMinSize(wxSize(0, kPaneMinHeight));
