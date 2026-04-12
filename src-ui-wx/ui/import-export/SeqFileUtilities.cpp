@@ -106,7 +106,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     }
 
     // assign global xml file object
-    CurrentSeqXmlFile = new SequenceFile(CurrentDir.ToStdString(), frameMS);
+    CurrentSeqXmlFile = new SequenceFile(ToStdString(CurrentDir), frameMS);
 
     if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
@@ -258,7 +258,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     } else {
         filename = passed_filename;
     }
-    spdlog::debug("Opening File: {}", filename.ToStdString());
+    spdlog::debug("Opening File: {}", ToStdString(filename));
     if (!filename.empty()) {
         if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains(XLIGHTS_KEYBINDING_FILE)) {
             wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
@@ -345,7 +345,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 // no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
                 if (FileExists(fseq_file_SEQ_fold)) {
                     // if found, move file to fseq folder
-                    spdlog::debug("Moving FSEQ File: '{}' to '{}'", fseq_file_SEQ_fold.GetPath().ToStdString(), fseq_file.GetPath().ToStdString());
+                    spdlog::debug("Moving FSEQ File: '{}' to '{}'", ToStdString(fseq_file_SEQ_fold.GetPath()), ToStdString(fseq_file.GetPath()));
                     wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
                 }
             } else {
@@ -354,7 +354,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 // TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
                 if (FileExists(fseq_file_SEQ_fold)) {
                     // remove FSEQ file next to seg file
-                    spdlog::debug("Deleting old FSEQ File: '{}'", fseq_file_SEQ_fold.GetPath().ToStdString());
+                    spdlog::debug("Deleting old FSEQ File: '{}'", ToStdString(fseq_file_SEQ_fold.GetPath()));
                     wxRemoveFile(fseq_file_SEQ_fold.GetFullPath()); //
                 }
             }
@@ -394,7 +394,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             spdlog::debug("        Frames {}", _seqData.NumFrames());
             spdlog::debug("        Length {}", _seqData.TotalTime());
         } else {
-            spdlog::debug("Could not Find FSEQ File at: '{}'", fseq_file.GetFullPath().ToStdString());
+            spdlog::debug("Could not Find FSEQ File at: '{}'", ToStdString(fseq_file.GetFullPath()));
         }
         
         wxFileName realPath = rp;
@@ -403,10 +403,10 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         }
 
         // assign global xml file object
-        CurrentSeqXmlFile = new SequenceFile(xml_file.GetFullPath().ToStdString());
+        CurrentSeqXmlFile = new SequenceFile(ToStdString(xml_file.GetFullPath()));
 
         // open the xml file so we can see if it has media
-        auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath.GetFullPath().ToStdString());
+        auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, ToStdString(realPath.GetFullPath()));
 
         // Check if sequence was created with a very old version of xLights
         if (loadDoc.has_value() && !CurrentSeqXmlFile->GetVersion().empty() &&

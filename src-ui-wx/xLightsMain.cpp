@@ -2600,7 +2600,7 @@ std::string xLightsFrame::PromptForDirectory(const std::string& message,
                                              const std::string& defaultPath) const {
     wxDirDialog dlg(nullptr, message, defaultPath);
     if (dlg.ShowModal() == wxID_OK) {
-        return dlg.GetPath().ToStdString();
+        return ToStdString(dlg.GetPath());
     }
     return {};
 }
@@ -2610,7 +2610,7 @@ std::string xLightsFrame::PromptForFile(const std::string& message,
                                         const std::string& defaultPath) const {
     wxString result = wxFileSelector(message, defaultPath, wxEmptyString,
                                      wxEmptyString, wildcard, wxFD_OPEN);
-    return result.ToStdString();
+    return ToStdString(result);
 }
 
 long xLightsFrame::PromptForNumber(const std::string& message,
@@ -10606,7 +10606,7 @@ bool xLightsFrame::IsDockable(const std::string& panel)
 
 void xLightsFrame::SetBaseShowDir(const wxString& baseShowDir)
 {
-    _outputManager.SetBaseShowDir(baseShowDir);
+    _outputManager.SetBaseShowDir(ToStdString(baseShowDir));
     if (baseShowDir == "") {
         StaticText_BaseShowDir->SetLabel("No base show directory");
     } else {

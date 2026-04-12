@@ -834,7 +834,7 @@ FPPConnectDialog::~FPPConnectDialog()
 void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    spdlog::info("Scanning folder for sequences for FPP upload: {}", dir.ToStdString());
+    spdlog::info("Scanning folder for sequences for FPP upload: {}", ToUTF8(dir));
 
     wxDir directory;
     directory.Open(dir);
@@ -851,7 +851,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
             && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
             && FileExists(filename)) {
             // Quick scan of first few KB to detect xLights sequence and media file
-            XsqFileInfo info = ScanXsqFile(filename.ToStdString());
+            XsqFileInfo info = ScanXsqFile(ToUTF8(filename));
             bool isSequence = info.isSequence;
             std::string mediaName = info.mediaFile;
 
@@ -880,7 +880,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
                         }
                     }
                     if (!FileExists(mediaName)) {
-                        std::string fixedMN = FileUtils::FixFile(frame->CurrentDir.ToStdString(), mediaName);
+                        std::string fixedMN = FileUtils::FixFile(ToUTF8(frame->CurrentDir), mediaName);
                         if (!FileExists(fixedMN)) {
                             spdlog::info("Could not find media: {} ", mediaName.c_str());
                             mediaName = "";
@@ -989,7 +989,7 @@ void FPPConnectDialog::LoadSequences()
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
             DisplayPixelCount(v, item);
-            FSEQFile *file = FSEQFile::openFSEQFile(v.ToStdString());
+            FSEQFile *file = FSEQFile::openFSEQFile(ToUTF8(v));
             if (file != nullptr) {
                 for (auto& header : file->getVariableHeaders()) {
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
@@ -1211,7 +1211,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
 
-            FSEQFile *seq = FSEQFile::openFSEQFile(fseqRaw.ToStdString());
+            FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
             if (seq) {
                 prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
                 row = 0;
@@ -1703,7 +1703,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Find FPP Instance", "Enter IP address or hostname for FPP Instance");
-    if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
+    if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(ToStdString(dlg.GetValue()))) {
         std::string ipAd = ToStdString(dlg.GetValue());
         int curSize = instances.size();
 

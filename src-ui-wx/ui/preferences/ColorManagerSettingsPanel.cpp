@@ -204,7 +204,7 @@ void ColorManagerSettingsPanel::OnButtonImportClick(wxCommandEvent& event) {
     wxFileDialog dlg(this, "Import Theme", wxEmptyString, "Colors", "Theme Files (*.xtheme)|*.xtheme|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
         pugi::xml_document themeXml;
-        pugi::xml_parse_result result = themeXml.load_file(dlg.GetPath().ToStdString().c_str());
+        pugi::xml_parse_result result = themeXml.load_file(ToStdString(dlg.GetPath()).c_str());
         if (result) {
             pugi::xml_node root = themeXml.document_element();
             if (std::string_view(root.name()) == "theme") {
@@ -226,7 +226,7 @@ void ColorManagerSettingsPanel::OnButtonExportClick(wxCommandEvent& event) {
         pugi::xml_node root = themeXml.append_child("theme");
         XmlSerializingVisitor v{root};
         frame->color_mgr.Save(v);
-        themeXml.save_file(dlg.GetPath().ToStdString().c_str());
+        themeXml.save_file(ToStdString(dlg.GetPath()).c_str());
     }
 }
 void ColorManagerSettingsPanel::OnButton_ResetClick(wxCommandEvent& event) {

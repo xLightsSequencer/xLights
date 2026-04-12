@@ -1611,7 +1611,7 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
 
 void SeqSettingsDialog::MediaLoad(const wxString& filename)
 {
-    xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), filename, CheckBox_Overwrite_Tags->IsChecked());
+    xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), ToStdString(filename), CheckBox_Overwrite_Tags->IsChecked());
     TextCtrl_Xml_Media_File->SetValue(filename);
     TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::SONG));
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));

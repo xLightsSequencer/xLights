@@ -11,6 +11,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
+#include "ui/shared/utils/wxUtilities.h"
 #include "ImageObjectPropertyAdapter.h"
 #include "models/ImageObject.h"
 #include "utils/ExternalHooks.h"
@@ -39,7 +40,7 @@ void ImageObjectPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid
 int ImageObjectPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("Image" == event.GetPropertyName()) {
         _image.ClearImages();
-        std::string imageFile = event.GetValue().GetString().ToStdString();
+        std::string imageFile = ToStdString(event.GetValue().GetString());
         _image.SetImageFileDirect(imageFile);
         ObtainAccessToURL(imageFile);
         _image.IncrementChangeCount();

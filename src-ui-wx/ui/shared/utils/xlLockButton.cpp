@@ -32,7 +32,6 @@ xlLockButton::xlLockButton(wxWindow *parent, wxWindowID id, const wxBitmapBundle
                            const wxString &name)
 : xlSizedBitmapButton(parent, id, BitmapCache::GetLockIcon(false), pos, size, style, validator, name)
 {
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
     SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 }
 

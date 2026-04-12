@@ -1242,7 +1242,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     wxFile f(filename);
                     spdlog::info("Saving to xtiming file {}.", (const char*)filename.c_str());
                     if (!f.Create(filename, true) || !f.IsOpened()) {
-                        DisplayError(wxString::Format("Unable to create file %s. Error %d", filename, f.GetLastError()).ToStdString());
+                        DisplayError(ToStdString(wxString::Format("Unable to create file %s. Error %d", filename, f.GetLastError())));
                         return;
                     }
                     wxString v = xlights_version_string;
@@ -1252,7 +1252,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     }
                     for (size_t i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++) {
                         if (dlg.CheckListBox_Timings->IsChecked(i)) {
-                            TimingElement* tee = dynamic_cast<TimingElement*>(mSequenceElements->GetElement(dlg.CheckListBox_Timings->GetString(i).ToStdString()));
+                            TimingElement* tee = dynamic_cast<TimingElement*>(mSequenceElements->GetElement(ToStdString(dlg.CheckListBox_Timings->GetString(i))));
 
                             wxString td = wxString(tee->GetExport().c_str());
                             f.Write("<timing ");
@@ -1273,7 +1273,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxFile f(filename);
             spdlog::info("Saving to papagayo file {}.", (const char*)filename.c_str());
             if (!f.Create(filename, true) || !f.IsOpened()) {
-                DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+                DisplayError(ToStdString(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError())));
                 return;
             }
             wxString td = wxString(te->GetPapagayoExport(mSequenceElements->GetFrequency()).c_str());

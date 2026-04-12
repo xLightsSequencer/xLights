@@ -199,7 +199,6 @@ wxWindow* TimingPanel::BuildLayerMorphRow(wxWindow* parentWin, wxSizer* sizer) {
                                       wxDefaultPosition, wxSize(14, 14),
                                       wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                       _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
-    _layerMixLock->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
     _layerMixLock->SetToolTip("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value.");
     _layerMixLock->Bind(wxEVT_BUTTON, &TimingPanel::OnLockButtonClick, this);
     row->Add(_layerMixLock, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
@@ -210,7 +209,6 @@ wxWindow* TimingPanel::BuildLayerMorphRow(wxWindow* parentWin, wxSizer* sizer) {
                                                         wxDefaultPosition, wxSize(14, 14),
                                                         wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                         _T("ID_BITMAPBUTTON_CHECKBOX_LayerMorph"));
-    BitmapButton_CheckBox_LayerMorph->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
     BitmapButton_CheckBox_LayerMorph->Hide(); // legacy kept it on the row but it's rarely visible
     BitmapButton_CheckBox_LayerMorph->Bind(wxEVT_BUTTON, &TimingPanel::OnLockButtonClick, this);
 
