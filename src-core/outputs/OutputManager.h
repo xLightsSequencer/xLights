@@ -23,6 +23,7 @@ class Output;
 class Controller;
 class TestPreset;
 class Controller;
+class UICallbacks;
 class ControllerEthernet;
 
 #define NETWORKSFILE "xlights_networks.xml";
@@ -121,7 +122,7 @@ public:
             _dirty = true;
         }
     }
-    bool MergeFromBase(bool prompt);
+    bool MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui = nullptr);
     #pragma endregion 
 
     #pragma region Controller Management

@@ -28,6 +28,7 @@
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
+#include "render/UICallbacks.h"
 #include <cassert>
 #include <cstdlib>
 #include <spdlog/fmt/fmt.h>
@@ -337,7 +338,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
-bool OutputManager::MergeFromBase(bool prompt)
+bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui)
 {
     bool changed = false;
 
@@ -369,7 +370,12 @@ bool OutputManager::MergeFromBase(bool prompt)
 
                     bool force = false;
                     if (prompt && !it->IsFromBase()) {
-                        force = Confirm(fmt::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash");
+                        if (ui) {
+                            force = ui->PromptYesNoAll(fmt::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()),
+                                                      "Controller clash", acceptAll, rejectAll);
+                        } else {
+                            force = Confirm(fmt::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash");
+                        }
                     }
 
                     // we only update if controller originally came from base

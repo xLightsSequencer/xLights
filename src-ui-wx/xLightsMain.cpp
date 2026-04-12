@@ -2596,6 +2596,46 @@ bool xLightsFrame::PromptYesNo(const std::string& message,
     return wxMessageBox(message, caption, wxYES_NO | wxICON_QUESTION) == wxYES;
 }
 
+bool xLightsFrame::PromptYesNoAll(const std::string& message,
+                                   const std::string& caption,
+                                   bool& acceptAll,
+                                   bool& rejectAll) const {
+    if (acceptAll) return true;
+    if (rejectAll) return false;
+
+    wxDialog dlg(const_cast<xLightsFrame*>(this), wxID_ANY, caption,
+                 wxDefaultPosition, wxDefaultSize,
+                 wxDEFAULT_DIALOG_STYLE | wxCAPTION);
+
+    auto* outer = new wxBoxSizer(wxVERTICAL);
+    outer->Add(new wxStaticText(&dlg, wxID_ANY, message, wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE),
+               0, wxALL | wxEXPAND, 15);
+
+    auto* btnSizer = new wxStdDialogButtonSizer();
+    auto* btnYes    = new wxButton(&dlg, wxID_YES,  "Yes");
+    auto* btnYesAll = new wxButton(&dlg, wxID_ANY,  "Yes to All");
+    auto* btnNo     = new wxButton(&dlg, wxID_NO,   "No");
+    auto* btnNoAll  = new wxButton(&dlg, wxID_ANY,  "No to All");
+    btnSizer->Add(btnYes,    0, wxALL, 4);
+    btnSizer->Add(btnYesAll, 0, wxALL, 4);
+    btnSizer->Add(btnNo,     0, wxALL, 4);
+    btnSizer->Add(btnNoAll,  0, wxALL, 4);
+    btnSizer->Realize();
+    outer->Add(btnSizer, 0, wxALIGN_CENTER | wxBOTTOM, 10);
+
+    dlg.SetSizerAndFit(outer);
+    dlg.CenterOnParent();
+
+    int result = wxID_NO;
+    btnYes->Bind(wxEVT_BUTTON,    [&](wxCommandEvent&) { result = wxID_YES; dlg.EndModal(wxID_OK); });
+    btnYesAll->Bind(wxEVT_BUTTON, [&](wxCommandEvent&) { result = wxID_YES; acceptAll = true; dlg.EndModal(wxID_OK); });
+    btnNo->Bind(wxEVT_BUTTON,     [&](wxCommandEvent&) { result = wxID_NO;  dlg.EndModal(wxID_OK); });
+    btnNoAll->Bind(wxEVT_BUTTON,  [&](wxCommandEvent&) { result = wxID_NO;  rejectAll = true; dlg.EndModal(wxID_OK); });
+
+    dlg.ShowModal();
+    return result == wxID_YES;
+}
+
 std::string xLightsFrame::PromptForDirectory(const std::string& message,
                                              const std::string& defaultPath) const {
     wxDirDialog dlg(nullptr, message, defaultPath);
@@ -10661,8 +10701,14 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         ObtainAccessToURL(_outputManager.GetBaseShowDir());
     }
 
+    // Shared accept-all / reject-all state threaded across all three merge passes so that
+    // "Yes to All" or "No to All" chosen during controller prompts also suppresses the
+    // subsequent model and object prompts (and vice-versa).
+    bool mergeAcceptAll = false;
+    bool mergeRejectAll = false;
+
     // bring in any controllers overwriting some of their properties ... but not all of them
-    if (_outputManager.MergeFromBase(prompt)) {
+    if (_outputManager.MergeFromBase(prompt, mergeAcceptAll, mergeRejectAll, this)) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "UpdateFromBaseShowFolder-controller");
@@ -10672,7 +10718,7 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 
     // bring in any models ... overwriting any with the same name
     // bring in any model groups ... again overwriting any ... the models in the group should be a merge and deduplication
-    if (AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt)) {
+    if (AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll)) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "UpdateFromBaseShowFolder-model");
@@ -10682,7 +10728,7 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder-model");
     }
 
-    if (AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt))
+    if (AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll))
     {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-object");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-object");
