@@ -122,6 +122,11 @@ inline wxCursor CursorTypeToWx(CursorType ct) {
 
 #include <set>
 
+// Layout sizing constants
+static constexpr int kPaneMinHeight     = 400; // minimum height for ModelList / ModelSettings panes
+static constexpr int kLeftPanelMinWidth = 600; // minimum sash position / width of the left panel
+static constexpr int kListHeightFallback = 200; // fallback half-height used when container is hidden
+
 // Custom AUI manager with two enhancements:
 // 1. Floating frames always have wxCLOSE_BOX, regardless of pane CloseButton flag
 //    (lets us suppress the AUI caption close button while keeping the OS X button).
@@ -209,7 +214,7 @@ public:
                     !listPane.IsFloating() && !settingsPane.IsFloating() &&
                     listPane.IsShown() && settingsPane.IsShown()) {
 
-                    static const int kMinH = 400;
+                    const int kMinH = kPaneMinHeight;
                     const wxRect& dockRect = part->dock->rect;
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
 
@@ -796,8 +801,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     };
     ModelPanelContainer->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
 
-    FirstPanel->SetMinSize(wxSize(0, 400));
-    int listHeight = (msp > 0) ? msp : 200;
+    FirstPanel->SetMinSize(wxSize(0, kPaneMinHeight));
+    int listHeight = (msp > 0) ? msp : kListHeightFallback;
     layout_mgr->AddPane(FirstPanel, wxAuiPaneInfo()
         .Name("ModelList")
         .Caption("Groups/Models List")
@@ -808,9 +813,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         .Top().Layer(0).Row(0)
         .BestSize(-1, listHeight)
         .FloatingSize(600, 1000)
-        .MinSize(0, 400));
+        .MinSize(0, kPaneMinHeight));
 
-    propertyEditor->SetMinSize(wxSize(0, 400));
+    propertyEditor->SetMinSize(wxSize(0, kPaneMinHeight));
     layout_mgr->AddPane(propertyEditor, wxAuiPaneInfo()
         .Name("ModelSettings")
         .Caption("Groups/Models Settings")
@@ -820,7 +825,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         .Dockable(true)
         .Center()
         .FloatingSize(600, 1000)
-        .MinSize(0, 400));
+        .MinSize(0, kPaneMinHeight));
 
     layout_mgr->AddPane(ModelGroupWindow, wxAuiPaneInfo()
         .Name("ModelGroupSettings")
@@ -839,8 +844,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         layout_mgr->LoadPerspective(auiPerspective);
     }
     // Always reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelList").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models List");
-    layout_mgr->GetPane("ModelSettings").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models Settings");
+    layout_mgr->GetPane("ModelList").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models List");
+    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings");
     layout_mgr->Update();
     // Floating panes should only be visible on the Layout tab; hide them at
     // startup so they don't appear over other tabs before the user navigates here.
@@ -8958,7 +8963,7 @@ void LayoutPanel::DockAll() {
         UpdateLayoutSplitter();
         if (hasModelList) {
             int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
-            if (halfHeight < 200) halfHeight = 200;
+            if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
             layout_mgr->GetPane("ModelList").BestSize(-1, halfHeight);
         }
         layout_mgr->Update();
@@ -8983,7 +8988,7 @@ void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
         UpdateLayoutSplitter();
         if (name == "ModelList") {
             int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
-            if (halfHeight < 200) halfHeight = 200;
+            if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
             p.BestSize(-1, halfHeight);
         }
         layout_mgr->Update();
@@ -9014,8 +9019,8 @@ void LayoutPanel::RestoreFloatingPanes() {
     if (layout_mgr == nullptr || _savedFloatingPerspective.empty()) return;
     layout_mgr->LoadPerspective(_savedFloatingPerspective);
     // Reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelList").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models List");
-    layout_mgr->GetPane("ModelSettings").MinSize(0, 400).CaptionVisible(true).Caption("Groups/Models Settings");
+    layout_mgr->GetPane("ModelList").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models List");
+    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings");
     layout_mgr->Update();
     _savedFloatingPerspective.clear();
     UpdateLayoutSplitter();
@@ -9044,17 +9049,17 @@ void LayoutPanel::UpdateLayoutSplitter() {
         }
     } else {
         // At least one pane is docked — ensure the split is present and the
-        // left panel is at least 600px wide.
+        // left panel is at least kLeftPanelMinWidth wide.
         if (!SplitterWindow2->IsSplit()) {
-            int pos = (_savedSashPos >= 600) ? _savedSashPos : 600;
+            int pos = (_savedSashPos >= kLeftPanelMinWidth) ? _savedSashPos : kLeftPanelMinWidth;
             SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel, pos);
         } else {
             int sash = SplitterWindow2->GetSashPosition();
-            if (sash < 600) {
-                SplitterWindow2->SetSashPosition(600);
+            if (sash < kLeftPanelMinWidth) {
+                SplitterWindow2->SetSashPosition(kLeftPanelMinWidth);
             }
         }
-        SplitterWindow2->SetMinimumPaneSize(600);
+        SplitterWindow2->SetMinimumPaneSize(kLeftPanelMinWidth);
     }
 }
 
