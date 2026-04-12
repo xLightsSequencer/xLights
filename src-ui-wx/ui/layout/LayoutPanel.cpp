@@ -9010,10 +9010,23 @@ void LayoutPanel::RestoreFloatingPanes() {
     if (layout_mgr == nullptr || _savedFloatingPerspective.empty()) return;
     layout_mgr->LoadPerspective(_savedFloatingPerspective);
     // Reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings");
-    layout_mgr->GetPane("ModelGroupSettings").CaptionVisible(false).Hide();
-    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings");
-    layout_mgr->Update();
+
+    // Reapply pane configuration that LoadPerspective may overwrite via SafeSet(),
+    // but preserve the visibility restored from the saved perspective.
+    wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
+    if (modelListPane.IsOk()) {
+        modelListPane.MinSize(0, kPaneMinHeight);
+    }
+
+    wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
+    if (modelSettingsPane.IsOk()) {
+        modelSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings");
+    }
+
+    wxAuiPaneInfo& modelGroupSettingsPane = layout_mgr->GetPane("ModelGroupSettings");
+    if (modelGroupSettingsPane.IsOk()) {
+        modelGroupSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(false);
+    }
     _savedFloatingPerspective.clear();
     UpdateLayoutSplitter();
 }
