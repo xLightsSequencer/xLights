@@ -635,3 +635,49 @@ std::filesystem::path SequencePackage::FindAndCopyAudio(const std::filesystem::p
 
     return CopyMediaToTarget(targetDir.string(), audioFile);
 }
+
+std::vector<std::pair<std::string, std::string>> SequencePackage::FindAndCopyAltAudioTracks(const std::filesystem::path& targetDir)
+{
+    std::vector<std::pair<std::string, std::string>> result;
+
+    if (_xsqFile.empty() || !FileExists(_xsqFile.string())) {
+        return result;
+    }
+
+    pugi::xml_document xsqDoc;
+    if (!xsqDoc.load_file(_xsqFile.string().c_str())) {
+        return result;
+    }
+
+    auto altTracksNode = xsqDoc.child("xsequence").child("head").child("altAudioTracks");
+    if (!altTracksNode) {
+        return result;
+    }
+
+    for (auto trackNode : altTracksNode.children("track")) {
+        std::string shortname = trackNode.attribute("shortname").as_string("");
+        std::string tpath = trackNode.text().as_string("");
+
+        std::string filename;
+        {
+            std::filesystem::path p(tpath);
+            filename = p.filename().string();
+        }
+
+        if (filename.empty()) {
+            result.emplace_back(shortname, std::string());
+            continue;
+        }
+
+        auto it = _media.find(filename);
+        if (it != _media.end() && !it->second.empty() && FileExists(it->second.string())) {
+            std::filesystem::path copied = CopyMediaToTarget(targetDir.string(), it->second);
+            result.emplace_back(shortname, copied.string());
+        } else {
+            spdlog::warn("SequencePackage: Alt audio track '{}' ('{}') not found in package.", shortname, filename);
+            result.emplace_back(shortname, std::string());
+        }
+    }
+
+    return result;
+}

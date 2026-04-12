@@ -1765,6 +1765,22 @@ void SeqSettingsDialog::MediaChooser()
             SetCursor(wxCURSOR_WAIT);
             MediaLoad(fsPathToWxString(audioFile));
             SetCursor(wxCURSOR_DEFAULT);
+
+            // Import any alternate audio tracks bundled in the package.
+            // Tracks referenced in the XSQ but absent from the package become
+            // placeholder entries (empty path, audio == nullptr) so the user can
+            // see and resolve them in the Audio Tracks tab.
+            auto altTracks = pkg.FindAndCopyAltAudioTracks(importDir);
+            if (!altTracks.empty()) {
+                std::string showDir = xLightsParent ? xLightsParent->GetShowDirectory() : std::string{};
+                for (const auto& [shortname, path] : altTracks) {
+                    if (!path.empty()) {
+                        ObtainAccessToURL(path);
+                    }
+                    xml_file->AddAltTrack(showDir, path, shortname);
+                }
+                PopulateAudioTrackList();
+            }
         } else {
             ObtainAccessToURL(std::string(fDir.utf8_string()));
             ObtainAccessToURL(std::string(name_and_path.GetFullPath().utf8_string()));
