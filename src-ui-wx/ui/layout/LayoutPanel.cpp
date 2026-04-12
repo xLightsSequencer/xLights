@@ -8938,20 +8938,31 @@ void LayoutPanel::RenameCurrentPreview()
 
 void LayoutPanel::DockAll() {
     if (layout_mgr == nullptr) return;
-    int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
     wxAuiPaneInfoArray& panes = layout_mgr->GetAllPanes();
+    bool hasModelList = false;
     bool update = false;
     for (size_t i = 0; i < panes.GetCount(); i++) {
         if (panes[i].IsFloating() && panes[i].IsShown()) {
             if (panes[i].name == "ModelList") {
-                panes[i].Top().Dock().BestSize(-1, halfHeight);
+                panes[i].Top().Dock();
+                hasModelList = true;
             } else {
                 panes[i].Center().Dock();
             }
             update = true;
         }
     }
-    if (update) layout_mgr->Update();
+    if (update) {
+        // Restore LeftPanel visibility before measuring and laying out so that
+        // ModelPanelContainer has a real size when wxAUI performs the layout.
+        UpdateLayoutSplitter();
+        if (hasModelList) {
+            int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
+            if (halfHeight < 200) halfHeight = 200;
+            layout_mgr->GetPane("ModelList").BestSize(-1, halfHeight);
+        }
+        layout_mgr->Update();
+    }
 }
 
 void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
@@ -8962,14 +8973,20 @@ void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
         if (layout_mgr == nullptr) return;
         wxAuiPaneInfo& p = layout_mgr->GetPane(name);
         if (!p.IsOk()) return;
-        int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
         if (name == "ModelList") {
-            p.Top().Dock().BestSize(-1, halfHeight);
+            p.Top().Dock();
         } else {
             p.Center().Dock();
         }
-        layout_mgr->Update();
+        // Restore LeftPanel visibility before measuring and laying out so that
+        // ModelPanelContainer has a real size when wxAUI performs the layout.
         UpdateLayoutSplitter();
+        if (name == "ModelList") {
+            int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
+            if (halfHeight < 200) halfHeight = 200;
+            p.BestSize(-1, halfHeight);
+        }
+        layout_mgr->Update();
     });
 }
 
