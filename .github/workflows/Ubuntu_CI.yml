@@ -17,9 +17,30 @@ jobs:
     container:
       image: ghcr.io/xlightssequencer/xlights-build-docker:master
 
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
     steps:
     - uses: actions/checkout@v4
       with:
           submodules: 'true'
+
+    - name: Restore ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-ubuntu-${{ github.sha }}
+        restore-keys: |
+          ccache-ubuntu-
+
+    - name: Configure ccache
+      run: |
+        ccache --max-size=2G
+        ccache --set-config=compression=true
+        ccache --zero-stats
+
     - name: Make
-      run: make -j $(nproc)
+      run: PATH=/usr/lib/ccache:$PATH make -j $(nproc)
+
+    - name: ccache stats
+      run: ccache --show-stats
