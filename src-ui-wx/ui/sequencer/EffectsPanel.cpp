@@ -37,7 +37,7 @@
 #include <log.h>
 
 //(*IdInit(EffectsPanel)
-const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
+const wxWindowID EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
@@ -58,6 +58,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, EffectPanel
     EffectChoicebook = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
     FlexGridSizer1->Add(EffectChoicebook, 1, wxRIGHT|wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
+    FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICEBOOK1, wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&EffectsPanel::EffectSelected);
     //*)

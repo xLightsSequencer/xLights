@@ -18,6 +18,7 @@
             "label": "Spiral Wraps",
             "type": "float",
             "controlType": "slider",
+            "settingPrefix": "SLIDER",
             "default": 2.0,
             "min": -300,
             "max": 300,

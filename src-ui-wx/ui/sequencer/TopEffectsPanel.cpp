@@ -27,9 +27,9 @@
 //*)
 
 //(*IdInit(TopEffectsPanel)
-const long TopEffectsPanel::ID_BITMAPBUTTON_RANDOMIZE = wxNewId();
-const long TopEffectsPanel::ID_BUTTON_UpdateEffect = wxNewId();
-const long TopEffectsPanel::ID_BITMAPBUTTON_SelectedEffect = wxNewId();
+const wxWindowID TopEffectsPanel::ID_BITMAPBUTTON_RANDOMIZE = wxNewId();
+const wxWindowID TopEffectsPanel::ID_BUTTON_UpdateEffect = wxNewId();
+const wxWindowID TopEffectsPanel::ID_BITMAPBUTTON_SelectedEffect = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(TopEffectsPanel,wxPanel)
@@ -68,11 +68,12 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer2->Add(EffectSizer, 1, wxALL|wxEXPAND, 0);
 	MainSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	SetSizer(MainSizer);
+	MainSizer->SetSizeHints(this);
 
-	Connect(ID_BITMAPBUTTON_RANDOMIZE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnButtonRandomizeEffectClick);
-	Connect(ID_BUTTON_UpdateEffect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnButtonUpdateEffectClick);
-	Connect(ID_BITMAPBUTTON_SelectedEffect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnBitmapButtonSelectedEffectClick);
-	Connect(wxEVT_SIZE,(wxObjectEventFunction)&TopEffectsPanel::OnResize);
+	Connect(ID_BITMAPBUTTON_RANDOMIZE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&TopEffectsPanel::OnButtonRandomizeEffectClick);
+	Connect(ID_BUTTON_UpdateEffect, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&TopEffectsPanel::OnButtonUpdateEffectClick);
+	Connect(ID_BITMAPBUTTON_SelectedEffect, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&TopEffectsPanel::OnBitmapButtonSelectedEffectClick);
+	Connect(wxEVT_SIZE, (wxObjectEventFunction)&TopEffectsPanel::OnResize);
 	//*)
 
     BitmapButtonSelectedEffect->SetBitmap(wxBitmap(Off));

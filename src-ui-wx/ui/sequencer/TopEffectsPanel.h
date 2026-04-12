@@ -46,9 +46,9 @@ class TopEffectsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(TopEffectsPanel)
-		static const long ID_BITMAPBUTTON_RANDOMIZE;
-		static const long ID_BUTTON_UpdateEffect;
-		static const long ID_BITMAPBUTTON_SelectedEffect;
+		static const wxWindowID ID_BITMAPBUTTON_RANDOMIZE;
+		static const wxWindowID ID_BUTTON_UpdateEffect;
+		static const wxWindowID ID_BITMAPBUTTON_SelectedEffect;
 		//*)
 
 	private:
