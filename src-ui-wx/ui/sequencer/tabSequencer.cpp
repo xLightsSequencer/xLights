@@ -1186,10 +1186,11 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             EffectsPanel1->SetEffectPanelStatus(nullptr, effectName, 0, 0);
         } else {
             const wxString eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
-            if (eff == "Moving Head") {
-                // We want new dropped moving head effects to start out empty of commands
-                ResetPanelDefaultSettings(eff, nullptr, true);
-            }
+            // User changed the effect type directly from the dropdown — reset all
+            // panels just as we do when the change comes from an external source
+            // (e.g. the toolbar).  The page is already on the correct selection so
+            // we skip SetEffectType but still need the reset.
+            ResetPanelDefaultSettings(eff, nullptr, true);
             // Populate dynamic choices (timing tracks, effect-driven options) whenever
             // the panel switches, even when no grid effect is selected.
             EffectsPanel1->SetEffectPanelStatus(nullptr, eff, 0, 0);
