@@ -6781,7 +6781,7 @@ void xLightsFrame::ValidateEffectAssets()
         dlg.CentreOnParent();
 
         if (dlg.ShowModal() == wxID_YES) {
-            int resolved = ManageMediaPanel::ResolveAllMissingMedia(this,
+            ManageMediaPanel::ResolveAllMissingMedia(this,
                                                       &_sequenceElements.GetSequenceMedia(),
                                                       &_sequenceElements,
                                                       this, CurrentDir.ToStdString());

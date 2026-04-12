@@ -1657,7 +1657,6 @@ int ManageMediaPanel::ResolveAllMissingMedia(wxWindow* parent, SequenceMedia* se
         }
     }
 
-    const std::string sep(1, wxFileName::GetPathSeparator());
     int found = 0;
     int notFound = 0;
     wxArrayString resolvedDetails;
@@ -1678,40 +1677,60 @@ int ManageMediaPanel::ResolveAllMissingMedia(wxWindow* parent, SequenceMedia* se
         return result;
     };
 
-    // Helper: search a list of directories for a missing file (exact + fuzzy)
-    auto searchDirsForFile = [&](const std::string& oldPath,
-                                 const std::vector<std::string>& dirs) -> wxString {
+    // Build a file index for a set of directories (scanned once, used for all lookups)
+    struct FileIndex {
+        std::map<std::string, wxString> exactMap;        // lowercase filename -> full path
+        std::map<std::string, std::vector<wxString>> fuzzyMap;  // normalized base -> list of full paths
+    };
+
+    auto buildFileIndex = [&](const std::vector<std::string>& dirs) -> FileIndex {
+        FileIndex idx;
+        for (const auto& dir : dirs) {
+            wxArrayString allFiles;
+            wxDir::GetAllFiles(dir, &allFiles, wxEmptyString, wxDIR_FILES);
+            for (const auto& f : allFiles) {
+                wxFileName fn(f);
+                std::string exactKey = fn.GetFullName().Lower().ToStdString();
+                if (idx.exactMap.find(exactKey) == idx.exactMap.end()) {
+                    idx.exactMap[exactKey] = f;
+                }
+                std::string fuzzyKey = normalizeName(fn.GetName()).ToStdString();
+                if (!fuzzyKey.empty()) {
+                    idx.fuzzyMap[fuzzyKey].push_back(f);
+                }
+            }
+        }
+        return idx;
+    };
+
+    // Helper: search a file index for a missing file (exact + fuzzy)
+    auto searchIndexForFile = [&](const std::string& oldPath,
+                                  const FileIndex& idx) -> wxString {
         wxFileName fnOld(oldPath);
         wxString nameToFind = fnOld.GetFullName();
         if (nameToFind.IsEmpty()) return wxString();
 
-        // Exact match across all search dirs
-        for (const auto& dir : dirs) {
-            wxArrayString results;
-            wxDir::GetAllFiles(dir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
-            if (!results.IsEmpty()) return results[0];
-        }
+        // Exact filename match
+        std::string exactKey = nameToFind.Lower().ToStdString();
+        auto exactIt = idx.exactMap.find(exactKey);
+        if (exactIt != idx.exactMap.end()) return exactIt->second;
 
         // Fuzzy match using normalized names
         wxString baseName = fnOld.GetName();
+        wxString missingExt = fnOld.GetExt().Lower();
         if (baseName.IsEmpty()) return wxString();
-        wxString normalizedMissing = normalizeName(baseName);
+        std::string fuzzyKey = normalizeName(baseName).ToStdString();
 
-        wxArrayString candidates;
-        for (const auto& dir : dirs) {
-            wxArrayString allFiles;
-            wxDir::GetAllFiles(dir, &allFiles, wxEmptyString, wxDIR_FILES | wxDIR_DIRS);
-            for (const auto& f : allFiles) {
-                wxFileName fn(f);
-                wxString normalizedCandidate = normalizeName(fn.GetName());
-                if (normalizedCandidate == normalizedMissing) {
-                    candidates.Add(f);
-                }
+        auto fuzzyIt = idx.fuzzyMap.find(fuzzyKey);
+        if (fuzzyIt == idx.fuzzyMap.end() || fuzzyIt->second.empty()) return wxString();
+
+        // Prefer a candidate with the same extension as the missing file
+        for (const auto& candidate : fuzzyIt->second) {
+            if (wxFileName(candidate).GetExt().Lower() == missingExt) {
+                return candidate;
             }
         }
-
-        // Use the first fuzzy match automatically; the summary dialog will show what was matched
-        return candidates.IsEmpty() ? wxString() : candidates[0];
+        return fuzzyIt->second[0];
     };
 
     // Helper: update all effect references for an old path to a new path
@@ -1757,13 +1776,14 @@ int ManageMediaPanel::ResolveAllMissingMedia(wxWindow* parent, SequenceMedia* se
     // Phase 1: Automatically search show/media directories
     std::vector<std::string> stillMissing;
     if (!autoDirs.empty()) {
+        FileIndex autoIndex = buildFileIndex(autoDirs);
         wxProgressDialog prog("Resolving Media", "Searching show and media folders...",
                               (int)brokenPaths.size(), parent,
                               wxPD_APP_MODAL | wxPD_AUTO_HIDE);
         int index = 0;
         for (const auto& oldPath : brokenPaths) {
             prog.Update(index++);
-            wxString foundFile = searchDirsForFile(oldPath, autoDirs);
+            wxString foundFile = searchIndexForFile(oldPath, autoIndex);
             if (!foundFile.IsEmpty()) {
                 std::string finalPath = foundFile.ToStdString();
                 std::string rel = xlFrame->MakeRelativePath(finalPath);
@@ -1795,17 +1815,24 @@ int ManageMediaPanel::ResolveAllMissingMedia(wxWindow* parent, SequenceMedia* se
                 std::string userDir = dlg.GetPath().ToStdString();
                 ObtainAccessToURL(userDir);
                 std::vector<std::string> userDirs = { userDir };
+                FileIndex userIndex = buildFileIndex(userDirs);
 
                 wxProgressDialog prog2("Resolving Media", "Searching selected folder...",
                                        (int)stillMissing.size(), parent,
                                        wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
                 int index = 0;
-                std::vector<std::string> finallyMissing;
+                bool aborted = false;
                 for (const auto& oldPath : stillMissing) {
                     if (!prog2.Update(index++, wxString::Format("Searching for %s...", wxFileName(oldPath).GetFullName()))) {
+                        // User aborted — track remaining as unresolved
+                        for (size_t r = index - 1; r < stillMissing.size(); ++r) {
+                            unresolvedDetails.Add(wxFileName(stillMissing[r]).GetFullName());
+                            ++notFound;
+                        }
+                        aborted = true;
                         break;
                     }
-                    wxString foundFile = searchDirsForFile(oldPath, userDirs);
+                    wxString foundFile = searchIndexForFile(oldPath, userIndex);
                     if (!foundFile.IsEmpty()) {
                         std::string finalPath = foundFile.ToStdString();
                         std::string rel = xlFrame->MakeRelativePath(finalPath);
