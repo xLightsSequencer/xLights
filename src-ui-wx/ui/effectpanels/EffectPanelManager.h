@@ -90,6 +90,7 @@ private:
     };
 
     EffectManager* effectManager_ = nullptr;
+    SequenceElements* sequenceElements_ = nullptr;
     std::vector<PanelInfo> panels;
     std::map<std::string, int> panelsByName;
 };

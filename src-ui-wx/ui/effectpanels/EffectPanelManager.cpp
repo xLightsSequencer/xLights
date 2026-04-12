@@ -168,6 +168,9 @@ xlEffectPanel* EffectPanelManager::GetPanel(int effectId, wxWindow* parent) {
     auto& info = panels[effectId];
     if (info.panel == nullptr && info.factory && parent != nullptr) {
         info.panel = info.factory(parent);
+        if (info.panel != nullptr && sequenceElements_ != nullptr) {
+            info.panel->SetSequenceElements(sequenceElements_);
+        }
     }
     return info.panel;
 }
@@ -213,6 +216,7 @@ void EffectPanelManager::SetEffectTimeRange(int effectId, int startTimeMs, int e
 }
 
 void EffectPanelManager::SetSequenceElements(SequenceElements* els) {
+    sequenceElements_ = els;
     for (auto& info : panels) {
         if (info.panel != nullptr) {
             info.panel->SetSequenceElements(els);
