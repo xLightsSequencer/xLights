@@ -22,7 +22,6 @@
 class Output;
 class Controller;
 class TestPreset;
-class Controller;
 class UICallbacks;
 class ControllerEthernet;
 
