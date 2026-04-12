@@ -91,6 +91,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: true
           automatic_release_tag: "nightly"
-          title: "Nightly Build - ${{ github.event.repository.name }}"
+          title: "nightly"
           files: |
             ./build_scripts/msw/output/*.exe
