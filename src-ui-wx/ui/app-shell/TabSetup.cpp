@@ -472,7 +472,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
             PromptForDirectorySelection("Reselect Base Show Directory", dstr);
             _outputManager.SetBaseShowDir(dstr);
         }
-        if (_outputManager.MergeFromBase(false)) {
+        bool _acceptAll = false, _rejectAll = false;
+        if (_outputManager.MergeFromBase(false, _acceptAll, _rejectAll)) {
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir-controller");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir-controller");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir-controller");
