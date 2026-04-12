@@ -165,70 +165,78 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
             }
 
             if (xl) {
-                // If an effect-grid drag operation is in progress, release mouse capture
-                // before opening a modal dialog so the drag state does not remain stuck.
-                if (xl->GetMainSequencer() != nullptr &&
-                    xl->GetMainSequencer()->PanelEffectGrid != nullptr) {
-                    xl->GetMainSequencer()->PanelEffectGrid->CancelMouseOperations();
-                }
-
-                wxString msg = wxString::Format(
-                    "The selected file is not in the show directory or media directories:\n\n%s\n\n"
-                    "What would you like to do?",
-                    file);
-                // Check if this is a video file (too large to embed)
-                std::string ext = std::filesystem::path(filepath).extension().string();
-                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-                bool canEmbed = !IsVideoExtension(ext) && !IsGlediatorExtension(ext);
-
-                wxArrayString choices;
-                choices.Add("Copy to show folder");
-                if (canEmbed)
-                    choices.Add("Embed in sequence");
-                choices.Add("Use from current location");
-
-                wxSingleChoiceDialog dlg(this, msg, "File Outside Show Directory", choices);
-                dlg.SetSelection(0);
-                if (dlg.ShowModal() == wxID_OK) {
-                    wxString chosen = dlg.GetStringSelection();
-                    if (chosen == "Copy to show folder") {
-                        std::string subdir = SubdirectoryForFile(filepath);
-                        std::string newPath = xl->MoveToShowFolder(filepath, subdir);
-                        if (!newPath.empty()) {
-                            SetFileName(wxFileName(newPath));
-                        }
-                    } else if (chosen == "Embed in sequence") {
-                        auto& elements = xl->GetSequenceElements();
-                        auto& media = elements.GetSequenceMedia();
-
-                        // Load the file into the cache, then embed it.
-                        // Use a clean embedded name so the cache key matches
-                        // what gets stored in effect settings.
-                        std::string fname = std::filesystem::path(filepath).filename().string();
-                        if (ext == ".fs") {
-                            media.GetShader(filepath);
-                            media.EmbedMedia(filepath);
-                            SetFileName(wxFileName(filepath));
-                        } else if (ext == ".svg") {
-                            media.GetSVG(filepath);
-                            media.EmbedMedia(filepath);
-                            SetFileName(wxFileName(filepath));
-                        } else if (ext == ".txt") {
-                            media.GetTextFile(filepath);
-                            media.EmbedMedia(filepath);
-                            SetFileName(wxFileName(filepath));
-                        } else {
-                            // Image: use the existing rename+embed pattern
-                            media.GetImage(filepath);
-                            std::string embeddedName = "Images/" + fname;
-                            if (!media.RenameImage(filepath, embeddedName)) {
-                                embeddedName = filepath;
-                            }
-                            media.EmbedImage(embeddedName);
-                            SetFileName(wxFileName(embeddedName));
-                        }
+                // If the file is already embedded in the sequence, the user
+                // already resolved the "outside show folder" situation (e.g. via
+                // the SelectMediaDialog media panel). Skip the prompt so it
+                // doesn't appear a second time.
+                bool isAlreadyEmbedded = xl->GetSequenceElements().GetSequenceMedia()
+                                            .GetMediaEmbedState(filepath).first;
+                if (!isAlreadyEmbedded) {
+                    // If an effect-grid drag operation is in progress, release mouse capture
+                    // before opening a modal dialog so the drag state does not remain stuck.
+                    if (xl->GetMainSequencer() != nullptr &&
+                        xl->GetMainSequencer()->PanelEffectGrid != nullptr) {
+                        xl->GetMainSequencer()->PanelEffectGrid->CancelMouseOperations();
                     }
-                    // choice == 2: keep as-is, no action needed
+
+                    wxString msg = wxString::Format(
+                        "The selected file is not in the show directory or media directories:\n\n%s\n\n"
+                        "What would you like to do?",
+                        file);
+                    // Check if this is a video file (too large to embed)
+                    std::string ext = std::filesystem::path(filepath).extension().string();
+                    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                    bool canEmbed = !IsVideoExtension(ext) && !IsGlediatorExtension(ext);
+
+                    wxArrayString choices;
+                    choices.Add("Copy to show folder");
+                    if (canEmbed)
+                        choices.Add("Embed in sequence");
+                    choices.Add("Use from current location");
+
+                    wxSingleChoiceDialog dlg(this, msg, "File Outside Show Directory", choices);
+                    dlg.SetSelection(0);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxString chosen = dlg.GetStringSelection();
+                        if (chosen == "Copy to show folder") {
+                            std::string subdir = SubdirectoryForFile(filepath);
+                            std::string newPath = xl->MoveToShowFolder(filepath, subdir);
+                            if (!newPath.empty()) {
+                                SetFileName(wxFileName(newPath));
+                            }
+                        } else if (chosen == "Embed in sequence") {
+                            auto& elements = xl->GetSequenceElements();
+                            auto& media = elements.GetSequenceMedia();
+
+                            // Load the file into the cache, then embed it.
+                            // Use a clean embedded name so the cache key matches
+                            // what gets stored in effect settings.
+                            std::string fname = std::filesystem::path(filepath).filename().string();
+                            if (ext == ".fs") {
+                                media.GetShader(filepath);
+                                media.EmbedMedia(filepath);
+                                SetFileName(wxFileName(filepath));
+                            } else if (ext == ".svg") {
+                                media.GetSVG(filepath);
+                                media.EmbedMedia(filepath);
+                                SetFileName(wxFileName(filepath));
+                            } else if (ext == ".txt") {
+                                media.GetTextFile(filepath);
+                                media.EmbedMedia(filepath);
+                                SetFileName(wxFileName(filepath));
+                            } else {
+                                // Image: use the existing rename+embed pattern
+                                media.GetImage(filepath);
+                                std::string embeddedName = "Images/" + fname;
+                                if (!media.RenameImage(filepath, embeddedName)) {
+                                    embeddedName = filepath;
+                                }
+                                media.EmbedImage(embeddedName);
+                                SetFileName(wxFileName(embeddedName));
+                            }
+                        }
+                        // choice == 2: keep as-is, no action needed
+                    }
                 }
             }
         }
