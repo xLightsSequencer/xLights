@@ -1,10 +1,8 @@
 name: Include Boundary Policy
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6:00 UTC
   workflow_dispatch:
 
 jobs:

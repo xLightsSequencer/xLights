@@ -1,42 +1,8 @@
 name: Ubuntu CI
 
 on:
-  push:
-    branches: [ master ]
-    paths-ignore:
-      - '.github/workflows/*.yml'
-      - '.github/ISSUE_TEMPLATE/*.md'
-      - 'build_scripts/**'
-      - 'cmudict/**'
-      - 'documentation/**'
-      - 'download/**'
-      - 'resources/**'
-      - 'lib/windows/**'
-      - 'lib/windows64/**'
-      - 'songs/**'
-      - 'TipOfDay/**'
-      - '*.md'
-      - '*.yml'
-      - '*.txt'
-      - '*.docx'
-      - 'README.*'
-  pull_request:
-    branches: [ master ]
-    paths-ignore:
-      - '.github/workflows/*.yml'
-      - '.github/ISSUE_TEMPLATE/*.md'
-      - 'build_scripts/**'
-      - 'cmudict/**'
-      - 'documentation/**'
-      - 'download/**'
-      - 'resources/**'
-      - 'songs/**'
-      - 'TipOfDay/**'
-      - '*.md'
-      - '*.yml'
-      - '*.txt'
-      - '*.docx'
-      - 'README.*'
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6:00 UTC
   workflow_dispatch:
 
 concurrency:
