@@ -72,6 +72,7 @@ SequenceFile::~SequenceFile()
         delete audio;
         audio = nullptr;
     }
+    ValueCurve::ClearAltAudio();
     for (auto& t : alt_tracks) {
         delete t.audio;
         t.audio = nullptr;
@@ -272,8 +273,23 @@ void SequenceFile::SetAltTrackPath(const std::string& ShowDir, int idx, const st
 void SequenceFile::SetAltTrackShortname(int idx, const std::string& name)
 {
     if (idx < 0 || idx >= (int)alt_tracks.size()) return;
-    std::string oldName = GetAltTrackDisplayName(idx);
-    alt_tracks[idx].shortname = name;
+    // Ensure the chosen display name is unique across all other tracks.
+    // If there is a collision, append _2, _3, … until it is unique.
+    std::string candidate = name;
+    int suffix = 2;
+    bool collision = true;
+    while (collision) {
+        collision = false;
+        for (int i = 0; i < (int)alt_tracks.size(); i++) {
+            if (i == idx) continue;
+            if (GetAltTrackDisplayName(i) == candidate) {
+                collision = true;
+                candidate = name + "_" + std::to_string(suffix++);
+                break;
+            }
+        }
+    }
+    alt_tracks[idx].shortname = candidate;
     // Rebuild alt audio map since display name may have changed
     ValueCurve::ClearAltAudio();
     for (int i = 0; i < (int)alt_tracks.size(); i++) {

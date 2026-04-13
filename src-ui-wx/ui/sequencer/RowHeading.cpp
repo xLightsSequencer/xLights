@@ -889,8 +889,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             auto* frame = xLightsApp::GetFrame();
             if (frame != nullptr && frame->GetMainSequencer() != nullptr) {
                 int trackIdx = frame->GetMainSequencer()->GetActiveAudioTrackIndex();
-                if (trackIdx > 0 && xml_file->GetAltTrackMedia(trackIdx - 1) != nullptr) {
-                    vampMedia = xml_file->GetAltTrackMedia(trackIdx - 1);
+                if (trackIdx > 0) {
+                    int altTrackIdx = trackIdx - 1;
+                    if (altTrackIdx < xml_file->GetAltTrackCount()) {
+                        AudioManager* altTrackMedia = xml_file->GetAltTrackMedia(altTrackIdx);
+                        if (altTrackMedia != nullptr) {
+                            vampMedia = altTrackMedia;
+                        }
+                    }
                 }
             }
         }

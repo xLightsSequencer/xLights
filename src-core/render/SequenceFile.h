@@ -130,7 +130,13 @@ public:
     void SetAltTrackPath(const std::string& ShowDir, int idx, const std::string& path);
     void SetAltTrackShortname(int idx, const std::string& name);
     std::string GetAltTrackDisplayName(int idx) const;
-    AudioManager* GetAltTrackMedia(int idx) const { return alt_tracks[idx].audio; }
+    AudioManager* GetAltTrackMedia(int idx) const
+    {
+        if (idx < 0 || static_cast<std::size_t>(idx) >= alt_tracks.size()) {
+            return nullptr;
+        }
+        return alt_tracks[idx].audio;
+    }
 
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const std::string& node_value);

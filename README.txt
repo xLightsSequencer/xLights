@@ -23,6 +23,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction (#5636)
     -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero (#4807)
     -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view (#5849)
+    -enh (derwin12)             Add alternate audio tracks support incl waveform, VU Meter and value curve access. (#3820)
     -enh (derwin12)             Allow selecting audio from a sequence package (zip/piz/xsqz) in Sequence Settings (#5630)
     -enh (derwin12)             Add sequencer prop filter to quickly jump to a prop by name (#5066)
     -enh (derwin12)             Add "Small" option to Model Handle Size preference (#3583)
