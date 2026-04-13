@@ -62,9 +62,6 @@ jobs:
       uses: actions/checkout@v4
       with:
           submodules: 'true'
-    - name: Setup msbuild
-      uses: microsoft/setup-msbuild@v3
-
     - name: Setup MSVC dev environment
       uses: ilammy/msvc-dev-cmd@v1
       with:
@@ -90,10 +87,15 @@ jobs:
       run: |
         @'
         <Project>
+          <PropertyGroup>
+            <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+            <BuildStlModules>false</BuildStlModules>
+          </PropertyGroup>
           <ItemDefinitionGroup>
             <ClCompile>
               <DebugInformationFormat>OldStyle</DebugInformationFormat>
               <MultiProcessorCompilation>false</MultiProcessorCompilation>
+              <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
             </ClCompile>
           </ItemDefinitionGroup>
         </Project>
@@ -121,6 +123,8 @@ jobs:
       working-directory: xLights
       shell: pwsh
       run: |
+        Write-Host "cl.exe: $((Get-Command cl.exe -ErrorAction SilentlyContinue).Source)"
+        Write-Host "sccache: $((Get-Command sccache.exe -ErrorAction SilentlyContinue).Source)"
         $sccache = (Get-Command sccache).Source
         $sccacheDir = Split-Path $sccache
         msbuild /m:10 xLights.sln `
