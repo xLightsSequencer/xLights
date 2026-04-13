@@ -100,9 +100,8 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 
         mPreferencesEditor.reset(new wxPreferencesEditor("Preferences"));
         std::function<wxWindow*(wxWindow*)> f = [this] (wxWindow *p) { return (wxWindow*)(new BackupSettingsPanel(p, this));};
-        wxSize iconSize = wxSize(32, 32);
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Backup", wxArtProvider::GetBitmapBundle(wxART_HARDDISK, wxART_BUTTON, iconSize), f));
-        iconSize = wxSize(64, 64);
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Backup", wxArtProvider::GetBitmapBundle(wxART_HARDDISK, wxART_BUTTON, wxSize(28, 28)), f));
+        wxSize iconSize = wxSize(64, 64);
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new ViewSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("View", wxArtProvider::GetBitmapBundle(wxART_FULL_SCREEN, wxART_BUTTON, iconSize), f));
@@ -120,7 +119,7 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Check Sequence", wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize), f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new RandomEffectsSettingsPanel(p, this));};
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Random Effects", wxArtProvider::GetBitmapBundle("xlART_DICE_ICON", wxART_BUTTON, iconSize), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Random Effects", wxArtProvider::GetBitmapBundle("xlART_DICE_ICON", wxART_BUTTON, wxSize(28, 28)), f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new ColorManagerSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Colors", wxArtProvider::GetBitmapBundle("xlART_RENDER_ALL", wxART_BUTTON, iconSize), f));
