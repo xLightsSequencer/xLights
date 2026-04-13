@@ -23,6 +23,7 @@
 #include "EffectsGrid.h"
 #include "ui/color/ColorManager.h"
 #include "render/SequenceElements.h"
+#include "media/AudioManager.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "ui/sequencer/NewTimingDialog.h"
@@ -881,9 +882,28 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         
         VAMPPluginDialog vamp(this);
+
+        // Use the waveform's currently selected audio track for VAMP analysis
+        AudioManager* vampMedia = xml_file->GetMedia();
+        {
+            auto* frame = xLightsApp::GetFrame();
+            if (frame != nullptr && frame->GetMainSequencer() != nullptr) {
+                int trackIdx = frame->GetMainSequencer()->GetActiveAudioTrackIndex();
+                if (trackIdx > 0) {
+                    int altTrackIdx = trackIdx - 1;
+                    if (altTrackIdx < xml_file->GetAltTrackCount()) {
+                        AudioManager* altTrackMedia = xml_file->GetAltTrackMedia(altTrackIdx);
+                        if (altTrackMedia != nullptr) {
+                            vampMedia = altTrackMedia;
+                        }
+                    }
+                }
+            }
+        }
+
         std::list<std::string> plugins;
-        if (xml_file->HasAudioMedia()) {
-            plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
+        if (vampMedia != nullptr) {
+            plugins = vampMedia->GetVamp()->GetAvailablePlugins(vampMedia);
             if (plugins.size() == 0) {
                 dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
             } else {
@@ -904,7 +924,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 DownloadVamp();
             } else {
                 if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end()) {
-                    name = vamp.ProcessPlugin(xml_file, xLightsApp::GetFrame(), selected_timing, xml_file->GetMedia());
+                    name = vamp.ProcessPlugin(xml_file, xLightsApp::GetFrame(), selected_timing, vampMedia);
                     if (name != "") {
                         timing_added = true;
                     }

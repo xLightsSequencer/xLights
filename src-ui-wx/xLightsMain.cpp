@@ -2575,6 +2575,23 @@ AudioManager* xLightsFrame::GetCurrentMediaManager() const
     return CurrentSeqXmlFile->GetMedia();
 }
 
+AudioManager* xLightsFrame::GetPlaybackAudio() const
+{
+    if (CurrentSeqXmlFile == nullptr) {
+        return nullptr;
+    }
+    if (mainSequencer != nullptr) {
+        int trackIdx = mainSequencer->GetActiveAudioTrackIndex();
+        if (trackIdx > 0) {
+            AudioManager* alt = CurrentSeqXmlFile->GetAltTrackMedia(trackIdx - 1);
+            if (alt != nullptr) {
+                return alt;
+            }
+        }
+    }
+    return CurrentSeqXmlFile->GetMedia();
+}
+
 const std::string& xLightsFrame::GetHeaderInfo(HEADER_INFO_TYPES type) const
 {
     static const std::string empty;
@@ -7792,6 +7809,18 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
             lostfiles[fnMedia.GetFullPath().ToStdString()] = lost;
         }
         prog.Update(35, fnMedia.GetFullName());
+
+        // Add alternate audio tracks
+        for (int i = 0; i < CurrentSeqXmlFile->GetAltTrackCount(); ++i) {
+            const auto& track = CurrentSeqXmlFile->GetAltTrack(i);
+            if (!track.path.empty()) {
+                wxFileName fnAlt(track.path);
+                lost = AddFileToZipFile(CurrentDir.ToStdString(), fnAlt.GetFullPath().ToStdString(), zip, zippedfiles);
+                if (lost != "") {
+                    lostfiles[fnAlt.GetFullPath().ToStdString()] = lost;
+                }
+            }
+        }
     } else {
         prog.Update(35, "Skipping audio.");
     }

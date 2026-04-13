@@ -28,6 +28,7 @@
 #include <wx/textctrl.h>
 #include <wx/treectrl.h>
 //*)
+#include <wx/listctrl.h>
 
 #define NEEDS_RENDER 9998
 
@@ -137,6 +138,14 @@ class SeqSettingsDialog: public wxDialog
 		wxButton* ModelsChoiceNext;
         ManageMediaPanel* Panel_ManageMedia;
 
+        // Audio Tracks tab (not wxSmith-generated)
+        wxPanel* PanelAudio = nullptr;
+        wxListCtrl* ListCtrl_AudioTracks = nullptr;
+        wxButton* Button_AudioAdd = nullptr;
+        wxButton* Button_AudioRemove = nullptr;
+        wxButton* Button_AudioChangeFile = nullptr;
+        wxButton* Button_AudioEditShortname = nullptr;
+
 	protected:
 
 		//(*Identifiers(SeqSettingsDialog)
@@ -226,6 +235,13 @@ class SeqSettingsDialog: public wxDialog
         static const long ID_PANEL_Wizard;
         static const long ID_CHOICE_Models;
         static const long ID_BUTTON_models_next;
+
+        static const long ID_PANEL_Audio;
+        static const long ID_LISTCTRL_AudioTracks;
+        static const long ID_BUTTON_AudioAdd;
+        static const long ID_BUTTON_AudioRemove;
+        static const long ID_BUTTON_AudioChangeFile;
+        static const long ID_BUTTON_AudioEditShortname;
 
 	private:
 
@@ -335,6 +351,12 @@ class SeqSettingsDialog: public wxDialog
         void AddTimingCell(const wxString& name);
         void UpdateDataLayer();
         void MediaChooser();
+        void PopulateAudioTrackList();
+        void OnButton_AudioAddClick(wxCommandEvent& event);
+        void OnButton_AudioRemoveClick(wxCommandEvent& event);
+        void OnButton_AudioChangeFileClick(wxCommandEvent& event);
+        void OnButton_AudioEditShortnameClick(wxCommandEvent& event);
+        void OnListCtrl_AudioTracksActivated(wxListEvent& event);
         void RemoveWizard();
         void WizardPage1();
         void WizardPage2();

@@ -20,7 +20,10 @@
 #include "ui/shared/controls/MediaPickerCtrl.h"
 #include "effects/VUMeterEffect.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceFile.h"
 #include "UtilFunctions.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
 namespace {
 // Helper to look up a child control by name and dynamic_cast it. Returns
@@ -71,6 +74,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent, const nlohmann::json& metadata)
     // (matching the legacy Sketch / Ripple / Shape pattern). The hidden file
     // picker still owns the path so the file is serialized as
     // E_FILEPICKERCTRL_SVGFile by GetEffectStringFromWindow.
+    _audioTrackChoice  = FindCtrl<wxChoice>(this, "ID_CHOICE_VUMeter_AudioTrack");
+
     _hiddenSvgPicker = FindCtrl<wxFilePickerCtrl>(this, "ID_FILEPICKERCTRL_SVGFile");
     if (_hiddenSvgPicker != nullptr) {
         _hiddenSvgPicker->Hide();
@@ -286,5 +291,25 @@ void VUMeterPanel::SetPanelStatus(Model* /*cls*/) {
     if (_timingTrackChoice->GetSelection() == wxNOT_FOUND && _timingTrackChoice->GetCount() > 0) {
         _timingTrackChoice->SetSelection(0);
     }
+
+    if (_audioTrackChoice != nullptr) {
+        wxString audioSel = _audioTrackChoice->GetStringSelection();
+        _audioTrackChoice->Clear();
+        _audioTrackChoice->Append("Main");
+        auto* frame = xLightsApp::GetFrame();
+        if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr) {
+            int altCount = frame->CurrentSeqXmlFile->GetAltTrackCount();
+            for (int i = 0; i < altCount; i++) {
+                _audioTrackChoice->Append(wxString(frame->CurrentSeqXmlFile->GetAltTrackDisplayName(i)));
+            }
+        }
+        if (!audioSel.empty() && audioSel != "Main") {
+            _audioTrackChoice->SetStringSelection(audioSel);
+        }
+        if (_audioTrackChoice->GetSelection() == wxNOT_FOUND) {
+            _audioTrackChoice->SetSelection(0); // default to Main
+        }
+    }
+
     ValidateWindow();
 }

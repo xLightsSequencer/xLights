@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <map>
 #include <string>
 #include <list>
 
@@ -101,7 +102,9 @@ class ValueCurve
     bool _active;
     bool _wrap;
     bool _realValues;
+    std::string _audioTrackName; // "" = main; "Track1"/"Drums"/etc = alt
     static AudioManager* __audioManager;
+    static std::map<std::string, AudioManager*> __altAudioManagers;
     static SequenceElements* __sequenceElements;
 
     void RenderType();
@@ -118,9 +121,18 @@ class ValueCurve
 public:
 
     static void SetAudio(AudioManager* am) { __audioManager = am; }
+    static void SetAltAudio(const std::string& name, AudioManager* am) { __altAudioManagers[name] = am; }
+    static void ClearAltAudio() { __altAudioManagers.clear(); }
+    static AudioManager* GetAltAudio(const std::string& name) {
+        auto it = __altAudioManagers.find(name);
+        return (it != __altAudioManagers.end()) ? it->second : __audioManager;
+    }
     static void SetSequenceElements(SequenceElements* se) { __sequenceElements = se; }
     static SequenceElements* GetSequenceElements() { return __sequenceElements; }
     static std::string GetValueCurveFolder(const std::string& showFolder);
+
+    void SetAudioTrack(const std::string& name) { _audioTrackName = name; }
+    std::string GetAudioTrack() const { return _audioTrackName; }
 
     ValueCurve() { _divisor = 1; _min = MINVOIDF; _max = MAXVOIDF; SetDefault(); }
     ValueCurve(const std::string& serialised);

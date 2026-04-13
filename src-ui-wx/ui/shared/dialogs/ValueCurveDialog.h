@@ -138,6 +138,10 @@ class ValueCurveDialog: public wxDialog
 		wxTextCtrl* TextCtrl_TimeOffset;
 		//*)
 
+        // Audio track choice (outside wxSmith guard)
+        wxStaticText* StaticText_AudioTrack = nullptr;
+        wxChoice* Choice_AudioTrack = nullptr;
+
 	protected:
 
 		//(*Identifiers(ValueCurveDialog)
@@ -173,6 +177,9 @@ class ValueCurveDialog: public wxDialog
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
+
+        // Audio track ID (outside wxSmith guard)
+        static const long ID_CHOICE_AudioTrack;
 
 	private:
 

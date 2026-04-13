@@ -15,6 +15,9 @@
 #include <pugixml.hpp>
 
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "render/Element.h"
 #include "render/Effect.h"
@@ -72,6 +75,9 @@ class SequencePackage {
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
         std::filesystem::path CopyMediaToTarget(const std::string& targetFolder, const std::filesystem::path& mediaToCopy);
         std::filesystem::path FindAndCopyAudio(const std::filesystem::path& targetDir);
+        // Returns pairs of (shortname, copied_path) for alt tracks found in the package.
+        // Entries with an empty path indicate tracks referenced in the XSQ but not bundled.
+        std::vector<std::pair<std::string, std::string>> FindAndCopyAltAudioTracks(const std::filesystem::path& targetDir);
         std::list<std::string> GetMissingMedia();
 
         void SetSequenceElements(SequenceElements *se) { sequenceElements = se; };

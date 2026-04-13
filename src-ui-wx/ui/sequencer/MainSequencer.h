@@ -89,6 +89,7 @@ class MainSequencer: public wxPanel
         void SetLargeWaveform();
         void SetSmallWaveform();
         void SetShowAlternateTimingMark(bool b);
+        int GetActiveAudioTrackIndex() const { return PanelWaveForm ? PanelWaveForm->GetActiveAudioTrackIndex() : 0; }
 
         void TouchButtonEvent(wxCommandEvent &event);
         void ToggleHousePreview();

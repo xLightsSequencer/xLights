@@ -497,6 +497,8 @@ public:
     void *gpuRenderData = nullptr;
 
     uint32_t perModelIndex = 0;
+    AudioManager* _mediaOverride = nullptr; // set by effects to use an alt audio track
+
 private:
     PixelBufferClass *parent;
     const Model *model;
