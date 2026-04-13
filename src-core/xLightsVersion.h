@@ -24,7 +24,7 @@ static const std::string xlights_qualifier       = " DEBUG";
 #else
 static const std::string xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
 #endif
-static const std::string xlights_build_date      = __DATE__;
+extern const std::string xlights_build_date;
 
 inline std::string GetDisplayVersionString() { return xlights_version_string; }
 

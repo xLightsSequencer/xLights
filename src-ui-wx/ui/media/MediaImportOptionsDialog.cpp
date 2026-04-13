@@ -211,7 +211,7 @@ void MediaImportOptionsDialog::OnButtonSelectFolderClick(wxCommandEvent& event)
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {
-        std::string newPath = dlg.GetPath().ToStdString();
+        std::string newPath = ToStdString(dlg.GetPath());
         UpdateFolderPath(event.GetId(), newPath);
     }
 }

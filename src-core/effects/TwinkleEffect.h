@@ -21,17 +21,25 @@ public:
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
+    virtual int GetSettingVCDivisor(const std::string& name) const override
+    {
+        // Return 0xFFFF to opt out of UpgradeValueCurve auto-rescaling for
+        // Twinkle_Steps. Old sequences stored Max=100; adjustSettings migrates
+        // them to Max=400 while preserving the actual step values.
+        if (name == "E_VALUECURVE_Twinkle_Steps")
+            return 0xFFFF;
+        return RenderableEffect::GetSettingVCDivisor(name);
+    }
 
     // Cached from Twinkle.json by OnMetadataLoaded().
     static int sCountDefault;
     static int sCountMin;
     static int sCountMax;
     static int sStepsDefault;
-    // Twinkle_Steps slider goes 2..400 but the VC is clamped to 2..100 via the
-    // JSON `vcMax` field. sStepsVCMin/Max are the bounds passed to
-    // GetValueCurveInt at render time (so existing VC data in [2, 100]
-    // stays compatible). The base class GetSettingVCMin/Max also honors
-    // vcMin/vcMax so UpgradeValueCurve gets the same answer.
+    // Twinkle_Steps slider and VC both go 2..400 (vcMax=400 in JSON).
+    // GetSettingVCDivisor returns 0xFFFF to disable UpgradeValueCurve
+    // auto-rescaling; adjustSettings manually migrates old VCs (Max=100)
+    // to the new limits (Max=400) without changing their stored values.
     static int sStepsVCMin;
     static int sStepsVCMax;
     static bool sStrobeDefault;

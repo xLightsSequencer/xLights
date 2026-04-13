@@ -186,7 +186,7 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
 
             // Display label: just the filename portion
             wxFileName fnName(path);
-            node->label = fnName.GetFullName().ToStdString();
+            node->label = ToStdString(fnName.GetFullName());
 
             if (type == MediaType::Image) {
                 auto entry = media->GetImage(path);
@@ -243,7 +243,7 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
             if (it == dirGroups.end()) {
                 auto grp = std::make_shared<MediaNode>();
                 grp->isGroup = true;
-                grp->label = dir.ToStdString();
+                grp->label = ToStdString(dir);
                 grp->parent = typeParent;
                 dirGroups[dir] = grp;
                 if (singleTypeMode) {
@@ -926,7 +926,7 @@ std::string ManageMediaPanel::StrippedPath(const std::string& fullPath) const
         showDir += wxFileName::GetPathSeparator();
     wxString wx = fullPath;
     if (wx.StartsWith(showDir))
-        return wx.Mid(showDir.Length()).ToStdString();
+        return ToStdString(wx.Mid(showDir.Length()));
     return {};
 }
 
@@ -1074,7 +1074,7 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
                          wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (dlg.ShowModal() != wxID_OK) return {};
 
-        newPath = dlg.GetPath().ToStdString();
+        newPath = ToStdString(dlg.GetPath());
         bool outside = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(newPath)
                                 : (!_showDirectory.empty() &&
                                    !wxString(newPath).StartsWith(wxString(_showDirectory)));
@@ -1237,7 +1237,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                          "Image files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp|All files (*.*)|*.*",
                          wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK) return;
-        pickedPath = dlg.GetPath().ToStdString();
+        pickedPath = ToStdString(dlg.GetPath());
         wxConfigBase::Get()->Write(LastDirConfigKey(MediaType::Image), wxFileName(pickedPath).GetPath());
     }
 
@@ -1287,14 +1287,14 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
         if (sel == 0) {
             // Embed: load from disk, rename cache key to Images/<name>, mark embedded
             _sequenceMedia->GetImage(pickedPath);
-            std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+            std::string embeddedName = "Images/" + ToStdString(fn.GetFullName());
             int suffix = 1;
             std::string candidate = embeddedName;
             // Avoid colliding with anything other than the old broken entry
             while (_sequenceMedia->HasImage(candidate) && candidate != oldPath) {
-                candidate = "Images/" + fn.GetName().ToStdString() +
+                candidate = "Images/" + ToStdString(fn.GetName()) +
                             "_" + std::to_string(suffix++) + "." +
-                            fn.GetExt().ToStdString();
+                            ToStdString(fn.GetExt());
             }
             embeddedName = candidate;
             _sequenceMedia->RenameImage(pickedPath, embeddedName);
@@ -1311,7 +1311,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                 if (!wxDirExists(dest)) wxMkdir(dest);
                 dest += wxString(sep) + fn.GetFullName();
                 if (wxCopyFile(wxString(pickedPath), dest, false))
-                    newPath = dest.ToStdString();
+                    newPath = ToStdString(dest);
             }
             if (newPath.empty()) {
                 wxMessageBox("Failed to copy file to the selected folder.", "Error",
@@ -1406,7 +1406,7 @@ void ManageMediaPanel::OnBulkFindImages()
                     wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
     if (dlg.ShowModal() != wxID_OK) return;
 
-    std::string searchDir = dlg.GetPath().ToStdString();
+    std::string searchDir = ToStdString(dlg.GetPath());
     ObtainAccessToURL(searchDir);
     const std::string sep(1, wxFileName::GetPathSeparator());
 
@@ -1454,14 +1454,14 @@ void ManageMediaPanel::OnBulkFindImages()
         wxDir dir(searchDir);
         if (dir.IsOpened()) {
             // Try exact name in the top directory first
-            wxString candidate = searchDir + sep + nameToFind.ToStdString();
+            wxString candidate = searchDir + sep + ToStdString(nameToFind);
             if (wxFileExists(candidate)) {
                 foundFile = candidate;
             } else {
                 // Recurse into subdirectories
                 wxString f;
                 if (dir.GetFirst(&f, nameToFind, wxDIR_FILES | wxDIR_DIRS)) {
-                    foundFile = searchDir + sep + f.ToStdString();
+                    foundFile = searchDir + sep + ToStdString(f);
                 } else {
                     // Try a recursive traversal
                     wxArrayString results;
@@ -1474,7 +1474,7 @@ void ManageMediaPanel::OnBulkFindImages()
 
         if (foundFile.IsEmpty()) { ++notFound; continue; }
 
-        std::string pickedPath = foundFile.ToStdString();
+        std::string pickedPath = ToStdString(foundFile);
         std::string finalPath = pickedPath;
 
         if (outsideFolders) {
@@ -1482,13 +1482,13 @@ void ManageMediaPanel::OnBulkFindImages()
             if (outsideAction == 0) {
                 // Embed
                 _sequenceMedia->GetImage(pickedPath);
-                std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                std::string embeddedName = "Images/" + ToStdString(fn.GetFullName());
                 int suffix = 1;
                 std::string candidate = embeddedName;
                 while (_sequenceMedia->HasImage(candidate) && candidate != oldPath) {
-                    candidate = "Images/" + fn.GetName().ToStdString() +
+                    candidate = "Images/" + ToStdString(fn.GetName()) +
                                 "_" + std::to_string(suffix++) + "." +
-                                fn.GetExt().ToStdString();
+                                ToStdString(fn.GetExt());
                 }
                 embeddedName = candidate;
                 _sequenceMedia->RenameImage(pickedPath, embeddedName);
@@ -1505,7 +1505,7 @@ void ManageMediaPanel::OnBulkFindImages()
                     if (!wxDirExists(dest)) wxMkdir(dest);
                     dest += wxString(sep) + fn.GetFullName();
                     if (wxCopyFile(wxString(pickedPath), dest, false))
-                        newPath = dest.ToStdString();
+                        newPath = ToStdString(dest);
                 }
                 if (newPath.empty()) continue;  // skip this file on failure
                 finalPath = newPath;
@@ -1605,7 +1605,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
     std::string lastPath;
     const std::string sep(1, wxFileName::GetPathSeparator());
     for (const auto& p : paths) {
-        std::string path = p.ToStdString();
+        std::string path = ToStdString(p);
 
         // If the file is outside the show/media folders, require the user to
         // choose where to place it — no "use original location" option.
@@ -1640,7 +1640,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
             if (sel == 0) {
                 // Embed in sequence
                 _sequenceMedia->GetImage(path);
-                std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                std::string embeddedName = "Images/" + ToStdString(fn.GetFullName());
                 if (_sequenceMedia->HasImage(embeddedName)) {
                     int answer = wxMessageBox(
                         wxString::Format("'%s' is already embedded in the sequence.\n\nReplace it with the selected file?",
@@ -1662,9 +1662,9 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                 int suffix = 1;
                 std::string candidate = embeddedName;
                 while (_sequenceMedia->HasImage(candidate)) {
-                    candidate = "Images/" + fn.GetName().ToStdString() +
+                    candidate = "Images/" + ToStdString(fn.GetName()) +
                                 "_" + std::to_string(suffix++) + "." +
-                                fn.GetExt().ToStdString();
+                                ToStdString(fn.GetExt());
                 }
                 embeddedName = candidate;
                 _sequenceMedia->RenameImage(path, embeddedName);
@@ -1680,7 +1680,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                     // auto-suffixes it.
                     wxString destDir = wxString(targetDir) + wxString(sep) + "Images";
                     wxString destFile = destDir + wxString(sep) + fn.GetFullName();
-                    if (wxFileExists(destFile) && !_xlFrame->FilesMatch(path, destFile.ToStdString())) {
+                    if (wxFileExists(destFile) && !_xlFrame->FilesMatch(path, ToStdString(destFile))) {
                         int answer = wxMessageBox(
                             wxString::Format("'%s' already exists in the folder.\n\nReplace it with the selected file?",
                                              fn.GetFullName()),
@@ -1689,7 +1689,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                         if (answer == wxCANCEL) continue;
                         if (answer == wxYES) {
                             if (wxCopyFile(wxString(path), destFile, true))
-                                newPath = destFile.ToStdString();
+                                newPath = ToStdString(destFile);
                         } else {
                             // Add as New — let MoveToShowFolder generate a suffix name
                             newPath = _xlFrame->MoveToShowFolder(path, sep + "Images");
@@ -1702,7 +1702,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                     if (!wxDirExists(destDir)) wxMkdir(destDir);
                     wxString dest = destDir + wxString(sep) + fn.GetFullName();
                     if (wxFileExists(dest) &&
-                        (!_xlFrame || !_xlFrame->FilesMatch(path, dest.ToStdString()))) {
+                        (!_xlFrame || !_xlFrame->FilesMatch(path, ToStdString(dest)))) {
                         int answer = wxMessageBox(
                             wxString::Format("'%s' already exists in the folder.\n\nReplace it with the selected file?",
                                              fn.GetFullName()),
@@ -1711,7 +1711,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                         if (answer == wxCANCEL) continue;
                         if (answer == wxYES) {
                             if (wxCopyFile(wxString(path), dest, true))
-                                newPath = dest.ToStdString();
+                                newPath = ToStdString(dest);
                         } else {
                             // Add as New with suffix
                             int suffix = 1;
@@ -1723,11 +1723,11 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                                            wxString::Format("_%d", suffix) + "." + fn.GetExt();
                             }
                             if (wxCopyFile(wxString(path), suffixed, false))
-                                newPath = suffixed.ToStdString();
+                                newPath = ToStdString(suffixed);
                         }
                     } else {
                         if (wxCopyFile(wxString(path), dest, false))
-                            newPath = dest.ToStdString();
+                            newPath = ToStdString(dest);
                     }
                 }
                 if (newPath.empty()) {
@@ -1789,7 +1789,7 @@ void ManageMediaPanel::OnAIGenerateButtonClick(wxCommandEvent& event)
     // Generate a unique name for this embedded image
     wxString name = wxString::Format("AIImages/ai_generated_%lld.png",
                                      (long long)wxDateTime::Now().GetTicks());
-    std::string namePath = name.ToStdString();
+    std::string namePath = ToStdString(name);
     _sequenceMedia->AddEmbeddedImage(namePath, wxImageToXlImage(img));
     Populate(namePath);
 }
@@ -1821,7 +1821,7 @@ void ManageMediaPanel::OnRenameButtonClick(wxCommandEvent& event)
     } else {
         newPath = fn.GetPath() + wxFileName::GetPathSeparator() + newName;
     }
-    std::string newPathStr = newPath.ToStdString();
+    std::string newPathStr = ToStdString(newPath);
 
     if (!_sequenceMedia->RenameImage(oldPath, newPathStr)) {
         wxMessageBox("Could not rename: a media entry with that name already exists.",
@@ -1952,7 +1952,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
         if (dlg.ShowModal() != wxID_OK) return;
         destDir = dlg.GetPath();
 
-        bool outside = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(destDir.ToStdString())
+        bool outside = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(ToStdString(destDir))
                                 : (!_showDirectory.empty() &&
                                    !destDir.StartsWith(wxString(_showDirectory)));
         if (!outside) break;
@@ -1963,7 +1963,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
             "Invalid Location", wxOK | wxICON_WARNING, this);
         defaultDir = destDir;  // keep the user's last choice as starting point
     }
-    ObtainAccessToURL(destDir.ToStdString());
+    ObtainAccessToURL(ToStdString(destDir));
     if (destDir.Last() != wxFileName::GetPathSeparator()) {
         destDir += wxFileName::GetPathSeparator();
     }
@@ -1999,7 +1999,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
         if (destPath.IsEmpty()) { ++failed; continue; }
 
         std::string oldPath = path;
-        std::string newPath = destPath.ToStdString();
+        std::string newPath = ToStdString(destPath);
 
         ObtainAccessToURL(newPath);
 
@@ -2281,7 +2281,7 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() != wxID_OK) return;
 
-    std::string path = dlg.GetPath().ToStdString();
+    std::string path = ToStdString(dlg.GetPath());
     wxConfigBase::Get()->Write(LastDirConfigKey(_filterType), wxFileName(path).GetPath());
     const std::string sep(1, wxFileName::GetPathSeparator());
 
@@ -2333,13 +2333,13 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
                 case MediaType::BinaryFile: _panel->_sequenceMedia->GetBinaryFile(path); break;
             }
             if (regType == MediaType::Image) {
-                std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                std::string embeddedName = "Images/" + ToStdString(fn.GetFullName());
                 int suffix = 1;
                 std::string candidate = embeddedName;
                 while (_panel->_sequenceMedia->HasImage(candidate)) {
-                    candidate = "Images/" + fn.GetName().ToStdString() +
+                    candidate = "Images/" + ToStdString(fn.GetName()) +
                                 "_" + std::to_string(suffix++) + "." +
-                                fn.GetExt().ToStdString();
+                                ToStdString(fn.GetExt());
                 }
                 embeddedName = candidate;
                 _panel->_sequenceMedia->RenameImage(path, embeddedName);
@@ -2363,7 +2363,7 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
                 wxFileName fn2(path);
                 dest += wxString(sep) + fn2.GetFullName();
                 if (wxCopyFile(wxString(path), dest, false))
-                    newPath = dest.ToStdString();
+                    newPath = ToStdString(dest);
             }
             if (newPath.empty()) {
                 wxMessageBox("Failed to copy file to the selected folder.", "Error",

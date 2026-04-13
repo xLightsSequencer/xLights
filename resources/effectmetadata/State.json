@@ -12,23 +12,12 @@
             "description": "Selects which state definition to use from the model's configured state maps (e.g., SingleNode, NodeRange, or custom state definitions)."
         },
         {
-            "id": "State_State",
-            "label": "State",
+            "id": "State_StateSource",
+            "label": "",
+            "description": "Choose between selecting a named state directly or driving states from a timing track. Each timing mark's label is matched to a state name.",
             "type": "enum",
-            "controlType": "choice",
-            "options": [],
-            "default": "",
-            "description": "Selects a specific named state to display. Multiple states can be separated by commas. Use '*' or '<ALL>' to activate all defined states. When left empty, the Timing Track is used instead."
-        },
-        {
-            "id": "State_TimingTrack",
-            "label": "Timing Track",
-            "type": "enum",
-            "controlType": "choice",
-            "options": [],
-            "default": "",
-            "dynamicOptions": "timingTracks",
-            "description": "Selects a timing track whose labels drive which states are shown over time. Each timing mark's label is matched to a state name. Ignored if a State is selected above."
+            "controlType": "custom",
+            "default": ""
         },
         {
             "id": "State_Mode",
@@ -67,6 +56,14 @@
             "min": 0,
             "max": 1000,
             "description": "Duration in milliseconds for states to fade in and out at the start and end of each timing interval. Set to 0 for instant on/off switching."
+        }
+    ],
+    "groups": [
+        {
+            "type": "section",
+            "label": "States",
+            "columns": 1,
+            "properties": ["State_StateSource"]
         }
     ]
 }

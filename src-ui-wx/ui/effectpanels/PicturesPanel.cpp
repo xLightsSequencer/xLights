@@ -220,7 +220,7 @@ void PicturesPanel::OnSelectClick(wxCommandEvent& /*event*/) {
     std::string selected = dlg.GetSelectedPath();
     if (selected.empty()) return;
 
-    _filenameCtrl->SetValue(selected);
+    _filenameCtrl->SetValue(ToWXString(selected));
     UpdatePreviewBitmap(selected);
     FireChangeEvent();
 }

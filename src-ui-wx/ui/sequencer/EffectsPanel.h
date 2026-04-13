@@ -57,7 +57,7 @@ protected:
     EffectPanelManager *effectPanelManager;
 
     //(*Identifiers(EffectsPanel)
-    static const long ID_CHOICEBOOK1;
+    static const wxWindowID ID_CHOICEBOOK1;
     //*)
 
 private:

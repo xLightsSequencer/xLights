@@ -14,6 +14,9 @@
 #include "ui/media/ManageMediaPanel.h"
 #include "render/SequenceElements.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "ui/shared/controls/BulkEditControls.h"
+#include "ui/sequencer/EffectsPanel.h"
+#include "ui/sequencer/MainSequencer.h"
 
 #include <wx/sizer.h>
 #include <wx/filepicker.h>
@@ -111,15 +114,31 @@ void MediaPickerCtrl::OnSelectClick(wxCommandEvent& event) {
     std::string selected = dlg.GetSelectedPath();
     if (selected.empty()) return;
 
-    _pathCtrl->SetValue(selected);
+    _pathCtrl->SetValue(ToWXString(selected));
     UpdatePreview();
 
     // Sync to linked file picker (for bulk edit framework compatibility)
     if (_linkedPicker) {
-        _linkedPicker->SetPath(selected);
+        _linkedPicker->SetPath(ToWXString(selected));
         wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _linkedPicker,
                                  _linkedPicker->GetId(), selected);
         _linkedPicker->ProcessWindowEvent(evt);
+    }
+
+    // Bulk edit: propagate to all other selected effects of the same type.
+    // Uses the same id+"_FN" pattern as BulkEditFilePickerCtrl::OnFilePickerCtrlPopup.
+    if (_linkedPicker && xl) {
+        std::string panelName = GetPanelName(this);
+        if (panelName == "Effect") {
+            std::string effectName;
+            if (auto* ep = dynamic_cast<EffectsPanel*>(GetPanel(this))) {
+                effectName = ep->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+            }
+            if (xl->GetMainSequencer() && xl->GetMainSequencer()->GetSelectedEffectCount(effectName) > 1) {
+                std::string id = FixIdForPanel(panelName, _linkedPicker->GetName().ToStdString());
+                xl->GetMainSequencer()->ApplyEffectSettingToSelected(effectName, id + "_FN", selected, nullptr, "");
+            }
+        }
     }
 }
 

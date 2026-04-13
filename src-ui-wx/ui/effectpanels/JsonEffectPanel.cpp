@@ -1088,7 +1088,6 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
             auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                               wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                               wxString(lockName));
-            lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
             sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
             Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                     (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
@@ -1132,7 +1131,6 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
             auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                               wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                               wxString(lockName));
-            lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
             sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
             Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                     (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
@@ -1191,8 +1189,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                                   wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                   wxString(lockName));
-                lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-                sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                    sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
                 Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                         (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
             } else {
@@ -1358,8 +1355,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                                   wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                   wxString(lockName));
-                lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-                sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                    sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
                 Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                         (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
             } else {

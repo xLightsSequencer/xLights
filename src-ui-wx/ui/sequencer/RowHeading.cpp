@@ -23,6 +23,7 @@
 #include "EffectsGrid.h"
 #include "ui/color/ColorManager.h"
 #include "render/SequenceElements.h"
+#include "media/AudioManager.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "ui/sequencer/NewTimingDialog.h"
@@ -881,9 +882,28 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         
         VAMPPluginDialog vamp(this);
+
+        // Use the waveform's currently selected audio track for VAMP analysis
+        AudioManager* vampMedia = xml_file->GetMedia();
+        {
+            auto* frame = xLightsApp::GetFrame();
+            if (frame != nullptr && frame->GetMainSequencer() != nullptr) {
+                int trackIdx = frame->GetMainSequencer()->GetActiveAudioTrackIndex();
+                if (trackIdx > 0) {
+                    int altTrackIdx = trackIdx - 1;
+                    if (altTrackIdx < xml_file->GetAltTrackCount()) {
+                        AudioManager* altTrackMedia = xml_file->GetAltTrackMedia(altTrackIdx);
+                        if (altTrackMedia != nullptr) {
+                            vampMedia = altTrackMedia;
+                        }
+                    }
+                }
+            }
+        }
+
         std::list<std::string> plugins;
-        if (xml_file->HasAudioMedia()) {
-            plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
+        if (vampMedia != nullptr) {
+            plugins = vampMedia->GetVamp()->GetAvailablePlugins(vampMedia);
             if (plugins.size() == 0) {
                 dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
             } else {
@@ -904,7 +924,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 DownloadVamp();
             } else {
                 if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end()) {
-                    name = vamp.ProcessPlugin(xml_file, xLightsApp::GetFrame(), selected_timing, xml_file->GetMedia());
+                    name = vamp.ProcessPlugin(xml_file, xLightsApp::GetFrame(), selected_timing, vampMedia);
                     if (name != "") {
                         timing_added = true;
                     }
@@ -1242,7 +1262,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     wxFile f(filename);
                     spdlog::info("Saving to xtiming file {}.", (const char*)filename.c_str());
                     if (!f.Create(filename, true) || !f.IsOpened()) {
-                        DisplayError(wxString::Format("Unable to create file %s. Error %d", filename, f.GetLastError()).ToStdString());
+                        DisplayError(ToStdString(wxString::Format("Unable to create file %s. Error %d", filename, f.GetLastError())));
                         return;
                     }
                     wxString v = xlights_version_string;
@@ -1252,7 +1272,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     }
                     for (size_t i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++) {
                         if (dlg.CheckListBox_Timings->IsChecked(i)) {
-                            TimingElement* tee = dynamic_cast<TimingElement*>(mSequenceElements->GetElement(dlg.CheckListBox_Timings->GetString(i).ToStdString()));
+                            TimingElement* tee = dynamic_cast<TimingElement*>(mSequenceElements->GetElement(ToStdString(dlg.CheckListBox_Timings->GetString(i))));
 
                             wxString td = wxString(tee->GetExport().c_str());
                             f.Write("<timing ");
@@ -1273,7 +1293,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxFile f(filename);
             spdlog::info("Saving to papagayo file {}.", (const char*)filename.c_str());
             if (!f.Create(filename, true) || !f.IsOpened()) {
-                DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+                DisplayError(ToStdString(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError())));
                 return;
             }
             wxString td = wxString(te->GetPapagayoExport(mSequenceElements->GetFrequency()).c_str());

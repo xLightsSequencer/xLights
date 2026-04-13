@@ -78,8 +78,7 @@ public:
     virtual AIColorPalette GenerateColorPalette(const std::string &prompt) const {
         return AIColorPalette();
     }
-    
-    
+
     class AIImageGenerator {
     public:
         virtual ~AIImageGenerator() {}
@@ -123,4 +122,20 @@ public:
         return AIModelMappingResult();
     }
 
+    struct AILyric 
+    {
+        std::string word;
+        int startMS{ 0 };
+        int endMS{ 0 };
+    };
+
+    struct AILyricTrack {
+        std::vector<AILyric> lyrics;
+        std::string error;
+    };
+
+
+    virtual AILyricTrack GenerateLyricTrack(const std::string& audioPath) const {
+        return AILyricTrack();
+    }
 };

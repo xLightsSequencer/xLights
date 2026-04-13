@@ -12,6 +12,7 @@
 
 #include "../utils/xlImage.h"
 #include <atomic>
+#include <filesystem>
 #include <functional>
 #include <map>
 #include <string>
@@ -66,6 +67,9 @@ public:
     bool isLoaded() const { return _loadingDone; }
     virtual bool IsOk() const { return _loadingDone; }
 
+    // Check if the on-disk file has changed since last load; reload if so.
+    virtual void ReloadIfChanged();
+
     virtual bool LoadFromXml(const pugi::xml_node& node) = 0;
     virtual void SaveToXml(pugi::xml_node& parent) const = 0;
 
@@ -82,12 +86,17 @@ protected:
     // Read a file from disk into _embeddedData as base64
     void LoadRawFromFile(const std::string& filepath);
 
+    // Timestamp helpers for auto-reload of external files
+    void RecordFileTimestamp();
+    bool HasFileChanged() const;
+
     MediaType _type;
     std::string _filePath;
     std::string _embeddedData;      // Base64 encoded data
     std::atomic_bool _used;
     std::atomic_bool _loadingDone{false};
     std::atomic_bool _isEmbedded{false};
+    std::filesystem::file_time_type _fileTimestamp{}; // mtime when loaded from disk
     mutable std::recursive_mutex _cacheMutex;
 
     // Preview frame cache
@@ -159,6 +168,7 @@ public:
     void GeneratePreview(int maxWidth, int maxHeight) override;
 
     void Load() override;
+    void ReloadIfChanged() override;
 
     // Pre-cache a base64 PNG string for frame i to avoid re-encoding on save.
     void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
@@ -233,6 +243,7 @@ public:
     void GeneratePreview(int maxWidth, int maxHeight) override;
 
     void Load() override;
+    void ReloadIfChanged() override;
     bool LoadFromXml(const pugi::xml_node& node) override;
     void SaveToXml(pugi::xml_node& parent) const override;
 
@@ -263,6 +274,7 @@ public:
     ShaderConfig* GetShaderConfig(SequenceElements* sequenceElements);
 
     void Load() override;
+    void ReloadIfChanged() override;
     bool LoadFromXml(const pugi::xml_node& node) override;
     void SaveToXml(pugi::xml_node& parent) const override;
 

@@ -213,14 +213,19 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
 
     double radius1 = start_radius;
     double radius2 = end_radius;
+    // Full (pre-ramp) outer radius in pixel units. Used by the twist
+    // calculation (r/max_radius)*blade_angle — which defines the full-fan
+    // spiral, independent of the ramp-up/ramp-down region. Must stay a
+    // double: on small buffers (bufferMax<200) scaling can produce
+    // fractional values that would otherwise int-truncate to 0 and trip
+    // the blade_angle=0 safety clamp, silently killing the twist.
+    double max_radius_d = std::max(radius1, radius2);
 
     if (scale) { // convert to percentage of buffer, i.e 100 is 100% of buffer size
         double bufferMax = std::max(buffer.BufferHt, buffer.BufferWi);
         radius1 = radius1 * (bufferMax / 200.0); // 200 bc radius is half of the width
         radius2 = radius2 * (bufferMax / 200.0);
-
-        start_radius = start_radius * (bufferMax / 200.0);
-        end_radius = end_radius * (bufferMax / 200.0);
+        max_radius_d = max_radius_d * (bufferMax / 200.0);
     }
 
     int xc_adj = (center_x-50)*buffer.BufferWi / 100;
@@ -259,14 +264,14 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
         std::swap(radius1, radius2);
     }
 
-    int max_radius = std::max(start_radius, end_radius);
-    if (max_radius <= 0)
+    double max_radius = max_radius_d;
+    if (max_radius <= 0.0)
     {
         // A non-positive max radius would be used as a divisor in both the CPU
         // and ISPC twist calculations. Treat this as "no twist" and use a safe
         // positive denominator so both paths remain well-defined.
         blade_angle = 0;
-        max_radius = 1;
+        max_radius = 1.0;
     }
 
     do {

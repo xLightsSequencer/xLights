@@ -20,6 +20,7 @@
 
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
+#include "xLightsVersion.h"
 #include "string_utils.h"
 
 #include <string_view>
@@ -44,6 +45,9 @@
 #elif defined(__GCC__) // GCC
 #define thread_local __thread
 #endif
+
+
+const std::string xlights_build_date = __DATE__;
 
 pugi::xml_node FindXmlNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create)
 {

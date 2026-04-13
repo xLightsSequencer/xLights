@@ -52,6 +52,7 @@ void MediaCacheEntry::LoadRawFromFile(const std::string& filepath) {
         stream.read(reinterpret_cast<char*>(buffer.data()), size);
         if (!stream) return;
         _embeddedData = Base64::Encode(buffer.data(), buffer.size());
+        RecordFileTimestamp();
     }
 }
 
@@ -103,6 +104,37 @@ bool MediaCacheEntry::SaveToFile(const std::string& path) const {
     if (!f.is_open()) return false;
     f.write(reinterpret_cast<const char*>(buf.data()), buf.size());
     return f.good();
+}
+
+void MediaCacheEntry::RecordFileTimestamp() {
+    if (!_filePath.empty()) {
+        std::error_code ec;
+        _fileTimestamp = std::filesystem::last_write_time(_filePath, ec);
+        // On error, _fileTimestamp stays default — HasFileChanged() will return false
+    }
+}
+
+bool MediaCacheEntry::HasFileChanged() const {
+    if (_isEmbedded.load() || _filePath.empty() || _fileTimestamp == std::filesystem::file_time_type{}) {
+        return false;
+    }
+    std::error_code ec;
+    auto current = std::filesystem::last_write_time(_filePath, ec);
+    if (ec) return false;
+    return current != _fileTimestamp;
+}
+
+void MediaCacheEntry::ReloadIfChanged() {
+    if (!_loadingDone.load() || _isEmbedded.load()) return;
+    if (!HasFileChanged()) return;
+    std::scoped_lock lock(_cacheMutex);
+    // Double-check under lock
+    if (!HasFileChanged()) return;
+    spdlog::debug("MediaCacheEntry::ReloadIfChanged - file changed on disk: '{}'", _filePath);
+    _loadingDone = false;
+    _embeddedData.clear();
+    ClearPreview();
+    Load();
 }
 
 // =====================================================================
@@ -157,6 +189,26 @@ void ImageCacheEntry::Load() {
         }
         _loadingDone = true;
     }
+}
+void ImageCacheEntry::ReloadIfChanged() {
+    if (!_loadingDone.load() || _isEmbedded.load()) return;
+    if (!HasFileChanged()) return;
+    std::scoped_lock lock(_cacheMutex);
+    if (!HasFileChanged()) return;
+    spdlog::debug("ImageCacheEntry::ReloadIfChanged - file changed on disk: '{}'", _filePath);
+    _loadingDone = false;
+    _embeddedData.clear();
+    _frameImages.clear();
+    _frameImagesNoBG.clear();
+    _frameTimes.clear();
+    _frameData.clear();
+    _scaledImageCache.clear();
+    _imageCount = 0;
+    _imageWidth = 0;
+    _imageHeight = 0;
+    _totalTime = 0;
+    ClearPreview();
+    Load();
 }
 void ImageCacheEntry::LoadFromData(const std::string& data) {
     std::vector<uint8_t> buffer = Base64::Decode(data);
@@ -504,6 +556,7 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
             lock.unlock();
             ret->Load();
         }
+        ret->ReloadIfChanged();
         return ret;
     }
 
@@ -522,6 +575,7 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
                 lock.unlock();
                 entry->Load();
             }
+            entry->ReloadIfChanged();
             return entry;
         }
     }
@@ -923,6 +977,21 @@ void SVGMediaCacheEntry::Load() {
         }
     }
 }
+void SVGMediaCacheEntry::ReloadIfChanged() {
+    if (!_loadingDone.load() || _isEmbedded.load()) return;
+    if (!HasFileChanged()) return;
+    std::scoped_lock lock(_cacheMutex);
+    if (!HasFileChanged()) return;
+    spdlog::debug("SVGMediaCacheEntry::ReloadIfChanged - file changed on disk: '{}'", _filePath);
+    _loadingDone = false;
+    _embeddedData.clear();
+    _svgContent.clear();
+    _thumbnail.reset();
+    _thumbW = 0;
+    _thumbH = 0;
+    ClearPreview();
+    Load();
+}
 
 bool SVGMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
     if (!node || strcmp(node.name(), "SVG") != 0) return false;
@@ -1037,6 +1106,20 @@ void ShaderMediaCacheEntry::Load() {
         }
     }
 }
+void ShaderMediaCacheEntry::ReloadIfChanged() {
+    if (!_loadingDone.load() || _isEmbedded.load()) return;
+    if (!HasFileChanged()) return;
+    std::scoped_lock lock(_cacheMutex);
+    if (!HasFileChanged()) return;
+    spdlog::debug("ShaderMediaCacheEntry::ReloadIfChanged - file changed on disk: '{}'", _filePath);
+    _loadingDone = false;
+    _embeddedData.clear();
+    _shaderSource.clear();
+    delete _shaderConfig;
+    _shaderConfig = nullptr;
+    ClearPreview();
+    Load();
+}
 
 bool ShaderMediaCacheEntry::LoadFromXml(const pugi::xml_node& node) {
     if (!node || strcmp(node.name(), "Shader") != 0) return false;
@@ -1078,6 +1161,7 @@ void BinaryMediaCacheEntry::Load() {
         // Binary files (Glediator) are not embeddable — readers open files directly.
         // Just verify the file exists, don't load into memory.
         if (FileExists(_filePath)) {
+            RecordFileTimestamp();
             _loadingDone = true;
         }
     }
@@ -1129,6 +1213,7 @@ void VideoMediaCacheEntry::Load() {
                 _resolvedPath = resolved;
             }
         }
+        RecordFileTimestamp();
         _loadingDone = true;
     }
 }
@@ -1250,12 +1335,14 @@ std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::strin
             lock.unlock();
             ret->Load();
         }
+        ret->ReloadIfChanged();
         return ret;
     }
     std::string loadPath = ResolvePath(filepath);
     for (auto& [key, entry] : _textCache) {
         if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
             if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            entry->ReloadIfChanged();
             return entry;
         }
     }
@@ -1276,12 +1363,14 @@ std::shared_ptr<SVGMediaCacheEntry> SequenceMedia::GetSVG(const std::string& fil
             lock.unlock();
             ret->Load();
         }
+        ret->ReloadIfChanged();
         return ret;
     }
     std::string loadPath = ResolvePath(filepath);
     for (auto& [key, entry] : _svgCache) {
         if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
             if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            entry->ReloadIfChanged();
             return entry;
         }
     }
@@ -1302,6 +1391,7 @@ std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::strin
             lock.unlock();
             ret->Load();
         }
+        ret->ReloadIfChanged();
         return ret;
     }
     // Check if the resolved path matches an existing entry (avoids duplicates
@@ -1310,6 +1400,7 @@ std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::strin
     for (auto& [key, entry] : _shaderCache) {
         if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
             if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            entry->ReloadIfChanged();
             return entry;
         }
     }
@@ -1330,12 +1421,14 @@ std::shared_ptr<BinaryMediaCacheEntry> SequenceMedia::GetBinaryFile(const std::s
             lock.unlock();
             ret->Load();
         }
+        ret->ReloadIfChanged();
         return ret;
     }
     std::string loadPath = ResolvePath(filepath);
     for (auto& [key, entry] : _binaryCache) {
         if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
             if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            entry->ReloadIfChanged();
             return entry;
         }
     }
@@ -1356,6 +1449,7 @@ std::shared_ptr<VideoMediaCacheEntry> SequenceMedia::GetVideo(const std::string&
             lock.unlock();
             ret->Load();
         }
+        ret->ReloadIfChanged();
         return ret;
     }
     // Check if the resolved path matches an existing entry
@@ -1363,6 +1457,7 @@ std::shared_ptr<VideoMediaCacheEntry> SequenceMedia::GetVideo(const std::string&
     for (auto& [key, entry] : _videoCache) {
         if (entry->GetFilePath() == resolved || ResolvePath(key) == resolved) {
             if (!entry->isLoaded()) { lock.unlock(); entry->Load(); }
+            entry->ReloadIfChanged();
             return entry;
         }
     }

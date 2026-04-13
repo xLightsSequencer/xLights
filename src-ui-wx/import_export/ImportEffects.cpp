@@ -263,7 +263,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         config->Read("xLightsLastImportDir", &ldir, "");
     }
 
-    wxFileDialog file(this, "Choose file to import", ldir.ToStdString(), "", filter);
+    wxFileDialog file(this, "Choose file to import", ldir, "", filter);
     if (lit != "") {
         int index = 0;
 
@@ -499,8 +499,8 @@ void MapXLightsEffects(Element* target,
 
 void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile)
 {
-    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()),
-                           GetShowDirectory(), GetSeqXmlFileName().ToStdString(), &AllModels);
+    SequencePackage xsqPkg(std::filesystem::path(ToStdString(filename.GetFullPath())),
+                           GetShowDirectory(), ToStdString(GetSeqXmlFileName()), &AllModels);
 
     if (xsqPkg.IsPkg()) {
         xsqPkg.Extract();
@@ -556,8 +556,8 @@ ModelElement* AddModel(Model* m, SequenceElements& se)
 void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, const wxFileName& filename,
                                  bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc)
 {
-    SequencePackage xsqPkg(std::filesystem::path(filename.GetFullPath().ToStdString()),
-                           GetShowDirectory(), GetSeqXmlFileName().ToStdString(), &AllModels);
+    SequencePackage xsqPkg(std::filesystem::path(ToStdString(filename.GetFullPath())),
+                           GetShowDirectory(), ToStdString(GetSeqXmlFileName()), &AllModels);
     ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
 }
 
@@ -1060,7 +1060,7 @@ static void CheckForVixenRGB(const std::string& name, xlColor& c, xLightsImportC
 
 void xLightsFrame::ImportVix(const wxFileName& filename)
 {
-    spdlog::debug("Importing vixen file {}.", filename.GetFullName().ToStdString());
+    spdlog::debug("Importing vixen file {}.", ToStdString(filename.GetFullName()));
 
     std::vector<unsigned char> VixSeqData;
 
@@ -3459,7 +3459,7 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
         return false;
     }
 
-    spdlog::debug("Importing S5 effects from {}.", filename.GetFullPath().ToStdString());
+    spdlog::debug("Importing S5 effects from {}.", ToStdString(filename.GetFullPath()));
 
     int offset = dlg.TimeAdjustSpinCtrl->GetValue();
 
@@ -3620,7 +3620,7 @@ bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& fi
         return false;
     }
 
-    spdlog::debug("Importing LPE effects from {}.", filename.GetFullPath().ToStdString());
+    spdlog::debug("Importing LPE effects from {}.", ToStdString(filename.GetFullPath()));
 
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
@@ -3753,7 +3753,7 @@ bool xLightsFrame::ImportVixen3(const wxFileName& filename)
         - what you changed it to.\n\n\n\
 AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTINGS RIGHT!");
 
-    Vixen3 vixen(filename.GetFullPath().ToStdString());
+    Vixen3 vixen(ToStdString(filename.GetFullPath()));
 
     if (!vixen.IsSystemFound()) {
         wxMessageBox("SystemConfig.xml could not be found. Import impossible.");
@@ -3786,7 +3786,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         return false;
     }
 
-    spdlog::debug("Importing Vixen 3 effects from {}.", filename.GetFullPath().ToStdString());
+    spdlog::debug("Importing Vixen 3 effects from {}.", ToStdString(filename.GetFullPath()));
 
     int offset = dlg.TimeAdjustSpinCtrl->GetValue();
 
@@ -5165,7 +5165,7 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
     wxStopWatch sw; // start a stopwatch timer
 
     VsaImportDialog dlg(this);
-    VSAFile vsa(filename.GetFullPath().ToStdString());
+    VSAFile vsa(ToStdString(filename.GetFullPath()));
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     dlg.Init(&vsa, false);

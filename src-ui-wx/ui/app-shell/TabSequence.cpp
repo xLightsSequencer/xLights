@@ -1545,7 +1545,7 @@ void xLightsFrame::SaveSequence()
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
         _renderCache.SetSequence(renderCacheDirectory, xmlFileName.GetName());
         xmlFileName.SetExt("xsq");
-        CurrentSeqXmlFile->SetFullPath(xmlFileName.GetFullPath().ToStdString());
+        CurrentSeqXmlFile->SetFullPath(ToStdString(xmlFileName.GetFullPath()));
 
         AddToMRU(xmlFileName.GetFullPath());
         UpdateRecentFilesList(false);
@@ -1729,7 +1729,7 @@ void xLightsFrame::SaveAsSequence()
         }
     } while (!ok);
 
-    SaveAsSequence(newFilename);
+    SaveAsSequence(ToStdString(newFilename));
 }
 
 void xLightsFrame::SaveAsSequence(const std::string& filename)
@@ -1738,10 +1738,10 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
 
-    SetPanelSequencerLabel(oName.GetName().ToStdString());
+    SetPanelSequencerLabel(ToStdString(oName.GetName()));
 
     oName.SetExt("xsq");
-    CurrentSeqXmlFile->SetFullPath(oName.GetFullPath().ToStdString());
+    CurrentSeqXmlFile->SetFullPath(ToStdString(oName.GetFullPath()));
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);

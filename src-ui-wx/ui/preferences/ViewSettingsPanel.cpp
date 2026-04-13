@@ -121,6 +121,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     Choice_PaletteSize->Append(_("Large"));
     GridBagSizer1->Add(Choice_PaletteSize, wxGBPosition(11, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
+    GridBagSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
     Connect(ID_CHOICE4, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);

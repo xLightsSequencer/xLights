@@ -439,7 +439,6 @@ wxWindow* ColorPanel::BuildSparklesRow(wxWindow* parentWin, wxSizer* sizer) {
                                                wxDefaultPosition, wxSize(14, 14),
                                                wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
-    _sparkleFrequencyLock->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
     topRow->Add(_sparkleFrequencyLock, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     _sparkleFrequencyLock->Bind(wxEVT_BUTTON, &ColorPanel::OnLockButtonClick, this);
 
@@ -468,7 +467,6 @@ wxWindow* ColorPanel::BuildSparklesRow(wxWindow* parentWin, wxSizer* sizer) {
                                            wxDefaultPosition, wxSize(14, 14),
                                            wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                            _T("ID_BITMAPBUTTON_MusicSparkles"));
-    _musicSparklesLock->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
     musicRow->Add(_musicSparklesLock, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     _musicSparklesLock->Bind(wxEVT_BUTTON, &ColorPanel::OnLockButtonClick, this);
 

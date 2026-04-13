@@ -428,6 +428,7 @@ public:
     const std::string &GetShowDirectory() const override { return showDirectory; }
     const std::string &GetFseqDirectory() const override { return fseqDirectory; }
     AudioManager* GetCurrentMediaManager() const override;
+    AudioManager* GetPlaybackAudio() const; // Returns active alt track audio if selected, else main media
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
