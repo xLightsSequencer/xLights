@@ -154,3 +154,4 @@ jobs:
       with:
         name: xLights_Exe
         path: 'xLights\x64\Release\**'
+        retention-days: 7
