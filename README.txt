@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
-    -bug (AGFazio)               Fix submodels in a group showing at wrong indent level in sequencer element list
+    -bug (derwin12)             Fix Twinkle Steps value curve capped at 100 instead of 400 (#4347)
+    -bug (AGFazio)              Fix submodels in a group showing at wrong indent level in sequencer element list
     -bug (derwin12)             Fix downloaded/imported models always getting start channel 1 (#6075)
     -bug (derwin12)             Fix unintended setting of ShadowModelFor (#5634)
     -bug (dkulp)                Fix macOS 11/12 launch crash "Symbol not found..." due to using
@@ -51,12 +52,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     for newly-created effects, Shape StartSize matches JSON (1 instead of 5),
                                     Faces FaceDefinition fallback is now consistently "Default" across CheckEffectSettings
                                     and Render, Metal Spirals now matches CPU Spirals default for Rotation/Thickness.
-    -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
-                                    Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
-    -bug (dkulp)                Fix Circles effect Collide checkbox removal causing silent behavior change in old sequences.
-                                    Sequences with Collide=1 are now migrated to Bounce=1 to preserve their non-wrapping render.
-    -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
-                                    using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
     -bug (derwin12)             Fix crash after using Join in the SubModels dialog. (#6064)
     -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
