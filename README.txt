@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
+
+    -enh (AGFazio)              Add 'Yes to All' / 'No to All' options when merging base show directory changes
     -bug (derwin12)             Fix Twinkle Steps value curve capped at 100 instead of 400 (#4347)
     -bug (AGFazio)              Fix submodels in a group showing at wrong indent level in sequencer element list
     -bug (derwin12)             Fix downloaded/imported models always getting start channel 1 (#6075)

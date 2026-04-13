@@ -95,7 +95,7 @@ class ModelManager : public ObjectManager
 
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
-        bool MergeFromBase(const std::string& baseShowDir, bool prompt);
+        bool MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll);
         static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode);
         std::string GetLastGeneratedModelName() const { return lastGeneratedModelName; }
 

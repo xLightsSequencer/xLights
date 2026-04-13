@@ -40,7 +40,7 @@ public:
     void AddViewObject(ViewObject *view_object);
     void Delete(const std::string &name);
     bool Rename(const std::string &oldName, const std::string &newName);
-    bool MergeFromBase(const std::string& baseShowDir, bool prompt);
+    bool MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll);
     static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localViewObjectsNode);
 
     void LoadViewObjects(pugi::xml_node objectNode);

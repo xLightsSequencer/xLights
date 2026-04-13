@@ -1537,6 +1537,10 @@ public:
                      const std::string& caption = "xLights") const override;
     bool PromptYesNo(const std::string& message,
                      const std::string& caption = "xLights") const override;
+    bool PromptYesNoAll(const std::string& message,
+                        const std::string& caption,
+                        bool& acceptAll,
+                        bool& rejectAll) const override;
     std::string PromptForDirectory(const std::string& message,
                                    const std::string& defaultPath = "") const override;
     std::string PromptForFile(const std::string& message,
