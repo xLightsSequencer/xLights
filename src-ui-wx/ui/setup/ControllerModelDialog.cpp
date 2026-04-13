@@ -63,6 +63,7 @@ const wxWindowID ControllerModelDialog::ID_PANEL2 = wxNewId();
 const wxWindowID ControllerModelDialog::ID_SCROLLBAR3 = wxNewId();
 const wxWindowID ControllerModelDialog::ID_PANEL4 = wxNewId();
 const wxWindowID ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_TEXTCTRL_MODEL_FILTER = wxNewId();
 //*)
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
@@ -1984,10 +1985,14 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Panel4 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer3->AddGrowableCol(0);
-    FlexGridSizer3->AddGrowableRow(1);
+    FlexGridSizer3->AddGrowableRow(2);
     CheckBox_HideOtherControllerModels = new wxCheckBox(Panel4, ID_CHECKBOX1, _("Hide models assigned to other controllers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_HideOtherControllerModels->SetValue(false);
     FlexGridSizer3->Add(CheckBox_HideOtherControllerModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_ModelFilter = new wxSearchCtrl(Panel4, ID_TEXTCTRL_MODEL_FILTER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    TextCtrl_ModelFilter->SetDescriptiveText(_("Filter models..."));
+    TextCtrl_ModelFilter->ShowCancelButton(true);
+    FlexGridSizer3->Add(TextCtrl_ModelFilter, 0, wxALL|wxEXPAND, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     FlexGridSizer2->AddGrowableRow(0);
@@ -2024,6 +2029,9 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Connect(ID_SLIDER_BOX_SCALE, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
     Connect(ID_SLIDER_FONT_SCALE, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick);
+    TextCtrl_ModelFilter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &ControllerModelDialog::OnTextCtrl_ModelFilterCancel, this);
+    TextCtrl_ModelFilter->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &ControllerModelDialog::OnTextCtrl_ModelFilterText, this);
+    TextCtrl_ModelFilter->Bind(wxEVT_TEXT, &ControllerModelDialog::OnTextCtrl_ModelFilterText, this);
     PanelModels->Connect(wxEVT_PAINT, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsPaint, NULL, this);
     PanelModels->Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsKeyDown, NULL, this);
     PanelModels->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ControllerModelDialog::OnPanelModelsLeftDown, NULL, this);
@@ -2051,6 +2059,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     ScrollBar_Controller_H->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
     ScrollBar_Controller_V->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
     ScrollBar_Models->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
+    TextCtrl_ModelFilter->Bind(wxEVT_KEY_DOWN, &ControllerModelDialog::OnKeyDown, this);
 
     // PanelController->SetBackgroundStyle(wxBG_STYLE_PAINT);
     // PanelModels->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -2227,13 +2236,16 @@ void ControllerModelDialog::ReloadModels()
 
     TextCtrl_Check->SetValue(check);
 
+    wxString modelFilter = TextCtrl_ModelFilter->GetValue().Lower();
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
-                 ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
-                  _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
-                _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
+                    ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
+                        _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
+                if (modelFilter.empty() || wxString(it.second->GetName()).Lower().Contains(modelFilter)) {
+                    _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
+                }
             }
         }
     }
@@ -4761,6 +4773,19 @@ void ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated(wxScrollEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("ControllerModelBoxScale", Slider_Box_Scale->GetValue());
     config->Write("ControllerModelFontScale", Slider_Font_Scale->GetValue());
+    ReloadModels();
+}
+
+void ControllerModelDialog::OnTextCtrl_ModelFilterText(wxCommandEvent& event)
+{
+    ScrollBar_Models->SetThumbPosition(0);
+    ReloadModels();
+}
+
+void ControllerModelDialog::OnTextCtrl_ModelFilterCancel(wxCommandEvent& event)
+{
+    TextCtrl_ModelFilter->SetValue(wxEmptyString);
+    ScrollBar_Models->SetThumbPosition(0);
     ReloadModels();
 }
 
