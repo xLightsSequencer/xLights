@@ -37,6 +37,7 @@ class wxStaticText;
 #include "ui/shared/utils/xlPropertyGrid.h"
 #include <wx/aui/aui.h>
 
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <vector>
@@ -139,7 +140,7 @@ class LayoutPanel: public wxPanel
         wxString _savedFloatingPerspective;
         bool _auiInitialized = false;
         void UpdateLayoutSplitter();
-        int LeftPanelMinWidth() const; // 18% of splitter width, floor 150px
+        int LeftPanelMinWidth() const; // 18% of splitter width, floor kMinPaneWidth
 		wxTreeListCtrl* TreeListViewModels = nullptr;
         wxDataViewModel* TreeListMiewInternalModel = nullptr;
         bool ctrlFPressed = false;
@@ -309,6 +310,7 @@ class LayoutPanel: public wxPanel
         void HideFloatingPanes();
         void RestoreFloatingPanes();
         void OnLayoutPaneClose(wxAuiManagerEvent& event);
+        void DockAndRefresh(bool setModelListHeight);
 
 		DECLARE_EVENT_TABLE()
 

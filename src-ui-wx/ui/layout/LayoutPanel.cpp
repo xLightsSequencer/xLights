@@ -215,7 +215,8 @@ public:
             if (part != nullptr &&
                 part->type == wxAuiDockUIPart::typeDockSizer &&
                 part->dock != nullptr &&
-                part->dock->dock_direction == wxAUI_DOCK_TOP) {
+                (part->dock->dock_direction == wxAUI_DOCK_TOP ||
+                 part->dock->dock_direction == wxAUI_DOCK_BOTTOM)) {
 
                 wxAuiPaneInfo& listPane = GetPane("ModelList");
                 bool centerVisible = false;
@@ -231,11 +232,12 @@ public:
                     const wxRect& dockRect = part->dock->rect;
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
 
-                    // new_size = (event.m_y - m_actionOffset.y) - dockRect.y
-                    // Enforce new_size >= kPaneMinHeight
-                    //   =>  event.m_y >= kPaneMinHeight + m_actionOffset.y + dockRect.y
-                    // Enforce new_size <= containerH - kPaneMinHeight
-                    //   =>  event.m_y <= containerH - kPaneMinHeight + m_actionOffset.y + dockRect.y
+                    // For TOP-docked ModelList:
+                    //   new_size = (event.m_y - m_actionOffset.y) - dockRect.y
+                    //   Enforce new_size >= kPaneMinHeight  =>  minY = kPaneMinHeight + m_actionOffset.y + dockRect.y
+                    //   Enforce new_size <= containerH - kPaneMinHeight  =>  maxY = (containerH - kPaneMinHeight) + m_actionOffset.y + dockRect.y
+                    // For BOTTOM-docked ModelList the sizer is positioned symmetrically; the same
+                    // formula prevents either pane from being resized below kPaneMinHeight.
                     int minY = kPaneMinHeight + m_actionOffset.y + dockRect.y;
                     int maxY = (containerH - kPaneMinHeight) + m_actionOffset.y + dockRect.y;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
@@ -249,12 +251,15 @@ public:
     }
 
     void OnLeftUp(wxMouseEvent& event) {
+        // Capture interaction state before clearing — only trigger the post-layout
+        // callback when an actual pane drag or resize took place, not on every click.
+        bool wasDragging = m_pendingCenterDrag || m_action != actionNone;
         m_pendingCenterDrag = false;
         m_centerDragWindow = nullptr;
         event.Skip();
         // After the base-class finishes processing the mouse-up (which may have
         // docked or floated a pane), update the splitter state.
-        if (m_onPaneStateChanged) {
+        if (m_onPaneStateChanged && wasDragging) {
             GetManagedWindow()->CallAfter(m_onPaneStateChanged);
         }
     }
@@ -9010,6 +9015,29 @@ void LayoutPanel::RenameCurrentPreview()
                                                   OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RenameCurrentPreview");
 }
 
+void LayoutPanel::DockAndRefresh(bool setModelListHeight) {
+    // Shared post-dock sequence used by DockAll() and OnLayoutPaneClose():
+    // restore splitter visibility, optionally resize ModelList, commit the layout,
+    // then defer sash-minimum enforcement until pending size events have settled.
+    UpdateLayoutSplitter();
+    if (setModelListHeight) {
+        int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
+        if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
+        layout_mgr->GetPane("ModelList").BestSize(-1, halfHeight);
+    }
+    layout_mgr->Update();
+    // Defer minimum-size enforcement until after pending size events from
+    // SplitVertically / layout_mgr->Update() have been processed.  Do NOT
+    // force the sash to the target width — that would leave no room to drag left.
+    CallAfter([this]() {
+        if (SplitterWindow2->IsSplit()) {
+            if (SplitterWindow2->GetSashPosition() < kMinPaneWidth)
+                SplitterWindow2->SetSashPosition(kMinPaneWidth);
+            SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
+        }
+    });
+}
+
 void LayoutPanel::DockAll() {
     if (layout_mgr == nullptr) return;
     // If floating panes were stashed by HideFloatingPanes() (e.g. startup with
@@ -9033,25 +9061,7 @@ void LayoutPanel::DockAll() {
         }
     }
     if (update) {
-        // Restore LeftPanel visibility before measuring and laying out so that
-        // ModelPanelContainer has a real size when wxAUI performs the layout.
-        UpdateLayoutSplitter();
-        if (hasModelList) {
-            int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
-            if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
-            layout_mgr->GetPane("ModelList").BestSize(-1, halfHeight);
-        }
-        layout_mgr->Update();
-        // Defer minimum-size enforcement until after pending size events from
-        // SplitVertically / layout_mgr->Update() have been processed.  Do NOT
-        // force the sash to the target width — that would leave no room to drag left.
-        CallAfter([this]() {
-            if (SplitterWindow2->IsSplit()) {
-                if (SplitterWindow2->GetSashPosition() < kMinPaneWidth)
-                    SplitterWindow2->SetSashPosition(kMinPaneWidth);
-                SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
-            }
-        });
+        DockAndRefresh(hasModelList);
     }
 }
 
@@ -9106,25 +9116,7 @@ void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
         } else {
             p.Center().Dock();
         }
-        // Restore LeftPanel visibility before measuring and laying out so that
-        // ModelPanelContainer has a real size when wxAUI performs the layout.
-        UpdateLayoutSplitter();
-        if (name == "ModelList") {
-            int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
-            if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
-            p.BestSize(-1, halfHeight);
-        }
-        layout_mgr->Update();
-        // Defer minimum-size enforcement until after pending size events from
-        // SplitVertically / layout_mgr->Update() have been processed.  Do NOT
-        // force the sash to the target width — that would leave no room to drag left.
-        CallAfter([this]() {
-            if (SplitterWindow2->IsSplit()) {
-                if (SplitterWindow2->GetSashPosition() < kMinPaneWidth)
-                    SplitterWindow2->SetSashPosition(kMinPaneWidth);
-                SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
-            }
-        });
+        DockAndRefresh(name == "ModelList");
     });
 }
 
@@ -9176,7 +9168,7 @@ void LayoutPanel::RestoreFloatingPanes() {
 int LayoutPanel::LeftPanelMinWidth() const
 {
     int totalW = SplitterWindow2->GetClientSize().GetWidth();
-    return std::max(totalW * 18 / 100, 150);
+    return std::max(totalW * 18 / 100, kMinPaneWidth);
 }
 
 void LayoutPanel::UpdateLayoutSplitter() {
