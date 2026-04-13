@@ -138,6 +138,7 @@ class LayoutPanel: public wxPanel
         wxPanel* ModelPanelContainer = nullptr;
         wxAuiManager* layout_mgr = nullptr;
         wxString _savedFloatingPerspective;
+        int _savedSashPos = -1;
         bool _auiInitialized = false;
         void UpdateLayoutSplitter();
         int LeftPanelMinWidth() const; // 18% of splitter width, floor kMinPaneWidth

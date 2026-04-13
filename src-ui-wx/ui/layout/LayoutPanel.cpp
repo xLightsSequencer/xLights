@@ -9103,6 +9103,7 @@ void LayoutPanel::ResetToDefaults() {
     config->DeleteEntry("LayoutModelSplitterSash");
 }
 
+
 void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
     event.Veto();
     wxAuiPaneInfo* pane = event.GetPane();
@@ -9188,14 +9189,16 @@ void LayoutPanel::UpdateLayoutSplitter() {
         // All panes are floating or hidden — collapse the left panel so the
         // preview canvas expands to fill the full available width.
         if (SplitterWindow2->IsSplit()) {
+            _savedSashPos = SplitterWindow2->GetSashPosition();
             SplitterWindow2->SetMinimumPaneSize(0);
             SplitterWindow2->Unsplit(LeftPanel);
         }
     } else {
-        // Target width: 18% of splitter width, floor 150px.  This is where the
+        // Target width: 18% of splitter width, floor kMinPaneWidth.  This is where the
         // left panel is placed when (re-)docking.  The hard minimum below is
         // intentionally smaller so the user can drag the sash further left.
-        int targetW  = LeftPanelMinWidth(); // 18% of total, floor kMinPaneWidth
+        // If the user had previously adjusted the sash, restore their position.
+        int targetW = (_savedSashPos >= kMinPaneWidth) ? _savedSashPos : LeftPanelMinWidth();
 
         if (!SplitterWindow2->IsSplit()) {
             SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel, targetW);
