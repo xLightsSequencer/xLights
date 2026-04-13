@@ -76,7 +76,16 @@ jobs:
 
     - name: Configure sccache
       shell: bash
-      run: sccache --zero-stats
+      run: |
+        # If the GHA cache backend is unreachable (transient outage, auth
+        # hiccup, etc.), fall back to local-disk caching instead of failing
+        # the entire build. Local cache won't persist between runs but at
+        # least compiles succeed.
+        if ! sccache --zero-stats; then
+          echo "::warning::sccache GHA backend unavailable; falling back to local disk"
+          echo "SCCACHE_GHA_ENABLED=" >> "$GITHUB_ENV"
+          sccache --stop-server 2>/dev/null || true
+        fi
 
     - name: Create sccache-cl wrapper
       shell: pwsh
