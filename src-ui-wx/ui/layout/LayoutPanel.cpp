@@ -124,8 +124,9 @@ inline wxCursor CursorTypeToWx(CursorType ct) {
 // Layout sizing constants
 static constexpr int kPaneMinHeight      = 400; // minimum height for ModelList / ModelSettings panes
 static constexpr int kListHeightFallback = 200; // fallback half-height used when container is hidden
-// Left-panel minimum width is computed dynamically in UpdateLayoutSplitter() as
-// 18% of the splitter width (floor 150px) so it scales with screen resolution.
+static constexpr int kMinPaneWidth       = 150; // absolute floor for left-panel sash drag (px)
+// Left-panel target width is computed dynamically in UpdateLayoutSplitter() as
+// 18% of the splitter width (floor kMinPaneWidth) so it scales with screen resolution.
 
 // Custom AUI manager with two enhancements:
 // 1. Floating frames always have wxCLOSE_BOX, regardless of pane CloseButton flag
@@ -239,8 +240,7 @@ public:
                     int maxY = (containerH - kPaneMinHeight) + m_actionOffset.y + dockRect.y;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
 
-                    if (event.m_y < minY) event.m_y = minY;
-                    if (event.m_y > maxY) event.m_y = maxY;
+                    event.m_y = std::clamp(event.m_y, minY, maxY);
                 }
             }
         }
@@ -1118,7 +1118,10 @@ LayoutPanel::~LayoutPanel()
             _savedFloatingPerspective.clear();
         }
         // Dock any floating panels before saving so the perspective always
-        // starts with panels docked on the next launch.
+        // starts with panels docked on the next launch.  GetAllPanes() returns
+        // a reference to the internal m_panes array; mutations here are read
+        // directly by SavePerspective() without needing Update() (which would
+        // try to render to a partially-destroyed window).
         wxAuiPaneInfoArray& panes = layout_mgr->GetAllPanes();
         for (size_t i = 0; i < panes.GetCount(); i++) {
             if (panes[i].IsFloating()) {
@@ -9044,10 +9047,9 @@ void LayoutPanel::DockAll() {
         // force the sash to the target width — that would leave no room to drag left.
         CallAfter([this]() {
             if (SplitterWindow2->IsSplit()) {
-                constexpr int kMinPane = 150;
-                if (SplitterWindow2->GetSashPosition() < kMinPane)
-                    SplitterWindow2->SetSashPosition(kMinPane);
-                SplitterWindow2->SetMinimumPaneSize(kMinPane);
+                if (SplitterWindow2->GetSashPosition() < kMinPaneWidth)
+                    SplitterWindow2->SetSashPosition(kMinPaneWidth);
+                SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
             }
         });
     }
@@ -9082,8 +9084,7 @@ void LayoutPanel::ResetToDefaults() {
     int targetW = LeftPanelMinWidth();
     SplitterWindow2->SetSashGravity(0.5);
     SplitterWindow2->SetSashPosition(targetW);
-    constexpr int kMinPane = 150;
-    SplitterWindow2->SetMinimumPaneSize(kMinPane);
+    SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
 
     // Clear saved state so the defaults persist across restarts.
     wxConfigBase* config = wxConfigBase::Get();
@@ -9119,10 +9120,9 @@ void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
         // force the sash to the target width — that would leave no room to drag left.
         CallAfter([this]() {
             if (SplitterWindow2->IsSplit()) {
-                constexpr int kMinPane = 150;
-                if (SplitterWindow2->GetSashPosition() < kMinPane)
-                    SplitterWindow2->SetSashPosition(kMinPane);
-                SplitterWindow2->SetMinimumPaneSize(kMinPane);
+                if (SplitterWindow2->GetSashPosition() < kMinPaneWidth)
+                    SplitterWindow2->SetSashPosition(kMinPaneWidth);
+                SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
             }
         });
     });
@@ -9196,7 +9196,6 @@ void LayoutPanel::UpdateLayoutSplitter() {
         // All panes are floating or hidden — collapse the left panel so the
         // preview canvas expands to fill the full available width.
         if (SplitterWindow2->IsSplit()) {
-            _savedSashPos = SplitterWindow2->GetSashPosition();
             SplitterWindow2->SetMinimumPaneSize(0);
             SplitterWindow2->Unsplit(LeftPanel);
         }
@@ -9204,18 +9203,17 @@ void LayoutPanel::UpdateLayoutSplitter() {
         // Target width: 18% of splitter width, floor 150px.  This is where the
         // left panel is placed when (re-)docking.  The hard minimum below is
         // intentionally smaller so the user can drag the sash further left.
-        int targetW  = LeftPanelMinWidth(); // 18% of total, floor 150px
-        constexpr int kMinPane = 150;       // drag floor — smaller than target
+        int targetW  = LeftPanelMinWidth(); // 18% of total, floor kMinPaneWidth
 
         if (!SplitterWindow2->IsSplit()) {
             SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel, targetW);
         } else {
             int sash = SplitterWindow2->GetSashPosition();
-            if (sash < kMinPane) {
-                SplitterWindow2->SetSashPosition(kMinPane);
+            if (sash < kMinPaneWidth) {
+                SplitterWindow2->SetSashPosition(kMinPaneWidth);
             }
         }
-        SplitterWindow2->SetMinimumPaneSize(kMinPane);
+        SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
     }
 }
 
