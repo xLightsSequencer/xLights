@@ -81,6 +81,20 @@ jobs:
         echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         sccache --zero-stats
 
+    - name: Create sccache-cl wrapper
+      shell: pwsh
+      run: |
+        $wrapperDir = "${{ runner.temp }}\sccache-wrapper"
+        New-Item -ItemType Directory -Force -Path $wrapperDir | Out-Null
+        # MSBuild invokes CLToolExe with cl-style args. The wrapper prepends
+        # cl.exe as the first positional arg so sccache knows which compiler
+        # to wrap.
+        @'
+        @echo off
+        sccache.exe cl.exe %*
+        '@ | Set-Content -Encoding Ascii "$wrapperDir\cl.bat"
+        echo "SCCACHE_WRAPPER_DIR=$wrapperDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
     - name: Write sccache MSBuild overrides
       shell: pwsh
       working-directory: xLights
@@ -125,11 +139,10 @@ jobs:
       run: |
         Write-Host "cl.exe: $((Get-Command cl.exe -ErrorAction SilentlyContinue).Source)"
         Write-Host "sccache: $((Get-Command sccache.exe -ErrorAction SilentlyContinue).Source)"
-        $sccache = (Get-Command sccache).Source
-        $sccacheDir = Split-Path $sccache
+        Write-Host "wrapper: $env:SCCACHE_WRAPPER_DIR\cl.bat"
         msbuild /m:10 xLights.sln `
           /p:Configuration="Release" /p:Platform="x64" `
-          /p:CLToolExe=sccache.exe /p:CLToolPath="$sccacheDir" `
+          /p:CLToolExe=cl.bat /p:CLToolPath="$env:SCCACHE_WRAPPER_DIR" `
           /p:TrackFileAccess=false `
           /p:UseMultiToolTask=true
 
