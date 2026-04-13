@@ -1,5 +1,10 @@
 #!/bin/zsh
 
+# Report ccache hit rate so we can see caching effectiveness in the log.
+if command -v ccache >/dev/null 2>&1; then
+    ccache --show-stats -v || true
+fi
+
 # By default, xcodecloud does --depth 1 so NO history is available.  We
 # need to fetch a longer history and fetch the tags so
 # we can get the list of changes.   400 commits should be enough
