@@ -65,6 +65,11 @@ jobs:
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v3
 
+    - name: Setup MSVC dev environment
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
@@ -78,6 +83,21 @@ jobs:
       run: |
         echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         sccache --zero-stats
+
+    - name: Write sccache MSBuild overrides
+      shell: pwsh
+      working-directory: xLights
+      run: |
+        @'
+        <Project>
+          <ItemDefinitionGroup>
+            <ClCompile>
+              <DebugInformationFormat>OldStyle</DebugInformationFormat>
+              <MultiProcessorCompilation>false</MultiProcessorCompilation>
+            </ClCompile>
+          </ItemDefinitionGroup>
+        </Project>
+        '@ | Set-Content -Encoding UTF8 Directory.Build.targets
         
     - name: Download wxWidgets
       run: 
@@ -107,8 +127,7 @@ jobs:
           /p:Configuration="Release" /p:Platform="x64" `
           /p:CLToolExe=sccache.exe /p:CLToolPath="$sccacheDir" `
           /p:TrackFileAccess=false `
-          /p:UseMultiToolTask=true `
-          /p:DebugInformationFormat=OldStyle
+          /p:UseMultiToolTask=true
 
     - name: sccache stats
       run: sccache --show-stats
