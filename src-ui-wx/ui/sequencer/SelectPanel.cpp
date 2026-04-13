@@ -408,6 +408,7 @@ void SelectPanel::OnComboBox_Select_BufferStyleSelected(wxCommandEvent& event)
 void SelectPanel::OnComboBox_Select_EffectSelected(wxCommandEvent& event)
 {
     populateModelsList(ComboBox_Select_Effect->GetValue().ToStdString());
+    populateEffectsList();
 }
 
 void SelectPanel::GetEffectTypes()
