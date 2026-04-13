@@ -3115,11 +3115,15 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
 {
     int selection = EffectsPanel1->EffectChoicebook->GetSelection();
     wxString effectText = EffectsPanel1->GetEffectString(selection);
-    if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
-        effectText += ",";
-    }
-    effectText += timingPanel->GetTimingString();
-    effectText += bufferPanel->GetBufferString();
+    auto appendWithComma = [&effectText](const wxString& part) {
+        if (part.IsEmpty()) return;
+        if (!effectText.IsEmpty() && effectText.Last() != ',') {
+            effectText += ",";
+        }
+        effectText += part;
+    };
+    appendWithComma(timingPanel->GetTimingString());
+    appendWithComma(bufferPanel->GetBufferString());
     palette = colorPanel->GetColorString();
     return ToStdString(effectText);
 }
