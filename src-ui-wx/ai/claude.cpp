@@ -19,7 +19,6 @@ bool claude::IsAvailable() const {
 }
 
 void claude::SaveSettings() const {
-    
     _sm->setServiceSetting("ClaudeModel", claudeModel);
     _sm->setSecretServiceToken("ClaudeApiKey", api_key);
     for (auto t : GetTypes()) {
@@ -70,7 +69,6 @@ static std::pair<std::string, bool> CallAnthropicAPI(const std::string& base_url
                                     const nlohmann::json& messages, int max_tokens, const std::string& serviceName,
                                     const std::string& system_prompt = "") {
     
-
     nlohmann::json requestJson;
     requestJson["model"] = model;
     requestJson["max_tokens"] = max_tokens;
@@ -137,7 +135,6 @@ static std::string StripCodeFences(const std::string& text) {
 }
 
 static std::string ExtractTextContent(const std::string& response, const std::string& serviceName) {
-    
 
     nlohmann::json root;
     try {
@@ -164,7 +161,6 @@ static std::string ExtractTextContent(const std::string& response, const std::st
 }
 
 std::pair<std::string, bool> claude::CallLLM(const std::string& prompt) const {
-    
 
     if (api_key.empty()) {
         wxMessageBox("You must set a Claude API Key in the Preferences on the Services Panel", "Error", wxICON_ERROR);
@@ -251,7 +247,6 @@ aiBase::AIModelMappingResult claude::GenerateModelMapping(
     const std::vector<MappingModelInfo>& targetModels,
     const std::map<std::string, std::string>& existingMappings) const {
 
-    
     AIModelMappingResult result;
 
     if (api_key.empty()) {
