@@ -202,11 +202,14 @@ void Waveform::rightClick(wxMouseEvent& event)
         mnuWave.AppendRadioItem(ID_WAVE_MNU_NONVOCALS, "Non Vocals waveform")->Check(_type == AUDIOSAMPLETYPE::NONVOCALS);
         mnuWave.AppendSeparator();
         mnuWave.AppendCheckItem(ID_WAVE_MNU_DOUBLEHEIGHT, "Double height waveform")->Check(_doubleHeight);
+    }
 
-        // Audio Track submenu
+    // Audio Track submenu — outside the _media guard so the user can always switch
+    // back to Main even when the current track has a broken/missing file (_media == nullptr).
+    {
         auto* frame = xLightsApp::GetFrame();
         if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr &&
-            frame->CurrentSeqXmlFile->GetAltTrackCount() > 0) {
+            (frame->CurrentSeqXmlFile->GetAltTrackCount() > 0 || _activeAudioTrackIndex != 0)) {
             EnsureAudioTrackIds();
             mnuWave.AppendSeparator();
             wxMenu* trackMenu = new wxMenu();
