@@ -64,11 +64,20 @@ jobs:
           submodules: 'true'
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v3
-      
+
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
         version: 1.30.0
+
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.6
+
+    - name: Configure sccache
+      shell: bash
+      run: |
+        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        sccache --zero-stats
         
     - name: Download wxWidgets
       run: 
@@ -90,8 +99,20 @@ jobs:
 
     - name: xLights
       working-directory: xLights
-      run: msbuild /m:10 xLights.sln /p:Configuration="Release" -p:Platform="x64"
-      
+      shell: pwsh
+      run: |
+        $sccache = (Get-Command sccache).Source
+        $sccacheDir = Split-Path $sccache
+        msbuild /m:10 xLights.sln `
+          /p:Configuration="Release" /p:Platform="x64" `
+          /p:CLToolExe=sccache.exe /p:CLToolPath="$sccacheDir" `
+          /p:TrackFileAccess=false `
+          /p:UseMultiToolTask=true `
+          /p:DebugInformationFormat=OldStyle
+
+    - name: sccache stats
+      run: sccache --show-stats
+
     - name: Upload xLights Exe
       uses: actions/upload-artifact@v4
       with:
