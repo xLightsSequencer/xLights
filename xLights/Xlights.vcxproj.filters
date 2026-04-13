@@ -1193,9 +1193,9 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasEmpty.cpp">
       <Filter>ui\effectpanels\assist</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.h">
+    <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h">
       <Filter>ai</Filter>
-    </ClCompile>
+    </ClInclude>
     <ClCompile Include="..\src-ui-wx\ai\AIImageDialog.cpp">
       <Filter>ai</Filter>
     </ClCompile>

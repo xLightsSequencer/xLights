@@ -1017,7 +1017,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\utils\FileUtils.h" />
     <ClInclude Include="..\src-core\utils\NodeUtils.h" />
     <ClInclude Include="..\src-ui-wx\ui\app-shell\AboutDialog.h" />
-    <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.h" />
+    <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h" />
     <ClInclude Include="..\src-ui-wx\ai\aiBase.h" />
     <ClInclude Include="..\src-ui-wx\ai\AIImageDialog.h" />
     <ClInclude Include="..\src-ui-wx\ai\aiType.h" />
