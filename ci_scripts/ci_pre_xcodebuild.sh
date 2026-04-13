@@ -36,12 +36,9 @@ brew install zstd
 # secret), ccache falls back to its default behavior.
 brew install ccache
 if [ -n "$CCACHE_REMOTE_URL" ]; then
-    mkdir -p "$HOME/.config/ccache"
-    cat > "$HOME/.config/ccache/ccache.conf" <<EOF
-remote_storage = $CCACHE_REMOTE_URL
-remote_only    = true
-sloppiness     = pch_defines,time_macros,include_file_mtime,include_file_ctime,locale,modules
-EOF
+    ccache --set-config remote_storage="$CCACHE_REMOTE_URL"
+    ccache --set-config remote_only=true
+    ccache --set-config sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime,locale,modules
     ccache --zero-stats
     echo "ccache configured with remote storage"
 else
