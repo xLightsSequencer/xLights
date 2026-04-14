@@ -286,8 +286,25 @@ wxWindow* TimingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* sizer
     }
     fadeCombo->SetValue("0.00");
     row->Add(fadeCombo, 1, wxALL | wxALIGN_CENTER_VERTICAL, 2);
-    fadeCombo->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
-    fadeCombo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+    // Bind directly and explicitly start the save timer via FireChangeEvent.
+    // AddListeners' Connect(id, wxEVT_TEXT) on the panel is supposed to
+    // bubble-catch the combo's text events, but on GTK that path is flaky for
+    // wxComboBox and the user's typed value can silently fail to reach the
+    // save timer. Driving FireChangeEvent() here makes saves reliable on all
+    // platforms. Skip so any other bubbling handlers still run.
+    auto commit = [this](wxCommandEvent& e) {
+        ValidateWindow();
+        FireChangeEvent();
+        e.Skip();
+    };
+    fadeCombo->Bind(wxEVT_TEXT, commit);
+    fadeCombo->Bind(wxEVT_COMBOBOX, commit);
+    // Safety net for GTK: Tab/focus-away always commits whatever the user typed.
+    fadeCombo->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+        ValidateWindow();
+        FireChangeEvent();
+        e.Skip();
+    });
 
     if (isIn) {
         _inTypeChoice = typeChoice;
@@ -449,16 +466,19 @@ void TimingPanel::ValidateWindow() {
     }
 
     // Clamp negative fade times (users can type anything into the combo box).
+    // Use ToCDouble so '.' is the decimal separator regardless of the system
+    // locale — otherwise wxAtof would return 0 for "0.50" on locales that
+    // expect ',' as the separator and wrongly enable/disable the adjust rows.
     double fadeIn = 0.0;
     double fadeOut = 0.0;
     if (_fadeinCombo) {
         wxString v = _fadeinCombo->GetValue();
-        fadeIn = wxAtof(v);
+        v.ToCDouble(&fadeIn);
         if (fadeIn < 0) { _fadeinCombo->SetValue("0.00"); fadeIn = 0; }
     }
     if (_fadeoutCombo) {
         wxString v = _fadeoutCombo->GetValue();
-        fadeOut = wxAtof(v);
+        v.ToCDouble(&fadeOut);
         if (fadeOut < 0) { _fadeoutCombo->SetValue("0.00"); fadeOut = 0; }
     }
 
@@ -527,6 +547,15 @@ wxString TimingPanel::GetTimingString() {
             s.erase(removeFrom, removeLen);
         }
     };
+    // Fade "zero" is any of the equivalent string representations. Avoids
+    // wxAtof, which is locale-aware on Windows — on a locale that uses ','
+    // as the decimal separator wxAtof("0.50") returns 0 and would strip a
+    // valid non-zero fade value. Also avoids stripping transiently while
+    // the user is mid-edit: partial input like "0." is not in the list,
+    // so the setting is preserved until they commit to an actual zero.
+    auto isFadeZero = [](const wxString& v) {
+        return v == "" || v == "0" || v == "0.0" || v == "0.00";
+    };
     auto maybeStrip = [&](wxWindow* ctrl, const wxString& key, const wxString& defaultValue) {
         if (ctrl == nullptr) return;
         wxString value;
@@ -535,26 +564,30 @@ wxString TimingPanel::GetTimingString() {
         } else if (auto* cb = dynamic_cast<wxComboBox*>(ctrl)) {
             value = cb->GetValue();
         }
-        if (value == defaultValue || (defaultValue == "0.00" && wxAtof(value) == 0.0)) {
+        if (value == defaultValue) {
             stripSetting(key);
         }
     };
     maybeStrip(_inTypeChoice, "E_CHOICE_In_Transition_Type", "Fade");
     maybeStrip(_outTypeChoice, "E_CHOICE_Out_Transition_Type", "Fade");
-    maybeStrip(_fadeinCombo, "E_TEXTCTRL_Fadein", "0.00");
-    maybeStrip(_fadeoutCombo, "E_TEXTCTRL_Fadeout", "0.00");
+    if (_fadeinCombo && isFadeZero(_fadeinCombo->GetValue())) {
+        stripSetting("E_TEXTCTRL_Fadein");
+    }
+    if (_fadeoutCombo && isFadeZero(_fadeoutCombo->GetValue())) {
+        stripSetting("E_TEXTCTRL_Fadeout");
+    }
 
     // When the fade time is 0, the legacy panel also never writes the
     // adjust / reverse controls — the transition is inactive regardless of
     // what the slider / checkbox is set to. Mirror that behavior.
-    double fadeIn = _fadeinCombo ? wxAtof(_fadeinCombo->GetValue()) : 0.0;
-    double fadeOut = _fadeoutCombo ? wxAtof(_fadeoutCombo->GetValue()) : 0.0;
-    if (fadeIn == 0.0) {
+    bool fadeInZero = !_fadeinCombo || isFadeZero(_fadeinCombo->GetValue());
+    bool fadeOutZero = !_fadeoutCombo || isFadeZero(_fadeoutCombo->GetValue());
+    if (fadeInZero) {
         stripSetting("E_SLIDER_In_Transition_Adjust");
         stripSetting("E_VALUECURVE_In_Transition_Adjust");
         stripSetting("E_CHECKBOX_In_Transition_Reverse");
     }
-    if (fadeOut == 0.0) {
+    if (fadeOutZero) {
         stripSetting("E_SLIDER_Out_Transition_Adjust");
         stripSetting("E_VALUECURVE_Out_Transition_Adjust");
         stripSetting("E_CHECKBOX_Out_Transition_Reverse");
