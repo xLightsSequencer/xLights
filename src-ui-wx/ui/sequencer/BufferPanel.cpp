@@ -134,6 +134,12 @@ wxWindow* BufferPanel::BuildRotoZoomPresetRow(wxWindow* parentWin, wxSizer* size
                                                 wxDefaultPosition, wxDefaultSize,
                                                 0, nullptr, 0, wxDefaultValidator,
                                                 _T("IDD_CHOICE_RotoZoomPreset"));
+    // The preset picker is a UI-only action dropdown — selecting an entry
+    // mutates several other sliders / value curves in this panel. Bulk Edit
+    // would need to replay those mutations into each target effect's settings
+    // map, which isn't supported by the generic bulk-edit path. Disable it
+    // rather than offer a menu item that silently does nothing useful.
+    _rotoZoomPresetChoice->SetSupportsBulkEdit(false);
     for (const auto& p : ROTOZOOM_PRESETS) {
         _rotoZoomPresetChoice->Append(p);
     }
