@@ -179,6 +179,8 @@
 		<Unit filename="../src-core/media/AudioManager.h" />
 		<Unit filename="../src-core/media/MediaCompatibility.cpp" />
 		<Unit filename="../src-core/media/MediaCompatibility.h" />
+		<Unit filename="../src-core/media/VideoTranscoder.cpp" />
+		<Unit filename="../src-core/media/VideoTranscoder.h" />
 		<Unit filename="../src-core/media/AudioLoader.cpp" />
 		<Unit filename="../src-core/media/AudioLoader.h" />
 		<Unit filename="../src-core/media/FFmpegAudioDecoder.cpp" />

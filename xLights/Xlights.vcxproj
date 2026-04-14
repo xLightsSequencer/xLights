@@ -670,6 +670,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\models\OutputModelManager.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
     <ClCompile Include="..\src-core\media\MediaCompatibility.cpp" />
+    <ClCompile Include="..\src-core\media\VideoTranscoder.cpp" />
     <ClCompile Include="..\src-core\media\AudioLoader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="..\src-core\media\SDLAudioOutput.cpp" />
@@ -1229,6 +1230,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\models\OutputModelManager.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
     <ClInclude Include="..\src-core\media\MediaCompatibility.h" />
+    <ClInclude Include="..\src-core\media\VideoTranscoder.h" />
     <ClInclude Include="..\src-core\media\AudioLoader.h" />
     <ClInclude Include="..\src-core\media\FFmpegAudioDecoder.h" />
     <ClInclude Include="..\src-core\media\IAudioDecoder.h" />

@@ -43,10 +43,15 @@
 #include "ui/import-export/xLightsImportChannelMapDialog.h"
 #include "render/SequenceMedia.h"
 #include "media/MediaCompatibility.h"
+#include "media/VideoTranscoder.h"
+#include "utils/FileUtils.h"
+#include <set>
 #include <wx/textdlg.h>
 #include <wx/richmsgdlg.h>
 #include <wx/checkbox.h>
 #include <wx/textctrl.h>
+#include <wx/progdlg.h>
+#include <wx/filename.h>
 #include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
@@ -684,17 +689,43 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                         wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
                     topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
 
-                    wxSizer* btnSizer = dlg.CreateButtonSizer(wxOK);
-                    if (btnSizer) {
-                        topSizer->Add(btnSizer, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+                    // Figure out how many flagged entries are videos — only
+                    // videos can be auto-converted here (audio would need a
+                    // separate AudioToolbox-compatible path).
+                    int videoIssueCount = 0;
+                    for (const auto& issue : issues) {
+                        if (issue.isVideo) ++videoIssueCount;
                     }
+
+                    // Custom ID so we can tell OK apart from "Convert Now".
+                    const int ID_CONVERT_NOW = wxID_HIGHEST + 1;
+
+                    wxBoxSizer* btnRow = new wxBoxSizer(wxHORIZONTAL);
+                    btnRow->AddStretchSpacer(1);
+                    if (videoIssueCount > 0) {
+                        wxButton* convertBtn = new wxButton(&dlg, ID_CONVERT_NOW,
+                            videoIssueCount == 1 ? "Convert Video Now..."
+                                                 : wxString::Format("Convert %d Videos Now...", videoIssueCount));
+                        btnRow->Add(convertBtn, 0, wxRIGHT, 8);
+                        convertBtn->Bind(wxEVT_BUTTON, [&dlg, ID_CONVERT_NOW](wxCommandEvent&) {
+                            dlg.EndModal(ID_CONVERT_NOW);
+                        });
+                    }
+                    wxButton* okBtn = new wxButton(&dlg, wxID_OK, "OK");
+                    btnRow->Add(okBtn, 0);
+                    topSizer->Add(btnRow, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
                     dlg.SetSizer(topSizer);
                     dlg.SetMinSize(wxSize(600, 480));
                     dlg.Layout();
-                    dlg.ShowModal();
+                    int dlgResult = dlg.ShowModal();
                     if (suppressCheck->IsChecked()) {
                         wxConfigBase::Get()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
                         wxConfigBase::Get()->Flush();
+                    }
+
+                    if (dlgResult == ID_CONVERT_NOW) {
+                        ConvertIncompatibleVideos(issues);
                     }
                 }
             }
@@ -715,6 +746,156 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         AddToMRU(filename);
         UpdateRecentFilesList(false);
     }
+}
+
+void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues)
+{
+    // Gather the video issues. Audio ones aren't handled here — users will
+    // see the warning but need to re-encode audio separately.
+    std::vector<std::pair<std::string, std::string>> jobs; // (source, target)
+    for (const auto& issue : issues) {
+        if (!issue.isVideo) continue;
+        std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
+        if (target == issue.filePath) {
+            // Source is already .mov — shouldn't happen from the check but be
+            // defensive: write alongside with a suffix.
+            std::filesystem::path p(issue.filePath);
+            p.replace_filename(p.stem().string() + "_converted.mov");
+            target = p.string();
+        }
+        jobs.emplace_back(issue.filePath, target);
+    }
+    if (jobs.empty()) return;
+
+    // Progress dialog spans the whole batch; per-file we weight the progress
+    // bar by frame counts we don't know up front, so just advance one tick
+    // per file completed and use the file's own progress callback for the
+    // fine-grained feedback inside the bar.
+    wxProgressDialog progDlg("Converting video files",
+                             "Preparing...", 1000, this,
+                             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
+                             wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME);
+    progDlg.SetSize(wxSize(520, -1));
+
+    std::map<std::string, std::string> completed; // src -> dst
+    std::vector<std::string> failures;
+    bool userCancelled = false;
+
+    for (size_t i = 0; i < jobs.size() && !userCancelled; ++i) {
+        const auto& [src, dst] = jobs[i];
+        std::string srcName = std::filesystem::path(src).filename().string();
+        wxString baseMsg = wxString::Format("Converting %s (%zu of %zu)...",
+                                            srcName, i + 1, jobs.size());
+        progDlg.Update(0, baseMsg);
+
+        auto progressCb = [&](int frame, int total) -> bool {
+            int pct = 0;
+            if (total > 0) {
+                pct = (int)((double)frame / total * 1000.0);
+                if (pct > 999) pct = 999;
+            } else {
+                pct = (frame % 1000);
+            }
+            bool cont = progDlg.Update(pct, baseMsg + wxString::Format(" frame %d", frame));
+            if (!cont) userCancelled = true;
+            return cont;
+        };
+
+        std::string err = VideoTranscoder::Transcode(src, dst, progressCb);
+        if (userCancelled) break;
+        if (!err.empty()) {
+            spdlog::error("Video conversion failed for {}: {}", src, err);
+            failures.push_back(srcName + ": " + err);
+            // Remove any partial output so the user doesn't mistake it for
+            // a finished file.
+            std::error_code ec;
+            std::filesystem::remove(dst, ec);
+        } else {
+            completed[src] = dst;
+        }
+    }
+    progDlg.Update(1000);
+
+    if (userCancelled) {
+        // Don't rewrite effects if the user aborted — leaving the sequence
+        // pointing at the originals is the least-surprising outcome.
+        wxMessageBox("Conversion cancelled. Any files already completed were left in place but the sequence was not updated.",
+                     "Cancelled", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    // Walk all video effects in the loaded sequence and rewrite filenames
+    // where the (resolved) source path matches one we just converted. Track
+    // the original stored keys so we can evict only those stale entries from
+    // SequenceMedia — wiping the whole cache would also drop images, SVGs,
+    // etc. and leave the Sequence Settings Media tab empty.
+    int rewritten = 0;
+    std::set<std::string> staleCacheKeys;
+    std::set<std::string> newCacheKeys;
+    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
+        Element* elem = _sequenceElements.GetElement(e);
+        if (elem == nullptr) continue;
+        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); ++layer) {
+            EffectLayer* el = elem->GetEffectLayer(layer);
+            for (int k = 0; k < el->GetEffectCount(); ++k) {
+                Effect* ef = el->GetEffect(k);
+                if (ef->GetEffectName() != "Video") continue;
+                SettingsMap& sm = ef->GetSettings();
+                const std::string stored = sm["E_FILEPICKERCTRL_Video_Filename"];
+                if (stored.empty()) continue;
+                std::string resolved = FileUtils::FixFile("", stored);
+                auto it = completed.find(resolved);
+                if (it == completed.end()) continue;
+
+                staleCacheKeys.insert(stored);
+                staleCacheKeys.insert(resolved);
+
+                // Preserve the relative-vs-absolute shape: if the original
+                // stored value was an absolute path we write absolute; if it
+                // was a bare filename or relative we swap only the extension.
+                std::filesystem::path storedPath(stored);
+                std::filesystem::path newName(it->second);
+                std::string newStored;
+                if (storedPath.is_absolute()) {
+                    newStored = it->second;
+                } else {
+                    std::filesystem::path rewritten_path = storedPath;
+                    rewritten_path.replace_extension(".mov");
+                    newStored = rewritten_path.string();
+                }
+                sm["E_FILEPICKERCTRL_Video_Filename"] = newStored;
+                newCacheKeys.insert(newStored);
+                ef->IncrementChangeCount();
+                ++rewritten;
+            }
+        }
+    }
+
+    // Evict only the stale video entries so the next render picks up the
+    // new .mov files. Leaves images/SVGs/audio/shader caches intact.
+    auto& seqMedia = _sequenceElements.GetSequenceMedia();
+    for (const auto& key : staleCacheKeys) {
+        seqMedia.RemoveMedia(key);
+    }
+    // Pre-register the new .mov files so they appear in the Sequence Settings
+    // Media tab immediately (the renderer would otherwise only lazily register
+    // them on first use).
+    for (const auto& key : newCacheKeys) {
+        seqMedia.GetVideo(key);
+    }
+
+    wxString msg = wxString::Format("Converted %zu of %zu file(s). %d video effect(s) updated.",
+                                    completed.size(), jobs.size(), rewritten);
+    if (!failures.empty()) {
+        msg += "\n\nFailures:\n";
+        for (const auto& f : failures) msg += "  " + f + "\n";
+    }
+    if (!completed.empty()) {
+        msg += "\nRemember to save the sequence to persist the updated file references.";
+    }
+    wxMessageBox(msg, "Video conversion results",
+                 wxOK | (failures.empty() ? wxICON_INFORMATION : wxICON_WARNING),
+                 this);
 }
 
 void xLightsFrame::AddToMRU(const std::string& filename)

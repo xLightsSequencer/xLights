@@ -19,6 +19,7 @@
     <ClCompile Include="..\src-ui-wx\ui\model\MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
     <ClCompile Include="..\src-core\media\MediaCompatibility.cpp" />
+    <ClCompile Include="..\src-core\media\VideoTranscoder.cpp" />
     <ClCompile Include="..\src-core\media\AudioLoader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="..\src-core\media\SDLAudioOutput.cpp" />
@@ -1331,6 +1332,7 @@
     <ClInclude Include="..\src-ui-wx\ui\setup\IPEntryDialog.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
     <ClInclude Include="..\src-core\media\MediaCompatibility.h" />
+    <ClInclude Include="..\src-core\media\VideoTranscoder.h" />
     <ClInclude Include="..\src-core\media\AudioLoader.h" />
     <ClInclude Include="..\src-core\media\FFmpegAudioDecoder.h" />
     <ClInclude Include="..\src-core\media\IAudioDecoder.h" />

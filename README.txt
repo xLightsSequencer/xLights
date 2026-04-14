@@ -12,6 +12,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
 
+    -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
+                                    transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
+                                    the source is uncompressed, hevc_videotoolbox otherwise) and rewrites the
+                                    matching video-effect filenames in the sequence.
+    -enh (dkulp)                Media-compatibility check now runs on Windows/Linux too via an FFmpeg-based
+                                    container + codec allowlist, so Mac-incompatible videos (AVI, WMV, MKV,
+                                    legacy QuickTime codecs, animated GIFs) get the same warning and
+                                    Convert-Now flow as on macOS.
     -change (dkulp)             Pinwheel effect now defaults to the New Render Method; existing sequences
                                     are migrated to preserve the Old Render Method so their look is unchanged.
     -enh (AGFazio)              Add 'Yes to All' / 'No to All' options when merging base show directory changes

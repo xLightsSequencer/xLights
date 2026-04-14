@@ -146,6 +146,7 @@ class HttpConnection;
 class HttpRequest;
 class wxTaskBarIcon;
 class wxProgressDialog;
+struct MediaCompatibilityIssue;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -1705,8 +1706,9 @@ public:
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
-     OpenSequence(passed_filename, nullptr); 
+     OpenSequence(passed_filename, nullptr);
     }
+    void ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();

@@ -12,6 +12,8 @@
 #include "ui/media/ShaderPreviewGenerator.h"
 #include "render/SequenceMedia.h"
 #include "media/VideoReader.h"
+#include "media/MediaCompatibility.h"
+#include "media/VideoTranscoder.h"
 #include "render/SequenceElements.h"
 #include "render/Element.h"
 #include "render/EffectLayer.h"  // also defines NodeLayer
@@ -31,6 +33,8 @@
 #include <wx/textdlg.h>
 #include <wx/datetime.h>
 #include <wx/config.h>
+#include <wx/progdlg.h>
+#include <filesystem>
 #include <map>
 #include <algorithm>
 
@@ -59,6 +63,75 @@ static wxString WildcardForMediaType(std::optional<MediaType> type) {
         case MediaType::BinaryFile: return "Glediator Files|*.gled;*.out;*.csv";
     }
     return "All files (*.*)|*.*";
+}
+
+// If the selected video is flagged incompatible with AVFoundation, offer the
+// same Convert-Now path used on sequence load. Returns the path to register
+// (either the original or a newly-written .mov), or empty if the user
+// cancelled the whole add.
+static std::string MaybeConvertIncompatibleVideo(wxWindow* parent,
+                                                 const std::string& originalPath)
+{
+    std::string reason = MediaCompatibility::CheckVideoFile(originalPath);
+    if (reason.empty()) return originalPath;
+
+    wxFileName fn = wxFileName(wxString(originalPath));
+    wxString msg = wxString::Format(
+        "'%s' is not compatible with AVFoundation and will not render on a Mac.\n\n"
+        "Reason: %s\n\n"
+        "Convert it to a compatible .mov now?",
+        fn.GetFullName(), wxString(reason));
+    int answer = wxMessageBox(msg, "Incompatible Video",
+                              wxYES_NO | wxCANCEL | wxICON_QUESTION, parent);
+    if (answer == wxCANCEL) return {};
+    if (answer == wxNO) return originalPath;
+
+    std::string target = VideoTranscoder::SuggestedOutputPath(originalPath);
+    if (target == originalPath) {
+        std::filesystem::path p(originalPath);
+        p.replace_filename(p.stem().string() + "_converted.mov");
+        target = p.string();
+    }
+
+    wxProgressDialog progDlg("Converting Video",
+                             wxString::Format("Converting %s...", fn.GetFullName()),
+                             1000, parent,
+                             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
+                             wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME);
+    progDlg.SetSize(wxSize(520, -1));
+
+    bool cancelled = false;
+    auto progressCb = [&](int frame, int total) -> bool {
+        int pct = 0;
+        if (total > 0) {
+            pct = (int)((double)frame / total * 1000.0);
+            if (pct > 999) pct = 999;
+        } else {
+            pct = frame % 1000;
+        }
+        bool cont = progDlg.Update(pct,
+            wxString::Format("Converting %s (frame %d)", fn.GetFullName(), frame));
+        if (!cont) cancelled = true;
+        return cont;
+    };
+
+    std::string err = VideoTranscoder::Transcode(originalPath, target, progressCb);
+    progDlg.Update(1000);
+
+    if (cancelled) {
+        std::error_code ec;
+        std::filesystem::remove(target, ec);
+        return {};
+    }
+    if (!err.empty()) {
+        std::error_code ec;
+        std::filesystem::remove(target, ec);
+        wxMessageBox(wxString::Format("Conversion failed: %s\n\nThe original file will be added as-is.",
+                                      wxString(err)),
+                     "Conversion Failed", wxICON_ERROR | wxOK, parent);
+        return originalPath;
+    }
+    return target;
 }
 
 static wxString LastDirConfigKey(std::optional<MediaType> type) {
@@ -2287,6 +2360,15 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
 
     // Determine which MediaType to register as
     MediaType regType = _filterType.has_value() ? *_filterType : MediaType::Image;
+
+    // For videos, check AVFoundation compatibility up front and offer to
+    // transcode before any copy/embed handling. Converted output (if any)
+    // flows through the normal outside-folders path below.
+    if (regType == MediaType::Video) {
+        std::string maybe = MaybeConvertIncompatibleVideo(this, path);
+        if (maybe.empty()) return;
+        path = maybe;
+    }
 
     // If the file is outside show/media folders, require the user to
     // choose where to place it.
