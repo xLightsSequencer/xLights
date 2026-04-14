@@ -1759,6 +1759,8 @@ private:
     std::unique_ptr<RenderEngine> _renderEngine;
 
     Model *playModel;
+    Model *_lastPlayModel = nullptr;
+    void ResetModelPreviewIfModelChanged();
     int playType;
     int playStartMS;
     std::vector<std::list<FPSEvent>> fpsEvents;
