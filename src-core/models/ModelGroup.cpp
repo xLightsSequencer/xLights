@@ -752,7 +752,7 @@ bool ModelGroup::RebuildBuffers() {
     }
 
     screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
-    screenLocation.SetPosition(BufferWi / 2.0f, BufferHt / 2.0f);
+    screenLocation.SetPosition(midX, midY);
 
     return true;
 }

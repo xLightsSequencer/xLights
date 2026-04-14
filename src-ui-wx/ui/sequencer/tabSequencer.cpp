@@ -1299,6 +1299,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                     playEndTime = effect->GetEndTimeMS();
                     playStartMS = -1;
                     playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName());
+                    ResetModelPreviewIfModelChanged();
                     SetAudioControls();
                 }
             }
@@ -1321,6 +1322,15 @@ void xLightsFrame::SelectedRowChanged(wxCommandEvent& event)
 {
     mainSequencer->PanelRowHeadings->SetSelectedRow(event.GetInt());
     playModel = GetModel(event.GetString().ToStdString());
+    ResetModelPreviewIfModelChanged();
+}
+
+void xLightsFrame::ResetModelPreviewIfModelChanged()
+{
+    if (playModel != _lastPlayModel) {
+        _lastPlayModel = playModel;
+        _modelPreviewPanel->Reset();
+    }
 }
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
@@ -1395,6 +1405,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             }
 
             playModel = GetModel(el->GetParentElement()->GetModelName());
+            ResetModelPreviewIfModelChanged();
 
 			SetAudioControls();
         }
@@ -1598,6 +1609,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             }
 
             playModel = GetModel(el->GetParentElement()->GetModelName());
+            ResetModelPreviewIfModelChanged();
 
             SetAudioControls();
         }
@@ -1627,6 +1639,7 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
     std::string model = event.GetString().ToStdString();
     playModel = GetModel(model);
+    ResetModelPreviewIfModelChanged();
     if (playModel != nullptr
         && playType != PLAY_TYPE_MODEL) {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
@@ -1655,6 +1668,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
     if (playType == PLAY_TYPE_MODEL)
     {
         playModel = GetModel(event.GetString().ToStdString());
+        ResetModelPreviewIfModelChanged();
     }
 }
 
@@ -2274,6 +2288,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
         if (args == nullptr || args->effect == nullptr || !_sequenceElements.IsValidEffect(args->effect)) return;
         playModel = GetModel(args->element->GetModelName());
+        ResetModelPreviewIfModelChanged();
         if (playModel != nullptr) {
             SetPlayStatus(PLAY_TYPE_EFFECT);
             playStartTime = (int)(args->effect->GetStartTimeMS());

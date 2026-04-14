@@ -3544,8 +3544,8 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
-            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Translate(w / 2.0f - ml * scale,
+                           h / 2.0f - mb * scale, 0.0f);
             ctx->Scale(scale, scale, 1.0);
             if (!GetModelScreenLocation().IsCenterBased()) {
                 ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,
