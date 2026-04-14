@@ -45,6 +45,6 @@ class GenericClient : public OpenAIAPI {
     }
 
 	[[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
-        return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES, aiType::TYPE::IMAGES });
+        return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES, aiType::TYPE::IMAGES, aiType::TYPE::SPEECH2TEXT });
     }
 };

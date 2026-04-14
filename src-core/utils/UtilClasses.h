@@ -411,7 +411,7 @@ public:
 			sum += logarithmicX[i];
 		}
 
-		return sum;
+		return static_cast<int>(sum);
 	}
 };
 

@@ -1,11 +1,5 @@
 #include "aiBase.h"
 
-
-aiBase::aiBase(ServiceManager* sm) :
-    _sm(sm) {
-     //LoadSettings();
-}
-
-std::pair<std::string, bool> aiBase::TestLLM() const {
-    return CallLLM("Hello");
-}
+// aiBase constructor and TestLLM are inlined in the header so that plugin DLLs
+// can implement the aiBase interface without needing an import linkage back to
+// xLights.exe.  This translation unit is intentionally empty.

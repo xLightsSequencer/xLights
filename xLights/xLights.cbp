@@ -1001,6 +1001,8 @@
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ServoConfigDialog.h" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.cpp" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.h" />
+		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.cpp" />
+		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.h" />
 		<Unit filename="../src-core/models/GridlinesObject.cpp" />
 		<Unit filename="../src-core/models/GridlinesObject.h" />
 		<Unit filename="../src-core/models/IciclesModel.cpp" />
@@ -1429,6 +1431,7 @@
 		<Unit filename="../src-ui-wx/wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PixelTestDialog.wxs" />
+		<Unit filename="../src-ui-wx/wxsmith/PositionZoneDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PreviewPane.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/RandomEffectsSettingsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/RemapDMXChannelsDialog.wxs" />
@@ -1564,6 +1567,7 @@
 					<wxDialog wxs="../src-ui-wx/wxsmith/OptionChooser.wxs" src="../src-ui-wx/ui/shared/dialogs/OptionChooser.cpp" hdr="../src-ui-wx/ui/shared/dialogs/OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/PathGenerationDialog.wxs" src="../src-ui-wx/ui/model/PathGenerationDialog.cpp" hdr="../src-ui-wx/ui/model/PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/PixelTestDialog.wxs" src="../src-ui-wx/ui/setup/PixelTestDialog.cpp" hdr="../src-ui-wx/ui/setup/PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/PositionZoneDialog.wxs" src="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.cpp" hdr="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.h" fwddecl="0" i18n="1" name="PositionZoneDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/PreviewPane.wxs" src="../src-ui-wx/ui/layout/PreviewPane.cpp" hdr="../src-ui-wx/ui/layout/PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/RemapDMXChannelsDialog.wxs" src="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.cpp" hdr="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/RenameTextDialog.wxs" src="../src-ui-wx/ui/sequencer/RenameTextDialog.cpp" hdr="../src-ui-wx/ui/sequencer/RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />

@@ -209,6 +209,7 @@ const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_UNFIX_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_NOTES = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
+const long RowHeading::ID_ROW_MNU_AI_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_WORDS = wxNewId();
@@ -594,6 +595,12 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
                     mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
+                    if ( xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
+                        SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
+                        if (xml_file->HasAudioMedia()) {
+                            mnuLayer.Append(ID_ROW_MNU_AI_LYRICS, "AI Speech 2 Lyrics");
+                        }
+                    }
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
                     TimingElement *te = dynamic_cast<TimingElement*>(element);
@@ -1306,6 +1313,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_IMPORT_NOTES) {
         wxCommandEvent importNotesEvent(EVT_IMPORT_NOTES);
         wxPostEvent(GetParent(), importNotesEvent);
+    } else if (id == ID_ROW_MNU_AI_LYRICS) {
+        wxCommandEvent aiLyricsEvent(EVT_AI_LYRICS);
+        wxPostEvent(GetParent(), aiLyricsEvent);
     } else if (id == ID_ROW_MNU_IMPORT_LYRICS) {
         ImportLyrics(mSequenceElements, dynamic_cast<TimingElement*>(element), GetParent());
     } else if (id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
