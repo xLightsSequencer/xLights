@@ -125,7 +125,7 @@
         },
         {
             "id": "Rotations",
-            "label": "Rotations",
+            "label": "Z Rotations",
             "type": "float",
             "controlType": "slider",
             "settingPrefix": "SLIDER",
@@ -140,7 +140,7 @@
         },
         {
             "id": "PivotPointX",
-            "label": "Pivot Point X",
+            "label": "Z Pivot Point X",
             "type": "int",
             "controlType": "slider",
             "min": 0,
@@ -153,7 +153,7 @@
         },
         {
             "id": "PivotPointY",
-            "label": "Pivot Point Y",
+            "label": "Z Pivot Point Y",
             "type": "int",
             "controlType": "slider",
             "min": 0,
@@ -205,7 +205,7 @@
         },
         {
             "id": "XPivot",
-            "label": "X Pivot",
+            "label": "X Pivot Point",
             "type": "int",
             "controlType": "slider",
             "min": 0,
@@ -229,7 +229,7 @@
         },
         {
             "id": "YPivot",
-            "label": "Y Pivot",
+            "label": "Y Pivot Point",
             "type": "int",
             "controlType": "slider",
             "min": 0,

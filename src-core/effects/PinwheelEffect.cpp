@@ -41,7 +41,7 @@ int PinwheelEffect::sSpeedMax = 50;
 int PinwheelEffect::sOffsetDefault = 0;
 int PinwheelEffect::sOffsetMin = 0;
 int PinwheelEffect::sOffsetMax = 360;
-std::string PinwheelEffect::sStyleDefault = "Old Render Method";
+std::string PinwheelEffect::sStyleDefault = "New Render Method";
 bool PinwheelEffect::sRotationDefault = true;
 std::string PinwheelEffect::s3DDefault = "None";
 int PinwheelEffect::sXCDefault = 0;
@@ -89,6 +89,24 @@ void PinwheelEffect::OnMetadataLoaded()
     sYCMin = (int)GetMinFromMetadata("PinwheelYC", sYCMin);
     sYCMax = (int)GetMaxFromMetadata("PinwheelYC", sYCMax);
 }
+bool PinwheelEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2026.06", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
+void PinwheelEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+    if (IsVersionOlder("2026.06", version)) {
+        SettingsMap& settings = effect->GetSettings();
+        if (!settings.Contains("E_CHOICE_Pinwheel_Style")) {
+            settings["E_CHOICE_Pinwheel_Style"] = "Old Render Method";
+        }
+    }
+}
+
 PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string& pinwheel_3d) {
     if (pinwheel_3d == "3D") {
         return PW_3D;

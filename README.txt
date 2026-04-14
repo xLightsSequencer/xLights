@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
 
+    -change (dkulp)             Pinwheel effect now defaults to the New Render Method; existing sequences
+                                    are migrated to preserve the Old Render Method so their look is unchanged.
     -enh (AGFazio)              Add 'Yes to All' / 'No to All' options when merging base show directory changes
     -bug (derwin12)             Fix Twinkle Steps value curve capped at 100 instead of 400 (#4347)
     -bug (AGFazio)              Fix submodels in a group showing at wrong indent level in sequencer element list

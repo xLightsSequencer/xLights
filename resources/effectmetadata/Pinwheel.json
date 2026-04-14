@@ -81,8 +81,8 @@
                 "Old Render Method",
                 "New Render Method"
             ],
-            "default": "Old Render Method",
-            "description": "Rendering algorithm to use. The new method uses ISPC-accelerated rendering for better performance and fills the entire buffer; the old method draws arms by stepping along radial lines."
+            "default": "New Render Method",
+            "description": "Rendering algorithm to use. The new method uses ISPC-accelerated rendering for better performance and fills the entire buffer; the old method draws arms by stepping along radial lines. Existing sequences are migrated to preserve 'Old Render Method' so their look doesn't change."
         },
         {
             "id": "Pinwheel_Rotation",
