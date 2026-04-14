@@ -210,6 +210,7 @@ wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_SELECT_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AI_LYRICS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_APPLYLAST, wxCommandEvent);
@@ -1641,6 +1642,7 @@ public:
     void ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ExecuteImportNotes(wxCommandEvent &command);
+    void GenerateAILyrics(wxCommandEvent& command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
     void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting);
     void PromoteEffects(wxCommandEvent &command);
