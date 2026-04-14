@@ -18,6 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Fix Twinkle Steps value curve capped at 100 instead of 400 (#4347)
     -bug (AGFazio)              Fix submodels in a group showing at wrong indent level in sequencer element list
     -bug (derwin12)             Fix downloaded/imported models always getting start channel 1 (#6075)
+    -bug (derwin12)             Fix false "newer version" warning when importing effects from same version (#6113)
+    -bug (derwin12)             Fix Solid/Blended Circle pixel style appearing wrong size in model and effect panels (#4031, #4654, #4087)
     -bug (derwin12)             Fix unintended setting of ShadowModelFor (#5634)
     -bug (dkulp)                Fix macOS 11/12 launch crash "Symbol not found..." due to using
                                     some stuff (like std::format) from newer C++ that is not
