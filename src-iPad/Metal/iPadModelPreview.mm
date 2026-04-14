@@ -65,31 +65,19 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
 
     _isDrawing = true;
 
-    _ctx->SetViewport(0, h, w, 0, false);
+    // 3D perspective camera mirroring desktop ModelPreview 3D setup
+    // (see ModelPreview::Render in src-ui-wx/ui/layout/ModelPreview.cpp).
+    // Uses PreviewCamera defaults: angleX=20°, angleY=5°, distance=-2000.
+    _ctx->SetViewport(0, h, w, 0, true);
 
-    // Match desktop ModelPreview 2D setup:
-    // Models live in virtual canvas space (0..virtualW, 0..virtualH)
-    // Scale to fit window while maintaining aspect ratio
-    float scale2d = 1.0f;
-    float scaleCorrX = 0.0f;
-    float scaleCorrY = 0.0f;
-    if (_virtualW > 0 && _virtualH > 0) {
-        float scaleH = (float)h / (float)_virtualH;
-        float scaleW = (float)w / (float)_virtualW;
-        if (scaleH < scaleW) {
-            scale2d = scaleH;
-            scaleCorrX = (scaleW * _virtualW - scale2d * _virtualW) / 2.0f;
-        } else {
-            scale2d = scaleW;
-            scaleCorrY = (scaleH * _virtualH - scale2d * _virtualH) / 2.0f;
-        }
-    }
+    glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+    glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -2000.0f));
+    glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(5.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 viewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;
 
-    glm::mat4 viewScale = glm::scale(glm::mat4(1.0f), glm::vec3(scale2d, scale2d, 1.0f));
-    glm::mat4 viewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(scaleCorrX, scaleCorrY, 0.0f));
-    glm::mat4 viewMatrix = viewTranslate * viewScale;
-
-    _projMatrix = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
+    float aspect = (h > 0) ? (float)w / (float)h : 1.0f;
+    _projMatrix = glm::perspective(glm::radians(45.0f), aspect, 1.0f, 200000.0f);
     _projViewMatrix = _projMatrix * viewMatrix;
 
     _ctx->SetCamera(viewMatrix);
@@ -99,9 +87,15 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
     _ctx->setContextualValue("modelPreview", static_cast<IModelPreview*>(this));
     _ctx->enableBlending();
 
-    // Create programs for model rendering
+    // Create programs for model and view-object rendering.
+    // Mirrors desktop ModelPreview which keeps separate solid/transparent
+    // programs for models and view objects so draws can be ordered
+    // solid-VO → solid-models → transparent-VO → transparent-models
+    // (see ModelPreview::EndDrawing in src-ui-wx/ui/layout/ModelPreview.cpp).
     _solidProgram = _ctx->createGraphicsProgram();
     _transparentProgram = _ctx->createGraphicsProgram();
+    _solidViewObjectProgram = _ctx->createGraphicsProgram();
+    _transparentViewObjectProgram = _ctx->createGraphicsProgram();
 
     return true;
 }
@@ -109,9 +103,18 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
 void iPadModelPreview::EndDrawing(bool swapBuffers) {
     if (!_isDrawing || !_ctx) return;
 
-    // Run accumulated drawing steps from models
+    // Run accumulated drawing steps in the same order desktop uses in 3D mode:
+    // solid view objects → solid models → transparent view objects → transparent models.
+    // This ensures opaque geometry writes depth first and transparent pieces
+    // (semi-transparent meshes, image alpha) blend correctly on top.
+    if (_solidViewObjectProgram) {
+        _solidViewObjectProgram->runSteps(_ctx);
+    }
     if (_solidProgram) {
         _solidProgram->runSteps(_ctx);
+    }
+    if (_transparentViewObjectProgram) {
+        _transparentViewObjectProgram->runSteps(_ctx);
     }
     if (_transparentProgram) {
         _transparentProgram->runSteps(_ctx);
@@ -121,8 +124,12 @@ void iPadModelPreview::EndDrawing(bool swapBuffers) {
 
     delete _solidProgram;
     delete _transparentProgram;
+    delete _solidViewObjectProgram;
+    delete _transparentViewObjectProgram;
     _solidProgram = nullptr;
     _transparentProgram = nullptr;
+    _solidViewObjectProgram = nullptr;
+    _transparentViewObjectProgram = nullptr;
 
     _ctx->Commit(swapBuffers, nil);
     delete _ctx;

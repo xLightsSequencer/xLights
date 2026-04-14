@@ -24,6 +24,7 @@
 #include "outputs/OutputManager.h"
 #include "models/ModelManager.h"
 #include "models/OutputModelManager.h"
+#include "models/ViewObjectManager.h"
 #include "utils/JobPool.h"
 
 #include <list>
@@ -78,6 +79,7 @@ public:
     // Accessors
     OutputManager& GetOutputManager() { return _outputManager; }
     ModelManager& GetModelManager() { return *_modelManager; }
+    ViewObjectManager& GetAllObjects() { return *_viewObjectManager; }
     SequenceFile* GetSequenceFile() { return _sequenceFile.get(); }
 
     // Model pixel data for a given frame — returns (x, y, r, g, b) tuples
@@ -95,6 +97,7 @@ private:
     OutputManager _outputManager;
     OutputModelManager _outputModelManager;
     std::unique_ptr<ModelManager> _modelManager;
+    std::unique_ptr<ViewObjectManager> _viewObjectManager;
     EffectManager _effectManager;
     SequenceElements _sequenceElements;
     std::unique_ptr<SequenceFile> _sequenceFile;

@@ -11,6 +11,11 @@
 - (BOOL)loadShowFolder:(NSString*)path;
 - (BOOL)loadShowFolder:(NSString*)path mediaFolders:(NSArray<NSString*>*)mediaFolders;
 
+// Register/refresh a persistent security-scoped bookmark for a folder path.
+// Call this whenever the user picks a folder via UIDocumentPicker so the
+// bookmark is stored in UserDefaults and access survives app restart.
++ (BOOL)obtainAccessToPath:(NSString*)path enforceWritable:(BOOL)enforceWritable;
+
 // Sequence
 - (BOOL)openSequence:(NSString*)path;
 - (void)closeSequence;

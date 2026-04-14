@@ -15,6 +15,8 @@
 #include "../Bridge/iPadRenderContext.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
+#include "models/ViewObject.h"
+#include "models/ViewObjectManager.h"
 
 #include <memory>
 
@@ -28,8 +30,12 @@
 - (instancetype)initWithName:(NSString*)name {
     self = [super init];
     if (self) {
+        // is3d=true so the canvas allocates a depth buffer + MSAA target.
+        // MeshObject (and other view-object renderers) enable depth testing
+        // in drawMeshSolids, which crashes validation if no depth attachment
+        // is bound. Depth is harmless for existing 2D model rendering.
         _canvas = std::make_unique<xlStandaloneMetalCanvas>(
-            std::string([name UTF8String]), false);
+            std::string([name UTF8String]), true);
         _preview = std::make_unique<iPadModelPreview>(_canvas.get());
     }
     return self;
@@ -64,6 +70,8 @@
     auto* graphicsCtx = _preview->getCurrentGraphicsContext();
     auto* solidProg = _preview->getCurrentSolidProgram();
     auto* transparentProg = _preview->getCurrentTransparentProgram();
+    auto* solidVOProg = _preview->getCurrentSolidViewObjectProgram();
+    auto* transparentVOProg = _preview->getCurrentTransparentViewObjectProgram();
 
     auto models = ctx->GetModelManager().GetModels();
     for (auto& [name, model] : models) {
@@ -71,6 +79,17 @@
         if (model->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
         model->DisplayModelOnWindow(_preview.get(), graphicsCtx, solidProg, transparentProg,
                                      false, nullptr, false, false, false, 0, nullptr);
+    }
+
+    // Draw view objects (house meshes, ground images, gridlines, terrain).
+    // Matches ModelPreview::Render in src-ui-wx/ui/layout/ModelPreview.cpp —
+    // desktop gates this behind is3d but iPad is single-pane so we always draw.
+    auto& allObjects = ctx->GetAllObjects();
+    for (auto it = allObjects.begin(); it != allObjects.end(); ++it) {
+        ViewObject* vo = it->second;
+        if (vo) {
+            vo->Draw(_preview.get(), graphicsCtx, solidVOProg, transparentVOProg, false);
+        }
     }
 
     // Finish and present

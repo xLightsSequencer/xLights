@@ -4,13 +4,13 @@ import SwiftUI
 class SequencerViewModel {
     var document = XLSequenceDocument()
     var showFolderPath: String?
+    var mediaFolderPaths: [String] = []
     var sequenceName: String?
     var isShowFolderLoaded = false
     var isSequenceLoaded = false
     var sequenceDurationMS: Int = 0
     var frameIntervalMS: Int = 50
     var rows: [RowInfo] = []
-    var showFolderPickerPresented = false
     var sequenceFiles: [String] = []
 
     // Audio state
@@ -82,12 +82,30 @@ class SequencerViewModel {
     // MARK: - Show Folder
 
     func loadShowFolder(url: URL) {
-        let path = url.path
+        loadShowFolder(path: url.path, mediaFolders: mediaFolderPaths)
+    }
+
+    /// Load a show folder with optional media folders. Both show folder and
+    /// each media folder have their security-scoped bookmarks refreshed via
+    /// iPadRenderContext::LoadShowFolder (which calls ObtainAccessToURL for
+    /// each) before reading files.
+    func loadShowFolder(path: String, mediaFolders: [String]) {
         showFolderPath = path
-        isShowFolderLoaded = document.loadShowFolder(path)
+        mediaFolderPaths = mediaFolders
+        isShowFolderLoaded = document.loadShowFolder(path, mediaFolders: mediaFolders)
         if isShowFolderLoaded {
             scanForSequenceFiles(at: path)
         }
+    }
+
+    /// Attempt to load the persisted show folder at app startup.
+    /// Returns true if a show folder was configured and loaded successfully.
+    @discardableResult
+    func restorePersistedShowFolder() -> Bool {
+        guard let path = FolderConfig.showFolder else { return false }
+        let mediaFolders = FolderConfig.mediaFolders
+        loadShowFolder(path: path, mediaFolders: mediaFolders)
+        return isShowFolderLoaded
     }
 
     // MARK: - Sequence

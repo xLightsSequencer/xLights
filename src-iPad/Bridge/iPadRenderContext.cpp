@@ -39,14 +39,18 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     _mediaFolders = mediaFolders;
 
     ObtainAccessToURL(showDir, false);
+    for (const auto& folder : _mediaFolders) {
+        ObtainAccessToURL(folder, false);
+    }
 
     // Load network/controller configuration
     if (!_outputManager.Load(showDir)) {
         spdlog::warn("iPadRenderContext: Failed to load xlights_networks.xml from {}", showDir);
     }
 
-    // Create ModelManager
+    // Create ModelManager + ViewObjectManager
     _modelManager = std::make_unique<ModelManager>(&_outputManager, this);
+    _viewObjectManager = std::make_unique<ViewObjectManager>(this);
 
     // Load models from xlights_rgbeffects.xml
     std::string rgbPath = showDir + "/xlights_rgbeffects.xml";
@@ -82,6 +86,14 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                     _modelManager->LoadGroups(groupsNode, 1920, 1080);
                     spdlog::info("iPadRenderContext: Loaded groups, total models now {}",
                                  _modelManager->GetModels().size());
+                }
+
+                // Load view objects (house meshes, ground images, gridlines, terrain, rulers)
+                auto viewObjectsNode = xlightsNode.child("view_objects");
+                if (viewObjectsNode) {
+                    _viewObjectManager->LoadViewObjects(viewObjectsNode);
+                    spdlog::info("iPadRenderContext: Loaded {} view objects",
+                                 _viewObjectManager->size());
                 }
             }
         }

@@ -10,7 +10,11 @@ struct XLightsApp: App {
         // iPadRenderContext whose EffectManager needs the resources directory
         // to load effectmetadata JSON files.
         XLiPadInit.initialize()
-        _viewModel = State(initialValue: SequencerViewModel())
+        let vm = SequencerViewModel()
+        // Attempt to restore the previously-selected show folder + media
+        // folders via their persistent security-scoped bookmarks.
+        vm.restorePersistedShowFolder()
+        _viewModel = State(initialValue: vm)
     }
 
     var body: some Scene {
@@ -23,21 +27,33 @@ struct XLightsApp: App {
 
 struct ContentView: View {
     @Environment(SequencerViewModel.self) var viewModel
+    @State private var showFolderConfig = false
 
     var body: some View {
-        if !viewModel.isShowFolderLoaded {
-            ShowFolderSetupView()
-        } else if !viewModel.isSequenceLoaded {
-            SequencePickerView()
-        } else {
-            SequencerView()
+        Group {
+            if !viewModel.isShowFolderLoaded {
+                ShowFolderSetupView(showFolderConfig: $showFolderConfig)
+            } else if !viewModel.isSequenceLoaded {
+                SequencePickerView(showFolderConfig: $showFolderConfig)
+            } else {
+                SequencerView()
+            }
+        }
+        .sheet(isPresented: $showFolderConfig) {
+            FolderConfigView()
+                .environment(viewModel)
+        }
+        .onAppear {
+            // Auto-open the dialog on first launch when nothing is configured.
+            if !viewModel.isShowFolderLoaded && FolderConfig.showFolder == nil {
+                showFolderConfig = true
+            }
         }
     }
 }
 
 struct ShowFolderSetupView: View {
-    @Environment(SequencerViewModel.self) var viewModel
-    @State private var showPicker = false
+    @Binding var showFolderConfig: Bool
 
     var body: some View {
         VStack(spacing: 20) {
@@ -46,22 +62,17 @@ struct ShowFolderSetupView: View {
             Text("Select your show folder to get started")
                 .font(.headline)
                 .foregroundStyle(.secondary)
-            Button("Choose Show Folder") {
-                showPicker = true
+            Button("Configure Folders…") {
+                showFolderConfig = true
             }
             .buttonStyle(.borderedProminent)
-        }
-        .sheet(isPresented: $showPicker) {
-            ShowFolderPicker { url in
-                viewModel.loadShowFolder(url: url)
-                showPicker = false
-            }
         }
     }
 }
 
 struct SequencePickerView: View {
     @Environment(SequencerViewModel.self) var viewModel
+    @Binding var showFolderConfig: Bool
 
     var body: some View {
         NavigationStack {
@@ -73,14 +84,10 @@ struct SequencePickerView: View {
             }
             .navigationTitle("Sequences")
             .toolbar {
-                Button("Change Folder") {
-                    viewModel.showFolderPickerPresented = true
-                }
-            }
-            .sheet(isPresented: Bindable(viewModel).showFolderPickerPresented) {
-                ShowFolderPicker { url in
-                    viewModel.loadShowFolder(url: url)
-                    viewModel.showFolderPickerPresented = false
+                Button {
+                    showFolderConfig = true
+                } label: {
+                    Image(systemName: "folder.badge.gearshape")
                 }
             }
         }

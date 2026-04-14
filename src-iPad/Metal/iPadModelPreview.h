@@ -50,6 +50,8 @@ public:
     xlGraphicsContext* getCurrentGraphicsContext() override;
     xlGraphicsProgram* getCurrentSolidProgram() override { return _solidProgram; }
     xlGraphicsProgram* getCurrentTransparentProgram() override { return _transparentProgram; }
+    xlGraphicsProgram* getCurrentSolidViewObjectProgram() { return _solidViewObjectProgram; }
+    xlGraphicsProgram* getCurrentTransparentViewObjectProgram() { return _transparentViewObjectProgram; }
 
     bool StartDrawing(double pointSize, bool fromPaint = false) override;
     void EndDrawing(bool swapBuffers = true) override;
@@ -57,7 +59,7 @@ public:
     double calcPixelSize(double i) override { return i * 2.0; }
     uint32_t getCurrentFrameTime() const override { return _currentFrameTime; }
 
-    bool Is3D() const override { return false; }
+    bool Is3D() const override { return true; }
     bool IsNoCurrentModel() override { return true; }
 
     void SetCurrentFrameTime(uint32_t ms) { _currentFrameTime = ms; }
@@ -70,6 +72,8 @@ private:
     xlMetalGraphicsContext* _ctx = nullptr;
     xlGraphicsProgram* _solidProgram = nullptr;
     xlGraphicsProgram* _transparentProgram = nullptr;
+    xlGraphicsProgram* _solidViewObjectProgram = nullptr;
+    xlGraphicsProgram* _transparentViewObjectProgram = nullptr;
     glm::mat4 _projViewMatrix{1.0f};
     glm::mat4 _projMatrix{1.0f};
     uint32_t _currentFrameTime = 0;

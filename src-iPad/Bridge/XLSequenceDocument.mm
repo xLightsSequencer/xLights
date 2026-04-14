@@ -18,6 +18,7 @@
 #include "effects/EffectManager.h"
 #include "media/AudioManager.h"
 #include "utils/FileUtils.h"
+#include "utils/ExternalHooks.h"
 
 #include <nlohmann/json.hpp>
 
@@ -48,6 +49,11 @@
         folders.push_back(std::string([f UTF8String]));
     }
     return _context->LoadShowFolder(std::string([path UTF8String]), folders);
+}
+
++ (BOOL)obtainAccessToPath:(NSString*)path enforceWritable:(BOOL)enforceWritable {
+    if (path.length == 0) return NO;
+    return ObtainAccessToURL(std::string([path UTF8String]), enforceWritable) ? YES : NO;
 }
 
 - (BOOL)openSequence:(NSString*)path {
