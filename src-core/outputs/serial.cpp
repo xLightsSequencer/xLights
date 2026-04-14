@@ -13,18 +13,20 @@
 
 #include "serial.h"
 
+#ifdef __APPLE__
 #include <TargetConditionals.h>
+#endif
 #include <log.h>
 
 #ifdef _WIN32
 # include "serial_win32.cpp"
 #elif defined __APPLE__ && !TARGET_OS_IPHONE
 # include "serial_osx.cpp"
-#elif !TARGET_OS_IPHONE
+#elif !defined(__APPLE__) || !TARGET_OS_IPHONE
 # include "serial_posix.cpp"
 #endif
 
-#if TARGET_OS_IPHONE
+#if defined(__APPLE__) && TARGET_OS_IPHONE
 // Stub implementations for iOS — serial ports not available
 SerialPort::SerialPort() : _fd(-1), _callback(0) {}
 SerialPort::~SerialPort() {}
