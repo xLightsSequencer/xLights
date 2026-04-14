@@ -108,7 +108,7 @@
             "controlType": "custom",
             "fullWidth": true,
             "default": "",
-            "description": "Roto-Zoom preset dropdown: 'None - Reset', '1 Rev CW', '1 Rev CCW', 'Explode', 'Collapse', 'Explode + Spin CW', 'Shake', 'Spin CW Accelerate'. NOT serialized — applies preset values to other sliders and resets selection. UI-only."
+            "description": "Roto-Zoom preset dropdown: blank (idle), 'None - Reset', '1 Rev CW', '1 Rev CCW', 'Explode', 'Collapse', 'Explode + Spin CW', 'Shake', 'Spin CW Accelerate'. Blank is the resting state so the user can actively select 'None - Reset' to trigger a reset. NOT serialized — applies preset values to other sliders and resets selection to blank. UI-only."
         },
         {
             "id": "Rotation",

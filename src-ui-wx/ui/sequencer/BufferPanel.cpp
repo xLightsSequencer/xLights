@@ -39,6 +39,7 @@ nlohmann::json LoadBufferMetadata() {
 
 // Roto-Zoom presets (in legacy display order).
 const wxString ROTOZOOM_PRESETS[] = {
+    "",
     "None - Reset",
     "1 Rev CW",
     "1 Rev CCW",
@@ -136,7 +137,7 @@ wxWindow* BufferPanel::BuildRotoZoomPresetRow(wxWindow* parentWin, wxSizer* size
     for (const auto& p : ROTOZOOM_PRESETS) {
         _rotoZoomPresetChoice->Append(p);
     }
-    _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    _rotoZoomPresetChoice->SetSelection(0);
     row->Add(_rotoZoomPresetChoice, 1, wxALL | wxEXPAND, 2);
     _rotoZoomPresetChoice->Bind(wxEVT_CHOICE, &BufferPanel::OnPresetSelect, this);
 
@@ -254,7 +255,7 @@ void BufferPanel::SetDefaultControls(const Model* model, bool optionbased) {
     UpdateCamera(model);
 
     if (subBufferPanel) subBufferPanel->SetDefaults();
-    if (_rotoZoomPresetChoice) _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    if (_rotoZoomPresetChoice) _rotoZoomPresetChoice->SetSelection(0);
 
     ValidateWindow();
 }
@@ -309,6 +310,10 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
     event.Skip();
     if (!_rotoZoomPresetChoice) return;
     wxString preset = _rotoZoomPresetChoice->GetStringSelection();
+    // The blank entry is the idle state — programmatic reselection after a
+    // preset fires this handler too, and must be a no-op so it doesn't wipe
+    // the values the preset just applied.
+    if (preset.IsEmpty()) return;
 
     // Helper lookups into the framework-built controls. Both int and float
     // sliders are SLIDER-primary (info->slider + info->buddyText). For float
@@ -397,7 +402,7 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
         setIntValue("ZoomQuality", 2);
     }
 
-    _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    _rotoZoomPresetChoice->SetSelection(0);
     if (auto* rotOrder = GetPropertyInfo("RZ_RotationOrder"); rotOrder && rotOrder->choice) {
         rotOrder->choice->SetSelection(0);
     }
