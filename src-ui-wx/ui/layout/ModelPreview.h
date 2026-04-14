@@ -102,6 +102,7 @@ public:
 
     double calcPixelSize(double i) override;
     double getViewScale() const override;
+    double getBackingScaleFactor() const override;
 
     void SetModel(const Model* model, bool wiring = false, bool highlightFirst = false);
     void SetActiveLayoutGroup(const std::string &grp = "Default") {
