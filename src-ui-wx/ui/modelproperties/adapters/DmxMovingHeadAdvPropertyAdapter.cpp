@@ -20,6 +20,8 @@
 #include "models/DMX/Mesh.h"
 #include "controllers/ControllerCaps.h"
 #include "models/OutputModelManager.h"
+#include "PositionZoneDialog.h"
+#include "../PropertyGridHelpers.h"
 
 static const char* DMX_FIXTURE_VALUES[] = {
     "MH1", "MH2", "MH3", "MH4", "MH5", "MH6", "MH7", "MH8"
@@ -27,6 +29,53 @@ static const char* DMX_FIXTURE_VALUES[] = {
 
 DmxMovingHeadAdvPropertyAdapter::DmxMovingHeadAdvPropertyAdapter(Model& model)
     : DmxPropertyAdapter(model), _mha(static_cast<DmxMovingHeadAdv&>(model)) {}
+
+class PositionZoneDialogAdapter : public wxPGEditorDialogAdapter {
+public:
+    PositionZoneDialogAdapter(DmxMovingHeadAdv& model) :
+        wxPGEditorDialogAdapter(), m_model(model) {
+    }
+
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        auto zones = m_model.GetPositionZones();
+        PositionZoneDialog dlg(zones, propGrid);
+        if (dlg.ShowModal() == wxID_OK) {
+            m_model.SetPositionZones(zones);
+            m_model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PositionZoneDialogAdapter");
+            m_model.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PositionZoneDialogAdapter");
+            m_model.AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PositionZoneDialogAdapter");
+            m_model.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PositionZoneDialogAdapter");
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+
+protected:
+    DmxMovingHeadAdv& m_model;
+};
+
+class PositionZonePopupProperty : public wxStringProperty {
+public:
+    PositionZonePopupProperty(DmxMovingHeadAdv& model,
+                              const wxString& label,
+                              const wxString& name,
+                              const wxString& value) :
+        wxStringProperty(label, name, value), _model(model) {
+    }
+
+    virtual const wxPGEditor* DoGetEditorClass() const override {
+        return wxPGEditor_TextCtrlAndButton;
+    }
+
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
+        return new PositionZoneDialogAdapter(_model);
+    }
+
+protected:
+    DmxMovingHeadAdv& _model;
+};
 
 void DmxMovingHeadAdvPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     static wxPGChoices DMX_FIXTURES;
@@ -74,6 +123,10 @@ void DmxMovingHeadAdvPropertyAdapter::AddTypeProperties(wxPropertyGridInterface*
     DmxComponentPropertyHelpers::AddMeshProperties(grid, *_mha.GetBaseMesh());
     DmxComponentPropertyHelpers::AddMeshProperties(grid, *_mha.GetYokeMesh());
     DmxComponentPropertyHelpers::AddMeshProperties(grid, *_mha.GetHeadMesh());
+
+    grid->Append(new wxPropertyCategory("Position Zones", "PositionZones"));
+    auto pz = grid->Append(new PositionZonePopupProperty(_mha, "Zones", "PositionZoneConfig", CLICK_TO_EDIT));
+    grid->LimitPropertyEditing(pz);
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }

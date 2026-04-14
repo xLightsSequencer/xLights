@@ -42,6 +42,7 @@
 #include "RenderCache.h"
 #include "UtilClasses.h"
 #include "JobPool.h"
+#include "models/DMX/DmxMovingHeadAdv.h"
 
 #include <log.h>
 // END_OF_RENDER_FRAME is defined in RenderProgressInfo.h
@@ -766,6 +767,15 @@ public:
             }
             buffer->CalcOutput(frame, info.validLayers);
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
+
+            // Position Zone processing (DMX)
+            const Model* model = buffer->GetModel();
+            if (model != nullptr && model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv) {
+                const DmxMovingHeadAdv* mh = dynamic_cast<const DmxMovingHeadAdv*>(model);
+                if (mh != nullptr) {
+                    mh->ApplyPositionZones(&((*seqData)[frame][0]), mh->GetFirstChannel());
+                }
+            }
         }
 
         if (tempEffect != nullptr)
@@ -1085,7 +1095,7 @@ private:
 };
 
 
-// RenderRange — moved to RenderUI.cpp (uses RenderCommandEvent wx type)
+// RenderRange - moved to RenderUI.cpp (uses RenderCommandEvent wx type)
 
 RenderEngine::RenderEngine(RenderContext& ctx, JobPool& pool, RenderCache& cache)
     : _ctx(ctx), _jobPool(pool), _renderCache(cache) {}
@@ -1130,7 +1140,7 @@ void RenderEngine::RenderEffectOnMainThread(RenderEvent *ev) {
 // RenderProgressInfo is defined in RenderProgressInfo.h (included above).
 // It was moved to a header so RenderUI.cpp can also access it.
 
-// LogRenderStatus — moved to RenderUI.cpp (needs access to RenderProgressInfo)
+// LogRenderStatus - moved to RenderUI.cpp (needs access to RenderProgressInfo)
 
 static bool HasEffects(ModelElement *me) {
     if (me->HasEffects()) {
@@ -1154,7 +1164,7 @@ static bool HasEffects(ModelElement *me) {
 }
 
 // OnProgressBarDoubleClick, OnRenderStatusTimerTrigger, UpdateRenderStatus,
-// RenderDone — all moved to RenderUI.cpp (wx UI handlers / progress-bar updates).
+// RenderDone - all moved to RenderUI.cpp (wx UI handlers / progress-bar updates).
 
 class RenderTreeData {
 public:
@@ -1577,7 +1587,7 @@ void RenderEngine::SignalAbort() {
     }
 }
 
-// RenderGridToSeqData — moved to RenderUI.cpp (creates WxRenderProgressSink)
+// RenderGridToSeqData - moved to RenderUI.cpp (creates WxRenderProgressSink)
 
 static Effect* GetPersistentEffectOnModelStartingAtTime(SequenceElements& seqElements, const std::string& model, uint32_t startms) {
     Element* e = seqElements.GetElement(model);

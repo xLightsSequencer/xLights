@@ -1311,6 +1311,9 @@
     <ClCompile Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\RealTime.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-ui-wx\ui\sequencer\BatchRenderDialog.h" />
@@ -2718,6 +2721,9 @@
     <ClInclude Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.h" />
     <ClInclude Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.h" />
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
+    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
