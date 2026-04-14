@@ -16,6 +16,7 @@
 #include "RowHeading.h"
 #include "xLightsVersion.h"
 #include "ui/shared/utils/BitmapCache.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "models/ModelGroup.h"
 #include "ui/sequencer/SelectTimingsDialog.h"
 #include "models/SubModel.h"
@@ -239,7 +240,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     
     mCanPaste = false;
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int w = config->ReadLong("xLightsRowHeaderWidth", _minRowHeadingWidth);
     CallAfter(&RowHeading::SetWidth, w);
 }
@@ -328,7 +329,7 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
 {
     if (_dragging) {
         auto size = GetSize();
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("xLightsRowHeaderWidth", size.GetWidth());
         ReleaseMouse();
         _dragging = false;

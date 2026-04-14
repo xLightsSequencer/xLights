@@ -16,7 +16,7 @@
 #include <wx/filename.h>
 #include <wx/filepicker.h>
 #include <wx/fontpicker.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/textfile.h>
 
 #include "xLightsMain.h"
@@ -242,7 +242,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
         grp->ResetPositions();
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->DeleteEntry("ToolbarLocations");
     config->DeleteEntry("xLightsMachinePerspective");
     SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
@@ -287,7 +287,7 @@ void xLightsFrame::InitSequencer()
 
     // if we have a saved perspective on this machine then make that the current one
     if (_autoSavePerspecive) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
         if (machinePerspective != "") {
             if (!m_mgr->LoadPerspective(machinePerspective, true)) {

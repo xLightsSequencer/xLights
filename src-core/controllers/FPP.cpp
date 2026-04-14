@@ -4005,6 +4005,11 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
         return res->mode != "bridge";
     }
 
+    if (res->typeId >= 0xD0 && res->typeId <= 0xDF) {
+        // Illuminous
+        return res->mode != "bridge";
+    }
+
     return false;
 }
 
@@ -4159,6 +4164,8 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
         inst->fppType = FPP_TYPE::ESPIXELSTICK;
     } else if (typeId >= 0xA0 && typeId <= 0xAF) {
         inst->fppType = FPP_TYPE::GENIUS;
+    } else if (typeId >= 0xD0 && typeId <= 0xDF) {
+        inst->fppType = FPP_TYPE::POWERDMX;
     }
 }
 

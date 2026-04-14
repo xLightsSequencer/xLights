@@ -15,7 +15,6 @@
 
 #include "wx/printdlg.h"
 #include <wx/artprov.h>
-#include <wx/config.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
@@ -32,6 +31,7 @@
 #include "models/Pixels.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "xLightsMain.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
@@ -2074,7 +2074,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
         spdlog::critical("ControllerModelDialog created with no ControllerUploadData ... this is not going to end well.");
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         CheckBox_HideOtherControllerModels->SetValue(config->ReadBool("ControllerModelHideOtherControllerModels", false));
         Slider_Box_Scale->SetValue(config->ReadLong("ControllerModelBoxScale", 10));
@@ -2152,7 +2152,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 ControllerModelDialog::~ControllerModelDialog()
 {
     SaveWindowPosition("ControllerModelDialogPosition", this);
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("ControllerModelSashPosition", SplitterWindow1->GetSashPosition());
 
     while (_models.size() > 0) {
@@ -4763,14 +4763,14 @@ SRCMObject* ControllerModelDialog::GetControllerSRAtLocation()
 
 void ControllerModelDialog::OnCheckBox_HideOtherControllerModelsClick(wxCommandEvent& event)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("ControllerModelHideOtherControllerModels", CheckBox_HideOtherControllerModels->IsChecked());
     ReloadModels();
 }
 
 void ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated(wxScrollEvent& event)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("ControllerModelBoxScale", Slider_Box_Scale->GetValue());
     config->Write("ControllerModelFontScale", Slider_Font_Scale->GetValue());
     ReloadModels();

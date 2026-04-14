@@ -25,6 +25,7 @@
 #include "controllers/ControllerCaps.h"
 #include "controllers/SanDevices.h"
 #include "controllers/Falcon.h"
+#include "controllers/PowerDMX.h"
 #endif
 
 #include <log.h>
@@ -573,6 +574,38 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
                     ce->GetOutput(0)->SetUniverse(1);
                 }
             }
+            return cd;
+        }
+        // illuminous PowerDMX
+    } else if (htmlBuffer.find("PowerDMX") != std::string::npos) {
+        DiscoveredData* cd = FindByIp(ip);
+        ControllerEthernet* ce = cd ? cd->controller : nullptr;
+        PowerDMX falc(ip, proxy);
+        if (falc.IsConnected()) {
+            if (!ce) {
+                ce = new ControllerEthernet(_outputManager, false);
+                ce->SetProtocol(OUTPUT_E131);
+                ce->SetIP(ip);
+                ce->SetFPPProxy(proxy);
+                if (!cd) {
+                    cd = AddController(ce);
+                }
+            }
+            cd->SetVendor("PowerDMX");
+            std::string model = falc.GetModel();
+            model = Upper(model);
+
+            cd->SetModel(model);
+            cd->pixelControllerType = model;
+            cd->typeId = 0xD0;
+            // cd->version = falc.GetFullName();
+            cd->platform = model;
+            cd->mode = "player";            
+            ce->SetProtocol(OUTPUT_DDP);
+            ce->SetAutoSize(true, nullptr);
+            ce->SetAutoLayout(true);
+            ce->SetFullxLightsControl(true);
+            
             return cd;
         }
     } else {

@@ -36,7 +36,6 @@
 #include <sstream>
 #include <wx/artprov.h>
 #include <wx/dataview.h>
-#include <wx/config.h>
 #include <wx/treebase.h>
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
@@ -45,6 +44,7 @@
 #include "ui/layout/ModelPreview.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "ui/model/ChannelLayoutDialog.h"
 #include "ui/setup/ControllerConnectionDialog.h"
 #include "ui/layout/ModelGroupPanel.h"
@@ -537,7 +537,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
     SecondPanel->Destroy();
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
     is_3d = config->ReadBool("LayoutMode3D", false);
@@ -664,7 +664,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
 
     // Because you cant programmatically reorder the columns we have to add them in the right order
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     auto colOrder = config->Read("LayoutModelListCols", "");
 
     int sortcol = 0;
@@ -837,14 +837,14 @@ void LayoutPanel::SaveModelsListColumns()
         }
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("LayoutModelListCols", colOrder);
 }
 
 LayoutPanel::~LayoutPanel()
 {
     if (ModelGroupWindow != nullptr) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("LayoutModelSplitterSash", ModelSplitter->GetSashPosition());
     }
 
@@ -3815,7 +3815,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                     }
                                 }
                             }
-                            catch (nlohmann::json::parse_error& e) {
+                            catch (nlohmann::json::parse_error& ) {
                             }
                         }
 
@@ -6499,7 +6499,7 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
         //event during creation
         return;
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("LayoutMainSplitterSash", event.GetSashPosition());
 }
 
@@ -9253,7 +9253,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     }
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("LayoutMode3D", is_3d);
     wxString s = xlights->GetXmlSetting("LayoutMode3D", "");
     wxString nv = is_3d ? "1" : "0";

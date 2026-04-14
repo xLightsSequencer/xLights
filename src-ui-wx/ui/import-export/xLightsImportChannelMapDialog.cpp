@@ -25,6 +25,7 @@
 #include "xLightsImportChannelMapDialog.h"
 #include "render/SequenceElements.h"
 #include "xLightsMain.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "models/CandyCaneModel.h"
@@ -699,7 +700,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
         Layout();
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
 
@@ -1106,7 +1107,7 @@ bool xLightsImportChannelMapDialog::GetImportModelBlending() const
 
 bool xLightsImportChannelMapDialog::IsLockEffects() const
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool b = CheckBox_LockEffects->IsChecked();
     config->Write("ImportEffectsLocked", b);
     config->Flush();
@@ -3875,7 +3876,7 @@ void xLightsImportChannelMapDialog::OnButton_AIMapClick(wxCommandEvent& event)
 
 bool xLightsImportChannelMapDialog::IsConvertRender() const
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool b = CheckBox_ConvertRenderStyle->IsChecked();
     config->Write("ImportEffectsRenderStyle", b);
     config->Flush();

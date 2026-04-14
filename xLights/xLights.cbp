@@ -627,6 +627,10 @@
 		<Unit filename="../src-core/cad/VRMLWriter.h" />
 		<Unit filename="../src-core/controllers/AlphaPix.cpp" />
 		<Unit filename="../src-core/controllers/AlphaPix.h" />
+		<Unit filename="../src-core/settings/XLightsSettings.cpp" />
+		<Unit filename="../src-core/settings/XLightsSettings.h" />
+		<Unit filename="../src-ui-wx/settings/XLightsConfigAdapter.cpp" />
+		<Unit filename="../src-ui-wx/settings/XLightsConfigAdapter.h" />
 		<Unit filename="../src-core/controllers/BaseController.cpp" />
 		<Unit filename="../src-core/controllers/BaseController.h" />
 		<Unit filename="../src-core/controllers/ControllerCaps.cpp" />

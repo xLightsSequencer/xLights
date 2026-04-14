@@ -16,7 +16,7 @@
 //*)
 
 #include "xLightsMain.h"
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/filepicker.h>
@@ -131,7 +131,7 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     ChoiceFormat->Append(_("FPP Compressed Sub sequence. *.eseq"));
 
     wxString let;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Read("xLightsLastExportType", &let, "");
         if (let == "") {
@@ -282,7 +282,7 @@ void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
         }
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("xLightsLastExportType", ChoiceFormat->GetStringSelection());
         config->Flush();

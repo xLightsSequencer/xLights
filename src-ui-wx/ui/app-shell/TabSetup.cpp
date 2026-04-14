@@ -16,7 +16,7 @@
 #include <wx/time.h>
 #include <wx/stopwatch.h>
 #include <wx/settings.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -146,12 +146,12 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     if (idx > 0) {
         p = p.substr(idx + 1);
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->SetPath(p);
     if (reload) {
         mruFiles.clear();
         for (int x = 0; x < MRUF_LENGTH; x++) {
-            wxString k = "file" + std::to_string(x);
+            std::string k = "file" + std::to_string(x);
             wxString v;
             if (config->Read(k, &v) && v != "") {
                 mruFiles.push_back(v);
@@ -177,7 +177,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     }
     int cnt = 0;
     for (int x = 0; x < MRUF_LENGTH; x++) {
-        wxString k = "file" + std::to_string(x);
+        std::string k = "file" + std::to_string(x);
         if (x < (int)mruFiles.size()) {
             if (!reload) {
                 config->Write(k, mruFiles[x]);
@@ -189,7 +189,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
             Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
             RecentSequencesMenu->Append(mruf_MenuItem[x]);
         } else {
-            config->DeleteEntry(k);
+            config->DeleteEntry(k);  // k is std::string after loop fix above
         }
     }
     config->SetPath("/");
@@ -268,14 +268,14 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     // save config
     bool DirExists = wxFileName::DirExists(nd);
     wxString value;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (permanent) {
         if (DirExists)
-            config->Write(_("LastDir"), nd);
+            config->Write("LastDir", nd);
         _permanentShowFolder = nd;
     }
     for (size_t i = 0; i < MRUD_LENGTH; i++) {
-        wxString mru_name = wxString::Format("mru%d", (int)i);
+        std::string mru_name = "mru" + std::to_string(i);
         if (mrud_MenuItem[i] != nullptr) {
             Disconnect(mrud_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
             RecentShowFoldersMenu->Delete(mrud_MenuItem[i]);
@@ -354,10 +354,10 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
 
     long fseqLinkFlag = 0;
-    config->Read(_("FSEQLinkFlag"), &fseqLinkFlag);
+    config->Read("FSEQLinkFlag", &fseqLinkFlag);
     if (fseqLinkFlag) {
         fseqDirectory = CurrentDir;
-        config->Write(_("FSEQDir"), wxString(fseqDirectory));
+        config->Write("FSEQDir", fseqDirectory);
         spdlog::debug("FSEQ Directory set to : {}.", (const char*)fseqDirectory.c_str());
     }
 
@@ -1742,7 +1742,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->AppendColumn("Description");
         List_Controllers->AppendColumn("Status", wxLIST_FORMAT_LEFT, _controllerPingInterval >0 ? 45 : 0);
 
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         if (config != nullptr) {
             wxString co;
             config->Read("ControllerTabColumnOrder", &co, "0,1,2,3,4,5,6,7,8,9,10,11,12");

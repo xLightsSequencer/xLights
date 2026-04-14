@@ -1315,6 +1315,9 @@
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.cpp">
       <Filter>ui\modelproperties\adapters</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
+    <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
+    <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-ui-wx\ui\sequencer\BatchRenderDialog.h" />
@@ -2726,6 +2729,9 @@
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.h">
       <Filter>ui\modelproperties\adapters</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\controllers\PowerDMX.h" />
+    <ClInclude Include="..\src-core\settings\XLightsSettings.h" />
+    <ClInclude Include="..\src-ui-wx\settings\XLightsConfigAdapter.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2826,6 +2832,9 @@
     </Filter>
     <Filter Include="kiss_fft">
       <UniqueIdentifier>{2e0945de-e48d-4c77-a07e-d067acf8a8b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="settings">
+      <UniqueIdentifier>{18798d3c-f7fb-4068-a7b4-b9bbf1a104d9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

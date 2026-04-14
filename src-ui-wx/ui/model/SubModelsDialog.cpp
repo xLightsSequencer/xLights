@@ -46,6 +46,7 @@
 #include "ui/model/NodeSelectGrid.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "xLightsApp.h"
 #include "models/ModelManager.h"
 #include "xLightsMain.h"
@@ -446,7 +447,7 @@ void SubModelsDialog::OnInit(wxInitDialogEvent& event)
         SetPosition(loc);
         SetSize(sz);
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int h = config->ReadLong("SubModelsDialogSashPosition", 0);
     if (h != 0) {
         SplitterWindow1->SetSashPosition(h);
@@ -497,7 +498,7 @@ SubModelsDialog::~SubModelsDialog()
 
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int i = SplitterWindow1->GetSashPosition();
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();

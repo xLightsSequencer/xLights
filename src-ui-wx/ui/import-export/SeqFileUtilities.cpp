@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <wx/stopwatch.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/uri.h>
@@ -617,7 +617,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         if (loaded_xml && !_renderMode && !_checkSequenceMode) {
             // Allow user to suppress this warning until the next xLights version release
             wxString suppressedVersion;
-            wxConfigBase::Get()->Read("xLightsSuppressMediaCompatWarnVersion", &suppressedVersion, "");
+            GetXLightsConfig()->Read("xLightsSuppressMediaCompatWarnVersion", &suppressedVersion, "");
             if (suppressedVersion != xlights_version_string) {
                 std::string audioFile = CurrentSeqXmlFile->GetMediaFile();
                 std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
@@ -720,8 +720,8 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     dlg.Layout();
                     int dlgResult = dlg.ShowModal();
                     if (suppressCheck->IsChecked()) {
-                        wxConfigBase::Get()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
-                        wxConfigBase::Get()->Flush();
+                        GetXLightsConfig()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
+                        GetXLightsConfig()->Flush();
                     }
 
                     if (dlgResult == ID_CONVERT_NOW) {
@@ -918,7 +918,7 @@ bool xLightsFrame::CloseSequence()
 
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
         // save perspective on this machine so we can restore it next time
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         wxString machinePerspective = m_mgr->SavePerspective();
         config->Write("xLightsMachinePerspective", machinePerspective);
         spdlog::debug("AutoSave perspective");

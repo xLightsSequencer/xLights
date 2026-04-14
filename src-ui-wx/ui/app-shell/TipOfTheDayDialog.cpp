@@ -16,9 +16,9 @@
 //*)
 
 #include <wx/stdpaths.h>
-#include <wx/config.h>
 
 #include "UtilFunctions.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "ui/shared/utils/wxUtilities.h"
 #include "xLightsMain.h"
 #include "utils/CurlManager.h"
@@ -49,7 +49,7 @@ END_EVENT_TABLE()
 
 class TODTracker
 {
-    wxConfig *config = new wxConfig("xLights-TOD");
+    XLightsConfigAdapter* config = GetXLightsTODConfig();
 public:
     TODTracker()
     {
@@ -63,12 +63,12 @@ public:
 
     int GetVisited(const std::string& tod)
     {
-        return config->ReadLong(tod, 0);
+        return static_cast<int>(config->ReadLong(tod, 0));
     }
 
     void AddVisited(const std::string& tod)
     {
-        int i = config->ReadLong(tod, 0);
+        int i = static_cast<int>(config->ReadLong(tod, 0));
         config->Write(tod, ++i);
         config->Flush();
     }
@@ -337,7 +337,7 @@ bool TipOfTheDayDialog::DoTipOfDay(bool force)
 #else
 #endif
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     auto mintiplevel = config->Read("MinTipLevel", "Beginner");
     auto onlyshowunseen = config->Read("OnlyShowUnseenTips", true);
 
@@ -452,7 +452,7 @@ void TipOfTheDayDialog::OnCloseButtonClick(wxCommandEvent& event)
 
 void TipOfTheDayDialog::OnShowTipsCheckboxClick(wxCommandEvent& event)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("MinTipLevel", ShowTipsCheckbox->GetValue() ? "Beginner" : "Off");
     config->Flush();
 }

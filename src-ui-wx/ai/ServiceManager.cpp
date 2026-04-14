@@ -1,4 +1,5 @@
 #include "ServiceManager.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "aiBase.h"
 #include "aiPlugin.h"
 #include "chatGPT.h"
@@ -236,39 +237,39 @@ std::vector<aiBase*> ServiceManager::findServices(aiType::TYPE serviceType) {
 }
 
 void ServiceManager::setServiceSetting(std::string const& key, int value) {
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write(wxString("xLightsServiceSettings" + key), value);
+    auto* config = GetXLightsConfig();
+    config->Write(std::string("xLightsServiceSettings" + key), value);
     config->Flush();
 }
 
 void ServiceManager::setServiceSetting(std::string const& key, bool value) {
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write(wxString("xLightsServiceSettings" + key), value);
+    auto* config = GetXLightsConfig();
+    config->Write(std::string("xLightsServiceSettings" + key), value);
     config->Flush();
 }
 
 void ServiceManager::setServiceSetting(std::string const& key, std::string const& value) {
     // It would be nice if we had a secret we  could encrypt these with
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write(wxString("xLightsServiceSettings" + key), wxString(value));
+    auto* config = GetXLightsConfig();
+    config->Write(std::string("xLightsServiceSettings" + key), std::string(value));
     config->Flush();
 }
 
 int ServiceManager::getServiceSetting(std::string const& key, int defaultValue) const {
-    wxConfigBase* config = wxConfigBase::Get();
-    return config->Read(wxString("xLightsServiceSettings" + key), defaultValue);
+    auto* config = GetXLightsConfig();
+    return config->Read(std::string("xLightsServiceSettings" + key), defaultValue);
 }
 
 bool ServiceManager::getServiceSetting(std::string const& key, bool defaultValue) const {
-    wxConfigBase* config = wxConfigBase::Get();
-    return config->Read(wxString("xLightsServiceSettings" + key), defaultValue);
+    auto* config = GetXLightsConfig();
+    return config->Read(std::string("xLightsServiceSettings" + key), defaultValue);
 }
 
 std::string ServiceManager::getServiceSetting(std::string const& key, std::string const& defaultValue) const {
     // It would be nice if we had a secret we  could encrypt these with
-    wxConfigBase* config = wxConfigBase::Get();
-    wxString const value = config->Read(wxString("xLightsServiceSettings" + key), wxString(defaultValue));
-    return value.ToStdString();
+    auto* config = GetXLightsConfig();
+    std::string const value = config->Read(std::string("xLightsServiceSettings" + key), (defaultValue));
+    return value;
 }
 
 #if wxUSE_SECRETSTORE

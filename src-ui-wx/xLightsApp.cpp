@@ -19,7 +19,6 @@
 //*)
 
 #include <wx/stdpaths.h>
-#include <wx/config.h>
 #include <wx/cmdline.h>
 #include <wx/debugrpt.h>
 #include <wx/version.h>
@@ -37,6 +36,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "utils/TraceLog.h"
 #include "utils/ExternalHooks.h"
 #include "ui/shared/utils/BitmapCache.h"
@@ -557,6 +557,7 @@ bool xLightsApp::OnInit()
     wxTheApp->SetAppName("xLights");
     SetIsxLights(true);
     GetResourcesDirectory(); // bootstrap GetResourcesDir() with wx-dependent path lookup
+    InitializeXLightsConfig();
     DumpConfig();
 
     int id = (int)wxThread::GetCurrentId();
@@ -833,15 +834,7 @@ bool xLightsApp::OnInit()
 void xLightsApp::WipeSettings()
 {
     spdlog::info("Wiping settings.");
-
-    wxConfigBase* config = wxConfigBase::Get();
-    config->DeleteAll();
-#ifdef __WXOSX__
-    wxConfig *bookmarks = new wxConfig("xLights-Bookmarks");
-    bookmarks->DeleteAll();
-    bookmarks->Flush();
-    delete bookmarks;
-#endif
+    WipeXLightsConfig();
 }
 
 bool xLightsApp::ProcessIdle() {

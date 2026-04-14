@@ -111,6 +111,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "ui/controllerproperties/ControllerPropertyAdapter.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
@@ -1465,7 +1466,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config == nullptr) {
         spdlog::error("Null config ... this wont end well.");
     }
@@ -1746,7 +1747,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // get list of most recently used directories
     wxString dirmru;
     for (int i = 0; i < MRUD_LENGTH; i++) {
-        wxString mru_name = wxString::Format("mru%d", i);
+        std::string mru_name = "mru" + std::to_string(i);
         dirmru.clear();
         if (config->Read(mru_name, &dirmru)) {
             if (!dirmru.IsEmpty()) {
@@ -1775,7 +1776,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             PromptForDirectorySelection("Reselect Media Directory", mds);
         }
         mediaDirectories.push_back(md);
-    } else if (config->Read(_("MediaDir"), &md)) {
+    } else if (config->Read("MediaDir", &md)) {
         wxArrayString entries = wxSplit(md, '|', '\0');
         for (auto& d : entries) {
             std::string dstd = d.ToStdString();
@@ -1788,7 +1789,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         }
     }
     FileUtils::SetFixFileDirectories(mediaDirectories);
-    wxString tbData = config->Read("ToolbarLocations");
+    wxString tbData = wxString(config->Read("ToolbarLocations"));
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
         const int size = AUIStatusBar->GetSize().GetHeight();
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
@@ -1844,11 +1845,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem_ShowACRamps->Check(_showACRamps);
     spdlog::debug("Show AC Ramps: {}.", toStr(_showACRamps));
 
-    config->Read(_("xLightsEnableRenderCache"), &_enableRenderCache, _("Locked Only"));
+    config->Read("xLightsEnableRenderCache", &_enableRenderCache, _("Locked Only"));
     spdlog::debug("Enable Render Cache: {}.", (const char*)_enableRenderCache.c_str());
     _renderCache.Enable(_enableRenderCache);
 
-    config->Read(_("xLightsRenderCacheMaxSizeMB"), &_renderCacheMaximumSizeMB, 20 * 1024);
+    config->Read("xLightsRenderCacheMaxSizeMB", &_renderCacheMaximumSizeMB, 20 * 1024);
     spdlog::debug("Render Cache Maximum Size: {}MB.", _renderCacheMaximumSizeMB);
     _renderCache.SetMaximumSizeMB(_renderCacheMaximumSizeMB);
 
@@ -1885,7 +1886,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsSuppressColorWarn", &mSuppressColorWarn, false);
     spdlog::debug("Suppress Color Warning: {}.", toStr(mSuppressColorWarn));
 
-    config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
+    config->Read("xLightsAltBackupDir", &mAltBackupDir);
     spdlog::debug("Alternate Backup Dir: '{}'.", (const char*)mAltBackupDir.c_str());
 
     if (_purgeDownloadCacheOnStart) {
@@ -1898,7 +1899,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             PromptForDirectorySelection("Reselect Alternate Backup Directory", orig);
             if (orig != mAltBackupDir) {
                 mAltBackupDir = orig;
-                config->Write(_("xLightsAltBackupDir"), mAltBackupDir);
+                config->Write("xLightsAltBackupDir", mAltBackupDir);
             }
         }
         mAltBackupMenuItem->SetHelp(mAltBackupDir);
@@ -2286,7 +2287,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     });
 
 
-    config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, true);
+    config->Read("xLightsVideoReaderAccelerated", &_hwVideoAccleration, true);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::InitHWAcceleration();
 
@@ -2299,13 +2300,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 
     bool gpuRendering = true;
-    config->Read(_("xLightsGPURendering"), &gpuRendering, true);
+    config->Read("xLightsGPURendering", &gpuRendering, true);
     GPURenderUtils::SetEnabled(gpuRendering);
 
     _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
 #else
-    config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
-    config->Read(_("xLightsVideoReaderRenderer"), &_hwVideoRenderer, 1);
+    config->Read("xLightsVideoReaderAccelerated", &_hwVideoAccleration, false);
+    config->Read("xLightsVideoReaderRenderer", &_hwVideoRenderer, 1);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::SetHardwareRenderType(_hwVideoRenderer);
 #endif
@@ -2314,7 +2315,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     wxGraphicsRenderer::GetDirect2DRenderer();
 
     bool bgShaders = false;
-    config->Read(_("xLightsShadersOnBackgroundThreads"), &bgShaders, false);
+    config->Read("xLightsShadersOnBackgroundThreads", &bgShaders, false);
     ShaderEffect::SetBackgroundRender(bgShaders);
 #endif
 
@@ -2413,7 +2414,7 @@ xLightsFrame::~xLightsFrame()
     _outputManager.StopOutput();
     SetConfigBool("OutputActive", false);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (mResetToolbars) {
         config->DeleteEntry("ToolbarLocations");
     } else {
@@ -2451,7 +2452,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsTimelineZooming", _timelineZooming);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
     config->Write("xLightsFSEQVersion", _fseqVersion);
-    config->Write("xLightsVersion", wxString(xlights_version_string));
+    config->Write("xLightsVersion", xlights_version_string);
     config->Write("xLightsDisableKeyAccelerations", _disableKeyAcceleration);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
@@ -2552,7 +2553,7 @@ xLightsFrame::~xLightsFrame()
 
 bool xLightsFrame::IsCheckSequenceOptionDisabledS(const std::string& option)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config == nullptr) {
         return false;
     }
@@ -2563,7 +2564,7 @@ bool xLightsFrame::IsCheckSequenceOptionDisabledS(const std::string& option)
 
 void xLightsFrame::SetCheckSequenceOptionDisable(const std::string& option, bool value)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("xLightsCS" + option, value);
     }
@@ -4449,32 +4450,32 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
     CheckSequence(false, false);
 
     spdlog::debug("Dumping registry configuration:");
-    wxConfigBase* config = wxConfigBase::Get();
-    wxString key;
+    auto* config = GetXLightsConfig();
+    std::string key;
     long index;
     bool ce = config->GetFirstEntry(key, index);
 
     while (ce) {
-        wxString value = "<UNKNOWN>";
-        wxString type = "<UNREAD>";
+        std::string value = "<UNKNOWN>";
+        std::string type = "<UNREAD>";
         switch (config->GetEntryType(key)) {
-        case wxConfigBase::EntryType::Type_String:
+        case XLightsConfigAdapter::EntryType::String:
             type = "String";
             config->Read(key, &value);
             break;
-        case wxConfigBase::EntryType::Type_Boolean:
+        case XLightsConfigAdapter::EntryType::Boolean:
             type = "Boolean";
-            value = wxString::Format("%s", config->ReadBool(key, false) ? "True" : "False");
+            value = wxString::Format("%s", config->ReadBool(key, false) ? "True" : "False").ToStdString();
             break;
-        case wxConfigBase::EntryType::Type_Integer: // long
+        case XLightsConfigAdapter::EntryType::Integer:
             type = "Integer";
-            value = wxString::Format("%ld", config->ReadLong(key, 0));
+            value = wxString::Format("%ld", config->ReadLong(key, 0)).ToStdString();
             break;
-        case wxConfigBase::EntryType::Type_Float: // double
+        case XLightsConfigAdapter::EntryType::Float:
             type = "Float";
-            value = wxString::Format("%f", config->ReadDouble(key, 0.0));
+            value = wxString::Format("%f", config->ReadDouble(key, 0.0)).ToStdString();
             break;
-        case wxConfigBase::EntryType::Type_Unknown:
+        case XLightsConfigAdapter::EntryType::Unknown:
             type = "Unknown";
             break;
         default:
@@ -4686,7 +4687,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 void xLightsFrame::SetAutoSaveInterval(int nasi)
 {
     if (nasi != mAutoSaveInterval) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("AutoSaveInterval", nasi);
         mAutoSaveInterval = nasi;
     }
@@ -4795,7 +4796,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
 {
     
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
 
     wxString setting;
     mediaDirectories.clear();
@@ -4810,7 +4811,7 @@ void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
             setting += dir;
         }
     }
-    config->Write(_("MediaDir"), setting);
+    config->Write("MediaDir", setting);
     FileUtils::SetFixFileDirectories(mediaDirectories);
     mediaDirectories.push_back(showDirectory);
 }
@@ -4824,7 +4825,7 @@ void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder)
 void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
 {
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
 
     if (useShow) {
         config->Write("FSEQLinkFlag", true);
@@ -4929,13 +4930,13 @@ void xLightsFrame::SetAltBackupFolder(const std::string& folder)
     if (folder == mAltBackupDir)
         return;
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
 
     if (folder != "" && !wxDir::Exists(folder)) {
         DisplayError("Alternate backup directory does not exist. Alternate backup folder was not changed to " + folder + ". Alternate backup folder remains : " + mAltBackupDir, this);
     } else {
         ObtainAccessToURL(folder);
-        config->Write(_("xLightsAltBackupDir"), wxString(folder));
+        config->Write("xLightsAltBackupDir", folder);
         mAltBackupDir = folder;
         spdlog::debug("Alt Backup directory set to : {}.", (const char*)mAltBackupDir.c_str());
     }
@@ -9145,7 +9146,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
         return true;
     }
     wxString configver;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (canSkipUpdates && (config != nullptr)) {
         config->Read("SkipVersion", &configver);
     }
@@ -9252,13 +9253,13 @@ void xLightsFrame::PurgeDownloadCache()
 
 bool xLightsFrame::GetRecycleTips() const
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     return config->Read("OnlyShowUnseenTips", true);
 }
 
 void xLightsFrame::SetRecycleTips(bool b)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("OnlyShowUnseenTips", b);
 }
 
@@ -9467,7 +9468,7 @@ void xLightsFrame::DoBackupPurge()
 void xLightsFrame::SetBackupPurgeDays(int nbpi)
 {
     if (nbpi != BackupPurgeDays) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("BackupPurgeDays", nbpi);
         BackupPurgeDays = nbpi;
 
@@ -10159,7 +10160,7 @@ void xLightsFrame::SetRandomEffectsToUse(const wxArrayString& effects)
 {
     _randomEffectsToUse = effects;
     const wxString randomEffects = wxJoin(_randomEffectsToUse, ',');
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsRandomEffects", randomEffects);
     config->Flush();
 }
@@ -10167,7 +10168,7 @@ void xLightsFrame::SetRandomEffectsToUse(const wxArrayString& effects)
 void xLightsFrame::SetUserEMAIL(const wxString& e)
 {
     _userEmail = e;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsUserEmail", _userEmail);
     config->Flush();
     spdlog::info("User email changed to {}", _userEmail.ToStdString());
@@ -10177,7 +10178,7 @@ void xLightsFrame::SetRenameModelAliasPromptBehavior(const wxString& e)
 {
     
     _aliasRenameBehavior = e;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsModelRename", _aliasRenameBehavior);
     config->Flush();
     spdlog::info("Rename Alias Prompt Behavior set to {}", _aliasRenameBehavior.ToStdString());
@@ -10217,7 +10218,7 @@ std::vector<std::string> xLightsFrame::GetSequenceViews()
 void xLightsFrame::SetMinTipLevel(const wxString& level)
 {
     
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("MinTipLevel", level);
     config->Flush();
     spdlog::info("Minimum tip level set to {}", (const char*)level.c_str());
@@ -10225,14 +10226,14 @@ void xLightsFrame::SetMinTipLevel(const wxString& level)
 
 std::string xLightsFrame::GetMinTipLevel() const
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     return config->Read("MinTipLevel", "Beginner");
 }
 
 void xLightsFrame::SetVideoExportCodec(const wxString& codec)
 {
     _videoExportCodec = codec;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsVideoExportCodec", _videoExportCodec);
     config->Flush();
     spdlog::info("Video Export Codec set to {}", (const char*)_videoExportCodec.c_str());
@@ -10242,7 +10243,7 @@ void xLightsFrame::SetVideoExportBitrate(int bitrate)
 {
     
     _videoExportBitrate = bitrate;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
     config->Flush();
     spdlog::info("Video Export Bitrate set to {}", _videoExportBitrate);
@@ -10284,14 +10285,14 @@ void xLightsFrame::SetHardwareVideoAccelerated(bool b)
 {
     _hwVideoAccleration = b;
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsVideoReaderAccelerated", VideoReader::IsHardwareAcceleratedVideo());
 }
 
 void xLightsFrame::SetHardwareVideoRenderer(int type) {
     _hwVideoRenderer = type;
     VideoReader::SetHardwareRenderType(_hwVideoRenderer);
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsVideoReaderRenderer", VideoReader::GetHardwareRenderType());
 }
 
@@ -10302,7 +10303,7 @@ bool xLightsFrame::ShadersOnBackgroundThreads() const
 void xLightsFrame::SetShadersOnBackgroundThreads(bool b)
 {
     ShaderEffect::SetBackgroundRender(b);
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsShadersOnBackgroundThreads", b);
 }
 
@@ -10313,7 +10314,7 @@ bool xLightsFrame::UseGPURendering() const
 void xLightsFrame::SetUseGPURendering(bool b)
 {
     GPURenderUtils::SetEnabled(b);
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsGPURendering", b);
 }
 
@@ -10637,7 +10638,7 @@ void xLightsFrame::OnMenuItem_SuppressDock(wxCommandEvent& event)
 void xLightsFrame::LoadDockable()
 {
     
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config == nullptr) {
         spdlog::error("Null config ... this wont end well.");
         return;
@@ -10656,7 +10657,7 @@ void xLightsFrame::LoadDockable()
 void xLightsFrame::SaveDockable()
 {
     
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config == nullptr) {
         spdlog::error("Null config ... this wont end well.");
         return;
@@ -10838,7 +10839,7 @@ void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {
 
 void xLightsFrame::SetPaletteSizeString(const wxString& size) {
     if (GetPaletteSizeString() != size) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("PaletteSize", size);
 
         if (colorPanel) {

@@ -1216,8 +1216,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                     paramMap["_METHOD"] = "POST";
                 }
             }
-        }
-        catch(const std::exception& /*ex*/) {
+        } catch (const std::exception& /*ex*/) {
             
         }
        

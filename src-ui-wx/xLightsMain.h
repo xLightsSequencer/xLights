@@ -24,6 +24,8 @@
 
 // Every time this regenerates from code blocks you will need to remove wx/led.h
 
+#include "settings/XLightsConfigAdapter.h"
+
 //(*Headers(xLightsFrame)
 #include <wx/aui/aui.h>
 #include <wx/bmpbuttn.h>
@@ -1352,8 +1354,7 @@ public:
     void SetDisableKeyAcceleration(bool b);
 
     wxString GetPaletteSizeString() const {
-        wxConfigBase* config = wxConfigBase::Get();
-        return config->Read("PaletteSize", "Normal");
+        return wxString(GetXLightsConfig()->Read("PaletteSize", "Normal"));
     }
     void SetPaletteSizeString(const wxString& size);
 

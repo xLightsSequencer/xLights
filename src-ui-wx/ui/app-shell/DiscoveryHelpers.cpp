@@ -10,7 +10,7 @@
 
 #include "xLightsMain.h"
 
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/timer.h>
 
 #include "controllers/FPP.h"
@@ -29,7 +29,7 @@ std::list<std::string> xLightsFrame::GetDiscoveryAddresses(std::list<std::string
     std::list<std::string> addresses;
 
     // Read forced IPs from config
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     wxString force;
     config->Read("FPPConnectForcedIPs", &force, "");
     if (!force.empty()) {
@@ -119,11 +119,11 @@ std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate) 
             }
         }
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     wxString currentForce;
     config->Read("FPPConnectForcedIPs", &currentForce, "");
     if (newForce != currentForce.ToStdString()) {
-        config->Write("FPPConnectForcedIPs", wxString(newForce));
+        config->Write("FPPConnectForcedIPs", newForce);
         config->Flush();
     }
 

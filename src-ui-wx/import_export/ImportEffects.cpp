@@ -11,7 +11,7 @@
 // Import/export effect functions extracted from SeqFileUtilities.cpp
 
 #include <wx/stopwatch.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/uri.h>
@@ -257,7 +257,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 
     wxString lit = "";
     wxString ldir = "";
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Read("xLightsLastImportType", &lit, "");
         config->Read("xLightsLastImportDir", &ldir, "");

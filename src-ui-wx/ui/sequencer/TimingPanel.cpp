@@ -13,7 +13,6 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/config.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
@@ -27,6 +26,7 @@
 #include "ui/effectpanels/EffectPanelUtils.h"
 #include "ui/sequencer/LayerSelectDialog.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "models/Model.h"
 #include "render/ValueCurveConsts.h"
 #include "xLightsMain.h"
@@ -126,7 +126,7 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID /*id*/,
     SetName("Timing");
 
     // Restore the 'Reset panel when changing effects' preference.
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool reset = true;
     if (config) config->Read("xLightsResetTimingPanel", &reset, true);
     if (_resetTimingPanelCheck) _resetTimingPanelCheck->SetValue(reset);
@@ -346,7 +346,7 @@ wxWindow* TimingPanel::BuildCanvasRow(wxWindow* parentWin, wxSizer* sizer) {
 }
 
 void TimingPanel::OnResetTimingPanelClick(wxCommandEvent& /*event*/) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config && _resetTimingPanelCheck) {
         config->Write("xLightsResetTimingPanel", _resetTimingPanelCheck->IsChecked());
     }

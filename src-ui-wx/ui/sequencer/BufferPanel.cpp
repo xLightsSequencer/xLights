@@ -13,7 +13,6 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/config.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
@@ -29,6 +28,7 @@
 #include "ui/sequencer/SubBufferPanel.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
+#include "settings/XLightsConfigAdapter.h"
 
 namespace {
 nlohmann::json LoadBufferMetadata() {
@@ -59,7 +59,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID /*id*/,
     SetName("Buffer");
 
     // Restore the 'Reset panel when changing effects' preference.
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool reset = true;
     if (config) config->Read("xLightsResetBufferPanel", &reset, true);
     if (_resetBufferPanelCheck) _resetBufferPanelCheck->SetValue(reset);
@@ -152,7 +152,7 @@ wxWindow* BufferPanel::BuildRotoZoomPresetRow(wxWindow* parentWin, wxSizer* size
 }
 
 void BufferPanel::OnResetBufferPanelClick(wxCommandEvent& /*event*/) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config && _resetBufferPanelCheck) {
         config->Write("xLightsResetBufferPanel", _resetBufferPanelCheck->IsChecked());
     }
