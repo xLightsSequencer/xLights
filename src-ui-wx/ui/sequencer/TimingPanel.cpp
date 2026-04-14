@@ -18,7 +18,6 @@
 #include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/valnum.h>
 #include <wx/tooltip.h>
 
 #include <algorithm>
@@ -273,17 +272,14 @@ wxWindow* TimingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* sizer
     // Fade combobox — construct empty, then AppendDefault + Append common values.
     wxString comboName = isIn ? wxString("ID_TEXTCTRL_Fadein")
                                 : wxString("ID_TEXTCTRL_Fadeout");
-    // Numeric-only validator on the text field guards against the historic
-    // missing-comma corruption (where buffer settings ended up appended into
-    // the Fade time string). wxFloatingPointValidator rejects non-numeric
-    // characters at input time so a stray "B_CHOICE_..." can never land here.
-    wxFloatingPointValidator<double> fadeValidator(2, nullptr,
-                                                    wxNUM_VAL_NO_TRAILING_ZEROES);
-    fadeValidator.SetMin(0.0);
+    // No validator: wxFloatingPointValidator is locale-aware and rejects '.'
+    // on locales that use ',' as the decimal separator, causing the value to
+    // fall back to 0 on Windows. The RepairEmbeddedKey parser handles the
+    // historic missing-comma corruption case defensively instead.
     auto* fadeCombo = new BulkEditComboBox(parentWin, wxNewId(), wxString("0.00"),
                                             wxDefaultPosition, wxSize(100, -1),
                                             0, nullptr, wxCB_SORT,
-                                            fadeValidator, comboName);
+                                            wxDefaultValidator, comboName);
     for (const auto& v : { "0.00", "0.25", "0.50", "0.75", "1.00", "1.50", "2.00" }) {
         fadeCombo->AppendDefault(v);
         fadeCombo->Append(wxString(v));
