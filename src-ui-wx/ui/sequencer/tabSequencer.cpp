@@ -66,6 +66,10 @@
 #include "utils/ExternalHooks.h"
 #include "models/ModelGroup.h"
 
+#include "ai/aiType.h"
+#include "ai/aiBase.h"
+#include "ai/ServiceManager.h"
+
 #include <log.h>
 
 void xLightsFrame::CreateSequencer()
@@ -4354,4 +4358,48 @@ void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb)
             }
         }
     }
+}
+
+void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
+    if (CurrentSeqXmlFile->GetMedia() != nullptr) {
+        auto service = GetAIService(aiType::SPEECH2TEXT);
+        auto lyrics = service->GenerateLyricTrack(CurrentSeqXmlFile->GetMedia()->FileName());
+        if (!lyrics.error.empty()) {
+            wxMessageBox("Failed to generate lyrics. Please check the media file and try again.", "Error", wxICON_ERROR);
+            return;
+        }
+
+        auto roudTimestoMilli = [&](int start, int end) {
+            int const startTime = RoundToMultipleOfPeriod(start , CurrentSeqXmlFile->GetFrequency());
+            int endTime = RoundToMultipleOfPeriod(end , CurrentSeqXmlFile->GetFrequency());
+            if (startTime == endTime) {
+                endTime = RoundToMultipleOfPeriod(startTime + CurrentSeqXmlFile->GetFrequency(), CurrentSeqXmlFile->GetFrequency());
+            }
+            return std::make_pair(startTime, endTime);
+        };
+
+        std::string track_name = GetUniqueTimingName("AutoGen");
+
+        Element* element = AddTimingElement(track_name);
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+
+        for (auto const& lyric : lyrics.lyrics) {
+            auto [wordStartTime, wordEndTime] = roudTimestoMilli(lyric.startMS, lyric.endMS);
+            auto cword = Trim(lyric.word);
+            if (cword.empty()) {
+                continue;
+            }
+            bool const hasText = std::any_of(cword.begin(), cword.end(), [](unsigned char ch) { return !std::isspace(ch); });
+            if (!hasText) {
+                continue;
+            }
+            effectLayer->AddEffect(0, cword, "", "", wordStartTime, wordEndTime, EFFECT_NOT_SELECTED, false);
+        }
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+    } else {
+        wxMessageBox("No media file associated with this sequence. Please add a media file and try again.", "Error", wxICON_ERROR);
+    }
+
 }

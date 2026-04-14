@@ -1217,7 +1217,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                 }
             }
         }
-        catch(const std::exception& ex) {
+        catch(const std::exception& /*ex*/) {
             
         }
        

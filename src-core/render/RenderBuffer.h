@@ -199,9 +199,9 @@ public:
     {
         if (idx < cc.size())
         {
-            double len = sqrt((x - centrex) * (x - centrex) + (y - centrey) * (y - centrey));
+            float len = sqrt((x - centrex) * (x - centrex) + (y - centrey) * (y - centrey));
             if (type == TC_RADIALIN)
-                return cc[idx].GetValueAt(1.0 - len / maxradius);
+                return cc[idx].GetValueAt(1.0f - len / maxradius);
             else
                 return cc[idx].GetValueAt(len / maxradius);
         }
@@ -263,13 +263,13 @@ public:
                     c = cc[idx].GetValueAt(x);
                     break;
                 case TC_LEFT:
-                    c = cc[idx].GetValueAt(1.0 - x);
+                    c = cc[idx].GetValueAt(1.0f - x);
                     break;
                 case TC_UP:
                     c = cc[idx].GetValueAt(y);
                     break;
                 case TC_DOWN:
-                    c = cc[idx].GetValueAt(1.0 - y);
+                    c = cc[idx].GetValueAt(1.0f - y);
                     break;
                 default:
                     c = color[idx];
@@ -307,9 +307,9 @@ public:
         if (hsv.size() == 0)
         {
             // white
-            c.hue=0.0;
-            c.saturation=0.0;
-            c.value=1.0;
+            c.hue = 0.0;
+            c.saturation = 0.0;
+            c.value = 1.0;
         }
         else
         {
@@ -416,10 +416,14 @@ public:
     void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color);
 
     //approximation of sin/cos, but much faster
-    static inline float sin(float rad) { return std::sin(rad); }
-    static inline float cos(float rad) { return std::cos(rad); }
-    static inline float cot(float rad) { return std::cos(rad) / std::sin(rad); }
-    static inline float acot(float rad) { return M_PI/2.0 - std::atan(rad); }
+    template<typename T>
+    static inline T sin(T rad) noexcept { return std::sin(rad); }
+    template<typename T>
+    static inline T cos(T rad) noexcept { return std::cos(rad); }
+    template<typename T>
+    static inline T cot(T rad) noexcept { return std::cos(rad) / std::sin(rad); }
+    template<typename T>
+    static inline T acot(T rad) noexcept { return M_PI/2.0f - std::atan(rad); }
 
     double calcAccel(double ratio, double accel);
 
