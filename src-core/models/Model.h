@@ -816,6 +816,7 @@ protected:
         int modelChangeCount = 0;
         bool isTransparent = false;
         float boundingBox[6] = { 0 };
+        float backingScaleFactor = 1.0f;
     };
     std::map<std::string, PreviewGraphicsCacheInfo*> uiCaches;
     virtual void deleteUIObjects();

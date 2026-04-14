@@ -2984,6 +2984,14 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
     }
     bool created = false;
     auto cache = uiCaches[cacheKey];
+    // Circle styles bake getBackingScaleFactor() into the geometry; rebuild if it changed.
+    if (cache != nullptr &&
+        (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) &&
+        cache->backingScaleFactor != (float)preview->getBackingScaleFactor()) {
+        delete cache;
+        uiCaches[cacheKey] = nullptr;
+        cache = nullptr;
+    }
     if (cache == nullptr) {
         screenLocation.UpdateBoundingBox(Nodes);
         cache = new PreviewGraphicsCacheInfo();
@@ -3009,6 +3017,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             needTransparent = true;
         }
         cache->isTransparent = needTransparent;
+        cache->backingScaleFactor = (float)preview->getBackingScaleFactor();
         cache->program = ctx->createGraphicsProgram();
         cache->vica = ctx->createVertexIndexedColorAccumulator();
         cache->vica->SetName(GetName() + (is_3d ? " - 3DPreview" : " - 2DPreview"));
@@ -3364,9 +3373,10 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
         mb += GetModelScreenLocation().RenderHt / 2;
 
         auto cache = uiCaches[EFFECT_PREVIEW_CACHE];
-        // Circle styles bake the radius (which depends on scale/w/h) into the geometry,
-        // so we must also invalidate the cache when the preview panel size changes.
-        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != (int)this->changeCount || cache->width != w || cache->height != h) {
+        // Circle styles bake the radius (which depends on scale/w/h/backingScale) into the geometry,
+        // so we must also invalidate the cache when the preview panel size or backing scale changes.
+        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != (int)this->changeCount || cache->width != w || cache->height != h ||
+            cache->backingScaleFactor != (float)preview->getBackingScaleFactor()) {
             if (cache != nullptr) {
                 delete cache;
             }
@@ -3378,6 +3388,7 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             cache->renderWi = renderWi;
             cache->renderHi = renderHi;
             cache->modelChangeCount = this->changeCount;
+            cache->backingScaleFactor = (float)preview->getBackingScaleFactor();
 
             created = true;
 
