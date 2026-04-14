@@ -1078,6 +1078,10 @@ double ModelPreview::getViewScale() const {
     return 1.0;
 }
 
+double ModelPreview::getBackingScaleFactor() const {
+    return translateToBacking(1.0);
+}
+
 bool ModelPreview::GetActive() const
 {
     return mPreviewPane->GetActive();
