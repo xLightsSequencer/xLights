@@ -18,18 +18,12 @@
 #include "../outputs/DDPOutput.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
-//#include "../ui/wxUtilities.h"
 #include "../render/UICallbacks.h"
 
 #include "../utils/CurlManager.h"
 
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
-#include <wx/sstream.h>
-
 #include <log.h>
-
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #pragma region Private Functions
 bool PowerDMX::GetJSONData(std::string const& url, nlohmann::json& val) const {
@@ -161,7 +155,7 @@ PowerDMX::PowerDMX(std::string const& ip, std::string const& proxy) :
     } else {
         _connected = false;
         spdlog::error("Error connecting to PowerDMX controller on {}.", _ip);
-        DisplayError(std::format("Error connecting to PowerDMX controller on {}.", _ip));
+        DisplayError(fmt::format("Error connecting to PowerDMX controller on {}.", _ip));
     }
 }
 
@@ -226,7 +220,7 @@ int32_t PowerDMX::SetInputUniverses(nlohmann::json& data, Controller* controller
     //    }
     //} else {
     //    // should never hit this
-    //    DisplayError(std::format(
+    //    DisplayError(fmt::format(
     //        "Invalid Input Type For Experience Controller {}.",
     //        out->GetType()));
     //    return startChannel;
