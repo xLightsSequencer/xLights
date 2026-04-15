@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     Settings are automatically migrated from the legacy system on first run.
 
 
+    -bug (dkulp)                Help → Key Bindings now opens a resizable, scrollable dialog instead of a
+                                    wxMessageBox so the bottom of the list is reachable on short displays (#5855).
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
                                     transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
                                     the source is uncompressed, hevc_videotoolbox otherwise) and rewrites the

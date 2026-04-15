@@ -9659,7 +9659,27 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event)
 {
-    DisplayInfo(mainSequencer->keyBindings.Dump(), this);
+    // The key bindings dump is long — a plain wxMessageBox (NSAlert on macOS)
+    // doesn't scroll and clips the bottom off on short displays (#5855).
+    // Use a resizable dialog with a scrollable monospace text ctrl instead.
+    wxDialog dlg(this, wxID_ANY, "Key Bindings", wxDefaultPosition,
+                 wxSize(700, 600),
+                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    wxTextCtrl* text = new wxTextCtrl(&dlg, wxID_ANY,
+                                      mainSequencer->keyBindings.Dump(),
+                                      wxDefaultPosition, wxDefaultSize,
+                                      wxTE_MULTILINE | wxTE_READONLY |
+                                      wxTE_DONTWRAP | wxBORDER_SUNKEN);
+    text->SetFont(wxFont(wxFontInfo(11).Family(wxFONTFAMILY_TELETYPE)));
+    text->SetInsertionPoint(0);
+    sizer->Add(text, 1, wxALL | wxEXPAND, 8);
+    wxButton* closeBtn = new wxButton(&dlg, wxID_OK, "Close");
+    sizer->Add(closeBtn, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 8);
+    dlg.SetSizer(sizer);
+    dlg.SetMinSize(wxSize(400, 300));
+    closeBtn->SetDefault();
+    dlg.ShowModal();
 }
 
 void xLightsFrame::OnChar(wxKeyEvent& event)
