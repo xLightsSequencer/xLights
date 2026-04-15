@@ -662,6 +662,8 @@
 		<Unit filename="../src-core/controllers/Minleon.h" />
 		<Unit filename="../src-core/controllers/Pixlite16.cpp" />
 		<Unit filename="../src-core/controllers/Pixlite16.h" />
+		<Unit filename="../src-core/controllers/PowerDMX.cpp" />
+		<Unit filename="../src-core/controllers/PowerDMX.h" />
 		<Unit filename="../src-core/controllers/SanDevices.cpp" />
 		<Unit filename="../src-core/controllers/SanDevices.h" />
 		<Unit filename="../src-core/controllers/WLED.cpp" />
