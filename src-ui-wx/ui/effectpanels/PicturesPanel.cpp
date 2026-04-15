@@ -279,6 +279,14 @@ void PicturesPanel::OnClearClick(wxCommandEvent& /*event*/) {
     FireChangeEvent();
 }
 
+void PicturesPanel::SetDefaultParameters() {
+    JsonEffectPanel::SetDefaultParameters();
+    if (_filenameCtrl) {
+        _filenameCtrl->ChangeValue(wxEmptyString);
+    }
+    UpdatePreviewBitmap(wxEmptyString);
+}
+
 void PicturesPanel::ValidateWindow() {
     JsonEffectPanel::ValidateWindow();
 
