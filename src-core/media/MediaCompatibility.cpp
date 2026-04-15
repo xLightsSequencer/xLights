@@ -53,7 +53,7 @@ std::string MediaCompatibility::CheckVideoFile(const std::string& filePath)
         }
     }
     if (!containerOK) {
-        return "Container '" + names + "' not supported by AVFoundation";
+        return "Container '" + names + "' not supported";
     }
 
     int vIdx = -1;
@@ -79,7 +79,7 @@ std::string MediaCompatibility::CheckVideoFile(const std::string& filePath)
     if (kSupported.find(static_cast<int>(id)) == kSupported.end()) {
         const char* cname = avcodec_get_name(id);
         return std::string("Video codec '") + (cname ? cname : "unknown") +
-               "' not supported by AVFoundation";
+               "' not supported";
     }
     return "";
 }

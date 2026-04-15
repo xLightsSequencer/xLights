@@ -648,7 +648,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
                     auto* intro = new wxStaticText(&dlg, wxID_ANY,
-                        "The following media files are not compatible with AVFoundation and will soon not render on a Mac:");
+                        "The following media files are in a format that will not render on upcoming versions of xLights:");
                     intro->Wrap(kWrapWidth);
                     topSizer->Add(intro, 0, wxALL, 12);
 
@@ -667,9 +667,9 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
                     auto* advice2 = new wxStaticText(&dlg, wxID_ANY,
                         "If you need pixel-perfect lossless RGB video (the original reason for using uncompressed AVI), "
-                        "re-encode the source as an uncompressed RGB MOV — modern AVFoundation has dropped its decoders "
-                        "for the legacy QuickTime lossless codecs (Animation/qtrle, PNG, etc.), so uncompressed RGB in a "
-                        "mov box is the only bit-exact format VideoToolbox still ships a decoder for. With ffmpeg:");
+                        "re-encode the source as an uncompressed RGB MOV — support for the legacy QuickTime lossless "
+                        "codecs (Animation/qtrle, PNG, etc.) is being dropped, so uncompressed RGB in a mov container "
+                        "is the recommended bit-exact format going forward. With ffmpeg:");
                     advice2->Wrap(kWrapWidth);
                     topSizer->Add(advice2, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
 

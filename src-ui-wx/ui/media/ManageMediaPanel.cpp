@@ -77,7 +77,7 @@ static std::string MaybeConvertIncompatibleVideo(wxWindow* parent,
 
     wxFileName fn = wxFileName(wxString(originalPath));
     wxString msg = wxString::Format(
-        "'%s' is not compatible with AVFoundation and will not render on a Mac.\n\n"
+        "'%s' is in a format that will not render on upcoming versions of xLights.\n\n"
         "Reason: %s\n\n"
         "Convert it to a compatible .mov now?",
         fn.GetFullName(), wxString(reason));
