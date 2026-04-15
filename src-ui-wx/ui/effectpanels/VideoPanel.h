@@ -62,6 +62,7 @@ public:
     ~VideoPanel() override;
 
     void ValidateWindow() override;
+    void SetDefaultParameters() override;
 
 protected:
     wxWindow* CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,

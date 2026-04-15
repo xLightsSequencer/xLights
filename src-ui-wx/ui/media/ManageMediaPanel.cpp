@@ -52,6 +52,41 @@ static std::string MediaTypeName(MediaType t) {
     return "Unknown";
 }
 
+// Returns <showDirectory>/ImportedMedia/<seqStem>/<subFolder>, or empty if no
+// sequence is loaded or no show directory is set.
+// NOTE: GetSeqXmlFileName() returns the show directory path when the sequence has
+// not been saved yet (legacy behaviour). Guard against this by requiring a .xsq extension.
+static std::string ImportedMediaPath(xLightsFrame* xlFrame, const std::string& showDirectory, const std::string& subFolder)
+{
+    if (!xlFrame || showDirectory.empty()) return {};
+    wxString seqFile = xlFrame->GetSeqXmlFileName();
+    if (seqFile.IsEmpty()) return {};
+    wxFileName seqFn(seqFile);
+    // If there is no .xsq extension the path is not a real saved sequence file
+    // (GetSeqXmlFileName returns the show directory when no sequence name is stored).
+    if (seqFn.GetExt().CmpNoCase("xsq") != 0) return {};
+    std::string seqStem = seqFn.GetName().ToStdString();
+    if (seqStem.empty()) return {};
+    return (std::filesystem::path(showDirectory) / "ImportedMedia" / seqStem / subFolder).string();
+}
+
+// Copies srcPath into targetDir (creating it if needed).
+// If the file already exists at the destination it is reused.
+// Returns the destination path on success, empty on failure.
+static std::string CopyToDir(const std::string& srcPath, const std::string& targetDir)
+{
+    std::error_code ec;
+    std::filesystem::create_directories(std::filesystem::path(targetDir), ec);
+    if (ec) return {};
+    wxChar pathSep = wxFileName::GetPathSeparator();
+    wxString dest = wxString(targetDir) + pathSep + wxFileName(srcPath).GetFullName();
+    if (wxFileExists(dest))
+        return ToStdString(dest);  // already present — reuse
+    if (!wxCopyFile(wxString(srcPath), dest, false))
+        return {};
+    return ToStdString(dest);
+}
+
 static wxString WildcardForMediaType(std::optional<MediaType> type) {
     if (!type.has_value()) return "All files (*.*)|*.*";
     switch (*type) {
@@ -1345,8 +1380,12 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
             }
         }
 
+        std::string importedMediaDir = ImportedMediaPath(_xlFrame, _showDirectory, "Images");
+
         wxArrayString choices;
         choices.Add("Embed in sequence");
+        if (!importedMediaDir.empty())
+            choices.Add("Copy to ImportedMedia: " + wxString(importedMediaDir));
         for (const auto& dir : copyTargets)
             choices.Add("Copy to: " + wxString(dir));
 
@@ -1357,6 +1396,10 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
         if (choiceDlg.ShowModal() == wxID_CANCEL) return;
 
         int sel = choiceDlg.GetSelection();
+        bool hasImported = !importedMediaDir.empty();
+        // choices: 0=Embed, 1=ImportedMedia (if present), 1or2+=Copy to dirs
+        int copyOffset = 1 + (hasImported ? 1 : 0);
+
         if (sel == 0) {
             // Embed: load from disk, rename cache key to Images/<name>, mark embedded
             _sequenceMedia->GetImage(pickedPath);
@@ -1373,9 +1416,18 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
             _sequenceMedia->RenameImage(pickedPath, embeddedName);
             _sequenceMedia->EmbedImage(embeddedName);
             finalPath = embeddedName;
+        } else if (hasImported && sel == 1) {
+            // Copy to ImportedMedia/<seqStem>/Images
+            std::string newPath = CopyToDir(pickedPath, importedMediaDir);
+            if (newPath.empty()) {
+                wxMessageBox("Failed to copy file to ImportedMedia folder.", "Error",
+                             wxICON_ERROR | wxOK, this);
+                return;
+            }
+            finalPath = newPath;
         } else {
             // Copy to one of the folders
-            std::string targetDir = copyTargets[sel - 1];
+            std::string targetDir = copyTargets[sel - copyOffset];
             std::string newPath;
             if (_xlFrame && targetDir == _showDirectory) {
                 newPath = _xlFrame->MoveToShowFolder(pickedPath, sep + "Images");
@@ -1393,12 +1445,12 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
             }
             finalPath = newPath;
         }
+    }
 
-        // Convert to relative path if inside a show/media folder
-        if (_xlFrame) {
-            std::string rel = _xlFrame->MakeRelativePath(finalPath);
-            if (!rel.empty()) finalPath = rel;
-        }
+    // Convert to relative path if inside a show/media folder
+    if (_xlFrame) {
+        std::string rel = _xlFrame->MakeRelativePath(finalPath);
+        if (!rel.empty()) finalPath = rel;
     }
 
     // --- Step 4: rename the broken cache entry to finalPath and update effects ---
@@ -1487,9 +1539,10 @@ void ManageMediaPanel::OnBulkFindImages()
     bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(searchDir + sep)
                                    : false;
 
-    // If outside, ask how to handle the files once
-    int outsideAction = -1;   // 0 = embed, 1+ = copy to target[outsideAction-1]
+    // If outside, ask how to handle the files once.
+    int outsideAction = -1;
     std::vector<std::string> copyTargets;
+    std::string bulkImportedMediaDir;
     if (outsideFolders) {
         if (!_showDirectory.empty())
             copyTargets.push_back(_showDirectory);
@@ -1500,8 +1553,12 @@ void ManageMediaPanel::OnBulkFindImages()
             }
         }
 
+        bulkImportedMediaDir = ImportedMediaPath(_xlFrame, _showDirectory, "Images");
+
         wxArrayString choices;
         choices.Add("Embed in sequence");
+        if (!bulkImportedMediaDir.empty())
+            choices.Add("Copy to ImportedMedia: " + wxString(bulkImportedMediaDir));
         for (const auto& dir : copyTargets)
             choices.Add("Copy to: " + wxString(dir));
 
@@ -1510,7 +1567,16 @@ void ManageMediaPanel::OnBulkFindImages()
             "How should found images be handled?",
             "Files Outside Show/Media Folder", choices);
         if (choiceDlg.ShowModal() == wxID_CANCEL) return;
-        outsideAction = choiceDlg.GetSelection();
+        int rawSel = choiceDlg.GetSelection();
+        // Normalise so 0=embed, 1=importedMedia, 2+=copy regardless of whether
+        // the importedMedia option was shown.
+        // choices: 0=Embed, 1=ImportedMedia (if present), 1or2+=Copy to dirs
+        if (rawSel == 0)
+            outsideAction = 0;  // embed
+        else if (!bulkImportedMediaDir.empty())
+            outsideAction = rawSel;  // importedMedia=1 or copy=2+
+        else
+            outsideAction = rawSel + 1;  // no importedMedia slot, copy starts at 2
     }
 
     // Scan broken images and try to find matches in the selected directory
@@ -1567,9 +1633,14 @@ void ManageMediaPanel::OnBulkFindImages()
                 _sequenceMedia->RenameImage(pickedPath, embeddedName);
                 _sequenceMedia->EmbedImage(embeddedName);
                 finalPath = embeddedName;
+            } else if (outsideAction == 1) {
+                // Copy to ImportedMedia/<seqStem>/Images
+                std::string newPath = CopyToDir(pickedPath, bulkImportedMediaDir);
+                if (newPath.empty()) continue;  // skip this file on failure
+                finalPath = newPath;
             } else {
                 // Copy to one of the target directories
-                std::string targetDir = copyTargets[outsideAction - 1];
+                std::string targetDir = copyTargets[outsideAction - 2];
                 std::string newPath;
                 if (_xlFrame && targetDir == _showDirectory) {
                     newPath = _xlFrame->MoveToShowFolder(pickedPath, sep + "Images");
@@ -1698,8 +1769,12 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                 }
             }
 
+            std::string importedMediaDir = ImportedMediaPath(_xlFrame, _showDirectory, "Images");
+
             wxArrayString choices;
             choices.Add("Embed in sequence");
+            if (!importedMediaDir.empty())
+                choices.Add("Copy to ImportedMedia: " + wxString(importedMediaDir));
             for (const auto& dir : copyTargets)
                 choices.Add("Copy to: " + wxString(dir));
 
@@ -1710,6 +1785,10 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
             if (choiceDlg.ShowModal() == wxID_CANCEL) continue;
 
             int sel = choiceDlg.GetSelection();
+            bool hasImported = !importedMediaDir.empty();
+            // choices: 0=Embed, 1=ImportedMedia (if present), 1or2+=Copy to dirs
+            int copyOffset = 1 + (hasImported ? 1 : 0);
+
             if (sel == 0) {
                 // Embed in sequence
                 _sequenceMedia->GetImage(path);
@@ -1744,9 +1823,18 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                 _sequenceMedia->EmbedImage(embeddedName);
                 lastPath = embeddedName;
                 continue;
+            } else if (hasImported && sel == 1) {
+                // Copy to ImportedMedia/<seqStem>/Images
+                std::string newPath = CopyToDir(path, importedMediaDir);
+                if (newPath.empty()) {
+                    wxMessageBox("Failed to copy file to ImportedMedia folder.", "Error",
+                                 wxICON_ERROR | wxOK, this);
+                    continue;
+                }
+                path = newPath;
             } else {
                 // One of the copy-to-folder choices
-                std::string targetDir = copyTargets[sel - 1];
+                std::string targetDir = copyTargets[sel - copyOffset];
                 std::string newPath;
                 if (_xlFrame && targetDir == _showDirectory) {
                     // Check if destination exists with different content before MoveToShowFolder
@@ -2390,8 +2478,15 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
             }
         }
 
+        // ImportedMedia option is not shown for shaders
+        std::string importedMediaDir;
+        if (regType != MediaType::Shader)
+            importedMediaDir = ImportedMediaPath(_panel->_xlFrame, _panel->_showDirectory, MediaTypeName(regType));
+
         wxArrayString choices;
         choices.Add("Embed in sequence");
+        if (!importedMediaDir.empty())
+            choices.Add("Copy to ImportedMedia: " + wxString(importedMediaDir));
         for (const auto& dir : copyTargets)
             choices.Add("Copy to: " + wxString(dir));
 
@@ -2402,57 +2497,72 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
         if (choiceDlg.ShowModal() == wxID_CANCEL) return;
 
         int sel = choiceDlg.GetSelection();
-        if (sel == 0) {
-            // Embed in sequence — register, rename to embedded key, embed
-            std::string subdir = MediaTypeName(regType);
-            // Register with original path first
-            switch (regType) {
-                case MediaType::Image:    _panel->_sequenceMedia->GetImage(path); break;
-                case MediaType::Video:    _panel->_sequenceMedia->GetVideo(path); break;
-                case MediaType::SVG:      _panel->_sequenceMedia->GetSVG(path); break;
-                case MediaType::Shader:   _panel->_sequenceMedia->GetShader(path); break;
-                case MediaType::TextFile: _panel->_sequenceMedia->GetTextFile(path); break;
-                case MediaType::BinaryFile: _panel->_sequenceMedia->GetBinaryFile(path); break;
-            }
-            if (regType == MediaType::Image) {
-                std::string embeddedName = "Images/" + ToStdString(fn.GetFullName());
-                int suffix = 1;
-                std::string candidate = embeddedName;
-                while (_panel->_sequenceMedia->HasImage(candidate)) {
-                    candidate = "Images/" + ToStdString(fn.GetName()) +
-                                "_" + std::to_string(suffix++) + "." +
-                                ToStdString(fn.GetExt());
-                }
-                embeddedName = candidate;
-                _panel->_sequenceMedia->RenameImage(path, embeddedName);
-                _panel->_sequenceMedia->EmbedImage(embeddedName);
-                path = embeddedName;
-            } else {
-                _panel->_sequenceMedia->EmbedMedia(path);
-            }
-            _panel->Populate(path);
-            return;
-        } else {
-            // Copy to one of the folders
-            std::string targetDir = copyTargets[sel - 1];
-            std::string newPath;
-            std::string subFolder = sep + MediaTypeName(regType);
-            if (_panel->_xlFrame && targetDir == _panel->_showDirectory) {
-                newPath = _panel->_xlFrame->MoveToShowFolder(path, subFolder);
-            } else {
-                wxString dest = wxString(targetDir) + wxString(subFolder);
-                if (!wxDirExists(dest)) wxMkdir(dest);
-                wxFileName fn2(path);
-                dest += wxString(sep) + fn2.GetFullName();
-                if (wxCopyFile(wxString(path), dest, false))
-                    newPath = ToStdString(dest);
-            }
+        bool hasImported = !importedMediaDir.empty();
+        int importedOffset = hasImported ? 1 : 0;
+
+        if (hasImported && sel == 1) {
+            // Copy to ImportedMedia/<seqStem>/<type>
+            std::string newPath = CopyToDir(path, importedMediaDir);
             if (newPath.empty()) {
-                wxMessageBox("Failed to copy file to the selected folder.", "Error",
+                wxMessageBox("Failed to copy file to ImportedMedia folder.", "Error",
                              wxICON_ERROR | wxOK, this);
                 return;
             }
             path = newPath;
+        } else {
+            int adjustedSel = sel - importedOffset;
+            if (adjustedSel == 0) {
+                // Embed in sequence — register, rename to embedded key, embed
+                std::string subdir = MediaTypeName(regType);
+                // Register with original path first
+                switch (regType) {
+                    case MediaType::Image:    _panel->_sequenceMedia->GetImage(path); break;
+                    case MediaType::Video:    _panel->_sequenceMedia->GetVideo(path); break;
+                    case MediaType::SVG:      _panel->_sequenceMedia->GetSVG(path); break;
+                    case MediaType::Shader:   _panel->_sequenceMedia->GetShader(path); break;
+                    case MediaType::TextFile: _panel->_sequenceMedia->GetTextFile(path); break;
+                    case MediaType::BinaryFile: _panel->_sequenceMedia->GetBinaryFile(path); break;
+                }
+                if (regType == MediaType::Image) {
+                    std::string embeddedName = "Images/" + ToStdString(fn.GetFullName());
+                    int suffix = 1;
+                    std::string candidate = embeddedName;
+                    while (_panel->_sequenceMedia->HasImage(candidate)) {
+                        candidate = "Images/" + ToStdString(fn.GetName()) +
+                                    "_" + std::to_string(suffix++) + "." +
+                                    ToStdString(fn.GetExt());
+                    }
+                    embeddedName = candidate;
+                    _panel->_sequenceMedia->RenameImage(path, embeddedName);
+                    _panel->_sequenceMedia->EmbedImage(embeddedName);
+                    path = embeddedName;
+                } else {
+                    _panel->_sequenceMedia->EmbedMedia(path);
+                }
+                _panel->Populate(path);
+                return;
+            } else {
+                // Copy to one of the folders
+                std::string targetDir = copyTargets[adjustedSel - 1];
+                std::string newPath;
+                std::string subFolder = sep + MediaTypeName(regType);
+                if (_panel->_xlFrame && targetDir == _panel->_showDirectory) {
+                    newPath = _panel->_xlFrame->MoveToShowFolder(path, subFolder);
+                } else {
+                    wxString dest = wxString(targetDir) + wxString(subFolder);
+                    if (!wxDirExists(dest)) wxMkdir(dest);
+                    wxFileName fn2(path);
+                    dest += wxString(sep) + fn2.GetFullName();
+                    if (wxCopyFile(wxString(path), dest, false))
+                        newPath = ToStdString(dest);
+                }
+                if (newPath.empty()) {
+                    wxMessageBox("Failed to copy file to the selected folder.", "Error",
+                                 wxICON_ERROR | wxOK, this);
+                    return;
+                }
+                path = newPath;
+            }
         }
     }
 
