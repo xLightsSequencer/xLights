@@ -168,7 +168,6 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
     if (srcFrameRate.num == 0 || srcFrameRate.den == 0) {
         srcFrameRate = AVRational{ 30, 1 }; // fallback for GIFs / unknown
     }
-    AVRational srcTimeBase = inStream->time_base;
 
     // --- Decide output codec ---------------------------------------------
     bool useRawvideo = IsUncompressedCodec(srcCodecId);
