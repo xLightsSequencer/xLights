@@ -144,8 +144,10 @@ void AudioManager::Play() {
 }
 
 void AudioManager::Stop() {
-    if (__audioManager.GetOutput(_device) != nullptr) {
-        __audioManager.GetOutput(_device)->Stop();
+    auto* out = __audioManager.GetOutput(_device);
+    if (out != nullptr) {
+        out->Pause(_sdlid, true);  // individually pause this stream so it won't mix when device restarts
+        out->Stop();
         _media_state = MEDIAPLAYINGSTATE::STOPPED;
     }
 }
