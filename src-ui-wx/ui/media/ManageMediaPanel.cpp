@@ -65,7 +65,6 @@ static std::string ImportedMediaPath(xLightsFrame* xlFrame, const std::string& s
     if (seqFile.IsEmpty()) return {};
     wxFileName seqFn(seqFile);
     // GetSeqXmlFileName can return the show directory when no sequence name is stored.
-    if (seqFn.DirExists() || !seqFn.FileExists()) return {};
     wxString ext = seqFn.GetExt();
     if (ext.CmpNoCase("xsq") != 0 && ext.CmpNoCase("xml") != 0) return {};
     std::string seqStem = seqFn.GetName().ToStdString();
