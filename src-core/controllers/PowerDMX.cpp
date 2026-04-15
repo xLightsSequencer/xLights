@@ -170,7 +170,6 @@ int32_t PowerDMX::SetInputUniverses(nlohmann::json& data, Controller* controller
     if (eth == nullptr) {
         return startChannel;
     }
-    bool const allSameSize = eth->AllSameSize();
 
     /*
     {
@@ -188,6 +187,7 @@ int32_t PowerDMX::SetInputUniverses(nlohmann::json& data, Controller* controller
     auto out = outputs.front();
     startChannel = out->GetStartChannel();
 
+    //bool const allSameSize = eth->AllSameSize();
     //if (out->GetType() == OUTPUT_E131 || out->GetType() == OUTPUT_ARTNET) {
     //    nlohmann::json universes;
     //    if (allSameSize) {

@@ -28,7 +28,7 @@ class PowerDMX : public BaseController {
 
 #pragma region Private Functions
     [[nodiscard]] bool GetJSONData(std::string const& url, nlohmann::json& val) const;
-    [[nodiscard]] std::string PostJSONToURL(std::string const& url, nlohmann::json const& val) const;
+    std::string PostJSONToURL(std::string const& url, nlohmann::json const& val) const;
 
     static std::string GetStatusURL() {
         return "/api/powerdmx/status";
