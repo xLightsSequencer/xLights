@@ -54,17 +54,20 @@ static std::string MediaTypeName(MediaType t) {
 
 // Returns <showDirectory>/ImportedMedia/<seqStem>/<subFolder>, or empty if no
 // sequence is loaded or no show directory is set.
-// NOTE: GetSeqXmlFileName() returns the show directory path when the sequence has
-// not been saved yet (legacy behaviour). Guard against this by requiring a .xsq extension.
+// NOTE: GetSeqXmlFileName() may return the show directory path when the sequence
+// has not been saved yet (legacy behaviour). Guard against that by requiring the
+// path to be an existing file, not a directory, and allowing both .xsq and .xml
+// saved sequence files.
 static std::string ImportedMediaPath(xLightsFrame* xlFrame, const std::string& showDirectory, const std::string& subFolder)
 {
     if (!xlFrame || showDirectory.empty()) return {};
     wxString seqFile = xlFrame->GetSeqXmlFileName();
     if (seqFile.IsEmpty()) return {};
     wxFileName seqFn(seqFile);
-    // If there is no .xsq extension the path is not a real saved sequence file
-    // (GetSeqXmlFileName returns the show directory when no sequence name is stored).
-    if (seqFn.GetExt().CmpNoCase("xsq") != 0) return {};
+    // GetSeqXmlFileName can return the show directory when no sequence name is stored.
+    if (seqFn.DirExists() || !seqFn.FileExists()) return {};
+    wxString ext = seqFn.GetExt();
+    if (ext.CmpNoCase("xsq") != 0 && ext.CmpNoCase("xml") != 0) return {};
     std::string seqStem = seqFn.GetName().ToStdString();
     if (seqStem.empty()) return {};
     return (std::filesystem::path(showDirectory) / "ImportedMedia" / seqStem / subFolder).string();
