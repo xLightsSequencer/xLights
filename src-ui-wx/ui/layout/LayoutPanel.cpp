@@ -201,23 +201,33 @@ public:
             }
         }
 
-        // Clamp sash Y to enforce minimum heights for both docked panels.
-        // Runs before wxAuiManager::OnMotion so the base class sees the clamped position.
-        // Works for whichever center pane is currently visible (ModelSettings or
-        // ModelGroupSettings).
+        // Clamp the sash Y to enforce minimum heights for ModelList and the settings pane.
+        // This runs before event.Skip() so the base class sees the clamped mouse position.
+        //
+        // m_actionPart becomes a dangling pointer after each live-resize Update() call
+        // (OnMotion→DoEndResizeAction→Update() rebuilds m_uiParts). We work around this
+        // by preferring the stable m_currentDragItem index (set by the base class on its
+        // first OnMotion call) over the dangling m_actionPart pointer.
+        //
+        // Sequence:
+        //   1st OnMotion: our handler fires first; m_currentDragItem is still -1 (set in
+        //     base-class OnLeftDown, not yet updated). We fall back to m_actionPart which
+        //     is valid at this point (no Update() since OnLeftDown). Then event.Skip() runs
+        //     base-class OnMotion which calls GetActionPartIndex() and sets m_currentDragItem.
+        //   2nd+ OnMotion: m_currentDragItem is a valid index; we look up the rebuilt part
+        //     directly without touching the now-dangling m_actionPart.
         if (m_action == actionResize) {
-            // m_actionPart may be null after Update(); refresh from the stored drag index.
-            wxAuiDockUIPart* part = m_actionPart;
-            if (part == nullptr && m_currentDragItem >= 0 &&
-                m_currentDragItem < static_cast<int>(m_uiParts.GetCount()))
+            wxAuiDockUIPart* part = nullptr;
+            if (m_currentDragItem >= 0 && m_currentDragItem < (int)m_uiParts.GetCount())
                 part = &m_uiParts.Item(m_currentDragItem);
+            else
+                part = m_actionPart; // valid on the very first OnMotion (before any Update())
 
             if (part != nullptr &&
                 part->type == wxAuiDockUIPart::typeDockSizer &&
                 part->dock != nullptr &&
                 (part->dock->dock_direction == wxAUI_DOCK_TOP ||
                  part->dock->dock_direction == wxAUI_DOCK_BOTTOM)) {
-
                 wxAuiPaneInfo& listPane = GetPane("ModelList");
                 bool centerVisible = false;
                 for (const char* nm : {"ModelSettings", "ModelGroupSettings"}) {
@@ -227,21 +237,14 @@ public:
                         break;
                     }
                 }
-                if (listPane.IsOk() && listPane.IsShown() && !listPane.IsFloating() &&
-                    centerVisible) {
+                if (listPane.IsOk() && listPane.IsShown() && !listPane.IsFloating() && centerVisible) {
+                    // new_size = (event.m_y - m_actionOffset.y) - dock.rect.y
+                    // Enforce new_size >= kPaneMinHeight and (containerH - new_size) >= kPaneMinHeight.
                     const wxRect& dockRect = part->dock->rect;
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-
-                    // For TOP-docked ModelList:
-                    //   new_size = (event.m_y - m_actionOffset.y) - dockRect.y
-                    //   Enforce new_size >= kPaneMinHeight  =>  minY = kPaneMinHeight + m_actionOffset.y + dockRect.y
-                    //   Enforce new_size <= containerH - kPaneMinHeight  =>  maxY = (containerH - kPaneMinHeight) + m_actionOffset.y + dockRect.y
-                    // For BOTTOM-docked ModelList the sizer is positioned symmetrically; the same
-                    // formula prevents either pane from being resized below kPaneMinHeight.
                     int minY = kPaneMinHeight + m_actionOffset.y + dockRect.y;
                     int maxY = (containerH - kPaneMinHeight) + m_actionOffset.y + dockRect.y;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
-
                     event.m_y = std::clamp(event.m_y, minY, maxY);
                 }
             }
@@ -254,8 +257,8 @@ public:
         // Capture interaction state before clearing — only trigger the post-layout
         // callback when an actual pane drag or resize took place, not on every click.
         bool wasDragging = m_pendingCenterDrag || m_action != actionNone;
-        m_pendingCenterDrag = false;
-        m_centerDragWindow = nullptr;
+        m_pendingCenterDrag    = false;
+        m_centerDragWindow     = nullptr;
         event.Skip();
         // After the base-class finishes processing the mouse-up (which may have
         // docked or floated a pane), update the splitter state.
@@ -842,7 +845,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->SetMinSize(wxSize(0, kPaneMinHeight));
     layout_mgr->AddPane(propertyEditor, wxAuiPaneInfo()
         .Name("ModelSettings")
-        .Caption("Groups/Models Settings")
+        .Caption("Background Properties")
         .CaptionVisible(true)
         .CloseButton(false)
         .Floatable(true)
@@ -856,7 +859,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     layout_mgr->AddPane(ModelGroupWindow, wxAuiPaneInfo()
         .Name("ModelGroupSettings")
-        .Caption("Model Group Settings")
+        .Caption("Group Settings")
         .CaptionVisible(true)
         .CloseButton(false)
         .Floatable(true)
@@ -875,10 +878,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     }
     // Always reapply settings that LoadPerspective overwrites via SafeSet()
     layout_mgr->GetPane("ModelList").MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models List")
-        .TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
-    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings")
-        .TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
-    layout_mgr->GetPane("ModelGroupSettings").TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
+        .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
+    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Background Properties")
+        .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
+    layout_mgr->GetPane("ModelGroupSettings").CaptionVisible(true).Caption("Group Settings")
+        .CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
     // Always start with the two main panels docked and visible regardless of
     // what was saved.  If the saved perspective had them floating or hidden
     // (e.g. closed while on another tab, or crashed), force them back to
@@ -888,7 +892,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     layout_mgr->GetPane("ModelSettings").Center().Dock().Show();
     {
         wxAuiPaneInfo& mgp = layout_mgr->GetPane("ModelGroupSettings");
-        if (mgp.IsOk() && mgp.IsFloating()) mgp.Center().Dock(); // dock but keep hidden
+        if (mgp.IsOk()) mgp.Center().Dock().Hide(); // always force-hide on startup
     }
     layout_mgr->Update();
     // Enable splitter auto-collapse / expand logic now that AUI is fully set up.
@@ -2788,6 +2792,38 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
 void LayoutPanel::showBackgroundProperties()
 {
+    // Ensure ModelSettings is visible with "Background Properties" caption,
+    // and ModelGroupSettings is hidden — no model/group is selected.
+    if (layout_mgr != nullptr) {
+        bool needUpdate = false;
+        wxAuiPaneInfo& ms = layout_mgr->GetPane("ModelSettings");
+        wxAuiPaneInfo& mgs = layout_mgr->GetPane("ModelGroupSettings");
+        if (ms.IsOk()) {
+            ms.Caption("Background Properties");
+            // If GroupSettings was floating, bring Background Properties up
+            // at the same position so the "settings pane" doesn't jump.
+            if (mgs.IsOk() && mgs.IsFloating() && mgs.IsShown()) {
+                ms.Float()
+                  .FloatingPosition(mgs.floating_pos)
+                  .FloatingSize(mgs.floating_size);
+            }
+            if (!ms.IsShown()) { ms.Show(); needUpdate = true; }
+            else needUpdate = true; // caption change still needs Update()
+        }
+        if (mgs.IsOk() && mgs.IsShown()) {
+            mgs.Hide();
+            needUpdate = true;
+        }
+        if (needUpdate) {
+            layout_mgr->Update();
+            // Ensure the splitter is restored if LeftPanel was unsplit while
+            // all panes were floating — now that ModelSettings is shown (docked),
+            // the left panel needs to be re-split to become visible.
+            UpdateLayoutSplitter();
+        }
+        mPropGridActive = true;
+    }
+
     propertyEditor->Freeze();
     clearPropGrid();
 
@@ -9149,17 +9185,18 @@ void LayoutPanel::RestoreFloatingPanes() {
     wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
     if (modelListPane.IsOk()) {
         modelListPane.MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models List")
-            .TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
+            .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     }
     wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
     if (modelSettingsPane.IsOk()) {
-        modelSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Groups/Models Settings")
-            .TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
+        modelSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(true)
+            .Caption(mPropGridActive ? "Model Settings" : "Background Properties")
+            .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
     }
     wxAuiPaneInfo& modelGroupSettingsPane = layout_mgr->GetPane("ModelGroupSettings");
     if (modelGroupSettingsPane.IsOk()) {
-        modelGroupSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Model Group Settings")
-            .TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
+        modelGroupSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Group Settings")
+            .CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
     }
     layout_mgr->Update();
     _savedFloatingPerspective.clear();
@@ -9213,17 +9250,39 @@ void LayoutPanel::UpdateLayoutSplitter() {
 }
 
 void LayoutPanel::ShowPropGrid(bool show) {
-    if (!mPropGridActive && show) {
-        layout_mgr->GetPane("ModelGroupSettings").Hide();
-        layout_mgr->GetPane("ModelSettings").Show();
+    if (show) {
+        wxAuiPaneInfo& mgs = layout_mgr->GetPane("ModelGroupSettings");
+        wxAuiPaneInfo& ms  = layout_mgr->GetPane("ModelSettings");
+        // If GroupSettings was floating, bring ModelSettings up in the same
+        // position so the "settings pane" doesn't jump to the dock.
+        if (mgs.IsOk() && ms.IsOk() && mgs.IsFloating() && mgs.IsShown()) {
+            ms.Float()
+              .FloatingPosition(mgs.floating_pos)
+              .FloatingSize(mgs.floating_size);
+        }
+        mgs.Hide();
+        ms.Caption("Model Settings").Show();
         layout_mgr->Update();
         mPropGridActive = true;
-    } else if (mPropGridActive && !show) {
-        layout_mgr->GetPane("ModelSettings").Hide();
-        layout_mgr->GetPane("ModelGroupSettings").Show();
+    } else {
+        wxAuiPaneInfo& ms  = layout_mgr->GetPane("ModelSettings");
+        wxAuiPaneInfo& mgs = layout_mgr->GetPane("ModelGroupSettings");
+        // If ModelSettings was floating, bring GroupSettings up in the same
+        // position so the "settings pane" doesn't jump to the dock.
+        if (ms.IsOk() && mgs.IsOk() && ms.IsFloating() && ms.IsShown()) {
+            mgs.Float()
+              .FloatingPosition(ms.floating_pos)
+              .FloatingSize(ms.floating_size);
+        }
+        ms.Caption("Background Properties").Hide();
+        mgs.Caption("Group Settings").Show();
         layout_mgr->Update();
         mPropGridActive = false;
     }
+    // If panels are floating, SplitterWindow2 may have LeftPanel unsplit (zero
+    // size). Showing or hiding a docked pane needs the splitter restored so the
+    // newly-shown panel is actually visible.
+    UpdateLayoutSplitter();
 }
 
 void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
