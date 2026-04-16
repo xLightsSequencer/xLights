@@ -12,8 +12,29 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
     -bug (AGFazio)               Fix Layout tab: undocking panels via double-click left black space where left panel was
-    -bug (AGFazio)               Fix submodels in a group showing at wrong indent level in sequencer element list
+    -change (scott)             Replace wxConfig with a custom JSON settings manager (AppData/xLights/settings.json).
+                                    Settings are automatically migrated from the legacy system on first run.
+
+
+    -bug (dkulp)                Help → Key Bindings now opens a resizable, scrollable dialog instead of a
+                                    wxMessageBox so the bottom of the list is reachable on short displays (#5855).
+    -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
+                                    transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
+                                    the source is uncompressed, hevc_videotoolbox otherwise) and rewrites the
+                                    matching video-effect filenames in the sequence.
+    -enh (dkulp)                Media-compatibility check now runs on Windows/Linux too via an FFmpeg-based
+                                    container + codec allowlist, so Mac-incompatible videos (AVI, WMV, MKV,
+                                    legacy QuickTime codecs, animated GIFs) get the same warning and
+                                    Convert-Now flow as on macOS.
+    -change (dkulp)             Pinwheel effect now defaults to the New Render Method; existing sequences
+                                    are migrated to preserve the Old Render Method so their look is unchanged.
+    -enh (AGFazio)              Add 'Yes to All' / 'No to All' options when merging base show directory changes
+    -bug (derwin12)             Model preview reset after changing model (#5758)
+    -bug (derwin12)             Fix Twinkle Steps value curve capped at 100 instead of 400 (#4347)
+    -bug (AGFazio)              Fix submodels in a group showing at wrong indent level in sequencer element list
     -bug (derwin12)             Fix downloaded/imported models always getting start channel 1 (#6075)
+    -bug (derwin12)             Fix false "newer version" warning when importing effects from same version (#6113)
+    -bug (derwin12)             Fix Solid/Blended Circle pixel style appearing wrong size in model and effect panels (#4031, #4654, #4087)
     -bug (derwin12)             Fix unintended setting of ShadowModelFor (#5634)
     -bug (dkulp)                Fix macOS 11/12 launch crash "Symbol not found..." due to using
                                     some stuff (like std::format) from newer C++ that is not
@@ -24,6 +45,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction (#5636)
     -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero (#4807)
     -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view (#5849)
+    -enh (derwin12)             Add alternate audio tracks support incl waveform, VU Meter and value curve access. (#3820)
     -enh (derwin12)             Allow selecting audio from a sequence package (zip/piz/xsqz) in Sequence Settings (#5630)
     -enh (derwin12)             Add sequencer prop filter to quickly jump to a prop by name (#5066)
     -enh (derwin12)             Add "Small" option to Model Handle Size preference (#3583)
@@ -52,12 +74,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     for newly-created effects, Shape StartSize matches JSON (1 instead of 5),
                                     Faces FaceDefinition fallback is now consistently "Default" across CheckEffectSettings
                                     and Render, Metal Spirals now matches CPU Spirals default for Rotation/Thickness.
-    -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
-                                    Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
-    -bug (dkulp)                Fix Circles effect Collide checkbox removal causing silent behavior change in old sequences.
-                                    Sequences with Collide=1 are now migrated to Bounce=1 to preserve their non-wrapping render.
-    -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
-                                    using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
     -bug (derwin12)             Fix crash after using Join in the SubModels dialog. (#6064)
     -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/

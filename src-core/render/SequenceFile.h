@@ -51,6 +51,12 @@ struct PendingTiming {
     bool randomLabels = false;
 };
 
+struct AlternateAudioTrack {
+    std::string path;       // resolved absolute path
+    std::string shortname;  // user-defined label, e.g. "Drums"; "" → auto "Track1", "Track2"
+    AudioManager* audio = nullptr;
+};
+
 class SequenceFile
 {
     std::string mFilePath;
@@ -115,6 +121,22 @@ public:
     const std::string& GetMediaFile() const { return media_file; }
     void SetMediaFile(const std::string& ShowDir, const std::string& filename, bool overwrite_tags);
     void ClearMediaFile();
+
+    // Alternate audio tracks (stems)
+    int GetAltTrackCount() const { return (int)alt_tracks.size(); }
+    const AlternateAudioTrack& GetAltTrack(int idx) const { return alt_tracks[idx]; }
+    void AddAltTrack(const std::string& ShowDir, const std::string& path, const std::string& shortname = "");
+    void RemoveAltTrack(int idx);
+    void SetAltTrackPath(const std::string& ShowDir, int idx, const std::string& path);
+    void SetAltTrackShortname(int idx, const std::string& name);
+    std::string GetAltTrackDisplayName(int idx) const;
+    AudioManager* GetAltTrackMedia(int idx) const
+    {
+        if (idx < 0 || static_cast<std::size_t>(idx) >= alt_tracks.size()) {
+            return nullptr;
+        }
+        return alt_tracks[idx].audio;
+    }
 
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const std::string& node_value);
@@ -196,6 +218,7 @@ private:
     bool sequence_loaded = false;
     DataLayerSet mDataLayers;
     AudioManager* audio = nullptr;
+    std::vector<AlternateAudioTrack> alt_tracks;
     JukeboxButtonMap _jukeboxButtons;
 
     void CreateNew();

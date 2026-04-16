@@ -1101,8 +1101,10 @@ bool Pixlite16::GetMK3Config()
                 _config._nickname = jsonVal["result"]["nickname"].get<std::string>();
                 _config._brand = jsonVal["result"]["oem"].get<int>();
             }
-        } catch (std::exception&) {
-
+        } catch (const nlohmann::json::exception& e) {
+            spdlog::error("Pixlite16 GetMK3Config exception : {}.", e.what());
+        } catch (const std::exception& ex) {
+            spdlog::error("Pixlite16 GetMK3Config exception : {}.", ex.what());
         }
     }
 
@@ -1173,7 +1175,10 @@ bool Pixlite16::GetMK3Config()
 
                 return true;
             }
-        } catch (std::exception&) {
+        } catch (const nlohmann::json::exception& e) {
+            spdlog::error("Pixlite16 GetMK3Config exception : {}.", e.what());
+        } catch (const std::exception& ex) {
+            spdlog::error("Pixlite16 GetMK3Config exception : {}.", ex.what());
         }
     }
 
@@ -1335,7 +1340,9 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                     eth->SetModel(jsonVal["prodName"].get<std::string>());
                     discovery.AddController(eth);
                 }
-            } catch (std::exception &ex) {
+            } catch (const nlohmann::json::exception& e) {
+                spdlog::error("MK3 discovery JSON parse error : {}.", e.what());
+            } catch (std::exception& ex) {
                 spdlog::error("MK3 discovery JSON parse error: {}.", ex.what());
             }
         }
@@ -1525,8 +1532,10 @@ bool Pixlite16::SendMk3Config(bool logresult) const
                 spdlog::error(jsonVal["err"]["msg"].get<std::string>());
             }
         }
+    } catch (const nlohmann::json::exception& e) {
+        spdlog::error("Pixlite16 exception : {}.", e.what());
     } catch (const std::exception& ex) {
-        spdlog::error(ex.what());
+        spdlog::error("Pixlite16 exception : {}.", ex.what());
     }
     return result;
 }

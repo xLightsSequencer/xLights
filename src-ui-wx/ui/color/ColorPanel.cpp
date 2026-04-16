@@ -16,7 +16,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/clrpicker.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/file.h>
 #include <wx/image.h>
 #include <wx/menu.h>
@@ -74,7 +74,7 @@ const wxWindowID ColorPanel::ID_MNU_IMPORT = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 
 static bool IsLargePalette() {
-    return wxConfigBase::Get()->Read("PaletteSize", "Normal") == "Large";
+    return GetXLightsConfig()->Read("PaletteSize", "Normal") == "Large";
 }
 
 class ColourList : public wxOwnerDrawnComboBox {
@@ -209,7 +209,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID /*id*/,
     SetName("Color");
 
     // Restore the 'Reset panel when changing effects' preference.
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool reset = true;
     if (config) config->Read("xLightsResetColorPanel", &reset, true);
     if (_resetColorPanelCheck) _resetColorPanelCheck->SetValue(reset);
@@ -992,7 +992,7 @@ void ColorPanel::OnCheckBox_MusicSparklesClick(wxCommandEvent& /*event*/) {
 }
 
 void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& /*event*/) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config && _resetColorPanelCheck) {
         config->Write("xLightsResetColorPanel", _resetColorPanelCheck->IsChecked());
     }

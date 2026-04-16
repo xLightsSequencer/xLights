@@ -416,8 +416,10 @@ EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
 {
     if (timingtrack == "") return nullptr;
 
-    for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
-        Element* e = mSequenceElements->GetElement(i);
+    auto* seqEl = GetSequenceElements();
+    if (!seqEl) return nullptr;
+    for (int i = 0; i < (int)seqEl->GetElementCount(); i++) {
+        Element* e = seqEl->GetElement(i);
         if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack) {
             return e->GetEffectLayer(0);
         }
@@ -425,12 +427,21 @@ EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
     return nullptr;
 }
 
+SequenceElements* RenderableEffect::GetSequenceElements(RenderBuffer& buffer) const {
+    if (buffer.renderContext) {
+        return &buffer.renderContext->GetSequenceElements();
+    }
+    return mSequenceElements;
+}
+
 std::string RenderableEffect::GetTimingTracks(const int max, const int equals) const
 {
     std::string timingtracks = "";
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
+    auto* seqEl = GetSequenceElements();
+    if (!seqEl) return timingtracks;
+    for (size_t i = 0; i < seqEl->GetElementCount(); i++)
     {
-        Element* e = mSequenceElements->GetElement(i);
+        Element* e = seqEl->GetElement(i);
         if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && (max < 1 || (int)e->GetEffectLayerCount() <= max) && (equals == 0 || (int)e->GetEffectLayerCount() == equals))
         {
             if (timingtracks != "")

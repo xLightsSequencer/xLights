@@ -21,7 +21,6 @@
 #include <wx/settings.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
-#include <wx/config.h>
 #include <wx/clipbrd.h>
 #include <wx/numdlg.h>
 
@@ -30,6 +29,7 @@
 #include "models/CustomModel.h"
 #include "utils/NodeUtils.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "utils/ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "XmlSerializer/XmlSerializer.h"
@@ -354,7 +354,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, 
         CheckBox_OrderedSelection->Disable();
     } else {
         bool checked = true;
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         if (config != nullptr) {
             checked = config->ReadBool("NodeSelectGridOrderedSelection", true);
         }
@@ -1310,7 +1310,7 @@ void NodeSelectGrid::OnTextCtrl_NodesLoseFocus(wxFocusEvent& event)
 
 void NodeSelectGrid::SaveSettings()
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("NodeSelectGridOrderedSelection", CheckBox_OrderedSelection->GetValue());
     }

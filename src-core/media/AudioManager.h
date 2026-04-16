@@ -18,7 +18,9 @@
 #include <string>
 #include <vector>
 
+#if !TARGET_OS_IPHONE
 #include "xLightsVamp.h"
+#endif
 #include "IAudioOutput.h"
 #include "IAudioDecoder.h"
 
@@ -64,7 +66,9 @@ class AudioManager {
     long _loadedData = 0;
     std::vector<FrameData> _frameData;
     std::string _audio_file;
+#if !TARGET_OS_IPHONE
     xLightsVamp _vamp;
+#endif
     long _rate = 44100;
     long _sampleRate = 48000;
     int _channels = 0;
@@ -129,9 +133,11 @@ public:
     }
     MEDIAPLAYINGSTATE GetPlayingState() const;
     long Tell() const;
+#if !TARGET_OS_IPHONE
     xLightsVamp* GetVamp() {
         return &_vamp;
     };
+#endif
     AudioManager(const std::string& audio_file, int intervalMS = -1, const std::string& device = "");
     ~AudioManager();
     void SetVolume(int volume) const;
@@ -195,7 +201,9 @@ public:
     const FrameData* GetFrameData(int frame, const std::string& timing, bool needNotes = false);
     const FrameData* GetFrameData(const std::string& timing, long ms, bool needNotes = false);
     void DoPrepareFrameData();
+#if !TARGET_OS_IPHONE
     void DoPolyphonicTranscription(AudioManagerProgressCallback progresscallback);
+#endif
     bool IsPolyphonicTranscriptionDone() const {
         return _polyphonicTranscriptionDone;
     };

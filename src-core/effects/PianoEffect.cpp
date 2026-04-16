@@ -597,7 +597,7 @@ std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(c
 
     spdlog::debug("Loading timings from timing track " + track);
 
-    if (mSequenceElements == nullptr) {
+    if (GetSequenceElements() == nullptr) {
         spdlog::debug("No timing tracks found.");
         return res;
     }

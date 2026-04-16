@@ -64,6 +64,8 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = false) override;
 
     enum Pinwheel3DType {
         PW_3D_NONE,

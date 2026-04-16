@@ -1166,7 +1166,7 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
 
     spdlog::debug("Loading timings from timing track " + track);
 
-    if (mSequenceElements == nullptr) {
+    if (GetSequenceElements() == nullptr) {
         spdlog::debug("No timing tracks found.");
         return res;
     }

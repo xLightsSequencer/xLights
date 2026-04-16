@@ -98,7 +98,7 @@ protected:
     void DrawPresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness = 1);
     void DrawSVG(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, NSVGimage* svgFile, int thickness = 1);
 
-    Effect* GetTimingEvent(const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex);
+    Effect* GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex);
 
     inline float ApplyGain(float value, int gain) const;
 };

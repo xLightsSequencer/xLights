@@ -14,7 +14,6 @@
 #include <wx/wx.h>
 #include <wx/button.h>
 #include <wx/image.h>
-#include <wx/config.h>
 #include <wx/dir.h>
 #include <wx/file.h>
 #include <wx/display.h>
@@ -30,6 +29,7 @@
 #include <wx/wfstream.h>
 #include "utils/ExternalHooks.h"
 #include "xLightsVersion.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "utils/CurlManager.h"
 #include "utils/string_utils.h"
 
@@ -316,17 +316,17 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char>& da
 }
 
 void SaveInt(const std::string& tag, int value) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write(tag, value);
 }
 
 int LoadInt(const std::string& tag, int defaultValue) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     return config->ReadLong(tag, defaultValue);
 }
 
 void SaveWindowPosition(const std::string& tag, wxWindow* window) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (window != nullptr) {
         wxPoint position = window->GetPosition();
         wxSize size = window->GetSize();
@@ -340,7 +340,7 @@ void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position)
     if (wxGetKeyState(WXK_COMMAND) || wxGetKeyState(WXK_CONTROL)) {
         return;
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
 
     wxString pos = config->Read(tag, "");
 
@@ -509,13 +509,13 @@ void CleanupIpAddress(wxString& IpAddr) {
 
 #ifdef __WXMSW__
 bool IsSuppressDarkMode() {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     return config->ReadBool("SuppressDarkMode", false);
 }
 
 void SetSuppressDarkMode(bool suppress) {
     if (IsSuppressDarkMode() != suppress) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("SuppressDarkMode", suppress);
         wxMessageBox("Restart " + wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetName() + " to enable/disable dark mode properly.");
     }
@@ -667,14 +667,14 @@ AnimatedImageData LoadGIFAnimationDataWx(const std::string& filename)
 }
 
 void SetConfigBool(const std::string& key, bool value) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write(key, value);
     }
 }
 
 bool GetConfigBool(const std::string& key, bool defaultValue) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         return config->ReadBool(key, defaultValue);
     }

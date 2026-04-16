@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 
 
 //(*IdInit(DuplicateDialog)
@@ -73,7 +73,7 @@ DuplicateDialog::DuplicateDialog(wxWindow* parent, wxWindowID id, const wxPoint&
     Connect(ID_BUTTON_CLOSE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&DuplicateDialog::OnButton_CloseClick);
     //*)
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         int count { 1 };
         int gap { 0 };
@@ -97,7 +97,7 @@ void DuplicateDialog::OnButton_CloseClick(wxCommandEvent& event)
 
 void DuplicateDialog::OnButton_OkClick(wxCommandEvent& event)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("DuplicateDialogCount", SpinCtrl_Count->GetValue());
         config->Write("DuplicateDialogGap", SpinCtrl_Gap->GetValue());

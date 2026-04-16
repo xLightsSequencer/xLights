@@ -430,6 +430,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\dependencies\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\dependencies\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\dependencies\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
+    <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
+    <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.cpp" />
     <ClCompile Include="..\src-core\utils\FileUtils.cpp" />
     <ClCompile Include="..\src-core\utils\NodeUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\AboutDialog.cpp" />
@@ -669,6 +673,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\models\OutputModelManager.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
     <ClCompile Include="..\src-core\media\MediaCompatibility.cpp" />
+    <ClCompile Include="..\src-core\media\VideoTranscoder.cpp" />
     <ClCompile Include="..\src-core\media\AudioLoader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="..\src-core\media\SDLAudioOutput.cpp" />
@@ -1014,6 +1019,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\dependencies\wxJSON\jsonval.h" />
     <ClInclude Include="..\dependencies\wxJSON\jsonwriter.h" />
     <ClInclude Include="..\dependencies\wxJSON\json_defs.h" />
+    <ClInclude Include="..\src-core\controllers\PowerDMX.h" />
+    <ClInclude Include="..\src-core\settings\XLightsSettings.h" />
+    <ClInclude Include="..\src-ui-wx\settings\XLightsConfigAdapter.h" />
+    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.h" />
     <ClInclude Include="..\src-core\utils\FileUtils.h" />
     <ClInclude Include="..\src-core\utils\NodeUtils.h" />
     <ClInclude Include="..\src-ui-wx\ui\app-shell\AboutDialog.h" />
@@ -1227,6 +1236,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\models\OutputModelManager.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
     <ClInclude Include="..\src-core\media\MediaCompatibility.h" />
+    <ClInclude Include="..\src-core\media\VideoTranscoder.h" />
     <ClInclude Include="..\src-core\media\AudioLoader.h" />
     <ClInclude Include="..\src-core\media\FFmpegAudioDecoder.h" />
     <ClInclude Include="..\src-core\media\IAudioDecoder.h" />

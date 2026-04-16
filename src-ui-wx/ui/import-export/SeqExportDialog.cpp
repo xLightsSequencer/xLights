@@ -16,7 +16,7 @@
 //*)
 
 #include "xLightsMain.h"
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/filepicker.h>
@@ -131,7 +131,7 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     ChoiceFormat->Append(_("FPP Compressed Sub sequence. *.eseq"));
 
     wxString let;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Read("xLightsLastExportType", &let, "");
         if (let == "") {
@@ -267,12 +267,10 @@ void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
     // gives the same bit-exact RGB output and decodes natively on all platforms.
     if (ChoiceFormat->GetStringSelection() == "Uncompressed Video, *.avi") {
         wxString msg =
-            "You're about to export to uncompressed AVI. Modern macOS AVFoundation "
-            "has dropped its AVI decoder, so the resulting file will not be readable "
-            "on a Mac.\n\n"
+            "You're about to export to uncompressed AVI. This format is being "
+            "deprecated and will not render on upcoming versions of xLights.\n\n"
             "Consider using \"Lossless RGB Video, *.mov\" instead — same bit-exact "
-            "RGB content, decoded natively by AVFoundation on macOS and supported "
-            "everywhere else as well.\n\n"
+            "RGB content in a format supported across all platforms.\n\n"
             "Continue with AVI?";
         int answer = wxMessageBox(msg, "AVI Export Deprecated",
                                   wxYES_NO | wxNO_DEFAULT | wxICON_WARNING, this);
@@ -282,7 +280,7 @@ void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
         }
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("xLightsLastExportType", ChoiceFormat->GetStringSelection());
         config->Flush();

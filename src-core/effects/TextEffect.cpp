@@ -324,11 +324,11 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             if (!lyricTrack.empty())
             {
                 Element* t = nullptr;
-                for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++)
+                for (int i = 0; i < (int)GetSequenceElements(buffer)->GetElementCount(); i++)
                 {
                     auto lt = BeforeLast(lyricTrack, '-');
                     lt = lt.substr(0, lt.size() - 1);
-                    Element* e = mSequenceElements->GetElement(i);
+                    Element* e = GetSequenceElements(buffer)->GetElement(i);
                     if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt)
                     {
                         t = e;
@@ -1447,10 +1447,10 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         }
         else if (lyricTrack != "") {
             Element* t = nullptr;
-            for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
+            for (int i = 0; i < (int)GetSequenceElements(buffer)->GetElementCount(); i++) {
                 auto lt = BeforeLast(lyricTrack, '-');
                 lt = lt.substr(0, lt.size() - 1);
-                Element* e = mSequenceElements->GetElement(i);
+                Element* e = GetSequenceElements(buffer)->GetElement(i);
                 if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt) {
                     t = e;
                     break;

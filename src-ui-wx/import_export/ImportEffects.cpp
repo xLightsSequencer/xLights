@@ -1,4 +1,4 @@
-/***************************************************************
+﻿/***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
@@ -11,7 +11,7 @@
 // Import/export effect functions extracted from SeqFileUtilities.cpp
 
 #include <wx/stopwatch.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/uri.h>
@@ -257,7 +257,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 
     wxString lit = "";
     wxString ldir = "";
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Read("xLightsLastImportType", &lit, "");
         config->Read("xLightsLastImportDir", &ldir, "");
@@ -523,8 +523,8 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     xlf.AdjustEffectSettingsForVersion(se, this);
     xsqPkg.SetSequenceElements(&se);
 
-    if (!IsVersionOlder(xlights_version_string, xlf.GetVersion())) {
-        wxMessageBox(wxString::Format("The import sequence is using a newer version than you are currently using.  %s", xlf.GetVersion().c_str()));
+    if (IsVersionOlder(xlf.GetVersion(), xlights_version_string)) {
+        wxMessageBox(wxString::Format("Import version %s is newer than your current version %s.", xlf.GetVersion().c_str(), xlights_version_string.c_str()), "Version Warning");
     }
     if (_sequenceElements.GetFrequency() < xlf.GetFrequency()) {
         wxMessageBox(wxString::Format("The import sequence is using a higher FPS than you are currently using. %d FPS", xlf.GetFrequency()));

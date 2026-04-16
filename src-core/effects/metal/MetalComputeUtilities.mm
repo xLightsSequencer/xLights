@@ -1005,6 +1005,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
     device = nil;
     dissolveBuffer = nil;
     
+#if !TARGET_OS_IPHONE
     NSArray *devices = MTLCopyAllDevices();
     for (id d in devices) {
         if ([d isRemovable]) {
@@ -1012,6 +1013,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
         }
     }
     [devices release];
+#endif
     if (device == nil) {
         device = MTLCreateSystemDefaultDevice();
     }

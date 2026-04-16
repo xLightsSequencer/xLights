@@ -1,10 +1,11 @@
 #include "xlColourData.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/string.h>
+#include <string>
 
 #include <wx/colordlg.h>
 #include <wx/window.h>
-#include <wx/config.h>
 
 xlColourData xlColourData::INSTANCE;
 
@@ -14,24 +15,26 @@ xlColourData::xlColourData()
 xlColourData::~xlColourData()
 { }
 
-void xlColourData::Load(wxConfigBase* config)
+void xlColourData::Load(XLightsConfigAdapter* config)
 {
     if (config != nullptr) {
-        for (int i = 0;i < m_colorData.NUM_CUSTOM; ++i) {
+        for (int i = 0; i < m_colorData.NUM_CUSTOM; ++i) {
             wxString color;
-            config->Read(wxString::Format("CustomColour%d", i), &color, "");
+            config->Read("CustomColour" + std::to_string(i), &color, "");
             if (!color.IsEmpty()) {
                 m_colorData.SetCustomColour(i, wxColour(color));
             }
         }
     }
 }
-void xlColourData::Save(wxConfigBase* config)
+
+void xlColourData::Save(XLightsConfigAdapter* config)
 {
     if (config != nullptr) {
-        for (int i = 0;i < m_colorData.NUM_CUSTOM; ++i) {
-            config->Write(wxString::Format("CustomColour%d", i), m_colorData.GetCustomColour(i).GetAsString());
-        }       
+        for (int i = 0; i < m_colorData.NUM_CUSTOM; ++i) {
+            config->Write("CustomColour" + std::to_string(i),
+                          m_colorData.GetCustomColour(i).GetAsString());
+        }
     }
 }
 

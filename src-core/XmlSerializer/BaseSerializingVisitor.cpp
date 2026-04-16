@@ -1034,6 +1034,16 @@ void BaseSerializingVisitor::Visit(const DmxMovingHeadAdv& model) {
     WriteMeshElement(model.GetBaseMesh());
     WriteMeshElement(model.GetYokeMesh());
     WriteMeshElement(model.GetHeadMesh());
+    for (const auto& zone : model.GetPositionZones()) {
+        AttrCollector zoneAttrs;
+        zoneAttrs.Add("PanMin", std::to_string(zone.pan_min));
+        zoneAttrs.Add("PanMax", std::to_string(zone.pan_max));
+        zoneAttrs.Add("TiltMin", std::to_string(zone.tilt_min));
+        zoneAttrs.Add("TiltMax", std::to_string(zone.tilt_max));
+        zoneAttrs.Add("Channel", std::to_string(zone.channel));
+        zoneAttrs.Add("Value", std::to_string(zone.value));
+        WriteOpenTag("PositionZone", zoneAttrs, true);
+    }
     WriteOtherElements(dynamic_cast<const Model*>(&model));
     WriteCloseTag();
 }

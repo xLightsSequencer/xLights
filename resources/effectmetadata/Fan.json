@@ -54,7 +54,7 @@
             "label": "Radius2",
             "type": "int",
             "controlType": "slider",
-            "default": 10,
+            "default": 50,
             "min": 0,
             "max": 2500,
             "valueCurve": true,

@@ -29,6 +29,7 @@
 #include <limits>
 
 AudioManager* ValueCurve::__audioManager = nullptr;
+std::map<std::string, AudioManager*> ValueCurve::__altAudioManagers;
 SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
 static std::string fmt2f(float v) {
@@ -1316,6 +1317,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
         _max = max;
     }
     _timingTrack = "";
+    _audioTrackName = "";
     _filterLabelText = "";
     _isFilterLabelRegex = false;
     _parameter1 = 0;
@@ -1341,6 +1343,7 @@ ValueCurve::ValueCurve(const std::string& s)
     _max = MAXVOIDF;
     _divisor = 1;
     _timingTrack = "";
+    _audioTrackName = "";
     _filterLabelText = "";
     _isFilterLabelRegex = false;
     SetDefault();
@@ -1475,6 +1478,9 @@ std::string ValueCurve::Serialise()
         res += "Max=" + fmt2f(_max) + "|";
         if (_timingTrack != "") {
             res += "TT=" + _timingTrack + "|";
+        }
+        if (_audioTrackName != "") {
+            res += "AT=" + _audioTrackName + "|";
         }
         if (_filterLabelText != "") {
             res += "FT=" + _filterLabelText + "|";
@@ -1626,6 +1632,8 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
     }
     else if (k == "TT") {
         _timingTrack = s;
+    } else if (k == "AT") {
+        _audioTrackName = s;
     } else if (k == "FT") {
         _filterLabelText = s;
     } else if (k == "FLR") {
@@ -1775,13 +1783,16 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
 
+    // Resolve which audio manager to use for this curve
+    AudioManager* _am = _audioTrackName.empty() ? __audioManager : GetAltAudio(_audioTrackName);
+
     // If we are music trigger fade and we dont have values ... calculate them on the fly
     if (_type == "Music Trigger Fade") {
         // Just generate what we need on the fly
-        if (__audioManager != nullptr && _values.size() == 0) {
+        if (_am != nullptr && _values.size() == 0) {
             float min = (GetParameter1() - _min) / (_max - _min);
             float max = (GetParameter2() - _min) / (_max - _min);
-            int frameMS = __audioManager->GetFrameInterval();
+            int frameMS = _am->GetFrameInterval();
             int fadeFrames = GetParameter4();
             float yperFrame = (max - min) / fadeFrames;
             float perPoint = vcSortablePoint::perPoint();
@@ -1805,7 +1816,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
                 // find the maximum of any intervening frames
                 float f = 0.0;
                 for (long ms = time; ms < time + msperPoint; ms += frameMS) {
-                    auto pf = __audioManager->GetFrameData("", ms + frameMS);
+                    auto pf = _am->GetFrameData("", ms + frameMS);
                     if (pf != nullptr) {
                         if (pf->max > f) {
                             f = pf->max;
@@ -1913,10 +1924,10 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         }
     }
     else if (_type == "Music" || _type == "Inverted Music") {
-        if (__audioManager != nullptr) {
+        if (_am != nullptr) {
             long time = (float)startMS + offset * (endMS - startMS);
             float f = 0.0;
-            auto pf = __audioManager->GetFrameData("", time);
+            auto pf = _am->GetFrameData("", time);
             if (pf != nullptr) {
                 f = ApplyGain(pf->max, GetParameter3());
                 if (_type == "Inverted Music") {

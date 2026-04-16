@@ -414,7 +414,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
     if (useTiming)
     {
-        if (mSequenceElements == nullptr)
+        if (GetSequenceElements(buffer) == nullptr)
         {
             // no timing tracks ... this shouldnt happen
         }

@@ -24,6 +24,8 @@
 
 // Every time this regenerates from code blocks you will need to remove wx/led.h
 
+#include "settings/XLightsConfigAdapter.h"
+
 //(*Headers(xLightsFrame)
 #include <wx/aui/aui.h>
 #include <wx/bmpbuttn.h>
@@ -146,6 +148,7 @@ class HttpConnection;
 class HttpRequest;
 class wxTaskBarIcon;
 class wxProgressDialog;
+struct MediaCompatibilityIssue;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -210,6 +213,7 @@ wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_SELECT_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AI_LYRICS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_APPLYLAST, wxCommandEvent);
@@ -428,6 +432,7 @@ public:
     const std::string &GetShowDirectory() const override { return showDirectory; }
     const std::string &GetFseqDirectory() const override { return fseqDirectory; }
     AudioManager* GetCurrentMediaManager() const override;
+    AudioManager* GetPlaybackAudio() const; // Returns active alt track audio if selected, else main media
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
@@ -1349,8 +1354,7 @@ public:
     void SetDisableKeyAcceleration(bool b);
 
     wxString GetPaletteSizeString() const {
-        wxConfigBase* config = wxConfigBase::Get();
-        return config->Read("PaletteSize", "Normal");
+        return wxString(GetXLightsConfig()->Read("PaletteSize", "Normal"));
     }
     void SetPaletteSizeString(const wxString& size);
 
@@ -1536,6 +1540,10 @@ public:
                      const std::string& caption = "xLights") const override;
     bool PromptYesNo(const std::string& message,
                      const std::string& caption = "xLights") const override;
+    bool PromptYesNoAll(const std::string& message,
+                        const std::string& caption,
+                        bool& acceptAll,
+                        bool& rejectAll) const override;
     std::string PromptForDirectory(const std::string& message,
                                    const std::string& defaultPath = "") const override;
     std::string PromptForFile(const std::string& message,
@@ -1636,6 +1644,7 @@ public:
     void ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ExecuteImportNotes(wxCommandEvent &command);
+    void GenerateAILyrics(wxCommandEvent& command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
     void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting);
     void PromoteEffects(wxCommandEvent &command);
@@ -1698,8 +1707,9 @@ public:
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
-     OpenSequence(passed_filename, nullptr); 
+     OpenSequence(passed_filename, nullptr);
     }
+    void ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
@@ -1750,6 +1760,8 @@ private:
     std::unique_ptr<RenderEngine> _renderEngine;
 
     Model *playModel;
+    Model *_lastPlayModel = nullptr;
+    void ResetModelPreviewIfModelChanged();
     int playType;
     int playStartMS;
     std::vector<std::list<FPSEvent>> fpsEvents;

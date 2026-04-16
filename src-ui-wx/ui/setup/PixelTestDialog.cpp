@@ -34,6 +34,7 @@
 #include "ui/shared/utils/wxUtilities.h"
 #include "outputs/ControllerSerial.h"
 #include "xLightsMain.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "controllers/ControllerUploadData.h"
 #include "controllers/ControllerCaps.h"
 #include "ui/layout/ModelPreview.h"
@@ -1590,8 +1591,8 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     DeactivateNotClickableModels(TreeListCtrl_ModelGroups);
     DeactivateNotClickableModels(TreeListCtrl_Controllers);
 
-    wxConfigBase* config = wxConfigBase::Get();
-    DeserialiseSettings(config->Read("xLightsTestSettings").ToStdString());
+    auto* config = GetXLightsConfig();
+    DeserialiseSettings(config->Read("xLightsTestSettings"));
 
     SetSuspend(CheckBox_SuppressUnusedOutputs->GetValue());
 
@@ -3772,7 +3773,7 @@ void PixelTestDialog::OnClose(wxCloseEvent& event)
         SetConfigBool("OutputActive", false);
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("xLightsTestSettings", wxString(SerialiseSettings()));
 
     EndDialog(0);

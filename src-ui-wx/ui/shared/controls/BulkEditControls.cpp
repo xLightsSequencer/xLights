@@ -192,7 +192,6 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
                     choices.Add("Copy to show folder");
                     if (canEmbed)
                         choices.Add("Embed in sequence");
-                    choices.Add("Use from current location");
 
                     wxSingleChoiceDialog dlg(this, msg, "File Outside Show Directory", choices);
                     dlg.SetSelection(0);
@@ -235,7 +234,10 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
                                 SetFileName(wxFileName(embeddedName));
                             }
                         }
-                        // choice == 2: keep as-is, no action needed
+                    } else {
+                        // User cancelled — using a file outside the show/media
+                        // folders is not allowed, so clear the selection.
+                        SetFileName(wxFileName());
                     }
                 }
             }

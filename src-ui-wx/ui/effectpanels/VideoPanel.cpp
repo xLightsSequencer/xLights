@@ -117,6 +117,14 @@ void VideoPanel::OnShowPanel(wxShowEvent& event) {
     event.Skip();
 }
 
+void VideoPanel::SetDefaultParameters() {
+    JsonEffectPanel::SetDefaultParameters();
+    if (_hiddenFilePicker) {
+        _hiddenFilePicker->SetFileName(wxFileName());
+    }
+    UpdatePreview();
+}
+
 wxWindow* VideoPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
                                            const nlohmann::json& prop, int cols) {
     std::string id = prop.value("id", "");

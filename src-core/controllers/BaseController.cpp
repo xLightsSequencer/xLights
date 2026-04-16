@@ -36,6 +36,7 @@
 #include "WLED.h"
 #include "ILightThat.h"
 #include "Experience.h"
+#include "PowerDMX.h"
 #include "utils/CurlManager.h"
 
 #pragma region Constructors and Destructors
@@ -96,6 +97,8 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new WLED(ip, proxy);
     } else if (driver == "ILightThat") {
         bc = new ILightThat(ip, proxy);
+    } else if (driver == "PowerDMX") {
+        bc = new PowerDMX(ip, proxy);
     } else {
         spdlog::warn("Vendor not recognized ... assuming it is a FPP based vendor : {}.", (const char*)vendor.c_str());
         bc = new FPP(ip, proxy, caps->GetModel());
@@ -108,8 +111,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
 
 #pragma region Protected Functions
 std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) const{
-    
-
+  
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     auto furl = std::string("http://" + baseIP + _baseUrl + url);
     if (!username.empty()) {
@@ -129,8 +131,6 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
 
 std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) const
 {
-    
-
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     try {
         spdlog::debug("Making request to Controller '{}'.", (const char*)url.c_str());

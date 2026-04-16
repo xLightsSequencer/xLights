@@ -1932,7 +1932,7 @@ bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node l
                                    changedModels, changedGroups);
 }
 
-bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
+bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll)
 {
     bool changed = false;
 
@@ -1951,8 +1951,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
             auto curr = GetModel(name);
             if (curr != nullptr && !curr->IsFromBase()) {
                 if (auto* ui = GetUICallbacks()) {
-                    if (ui->PromptYesNo(fmt::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
-                                        "Model clash")) {
+                    if (ui->PromptYesNoAll(fmt::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                                          "Model clash", acceptAll, rejectAll)) {
                         curr->SetFromBase(true);
                     }
                 }
@@ -1966,8 +1966,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 auto curr = GetModel(name);
                 if (curr != nullptr && !curr->IsFromBase()) {
                     if (auto* ui = GetUICallbacks()) {
-                        if (ui->PromptYesNo(fmt::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
-                                            "Model group clash")) {
+                        if (ui->PromptYesNoAll(fmt::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                                              "Model group clash", acceptAll, rejectAll)) {
                             curr->SetFromBase(true);
                         }
                     }

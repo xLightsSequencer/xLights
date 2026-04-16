@@ -77,7 +77,7 @@
         #include <EGL/eglext.h>
         #include <EGL/eglext_angle.h>
         #include <GLES3/gl3.h>
-    #else
+    #elif !TARGET_OS_IPHONE
         #include "OpenGL/gl3.h"
         #define __gl_h_
         #include <OpenGL/OpenGL.h>
@@ -652,7 +652,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
-            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
+            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), GetSequenceElements(buffer));
             if (_shaderConfig != nullptr) {
                 programId = programIdForShaderCode(_shaderConfig, cache);
             }

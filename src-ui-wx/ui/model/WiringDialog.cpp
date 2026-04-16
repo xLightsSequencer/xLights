@@ -22,7 +22,6 @@
 #include <wx/image.h>
 #include <wx/menu.h>
 #include <wx/filepicker.h>
-#include <wx/config.h>
 #include <wx/cmndata.h>
 #include <wx/prntbase.h>
 #include <wx/msgdlg.h>
@@ -36,6 +35,7 @@
 
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 
 #include <log.h>
 
@@ -108,7 +108,7 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 
     _modelname = modelname;
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Read("xLightsWDFontSize", &_fontSize, 12);
 }
 
@@ -786,16 +786,16 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
     else if (id == ID_MNU_FONTLARGER)
     {
         _fontSize += FONTSIZEINCREMENT;
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("xLightsWDFontSize"), _fontSize);
+        auto* config = GetXLightsConfig();
+        config->Write("xLightsWDFontSize", _fontSize);
         Render();
     }
     else if (id == ID_MNU_FONTSMALLER)
     {
         _fontSize -= FONTSIZEINCREMENT;
         if (_fontSize < MINFONTSIZE) _fontSize = MINFONTSIZE;
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("xLightsWDFontSize"), _fontSize);
+        auto* config = GetXLightsConfig();
+        config->Write("xLightsWDFontSize", _fontSize);
         Render();
     }
     else if (id == ID_MNU_ROTATE)

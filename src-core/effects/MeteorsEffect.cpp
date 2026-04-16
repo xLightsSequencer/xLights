@@ -186,7 +186,7 @@ static MeteorsRenderCache* GetCache(RenderBuffer &buffer, int id) {
 float MeteorsEffect::calcEffectStateOffset(int mSpeed, RenderBuffer& buffer) {
     if (mSpeed == 0) {
         // at least advance a little bit
-        return 0.1;
+        return 0.1f;
     }
     return (float(mSpeed * buffer.frameTimeInMs)) / 50.0f;
 }

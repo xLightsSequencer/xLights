@@ -16,6 +16,7 @@
 #include "RowHeading.h"
 #include "xLightsVersion.h"
 #include "ui/shared/utils/BitmapCache.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "models/ModelGroup.h"
 #include "ui/sequencer/SelectTimingsDialog.h"
 #include "models/SubModel.h"
@@ -23,6 +24,7 @@
 #include "EffectsGrid.h"
 #include "ui/color/ColorManager.h"
 #include "render/SequenceElements.h"
+#include "media/AudioManager.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "ui/sequencer/NewTimingDialog.h"
@@ -208,6 +210,7 @@ const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_UNFIX_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_NOTES = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
+const long RowHeading::ID_ROW_MNU_AI_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_WORDS = wxNewId();
@@ -237,7 +240,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     
     mCanPaste = false;
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int w = config->ReadLong("xLightsRowHeaderWidth", _minRowHeadingWidth);
     CallAfter(&RowHeading::SetWidth, w);
 }
@@ -326,7 +329,7 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
 {
     if (_dragging) {
         auto size = GetSize();
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("xLightsRowHeaderWidth", size.GetWidth());
         ReleaseMouse();
         _dragging = false;
@@ -593,6 +596,12 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
                     mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
+                    if ( xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
+                        SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
+                        if (xml_file->HasAudioMedia()) {
+                            mnuLayer.Append(ID_ROW_MNU_AI_LYRICS, "AI Speech 2 Lyrics");
+                        }
+                    }
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
                     TimingElement *te = dynamic_cast<TimingElement*>(element);
@@ -881,9 +890,28 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         
         VAMPPluginDialog vamp(this);
+
+        // Use the waveform's currently selected audio track for VAMP analysis
+        AudioManager* vampMedia = xml_file->GetMedia();
+        {
+            auto* frame = xLightsApp::GetFrame();
+            if (frame != nullptr && frame->GetMainSequencer() != nullptr) {
+                int trackIdx = frame->GetMainSequencer()->GetActiveAudioTrackIndex();
+                if (trackIdx > 0) {
+                    int altTrackIdx = trackIdx - 1;
+                    if (altTrackIdx < xml_file->GetAltTrackCount()) {
+                        AudioManager* altTrackMedia = xml_file->GetAltTrackMedia(altTrackIdx);
+                        if (altTrackMedia != nullptr) {
+                            vampMedia = altTrackMedia;
+                        }
+                    }
+                }
+            }
+        }
+
         std::list<std::string> plugins;
-        if (xml_file->HasAudioMedia()) {
-            plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
+        if (vampMedia != nullptr) {
+            plugins = vampMedia->GetVamp()->GetAvailablePlugins(vampMedia);
             if (plugins.size() == 0) {
                 dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
             } else {
@@ -904,7 +932,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 DownloadVamp();
             } else {
                 if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end()) {
-                    name = vamp.ProcessPlugin(xml_file, xLightsApp::GetFrame(), selected_timing, xml_file->GetMedia());
+                    name = vamp.ProcessPlugin(xml_file, xLightsApp::GetFrame(), selected_timing, vampMedia);
                     if (name != "") {
                         timing_added = true;
                     }
@@ -1286,6 +1314,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_IMPORT_NOTES) {
         wxCommandEvent importNotesEvent(EVT_IMPORT_NOTES);
         wxPostEvent(GetParent(), importNotesEvent);
+    } else if (id == ID_ROW_MNU_AI_LYRICS) {
+        wxCommandEvent aiLyricsEvent(EVT_AI_LYRICS);
+        wxPostEvent(GetParent(), aiLyricsEvent);
     } else if (id == ID_ROW_MNU_IMPORT_LYRICS) {
         ImportLyrics(mSequenceElements, dynamic_cast<TimingElement*>(element), GetParent());
     } else if (id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {

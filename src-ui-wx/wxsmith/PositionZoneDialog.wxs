@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="PositionZoneDialog">
+		<title>Position Zones</title>
+		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxGrid" name="ID_GRID_Zones" variable="Grid_Zones" member="yes">
+					<cols>6</cols>
+					<collabels>
+						<item>Pan Min</item>
+						<item>Pan Max</item>
+						<item>Tilt Min</item>
+						<item>Tilt Max</item>
+						<item>Channel</item>
+						<item>Value</item>
+					</collabels>
+					<style>wxVSCROLL|wxHSCROLL</style>
+					<handler function="OnGrid_ZonesCellChanged" entry="EVT_CMD_GRID_CELL_CHANGED" />
+				</object>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_AddZone" variable="Button_AddZone" member="yes">
+							<label>Add Zone</label>
+							<handler function="OnButton_AddZoneClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_DeleteZone" variable="Button_DeleteZone" member="yes">
+							<label>Delete Zone</label>
+							<handler function="OnButton_DeleteZoneClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+					<object class="button">
+						<object class="wxButton" name="wxID_OK">
+							<label></label>
+						</object>
+					</object>
+					<object class="button">
+						<object class="wxButton" name="wxID_CANCEL">
+							<label></label>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

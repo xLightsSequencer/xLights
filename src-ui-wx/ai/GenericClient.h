@@ -29,7 +29,7 @@ class GenericClient : public OpenAIAPI {
     public:
 
 	explicit GenericClient(ServiceManager* frame) :
-            OpenAIAPI("http://localhost:8000/api/v1", "Llama-3.2-1B-Instruct-GGUF", "SD-Turbo", "fake", frame) {
+            OpenAIAPI("http://localhost:8000/api/v1", "Llama-3.2-1B-Instruct-GGUF", "SD-Turbo", "Whisper-Large-v3-Turbo", "fake", frame) {
         }
     virtual ~GenericClient() = default; 
 
@@ -45,6 +45,6 @@ class GenericClient : public OpenAIAPI {
     }
 
 	[[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
-        return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES, aiType::TYPE::IMAGES });
+        return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES, aiType::TYPE::IMAGES, aiType::TYPE::SPEECH2TEXT });
     }
 };

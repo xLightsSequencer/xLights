@@ -13,7 +13,6 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/config.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
@@ -29,6 +28,7 @@
 #include "ui/sequencer/SubBufferPanel.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
+#include "settings/XLightsConfigAdapter.h"
 
 namespace {
 nlohmann::json LoadBufferMetadata() {
@@ -39,6 +39,7 @@ nlohmann::json LoadBufferMetadata() {
 
 // Roto-Zoom presets (in legacy display order).
 const wxString ROTOZOOM_PRESETS[] = {
+    "",
     "None - Reset",
     "1 Rev CW",
     "1 Rev CCW",
@@ -58,7 +59,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID /*id*/,
     SetName("Buffer");
 
     // Restore the 'Reset panel when changing effects' preference.
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool reset = true;
     if (config) config->Read("xLightsResetBufferPanel", &reset, true);
     if (_resetBufferPanelCheck) _resetBufferPanelCheck->SetValue(reset);
@@ -133,10 +134,16 @@ wxWindow* BufferPanel::BuildRotoZoomPresetRow(wxWindow* parentWin, wxSizer* size
                                                 wxDefaultPosition, wxDefaultSize,
                                                 0, nullptr, 0, wxDefaultValidator,
                                                 _T("IDD_CHOICE_RotoZoomPreset"));
+    // The preset picker is a UI-only action dropdown — selecting an entry
+    // mutates several other sliders / value curves in this panel. Bulk Edit
+    // would need to replay those mutations into each target effect's settings
+    // map, which isn't supported by the generic bulk-edit path. Disable it
+    // rather than offer a menu item that silently does nothing useful.
+    _rotoZoomPresetChoice->SetSupportsBulkEdit(false);
     for (const auto& p : ROTOZOOM_PRESETS) {
         _rotoZoomPresetChoice->Append(p);
     }
-    _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    _rotoZoomPresetChoice->SetSelection(0);
     row->Add(_rotoZoomPresetChoice, 1, wxALL | wxEXPAND, 2);
     _rotoZoomPresetChoice->Bind(wxEVT_CHOICE, &BufferPanel::OnPresetSelect, this);
 
@@ -145,7 +152,7 @@ wxWindow* BufferPanel::BuildRotoZoomPresetRow(wxWindow* parentWin, wxSizer* size
 }
 
 void BufferPanel::OnResetBufferPanelClick(wxCommandEvent& /*event*/) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config && _resetBufferPanelCheck) {
         config->Write("xLightsResetBufferPanel", _resetBufferPanelCheck->IsChecked());
     }
@@ -254,7 +261,7 @@ void BufferPanel::SetDefaultControls(const Model* model, bool optionbased) {
     UpdateCamera(model);
 
     if (subBufferPanel) subBufferPanel->SetDefaults();
-    if (_rotoZoomPresetChoice) _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    if (_rotoZoomPresetChoice) _rotoZoomPresetChoice->SetSelection(0);
 
     ValidateWindow();
 }
@@ -309,6 +316,10 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
     event.Skip();
     if (!_rotoZoomPresetChoice) return;
     wxString preset = _rotoZoomPresetChoice->GetStringSelection();
+    // The blank entry is the idle state — programmatic reselection after a
+    // preset fires this handler too, and must be a no-op so it doesn't wipe
+    // the values the preset just applied.
+    if (preset.IsEmpty()) return;
 
     // Helper lookups into the framework-built controls. Both int and float
     // sliders are SLIDER-primary (info->slider + info->buddyText). For float
@@ -397,7 +408,7 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
         setIntValue("ZoomQuality", 2);
     }
 
-    _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    _rotoZoomPresetChoice->SetSelection(0);
     if (auto* rotOrder = GetPropertyInfo("RZ_RotationOrder"); rotOrder && rotOrder->choice) {
         rotOrder->choice->SetSelection(0);
     }

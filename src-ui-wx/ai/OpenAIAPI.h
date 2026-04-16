@@ -11,8 +11,8 @@
  **************************************************************/
 
 #include "aiBase.h"
-#include "aiType.h"
 #include <string>
+#include <utility>
 
 class OpenAIAPI : public aiBase {
 
@@ -20,14 +20,15 @@ protected:
 	std::string base_url = "https://api.openai.com/v1";
     std::string model = "gpt-4o-mini";
     std::string image_model = "gpt-image-1";
+    std::string transcribe_model = "gpt-4o-transcribe";
     std::string token;
 
 public:
     OpenAIAPI(ServiceManager* sm) :
         aiBase(sm) {
     }
-    OpenAIAPI(std::string base_url_, std::string model_, std::string image_model_, std::string token_, ServiceManager* sm) :
-        aiBase(sm), base_url(base_url_), model(model_), image_model(image_model_), token(token_) {
+    OpenAIAPI(std::string base_url_, std::string model_, std::string image_model_, std::string transcribe_model_, std::string token_, ServiceManager* sm) :
+        aiBase(sm), base_url(std::move(base_url_)), model(std::move(model_)), image_model(std::move(image_model_)), transcribe_model(std::move(transcribe_model_)), token(std::move(token_)) {
     }
     virtual ~OpenAIAPI() {
     }
@@ -37,4 +38,6 @@ public:
     [[nodiscard]] virtual AIColorPalette GenerateColorPalette(const std::string& prompt) const override;
 
     [[nodiscard]] virtual AIImageGenerator* createAIImageGenerator() const override;
+
+    [[nodiscard]] AILyricTrack GenerateLyricTrack(const std::string& audioPath) const override;
 };

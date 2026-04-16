@@ -16,7 +16,7 @@
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/protocol/http.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #ifdef __WXMSW__
 #include <wx/msw/crashrpt.h>
 #include <wx/msw/seh.h>
@@ -73,7 +73,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             backtrace_txt += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n";
 
             wxString userEmail;
-            wxConfigBase* config = wxConfigBase::Get();
+            auto* config = GetXLightsConfig();
             if (config != nullptr) {
                 config->Read("xLightsUserEmail", &userEmail, "noone@nowhere.xlights.org");
 

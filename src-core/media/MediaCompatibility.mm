@@ -30,7 +30,7 @@ std::string MediaCompatibility::CheckVideoFile(const std::string& filePath) {
 
         // Check if the asset is playable (decodable by AVFoundation)
         if (!asset.playable) {
-            return "File format not supported by AVFoundation";
+            return "File format not supported";
         }
 
         // Check for video tracks
@@ -59,7 +59,7 @@ std::string MediaCompatibility::CheckVideoFile(const std::string& filePath) {
                                             outputSettings:outputSettings];
 
         if (![reader canAddOutput:output]) {
-            return "Video codec not supported for decoding by AVFoundation";
+            return "Video codec not supported for decoding";
         }
 
         [reader addOutput:output];

@@ -496,7 +496,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                                 std::string pattern = WildcardToRegex(filter.ToStdString());
                                 std::regex regexFilter(pattern, std::regex::icase);
                                 matches = std::regex_match(modelName, regexFilter);
-                            } catch (const std::regex_error& e) {
+                            } catch (const std::regex_error& ) {
                                 matches = Contains(modelName, filter);
                             }
                         }

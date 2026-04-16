@@ -25,7 +25,7 @@
 
 #include <wx/dir.h>
 #include <wx/menu.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
@@ -134,7 +134,7 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent, OutputManager* outputMana
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     auto seqSortCol = config->ReadLong("BatchRendererSortCol", SORT_SEQ_NAME_COL);
     auto seqSortOrder = config->ReadBool("BatchRendererSortOrder", true);
     CheckListBox_Sequences->SetSortColumn(seqSortCol, seqSortOrder);
@@ -267,7 +267,7 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
     prgs.Pulse("Searching for Sequences");
     GetSeqList(showDir);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         int filterSelect { -1 };
         wxString folderSelect;
@@ -397,7 +397,7 @@ void BatchRenderDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     SaveSettings();
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("BatchRendererGridIconBackgrounds", frame->GridIconBackgrounds());
         config->Write("BatchRendererGroupEffectBackgrounds", frame->ShowGroupEffectIndicator());
@@ -469,7 +469,7 @@ void BatchRenderDialog::SaveSettings()
 
     CheckListBox_Sequences->GetSortColumn(&sortCol, &ascendingOrder);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("BatchRendererItemList", selected);
         config->Write("BatchRendererFilterSelection", FilterChoice->GetSelection());

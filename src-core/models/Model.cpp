@@ -2984,8 +2984,14 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
     }
     bool created = false;
     auto cache = uiCaches[cacheKey];
-    // nothing in the cache is dependent on preview size/rotation/etc..., the cached program is
-    // size indepentent and thus can be re-used
+    // Circle styles bake getBackingScaleFactor() into the geometry; rebuild if it changed.
+    if (cache != nullptr &&
+        (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) &&
+        cache->backingScaleFactor != (float)preview->getBackingScaleFactor()) {
+        delete cache;
+        uiCaches[cacheKey] = nullptr;
+        cache = nullptr;
+    }
     if (cache == nullptr) {
         screenLocation.UpdateBoundingBox(Nodes);
         cache = new PreviewGraphicsCacheInfo();
@@ -3011,6 +3017,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             needTransparent = true;
         }
         cache->isTransparent = needTransparent;
+        cache->backingScaleFactor = (float)preview->getBackingScaleFactor();
         cache->program = ctx->createGraphicsProgram();
         cache->vica = ctx->createVertexIndexedColorAccumulator();
         cache->vica->SetName(GetName() + (is_3d ? " - 3DPreview" : " - 2DPreview"));
@@ -3019,10 +3026,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
         float modelPixelSize = pixelSize;
         // pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
-        // get the size to use for the pixelStyle 3/4 that use triangles
+        // get the size to use for the pixelStyle 3/4 that use triangles.
+        // Use getBackingScaleFactor() rather than calcPixelSize() to avoid double-applying the
+        // view-matrix scale (scale2d) that is already applied by the camera transform.
+        // The factor of 2 converts from modelPixelSize (diameter in local coords) to a radius
+        // that, after ApplyModelViewMatrices (×scalex) and the ViewMatrix (×zoom×scale2d), equals
+        // half the GL_POINTS diameter: backingScale × pixelSize × zoom × scale2d / 2.
         if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
-            modelPixelSize = preview->calcPixelSize(pixelSize);
-
             float x1 = -1, y1 = -1, z1 = -1;
             float x2 = 1, y2 = 1, z2 = 1;
             GetModelScreenLocation().TranslatePoint(x1, y1, z1);
@@ -3030,7 +3040,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
             glm::vec3 a = glm::vec3(x2, y2, z2) - glm::vec3(x1, y1, z1);
             float length = std::max(std::max(std::abs(a.x), std::abs(a.y)), std::abs(a.z));
-            modelPixelSize /= std::abs(length);
+            modelPixelSize = 2.0f * (float)pixelSize * (float)preview->getBackingScaleFactor() / std::abs(length);
         }
 
         int first = 0;
@@ -3363,11 +3373,10 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
         mb += GetModelScreenLocation().RenderHt / 2;
 
         auto cache = uiCaches[EFFECT_PREVIEW_CACHE];
-        // nothing in the cache is dependent on preview size, the cached program is
-        // size indepentent and thus can be re-used unless the models rendeWi/Hi
-        // changes (which should trigger the uiObjectsInvalid and clear
-        // the cache anyway)
-        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != (int)this->changeCount) {
+        // Circle styles bake the radius (which depends on scale/w/h/backingScale) into the geometry,
+        // so we must also invalidate the cache when the preview panel size or backing scale changes.
+        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != (int)this->changeCount || cache->width != w || cache->height != h ||
+            cache->backingScaleFactor != (float)preview->getBackingScaleFactor()) {
             if (cache != nullptr) {
                 delete cache;
             }
@@ -3379,6 +3388,7 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             cache->renderWi = renderWi;
             cache->renderHi = renderHi;
             cache->modelChangeCount = this->changeCount;
+            cache->backingScaleFactor = (float)preview->getBackingScaleFactor();
 
             created = true;
 
@@ -3480,7 +3490,12 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                         if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                             ecolor += NodeCount;
                         }
-                        cache->vica->AddCircleAsTriangles(newsx, newsy, 0, lastPixelSize * pointScale, n, ecolor);
+                        // Radius must equal GL_POINTS radius in window pixels, converted to local coords.
+                        // GL_POINTS diameter = calcPixelSize(pixelSize*pointScale) ≈ backingScale*pixelSize*pointScale.
+                        // After CTX Scale(scale), local_radius * scale = window_pixel_radius.
+                        // So: local_radius = backingScale * pixelSize * pointScale / (2 * scale).
+                        float circleRadius = (float)preview->getBackingScaleFactor() * lastPixelSize * pointScale / (2.0f * scale);
+                        cache->vica->AddCircleAsTriangles(newsx, newsy, 0, circleRadius, n, ecolor);
                     }
                 }
             }
@@ -3529,8 +3544,8 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
-            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Translate(w / 2.0f - ml * scale,
+                           h / 2.0f - mb * scale, 0.0f);
             ctx->Scale(scale, scale, 1.0);
             if (!GetModelScreenLocation().IsCenterBased()) {
                 ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,

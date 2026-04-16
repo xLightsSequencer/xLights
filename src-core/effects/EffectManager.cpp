@@ -229,6 +229,7 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
 
 
 void EffectManager::add(RenderableEffect *eff) {
+    if (eff == nullptr) return;
     int id = eff->GetId();
     if (id >= (int)size()) {
         effects.resize(id + 1);

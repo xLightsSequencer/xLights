@@ -87,7 +87,7 @@ public:
 
 bool TwinkleEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
-    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version);
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version) || IsVersionOlder("2026.06", version);
 }
 
 void TwinkleEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
@@ -99,6 +99,20 @@ void TwinkleEffect::adjustSettings(const std::string& version, Effect* effect, b
     if (IsVersionOlder("2020.57", version)) {
         SettingsMap& settings = effect->GetSettings();
         settings["E_CHOICE_Twinkle_Style"] = "Old Render Method";
+    }
+    if (IsVersionOlder("2026.06", version)) {
+        // TWINKLE_STEPS_MAX was raised from 100 to 400. UpgradeValueCurve is
+        // disabled for this setting (GetSettingVCDivisor returns 0xFFFF) to
+        // prevent it from rescaling old values into the new range. Instead,
+        // migrate here: preserve the stored values but widen the Max to 400.
+        SettingsMap& settings = effect->GetSettings();
+        std::string vc = settings.Get("E_VALUECURVE_Twinkle_Steps", "");
+        if (vc.find("VALUECURVE") != std::string::npos && vc.find("Max=100.00") != std::string::npos) {
+            ValueCurve v;
+            v.Deserialise(vc, true); // holdminmax=true: keep values, don't rescale
+            v.SetLimits(sStepsVCMin, sStepsVCMax); // extend to new limits (2..400)
+            settings["E_VALUECURVE_Twinkle_Steps"] = v.Serialise();
+        }
     }
 }
 
