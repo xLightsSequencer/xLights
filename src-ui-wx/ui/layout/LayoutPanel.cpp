@@ -3668,8 +3668,10 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     heightmm = dlg.GetModelHeightMM();
                     depthmm = dlg.GetModelDepthMM();
 
-                    // Capture additional downloaded models (beyond the first) for batch placement
+                    // Capture additional downloaded models (beyond the first) for batch placement.
+                    // Always clear first so callers that reuse the vector don't see stale entries.
                     if (additionalModels != nullptr) {
+                        additionalModels->clear();
                         const auto& allDownloaded = dlg.GetDownloadedModels();
                         if (allDownloaded.size() > 1) {
                             additionalModels->assign(allDownloaded.begin() + 1, allDownloaded.end());
@@ -4039,8 +4041,14 @@ void LayoutPanel::FinalizeModel()
 
         // Process additional models from multi-select download
         if (!additionalModels.empty()) {
-            float xOffset = 200.0f; // horizontal spacing between models in layout units
-            float currentX = firstModelPos.x + xOffset;
+            // Space each model by the actual width of its left neighbour (in layout units)
+            // plus a small padding, so batch placement scales with model size rather than
+            // using a single magic offset for every model.
+            constexpr float BATCH_PLACEMENT_PADDING = 50.0f;
+            constexpr float BATCH_PLACEMENT_MIN_OFFSET = 100.0f;
+
+            float previousWidth = std::max(_newModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
+            float currentX = firstModelPos.x + previousWidth + BATCH_PLACEMENT_PADDING;
 
             for (const auto& modelInfo : additionalModels) {
                 std::string extraModelPath = modelInfo.modelFile;
@@ -4079,7 +4087,9 @@ void LayoutPanel::FinalizeModel()
                 extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
                 xlights->AllModels.AddModel(extraModel);
 
-                currentX += xOffset;
+                // Advance past this model's own width so the next one sits beside it
+                float thisWidth = std::max(extraModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
+                currentX += thisWidth + BATCH_PLACEMENT_PADDING;
             }
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
         }

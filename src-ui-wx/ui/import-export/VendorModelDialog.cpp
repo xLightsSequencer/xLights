@@ -1581,7 +1581,14 @@ void VendorModelDialog::ValidateWindow()
         Button_InsertModel->Disable();
         Button_InsertModel->SetLabel("Insert Model");
     }
-    Button_InsertModel->GetParent()->GetSizer()->Layout();
+
+    // Recalculate layout once after label/state changes so the button resizes
+    // to fit the wider "Insert N Models" text. Guard against null parents/sizers.
+    if (wxWindow* parent = Button_InsertModel->GetParent()) {
+        if (wxSizer* sizer = parent->GetSizer()) {
+            sizer->Layout();
+        }
+    }
 
     if (GetFocusedItem().IsOk())
     {
