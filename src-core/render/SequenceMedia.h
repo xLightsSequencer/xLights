@@ -394,6 +394,11 @@ public:
 
     // === Query helpers ===
     std::vector<std::string> GetVideoFilePaths() const;
+    std::vector<std::string> GetShaderPaths() const;
+    std::vector<std::string> GetBinaryFilePaths() const;
+    std::vector<std::string> GetSVGPaths() const;
+    std::vector<std::string> GetTextFilePaths() const;
+    std::vector<std::string> GetAllBrokenMediaPaths() const;
 
     // === Lifecycle ===
     void Clear();

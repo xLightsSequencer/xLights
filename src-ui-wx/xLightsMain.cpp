@@ -80,6 +80,7 @@
 #include "ui/layout/HousePreviewPanel.h"
 #include "ui/setup/IPEntryDialog.h"
 #include "ui/media/JukeboxPanel.h"
+#include "ui/media/ManageMediaPanel.h"
 #include "ui/app-shell/KeyBindingEditDialog.h"
 #include "ui/layout/LayoutGroup.h"
 #include "ui/layout/LayoutPanel.h"
@@ -278,6 +279,7 @@ const wxWindowID xLightsFrame::ID_MNU_COLOURREPLACE = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM13 = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_CLEANUPFILE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_RESOLVE_MISSING_MEDIA = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
@@ -1083,6 +1085,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu1->Append(MenuItemCheckSequence);
     MenuItem_CleanupFileLocations = new wxMenuItem(Menu1, ID_MNU_CLEANUPFILE, _("Cleanup File Locations"), _("Moves all files into or under the show folder."), wxITEM_NORMAL);
     Menu1->Append(MenuItem_CleanupFileLocations);
+    MenuItem_ResolveMissingMedia = new wxMenuItem(Menu1, ID_MNU_RESOLVE_MISSING_MEDIA, _("Resolve Missing Media..."), _("Find and fix all broken media file references in the sequence."), wxITEM_NORMAL);
+    Menu1->Append(MenuItem_ResolveMissingMedia);
     MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PackageSequence);
     MenuItem_DownloadSequences = new wxMenuItem(Menu1, ID_MNU_DOWNLOADSEQUENCES, _("Download Sequences/Lyrics"), wxEmptyString, wxITEM_NORMAL);
@@ -1373,6 +1377,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENUITEM13, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MNU_CHECKSEQ, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
     Connect(ID_MNU_CLEANUPFILE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_CleanupFileLocationsSelected);
+    Connect(ID_MNU_RESOLVE_MISSING_MEDIA, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ResolveMissingMediaSelected);
     Connect(ID_MNU_PACKAGESEQUENCE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
     Connect(ID_MNU_DOWNLOADSEQUENCES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_DownloadSequencesSelected);
     Connect(ID_MENU_BATCH_RENDER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
@@ -6806,7 +6811,80 @@ void xLightsFrame::ValidateEffectAssets()
     }
 
     if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
-        wxMessageBox("Sequence references files which cannot be found:\nShow Folder: " + showDirectory + "\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
+        wxDialog dlg(this, wxID_ANY, "Missing assets", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+        auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+        auto* headerText = new wxStaticText(&dlg, wxID_ANY, "Sequence references files which cannot be found:");
+        headerText->SetFont(headerText->GetFont().Bold());
+        sizer->Add(headerText, 0, wxALL, 10);
+
+        auto* showText = new wxStaticText(&dlg, wxID_ANY, "Show Folder: " + showDirectory);
+        sizer->Add(showText, 0, wxLEFT | wxRIGHT, 10);
+
+        auto* fileList = new wxTextCtrl(&dlg, wxID_ANY, missing, wxDefaultPosition, wxSize(500, 100),
+                                        wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+        sizer->Add(fileList, 1, wxALL | wxEXPAND, 10);
+
+        auto* promptText = new wxStaticText(&dlg, wxID_ANY, "Would you like to resolve them now?");
+        sizer->Add(promptText, 0, wxLEFT | wxRIGHT | wxBOTTOM, 10);
+
+        auto* btnYes = new wxButton(&dlg, wxID_YES, "Yes");
+        auto* btnNo = new wxButton(&dlg, wxID_NO, "No");
+        btnYes->Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_YES); });
+        btnNo->Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_NO); });
+        auto* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+        btnSizer->AddStretchSpacer();
+        btnSizer->Add(btnNo, 0, wxRIGHT, 5);
+        btnSizer->Add(btnYes, 0, 0, 0);
+        sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 10);
+
+        dlg.SetSizerAndFit(sizer);
+        dlg.CentreOnParent();
+
+        if (dlg.ShowModal() == wxID_YES) {
+            ManageMediaPanel::ResolveAllMissingMedia(this,
+                                                      &_sequenceElements.GetSequenceMedia(),
+                                                      &_sequenceElements,
+                                                      this, CurrentDir.ToStdString());
+            // If there are still unresolved files, remind user about Check Sequence
+            std::string stillMissing;
+            for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
+                auto f = FileUtils::FixFile("", it);
+                if (!FileExists(f, false)) {
+                    stillMissing += it + "\n";
+                }
+            }
+            if (!stillMissing.empty()) {
+                wxDialog dlg2(this, wxID_ANY, "Missing assets", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+                auto* s2 = new wxBoxSizer(wxVERTICAL);
+                auto* h2 = new wxStaticText(&dlg2, wxID_ANY, "Some files are still missing:");
+                h2->SetFont(h2->GetFont().Bold());
+                s2->Add(h2, 0, wxALL, 10);
+                auto* fl2 = new wxTextCtrl(&dlg2, wxID_ANY, stillMissing, wxDefaultPosition, wxSize(500, 100),
+                                           wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+                s2->Add(fl2, 1, wxLEFT | wxRIGHT | wxEXPAND, 10);
+                s2->Add(new wxStaticText(&dlg2, wxID_ANY, "Use Tools/Check Sequence for more details."), 0, wxALL, 10);
+                s2->Add(dlg2.CreateStdDialogButtonSizer(wxOK), 0, wxALL | wxEXPAND, 10);
+                dlg2.SetSizerAndFit(s2);
+                dlg2.CentreOnParent();
+                dlg2.ShowModal();
+            }
+        } else {
+            wxDialog dlg2(this, wxID_ANY, "Missing assets", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+            auto* s2 = new wxBoxSizer(wxVERTICAL);
+            auto* h2 = new wxStaticText(&dlg2, wxID_ANY, "Sequence references files which cannot be found:");
+            h2->SetFont(h2->GetFont().Bold());
+            s2->Add(h2, 0, wxALL, 10);
+            s2->Add(new wxStaticText(&dlg2, wxID_ANY, "Show Folder: " + showDirectory), 0, wxLEFT | wxRIGHT, 10);
+            auto* fl2 = new wxTextCtrl(&dlg2, wxID_ANY, missing, wxDefaultPosition, wxSize(500, 100),
+                                       wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+            s2->Add(fl2, 1, wxALL | wxEXPAND, 10);
+            s2->Add(new wxStaticText(&dlg2, wxID_ANY, "Use Tools/Check Sequence for more details."), 0, wxLEFT | wxRIGHT | wxBOTTOM, 10);
+            s2->Add(dlg2.CreateStdDialogButtonSizer(wxOK), 0, wxALL | wxEXPAND, 10);
+            dlg2.SetSizerAndFit(s2);
+            dlg2.CentreOnParent();
+            dlg2.ShowModal();
+        }
     }
 }
 
@@ -8178,6 +8256,19 @@ void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event
         wxMessageBox("You must have a sequence opened in order to run Cleanup File Locations.", "Missing Sequence", wxOK);
     }
     spdlog::debug("Cleaning up file locations ... DONE.");
+}
+
+void xLightsFrame::OnMenuItem_ResolveMissingMediaSelected(wxCommandEvent& event)
+{
+    if (CurrentSeqXmlFile == nullptr) {
+        wxMessageBox("You must have a sequence open to resolve missing media.", "No Sequence", wxOK);
+        return;
+    }
+
+    ManageMediaPanel::ResolveAllMissingMedia(this,
+                                              &_sequenceElements.GetSequenceMedia(),
+                                              &_sequenceElements,
+                                              this, CurrentDir.ToStdString());
 }
 
 
