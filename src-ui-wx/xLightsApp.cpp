@@ -24,6 +24,7 @@
 #include <wx/version.h>
 #include <wx/dirdlg.h>
 #include <wx/filename.h>
+#include <wx/config.h>
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
@@ -674,7 +675,11 @@ bool xLightsApp::OnInit()
         }
         if (parser.Found("s", &showDir)) {
             spdlog::info("-s: Show directory set to {}.", (const char*)showDir.c_str());
-            info += _("Setting show directory to ") + showDir + "\n";
+            wxString lastDir;
+            wxConfigBase::Get()->Read("LastDir", &lastDir);
+            if (lastDir != showDir) {
+                info += _("Setting show directory to ") + showDir + "\n";
+            }
         }
 
         if (parser.Found("a")) {
