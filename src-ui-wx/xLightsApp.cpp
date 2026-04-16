@@ -676,7 +676,7 @@ bool xLightsApp::OnInit()
         if (parser.Found("s", &showDir)) {
             spdlog::info("-s: Show directory set to {}.", (const char*)showDir.c_str());
             wxString lastDir;
-            wxConfigBase::Get()->Read("LastDir", &lastDir);
+            GetXLightsConfig()->Read("LastDir", &lastDir);
             if (lastDir != showDir) {
                 info += _("Setting show directory to ") + showDir + "\n";
             }

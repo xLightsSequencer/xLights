@@ -1327,7 +1327,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
     // Default the file picker to the last used image dir, then show directory, then old path's dir
     wxString defaultDir;
     {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Read(LastDirConfigKey(MediaType::Image), &defaultDir);
         if (defaultDir.empty()) {
             wxFileName fn(oldPath);
@@ -1348,7 +1348,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                          wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK) return;
         pickedPath = ToStdString(dlg.GetPath());
-        wxConfigBase::Get()->Write(LastDirConfigKey(MediaType::Image), wxFileName(pickedPath).GetPath());
+        GetXLightsConfig()->Write(LastDirConfigKey(MediaType::Image), wxFileName(pickedPath).GetPath());
     }
 
     // --- Step 2: if same path, just reload and done ---
@@ -1734,7 +1734,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
 
     wxString defaultDir;
     {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Read(LastDirConfigKey(MediaType::Image), &defaultDir);
         if (defaultDir.empty())
             defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
@@ -1747,7 +1747,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
     wxArrayString paths;
     dlg.GetPaths(paths);
     if (!paths.empty())
-        wxConfigBase::Get()->Write(LastDirConfigKey(MediaType::Image), wxFileName(paths[0]).GetPath());
+        GetXLightsConfig()->Write(LastDirConfigKey(MediaType::Image), wxFileName(paths[0]).GetPath());
     std::string lastPath;
     const std::string sep(1, wxFileName::GetPathSeparator());
     for (const auto& p : paths) {
@@ -2434,7 +2434,7 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
 
     wxString defaultDir;
     {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Read(LastDirConfigKey(_filterType), &defaultDir);
         if (defaultDir.empty())
             defaultDir = _panel->_showDirectory.empty() ? wxString() : wxString(_panel->_showDirectory);
@@ -2445,7 +2445,7 @@ void SelectMediaDialog::OnAddFromDisk(wxCommandEvent& event)
     if (dlg.ShowModal() != wxID_OK) return;
 
     std::string path = ToStdString(dlg.GetPath());
-    wxConfigBase::Get()->Write(LastDirConfigKey(_filterType), wxFileName(path).GetPath());
+    GetXLightsConfig()->Write(LastDirConfigKey(_filterType), wxFileName(path).GetPath());
     const std::string sep(1, wxFileName::GetPathSeparator());
 
     // Determine which MediaType to register as
