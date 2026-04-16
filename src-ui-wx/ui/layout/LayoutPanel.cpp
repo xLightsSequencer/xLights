@@ -1161,7 +1161,7 @@ LayoutPanel::~LayoutPanel()
                 }
             }
         }
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("LayoutAUIPerspective2", layout_mgr->SavePerspective());
         layout_mgr->UnInit();
         delete layout_mgr;
@@ -5616,9 +5616,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel(visitor);
             }
@@ -5632,9 +5632,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel3D(visitor);
             }
@@ -5683,7 +5683,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
             pugi::xml_document doc = serializer.SerializeModel(md, true);
-            doc.save_file(filename.ToStdString().c_str());
+            doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
@@ -8154,9 +8154,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel(visitor);
             }
@@ -8170,9 +8170,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel3D(visitor);
             }
@@ -8219,7 +8219,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
             pugi::xml_document doc = serializer.SerializeModel(md, true);
-            doc.save_file(filename.ToStdString().c_str());
+            doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
@@ -9161,7 +9161,7 @@ void LayoutPanel::ResetToDefaults() {
     SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
 
     // Clear saved state so the defaults persist across restarts.
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->DeleteEntry("LayoutAUIPerspective2");
     config->DeleteEntry("LayoutMainSplitterSash");
     config->DeleteEntry("LayoutModelSplitterSash");
