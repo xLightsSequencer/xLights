@@ -1661,7 +1661,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsSmallWaveform", &_smallWaveform, false);
     spdlog::debug("Small Waveform: {}.", toStr(_smallWaveform));
 
-    config->Read("xlightsRenderBell", &_renderBellEnabled, false);
+    config->Read("xLightsRenderBell", &_renderBellEnabled, false);
     spdlog::debug("Render Bell Enabled: {}.", toStr(_renderBellEnabled));
 
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
