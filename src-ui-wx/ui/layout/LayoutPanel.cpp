@@ -9175,6 +9175,7 @@ void LayoutPanel::ResetToDefaults() {
 void LayoutPanel::OnLayoutPaneClose(wxAuiManagerEvent& event) {
     event.Veto();
     wxAuiPaneInfo* pane = event.GetPane();
+    if (pane == nullptr) return;
     wxString name = pane->name;
     CallAfter([this, name]() {
         if (layout_mgr == nullptr) return;
