@@ -10,9 +10,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.06  May ??, 2026
--change (scott)             Replace wxConfig with a custom JSON settings manager (AppData/xLights/settings.json).
-                                    Settings are automatically migrated from the legacy system on first run.
+2026.07  April ??, 2026
+    -enh (AGFazio)              Layout panels (Groups, Models, Settings) are now undockable/floatable
 
 2026.06  April 16, 2026
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —

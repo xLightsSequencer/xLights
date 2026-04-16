@@ -273,7 +273,7 @@ public:
     void OnLeftUp(wxMouseEvent& event) {
         // Capture interaction state before clearing — only trigger the post-layout
         // callback when an actual pane drag or resize took place, not on every click.
-        bool wasDragging = m_pendingCenterDrag || m_action != actionNone;
+        bool wasDragging = m_action != actionNone;
         m_pendingCenterDrag    = false;
         m_centerDragWindow     = nullptr;
         // Reset per-drag clamping state.
