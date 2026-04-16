@@ -158,7 +158,18 @@ public:
     wxPoint m_centerDragStart;
     wxPoint m_centerDragOffset;
 
+    // Saved state for horizontal-dock sash clamping.
+    // Set on the first OnMotion call of each resize drag (while m_actionPart is
+    // still valid), then used for all subsequent calls so we never touch the
+    // dangling m_actionPart or the potentially-stale m_currentDragItem again.
+    // -1 means "not currently in a horizontal-dock resize".
+    int m_horizResizeDockY = -1;
+    int m_horizResizeActionOffsetY = 0;
+
     void OnLeftDown(wxMouseEvent& event) {
+        // Reset per-drag clamping state before the base class sets m_actionPart.
+        m_horizResizeDockY = -1;
+        m_horizResizeActionOffsetY = 0;
         wxAuiDockUIPart* part = HitTest(event.GetX(), event.GetY());
         if (part &&
             (part->type == wxAuiDockUIPart::typeCaption ||
@@ -204,30 +215,37 @@ public:
         // Clamp the sash Y to enforce minimum heights for ModelList and the settings pane.
         // This runs before event.Skip() so the base class sees the clamped mouse position.
         //
-        // m_actionPart becomes a dangling pointer after each live-resize Update() call
-        // (OnMotion→DoEndResizeAction→Update() rebuilds m_uiParts). We work around this
-        // by preferring the stable m_currentDragItem index (set by the base class on its
-        // first OnMotion call) over the dangling m_actionPart pointer.
+        // Pointer/index stability problem: m_actionPart becomes a dangling pointer after
+        // every live-resize Update() call (OnMotion→base Update() rebuilds m_uiParts).
+        // m_currentDragItem can also go stale after a rebuild if GetActionPartIndex()
+        // fails to locate the part (e.g. the sash disappears from m_uiParts when one pane
+        // reaches its minimum size).  Stale/null lookups skip the clamp entirely, letting
+        // the sash fly past the minimum to the raw mouse position.
         //
-        // Sequence:
-        //   1st OnMotion: our handler fires first; m_currentDragItem is still -1 (set in
-        //     base-class OnLeftDown, not yet updated). We fall back to m_actionPart which
-        //     is valid at this point (no Update() since OnLeftDown). Then event.Skip() runs
-        //     base-class OnMotion which calls GetActionPartIndex() and sets m_currentDragItem.
-        //   2nd+ OnMotion: m_currentDragItem is a valid index; we look up the rebuilt part
-        //     directly without touching the now-dangling m_actionPart.
+        // Fix: on the very FIRST OnMotion of each drag (before any Update() has fired,
+        // while m_actionPart is still valid), detect whether we are resizing a horizontal
+        // dock sizer and save the dock-rect Y and action-offset Y.  All subsequent calls
+        // use those saved values — no pointer or index dereferenced again.
         if (m_action == actionResize) {
-            wxAuiDockUIPart* part = nullptr;
-            if (m_currentDragItem >= 0 && m_currentDragItem < (int)m_uiParts.GetCount())
-                part = &m_uiParts.Item(m_currentDragItem);
-            else
-                part = m_actionPart; // valid on the very first OnMotion (before any Update())
+            if (m_horizResizeDockY < 0) {
+                // First call: m_actionPart is still valid; m_currentDragItem may or may
+                // not be set yet depending on the wxAUI version.
+                wxAuiDockUIPart* part = nullptr;
+                if (m_currentDragItem >= 0 && m_currentDragItem < (int)m_uiParts.GetCount())
+                    part = &m_uiParts.Item(m_currentDragItem);
+                else
+                    part = m_actionPart; // valid before the first live-resize Update()
+                if (part != nullptr &&
+                    part->type == wxAuiDockUIPart::typeDockSizer &&
+                    part->dock != nullptr &&
+                    (part->dock->dock_direction == wxAUI_DOCK_TOP ||
+                     part->dock->dock_direction == wxAUI_DOCK_BOTTOM)) {
+                    m_horizResizeDockY = part->dock->rect.y;
+                    m_horizResizeActionOffsetY = m_actionOffset.y;
+                }
+            }
 
-            if (part != nullptr &&
-                part->type == wxAuiDockUIPart::typeDockSizer &&
-                part->dock != nullptr &&
-                (part->dock->dock_direction == wxAUI_DOCK_TOP ||
-                 part->dock->dock_direction == wxAUI_DOCK_BOTTOM)) {
+            if (m_horizResizeDockY >= 0) {
                 wxAuiPaneInfo& listPane = GetPane("ModelList");
                 bool centerVisible = false;
                 for (const char* nm : {"ModelSettings", "ModelGroupSettings"}) {
@@ -238,12 +256,11 @@ public:
                     }
                 }
                 if (listPane.IsOk() && listPane.IsShown() && !listPane.IsFloating() && centerVisible) {
-                    // new_size = (event.m_y - m_actionOffset.y) - dock.rect.y
+                    // new_size = (event.m_y - m_horizResizeActionOffsetY) - m_horizResizeDockY
                     // Enforce new_size >= kPaneMinHeight and (containerH - new_size) >= kPaneMinHeight.
-                    const wxRect& dockRect = part->dock->rect;
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-                    int minY = kPaneMinHeight + m_actionOffset.y + dockRect.y;
-                    int maxY = (containerH - kPaneMinHeight) + m_actionOffset.y + dockRect.y;
+                    int minY = kPaneMinHeight + m_horizResizeActionOffsetY + m_horizResizeDockY;
+                    int maxY = (containerH - kPaneMinHeight) + m_horizResizeActionOffsetY + m_horizResizeDockY;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
                     event.m_y = std::clamp(event.m_y, minY, maxY);
                 }
@@ -259,6 +276,9 @@ public:
         bool wasDragging = m_pendingCenterDrag || m_action != actionNone;
         m_pendingCenterDrag    = false;
         m_centerDragWindow     = nullptr;
+        // Reset per-drag clamping state.
+        m_horizResizeDockY = -1;
+        m_horizResizeActionOffsetY = 0;
         event.Skip();
         // After the base-class finishes processing the mouse-up (which may have
         // docked or floated a pane), update the splitter state.
@@ -9104,8 +9124,13 @@ void LayoutPanel::DockAll() {
 void LayoutPanel::ResetToDefaults() {
     if (!_auiInitialized || layout_mgr == nullptr) return;
 
-    // Discard any stashed floating perspective — we are rebuilding from scratch.
-    _savedFloatingPerspective.clear();
+    // If panes were stashed as floating+hidden by HideFloatingPanes() (tab-switch),
+    // restore them first so the AUI manager sees them in their actual floating state
+    // before we force-dock them below.
+    if (!_savedFloatingPerspective.empty()) {
+        layout_mgr->LoadPerspective(_savedFloatingPerspective);
+        _savedFloatingPerspective.clear();
+    }
 
     // Dock all panels to their default positions: ModelList at top, ModelSettings
     // in the center, ModelGroupSettings docked but hidden.
@@ -9121,7 +9146,10 @@ void LayoutPanel::ResetToDefaults() {
     if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
     layout_mgr->GetPane("ModelList").BestSize(-1, halfHeight);
 
-    // Ensure the left panel is visible in the splitter.
+    // Ensure the left panel is visible in the splitter, then commit the AUI layout.
+    // Also discard any saved sash position so the default 18% width is used on the
+    // next float/dock cycle (UpdateLayoutSplitter reads _savedSashPos).
+    _savedSashPos = -1;
     UpdateLayoutSplitter();
     layout_mgr->Update();
 
@@ -9137,6 +9165,10 @@ void LayoutPanel::ResetToDefaults() {
     config->DeleteEntry("LayoutAUIPerspective2");
     config->DeleteEntry("LayoutMainSplitterSash");
     config->DeleteEntry("LayoutModelSplitterSash");
+
+    // Re-populate the property editor so the Background Properties panel
+    // isn't empty after the reset.
+    showBackgroundProperties();
 }
 
 
@@ -9229,6 +9261,10 @@ void LayoutPanel::UpdateLayoutSplitter() {
             _savedSashPos = SplitterWindow2->GetSashPosition();
             SplitterWindow2->SetMinimumPaneSize(0);
             SplitterWindow2->Unsplit(LeftPanel);
+            // The GL canvas got a new (larger) size from the sizer but the GL
+            // viewport isn't updated until the next paint.  Force a repaint now
+            // so the newly-exposed area to the right doesn't stay black.
+            if (modelPreview) modelPreview->Refresh();
         }
     } else {
         // Target width: 18% of splitter width, floor kMinPaneWidth.  This is where the

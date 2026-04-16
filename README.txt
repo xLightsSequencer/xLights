@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
+    -bug (AGFazio)               Fix Layout tab: undocking panels via double-click left black space where left panel was
     -bug (AGFazio)               Fix submodels in a group showing at wrong indent level in sequencer element list
     -bug (derwin12)             Fix downloaded/imported models always getting start channel 1 (#6075)
     -bug (derwin12)             Fix unintended setting of ShadowModelFor (#5634)
