@@ -1328,12 +1328,11 @@ bool VendorModelDialog::DownloadModel(MModelWiring* wiring)
 
 wxTreeItemId VendorModelDialog::GetFocusedItem() const
 {
-    wxArrayTreeItemIds selections;
-    TreeCtrl_Navigator->GetSelections(selections);
-    if (selections.GetCount() > 0) {
-        return selections[selections.GetCount() - 1];
-    }
-    return wxTreeItemId();
+    // Use wxTreeCtrl's native focused-item API (confirmed available and used elsewhere
+    // in the codebase, e.g. SeqSettingsDialog.cpp). This returns the actual focused
+    // item rather than guessing from the last selection, which matters for multi-select
+    // trees where selection ordering is not guaranteed.
+    return TreeCtrl_Navigator->GetFocusedItem();
 }
 
 std::vector<MModelWiring*> VendorModelDialog::GetSelectedWirings()

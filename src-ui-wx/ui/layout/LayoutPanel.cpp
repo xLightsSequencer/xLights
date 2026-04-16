@@ -4071,13 +4071,16 @@ void LayoutPanel::FinalizeModel()
                 if (extraModel == nullptr) continue;
 
                 extraModel->SetStartChannel("1");
-                Model* loadedExtraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                // CreateDefaultModelFromSavedModelNode takes ownership of extraModel and deletes
+                // it internally before returning a newly deserialized model. On failure it returns
+                // nullptr having already freed the passed-in pointer, so we must NOT delete
+                // extraModel here (would double-delete). Match the primary model path which also
+                // just returns without manual cleanup.
+                extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
 
-                if (extraCancelled || loadedExtraModel == nullptr) {
-                    delete extraModel;
+                if (extraCancelled || extraModel == nullptr) {
                     continue;
                 }
-                extraModel = loadedExtraModel;
 
                 // Reset controller name to NO_CONTROLLER so ReworkStartChannel auto-assigns
                 // a correct start channel (matches behavior in GetXlightsModel for the primary model)
