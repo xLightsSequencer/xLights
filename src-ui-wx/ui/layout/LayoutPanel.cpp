@@ -67,7 +67,6 @@
 #include "ui/model/ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/ExternalHooksUI.h"
-#include "ui/shared/utils/wxUtilities.h"
 #include "ui/color/ColorManager.h"
 #include "utils/VectorMath.h"
 #include "../app-shell/KeyBindings.h"
@@ -9169,8 +9168,13 @@ void LayoutPanel::ResetToDefaults() {
     config->DeleteEntry("LayoutModelSplitterSash");
 
     // Re-populate the property editor so the Background Properties panel
-    // isn't empty after the reset.
-    showBackgroundProperties();
+    // isn't empty after the reset.  Defer via CallAfter so any pending
+    // window-resize / sash-minimum events from DockAndRefresh settle first;
+    // interacting with the property grid before those events flush can cause
+    // re-entrant property changes and a lockup.
+    CallAfter([this]() {
+        showBackgroundProperties();
+    });
 }
 
 
@@ -9224,8 +9228,12 @@ void LayoutPanel::RestoreFloatingPanes() {
     }
     wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
     if (modelSettingsPane.IsOk()) {
+        wxString modelSettingsCaption = modelSettingsPane.caption;
+        if (modelSettingsCaption.IsEmpty()) {
+            modelSettingsCaption = "Model Settings";
+        }
         modelSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(true)
-            .Caption(mPropGridActive ? "Model Settings" : "Background Properties")
+            .Caption(modelSettingsCaption)
             .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
     }
     wxAuiPaneInfo& modelGroupSettingsPane = layout_mgr->GetPane("ModelGroupSettings");
