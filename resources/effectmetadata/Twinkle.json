@@ -36,7 +36,7 @@
                 "Old Render Method",
                 "New Render Method"
             ],
-            "default": "Old Render Method"
+            "default": "New Render Method"
         },
         {
             "id": "Twinkle_Strobe",
