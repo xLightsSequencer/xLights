@@ -945,7 +945,7 @@ bool VendorModelDialog::FindModelFile(const std::string &vendor, const std::stri
         if (v->_name == vendor) {
             for (auto &m: v->_models) {
                 if (m->_name == model && !m->_wiring.empty()) {
-                    DownloadModel(m->_wiring.front());
+                    (void)DownloadModel(m->_wiring.front());
                     if (_modelFile != "") {
                         return true;
                     }
@@ -1234,10 +1234,16 @@ void VendorModelDialog::OnButton_NextClick(wxCommandEvent& event)
     }
 }
 
-void VendorModelDialog::DownloadModel(MModelWiring* wiring)
+bool VendorModelDialog::DownloadModel(MModelWiring* wiring)
 {
 
     wiring->DownloadXModel();
+
+    // If the download was cancelled or otherwise failed, the xmodel file won't exist on disk
+    if (!FileExists(wiring->_xmodelFile)) {
+        return false;
+    }
+
     if (wiring->_xmodelFile.GetExt().Lower() == "zip") {
         // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
         spdlog::debug("    opening zipped model " + _modelFile);
@@ -1303,12 +1309,12 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
             }
             else {
                 spdlog::error("Failed to open zip file.");
-                return;
+                return false;
             }
         }
         else {
             spdlog::error("Failed to open zip file.");
-            return;
+            return false;
         }
     }
     else {
@@ -1317,6 +1323,7 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
         _modelHeightMM = wiring->GetHeightMM();
         _modelDepthMM = wiring->GetDepthMM();
     }
+    return !_modelFile.empty();
 }
 
 wxTreeItemId VendorModelDialog::GetFocusedItem() const
@@ -1374,11 +1381,18 @@ void VendorModelDialog::DownloadSelectedModels()
         _modelHeightMM = -1;
         _modelDepthMM = -1;
 
-        DownloadModel(wiring);
-
-        if (!_modelFile.empty()) {
-            _downloadedModels.push_back({_modelFile, _modelWidthMM, _modelHeightMM, _modelDepthMM});
+        // If any download in the batch is cancelled or fails, abort the whole batch
+        // and leave a clean state (no partial results) per the PR's intended behavior
+        if (!DownloadModel(wiring)) {
+            _downloadedModels.clear();
+            _modelFile.clear();
+            _modelWidthMM = -1;
+            _modelHeightMM = -1;
+            _modelDepthMM = -1;
+            return;
         }
+
+        _downloadedModels.push_back({_modelFile, _modelWidthMM, _modelHeightMM, _modelDepthMM});
     }
 
     // Populate legacy single-model fields from first result for backward compatibility
@@ -1435,8 +1449,9 @@ void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
             }
 
             if (wiring != nullptr) {
-                DownloadModel(wiring);
-                EndDialog(wxID_OK);
+                if (DownloadModel(wiring)) {
+                    EndDialog(wxID_OK);
+                }
             }
         }
     }
@@ -1559,16 +1574,14 @@ void VendorModelDialog::ValidateWindow()
     if (wirings.size() > 1) {
         Button_InsertModel->Enable();
         Button_InsertModel->SetLabel(wxString::Format("Insert %zu Models", wirings.size()));
-        Button_InsertModel->GetParent()->GetSizer()->Layout();
     } else if (wirings.size() == 1) {
         Button_InsertModel->Enable();
         Button_InsertModel->SetLabel("Insert Model");
-        Button_InsertModel->GetParent()->GetSizer()->Layout();
     } else {
         Button_InsertModel->Disable();
         Button_InsertModel->SetLabel("Insert Model");
-        Button_InsertModel->GetParent()->GetSizer()->Layout();
     }
+    Button_InsertModel->GetParent()->GetSizer()->Layout();
 
     if (GetFocusedItem().IsOk())
     {

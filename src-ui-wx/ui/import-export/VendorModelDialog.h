@@ -73,7 +73,7 @@ class VendorModelDialog: public wxDialog
     [[nodiscard]] bool DeleteEmptyCategories(wxTreeItemId& parent);
     [[nodiscard]] bool IsVendorSuppressed(const std::string& vendor);
     void SuppressVendor(const std::string& vendor, bool suppress);
-	void DownloadModel(MModelWiring* wiring);
+	[[nodiscard]] bool DownloadModel(MModelWiring* wiring);
     [[nodiscard]] std::vector<MModelWiring*> GetSelectedWirings();
     void DownloadSelectedModels();
     [[nodiscard]] wxTreeItemId GetFocusedItem() const;

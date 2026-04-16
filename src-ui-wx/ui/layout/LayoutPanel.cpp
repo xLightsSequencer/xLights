@@ -4047,7 +4047,8 @@ void LayoutPanel::FinalizeModel()
                 if (extraModelPath.empty()) continue;
 
                 std::string extraModelLower = extraModelPath;
-                std::transform(extraModelLower.begin(), extraModelLower.end(), extraModelLower.begin(), ::tolower);
+                std::transform(extraModelLower.begin(), extraModelLower.end(), extraModelLower.begin(),
+                               [](unsigned char c) { return std::tolower(c); });
                 if (!extraModelLower.ends_with(".xmodel")) continue;
 
                 pugi::xml_document extraDoc;
