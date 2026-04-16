@@ -14,36 +14,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 -change (scott)             Replace wxConfig with a custom JSON settings manager (AppData/xLights/settings.json).
                                     Settings are automatically migrated from the legacy system on first run.
 
-
-    -bug (dkulp)                Help → Key Bindings now opens a resizable, scrollable dialog instead of a
-                                    wxMessageBox so the bottom of the list is reachable on short displays (#5855).
+2026.06  April 16, 2026
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
                                     transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
                                     the source is uncompressed, hevc_videotoolbox otherwise) and rewrites the
                                     matching video-effect filenames in the sequence.
-    -enh (dkulp)                Media-compatibility check now runs on Windows/Linux too via an FFmpeg-based
-                                    container + codec allowlist, so Mac-incompatible videos (AVI, WMV, MKV,
-                                    legacy QuickTime codecs, animated GIFs) get the same warning and
-                                    Convert-Now flow as on macOS.
-    -change (dkulp)             Pinwheel effect now defaults to the New Render Method; existing sequences
-                                    are migrated to preserve the Old Render Method so their look is unchanged.
     -enh (AGFazio)              Add 'Yes to All' / 'No to All' options when merging base show directory changes
-    -bug (derwin12)             Model preview reset after changing model (#5758)
-    -bug (derwin12)             Fix Twinkle Steps value curve capped at 100 instead of 400 (#4347)
-    -bug (AGFazio)              Fix submodels in a group showing at wrong indent level in sequencer element list
-    -bug (derwin12)             Fix downloaded/imported models always getting start channel 1 (#6075)
-    -bug (derwin12)             Fix false "newer version" warning when importing effects from same version (#6113)
-    -bug (derwin12)             Fix Solid/Blended Circle pixel style appearing wrong size in model and effect panels (#4031, #4654, #4087)
-    -bug (derwin12)             Fix unintended setting of ShadowModelFor (#5634)
-    -bug (dkulp)                Fix macOS 11/12 launch crash "Symbol not found..." due to using
-                                    some stuff (like std::format) from newer C++ that is not
-                                    available before macOS 13.3.   This is likely temporary
-                                    and expect minimal version to bump to at least 13.3
-                                    at some point in the near future. (#6080)
-    -bug (derwin12)             Fix Wave effect speed from a value curve (#3346)
-    -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction (#5636)
-    -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero (#4807)
-    -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view (#5849)
     -enh (derwin12)             Add alternate audio tracks support incl waveform, VU Meter and value curve access. (#3820)
     -enh (derwin12)             Allow selecting audio from a sequence package (zip/piz/xsqz) in Sequence Settings (#5630)
     -enh (derwin12)             Add sequencer prop filter to quickly jump to a prop by name (#5066)
@@ -61,29 +37,43 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     media compatibility warning shown on sequence load
     -enh (dkulp)                Format GitHub release notes as markdown (sectioned headings, bullet
                                     list per author) instead of dumping the raw README text
-    -bug (dkulp)                Fix Apple Intelligence service disappearing entirely on macOS prior to 26:
-                                    weak-link FoundationModels and ImagePlayground frameworks so the binary
-                                    loads on older macOS, gate Color Palette to macOS 26+ (FoundationModels)
-                                    and Image Generation to macOS 15.4+ (ImagePlayground.ImageCreator)
     -enh (dkulp)                Wave effect "Number of Waves" slider is now a proper float cycles slider (0.5 .. 10.0)
                                     instead of a confusing integer degrees slider (180 .. 3600). Existing sequences
                                     are migrated automatically on first load.
+    -bug (dkulp)                Fix HinksPix Pro V1/V2 sometimes reporting start channel 1 after auto-size,
+                                    causing model overlaps. SetChannelSize now preserves the controller's base
+                                    start channel across its internal output rebuild.
+    -bug (dkulp)                Suppress startup "Setting show directory to X" info dialog when the -s argument
+                                    matches the already-saved show directory.
+    -bug (dkulp)                Help → Key Bindings now opens a resizable, scrollable dialog instead of a
+                                    wxMessageBox so the bottom of the list is reachable on short displays (#5855).
     -bug (dkulp)                Fix several pre-existing effect default mismatches exposed during the JSON
                                     migration: Fan/Galaxy/Shockwave Blend_Edges now honor their JSON "true" default
                                     for newly-created effects, Shape StartSize matches JSON (1 instead of 5),
                                     Faces FaceDefinition fallback is now consistently "Default" across CheckEffectSettings
                                     and Render, Metal Spirals now matches CPU Spirals default for Rotation/Thickness.
+    -bug (dkulp)                Fix Apple Intelligence service disappearing entirely on macOS prior to 26:
+                                    weak-link FoundationModels and ImagePlayground frameworks so the binary
+                                    loads on older macOS, gate Color Palette to macOS 26+ (FoundationModels)
+                                    and Image Generation to macOS 15.4+ (ImagePlayground.ImageCreator)
+    -bug (derwin12)             Model preview reset after changing model (#5758)
+    -bug (derwin12)             Fix Twinkle Steps value curve capped at 100 instead of 400 (#4347)
+    -bug (AGFazio)              Fix submodels in a group showing at wrong indent level in sequencer element list
+    -bug (derwin12)             Fix downloaded/imported models always getting start channel 1 (#6075)
+    -bug (derwin12)             Fix false "newer version" warning when importing effects from same version (#6113)
+    -bug (derwin12)             Fix Solid/Blended Circle pixel style appearing wrong size in model and effect panels (#4031, #4654, #4087)
+    -bug (derwin12)             Fix unintended setting of ShadowModelFor (#5634)
+    -bug (dkulp)                Fix macOS 11/12 launch crash "Symbol not found..." due to using
+                                    some stuff (like std::format) from newer C++ that is not
+                                    available before macOS 13.3.   This is likely temporary
+                                    and expect minimal version to bump to at least 13.3
+                                    at some point in the near future. (#6080)
+    -bug (derwin12)             Fix Wave effect speed from a value curve (#3346)
+    -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction (#5636)
+    -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero (#4807)
+    -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view (#5849)
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
     -bug (derwin12)             Fix crash after using Join in the SubModels dialog. (#6064)
-    -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
-                                    instead of wxSmith-generated C++ code. All 54 "standard" effect panels
-                                    migrated (Moving Head's 2345-line visual designer remains wxSmith-based);
-                                    the State/Timing Track radio buttons on State are removed — pick one side
-                                    by setting it, leave the other empty.
-                                    Side effects: Warp X/Y and Fireworks XLocation/YLocation/XVelocity/YVelocity/Fade
-                                    settings now serialize as E_SLIDER_* instead of E_TEXTCTRL_*. Render code reads
-                                    both forms via GetValueCurveInt fallback so behavior is unchanged, but tools that
-                                    parse sequence XML directly should accept either prefix.
     -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
                                     Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
     -bug (dkulp)                Fix Circles effect Collide checkbox removal causing silent behavior change in old sequences.
@@ -91,6 +81,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix Shockwave effect rendering as invisible on macOS for new effects (Metal backend was
                                     using stale defaults of 0 for Start/End Radius/Width).
     -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
+    -change (scott)             Replace wxConfig with a custom JSON settings manager (AppData/xLights/settings.json).
+                                    Settings are automatically migrated from the legacy system on first run.
+    -change (dkulp)             Pinwheel effect now defaults to the New Render Method; existing sequences
+                                    are migrated to preserve the Old Render Method so their look is unchanged.
+    -change (dkulp/derwin12)    Twinkle effect now defaults to the New Render Method; existing sequences
+                                    are migrated to preserve the Old Render Method so their look is unchanged.
+    -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
+                                    instead of wxSmith-generated C++ code. All 54 "standard" effect panels
+                                    migrated (Moving Head's 2345-line visual designer remains wxSmith-based).
     -change (dkulp)             Effect default / min / max / divisor values are now read from the JSON metadata at
                                     startup instead of from #define constants in each effect. The JSON is the
                                     source of truth — adjusting a slider's default or range in resources/effectmetadata/
