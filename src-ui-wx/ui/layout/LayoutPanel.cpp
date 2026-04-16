@@ -893,7 +893,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         .MinSize(-1, 50)
         .Hide());
 
-    wxString auiPerspective = config->Read("LayoutAUIPerspective2", wxEmptyString);
+    wxString auiPerspective;
+    config->Read("LayoutAUIPerspective2", &auiPerspective, wxEmptyString);
     if (!auiPerspective.empty()) {
         layout_mgr->LoadPerspective(auiPerspective);
     }
