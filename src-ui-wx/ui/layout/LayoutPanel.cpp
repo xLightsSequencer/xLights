@@ -67,6 +67,7 @@
 #include "ui/model/ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/ExternalHooksUI.h"
+#include "ui/shared/utils/wxUtilities.h"
 #include "ui/color/ColorManager.h"
 #include "utils/VectorMath.h"
 #include "../app-shell/KeyBindings.h"
