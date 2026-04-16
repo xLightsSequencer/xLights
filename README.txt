@@ -11,8 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.06  May ??, 2026
-    -bug (AGFazio)               Fix Layout tab: undocking panels left black space where the left panel was
-    -change (scott)             Replace wxConfig with a custom JSON settings manager (AppData/xLights/settings.json).
+-change (scott)             Replace wxConfig with a custom JSON settings manager (AppData/xLights/settings.json).
                                     Settings are automatically migrated from the legacy system on first run.
 
 
